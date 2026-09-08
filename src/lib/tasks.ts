@@ -320,9 +320,15 @@ export function sortTasks(list: Task[]): Task[] {
   });
 }
 
-export function tasksFor(subject: Pick<Subject, "kind" | "id">): Task[] {
+/** A natural subject ID can occur in several programs; scoped callers must supply their program. */
+export function tasksFor(subject: Pick<Subject, "kind" | "id">, programId?: string): Task[] {
   return sortTasks(
-    tasks.filter((t) => t.subject.kind === subject.kind && t.subject.id === subject.id),
+    tasks.filter(
+      (t) =>
+        (programId === undefined || t.program === programId) &&
+        t.subject.kind === subject.kind &&
+        t.subject.id === subject.id,
+    ),
   );
 }
 

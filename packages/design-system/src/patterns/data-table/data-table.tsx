@@ -13,7 +13,12 @@ import { memo, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } 
 
 import { Alert } from "../../components/alert";
 import { IconButton } from "../../components/button";
-import { DropdownMenu } from "../../components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "../../components/dropdown-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../../components/hover-card";
 import { Id } from "../../components/id";
 import { Pagination } from "../../components/pagination";
@@ -24,6 +29,7 @@ import { Empty } from "../empty";
 import type { DataTableFeatures } from "./features";
 import { Columns, HeaderMenu, Settings } from "./columns-menu";
 import { Filter, Presets, Search } from "./filter";
+import { Metrics, MetricsContent, MetricsTrigger } from "./metrics";
 import { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";
 import { SelectionBar } from "./selection-bar";
 import type { DataTableInstance } from "./use-data-table";
@@ -327,27 +333,29 @@ function BodyCell<TData extends RowData>({
         edge={pin.edge}
         onClick={(e) => e.stopPropagation()}
       >
-        <DropdownMenu
-          align="end"
-          trigger={
-            <IconButton
-              label={t("rowActions")}
-              variant="subtle"
-              className="invisible focus-visible:visible group-hover/row:visible data-[state=open]:visible"
-              icon={<MoreHorizontal />}
-            />
-          }
-        >
-          {actions.map((a) => (
-            <DropdownMenu.Item
-              key={a.label}
-              onSelect={a.onSelect}
-              {...(a.disabled ? { disabled: true } : {})}
-              {...(a.tone === "danger" ? { tone: "danger" } : {})}
-            >
-              {a.label}
-            </DropdownMenu.Item>
-          ))}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <IconButton
+                label={t("rowActions")}
+                variant="subtle"
+                className="opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-popup-open:opacity-100"
+                icon={<MoreHorizontal />}
+              />
+            }
+          />
+          <DropdownMenuContent align="end" style={{ width: 200 }}>
+            {actions.map((a) => (
+              <DropdownMenuItem
+                key={a.label}
+                onClick={a.onSelect}
+                {...(a.disabled ? { disabled: true } : {})}
+                {...(a.tone === "danger" ? { variant: "destructive" } : {})}
+              >
+                {a.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
         </DropdownMenu>
       </Table.Cell>
     );
@@ -914,4 +922,7 @@ export const DataTable = Object.assign(DataTableRoot, {
   Presets,
   Columns,
   Settings,
+  Metrics,
+  MetricsTrigger,
+  MetricsContent,
 });

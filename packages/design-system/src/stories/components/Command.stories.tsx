@@ -3,7 +3,17 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FileText, Search, Settings, User } from "lucide-react";
 import { useState } from "react";
 
-import { Badge, Button, Command, DropdownMenu, Id, Kbd } from "../../components";
+import {
+  Badge,
+  Button,
+  Command,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  Id,
+  Kbd,
+} from "../../components";
 import { CommandKeys } from "../../lib/command-keys";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -309,11 +319,14 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <DropdownMenu trigger={<Button>Actions</Button>}>
-            <DropdownMenu.Item>Record assessment</DropdownMenu.Item>
-            <DropdownMenu.Item>Link evidence</DropdownMenu.Item>
-            <DropdownMenu.Item>Export report</DropdownMenu.Item>
-            <DropdownMenu.Item tone="danger">Archive</DropdownMenu.Item>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button>Actions</Button>} />
+            <DropdownMenuContent style={{ width: 200 }}>
+              <DropdownMenuItem>Record assessment</DropdownMenuItem>
+              <DropdownMenuItem>Link evidence</DropdownMenuItem>
+              <DropdownMenuItem>Export report</DropdownMenuItem>
+              <DropdownMenuItem variant="destructive">Archive</DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
         }
         doText="Four actions behind one button are a DropdownMenu. The reader reads them; nothing needs filtering."

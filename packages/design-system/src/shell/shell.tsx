@@ -29,7 +29,7 @@ import {
 import { IconButton } from "../components/button";
 import { Kbd } from "../components/kbd";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/popover";
-import { Tooltip, TooltipProvider } from "../components/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/tooltip";
 import { Eyebrow } from "../components/typography";
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
@@ -441,7 +441,7 @@ function ShellRoot({
 
   return (
     <ShellContext.Provider value={api}>
-      <TooltipProvider>
+      <TooltipProvider delay={300} timeout={300}>
         <div className={cn("shell-root bg-surface text-default", className)} style={vars}>
           <SkipLinks />
           {children}
@@ -939,34 +939,33 @@ function SideNavToggleButton({
   const label = showing ? collapseLabel : expandLabel;
   const Icon = showing ? PanelLeftClose : PanelLeftOpen;
   return (
-    <Tooltip
-      content={
-        shell.shortcut ? (
-          <span className="flex items-center gap-075">
-            {label}
+    <span ref={shell.toggleHolder} className="contents">
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <IconButton
+              label={label}
+              variant="subtle"
+              aria-expanded={showing}
+              onClick={() => shell.toggleSideNav("toggle-button")}
+              onPointerEnter={shell.peekSideNav}
+              onPointerLeave={() => shell.endPeek()}
+              icon={<Icon />}
+              isTooltipDisabled
+            />
+          }
+        />
+        <TooltipContent>
+          {label}
+          {shell.shortcut ? (
             <span className="flex items-center gap-025">
               <Kbd>Ctrl</Kbd>
               <Kbd>[</Kbd>
             </span>
-          </span>
-        ) : (
-          label
-        )
-      }
-    >
-      <span ref={shell.toggleHolder} className="contents">
-        <IconButton
-          label={label}
-          variant="subtle"
-          aria-expanded={showing}
-          onClick={() => shell.toggleSideNav("toggle-button")}
-          onPointerEnter={shell.peekSideNav}
-          onPointerLeave={() => shell.endPeek()}
-          icon={<Icon />}
-          isTooltipDisabled
-        />
-      </span>
-    </Tooltip>
+          ) : null}
+        </TooltipContent>
+      </Tooltip>
+    </span>
   );
 }
 

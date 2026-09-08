@@ -782,12 +782,128 @@
       "target": "\"src/components/dropdown-menu\".DropdownMenu",
       "kind": "value"
     },
+    ".#DropdownMenuCheckboxItem": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuCheckboxItem",
+      "kind": "value"
+    },
+    ".#DropdownMenuCheckboxItemProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuCheckboxItemProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuContent": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuContent",
+      "kind": "value"
+    },
+    ".#DropdownMenuContentProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuContentProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuGroup": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuGroup",
+      "kind": "value"
+    },
+    ".#DropdownMenuGroupProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuGroupProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuItem": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuItem",
+      "kind": "value"
+    },
     ".#DropdownMenuItemProps": {
       "target": "\"src/components/dropdown-menu\".DropdownMenuItemProps",
       "kind": "type"
     },
+    ".#DropdownMenuLabel": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuLabel",
+      "kind": "value"
+    },
+    ".#DropdownMenuLabelProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuLabelProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuLinkItem": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuLinkItem",
+      "kind": "value"
+    },
+    ".#DropdownMenuLinkItemProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuLinkItemProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuPortal": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuPortal",
+      "kind": "value"
+    },
+    ".#DropdownMenuPortalProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuPortalProps",
+      "kind": "type"
+    },
     ".#DropdownMenuProps": {
       "target": "\"src/components/dropdown-menu\".DropdownMenuProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuRadioGroup": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuRadioGroup",
+      "kind": "value"
+    },
+    ".#DropdownMenuRadioGroupProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuRadioGroupProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuRadioItem": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuRadioItem",
+      "kind": "value"
+    },
+    ".#DropdownMenuRadioItemProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuRadioItemProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuSeparator": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuSeparator",
+      "kind": "value"
+    },
+    ".#DropdownMenuSeparatorProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuSeparatorProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuShortcut": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuShortcut",
+      "kind": "value"
+    },
+    ".#DropdownMenuShortcutProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuShortcutProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuSub": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuSub",
+      "kind": "value"
+    },
+    ".#DropdownMenuSubContent": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuSubContent",
+      "kind": "value"
+    },
+    ".#DropdownMenuSubContentProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuSubContentProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuSubProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuSubProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuSubTrigger": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuSubTrigger",
+      "kind": "value"
+    },
+    ".#DropdownMenuSubTriggerProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuSubTriggerProps",
+      "kind": "type"
+    },
+    ".#DropdownMenuTrigger": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuTrigger",
+      "kind": "value"
+    },
+    ".#DropdownMenuTriggerProps": {
+      "target": "\"src/components/dropdown-menu\".DropdownMenuTriggerProps",
       "kind": "type"
     },
     ".#Editable": {
@@ -1866,6 +1982,14 @@
       "target": "\"src/components/tooltip\".Tooltip",
       "kind": "value"
     },
+    ".#TooltipContent": {
+      "target": "\"src/components/tooltip\".TooltipContent",
+      "kind": "value"
+    },
+    ".#TooltipContentProps": {
+      "target": "\"src/components/tooltip\".TooltipContentProps",
+      "kind": "type"
+    },
     ".#TooltipProps": {
       "target": "\"src/components/tooltip\".TooltipProps",
       "kind": "type"
@@ -1873,6 +1997,18 @@
     ".#TooltipProvider": {
       "target": "\"src/components/tooltip\".TooltipProvider",
       "kind": "value"
+    },
+    ".#TooltipProviderProps": {
+      "target": "\"src/components/tooltip\".TooltipProviderProps",
+      "kind": "type"
+    },
+    ".#TooltipTrigger": {
+      "target": "\"src/components/tooltip\".TooltipTrigger",
+      "kind": "value"
+    },
+    ".#TooltipTriggerProps": {
+      "target": "\"src/components/tooltip\".TooltipTriggerProps",
+      "kind": "type"
     },
     ".#toRows": {
       "target": "\"src/patterns/data-table/to-rows\".toRows",
@@ -3001,19 +3137,193 @@
     "\"src/components/dropdown-menu\".DropdownMenu": [
       {
         "source": "src/components/dropdown-menu.d.ts",
-        "declaration": "DropdownMenu: typeof DropdownMenuRoot & {\n    Item: typeof DropdownMenuItem;\n    Label: typeof DropdownMenuLabel;\n    Separator: typeof DropdownMenuSeparator;\n}"
+        "declaration": "export declare function DropdownMenu<Payload = unknown>(props: DropdownMenuProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuCheckboxItem": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuCheckboxItem({ className, children, inset, ...props }: DropdownMenuCheckboxItemProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuCheckboxItemProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuCheckboxItemProps = MenuPrimitive.CheckboxItem.Props & {\n    inset?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuContent": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuContent({ align, alignOffset, side, sideOffset, className, style, dir, ...props }: DropdownMenuContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuContentProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuContentProps = MenuPrimitive.Popup.Props & Pick<MenuPrimitive.Positioner.Props, \"align\" | \"alignOffset\" | \"side\" | \"sideOffset\">;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuGroup": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuGroup(props: DropdownMenuGroupProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuGroupProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuGroupProps = MenuPrimitive.Group.Props;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuItem": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuItem({ className, inset, variant, ...props }: DropdownMenuItemProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/dropdown-menu\".DropdownMenuItemProps": [
       {
         "source": "src/components/dropdown-menu.d.ts",
-        "declaration": "export type DropdownMenuItemProps = {\n    children: ReactNode;\n    isSelected?: boolean | undefined;\n    disabled?: boolean | undefined;\n    onSelect?: (() => void) | undefined;\n    trailing?: ReactNode;\n    closeOnSelect?: boolean | undefined;\n    tone?: \"danger\" | undefined;\n};"
+        "declaration": "export type DropdownMenuItemProps = MenuPrimitive.Item.Props & {\n    inset?: boolean | undefined;\n    variant?: \"default\" | \"destructive\" | undefined;\n};"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuLabel": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuLabel({ className, inset, ...props }: DropdownMenuLabelProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuLabelProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuLabelProps = MenuPrimitive.GroupLabel.Props & {\n    inset?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuLinkItem": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuLinkItem({ className, inset, ...props }: DropdownMenuLinkItemProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuLinkItemProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuLinkItemProps = MenuPrimitive.LinkItem.Props & {\n    inset?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuPortal": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuPortal(props: DropdownMenuPortalProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuPortalProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuPortalProps = MenuPrimitive.Portal.Props;"
       }
     ],
     "\"src/components/dropdown-menu\".DropdownMenuProps": [
       {
         "source": "src/components/dropdown-menu.d.ts",
-        "declaration": "export type DropdownMenuProps = {\n    dir?: \"ltr\" | \"rtl\" | undefined;\n    trigger: ReactNode | ((props: {\n        open: boolean;\n        toggle: () => void;\n    }) => ReactNode);\n    align?: \"start\" | \"end\" | undefined;\n    width?: number | undefined;\n    defaultOpen?: boolean | undefined;\n    children: ReactNode | ((close: () => void) => ReactNode);\n};"
+        "declaration": "export type DropdownMenuProps<Payload = unknown> = MenuPrimitive.Root.Props<Payload>;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuRadioGroup": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuRadioGroup(props: DropdownMenuRadioGroupProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuRadioGroupProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuRadioGroupProps = MenuPrimitive.RadioGroup.Props;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuRadioItem": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuRadioItem({ className, children, inset, ...props }: DropdownMenuRadioItemProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuRadioItemProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuRadioItemProps = MenuPrimitive.RadioItem.Props & {\n    inset?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuSeparator": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuSeparator({ className, ...props }: DropdownMenuSeparatorProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuSeparatorProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuSeparatorProps = MenuPrimitive.Separator.Props;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuShortcut": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuShortcut({ className, ...props }: DropdownMenuShortcutProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuShortcutProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuShortcutProps = ComponentProps<\"span\">;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuSub": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuSub(props: DropdownMenuSubProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuSubContent": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuSubContent({ align, alignOffset, side, sideOffset, style, ...props }: DropdownMenuSubContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuSubContentProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuSubContentProps = DropdownMenuContentProps;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuSubProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuSubProps = MenuPrimitive.SubmenuRoot.Props;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuSubTrigger": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuSubTrigger({ className, inset, children, ...props }: DropdownMenuSubTriggerProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuSubTriggerProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuSubTriggerProps = MenuPrimitive.SubmenuTrigger.Props & {\n    inset?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuTrigger": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export declare function DropdownMenuTrigger<Payload = unknown>(props: DropdownMenuTriggerProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dropdown-menu\".DropdownMenuTriggerProps": [
+      {
+        "source": "src/components/dropdown-menu.d.ts",
+        "declaration": "export type DropdownMenuTriggerProps<Payload = unknown> = MenuPrimitive.Trigger.Props<Payload>;"
       }
     ],
     "\"src/components/editable\".Editable": [
@@ -3817,19 +4127,49 @@
     "\"src/components/tooltip\".Tooltip": [
       {
         "source": "src/components/tooltip.d.ts",
-        "declaration": "export declare function Tooltip({ content, side, align, delay, defaultOpen, className, children, }: TooltipProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Tooltip<Payload = unknown>(props: TooltipProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tooltip\".TooltipContent": [
+      {
+        "source": "src/components/tooltip.d.ts",
+        "declaration": "export declare function TooltipContent({ className, style, dir, side, sideOffset, align, alignOffset, children, ...props }: TooltipContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tooltip\".TooltipContentProps": [
+      {
+        "source": "src/components/tooltip.d.ts",
+        "declaration": "export type TooltipContentProps = TooltipPrimitive.Popup.Props & Pick<TooltipPrimitive.Positioner.Props, \"align\" | \"alignOffset\" | \"side\" | \"sideOffset\">;"
       }
     ],
     "\"src/components/tooltip\".TooltipProps": [
       {
         "source": "src/components/tooltip.d.ts",
-        "declaration": "export type TooltipProps = {\n    content: ReactNode;\n    side?: Side | undefined;\n    align?: Align | undefined;\n    delay?: number | undefined;\n    defaultOpen?: boolean | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
+        "declaration": "export type TooltipProps<Payload = unknown> = TooltipPrimitive.Root.Props<Payload>;"
       }
     ],
     "\"src/components/tooltip\".TooltipProvider": [
       {
         "source": "src/components/tooltip.d.ts",
-        "declaration": "export declare function TooltipProvider({ children }: {\n    children: ReactNode;\n}): import(\"react\").JSX.Element;"
+        "declaration": "export declare function TooltipProvider({ delay, ...props }: TooltipProviderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tooltip\".TooltipProviderProps": [
+      {
+        "source": "src/components/tooltip.d.ts",
+        "declaration": "export type TooltipProviderProps = TooltipPrimitive.Provider.Props;"
+      }
+    ],
+    "\"src/components/tooltip\".TooltipTrigger": [
+      {
+        "source": "src/components/tooltip.d.ts",
+        "declaration": "export declare function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tooltip\".TooltipTriggerProps": [
+      {
+        "source": "src/components/tooltip.d.ts",
+        "declaration": "export type TooltipTriggerProps<Payload = unknown> = TooltipPrimitive.Trigger.Props<Payload>;"
       }
     ],
     "\"src/components/tree\".Tree": [
@@ -4291,7 +4631,7 @@
     "\"src/patterns/data-table/columns-menu\".Columns": [
       {
         "source": "src/patterns/data-table/columns-menu.d.ts",
-        "declaration": "export declare function Columns<TData extends RowData>({ table, label, children, }: {\n    table: DataTableInstance<TData>;\n    label?: string | undefined;\n    children?: ReactNode;\n}): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Columns<TData extends RowData>({ table, label, children, }: {\n    table: DataTableInstance<TData>;\n    label?: string | undefined;\n    children?: ReactElement;\n}): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/patterns/data-table/columns-menu\".HeaderMenu": [
@@ -4303,7 +4643,7 @@
     "\"src/patterns/data-table/columns-menu\".Settings": [
       {
         "source": "src/patterns/data-table/columns-menu.d.ts",
-        "declaration": "export declare function Settings<TData extends RowData>({ table, label, children, }: {\n    table: DataTableInstance<TData>;\n    label?: string | undefined;\n    children?: ReactNode;\n}): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Settings<TData extends RowData>({ table, label, children, }: {\n    table: DataTableInstance<TData>;\n    label?: string | undefined;\n    children?: ReactElement;\n}): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/patterns/data-table/columns\".columnKinds": [
@@ -5608,30 +5948,6 @@
         "declaration": "type DatePickerOwnProps = {\n    value?: string | undefined;\n    defaultValue?: string | undefined;\n    onChange?: ((iso: string) => void) | undefined;\n    placeholder?: string | undefined;\n    size?: ControlSize | undefined;\n    disabled?: boolean | undefined;\n    name?: string | undefined;\n    form?: string | undefined;\n    id?: string | undefined;\n    \"aria-labelledby\"?: string | undefined;\n    defaultOpen?: boolean | undefined;\n    className?: string | undefined;\n    \"aria-label\"?: string | undefined;\n    \"aria-invalid\"?: boolean | undefined;\n    \"aria-required\"?: boolean | undefined;\n    \"aria-describedby\"?: string | undefined;\n};"
       }
     ],
-    "src/components/dropdown-menu.d.ts#DropdownMenuItem": [
-      {
-        "source": "src/components/dropdown-menu.d.ts",
-        "declaration": "declare function DropdownMenuItem({ children, isSelected, disabled, onSelect, trailing, closeOnSelect, tone, }: DropdownMenuItemProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/dropdown-menu.d.ts#DropdownMenuLabel": [
-      {
-        "source": "src/components/dropdown-menu.d.ts",
-        "declaration": "declare function DropdownMenuLabel({ children }: {\n    children: ReactNode;\n}): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/dropdown-menu.d.ts#DropdownMenuRoot": [
-      {
-        "source": "src/components/dropdown-menu.d.ts",
-        "declaration": "declare function DropdownMenuRoot({ dir, trigger, align, width, defaultOpen, children, }: DropdownMenuProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/dropdown-menu.d.ts#DropdownMenuSeparator": [
-      {
-        "source": "src/components/dropdown-menu.d.ts",
-        "declaration": "declare function DropdownMenuSeparator(): import(\"react\").JSX.Element;"
-      }
-    ],
     "src/components/editable.d.ts#EditableSelect": [
       {
         "source": "src/components/editable.d.ts",
@@ -5876,18 +6192,6 @@
       {
         "source": "src/components/toggle.d.ts",
         "declaration": "toggleVariants: (props?: ({\n    variant?: \"default\" | \"outline\" | null | undefined;\n    size?: \"default\" | \"sm\" | \"lg\" | null | undefined;\n} & import(\"class-variance-authority/types\").ClassProp) | undefined) => string"
-      }
-    ],
-    "src/components/tooltip.d.ts#Align": [
-      {
-        "source": "src/components/tooltip.d.ts",
-        "declaration": "type Align = NonNullable<ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>[\"align\"]>;"
-      }
-    ],
-    "src/components/tooltip.d.ts#Side": [
-      {
-        "source": "src/components/tooltip.d.ts",
-        "declaration": "type Side = NonNullable<ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>[\"side\"]>;"
       }
     ],
     "src/components/tree.d.ts#TreeRoot": [
@@ -6258,7 +6562,7 @@
     ]
   },
   "dependencyContracts": {
-    "@base-ui/react": "44617f67e516e89e211181e8ddf4b0f33a2fe3260c62baf62381b1191c7c15b7",
+    "@base-ui/react": "d9224c00b666ddb8801022cbec56fcf6347214fe438dfd4ae322331cd7bfef95",
     "@base-ui/utils": "a71988b4234a15dd1dcecb2aaaac6ab8c6472d75cd26993efe45671a8247777a",
     "@floating-ui/core": "581cec84f04c06ef6908cd1af8471390d1d96893d63abdaf0391ef43ae0a1815",
     "@floating-ui/dom": "82afab4c16f6bedc49dfed4eec228766546f4e0a8aed010cab33ad05aeed4568",
@@ -6267,11 +6571,8 @@
     "@radix-ui/react-accordion": "1303f3842225face5ab96006ebf5d44ef687ec6e89b1cdce2734018f795936c5",
     "@radix-ui/react-collapsible": "ca701be9348bda6a7fb90802c60d48fc17266f2db61ff5f600f6a8dd2e87101f",
     "@radix-ui/react-dialog": "82a48d5e74f33dc2aef6de95ede036bd198b55c6c3ae7a9549226e5bd7c16d9c",
-    "@radix-ui/react-dismissable-layer": "30014e32f550967c6b0685c353d0b960d8ca52743702fb3cfeb34313cc8eaa96",
-    "@radix-ui/react-popper": "0b1cc4ad7f915806f76cb9702c76be22e28c45d9732e0de1948ccfdae5418c1b",
     "@radix-ui/react-primitive": "63d3234db546b015692a041ebca64565f13927070357207f513c50568fb47110",
     "@radix-ui/react-select": "3ccf302d0bc1396a714f62411df49aa74fb0a919c94186c5c581b5e91f737a76",
-    "@radix-ui/react-tooltip": "c5bde960af39795df790ef806c587192edd714e628fb3892a55e352e1423a35d",
     "@tanstack/react-table": "9b4c12523ac392ff0b5564e6dbe85ca1a9437d2a78a56f7895ae7b2982c3f208",
     "@tanstack/store": "e91da0d2d43c8449f2e3c13471cd4bf3491a9e1ba2466681d3d5ba155c09c25d",
     "@tanstack/table-core": "763db1ab26ffc8c2a682e1db6b52b4cb4ab950fa79b574d1c83ab9064ff95c1e",

@@ -555,6 +555,11 @@ function exposureFactor(node: CompositionNode | null): BuiltFactor | { caveat: s
         "Exposure could not be computed: the finding resolves to no composition node, so there is no graph position to walk inbound paths to. The 0.15 exposure weight is not applied and the score is out of 85 rather than 100.",
     };
   }
+  if (node.zone === "Unspecified")
+    return {
+      caveat:
+        "Exposure could not be computed: the imported element has no supplied trust zone. The exposure weight is not applied.",
+    };
 
   const paths = exposurePathsTo(node.id);
   const closure = [node, ...ancestorsOf(node.id)];
@@ -620,7 +625,7 @@ function exposureFactor(node: CompositionNode | null): BuiltFactor | { caveat: s
 
 /* ── Factor 5 — mission impact ───────────────────────────────────────────── */
 
-const criticalityValue: Record<Criticality, number> = {
+const criticalityValue: Record<Exclude<Criticality, "Unspecified">, number> = {
   "Mission critical": 0.9,
   "Mission essential": 0.65,
   "Mission support": 0.4,
@@ -686,6 +691,11 @@ function missionFactor(f: Finding, node: CompositionNode | null): BuiltFactor | 
         "Mission impact could not be computed: the finding resolves to no composition node, so neither a criticality nor a scenario path can be read for it. The 0.25 mission weight is not applied.",
     };
   }
+  if (node.criticality === "Unspecified")
+    return {
+      caveat:
+        "Mission impact could not be computed: the imported element has no supplied criticality analysis. The mission weight is not applied.",
+    };
 
   const base = criticalityValue[node.criticality];
   const named = missionEffects.filter((e) => e.findings.includes(f.id));
@@ -1067,7 +1077,14 @@ export function authoredComparison(
   asOf: string = datasetToday,
 ): AuthoredComparison | null {
   const risk = riskById.get(riskId);
-  if (!risk) return null;
+  if (
+    !risk ||
+    risk.residual === null ||
+    risk.inherent === null ||
+    risk.likelihood === null ||
+    risk.impact === null
+  )
+    return null;
   const computed = scoreRisk(riskId, asOf);
   if (!computed) return null;
   const delta = computed.score - risk.residual;
@@ -1191,7 +1208,7 @@ export function programRiskPosture(
   for (const s of live) {
     const f = findings.find((x) => x.id === s.subject);
     const node = f ? nodeOf(f) : null;
-    const w = node ? criticalityValue[node.criticality] : 0.5;
+    const w = node && node.criticality !== "Unspecified" ? criticalityValue[node.criticality] : 0.5;
     weightSum += w;
     weighted += s.score * w;
   }

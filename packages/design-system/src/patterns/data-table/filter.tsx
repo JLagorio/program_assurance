@@ -8,7 +8,14 @@ import { Button } from "../../components/button";
 import { Checkbox } from "../../components/checkbox";
 import { FilterChip } from "../../components/chip";
 import { Input } from "../../components/controls";
-import { DropdownMenu } from "../../components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuShortcut,
+} from "../../components/dropdown-menu";
 import { InputGroup } from "../../components/input-group";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/popover";
 import { ToggleGroup, ToggleGroupItem } from "../../components/toggle-group";
@@ -298,32 +305,39 @@ export function Presets<TData extends RowData>({
   if (variant === "menu") {
     const count = active ? countRows(table, active.filters) : undefined;
     return (
-      <DropdownMenu
-        align="start"
-        width={240}
-        trigger={
-          <Button
-            variant="secondary"
-            size="small"
-            iconAfter={<ChevronDown />}
-            aria-label={ariaLabel ?? t("savedQuestions")}
-            className={className}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="secondary"
+              size="small"
+              iconAfter={<ChevronDown />}
+              aria-label={ariaLabel ?? t("savedQuestions")}
+              className={className}
+            >
+              {active?.label ?? t("view")}
+              {count === undefined ? null : <Count value={count} />}
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="start" style={{ width: 240 }}>
+          <DropdownMenuRadioGroup
+            value={active?.id ?? ""}
+            onValueChange={(id: string) => {
+              const preset = presets.find((p) => p.id === id);
+              if (preset) table.setColumnFilters(preset.filters ?? []);
+            }}
           >
-            {active?.label ?? t("view")}
-            {count === undefined ? null : <Count value={count} />}
-          </Button>
-        }
-      >
-        {presets.map((p) => (
-          <DropdownMenu.Item
-            key={p.id}
-            isSelected={p.id === active?.id}
-            onSelect={() => table.setColumnFilters(p.filters ?? [])}
-            trailing={<span className="tabular-nums">{countRows(table, p.filters)}</span>}
-          >
-            {p.label}
-          </DropdownMenu.Item>
-        ))}
+            {presets.map((p) => (
+              <DropdownMenuRadioItem key={p.id} value={p.id} closeOnClick>
+                {p.label}
+                <DropdownMenuShortcut>
+                  <span className="tabular-nums">{countRows(table, p.filters)}</span>
+                </DropdownMenuShortcut>
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
   }

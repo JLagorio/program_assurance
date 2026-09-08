@@ -56,6 +56,7 @@ import {
   getRequirement,
   qualityGates,
   requirementStateTone,
+  requirementMethodLabel,
   requirementStates,
   saveRequirementField,
   setRequirementField,
@@ -187,16 +188,36 @@ function RequirementRecord() {
                     />
                   </KeyValue>
                   <KeyValue label="Method">
-                    <Editable.Select
-                      label="Verification method"
-                      options={verificationMethods}
-                      value={requirement.method}
-                      onChange={(next) => setRequirementField(requirement.id, { method: next })}
-                      save={(next) => saveRequirementField(`${requirement.id} method`, next)}
-                    />
+                    {requirement.assessmentMethod ? (
+                      <Editable.Select
+                        label="Assessment method"
+                        options={["Examine", "Interview", "Test"] as const}
+                        value={requirement.assessmentMethod}
+                        onChange={(next) =>
+                          setRequirementField(requirement.id, {
+                            assessmentMethod: next,
+                            method:
+                              next === "Examine"
+                                ? "Inspection"
+                                : next === "Interview"
+                                  ? "Analysis"
+                                  : "Test",
+                          })
+                        }
+                        save={(next) => saveRequirementField(`${requirement.id} method`, next)}
+                      />
+                    ) : (
+                      <Editable.Select
+                        label="Verification method"
+                        options={verificationMethods}
+                        value={requirement.method}
+                        onChange={(next) => setRequirementField(requirement.id, { method: next })}
+                        save={(next) => saveRequirementField(`${requirement.id} method`, next)}
+                      />
+                    )}
                   </KeyValue>
                   <KeyValue label="Allocations">{allocations.length || "None"}</KeyValue>
-                  <KeyValue label="From catalog" wrap>
+                  <KeyValue label="Controls" wrap>
                     {controlSources.length ? (
                       <Inline as="span" space="space.050" shouldWrap>
                         {controlSources.map((d) => (
@@ -481,7 +502,7 @@ function RequirementRecord() {
                   </Table>
                 ) : null}
                 <Fact.Group className="pt-150">
-                  <Fact label="Method">{requirement.method}</Fact>
+                  <Fact label="Method">{requirementMethodLabel(requirement)}</Fact>
                   <Fact label="Success criteria">
                     <span className="font-body font-regular">
                       <Editable.Text

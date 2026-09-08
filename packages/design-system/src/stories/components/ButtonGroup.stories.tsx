@@ -13,6 +13,9 @@ import {
   Button,
   ButtonGroup,
   DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   IconButton,
   ToggleGroup,
   ToggleGroupItem,
@@ -62,13 +65,15 @@ export const ButtonGroupMatrix: Story = {
           <Button size="small" iconBefore={<Download />}>
             Export
           </Button>
-          <DropdownMenu
-            align="end"
-            trigger={<IconButton label="Export as" size="small" icon={<ChevronDown />} />}
-          >
-            <DropdownMenu.Item onSelect={() => {}}>CSV</DropdownMenu.Item>
-            <DropdownMenu.Item onSelect={() => {}}>PDF</DropdownMenu.Item>
-            <DropdownMenu.Item onSelect={() => {}}>OSCAL JSON</DropdownMenu.Item>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={<IconButton label="Export as" size="small" icon={<ChevronDown />} />}
+            />
+            <DropdownMenuContent align="end" style={{ width: 200 }}>
+              <DropdownMenuItem onClick={() => {}}>CSV</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {}}>PDF</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {}}>OSCAL JSON</DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
         </ButtonGroup>
         <ButtonGroup label="Align">
@@ -153,15 +158,17 @@ export const Dont: Story = {
           <ButtonGroup label="Record">
             <Button size="small">Edit</Button>
             <Button size="small">Duplicate</Button>
-            <DropdownMenu
-              align="end"
-              trigger={<IconButton label="More" size="small" icon={<ChevronDown />} />}
-            >
-              <DropdownMenu.Item onSelect={() => {}}>Move</DropdownMenu.Item>
-              <DropdownMenu.Item onSelect={() => {}}>Export</DropdownMenu.Item>
-              <DropdownMenu.Item tone="danger" onSelect={() => {}}>
-                Archive
-              </DropdownMenu.Item>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<IconButton label="More" size="small" icon={<ChevronDown />} />}
+              />
+              <DropdownMenuContent align="end" style={{ width: 200 }}>
+                <DropdownMenuItem onClick={() => {}}>Move</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {}}>Export</DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => {}}>
+                  Archive
+                </DropdownMenuItem>
+              </DropdownMenuContent>
             </DropdownMenu>
           </ButtonGroup>
         }

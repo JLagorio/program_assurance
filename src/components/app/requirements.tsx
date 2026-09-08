@@ -39,6 +39,7 @@ import {
   derivationSourceTone,
   nestRequirements,
   requirementStateTone,
+  requirementMethodLabel,
   resolveTarget,
   responsibilityTone,
   type Allocation,
@@ -189,7 +190,7 @@ export function RequirementTable({
         c.text("text", { header: "Shall statement", minWidth: 240, hideable: false }),
         c.text("type", { header: "Type", width: 104 }),
         c.custom("derives", {
-          header: "Derives from",
+          header: "Sources",
           width: 104,
           cell: (r) => <SourceCell derivations={r.derivations} />,
           sort: (r) => r.derivations[0]?.sourceId ?? "",
@@ -200,7 +201,13 @@ export function RequirementTable({
           width: 72,
           cell: (r) => (r.allocations === 0 ? <Absent /> : r.allocations),
         }),
-        c.text("method", { header: "Method", width: 104 }),
+        c.custom("method", {
+          header: "Method",
+          width: 104,
+          cell: requirementMethodLabel,
+          text: requirementMethodLabel,
+          sort: requirementMethodLabel,
+        }),
         c.text("owner", { header: "Owner", width: 116 }),
         c.status("state", {
           header: "State",

@@ -98,10 +98,12 @@ export function ProgramFindings({
     () =>
       programFindings(programId).map((finding) => ({
         ...finding,
+        control: (finding.controls ?? [finding.control]).join(", "),
         affected:
-          assetById.get(finding.asset)?.name ??
-          scopeById.get(finding.scope ?? "")?.name ??
-          "Program",
+          finding.assets?.map((id) => assetById.get(id)?.name ?? id).join(", ") ||
+          (assetById.get(finding.asset)?.name ??
+            scopeById.get(finding.scope ?? "")?.name ??
+            "Program"),
         remediation: finding.poam ?? "Unassigned",
       })),
     // Records mutate in the shared store; its version invalidates this projection.
@@ -566,11 +568,12 @@ function FindingEditor({
         }
         facts={
           <>
-            <Fact label="Control">{finding.control}</Fact>
+            <Fact label="Controls">{(finding.controls ?? [finding.control]).join(", ")}</Fact>
             <Fact label="Affected">
-              {assetById.get(finding.asset)?.name ??
-                scopeById.get(finding.scope ?? "")?.name ??
-                "Program"}
+              {finding.assets?.map((id) => assetById.get(id)?.name ?? id).join(", ") ||
+                (assetById.get(finding.asset)?.name ??
+                  scopeById.get(finding.scope ?? "")?.name ??
+                  "Program")}
             </Fact>
             <Fact label="Source">{finding.source}</Fact>
           </>
@@ -610,14 +613,16 @@ function FindingEditor({
                 />
               </Field>
               <Inline space="space.150" shouldWrap className="pt-100">
-                <TextLink>
-                  <Link
-                    to="/programs/$programId/controls/$controlId"
-                    params={{ programId, controlId: finding.control }}
-                  >
-                    Control {finding.control}
-                  </Link>
-                </TextLink>
+                {(finding.controls ?? [finding.control]).filter(Boolean).map((control) => (
+                  <TextLink key={control}>
+                    <Link
+                      to="/programs/$programId/controls/$controlId"
+                      params={{ programId, controlId: control }}
+                    >
+                      Control {control}
+                    </Link>
+                  </TextLink>
+                ))}
                 {finding.requirements?.map((id) => (
                   <TextLink key={id}>
                     <Link
@@ -745,6 +750,9 @@ function FindingEditor({
               )}
             </Block>
             <Block title="Retest and closure" count={finding.retests?.length ?? 0}>
+              {finding.sourceStatus === "closed" && !finding.retests?.length ? (
+                <Badge tone="warning">Imported closure · passing retest not recorded</Badge>
+              ) : null}
               {finding.retests?.map((retest) => (
                 <Box key={retest.id} className="border-b border-default" paddingBlock="space.100">
                   <Inline space="space.100">

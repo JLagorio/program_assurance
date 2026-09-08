@@ -132,6 +132,17 @@ export type AssessmentScope = {
    * demonstrated boundary, not asserted.
    */
   separationBasis: string;
+  /** Imported profiles select exact catalog controls; child scopes inherit their parent's set. */
+  selectionSource?: ControlSelectionSource;
+};
+
+export type ControlSelectionSource = {
+  profileId: string;
+  profileUuid: string;
+  catalogId: string;
+  label: string;
+  startingControlIds: string[];
+  parentScope?: string;
 };
 
 export const assessmentScopes: AssessmentScope[] = [
@@ -317,14 +328,29 @@ export function triadOf(scope: AssessmentScope): Triad {
 export function controlSetFor(scopeId: string): ScopeControlSet | null {
   const scope = scopeById.get(scopeId);
   if (!scope) return null;
-  return { scope, ...resolveSelection(triadOf(scope), tailoringFor(scope)) };
+  const source = scope.selectionSource;
+  const parent = source?.parentScope ? controlSetFor(source.parentScope) : null;
+  const selection = source
+    ? {
+        ...source,
+        startingControlIds: parent
+          ? parent.controls.map((row) => row.control.id)
+          : source.startingControlIds,
+        label: parent ? `Inherited from ${parent.scope.name}` : source.label,
+      }
+    : undefined;
+  return { scope, ...resolveSelection(triadOf(scope), tailoringFor(scope), selection) };
 }
 
 /** A control set without its scope — what a draft resolves to before it is registered. */
 export type Selection = Omit<ScopeControlSet, "scope">;
 
 /** The selection algorithm on its own, so an unregistered draft resolves the same way a scope does. */
-export function resolveSelection(triad: Triad, deltas: TailoringDeltas): Selection {
+export function resolveSelection(
+  triad: Triad,
+  deltas: TailoringDeltas,
+  source?: ControlSelectionSource,
+): Selection {
   const { overlays, removedById, addedById } = deltas;
 
   const controls: ScopeControl[] = [];
@@ -336,12 +362,13 @@ export function resolveSelection(triad: Triad, deltas: TailoringDeltas): Selecti
   };
 
   for (const control of nistControls) {
-    const selectedBy = selectingObjectives(control, triad);
-    if (selectedBy.length === 0) continue;
+    const selectedBy = source ? [] : selectingObjectives(control, triad);
+    if (source ? !source.startingControlIds.includes(control.id) : selectedBy.length === 0)
+      continue;
     const row: ScopeControl = {
       control,
       selectedBy,
-      source: "Categorization",
+      source: source?.label ?? "Categorization",
       tailoredOut: removedById.get(control.id) ?? null,
     };
     if (row.tailoredOut) {
@@ -431,9 +458,19 @@ export function tailoringDeltas(
   excluded: Map<string, string>,
   included: Map<string, string>,
 ): TailoringDeltas {
-  const all = overlays.flatMap((o) => o.controls);
-  const removedById = new Map(all.filter((c) => c.action === "Tailored out").map((c) => [c.id, c]));
-  const addedById = new Map(all.filter((c) => c.action === "Added").map((c) => [c.id, c]));
+  const removedById = new Map<string, OverlayControl>();
+  const addedById = new Map<string, OverlayControl>();
+  for (const overlay of overlays)
+    for (const control of overlay.controls) {
+      if (control.action === "Tailored out") {
+        addedById.delete(control.id);
+        removedById.set(control.id, control);
+      }
+      if (control.action === "Added") {
+        removedById.delete(control.id);
+        addedById.set(control.id, control);
+      }
+    }
   for (const [id, rationale] of excluded) {
     addedById.delete(id);
     removedById.set(id, { id, title: TAILORING_SOURCE, action: "Tailored out", rationale });
@@ -450,6 +487,7 @@ export function tailoringDeltas(
 function tailoringFor(scope: AssessmentScope): TailoringDeltas {
   const rec = tailorings.get(scope.id);
   if (rec) return tailoringDeltas(rec.overlays, rec.excluded, rec.included);
+  if (scope.selectionSource) return tailoringDeltas([], new Map(), new Map());
   const t = computeTailoring(scope.parameters);
   return {
     overlays: t.overlays,

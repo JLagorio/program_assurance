@@ -30,6 +30,13 @@ export type EvidenceArtifact = {
   reviewedOn?: string;
   reviewNote?: string;
   links: EvidenceLink[];
+  sourceId?: string;
+  sourceUuid?: string;
+  referenceUri?: string;
+  sha256?: string;
+  validThrough?: string;
+  componentIds?: string[];
+  assessmentReuse?: string;
 };
 export type NewEvidence = Pick<
   EvidenceArtifact,
@@ -141,6 +148,8 @@ function allEvidence(): EvidenceArtifact[] {
       existing.scopeIds = [...new Set([...existing.scopeIds, ...artifact.scopeIds])];
     }
   };
+  // Catalog records own metadata; findings and runs only contribute relationships.
+  for (const source of sources) source().forEach(add);
   for (const finding of findings) {
     const program =
       (finding as { program?: string }).program ?? assetById.get(finding.asset)?.program;
@@ -190,7 +199,6 @@ function allEvidence(): EvidenceArtifact[] {
         );
       }
   }
-  for (const source of sources) source().forEach(add);
   for (const artifact of saved.values()) {
     const derived = rows.get(artifact.id);
     // Finding and run relationships remain sourced from their records; user-maintained links are persisted here.

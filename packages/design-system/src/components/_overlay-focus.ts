@@ -14,15 +14,19 @@ export function preserveNestedPopupEscape(event: KeyboardEvent) {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
   const popup = target.closest(
-    '[data-slot="combobox-content"][data-open], [data-slot="popover-content"][data-open]',
+    '[data-slot="combobox-content"][data-open], [data-slot="popover-content"][data-open], [data-slot="dropdown-menu-content"][data-open], [data-slot="dropdown-menu-sub-content"][data-open]',
   );
   const trigger = target.closest('[data-slot="popover-trigger"][aria-expanded="true"]');
   const controlledPopup = trigger?.ownerDocument.getElementById(
     trigger.getAttribute("aria-controls") ?? "",
   );
+  const tooltip = target
+    .closest('[role="dialog"], [role="alertdialog"]')
+    ?.querySelector('[data-slot="tooltip-content"][data-open]');
   const input = target.closest<HTMLInputElement>('input[data-slot="combobox-input"]');
   if (
     popup ||
+    tooltip ||
     controlledPopup?.matches('[data-slot="popover-content"][data-open]') ||
     (input &&
       !input.readOnly &&
@@ -41,7 +45,15 @@ export function useOverlayFocus(open: boolean, returnFocusRef?: RefObject<HTMLEl
   const opener = useRef<HTMLElement | null>(null);
   useLayoutEffect(() => {
     if (open) {
-      const active = document.activeElement;
+      let active = document.activeElement;
+      // A menu item disappears on activation; return a modal task to its stable menu trigger.
+      while (active instanceof HTMLElement) {
+        const menu = active.closest('[role="menu"]');
+        const triggerId = menu?.getAttribute("aria-labelledby");
+        const trigger = triggerId ? document.getElementById(triggerId) : null;
+        if (!trigger || trigger === active || !trigger.matches('[aria-haspopup="menu"]')) break;
+        active = trigger;
+      }
       opener.current = active instanceof HTMLElement && active !== document.body ? active : null;
     }
   }, [open]);

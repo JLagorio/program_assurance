@@ -11,7 +11,7 @@ import {
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { Spinner } from "./spinner";
-import { Tooltip } from "./tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 export type ButtonVariant = "primary" | "secondary" | "subtle" | "danger" | "link";
 export type ButtonSize = "xsmall" | "small" | "medium";
@@ -219,5 +219,12 @@ export function IconButton({
       )}
     />
   );
-  return isTooltipDisabled ? button : <Tooltip content={label}>{button}</Tooltip>;
+  return isTooltipDisabled ? (
+    button
+  ) : (
+    <Tooltip>
+      <TooltipTrigger render={button} />
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
 }

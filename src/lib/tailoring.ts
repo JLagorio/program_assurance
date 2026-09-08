@@ -401,10 +401,17 @@ export function overlayOptions(p: SystemParameters): { overlay: Overlay; recomme
 }
 
 export function overlayById(id: string): Overlay | null {
+  const imported = importedOverlays.get(id);
+  if (imported) return imported;
   const hit = overlayCatalog.find((o) => o.id === id);
   if (!hit) return null;
   const { applies: _applies, ...overlay } = hit;
   return overlay;
+}
+
+const importedOverlays = new Map<string, Overlay>();
+export function registerOverlay(overlay: Overlay) {
+  importedOverlays.set(overlay.id, structuredClone(overlay));
 }
 
 /* ------------------------------------------------------- Scope approval */

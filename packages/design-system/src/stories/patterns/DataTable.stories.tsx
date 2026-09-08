@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useMemo, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, Indicator, Input, Spinner, Toolbar, type Tone } from "../../components";
+import { Button, Indicator, Input, Spinner, Stat, Toolbar, type Tone } from "../../components";
 import {
   ColumnSortable,
   DataTable,
@@ -181,7 +181,63 @@ export const RegisterStory: Story = {
     for (const checkbox of table.getAllByRole("checkbox")) await expect(checkbox).toBeChecked();
     await userEvent.click(page!);
     for (const checkbox of table.getAllByRole("checkbox")) await expect(checkbox).not.toBeChecked();
+
+    // Row actions remain reachable without hovering the row.
+    const actions = table.getAllByRole("button", { name: "Row actions" })[0]!;
+    firstRow!.focus();
+    await userEvent.tab(); // Record glance.
+    await userEvent.tab();
+    await expect(actions).toHaveFocus();
+    await expect(actions).toHaveStyle({ opacity: "1" });
+    await userEvent.keyboard("{ArrowDown}");
+    const body = within(canvasElement.ownerDocument.body);
+    await waitFor(() =>
+      expect(body.getByRole("menuitem", { name: "Open" })).toHaveFocus(),
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(actions).toHaveFocus());
   },
+};
+
+function MetricsExample() {
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (r) => r.id,
+    pageSize: 8,
+    label: "Findings with metrics",
+  });
+  return (
+    <DataTable.Metrics>
+      <Toolbar actions={<DataTable.MetricsTrigger />}>
+        <DataTable.Search table={table} placeholder="Search findings" />
+        <DataTable.Filter table={table} column="status" />
+      </Toolbar>
+      <DataTable.MetricsContent className="px-200 py-100">
+        <div className="grid grid-cols-2 gap-200 sm:grid-cols-3">
+          <Stat label="Total findings" value={findings.length} />
+          <Stat
+            label="Verified"
+            value={findings.filter((finding) => finding.status === "Verified").length}
+          />
+          <Stat
+            label="Open items"
+            value={findings.reduce((total, finding) => total + finding.open, 0)}
+          />
+        </div>
+        <Text size="small" color="color.text.subtle">
+          Across all findings. Search and filters only change the rows below.
+        </Text>
+      </DataTable.MetricsContent>
+      <DataTable table={table} className="pt-200" />
+    </DataTable.Metrics>
+  );
+}
+
+export const MetricsStory: Story = {
+  name: "Metrics",
+  render: () => <MetricsExample />,
 };
 
 /** Wide enough to scroll: the id and the name pinned at the start, actions at the end, and every column resizable, reorderable by its grip, hideable from the Columns menu or its own. The layout is the reader's and is kept under a view name. */
@@ -924,16 +980,16 @@ function Server() {
   });
   return (
     <div aria-busy={loading}>
-    <DataTable
-      table={table}
-      state={loading && !result ? "loading" : "ready"}
-      toolbar={
-        <Toolbar>
-          <DataTable.Search table={table} placeholder="Search on the server" />
-          <DataTable.Filter table={table} column="status" />
-        </Toolbar>
-      }
-    />
+      <DataTable
+        table={table}
+        state={loading && !result ? "loading" : "ready"}
+        toolbar={
+          <Toolbar>
+            <DataTable.Search table={table} placeholder="Search on the server" />
+            <DataTable.Filter table={table} column="status" />
+          </Toolbar>
+        }
+      />
     </div>
   );
 }

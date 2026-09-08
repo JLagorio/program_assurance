@@ -46,6 +46,8 @@ import {
   type ScopeControl,
   type Selection,
   type Triad,
+  type ControlSelectionSource,
+  controlSetFor,
 } from "@/lib/scopes";
 import { overlayById, overlayOptions, type Overlay, type SystemParameters } from "@/lib/tailoring";
 
@@ -102,11 +104,17 @@ export function refreshOverlayDecisions(
   prior: OverlayDecision[],
 ): OverlayDecision[] {
   const byId = new Map(prior.map((d) => [d.overlay, d]));
-  return overlayOptions(p).map(({ overlay, recommended }) => {
-    const was = byId.get(overlay.id);
-    if (was?.explicit) return { ...was, recommended };
-    return { overlay: overlay.id, recommended, applied: recommended, rationale: "" };
-  });
+  const options = overlayOptions(p);
+  return [
+    ...options.map(({ overlay, recommended }) => {
+      const was = byId.get(overlay.id);
+      if (was?.explicit) return { ...was, recommended };
+      return { overlay: overlay.id, recommended, applied: recommended, rationale: "" };
+    }),
+    ...prior.filter(
+      (decision) => !options.some((option) => option.overlay.id === decision.overlay),
+    ),
+  ];
 }
 
 export function decideOverlay(
@@ -176,11 +184,12 @@ export type ControlSetRevision = {
   decidedBy: string | null;
   decided: string | null;
   note: string;
+  selectionSource?: ControlSelectionSource;
 };
 
 export type RevisionDraft = Pick<
   ControlSetRevision,
-  "parameters" | "overlays" | "tailoring" | "separationBasis"
+  "parameters" | "overlays" | "tailoring" | "separationBasis" | "selectionSource"
 >;
 
 export function triadOfParameters(p: SystemParameters): Triad {
@@ -213,6 +222,7 @@ export function resolveDraft(draft: RevisionDraft): Selection {
   return resolveSelection(
     triadOfParameters(draft.parameters),
     tailoringDeltas(appliedOverlays(draft.overlays), excluded, included),
+    draft.selectionSource,
   );
 }
 
@@ -768,7 +778,10 @@ function applyRevision(rev: ControlSetRevision) {
     { silent: true },
   );
   const scope = scopeById.get(rev.scope);
-  if (scope) scope.separationBasis = rev.separationBasis;
+  if (scope) {
+    scope.separationBasis = rev.separationBasis;
+    if (rev.selectionSource) scope.selectionSource = structuredClone(rev.selectionSource);
+  }
   // Bumps the scopes store once; every surface reading the scope re-renders.
   setScopeParameter(rev.scope, { ...rev.parameters });
 }
@@ -821,6 +834,7 @@ export function createRevision(input: NewRevision): ControlSetRevision {
     decidedBy: seed?.decidedBy ?? null,
     decided: seed?.decided ?? null,
     note: seed?.note ?? "",
+    ...(input.selectionSource ? { selectionSource: structuredClone(input.selectionSource) } : {}),
   };
   revisions.push(rev);
   log(rev, "created", `v${rev.number} created — ${rev.reason}`, {
@@ -860,13 +874,22 @@ export function proposeRevision(scopeId: string, reason: string): ControlSetRevi
         overlays: base.overlays.map((d) => ({ ...d })),
         tailoring: base.tailoring.map((t) => ({ ...t })),
         separationBasis: base.separationBasis,
+        ...(base.selectionSource ? { selectionSource: structuredClone(base.selectionSource) } : {}),
       }
     : {
         parameters: { ...scope.parameters },
         overlays: initialOverlayDecisions(scope.parameters),
         tailoring: [],
         separationBasis: scope.separationBasis,
+        ...(scope.selectionSource
+          ? { selectionSource: structuredClone(scope.selectionSource) }
+          : {}),
       };
+  if (draft.selectionSource?.parentScope) {
+    const parent = controlSetFor(draft.selectionSource.parentScope);
+    if (parent)
+      draft.selectionSource.startingControlIds = parent.controls.map((row) => row.control.id);
+  }
   return createRevision({
     ...draft,
     program: scope.program,
@@ -941,22 +964,41 @@ export function createInitialRevision(input: Omit<NewRevision, "seed">): Control
 }
 
 /** Restore a wizard's first revision with its original IDs and history. */
-export function restoreInitialControlSetRevision(revision: ControlSetRevision, history: RevisionEvent[]) {
+export function restoreInitialControlSetRevision(
+  revision: ControlSetRevision,
+  history: RevisionEvent[],
+) {
   const scope = scopeById.get(revision.scope);
-  if (!scope || scope.program !== revision.program || revision.number !== 1 || revision.supersedes !== null)
+  if (
+    !scope ||
+    scope.program !== revision.program ||
+    revision.number !== 1 ||
+    revision.supersedes !== null
+  )
     throw new Error("Initial revision does not belong to this program scope.");
   const existing = revisionById(revision.id);
   if (existing) {
-    if (existing.program !== revision.program || existing.scope !== revision.scope) throw new Error("Control-set revision ID conflict.");
+    if (existing.program !== revision.program || existing.scope !== revision.scope)
+      throw new Error("Control-set revision ID conflict.");
     return existing;
   }
-  if (revisionsForScope(revision.scope).length) throw new Error("This scope already has a control-set revision.");
-  if (history.some((event) => event.revision !== revision.id || event.scope !== revision.scope || events.some((existingEvent) => existingEvent.id === event.id))) throw new Error("Control-set history does not match its revision.");
+  if (revisionsForScope(revision.scope).length)
+    throw new Error("This scope already has a control-set revision.");
+  if (
+    history.some(
+      (event) =>
+        event.revision !== revision.id ||
+        event.scope !== revision.scope ||
+        events.some((existingEvent) => existingEvent.id === event.id),
+    )
+  )
+    throw new Error("Control-set history does not match its revision.");
   const restored = structuredClone(revision);
   revisions.push(restored);
   events.push(...structuredClone(history));
   revSeq = Math.max(revSeq, Number(restored.id.replace(/^SCS-/, "")) || 0);
-  for (const event of history) eventSeq = Math.max(eventSeq, Number(event.id.replace(/^SCE-/, "")) || 0);
+  for (const event of history)
+    eventSeq = Math.max(eventSeq, Number(event.id.replace(/^SCE-/, "")) || 0);
   applyRevision(restored);
   bump();
   return restored;

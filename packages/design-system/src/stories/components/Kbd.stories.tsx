@@ -3,7 +3,20 @@ import { Search } from "lucide-react";
 import { createRef } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, DropdownMenu, IconButton, Kbd, KbdGroup, Tooltip } from "../../components";
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuShortcut,
+  IconButton,
+  Kbd,
+  KbdGroup,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 
@@ -81,44 +94,43 @@ export const KbdMatrix: Story = {
           </KbdGroup>{" "}
           to search.
         </Text>
-        <Tooltip
-          defaultOpen
-          content={
-            <Inline space="space.075" alignBlock="center">
-              Search
-              <KbdGroup>
-                <Kbd label="Command">⌘</Kbd>
-                <Kbd>K</Kbd>
-              </KbdGroup>
-            </Inline>
-          }
-        >
-          <IconButton label="Search" variant="subtle" icon={<Search />} isTooltipDisabled />
+        <Tooltip defaultOpen>
+          <TooltipTrigger
+            render={
+              <IconButton label="Search" variant="subtle" icon={<Search />} isTooltipDisabled />
+            }
+          />
+          <TooltipContent>
+            Search
+            <KbdGroup>
+              <Kbd label="Command">⌘</Kbd>
+              <Kbd>K</Kbd>
+            </KbdGroup>
+          </TooltipContent>
         </Tooltip>
-        <DropdownMenu trigger={<Button size="small">Actions</Button>}>
-          <DropdownMenu.Item
-            onSelect={editAction}
-            trailing={
-              <KbdGroup>
-                <Kbd label="Command">⌘</Kbd>
-                <Kbd>E</Kbd>
-              </KbdGroup>
-            }
-          >
-            Edit
-          </DropdownMenu.Item>
-          <DropdownMenu.Item
-            onSelect={() => {}}
-            trailing={
-              <KbdGroup>
-                <Kbd label="Command">⌘</Kbd>
-                <Kbd label="Shift">⇧</Kbd>
-                <Kbd>D</Kbd>
-              </KbdGroup>
-            }
-          >
-            Duplicate
-          </DropdownMenu.Item>
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button size="small">Actions</Button>} />
+          <DropdownMenuContent style={{ width: 200 }}>
+            <DropdownMenuItem onClick={editAction}>
+              Edit
+              <DropdownMenuShortcut>
+                <KbdGroup>
+                  <Kbd label="Command">⌘</Kbd>
+                  <Kbd>E</Kbd>
+                </KbdGroup>
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {}}>
+              Duplicate
+              <DropdownMenuShortcut>
+                <KbdGroup>
+                  <Kbd label="Command">⌘</Kbd>
+                  <Kbd label="Shift">⇧</Kbd>
+                  <Kbd>D</Kbd>
+                </KbdGroup>
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
         </DropdownMenu>
       </Specimens>
     </Stack>

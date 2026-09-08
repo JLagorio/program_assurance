@@ -61,7 +61,12 @@ import {
   type TransferBundle,
 } from "@/lib/airgap";
 import type { EmassExport } from "@/lib/emass";
-import { oscalVersion, type JsonObject, type JsonValue, type OscalDocument } from "@/lib/oscal";
+import {
+  oscalDocumentVersion,
+  type JsonObject,
+  type JsonValue,
+  type OscalDocument,
+} from "@/lib/oscal";
 import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
@@ -232,7 +237,7 @@ export function OscalViewer({
       <FactStrip
         items={[
           { label: "Model", value: <span className="font-medium">{label}</span> },
-          { label: "OSCAL version", value: <Id>{oscalVersion}</Id> },
+          { label: "OSCAL version", value: <Id>{oscalDocumentVersion(doc)}</Id> },
           { label: "Document uuid", value: <Id>{doc.uuid}</Id> },
           { label: "Last modified", value: <Id>{doc.generated}</Id> },
           {

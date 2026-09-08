@@ -20,6 +20,28 @@ The register with its state. [Table](?path=/docs/components-table--docs) is the 
 | The toolbar parts                      | `DataTable.Search`, `.Filter`, `.Presets`, `.Columns` and `.Settings`, each taking the `table`; `.SelectionBar` appears above the table while rows are chosen. `Presets` is a strip on its own line, or `variant="menu"` for one button in a toolbar that also holds search and filters.                                                                                                                  |
 | The Table parts                        | It draws `Table.Header`, `.Row`, `.Cell`, `.Id`, `.List`, `.Selection`, `.Disclosure`, `.Group`, `.Detail` and `.Handle`; nothing of its own.                                                                                                                                                                                                                                                                           |
 
+## Metrics
+
+`DataTable.Metrics` wraps a toolbar, an optional summary region and the table. It starts closed. Put `DataTable.MetricsTrigger` in the toolbar actions and `DataTable.MetricsContent` directly below the toolbar. Compose the content with `Stat` or the app's existing summary cards.
+
+Opening metrics only changes the disclosure. Search, filters, sorting and selection keep their state. The app supplies the values and decides whether they summarize all records or the filtered rows; make that scope clear in the content.
+
+```tsx
+<DataTable.Metrics>
+  <Toolbar actions={<DataTable.MetricsTrigger />}>
+    <DataTable.Search table={table} />
+  </Toolbar>
+  <DataTable.MetricsContent className="px-200 py-100">
+    <Stat label="Total findings" value={findings.length} />
+  </DataTable.MetricsContent>
+  <DataTable table={table} />
+</DataTable.Metrics>
+```
+
+The root accepts [Collapsible](?path=/docs/components-collapsible--docs) props, including `defaultOpen` or controlled `open` and `onOpenChange`. The trigger accepts native button props and a ref, `size` and `variant`; its default is a small secondary button with a chart icon and the localized “Metrics” label. Children replace the label. The content accepts Collapsible content props, including `forceMount`, native props and a ref. Its default region name is localized “Metrics”; `aria-label` or `aria-labelledby` can name a custom summary.
+
+<Canvas of={Stories.MetricsStory} />
+
 ## Variants
 
 Which table first: a table sorts, filters, pages, chooses, pins, nests or scrolls inside itself, `DataTable`; otherwise `Table`. Then the modes, each one option on the hook:

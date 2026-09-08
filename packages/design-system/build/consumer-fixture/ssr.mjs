@@ -36,6 +36,14 @@ import {
   HoverCard,
   HoverCardTrigger,
   HoverCardContent,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+  TooltipContent,
   Popover,
   PopoverTrigger,
   PopoverContent,
@@ -1037,3 +1045,77 @@ assert.ok(chordRoot.includes("vertical-align:middle"));
 assert.equal(chordHtml.match(/data-slot="kbd"/g)?.length, 2);
 assert.equal(chordHtml.match(/id="packed-chord"/g)?.length, 1);
 console.log("Packed Kbd native targets, labels and group compatibility SSR passed");
+
+// Tooltip state stays separate from native trigger semantics; content portals are client-only.
+const tooltipHtml = renderToString(
+  createElement(
+    TooltipProvider,
+    { delay: 0, timeout: 300 },
+    createElement(
+      Tooltip,
+      { defaultOpen: true },
+      createElement(
+        TooltipTrigger,
+        {
+          id: "review-action",
+          delay: 20,
+          closeDelay: 30,
+          closeOnClick: false,
+          disabled: true,
+          "aria-label": "Review",
+        },
+        "Review",
+      ),
+      createElement(TooltipContent, null, "Review the selected record"),
+    ),
+  ),
+);
+assert.match(tooltipHtml, /<button[^>]*type="button"/);
+assert.match(tooltipHtml, /data-trigger-disabled=""/);
+assert.doesNotMatch(tooltipHtml, /<button[^>]* disabled=/);
+assert.doesNotMatch(tooltipHtml, /(?:delay|closeDelay|closeOnClick)=/);
+assert.doesNotMatch(tooltipHtml, /Review the selected record/);
+const tooltipAnchorHtml = renderToString(
+  createElement(
+    Tooltip,
+    null,
+    createElement(
+      TooltipTrigger,
+      { render: createElement("a", { href: "/records", "data-native": "link" }) },
+      "Records",
+    ),
+    createElement(TooltipContent, null, "Review records"),
+  ),
+);
+assert.match(tooltipAnchorHtml, /<a[^>]*href="\/records"/);
+assert.doesNotMatch(tooltipAnchorHtml, /role="button"|type="button"|tabindex="0"/);
+const tooltipDisabledButtonHtml = renderToString(
+  createElement(
+    Tooltip,
+    null,
+    createElement(
+      TooltipTrigger,
+      { render: createElement("button", { disabled: true, type: "button" }) },
+      "Unavailable",
+    ),
+  ),
+);
+assert.match(tooltipDisabledButtonHtml, /<button[^>]*disabled=""/);
+
+const menuSsr = renderToString(
+  createElement(
+    DropdownMenu,
+    { defaultOpen: true },
+    createElement(DropdownMenuTrigger, { id: "packed-menu", disabled: true }, "Actions"),
+    createElement(
+      DropdownMenuContent,
+      null,
+      createElement(DropdownMenuItem, null, "Archive record"),
+    ),
+  ),
+);
+assert.match(menuSsr, /<button[^>]*type="button"/);
+assert.match(menuSsr, /aria-haspopup="menu"/);
+assert.match(menuSsr, /disabled=""/);
+assert.doesNotMatch(menuSsr, /Archive record/);
+console.log("Packed DropdownMenu native trigger, disabled state and client-only portal SSR passed");

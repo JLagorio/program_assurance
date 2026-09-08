@@ -1,176 +1,265 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Copy, Info, Pencil, Pin, Trash2 } from "lucide-react";
+import { Copy, Download, Pencil, Pin } from "lucide-react";
+import { createRef, useState } from "react";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
   Button,
-  Field,
+  Dialog,
   IconButton,
-  Input,
   Kbd,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
   Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "../../components";
+import { LedgerProvider } from "../../lib/locale";
 import { Grid, Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Tooltip",
   component: Tooltip,
   parameters: { layout: "padded" },
-  args: {
-    content: "Schedule the next assessment",
-    side: "top",
-    align: "center",
-    delay: 300,
-    children: <Button variant="secondary">Hover or focus me</Button>,
-  },
 } satisfies Meta<typeof Tooltip>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const sides = ["top", "right", "bottom", "left"] as const;
-const contents = {
-  "a word": "Edit",
-  "with a shortcut": (
-    <span className="flex items-center gap-075">
-      Edit
-      <span className="flex items-center gap-025">
-        <Kbd>⌘</Kbd>
-        <Kbd>E</Kbd>
-      </span>
-    </span>
-  ),
-  "two lines": "Verified 12 Aug 2026 by Dana Whitfield, against revision 4 of the procedure.",
-} as const;
+const triggerRef = createRef<HTMLButtonElement>();
+const renderedRef = createRef<HTMLAnchorElement>();
+const popupRef = createRef<HTMLDivElement>();
+const renderedPopupRef = createRef<HTMLDivElement>();
+const pressed = fn();
+const renderedPressed = fn();
+const copy = fn();
+const popupIn = (doc: Document) =>
+  doc.querySelector<HTMLElement>('[data-slot="tooltip-content"][data-open]');
 
-/** Four sides down, and a word, a shortcut and two lines across, every one open at once. */
+/** A native link with a shortcut, and a button whose logical placement follows RTL. */
 export const TooltipMatrix: Story = {
+  name: "Composition",
   render: () => (
     <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap="space.800" className="p-800">
-      {sides.flatMap((side) =>
-        (Object.keys(contents) as (keyof typeof contents)[]).map((kind) => (
-          <Inline
-            key={`${side}-${kind}`}
-            alignInline={side === "right" ? "start" : side === "left" ? "end" : "center"}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <a
+              ref={renderedRef}
+              href="#review-guide"
+              className="underline"
+              onClick={renderedPressed}
+            />
+          }
+          onClick={pressed}
+        >
+          Review guide
+        </TooltipTrigger>
+        <TooltipContent
+          ref={popupRef}
+          render={<div ref={renderedPopupRef} className="tabular-nums" style={{ minHeight: 30 }} />}
+          className={(state) => (state.open ? "font-medium" : "font-regular")}
+          style={(state) => ({ outlineOffset: state.open ? 4 : 2 })}
+        >
+          Review guide <Kbd>G</Kbd>
+        </TooltipContent>
+      </Tooltip>
+      <LedgerProvider direction="rtl">
+        <Tooltip>
+          <TooltipTrigger
+            ref={triggerRef}
+            aria-label="Pin record"
+            render={<Button variant="secondary" iconBefore={<Pin />} />}
           >
-            <Tooltip content={contents[kind]} side={side} defaultOpen>
-              <Button variant="secondary" size="small">
-                {side} · {kind}
-              </Button>
-            </Tooltip>
-          </Inline>
-        )),
-      )}
+            Pin
+          </TooltipTrigger>
+          <TooltipContent side="inline-end">Pin record</TooltipContent>
+        </Tooltip>
+      </LedgerProvider>
     </Grid>
   ),
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const canvas = within(canvasElement);
+    const user = userEvent.setup({ document: doc });
+    pressed.mockClear();
+    renderedPressed.mockClear();
+    const link = canvas.getByRole("link", { name: "Review guide" });
+    await expect(renderedRef.current).toBe(link);
+    await expect(link).toHaveAttribute("href", "#review-guide");
+    await expect(link).not.toHaveAttribute("role", "button");
+    link.focus();
+    await waitFor(() => expect(popupIn(doc)).toBeVisible());
+    const popup = popupIn(doc)!;
+    await expect(popupRef.current).toBe(popup);
+    await expect(renderedPopupRef.current).toBe(popup);
+    await expect(popup).toHaveClass("font-medium", "tabular-nums");
+    await expect(popup).toHaveStyle({ minHeight: "30px", outlineOffset: "4px" });
+    await expect(popup).toHaveAttribute("data-side", "top");
+    await expect(popup.querySelector('[data-slot="tooltip-arrow"]')).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+    await expect(canvasElement).not.toContainElement(popup);
+    await expect(link).toHaveFocus();
+    await expect(link).not.toHaveAttribute("aria-describedby");
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(popupIn(doc)).toBeNull());
+    await expect(link).toHaveFocus();
+    await user.keyboard(" ");
+    await expect(pressed).not.toHaveBeenCalled();
+    let nativeActionAllowed = false;
+    const stopNavigation = (event: MouseEvent) => {
+      if (event.target === link) {
+        nativeActionAllowed = !event.defaultPrevented;
+        event.preventDefault();
+      }
+    };
+    doc.addEventListener("click", stopNavigation);
+    try {
+      await user.keyboard("{Enter}");
+      await expect(nativeActionAllowed).toBe(true);
+      await expect(pressed).toHaveBeenCalledTimes(1);
+      await expect(renderedPressed).toHaveBeenCalledTimes(1);
+    } finally {
+      doc.removeEventListener("click", stopNavigation);
+    }
+    await user.tab();
+    const pin = canvas.getByRole("button", { name: "Pin record" });
+    await expect(triggerRef.current).toBe(pin);
+    await expect(pin).toHaveFocus();
+    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Pin record"));
+    await waitFor(() =>
+      expect(popupIn(doc)!.getBoundingClientRect().right).toBeLessThanOrEqual(
+        pin.getBoundingClientRect().left,
+      ),
+    );
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(popupIn(doc)).toBeNull());
+  },
 };
 
-/** Icon buttons carry their tooltip through `label`. Under one TooltipProvider, as the Shell mounts, the first waits 300ms and the next shows at once. */
+/** One shared delay group: the first hover waits; an adjacent tooltip opens immediately. */
 export const IconButtons: Story = {
   render: () => (
-    <Inline space="space.050">
-      <IconButton label="Edit" variant="subtle" icon={<Pencil />} />
-      <IconButton label="Copy link" variant="subtle" icon={<Copy />} />
-      <IconButton label="Pin to rail" variant="subtle" icon={<Pin />} />
-      <IconButton label="Delete" variant="subtle" icon={<Trash2 />} />
-    </Inline>
+    <TooltipProvider delay={300} timeout={300}>
+      <Inline space="space.100" className="p-800">
+        <IconButton label="Edit" variant="subtle" icon={<Pencil />} />
+        <IconButton label="Copy link" variant="subtle" icon={<Copy />} onClick={copy} />
+        <IconButton label="Pin to rail" variant="subtle" icon={<Pin />} />
+      </Inline>
+    </TooltipProvider>
   ),
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const canvas = within(canvasElement);
+    const user = userEvent.setup({ document: doc });
+    copy.mockClear();
+    const edit = canvas.getByRole("button", { name: "Edit" });
+    // The built canvas starts play before passive native hover listeners have attached.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await user.hover(edit);
+    await expect(popupIn(doc)).toBeNull();
+    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Edit"));
+    await waitFor(() => expect(popupIn(doc)).toBeVisible());
+    const copyButton = canvas.getByRole("button", { name: "Copy link" });
+    await user.hover(copyButton);
+    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Copy link"));
+    await expect(popupIn(doc)).toHaveAttribute("data-instant", "delay");
+    await expect(doc.querySelectorAll('[data-slot="tooltip-content"][data-open]')).toHaveLength(1);
+    const popup = popupIn(doc)!;
+    await waitFor(() => expect(popup).toBeVisible());
+    await waitFor(() =>
+      expect(doc.defaultView!.getComputedStyle(popup).pointerEvents).not.toBe("none"),
+    );
+    const box = popup.getBoundingClientRect();
+    const anchor = copyButton.getBoundingClientRect();
+    // user-event omits mouseleave.relatedTarget; cross the trigger edge before the popup center.
+    await user.pointer({
+      target: popup,
+      coords: { clientX: anchor.x + anchor.width / 2, clientY: anchor.top - 1 },
+    });
+    await user.pointer({
+      target: popup,
+      coords: { clientX: box.x + box.width / 2, clientY: box.y + box.height / 2 },
+    });
+    await expect(popup).toHaveAttribute("data-open");
+    await user.click(copyButton);
+    await expect(copy).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(popupIn(doc)).toBeNull());
+    await user.tab();
+    const pin = canvas.getByRole("button", { name: "Pin to rail" });
+    await expect(pin).toHaveFocus();
+    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Pin to rail"));
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(popupIn(doc)).toBeNull());
+    await expect(pin).toHaveFocus();
+  },
 };
 
-/** One held open, on the info button it belongs to. */
-export const Open: Story = {
-  render: () => (
-    <Inline space="space.300">
-      <Tooltip content="Verified 12 Aug 2026" defaultOpen>
-        <IconButton label="Verification" variant="subtle" icon={<Info />} />
-      </Tooltip>
-    </Inline>
-  ),
-};
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <div style={{ paddingTop: 40 }}>
-            <Tooltip content="Edit" defaultOpen>
-              <IconButton label="Edit" variant="subtle" icon={<Pencil />} isTooltipDisabled />
-            </Tooltip>
-          </div>
-        }
-        doText="An icon-only control's name is its tooltip; IconButton draws it from label."
-        dont={
-          <div style={{ paddingTop: 40 }}>
-            <Tooltip content="Save" defaultOpen>
-              <Button variant="primary">Save</Button>
-            </Tooltip>
-          </div>
-        }
-        dontText="A tooltip that repeats the label. The reader waits 300ms to learn what they already read."
-      />
-      <Pair
-        do={
-          <div style={{ width: 280 }}>
-            <Field label="Owner" hint="Required before the review closes.">
-              <Input placeholder="Who answers for it" />
-            </Field>
-          </div>
-        }
-        doText="What the reader must know is beside the field, in its hint."
-        dont={
-          <div style={{ width: 280 }}>
-            <Field
-              label={
-                <span className="flex items-center gap-050">
-                  Owner
-                  <Tooltip content="Required before the review closes.">
-                    <IconButton label="About owner" variant="subtle" size="small" icon={<Info />} />
-                  </Tooltip>
-                </span>
+function UnavailableDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Export options</Button>
+      <Dialog open={open} onClose={() => setOpen(false)} title="Export options">
+        <Stack space="space.200">
+          <Text>Connect an export service to download a package.</Text>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <span
+                  tabIndex={0}
+                  role="group"
+                  aria-label="Export unavailable: connect an export service"
+                  className="inline-flex self-start focus-visible:outline-focused"
+                />
               }
             >
-              <Input placeholder="Who answers for it" />
-            </Field>
-          </div>
-        }
-        dontText="A rule behind an info icon. It vanishes on hover-away, never shows on touch, and the form fails for the reader who did not look."
-      />
-      <Pair
-        do={
-          <div style={{ height: 150 }}>
-            <Popover defaultOpen>
-              <PopoverTrigger render={<Button variant="secondary">Deleted</Button>} />
-              <PopoverContent aria-label="Undo" style={{ width: 220 }}>
-                <Stack space="space.100">
-                  <Text size="small">The finding is deleted.</Text>
-                  <Button size="small">Undo</Button>
-                </Stack>
-              </PopoverContent>
-            </Popover>
-          </div>
-        }
-        doText="Something to act on opens a Popover, which takes focus and holds a control."
-        dont={
-          <div style={{ paddingTop: 48 }}>
-            <Tooltip content={<Button size="small">Undo</Button>} defaultOpen>
-              <Button variant="secondary">Deleted</Button>
-            </Tooltip>
-          </div>
-        }
-        dontText="A control inside a tooltip. A tooltip cannot be focused, so the button cannot be reached, and it closes as the pointer moves toward it."
-      />
-    </Stack>
-  ),
-};
+              <Button disabled iconBefore={<Download />} title="Connect an export service">
+                Export package
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Connect an export service</TooltipContent>
+          </Tooltip>
+          <Button variant="subtle" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+        </Stack>
+      </Dialog>
+    </>
+  );
+}
 
-export const Playground: Story = {
-  render: (args) => (
-    <Inline alignInline="center" className="p-800">
-      <Tooltip {...args} />
-    </Inline>
-  ),
+/** A disabled action keeps its explanation available on a focusable wrapper inside a dialog. */
+export const Unavailable: Story = {
+  render: () => <UnavailableDemo />,
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const canvas = within(canvasElement);
+    const page = within(doc.body);
+    const user = userEvent.setup({ document: doc });
+    const opener = canvas.getByRole("button", { name: "Export options" });
+    await user.click(opener);
+    const dialog = await page.findByRole("dialog", { name: "Export options" });
+    const wrapper = within(dialog).getByRole("group", {
+      name: "Export unavailable: connect an export service",
+    });
+    await waitFor(() => expect(wrapper).toHaveFocus());
+    await expect(within(dialog).getByRole("button", { name: "Export package" })).toBeDisabled();
+    await waitFor(() => expect(popupIn(doc)).toBeVisible());
+    await expect(dialog).toContainElement(popupIn(doc));
+    await waitFor(() => {
+      const popup = popupIn(doc)!;
+      const r = popup.getBoundingClientRect();
+      expect(popup.contains(doc.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2))).toBe(
+        true,
+      );
+    });
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(popupIn(doc)).toBeNull());
+    await expect(dialog).toBeVisible();
+    await expect(wrapper).toHaveFocus();
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(opener).toHaveFocus());
+  },
 };

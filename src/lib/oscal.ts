@@ -39,6 +39,9 @@
  * it except `@/lib/airgap` and the export route, so it introduces no cycle.
  */
 
+import { buildPlatformSsp } from "@/lib/platform-oscal";
+import { platformProgramId } from "@/lib/platform-ids";
+
 import { evidenceById } from "@/lib/evidence-catalog";
 import { authorizedBuild } from "@/lib/baselines";
 import { campaigns, objectiveById } from "@/lib/campaigns";
@@ -100,6 +103,12 @@ export type OscalDocument = {
 
 /** The OSCAL release these documents are written against. */
 export const oscalVersion = "1.1.2";
+
+export function oscalDocumentVersion(doc: OscalDocument): string {
+  const root = (doc.json as JsonObject)[doc.model] as JsonObject | undefined;
+  const metadata = root?.["metadata"] as JsonObject | undefined;
+  return typeof metadata?.["oscal-version"] === "string" ? metadata["oscal-version"] : oscalVersion;
+}
 
 /** The dataset's "now", as an OSCAL `date-time-with-timezone`. */
 export const oscalNow = "2026-08-30T12:00:00-04:00";
@@ -357,7 +366,7 @@ function objectiveToken(label: string): string {
 }
 
 function prop(name: string, value: string, ns?: string): JsonObject {
-  const out: JsonObject = { name, value };
+  const out: JsonObject = { name, value: value.trim().replace(/\s+/g, " ") || "Unrecorded" };
   if (ns) out["ns"] = ns;
   return out;
 }
@@ -607,7 +616,7 @@ function metadata(
 /* ── Components and inventory ────────────────────────────────────────────── */
 
 function componentUuid(id: string): string {
-  return stableUuid(`component|${id}`);
+  return nodeById.get(id)?.sourceRecord?.uuid ?? stableUuid(`component|${id}`);
 }
 
 function componentType(node: CompositionNode, isRoot: boolean): string {
@@ -687,7 +696,7 @@ function inventoryItems(programId: string): JsonObject[] {
     .filter((a) => a.program === programId)
     .map((asset) => {
       const anchor = nodeById.get(asset.node);
-      const subtree = anchor ? descendantsOf(anchor.id) : [];
+      const subtree = anchor ? [anchor, ...descendantsOf(anchor.id)] : [];
       const implemented = subtree.map((node) => ({
         "component-uuid": componentUuid(node.id),
         props: [eq("composition-path", pathLabel(node.id))],
@@ -1040,9 +1049,7 @@ function implementedRequirement(
   ];
   if (first.responsibleParty !== "—") props.push(eq("responsible-entity", first.responsibleParty));
 
-  const links: JsonObject[] = evidence.map((id) =>
-    link(`#${stableUuid(`resource|${id}`)}`, "evidence", id),
-  );
+  const links: JsonObject[] = evidence.map((id) => link(`#${resourceUuid(id)}`, "evidence", id));
   if (resolved) {
     links.push(
       link(
@@ -1161,13 +1168,20 @@ function implementedRequirement(
 
 /* ── Back matter ─────────────────────────────────────────────────────────── */
 
+function resourceUuid(id: string): string {
+  return evidenceById(id)?.sourceUuid ?? stableUuid(`resource|${id}`);
+}
+function registerRiskUuid(id: string): string {
+  return registerRisks.find((risk) => risk.id === id)?.sourceUuid ?? stableUuid(`risk|${id}`);
+}
+
 function evidenceResources(rows: SctmRow[], additional: string[] = []): JsonObject[] {
   return dedupe([...rows.flatMap((r) => r.evidence), ...additional])
     .sort()
     .map((id) => {
       const artifact = evidenceById(id);
       return {
-        uuid: stableUuid(`resource|${id}`),
+        uuid: resourceUuid(id),
         title: artifact ? `${id} — ${artifact.label}` : id,
         description:
           artifact?.provenance ??
@@ -1194,7 +1208,18 @@ function evidenceResources(rows: SctmRow[], additional: string[] = []): JsonObje
               ]
             : []),
         ],
-        ...(artifact?.url ? { rlinks: [{ href: artifact.url }] } : {}),
+        ...(artifact?.url || artifact?.referenceUri
+          ? {
+              rlinks: [
+                {
+                  href: artifact.url ?? artifact.referenceUri!,
+                  ...(artifact.sha256
+                    ? { hashes: [{ algorithm: "SHA-256", value: artifact.sha256 }] }
+                    : {}),
+                },
+              ],
+            }
+          : {}),
       };
     });
 }
@@ -1222,6 +1247,29 @@ function emptyDocument(model: OscalModel, programId: string): OscalDocument {
 }
 
 export function oscalSsp(programId: string, rows: SctmRow[]): OscalDocument {
+  if (programId === platformProgramId) {
+    const json = buildPlatformSsp(programId);
+    const root = json["system-security-plan"] as JsonObject;
+    const implementation = root["control-implementation"] as JsonObject;
+    for (const requirement of implementation["implemented-requirements"] as JsonObject[]) {
+      const controlId = (requirement["props"] as JsonObject[]).find(
+        (property) => property["name"] === "source-control-id",
+      )?.["value"];
+      if (typeof controlId === "string")
+        requirement["statements"] = statementsFor(
+          controlId,
+          rows.filter((row) => row.control === controlId),
+          programId,
+        );
+    }
+    root["uuid"] = stableUuid(`system-security-plan|${sha256Hex(JSON.stringify(json))}`);
+    return {
+      model: "system-security-plan",
+      json,
+      uuid: String(root["uuid"]),
+      generated: String((root["metadata"] as JsonObject)["last-modified"]),
+    };
+  }
   const program = programOf(programId);
   if (!program) return emptyDocument("system-security-plan", programId);
 
@@ -1560,7 +1608,7 @@ export function oscalAssessmentPlan(programId: string): OscalDocument {
       uuid,
       metadata: metadata(program, `${program.name} — Security Assessment Plan`, parties),
       "import-ssp": {
-        href: `#${sspUuid}`,
+        href: program.id === platformProgramId ? "./ssp.json" : `#${sspUuid}`,
         remarks: `The ${program.acronym} System Security Plan generated from the same control matrix.`,
       },
       "local-definitions": {
@@ -1654,7 +1702,7 @@ function findingObservation(finding: Finding): JsonObject {
     props: [
       eq("finding-id", finding.id),
       eq("cci", finding.cci),
-      eq("control", finding.control),
+      ...(finding.controls ?? [finding.control]).map((control) => eq("control", control)),
       eq("verification-path", finding.source),
       eq("raw-severity", finding.rawSeverity),
       eq("mitigated-severity", finding.mitigatedSeverity),
@@ -1681,7 +1729,7 @@ function findingObservation(finding: Finding): JsonObject {
       dedupe([finding.sourceArtifact, ...finding.assessment.evidence])
         .filter(Boolean)
         .map((id) => ({
-          href: `#${stableUuid(`resource|${id}`)}`,
+          href: `#${resourceUuid(id)}`,
           description: `Evidence artifact ${id}.`,
         })),
     ),
@@ -1804,16 +1852,19 @@ function registerRiskEntry(riskId: string): JsonObject | null {
   const members = findingsForRisk(risk.id);
   const characterizations = riskCharacterizations(risk.id);
   const out: JsonObject = {
-    uuid: stableUuid(`risk|${risk.id}`),
+    uuid: registerRiskUuid(risk.id),
     title: `${risk.id} — ${risk.title}`,
     description: risk.statement,
     statement: risk.statement,
     props: [
       eq("risk-id", risk.id),
-      eq("authored-likelihood", String(risk.likelihood)),
-      eq("authored-impact", String(risk.impact)),
-      eq("authored-inherent", String(risk.inherent)),
-      eq("authored-residual", String(risk.residual)),
+      ...(risk.likelihood !== null ? [eq("authored-likelihood", String(risk.likelihood))] : []),
+      ...(risk.impact !== null ? [eq("authored-impact", String(risk.impact))] : []),
+      ...(risk.inherent !== null ? [eq("authored-inherent", String(risk.inherent))] : []),
+      ...(risk.residual !== null ? [eq("authored-residual", String(risk.residual))] : []),
+      ...(risk.sourceRating
+        ? Object.entries(risk.sourceRating).map(([key, value]) => eq(`source-${key}`, value))
+        : []),
       eq("treatment", risk.treatment),
       eq("ao-disposition", risk.disposition),
       eq("last-reviewed", risk.reviewed),
@@ -1964,7 +2015,7 @@ function sctmFinding(
         .filter((id): id is string => typeof id === "string"),
     );
     if (risks.length > 0) {
-      out["related-risks"] = risks.map((id) => ({ "risk-uuid": stableUuid(`risk|${id}`) }));
+      out["related-risks"] = risks.map((id) => ({ "risk-uuid": registerRiskUuid(id) }));
     }
   }
   return out;
@@ -2002,7 +2053,7 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
         ...listOf(
           "relevant-evidence",
           retest.evidence.map((id) => ({
-            href: `#${stableUuid(`resource|${id}`)}`,
+            href: `#${resourceUuid(id)}`,
             description: evidenceById(id)?.label ?? id,
           })),
         ),
@@ -2045,7 +2096,7 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
           ...listOf(
             "relevant-evidence",
             evidence.map((id) => ({
-              href: `#${stableUuid(`resource|${id}`)}`,
+              href: `#${resourceUuid(id)}`,
               description: evidenceById(id)?.label ?? id,
             })),
           ),
@@ -2207,7 +2258,7 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
           {
             description: "Controls named by findings raised from an executed scenario.",
             "include-controls": dedupe(
-              programFindings.filter((f) => isOpen(f)).map((f) => f.control),
+              programFindings.filter((f) => isOpen(f)).flatMap((f) => f.controls ?? [f.control]),
             ).map((control) => ({ "control-id": oscalControlId(control) })),
           },
         ],
@@ -2287,7 +2338,9 @@ function milestoneTask(item: OscalPoamItem, milestone: Milestone): JsonObject {
         : []),
       eq("poam-item", item.poamId),
     ],
-    timing: { "on-date": { date: milestone.targetDate } },
+    ...(oscalStamp(milestone.targetDate)
+      ? { timing: { "on-date": { date: oscalStamp(milestone.targetDate)! } } }
+      : {}),
   };
   return out;
 }
@@ -2391,7 +2444,7 @@ export function oscalPoam(programId: string): OscalDocument {
               id: milestone.id,
               title: milestone.title,
               description: milestone.title,
-              targetDate: oscalStamp(milestone.targetDate) ?? oscalNow,
+              targetDate: oscalStamp(milestone.targetDate) ?? "",
               completedDate: milestone.completedDate ? oscalStamp(milestone.completedDate) : null,
               status: milestone.status,
             })),
@@ -2493,7 +2546,10 @@ export function oscalPoam(programId: string): OscalDocument {
    * their findings as observations and their register risk as the related risk,
    * so the OSCAL and eMASS POA&M carry exactly the same item set.
    */
-  for (const item of registerPoamItems.filter((i) => i.program === program.id && !i.legacyUuid)) {
+  const exportedSourceUuids = new Set(items.map((item) => item.uuid));
+  for (const item of registerPoamItems.filter(
+    (i) => i.program === program.id && (!i.legacyUuid || !exportedSourceUuids.has(i.legacyUuid)),
+  )) {
     const members = findingsForPoam(item.id);
     for (const finding of members) {
       const observationUuid = stableUuid(`observation|finding|${finding.id}`);
@@ -2507,33 +2563,58 @@ export function oscalPoam(programId: string): OscalDocument {
       lifecycle: item.status === "Completed" ? "completed" : "planned",
       title: `Remediation plan for ${item.id}`,
       description: item.remediation,
-      "required-assets": [
-        {
-          uuid: stableUuid(`required-asset|${item.id}`),
-          title: "Resources required",
-          description: item.resources,
-        },
-      ],
-      tasks: [
-        {
-          uuid: stableUuid(`milestone|${item.id}`),
-          type: "milestone",
-          title: `Scheduled completion of ${item.id}`,
-          description: item.milestoneNote,
-          props: [
-            prop("original-completion-date", item.originalCompletion, emassNs),
-            prop("scheduled-completion-date", item.scheduledCompletion, emassNs),
+      ...(item.resources.trim()
+        ? {
+            "required-assets": [
+              {
+                uuid: stableUuid(`required-asset|${item.id}`),
+                title: "Resources required",
+                description: item.resources,
+              },
+            ],
+          }
+        : {}),
+      tasks: item.milestones?.length
+        ? item.milestones.map((milestone) => ({
+            uuid: stableUuid(`milestone|${milestone.id}`),
+            type: "milestone",
+            title: milestone.title,
+            description: milestone.title,
+            props: [
+              prop("milestone-id", milestone.id, emassNs),
+              prop("milestone-status", milestone.status, emassNs),
+              ...(milestone.completedDate
+                ? [prop("milestone-completed", milestone.completedDate, emassNs)]
+                : []),
+            ],
+            ...(oscalStamp(milestone.targetDate)
+              ? { timing: { "on-date": { date: oscalStamp(milestone.targetDate)! } } }
+              : {}),
+          }))
+        : [
+            {
+              uuid: stableUuid(`milestone|${item.id}`),
+              type: "milestone",
+              title: `Scheduled completion of ${item.id}`,
+              description: item.milestoneNote || "Scheduled remediation completion.",
+              props: [
+                prop("original-completion-date", item.originalCompletion, emassNs),
+                prop("scheduled-completion-date", item.scheduledCompletion, emassNs),
+              ],
+              ...(oscalStamp(item.scheduledCompletion)
+                ? {
+                    timing: {
+                      "on-date": { date: oscalStamp(item.scheduledCompletion) ?? oscalNow },
+                    },
+                  }
+                : {}),
+            },
           ],
-          ...(oscalStamp(item.scheduledCompletion)
-            ? { timing: { "on-date": { date: oscalStamp(item.scheduledCompletion) ?? oscalNow } } }
-            : {}),
-        },
-      ],
     };
 
     let riskUuid: string;
     if (item.risk) {
-      riskUuid = stableUuid(`risk|${item.risk}`);
+      riskUuid = registerRiskUuid(item.risk);
       const existing = risks.find((r) => r["uuid"] === riskUuid);
       if (existing) {
         const list = existing["remediations"];
@@ -2564,7 +2645,7 @@ export function oscalPoam(programId: string): OscalDocument {
 
     const worst = worstSeverity(members);
     poamItemEntries.push({
-      uuid: stableUuid(`poam-item|${item.id}`),
+      uuid: item.legacyUuid ?? stableUuid(`poam-item|${item.id}`),
       title: item.title,
       description: item.remediation,
       props: [
@@ -2576,7 +2657,7 @@ export function oscalPoam(programId: string): OscalDocument {
         prop("original-completion-date", item.originalCompletion, emassNs),
         prop(
           "security-control-number",
-          dedupe(members.map((f) => f.control)).join(", ") || "—",
+          dedupe(members.flatMap((f) => f.controls ?? [f.control])).join(", ") || "—",
           emassNs,
         ),
         prop("raw-severity", worst ?? "—", emassNs),
@@ -2616,7 +2697,7 @@ export function oscalPoam(programId: string): OscalDocument {
    */
   const localComponents = [
     ...nodes
-      .filter((n) => n.asset !== null || n.id === rootId)
+      .filter((n) => n.asset !== null || n.id === rootId || !!n.sourceRecord)
       .map((n) => nodeComponent(n, n.id === rootId)),
     ...(risks.some((r) => r["characterizations"] !== undefined) ? [riskScoringComponent()] : []),
   ];
@@ -2628,13 +2709,27 @@ export function oscalPoam(programId: string): OscalDocument {
       "Only the boundary assets, the system root and the scoring engine the risk characterizations name are redefined here so the POA&M can stand alone if the SSP is not transferred with it; the full component set lives in the SSP.",
   };
 
-  const resources = dedupe(items.flatMap((i) => i.links.map((l) => l.text)))
+  const resources: JsonObject[] = dedupe(items.flatMap((i) => i.links.map((l) => l.text)))
     .sort()
     .map((title) => ({
       uuid: stableUuid(`resource|${title}`),
       title,
       description: `Referenced from a POA&M item in the ${program.acronym} register.`,
     }));
+
+  const nativeEvidence = evidenceResources(
+    [],
+    findings
+      .filter((finding) => findingProgram(finding) === program.id)
+      .flatMap((finding) => [
+        finding.sourceArtifact,
+        ...finding.assessment.evidence,
+        ...(finding.retests ?? []).flatMap((retest) => retest.evidence),
+      ])
+      .filter(Boolean),
+  );
+  const resourceIds = new Set(resources.map((resource) => resource["uuid"]));
+  resources.push(...nativeEvidence.filter((resource) => !resourceIds.has(resource["uuid"])));
 
   /**
    * `poam-items` is the one collection that is BOTH required at the root and
@@ -2658,7 +2753,7 @@ export function oscalPoam(programId: string): OscalDocument {
     "plan-of-action-and-milestones": {
       uuid,
       metadata: metadata(program, `${program.name} — Plan of Action and Milestones`, parties),
-      "import-ssp": { href: `#${sspUuid}` },
+      "import-ssp": { href: program.id === platformProgramId ? "./ssp.json" : `#${sspUuid}` },
       "system-id": {
         "identifier-type": "https://equinox.example/ns/system-id",
         id: program.system,

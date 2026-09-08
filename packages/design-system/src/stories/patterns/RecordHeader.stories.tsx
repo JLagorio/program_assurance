@@ -8,6 +8,9 @@ import {
   BreadcrumbSeparator,
   Button,
   DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   Fact,
   IconButton,
   Stepper,
@@ -80,14 +83,16 @@ export const RecordHeaderMatrix: Story = {
           <>
             <Button variant="secondary">Views</Button>
             <Button variant="primary">Record assessment result</Button>
-            <DropdownMenu
-              align="end"
-              trigger={<IconButton label="More actions" size="medium" icon={<ChevronDown />} />}
-            >
-              <DropdownMenu.Item onSelect={() => {}}>Export SSP</DropdownMenu.Item>
-              <DropdownMenu.Item tone="danger" onSelect={() => {}}>
-                Archive
-              </DropdownMenu.Item>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<IconButton label="More actions" size="medium" icon={<ChevronDown />} />}
+              />
+              <DropdownMenuContent align="end" style={{ width: 200 }}>
+                <DropdownMenuItem onClick={() => {}}>Export SSP</DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => {}}>
+                  Archive
+                </DropdownMenuItem>
+              </DropdownMenuContent>
             </DropdownMenu>
           </>
         }

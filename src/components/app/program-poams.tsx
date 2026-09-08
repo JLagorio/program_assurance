@@ -1,4 +1,5 @@
 import { useCallback, useId, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import {
   Badge,
@@ -17,6 +18,7 @@ import {
   Table,
   Text,
   Textarea,
+  TextLink,
   defineColumns,
   useDataTable,
   toast,
@@ -35,6 +37,7 @@ import {
 import { currentSession } from "@/lib/control-work";
 import { statusTone } from "@/lib/spine";
 import { FindingRecordSheet } from "@/components/app/program-findings";
+import { nodeById } from "@/lib/composition";
 
 function dateInput(value: string) {
   if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
@@ -42,7 +45,7 @@ function dateInput(value: string) {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 }
 function dueLabel(value: string) {
-  return dateInput(value) || value || "—";
+  return dateInput(value) || value || "Unscheduled";
 }
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "The POA&M could not be saved.";
@@ -467,6 +470,41 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
               />
             </Field>
             <Block title="Linked findings" count={members.length}>
+              {item.sourceStatus === "completed" &&
+              members.some(
+                (finding) => finding.sourceStatus === "closed" && !finding.retests?.length,
+              ) ? (
+                <Badge tone="warning">Imported completion · passing retest not recorded</Badge>
+              ) : null}
+              {item.controls?.length || item.requirements?.length ? (
+                <Inline space="space.100" shouldWrap>
+                  {item.controls?.map((controlId) => (
+                    <TextLink key={controlId}>
+                      <Link
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId: item.program, controlId }}
+                      >
+                        {controlId}
+                      </Link>
+                    </TextLink>
+                  ))}
+                  {item.requirements?.map((requirementId) => (
+                    <TextLink key={requirementId}>
+                      <Link
+                        to="/programs/$programId/requirements/$requirementId"
+                        params={{ programId: item.program, requirementId }}
+                      >
+                        {requirementId}
+                      </Link>
+                    </TextLink>
+                  ))}
+                </Inline>
+              ) : null}
+              {item.nodes?.length ? (
+                <Text as="p" size="small" color="color.text.subtle">
+                  {item.nodes.map((id) => nodeById.get(id)?.name ?? id).join(", ")}
+                </Text>
+              ) : null}
               {members.length ? (
                 <Table>
                   <thead>

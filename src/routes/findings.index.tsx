@@ -311,13 +311,19 @@ function FindingsPage() {
                           <Table.Cell className="truncate">{a.environment}</Table.Cell>
                           <Table.Cell className="truncate">{a.lastScan}</Table.Cell>
                           <Table.Cell className="tabular-nums text-right">
-                            <span className={a.openCatI ? "font-medium text-danger" : ""}>
-                              {a.openCatI}
-                            </span>
-                            <span className="text-subtle">
-                              {" "}
-                              / {a.openCatII} / {a.openCatIII}
-                            </span>
+                            {a.scanAvailable === false ? (
+                              "—"
+                            ) : (
+                              <>
+                                <span className={a.openCatI ? "font-medium text-danger" : ""}>
+                                  {a.openCatI}
+                                </span>
+                                <span className="text-subtle">
+                                  {" "}
+                                  / {a.openCatII} / {a.openCatIII}
+                                </span>
+                              </>
+                            )}
                           </Table.Cell>
                           <TrackedCell assetId={a.id} />
                         </Table.Row>
@@ -399,10 +405,14 @@ function FindingsPage() {
                   </Inspector.Group>
                   <Inspector.Group title="Open findings">
                     <KeyValue label="Scanner declared">
-                      <span className="tabular-nums">
-                        {preview.item.openCatI} / {preview.item.openCatII} /{" "}
-                        {preview.item.openCatIII}
-                      </span>
+                      {preview.item.scanAvailable === false ? (
+                        "Not supplied"
+                      ) : (
+                        <span className="tabular-nums">
+                          {preview.item.openCatI} / {preview.item.openCatII} /{" "}
+                          {preview.item.openCatIII}
+                        </span>
+                      )}
                     </KeyValue>
                     <KeyValue label="Register tracked">
                       <span className="tabular-nums">{trackedLabel(preview.item.id)}</span>

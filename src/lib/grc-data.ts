@@ -1,4 +1,5 @@
 import { nistFamilies } from "@/lib/nist-catalog";
+import { platformProgram } from "@/lib/platform-program";
 
 import type { Tone } from "@ledger/design-system";
 
@@ -328,8 +329,8 @@ export type Program = {
   name: string;
   acronym: string;
   system: string;
-  type: "Major application" | "General support system" | "Minor application";
-  environment: "AWS GovCloud" | "AWS Commercial" | "Azure" | "On-premise";
+  type: "Major application" | "General support system" | "Minor application" | "Weapon system";
+  environment: "AWS GovCloud" | "AWS Commercial" | "Azure" | "On-premise" | "Deployed platform";
   impact: ImpactLevel;
   confidentiality: ImpactLevel;
   integrity: ImpactLevel;
@@ -357,6 +358,7 @@ export const programStatusTone: Record<ProgramStatus, Tone> = {
 };
 
 export const programs: Program[] = [
+  platformProgram,
   {
     id: "PRG-1041",
     name: "Atlas payments platform",

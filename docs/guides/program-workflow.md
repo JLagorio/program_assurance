@@ -2,6 +2,12 @@
 
 Work starts inside a program and stays attached to that program's systems, requirements, controls, assessments, and remediation records. The program route is `src/routes/programs.$programId.tsx`.
 
+WS-X90 Sentinel Mission System (`PRG-1090`) uses these same tabs and record editors. `platform-ingestion.ts` maps the supplied platform seed into the existing stores before browser edits are restored: 6 subsystems, 20 components, 74 effective controls, 120 requirements, 90 evidence references, 120 assessment results, 16 findings, and 16 POA&Ms. The source snapshot is shipped in `src/data/wsx90-platform-seed.json`; source IDs, UUIDs, and relationships remain available on imported records.
+
+The system control set starts with the source selection and applies its three overlays in order. Child scopes inherit that set and can record further tailoring through the existing controls workflow. Missing evidence stays missing, undated remediation milestones appear as **Unscheduled**, and source closures without retests retain that gap. Imported evidence URNs identify references; they are not downloadable files.
+
+WS-X90 exports include the paired profile and SSP, assessment plan and results, and POA&M. These were checked against the official OSCAL 1.2.3 JSON schema, including cross-document UUID references and preservation of all 16 POA&Ms and 48 undated milestones.
+
 | Tab          | Purpose                                                                                                            |
 | ------------ | ------------------------------------------------------------------------------------------------------------------ |
 | System       | Define the system composition and assessment scopes.                                                               |

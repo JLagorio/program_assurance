@@ -27,6 +27,12 @@ import {
 import { Shell } from "@/components/app/shell";
 import { programStatusTone, programs, type Program } from "@/lib/grc-data";
 import { saveProgramCommands, useProgramsVersion } from "@/lib/program-store";
+import { controlMatrix } from "@/lib/control-matrix";
+import { scopesForProgram, useScopesVersion } from "@/lib/scopes";
+import { useControlSetVersion } from "@/lib/control-set";
+import { useWorkVersion } from "@/lib/control-work";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
+import { useEvidenceVersion } from "@/lib/evidence-catalog";
 
 export const Route = createFileRoute("/programs")({
   head: () => ({
@@ -124,7 +130,17 @@ const programColumns = defineColumns<Program>((c) => [
     sortBy: (p) => impactRank[p.impact] ?? 0,
     tone: (p) => (p.impact === "High" ? "danger" : p.impact === "Moderate" ? "warning" : "neutral"),
   }),
-  c.custom("baseline", { header: "Baseline", width: 120, cell: (p) => <>Rev. 5 · {p.impact}</> }),
+  c.custom("baseline", {
+    header: "Baseline",
+    width: 120,
+    cell: (p) => (
+      <>
+        {scopesForProgram(p.id).some((scope) => scope.selectionSource)
+          ? p.baseline
+          : `Rev. 5 · ${p.impact}`}
+      </>
+    ),
+  }),
   c.custom("assessment", {
     header: "Assessment",
     width: 150,
@@ -156,6 +172,11 @@ const programColumns = defineColumns<Program>((c) => [
 function ProgramList() {
   const navigate = useNavigate();
   const programsVersion = useProgramsVersion();
+  const scopesVersion = useScopesVersion();
+  const controlSetsVersion = useControlSetVersion();
+  const workVersion = useWorkVersion();
+  const assuranceVersion = useAssuranceVersion();
+  const evidenceVersion = useEvidenceVersion();
   const [exporting, setExporting] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
@@ -189,9 +210,29 @@ function ProgramList() {
 
   // The seed array is mutated in place when a program is created, so the table gets a fresh copy per version.
   const data = useMemo(
-    () => programs.filter((program) => (showArchived ? !!program.archivedAt : !program.archivedAt)),
+    () =>
+      programs
+        .filter((program) => (showArchived ? !!program.archivedAt : !program.archivedAt))
+        .map((program) => {
+          if (!scopesForProgram(program.id).some((scope) => scope.selectionSource)) return program;
+          const rows = controlMatrix(program.id);
+          return {
+            ...program,
+            controlsTotal: rows.length,
+            controlsAssessed: rows.filter((row) => row.status !== "Not assessed").length,
+            controlsFailing: rows.filter((row) => row.status === "Other than satisfied").length,
+          };
+        }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [programsVersion, showArchived],
+    [
+      programsVersion,
+      showArchived,
+      scopesVersion,
+      controlSetsVersion,
+      workVersion,
+      assuranceVersion,
+      evidenceVersion,
+    ],
   );
   const table = useDataTable({
     columns: programColumns,

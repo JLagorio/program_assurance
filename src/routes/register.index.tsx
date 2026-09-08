@@ -300,11 +300,16 @@ function RegisterPage() {
                             <Table.Cell>
                               <Inline space="space.100" alignBlock="center">
                                 <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
-                                  {r.inherent}
+                                  {r.inherent ?? "—"}
                                 </span>
-                                <Progress value={r.residual} tone={residualTone(r.residual)} />
+                                {r.residual !== null ? (
+                                  <Progress
+                                    value={r.residual ?? r.sourceRating?.overall ?? "Unrecorded"}
+                                    tone={residualTone(r.residual)}
+                                  />
+                                ) : null}
                                 <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
-                                  {r.residual}
+                                  {r.residual ?? r.sourceRating?.overall ?? "Unrecorded"}
                                 </span>
                               </Inline>
                             </Table.Cell>
@@ -454,10 +459,13 @@ function RegisterPage() {
                     <KeyValue label="Owner">{preview.item.owner}</KeyValue>
                     <KeyValue label="Treatment">{preview.item.treatment}</KeyValue>
                     <KeyValue label="Likelihood × impact">
-                      {preview.item.likelihood} × {preview.item.impact}
+                      {preview.item.likelihood ?? preview.item.sourceRating?.likelihood ?? "—"} ×{" "}
+                      {preview.item.impact ?? preview.item.sourceRating?.impact ?? "—"}
                     </KeyValue>
-                    <KeyValue label="Inherent">{preview.item.inherent}</KeyValue>
-                    <KeyValue label="Residual">{preview.item.residual}</KeyValue>
+                    <KeyValue label="Inherent">{preview.item.inherent ?? "Unrecorded"}</KeyValue>
+                    <KeyValue label="Residual">
+                      {preview.item.residual ?? preview.item.sourceRating?.overall ?? "Unrecorded"}
+                    </KeyValue>
                     <KeyValue label="Reviewed">{preview.item.reviewed}</KeyValue>
                   </Inspector.Group>
                   <Inspector.Group title="Statement">

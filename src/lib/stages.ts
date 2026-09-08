@@ -58,11 +58,13 @@ export function stageOf(programId: string): string {
   const stored = stageByProgram.get(programId);
   const stages = stagesFor(programId);
   if (stored && stages.includes(stored)) return stored;
-  const status = programs.find((p) => p.id === programId)?.status;
+  const program = programs.find((p) => p.id === programId);
+  const status = program?.status;
   const guess =
     status === "Draft"
       ? "Prepare"
-      : status === "In assessment"
+      : status === "In assessment" ||
+          (status === "POA&M open" && !Number.isFinite(Date.parse(program?.authorized ?? "")))
         ? "Assess"
         : status === "Expired"
           ? "Authorize"

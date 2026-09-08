@@ -36,6 +36,12 @@ export type PoamItem = {
   milestones?: PoamMilestone[] | undefined;
   /** Stable identity of an imported OSCAL-shaped seed record. */
   legacyUuid?: string | undefined;
+  requirements?: string[] | undefined;
+  nodes?: string[] | undefined;
+  findingIds?: string[] | undefined;
+  riskIds?: string[] | undefined;
+  sourceStatus?: string | undefined;
+  sourceIssues?: string[] | undefined;
 };
 
 export type RegisterRisk = {
@@ -44,14 +50,19 @@ export type RegisterRisk = {
   program: string; // PRG-
   owner: string;
   disposition: RiskDisposition;
-  likelihood: 1 | 2 | 3 | 4 | 5;
-  impact: 1 | 2 | 3 | 4 | 5;
-  inherent: number;
-  residual: number;
+  likelihood: 1 | 2 | 3 | 4 | 5 | null;
+  impact: 1 | 2 | 3 | 4 | 5 | null;
+  inherent: number | null;
+  residual: number | null;
   treatment: "Mitigate" | "Accept" | "Transfer" | "Avoid";
   statement: string;
   aoNote?: string;
   reviewed: string;
+  /** The source supplied qualitative ratings, without authored numeric scores. */
+  sourceRating?: { likelihood: string; impact: string; overall: string };
+  sourceStatus?: string;
+  sourceUuid?: string;
+  findingIds?: string[];
 };
 
 export const poamItems: PoamItem[] = [
@@ -226,17 +237,19 @@ export const poamById = new Map(poamItems.map((p) => [p.id, p]));
 export const riskById = new Map(registerRisks.map((r) => [r.id, r]));
 
 export function findingsForPoam(id: string): Finding[] {
-  return findings.filter((f) => f.poam === id);
+  const imported = poamById.get(id)?.findingIds ?? [];
+  return findings.filter((f) => f.poam === id || imported.includes(f.id));
 }
 
 export function findingsForRisk(id: string): Finding[] {
-  const direct = findings.filter((f) => f.risk === id);
+  const imported = riskById.get(id)?.findingIds ?? [];
+  const direct = findings.filter((f) => f.risk === id || imported.includes(f.id));
   const viaPoam = findings.filter((f) => !f.risk && f.poam && poamById.get(f.poam)?.risk === id);
-  return [...direct, ...viaPoam];
+  return [...new Map([...direct, ...viaPoam].map((finding) => [finding.id, finding])).values()];
 }
 
 export function poamsForRisk(id: string): PoamItem[] {
-  return poamItems.filter((p) => p.risk === id);
+  return poamItems.filter((p) => p.risk === id || p.riskIds?.includes(id));
 }
 
 const severityRank: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1, "CAT III": 2 };

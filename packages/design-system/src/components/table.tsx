@@ -26,7 +26,7 @@ import { Count } from "./badge";
 import { Checkbox } from "./checkbox";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 import { Id } from "./id";
-import { Tooltip } from "./tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { Absent } from "./typography";
 
 export type TableProps = {
@@ -367,25 +367,30 @@ export function PreviewButton({
 }) {
   const { t } = useLedgerLocale();
   return (
-    <Tooltip content={t("preview")}>
-      <button
-        type="button"
-        aria-label={t("previewRow")}
-        aria-pressed={isActive ? true : undefined}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPreview();
-        }}
-        className={cn(
-          "inline-flex size-250 shrink-0 items-center justify-center rounded-small outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused",
-          isActive
-            ? "bg-selected icon-selected"
-            : "icon-subtlest hover:bg-neutral-subtle-hovered hover:icon-default group-hover/row:icon-subtle",
-          className,
-        )}
-      >
-        <Eye className="size-icon-small" />
-      </button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <button
+            type="button"
+            aria-label={t("previewRow")}
+            aria-pressed={isActive ? true : undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreview();
+            }}
+            className={cn(
+              "inline-flex size-250 shrink-0 items-center justify-center rounded-small outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused",
+              isActive
+                ? "bg-selected icon-selected"
+                : "icon-subtlest hover:bg-neutral-subtle-hovered hover:icon-default group-hover/row:icon-subtle",
+              className,
+            )}
+          >
+            <Eye className="size-icon-small" />
+          </button>
+        }
+      />
+      <TooltipContent>{t("preview")}</TooltipContent>
     </Tooltip>
   );
 }
@@ -797,9 +802,7 @@ function ListCell({
               <span className="min-w-0 truncate font-medium">{i.label}</span>
               {i.status ? <span className="ms-auto shrink-0">{i.status}</span> : null}
             </span>
-            {i.meta ? (
-              <span className="truncate font-body-small text-subtle">{i.meta}</span>
-            ) : null}
+            {i.meta ? <span className="truncate font-body-small text-subtle">{i.meta}</span> : null}
           </li>
         ))}
       </ul>

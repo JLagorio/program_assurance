@@ -6,7 +6,13 @@ import type { ReactNode } from "react";
 import { cn } from "../lib/cn";
 import { Bleed } from "../primitives/bleed";
 import { Command } from "./command";
-import { DropdownMenu } from "./dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioItem,
+  DropdownMenuRadioGroup,
+} from "./dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Spinner } from "./spinner";
 import { Absent } from "./typography";
@@ -313,12 +319,23 @@ function EditableSelect<T extends string>({
           </PopoverContent>
         </Popover>
       ) : (
-        <DropdownMenu align="start" width={220} trigger={trigger}>
-          {options.map((o) => (
-            <DropdownMenu.Item key={o} isSelected={o === props.value} onSelect={() => commit(o)}>
-              {render ? render(o) : o}
-            </DropdownMenu.Item>
-          ))}
+        <DropdownMenu>
+          <DropdownMenuTrigger render={trigger} />
+          <DropdownMenuContent align="start" style={{ width: 220 }}>
+            <DropdownMenuRadioGroup
+              value={props.value}
+              onValueChange={(value: unknown) => {
+                const option = options.find((o) => o === value);
+                if (option !== undefined) commit(option);
+              }}
+            >
+              {options.map((o) => (
+                <DropdownMenuRadioItem key={o} value={o} closeOnClick>
+                  {render ? render(o) : o}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
         </DropdownMenu>
       )}
       <Message id={messageId} state={state} error={error} />

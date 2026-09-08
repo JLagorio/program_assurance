@@ -219,7 +219,7 @@ export function RecordActivity({
   const [draft, setDraft] = useState("");
   const [task, setTask] = useState<{ title: string; note: string } | null>(null);
   const mentionable = useMemo(() => mentionablePeople(program), [program]);
-  const all = wholeProgram ? activityForProgram(program) : activityFor(subject);
+  const all = wholeProgram ? activityForProgram(program) : activityFor(subject, program);
   const filtered = kind === "all" ? all : all.filter((e) => filterOf(e.kind) === kind);
   const shown = limit ? filtered.slice(0, limit) : filtered;
   const counts = useMemo(() => {

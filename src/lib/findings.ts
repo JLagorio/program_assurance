@@ -7,9 +7,10 @@
  */
 
 import type { FindingLifecycle, FindingSeverity } from "@/lib/spine";
+import type { PlatformSourceRecord } from "@/lib/platform-ids";
 
 export type AssetKind = "Host" | "Container image" | "Network device" | "Application";
-export type Environment = "Production" | "Staging" | "Lab" | "Tactical edge";
+export type Environment = "Production" | "Staging" | "Lab" | "Tactical edge" | "Unspecified";
 
 export type Asset = {
   id: string; // AST-
@@ -35,6 +36,9 @@ export type Asset = {
   openCatIII: number;
   /** CN- anchor — the composition node this asset IS. */
   node: string;
+  /** False for an inventory import that supplied no scanner observations. */
+  scanAvailable?: boolean;
+  sourceRecord?: PlatformSourceRecord;
 };
 
 export type VerificationPath =
@@ -65,6 +69,15 @@ export type Finding = {
   scope?: string | undefined;
   requirements?: string[] | undefined;
   assessmentId?: string | undefined;
+  /** Imported many-to-many targets. The singular fields remain the primary display target. */
+  controls?: string[] | undefined;
+  assets?: string[] | undefined;
+  nodes?: string[] | undefined;
+  sourceId?: string | undefined;
+  sourceUuid?: string | undefined;
+  sourceStatus?: string | undefined;
+  sourceSeverity?: string | undefined;
+  sourceIssues?: string[] | undefined;
   retests?: FindingRetest[] | undefined;
   title: string;
   cci: string; // CCI-
@@ -541,7 +554,7 @@ export function isDeficiency(f: Finding) {
 }
 
 export function findingsByAsset(assetId: string) {
-  return findings.filter((f) => f.asset === assetId);
+  return findings.filter((f) => f.asset === assetId || f.assets?.includes(assetId));
 }
 
 /** A finding belongs to a program independently of its remediation disposition. */
@@ -563,7 +576,7 @@ export function findingsByCci(cci: string) {
  * module must never import it back.
  */
 export function findingsByNode(nodeId: string): Finding[] {
-  return findings.filter((f) => f.node === nodeId);
+  return findings.filter((f) => f.node === nodeId || f.nodes?.includes(nodeId));
 }
 
 const severityRank: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1, "CAT III": 2 };

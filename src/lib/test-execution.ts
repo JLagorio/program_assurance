@@ -48,6 +48,7 @@ import {
   type ObjectiveResult,
 } from "@/lib/campaigns";
 import type { RunState, StepResult, VerificationMethod } from "@/lib/spine";
+import type { PlatformSourceRecord } from "@/lib/platform-ids";
 
 export type { RunState, StepResult, VerificationMethod };
 
@@ -89,6 +90,7 @@ export type StepRecord = {
 };
 
 export type TestRun = {
+  sourceRecord?: PlatformSourceRecord;
   id: string; // TR-
   procedure: string; // TP-
   event: string | null; // TE-
@@ -1492,6 +1494,20 @@ export function useRunLogVersion(): number {
 
 export function allTestRuns(): TestRun[] {
   return snapshot();
+}
+
+/** Seed imports join the same run log as authored runs without overwriting saved edits. */
+export function registerTestExecutionSeed(input: { procedures: TestProcedure[]; runs: TestRun[] }) {
+  for (const procedure of input.procedures) {
+    if (procedureById.has(procedure.id)) continue;
+    procedures.push(procedure);
+    procedureById.set(procedure.id, procedure);
+  }
+  for (const run of input.runs) {
+    if (testRuns.some((row) => row.id === run.id)) continue;
+    testRuns.push(run);
+  }
+  emit();
 }
 
 const stepRecordSchema = z.object({

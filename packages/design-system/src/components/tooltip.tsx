@@ -1,81 +1,88 @@
+import { DirectionProvider, useDirection } from "@base-ui/react/direction-provider";
+import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
+
+import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { createContext, useContext, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useOverlayContainer } from "./_overlay-focus";
 
-import { cn } from "../lib/cn";
+export type TooltipProviderProps = TooltipPrimitive.Provider.Props;
 
-type Side = NonNullable<ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>["side"]>;
-type Align = NonNullable<ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>["align"]>;
+export function TooltipProvider({ delay = 0, ...props }: TooltipProviderProps) {
+  return <TooltipPrimitive.Provider delay={delay} {...props} />;
+}
 
-const SharedProvider = createContext(false);
+export type TooltipProps<Payload = unknown> = TooltipPrimitive.Root.Props<Payload>;
 
-/**
- * One provider for a whole app, so moving from one tooltipped control to the next shows the next
- * tooltip at once instead of waiting the delay again. The Shell mounts it; a product without the
- * Shell mounts it at its root. A Tooltip with no provider above makes its own.
- */
-export function TooltipProvider({ children }: { children: ReactNode }) {
+export function Tooltip<Payload = unknown>(props: TooltipProps<Payload>) {
+  const { direction } = useLedgerLocale();
   return (
-    <SharedProvider.Provider value={true}>
-      <TooltipPrimitive.Provider delayDuration={300} skipDelayDuration={300}>
-        {children}
-      </TooltipPrimitive.Provider>
-    </SharedProvider.Provider>
+    <DirectionProvider direction={direction}>
+      <TooltipPrimitive.Root {...props} />
+    </DirectionProvider>
   );
 }
 
-export type TooltipProps = {
-  /** The label: a word or a short phrase, or a phrase with a Kbd. Never a control. */
-  content: ReactNode;
-  /** Which side of the trigger; it flips when there is no room. */
-  side?: Side | undefined;
-  align?: Align | undefined;
-  /** Milliseconds before it shows. 300 by default; 0 for a control whose name is the tooltip. */
-  delay?: number | undefined;
-  /** Starts open. For a story or a walkthrough. */
-  defaultOpen?: boolean | undefined;
-  className?: string | undefined;
-  /** The trigger: one focusable element that takes a ref and props (Button, IconButton, a TextLink). */
-  children: ReactNode;
-};
+export type TooltipTriggerProps<Payload = unknown> = TooltipPrimitive.Trigger.Props<Payload>;
 
-/** A short label on hover or focus. For a peek at a record, HoverCard; for something you act on, Popover. */
-export function Tooltip({
-  content,
-  side = "top",
-  align = "center",
-  delay = 300,
-  defaultOpen = false,
+export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Payload>) {
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
+}
+
+export type TooltipContentProps = TooltipPrimitive.Popup.Props &
+  Pick<TooltipPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">;
+
+export function TooltipContent({
   className,
+  style,
+  dir,
+  side = "top",
+  sideOffset = 4,
+  align = "center",
+  alignOffset = 0,
   children,
-}: TooltipProps) {
-  const { direction } = useLedgerLocale();
-  const shared = useContext(SharedProvider);
-  const tooltip = (
-    <TooltipPrimitive.Root defaultOpen={defaultOpen} delayDuration={delay}>
-      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
-      <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Content
-          dir={direction}
-          side={side}
+  ...props
+}: TooltipContentProps) {
+  const inheritedDirection = useDirection();
+  const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
+  const portal = useOverlayContainer();
+  const defaults = {
+    maxWidth: "min(320px, var(--available-width))",
+    transformOrigin: "var(--transform-origin)",
+  };
+  return (
+    <DirectionProvider direction={direction}>
+      <span hidden ref={portal.ref} />
+      <TooltipPrimitive.Portal data-slot="tooltip-portal" container={portal.container}>
+        <TooltipPrimitive.Positioner
           align={align}
-          sideOffset={6}
-          collisionPadding={8}
-          style={{ maxWidth: 260 }}
-          className={cn(
-            "z-50 rounded-medium bg-neutral-bold px-100 py-050 font-body-small text-inverse shadow-overlay",
-            "data-[state=delayed-open]:animate-fade-in data-[state=instant-open]:animate-fade-in data-[state=closed]:animate-fade-out",
-            className,
-          )}
+          alignOffset={alignOffset}
+          side={side}
+          sideOffset={sideOffset}
+          positionMethod={portal.container ? "fixed" : undefined}
+          className="isolate z-50"
         >
-          {content}
-        </TooltipPrimitive.Content>
+          <TooltipPrimitive.Popup
+            data-slot="tooltip-content"
+            dir={dir ?? direction}
+            className={classes(
+              "inline-flex w-fit items-center gap-075 rounded-medium bg-neutral-bold px-100 py-050 font-body-small text-inverse shadow-overlay data-open:animate-fade-in data-closed:animate-fade-out data-instant:animate-none motion-reduce:animate-none",
+              className,
+            )}
+            style={
+              typeof style === "function"
+                ? (state) => ({ ...defaults, ...style(state) })
+                : { ...defaults, ...style }
+            }
+            {...props}
+          >
+            {children}
+            <TooltipPrimitive.Arrow
+              data-slot="tooltip-arrow"
+              className="size-100 rotate-45 rounded-xsmall bg-neutral-bold data-[side=top]:-bottom-025 data-[side=bottom]:-top-025 data-[side=left]:-right-025 data-[side=right]:-left-025 data-[side=inline-start]:-end-025 data-[side=inline-end]:-start-025"
+            />
+          </TooltipPrimitive.Popup>
+        </TooltipPrimitive.Positioner>
       </TooltipPrimitive.Portal>
-    </TooltipPrimitive.Root>
-  );
-  return shared ? (
-    tooltip
-  ) : (
-    <TooltipPrimitive.Provider delayDuration={delay}>{tooltip}</TooltipPrimitive.Provider>
+    </DirectionProvider>
   );
 }

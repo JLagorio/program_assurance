@@ -309,7 +309,7 @@ export function scheduleForProgram(programId: string, now = datasetNow): Schedul
         team: "",
         start: null,
         due: scheduleDate(milestone.targetDate),
-        dates: milestone.targetDate,
+        dates: milestone.targetDate || "Unscheduled",
         dependency: poam.id,
         complete: milestone.status === "Completed",
         poamId: poam.id,

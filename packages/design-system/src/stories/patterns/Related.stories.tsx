@@ -7,6 +7,9 @@ import {
   Button,
   Dot,
   DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   IconButton,
   Indicator,
   Item,
@@ -105,21 +108,23 @@ function cardActions(name: string) {
         size="small"
         icon={<ExternalLink />}
       />
-      <DropdownMenu
-        align="end"
-        trigger={
-          <IconButton
-            label={`More for ${name}`}
-            variant="subtle"
-            size="small"
-            icon={<MoreHorizontal />}
-          />
-        }
-      >
-        <DropdownMenu.Item onSelect={() => {}}>Edit the link</DropdownMenu.Item>
-        <DropdownMenu.Item tone="danger" onSelect={() => {}}>
-          Unlink
-        </DropdownMenu.Item>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <IconButton
+              label={`More for ${name}`}
+              variant="subtle"
+              size="small"
+              icon={<MoreHorizontal />}
+            />
+          }
+        />
+        <DropdownMenuContent align="end" style={{ width: 200 }}>
+          <DropdownMenuItem onClick={() => {}}>Edit the link</DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" onClick={() => {}}>
+            Unlink
+          </DropdownMenuItem>
+        </DropdownMenuContent>
       </DropdownMenu>
     </>
   );

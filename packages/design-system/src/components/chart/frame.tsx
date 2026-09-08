@@ -23,7 +23,12 @@ import {
 } from "../breadcrumb";
 import { IconButton } from "../button";
 import { Dialog } from "../dialog";
-import { DropdownMenu } from "../dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "../dropdown-menu";
 import { Skeleton } from "../skeleton";
 import { Spinner } from "../spinner";
 import { Table } from "../table";
@@ -343,26 +348,28 @@ export function ChartFrame(props: ChartFrameProps) {
                     </Toggle>
                   ) : null}
                   {csv || png ? (
-                    <DropdownMenu
-                      align="end"
-                      trigger={
-                        <IconButton
-                          label={t("download")}
-                          icon={<Download />}
-                          variant="subtle"
-                          size="small"
-                          disabled={!showing}
-                        />
-                      }
-                    >
-                      {csv ? (
-                        <DropdownMenu.Item onSelect={saveCsv}>Download CSV</DropdownMenu.Item>
-                      ) : null}
-                      {png ? (
-                        <DropdownMenu.Item onSelect={() => void savePng()} disabled={showTable}>
-                          Download PNG
-                        </DropdownMenu.Item>
-                      ) : null}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <IconButton
+                            label={t("download")}
+                            icon={<Download />}
+                            variant="subtle"
+                            size="small"
+                            disabled={!showing}
+                          />
+                        }
+                      />
+                      <DropdownMenuContent align="end" style={{ width: 200 }}>
+                        {csv ? (
+                          <DropdownMenuItem onClick={saveCsv}>Download CSV</DropdownMenuItem>
+                        ) : null}
+                        {png ? (
+                          <DropdownMenuItem onClick={() => void savePng()} disabled={showTable}>
+                            Download PNG
+                          </DropdownMenuItem>
+                        ) : null}
+                      </DropdownMenuContent>
                     </DropdownMenu>
                   ) : null}
                   {expandable ? (

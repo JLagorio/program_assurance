@@ -12,6 +12,11 @@ import {
   Button,
   buttonVariants,
   DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioItem,
+  DropdownMenuRadioGroup,
   Empty,
   Inline,
   Sheet,
@@ -265,33 +270,25 @@ function FilterMenu({
   onSelect: (v: string) => void;
 }) {
   return (
-    <DropdownMenu
-      align="end"
-      width={220}
-      trigger={({ toggle }) => (
-        <Button variant="secondary" size="xsmall" onClick={toggle}>
-          {label}: {value}
-          <ChevronDown className="text-subtle size-150" />
-        </Button>
-      )}
-    >
-      {(close) => (
-        <>
-          <DropdownMenu.Label>{label}</DropdownMenu.Label>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="secondary" size="xsmall">
+            {label}: {value}
+            <ChevronDown className="text-subtle size-150" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end" style={{ width: 220 }}>
+        <DropdownMenuRadioGroup value={value} onValueChange={onSelect}>
+          <DropdownMenuLabel>{label}</DropdownMenuLabel>
           {options.map((o) => (
-            <DropdownMenu.Item
-              key={o}
-              isSelected={o === value}
-              onSelect={() => {
-                onSelect(o);
-                close();
-              }}
-            >
+            <DropdownMenuRadioItem key={o} value={o} closeOnClick>
               {o}
-            </DropdownMenu.Item>
+            </DropdownMenuRadioItem>
           ))}
-        </>
-      )}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 }

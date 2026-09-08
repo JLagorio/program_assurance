@@ -105,10 +105,11 @@ function RiskRecord() {
                   <Id>{risk.id}</Id>
                 </KeyValue>
                 <KeyValue label="Likelihood × impact">
-                  {risk.likelihood} × {risk.impact}
+                  {risk.likelihood ?? risk.sourceRating?.likelihood ?? "—"} ×{" "}
+                  {risk.impact ?? risk.sourceRating?.impact ?? "—"}
                 </KeyValue>
                 <KeyValue label="Inherent">
-                  <span className="tabular-nums">{risk.inherent}</span>
+                  <span className="tabular-nums">{risk.inherent ?? "Unrecorded"}</span>
                   <Box
                     className="font-body-xsmall text-subtle"
                     as="span"
@@ -119,9 +120,11 @@ function RiskRecord() {
                 </KeyValue>
                 <KeyValue label="Residual">
                   <Inline as="span" space="space.100" alignBlock="center">
-                    <Progress value={risk.residual} tone={residualTone(risk.residual)} />
+                    {risk.residual !== null ? (
+                      <Progress value={risk.residual} tone={residualTone(risk.residual)} />
+                    ) : null}
                     <span className="tabular-nums font-body-small font-medium">
-                      {risk.residual}
+                      {risk.residual ?? risk.sourceRating?.overall ?? "Unrecorded"}
                     </span>
                     <span className="font-body-xsmall text-subtle">authored</span>
                   </Inline>
@@ -211,7 +214,7 @@ function RiskRecord() {
             title="Residual risk"
             description={
               computed
-                ? `Computed ${computed.score} of 100 — ${computed.band} — against the assessor's authored ${risk.residual}. Neither number replaces the other.`
+                ? `Computed ${computed.score} of 100 — ${computed.band} — against the assessor's authored ${risk.residual ?? risk.sourceRating?.overall ?? "Unrecorded"}. Neither number replaces the other.`
                 : "No finding is joined to this risk, so there is nothing to compute a residual from."
             }
           >
@@ -233,7 +236,7 @@ function RiskRecord() {
                     <Box paddingBlockStart="space.150">
                       <Progress
                         value={comparison.authored.residual}
-                        tone={residualTone(risk.residual)}
+                        tone={residualTone(comparison.authored.residual)}
                       />
                     </Box>
                     <dl className="pt-150 space-y-075 font-body-small">
@@ -335,7 +338,7 @@ function RiskRecord() {
             ) : (
               <Empty
                 title="Nothing to compute from"
-                description={`${risk.id} has no finding joined to it, so there is no severity, exposure or mission evidence to read. Deriving a residual from the authored likelihood and impact would re-badge the assessor's judgement as a calculation, which is exactly what the score exists to prevent. The authored ${risk.residual} stands on its own.`}
+                description={`${risk.id} has no finding joined to it, so there is no severity, exposure or mission evidence to read. Deriving a residual from the authored likelihood and impact would re-badge the assessor's judgement as a calculation, which is exactly what the score exists to prevent. The authored ${risk.residual ?? risk.sourceRating?.overall ?? "Unrecorded"} stands on its own.`}
               />
             )}
           </Section>

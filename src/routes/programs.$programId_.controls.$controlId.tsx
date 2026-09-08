@@ -126,6 +126,10 @@ function ControlRecord() {
       ) ??
       "",
   );
+  useEffect(() => {
+    if (requestedScope && scopes.some((scope) => scope.id === requestedScope))
+      setScopeId(requestedScope);
+  }, [requestedScope, scopes]);
   const [, tick] = useState(0);
   const refresh = () => tick((n) => n + 1);
   const [mapping, setMapping] = useState(false);
@@ -226,8 +230,16 @@ function ControlRecord() {
           </NativeSelect>
         </KeyValue>
         <KeyValue label="Implementation">
-          <Badge variant="secondary" size="xsmall" tone={implementationTone[work.implementation]}>
-            {work.implementation}
+          <Badge
+            variant="secondary"
+            size="xsmall"
+            tone={
+              work.implementationRecorded === false
+                ? "neutral"
+                : implementationTone[work.implementation]
+            }
+          >
+            {work.implementationRecorded === false ? "Unrecorded" : work.implementation}
           </Badge>
         </KeyValue>
         <KeyValue label="Assessment">

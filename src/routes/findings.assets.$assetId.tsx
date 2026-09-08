@@ -90,7 +90,7 @@ function AssetRecord() {
   const tree = anchor ? subtree(anchor, new Set<string>()) : null;
   const tracked = assetPosture(asset.id)?.rolled ?? null;
   const declaredTotal = asset.openCatI + asset.openCatII + asset.openCatIII;
-  const delta = tracked ? declaredTotal - tracked.open : null;
+  const delta = tracked && asset.scanAvailable !== false ? declaredTotal - tracked.open : null;
 
   return (
     <Shell>
@@ -116,19 +116,25 @@ function AssetRecord() {
               </Inspector.Group>
               <Inspector.Group title="Posture">
                 <KeyValue label="Last scan">{asset.lastScan}</KeyValue>
-                <KeyValue label="CCIs covered">{asset.ccisCovered}</KeyValue>
+                <KeyValue label="CCIs covered">
+                  {asset.scanAvailable === false ? "—" : asset.ccisCovered}
+                </KeyValue>
               </Inspector.Group>
               <Inspector.Group title="Open findings">
                 <KeyValue label="Scanner declared">
-                  <span className="tabular-nums">
-                    <span className={asset.openCatI ? "font-medium text-danger" : ""}>
-                      {asset.openCatI}
+                  {asset.scanAvailable === false ? (
+                    "Not supplied"
+                  ) : (
+                    <span className="tabular-nums">
+                      <span className={asset.openCatI ? "font-medium text-danger" : ""}>
+                        {asset.openCatI}
+                      </span>
+                      <span className="text-subtle">
+                        {" "}
+                        / {asset.openCatII} / {asset.openCatIII}
+                      </span>
                     </span>
-                    <span className="text-subtle">
-                      {" "}
-                      / {asset.openCatII} / {asset.openCatIII}
-                    </span>
-                  </span>
+                  )}
                 </KeyValue>
                 <KeyValue label="As of">{asset.lastScan}</KeyValue>
                 <KeyValue label="Register tracked">

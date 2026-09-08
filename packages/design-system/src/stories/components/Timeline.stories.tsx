@@ -21,6 +21,10 @@ import {
   Count,
   Dot,
   DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
   IconButton,
   Item,
   Person,
@@ -90,17 +94,19 @@ function Did({ who, what, children }: { who?: string; what: string; children?: R
 }
 
 const menu = () => (
-  <DropdownMenu
-    align="end"
-    trigger={<IconButton variant="subtle" label="More actions" icon={<MoreHorizontal />} />}
-  >
-    <DropdownMenu.Item onSelect={() => {}}>Open record</DropdownMenu.Item>
-    <DropdownMenu.Item onSelect={() => {}}>Copy link</DropdownMenu.Item>
-    <DropdownMenu.Item onSelect={() => {}}>Add follow-up</DropdownMenu.Item>
-    <DropdownMenu.Separator />
-    <DropdownMenu.Item tone="danger" onSelect={() => {}}>
-      Archive
-    </DropdownMenu.Item>
+  <DropdownMenu>
+    <DropdownMenuTrigger
+      render={<IconButton variant="subtle" label="More actions" icon={<MoreHorizontal />} />}
+    />
+    <DropdownMenuContent align="end" style={{ width: 200 }}>
+      <DropdownMenuItem onClick={() => {}}>Open record</DropdownMenuItem>
+      <DropdownMenuItem onClick={() => {}}>Copy link</DropdownMenuItem>
+      <DropdownMenuItem onClick={() => {}}>Add follow-up</DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem variant="destructive" onClick={() => {}}>
+        Archive
+      </DropdownMenuItem>
+    </DropdownMenuContent>
   </DropdownMenu>
 );
 

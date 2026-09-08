@@ -115,6 +115,10 @@ DOM attributes and refs belong on the element that consumers must label, submit,
 
 [Popover](src/stories/components/Popover.mdx) uses shadcn's flat Base UI parts, with `PopoverClose` for dismissal. Compose the trigger through `render`, name Content with Title or `aria-label`, and use Description for supporting text. Content owns positioning, width and initial/final focus; Root owns open state and modality.
 
+[Tooltip](src/stories/components/Tooltip.mdx) uses flat Trigger, Content and Provider parts. Provider defaults to zero delay; Shell explicitly keeps a shared 300ms delay. IconButton supplies its own tooltip. Keep the trigger's accessible name and essential instructions independent of the visual popup, and put native disabled state on the rendered button.
+
+[DropdownMenu](src/stories/components/DropdownMenu.mdx) uses flat Base UI parts for actions, checkbox/radio choices and submenus. Actions close by default; choices stay open unless `closeOnClick` is set. Use LinkItem for native/router links. Content owns placement, native styles and final focus; grouped labels belong inside Group or RadioGroup.
+
 Base UI, Radix, Vaul and layout helpers are implementation dependencies. Consumers use the package's public parts and their documented native and dependency-derived contracts. **Explicit public adapters** also include Sonner's toast options/promise API, TanStack table definitions, and chart configuration types exposed by the package. Upgrades that affect public contracts require checking consumer types and migration notes. React and Tailwind remain peers. `MODE_STORAGE_KEY` and `SHELL_STORAGE_KEY` are public storage integration constants; persisted data must be validated and fall back safely.
 
 ## Lifecycle and contribution

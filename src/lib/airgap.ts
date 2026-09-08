@@ -39,6 +39,12 @@
  * Layering: airgap → oscal, emass, sctm, baselines. Nothing imports back.
  */
 
+import {
+  buildPlatformProfile,
+  platformOscalFilenames,
+  platformExportSnapshot,
+} from "@/lib/platform-oscal";
+import { platformProgramId } from "@/lib/platform-ids";
 import { authorizedBuild, withoutCurrencyOverlay } from "@/lib/baselines";
 import {
   emassCsv,
@@ -48,7 +54,14 @@ import {
   type EmassExportKind,
 } from "@/lib/emass";
 import { programs } from "@/lib/grc-data";
-import { oscalJson, oscalPackage, oscalPoam, sha256Hex, type OscalDocument } from "@/lib/oscal";
+import {
+  oscalDocumentVersion,
+  oscalJson,
+  oscalPackage,
+  oscalPoam,
+  sha256Hex,
+  type OscalDocument,
+} from "@/lib/oscal";
 import { buildSctm, sctmCsv, type SctmRow } from "@/lib/sctm";
 import { controlMatrix } from "@/lib/control-matrix";
 import type { ReconcileState } from "@/lib/spine";
@@ -177,13 +190,6 @@ const oscalPaths: Record<OscalDocument["model"], string> = {
   "plan-of-action-and-milestones": "oscal/poam.json",
 };
 
-const oscalKinds: Record<OscalDocument["model"], string> = {
-  "system-security-plan": "OSCAL 1.1.2 system-security-plan",
-  "assessment-plan": "OSCAL 1.1.2 assessment-plan",
-  "assessment-results": "OSCAL 1.1.2 assessment-results",
-  "plan-of-action-and-milestones": "OSCAL 1.1.2 plan-of-action-and-milestones",
-};
-
 const emassPaths: Record<EmassExport["kind"], string> = {
   "Control Information": "emass/control-information.csv",
   "POA&M": "emass/poam.csv",
@@ -195,8 +201,8 @@ const emassPaths: Record<EmassExport["kind"], string> = {
 function oscalFile(doc: OscalDocument): BundleFile {
   return {
     path: oscalPaths[doc.model],
-    kind: oscalKinds[doc.model],
-    producer: `Equinox OSCAL generator — ${doc.model}, OSCAL 1.1.2`,
+    kind: `OSCAL ${oscalDocumentVersion(doc)} ${doc.model}`,
+    producer: `Equinox OSCAL generator — ${doc.model}, OSCAL ${oscalDocumentVersion(doc)}`,
     text: oscalJson(doc),
   };
 }
@@ -248,6 +254,16 @@ function sctmFile(programId: string, rows: SctmRow[]): BundleFile {
 export function bundleFiles(programId: string, rows: SctmRow[]): BundleFile[] {
   return [
     ...oscalPackage(programId, rows).map(oscalFile),
+    ...(programId === platformProgramId
+      ? [
+          {
+            path: `oscal/${platformOscalFilenames(platformExportSnapshot(programId)).profile}`,
+            kind: "OSCAL tailored control profile",
+            producer: "Program control-set revisions",
+            text: JSON.stringify(buildPlatformProfile(programId), null, 2),
+          },
+        ]
+      : []),
     ...emassExportKinds.map((kind) => emassFile(kind, programId, rows)),
     sctmFile(programId, rows),
   ];

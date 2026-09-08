@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useRecordForm } from "@/lib/record-form";
 import { saveProgramCommand, useProgramsVersion } from "@/lib/program-store";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
@@ -19,6 +19,12 @@ import {
   CommandPalette,
   Dialog,
   DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuLinkItem,
+  DropdownMenuItem,
   Editable,
   Field,
   Id,
@@ -517,95 +523,85 @@ function ProgramDetail() {
               title={program.name}
               actions={
                 <>
-                  <DropdownMenu
-                    align="end"
-                    width={240}
-                    trigger={
-                      <Button variant="secondary" size="small" iconAfter={<ChevronDown />}>
-                        Views
-                      </Button>
-                    }
-                  >
-                    {(close) => (
-                      <>
-                        {programViews.map((group) => (
-                          <Fragment key={group.label}>
-                            <DropdownMenu.Label>{group.label}</DropdownMenu.Label>
-                            {group.items.map((v) => (
-                              <DropdownMenu.Item
-                                key={v.to}
-                                onSelect={() => {
-                                  close();
-                                  navigate({
-                                    to: v.to,
-                                    params: { programId: program.id },
-                                    search: v.search,
-                                  } as never);
-                                }}
-                              >
-                                {v.label}
-                              </DropdownMenu.Item>
-                            ))}
-                          </Fragment>
-                        ))}
-                      </>
-                    )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="secondary" size="small" iconAfter={<ChevronDown />}>
+                          Views
+                        </Button>
+                      }
+                    />
+                    <DropdownMenuContent align="end" style={{ width: 240 }}>
+                      {programViews.map((group) => (
+                        <DropdownMenuGroup key={group.label}>
+                          <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+                          {group.items.map((v) => (
+                            <DropdownMenuLinkItem
+                              key={v.to}
+                              closeOnClick
+                              render={
+                                <Link
+                                  to={v.to}
+                                  params={{ programId: program.id }}
+                                  search={v.search ?? {}}
+                                />
+                              }
+                            >
+                              {v.label}
+                            </DropdownMenuLinkItem>
+                          ))}
+                        </DropdownMenuGroup>
+                      ))}
+                    </DropdownMenuContent>
                   </DropdownMenu>
 
                   <ButtonGroup>
                     <Button variant="primary" size="small" onClick={runPrimary}>
                       {state.primaryAction}
                     </Button>
-                    <DropdownMenu
-                      width={200}
-                      align="end"
-                      trigger={
-                        <IconButton
-                          variant="primary"
-                          size="small"
-                          label="More actions"
-                          icon={<ChevronDown />}
-                        />
-                      }
-                    >
-                      {(close) => (
-                        <>
-                          <DropdownMenu.Item
-                            onSelect={() => {
-                              palette.setOpen(true);
-                              close();
-                            }}
-                          >
-                            Command palette
-                            <Kbd>⌘K</Kbd>
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            onSelect={() => {
-                              setCdrOpen(true);
-                              close();
-                            }}
-                          >
-                            Export CDR package
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            onSelect={() => {
-                              setAssessing(true);
-                              close();
-                            }}
-                          >
-                            Record assessment
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Item onSelect={close}>Duplicate program</DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            onSelect={() => {
-                              setArchiving(true);
-                              close();
-                            }}
-                          >
-                            Archive
-                          </DropdownMenu.Item>
-                        </>
-                      )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <IconButton
+                            variant="primary"
+                            size="small"
+                            label="More actions"
+                            icon={<ChevronDown />}
+                          />
+                        }
+                      />
+                      <DropdownMenuContent align="end" style={{ width: 200 }}>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            palette.setOpen(true);
+                          }}
+                        >
+                          Command palette
+                          <Kbd>⌘K</Kbd>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setCdrOpen(true);
+                          }}
+                        >
+                          Export CDR package
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setAssessing(true);
+                          }}
+                        >
+                          Record assessment
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>Duplicate program</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setArchiving(true);
+                          }}
+                        >
+                          Archive
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
                     </DropdownMenu>
                   </ButtonGroup>
                 </>

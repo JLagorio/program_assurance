@@ -10,6 +10,14 @@ import {
   Dialog,
   Drawer,
   DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuShortcut,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
   Field,
   HoverCard,
   HoverCardContent,
@@ -24,6 +32,8 @@ import {
   Sheet,
   Textarea,
   Tooltip,
+  TooltipTrigger,
+  TooltipContent,
 } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 
@@ -37,8 +47,9 @@ type Story = StoryObj;
 export const Anchored: Story = {
   render: () => (
     <Inline space="space.300" alignBlock="center" shouldWrap>
-      <Tooltip content="Schedule the next assessment">
-        <Button>Tooltip</Button>
+      <Tooltip>
+        <TooltipTrigger render={<Button>Tooltip</Button>} />
+        <TooltipContent>Schedule the next assessment</TooltipContent>
       </Tooltip>
       <Popover>
         <PopoverTrigger render={<Button>Popover</Button>} />
@@ -70,20 +81,31 @@ export const Anchored: Story = {
           </Stack>
         </HoverCardContent>
       </HoverCard>
-      <DropdownMenu trigger={<Button iconAfter={<ChevronDown />}>Actions</Button>}>
-        <DropdownMenu.Label>Control</DropdownMenu.Label>
-        <DropdownMenu.Item trailing="⌘E">Edit</DropdownMenu.Item>
-        <DropdownMenu.Item isSelected>Pin to rail</DropdownMenu.Item>
-        <DropdownMenu.Item>Duplicate</DropdownMenu.Item>
-        <DropdownMenu.Separator />
-        <DropdownMenu.Item disabled>Archive</DropdownMenu.Item>
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
+        <DropdownMenuContent style={{ width: 200 }}>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Control</DropdownMenuLabel>
+            <DropdownMenuItem>
+              Edit<DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuCheckboxItem checked closeOnClick>
+              Pin to rail
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuItem>Duplicate</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled>Archive</DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
       </DropdownMenu>
-      <DropdownMenu
-        align="end"
-        trigger={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
-      >
-        <DropdownMenu.Item>Open in new tab</DropdownMenu.Item>
-        <DropdownMenu.Item>Copy link</DropdownMenu.Item>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
+        />
+        <DropdownMenuContent align="end" style={{ width: 200 }}>
+          <DropdownMenuItem>Open in new tab</DropdownMenuItem>
+          <DropdownMenuItem>Copy link</DropdownMenuItem>
+        </DropdownMenuContent>
       </DropdownMenu>
     </Inline>
   ),

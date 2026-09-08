@@ -34,7 +34,6 @@ import {
   Input,
   InputGroup,
   Tabs,
-  Tooltip,
 } from "../../components";
 import { ModeSwitch } from "../../mode";
 import { PageHeader, RecordHeader, ShowPage } from "../../patterns";
@@ -128,9 +127,7 @@ function EndItems() {
           [Settings, "Settings"],
         ] as const
       ).map(([Icon, label]) => (
-        <Tooltip key={label} content={label}>
-          <IconButton label={label} variant="subtle" icon={<Icon />} />
-        </Tooltip>
+        <IconButton key={label} label={label} variant="subtle" icon={<Icon />} />
       ))}
     </>
   );

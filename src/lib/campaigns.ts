@@ -8,6 +8,7 @@
  */
 
 import type { TestEventState } from "@/lib/spine";
+import type { PlatformSourceRecord } from "@/lib/platform-ids";
 
 export type CampaignTrigger =
   "Gate entry" | "Baseline change" | "Major release" | "Incident" | "Annual assessment";
@@ -15,6 +16,7 @@ export type CampaignTrigger =
 export type CampaignState = "Planning" | "Executing" | "Reporting" | "Closed";
 
 export type Campaign = {
+  sourceRecord?: PlatformSourceRecord;
   id: string; // TC-
   name: string;
   program: string; // PRG-
@@ -48,6 +50,9 @@ export type TestEvent = {
 export type ObjectiveResult = "Not run" | "Met" | "Partially met" | "Not met";
 
 export type TestObjective = {
+  sourceRecord?: PlatformSourceRecord;
+  controls?: string[];
+  nodes?: string[];
   id: string; // TO-
   statement: string;
   ccis: string[]; // CCI-

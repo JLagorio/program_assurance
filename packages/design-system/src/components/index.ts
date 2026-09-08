@@ -176,7 +176,40 @@ export {
   type LegacyAccordionItemProps,
 } from "./_legacy-disclosure";
 export { Drawer, type DrawerProps } from "./drawer";
-export { DropdownMenu, type DropdownMenuItemProps, type DropdownMenuProps } from "./dropdown-menu";
+export {
+  DropdownMenu,
+  type DropdownMenuProps,
+  DropdownMenuPortal,
+  type DropdownMenuPortalProps,
+  DropdownMenuTrigger,
+  type DropdownMenuTriggerProps,
+  DropdownMenuContent,
+  type DropdownMenuContentProps,
+  DropdownMenuGroup,
+  type DropdownMenuGroupProps,
+  DropdownMenuLabel,
+  type DropdownMenuLabelProps,
+  DropdownMenuItem,
+  type DropdownMenuItemProps,
+  DropdownMenuLinkItem,
+  type DropdownMenuLinkItemProps,
+  DropdownMenuCheckboxItem,
+  type DropdownMenuCheckboxItemProps,
+  DropdownMenuRadioGroup,
+  type DropdownMenuRadioGroupProps,
+  DropdownMenuRadioItem,
+  type DropdownMenuRadioItemProps,
+  DropdownMenuSeparator,
+  type DropdownMenuSeparatorProps,
+  DropdownMenuShortcut,
+  type DropdownMenuShortcutProps,
+  DropdownMenuSub,
+  type DropdownMenuSubProps,
+  DropdownMenuSubTrigger,
+  type DropdownMenuSubTriggerProps,
+  DropdownMenuSubContent,
+  type DropdownMenuSubContentProps,
+} from "./dropdown-menu";
 export {
   Editable,
   type EditableProps,
@@ -263,7 +296,16 @@ export {
 } from "./toggle-group";
 export { Toggle, toggleVariants, type ToggleProps } from "./toggle";
 export { Toolbar, type ToolbarProps } from "./toolbar";
-export { Tooltip, TooltipProvider, type TooltipProps } from "./tooltip";
+export {
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+  TooltipContent,
+  type TooltipProps,
+  type TooltipProviderProps,
+  type TooltipTriggerProps,
+  type TooltipContentProps,
+} from "./tooltip";
 export { Tree, type TreeItemProps, type TreeProps, type TreeSize } from "./tree";
 export {
   Absent,

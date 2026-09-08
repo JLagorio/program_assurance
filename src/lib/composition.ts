@@ -31,6 +31,7 @@
  */
 
 import { useSyncExternalStore } from "react";
+import type { PlatformSourceRecord } from "@/lib/platform-ids";
 
 export type NodeClass = "System" | "Hardware" | "Firmware" | "Software";
 
@@ -59,11 +60,11 @@ export type BomSource =
 export type SupplierOrigin = "Internal" | "Domestic" | "Allied" | "Foreign" | "Unknown";
 
 export type Criticality =
-  "Mission critical" | "Mission essential" | "Mission support" | "Non-critical";
+  "Mission critical" | "Mission essential" | "Mission support" | "Non-critical" | "Unspecified";
 
 /** Ordinal — index in this array IS the trust rank, lowest is least trusted. */
 export const trustZones = ["Public", "DMZ", "Enclave", "Management", "Isolated"] as const;
-export type TrustZone = (typeof trustZones)[number];
+export type TrustZone = (typeof trustZones)[number] | "Unspecified";
 
 export type CompositionNode = {
   id: string; // CN-
@@ -91,6 +92,7 @@ export type CompositionNode = {
   digest?: string; // sha256:... — firmware images and container layers only
   partNumber?: string; // hardware only
   eol?: string; // "MMM DD, YYYY" — omit the key when unknown
+  sourceRecord?: PlatformSourceRecord;
 };
 
 export type EdgeKind = "Depends on" | "Connects to" | "Flows to" | "Hosts" | "Authenticates to";
@@ -1226,6 +1228,7 @@ export function nodesByPartKey(partKey: string): CompositionNode[] {
 }
 
 export function trustRank(zone: TrustZone): number {
+  if (zone === "Unspecified") return Number.NaN;
   return trustZones.indexOf(zone);
 }
 
@@ -1234,6 +1237,7 @@ export function crossesBoundary(edge: CompositionEdge): boolean {
   const from = lookup(edge.from);
   const to = lookup(edge.to);
   if (!from || !to) return false;
+  if (from.zone === "Unspecified" || to.zone === "Unspecified") return false;
   return trustRank(from.zone) !== trustRank(to.zone);
 }
 

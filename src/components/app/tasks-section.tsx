@@ -7,6 +7,9 @@ import {
   DatePicker,
   Dialog,
   DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   Field,
   IconButton,
   NativeSelect,
@@ -78,59 +81,52 @@ export function TaskRows({
             showSubject ? <SubjectWords subject={t.subject} program={t.program} /> : undefined
           }
           actions={
-            <DropdownMenu
-              align="end"
-              width={200}
-              trigger={
-                <IconButton
-                  label={`Actions for "${t.title}"`}
-                  variant="subtle"
-                  size="small"
-                  icon={<MoreHorizontal />}
-                />
-              }
-            >
-              {(close) => (
-                <>
-                  <DropdownMenu.Item
-                    onSelect={() => {
-                      setEditing({ task: t });
-                      close();
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <IconButton
+                    label={`Actions for "${t.title}"`}
+                    variant="subtle"
+                    size="small"
+                    icon={<MoreHorizontal />}
+                  />
+                }
+              />
+              <DropdownMenuContent align="end" style={{ width: 200 }}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setEditing({ task: t });
+                  }}
+                >
+                  Edit task
+                </DropdownMenuItem>
+                {t.state !== "Done" ? (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setEditing({ task: t, state: "Waiting" });
                     }}
                   >
-                    Edit task
-                  </DropdownMenu.Item>
-                  {t.state !== "Done" ? (
-                    <DropdownMenu.Item
-                      onSelect={() => {
-                        setEditing({ task: t, state: "Waiting" });
-                        close();
-                      }}
-                    >
-                      Waiting on…
-                    </DropdownMenu.Item>
-                  ) : null}
-                  {t.state !== "Done" ? (
-                    <DropdownMenu.Item
-                      onSelect={() => {
-                        setTaskState(t.id, t.state === "Blocked" ? "Open" : "Blocked", me);
-                        close();
-                      }}
-                    >
-                      {t.state === "Blocked" ? "Mark open" : "Mark blocked"}
-                    </DropdownMenu.Item>
-                  ) : null}
-                  <DropdownMenu.Item
-                    onSelect={() => {
-                      if (t.state === "Done") reopenTask(t.id, me);
-                      else completeTask(t.id, me);
-                      close();
+                    Waiting on…
+                  </DropdownMenuItem>
+                ) : null}
+                {t.state !== "Done" ? (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setTaskState(t.id, t.state === "Blocked" ? "Open" : "Blocked", me);
                     }}
                   >
-                    {t.state === "Done" ? "Reopen" : "Complete"}
-                  </DropdownMenu.Item>
-                </>
-              )}
+                    {t.state === "Blocked" ? "Mark open" : "Mark blocked"}
+                  </DropdownMenuItem>
+                ) : null}
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (t.state === "Done") reopenTask(t.id, me);
+                    else completeTask(t.id, me);
+                  }}
+                >
+                  {t.state === "Done" ? "Reopen" : "Complete"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
             </DropdownMenu>
           }
         />
@@ -262,7 +258,7 @@ export function TasksSection({
   extra?: ReactNode;
 }) {
   useTasksVersion();
-  const all = tasksFor(subject);
+  const all = tasksFor(subject, program);
   const open = all.filter((t) => t.state !== "Done");
   const done = all.filter((t) => t.state === "Done");
   const [showDone, setShowDone] = useState(false);

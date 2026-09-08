@@ -119,7 +119,6 @@ export const InPlace: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const page = within(canvasElement.ownerDocument.body);
     searchAction.mockClear();
     closeAction.mockClear();
     const search = canvas.getByRole("button", { name: "Search" });
@@ -127,13 +126,25 @@ export const InPlace: Story = {
     await expect(search.tagName).toBe("BUTTON");
     await expect(search).toHaveAttribute("id", "toolbar-search");
     search.focus();
-    await expect(await page.findByRole("tooltip")).toHaveTextContent("Search");
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="tooltip-content"][data-open]')).toHaveTextContent(
+        "Search",
+      ),
+    );
     await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(page.queryByRole("tooltip")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-slot="tooltip-content"][data-open]'),
+      ).not.toBeInTheDocument(),
+    );
     await userEvent.keyboard("{Enter} ");
     await expect(searchAction).toHaveBeenCalledTimes(2);
     await userEvent.hover(search);
-    await expect(await page.findByRole("tooltip")).toHaveTextContent("Search");
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="tooltip-content"][data-open]')).toHaveTextContent(
+        "Search",
+      ),
+    );
     await userEvent.unhover(search);
     await userEvent.tab();
     await expect(canvas.getByRole("button", { name: "Export" })).toHaveFocus();

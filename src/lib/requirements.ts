@@ -46,6 +46,7 @@ import { nodeById, pathLabel, type CompositionNode } from "@/lib/composition";
 import { componentByKey, type SystemComponent } from "@/lib/reusable-components";
 import { datasetToday } from "@/lib/dataset-clock";
 import type { VerificationMethod } from "@/lib/spine";
+import type { PlatformSourceRecord } from "@/lib/platform-ids";
 
 /* ------------------------------------------------------------------- Types */
 
@@ -95,6 +96,8 @@ export type DerivationSource =
   | "Supplier constraint";
 
 export type Derivation = {
+  /** Distinguishes an engineering derivation from a later compliance mapping. */
+  relation?: "derived" | "mapped";
   sourceType: DerivationSource;
   /** The upstream record: "SI-7(1)", "THR-0303", "CMP-008", "FND-2269". */
   sourceId: string;
@@ -129,6 +132,8 @@ export type Requirement = {
   /** Workstream carrying the work, or null. */
   workstream: string | null;
   note: string;
+  assessmentMethod?: "Examine" | "Interview" | "Test";
+  sourceRecord?: PlatformSourceRecord;
 };
 
 /* -------------------------------------------------------------- Allocation */
@@ -168,6 +173,7 @@ export type Allocation = {
   owner: string;
   state: AllocationState;
   rationale: string;
+  sourceRecord?: PlatformSourceRecord;
 };
 
 /**
@@ -671,6 +677,21 @@ export function getRequirement(requirementId: string): Requirement | undefined {
   return seed ? resolveRequirement(seed) : undefined;
 }
 
+/** Keep the original assessment vocabulary when a requirement arrived from OSCAL. */
+export function requirementMethodLabel(requirement: Requirement): string {
+  return requirement.assessmentMethod ?? requirement.method;
+}
+
+export function requirementControlOrigin(
+  requirement: Requirement,
+): "From a control" | "Mapped to a control" | "No control" {
+  const controls = requirement.derivations.filter(
+    (source) => source.sourceType === "Control statement" || source.sourceType === "Overlay",
+  );
+  if (controls.some((source) => source.relation !== "mapped")) return "From a control";
+  return controls.length ? "Mapped to a control" : "No control";
+}
+
 /** Direct children in the decomposition tree, in id order. */
 export function childrenOfRequirement(requirementId: string): Requirement[] {
   return requirements.filter((r) => r.parent === requirementId).map(resolveRequirement);
@@ -979,7 +1000,7 @@ export function requirementSummary(programId: string): RequirementSummary {
  * change-management cut, not behind an inline edit.
  */
 export type RequirementPatch = Partial<
-  Pick<Requirement, "state" | "owner" | "method" | "successCriteria">
+  Pick<Requirement, "state" | "owner" | "method" | "assessmentMethod" | "successCriteria">
 >;
 export type AllocationPatch = Partial<
   Pick<Allocation, "responsibility" | "coverage" | "state" | "owner" | "scope">
@@ -1203,6 +1224,88 @@ export function decideApplicability(input: {
 
 let requirementSeq = 42;
 let allocationSeq = allocations.length;
+const registeredRequirements = new Map<string, Requirement>();
+const registeredAllocations = new Map<string, Allocation>();
+
+/** Adds imported base records to the existing store without replacing authored records or edits. */
+export function registerRequirementSeed(input: {
+  requirements: Requirement[];
+  allocations: Allocation[];
+}): void {
+  const importedRequirements = input.requirements.map(
+    (item) => requirementSchema.parse(item) as Requirement,
+  );
+  const importedAllocations = input.allocations.map(
+    (item) => allocationSchema.parse(item) as Allocation,
+  );
+  const byId = new Map(requirements.map((item) => [item.id, item]));
+  const importedIds = new Set<string>();
+  for (const requirement of importedRequirements) {
+    if (importedIds.has(requirement.id))
+      throw new Error(`Duplicate imported requirement: ${requirement.id}`);
+    importedIds.add(requirement.id);
+    const existing = byId.get(requirement.id);
+    if (
+      existing &&
+      (existing.program !== requirement.program ||
+        existing.sourceRecord?.datasetId !== requirement.sourceRecord?.datasetId)
+    )
+      throw new Error(
+        `Requirement identifier already belongs to another source: ${requirement.id}`,
+      );
+    byId.set(requirement.id, existing ?? requirement);
+  }
+  for (const requirement of importedRequirements)
+    if (requirement.parent && byId.get(requirement.parent)?.program !== requirement.program)
+      throw new Error(`Imported requirement has an invalid parent: ${requirement.id}`);
+  const allocationIds = new Set<string>();
+  for (const allocation of importedAllocations) {
+    if (allocationIds.has(allocation.id))
+      throw new Error(`Duplicate imported allocation: ${allocation.id}`);
+    allocationIds.add(allocation.id);
+    const requirement = byId.get(allocation.requirement);
+    if (
+      !requirement ||
+      (allocation.targetKind === "node" &&
+        nodeById.get(allocation.target)?.program !== requirement.program)
+    )
+      throw new Error(`Imported allocation has an invalid requirement or target: ${allocation.id}`);
+    const existing = allocations.find((item) => item.id === allocation.id);
+    if (
+      existing &&
+      (existing.requirement !== allocation.requirement || existing.target !== allocation.target)
+    )
+      throw new Error(
+        `Allocation identifier already belongs to another relationship: ${allocation.id}`,
+      );
+  }
+  let changed = false;
+  for (const requirement of importedRequirements) {
+    registeredRequirements.set(requirement.id, structuredClone(requirement));
+    if (!requirementById.has(requirement.id)) {
+      requirements.push(requirement);
+      requirementById.set(requirement.id, requirement);
+      changed = true;
+    }
+  }
+  const existingAllocationIds = new Set(allocations.map((item) => item.id));
+  for (const allocation of importedAllocations) {
+    registeredAllocations.set(allocation.id, structuredClone(allocation));
+    if (!existingAllocationIds.has(allocation.id)) {
+      allocations.push(allocation);
+      changed = true;
+    }
+  }
+  requirementSeq = Math.max(
+    requirementSeq,
+    ...importedRequirements.map((item) => Number(item.id.replace("REQ-", "")) || 0),
+  );
+  allocationSeq = Math.max(
+    allocationSeq,
+    ...importedAllocations.map((item) => Number(item.id.replace("ALC-", "")) || 0),
+  );
+  if (changed) bump();
+}
 
 /** Author a new requirement. At least one derivation is required by the model. */
 export function addRequirement(input: {
@@ -1427,6 +1530,7 @@ export function mapRequirementToControl(
       return false;
     }
     r.derivations.push({
+      relation: "mapped",
       sourceType: "Control statement",
       sourceId: controlId,
       sourceLabel: controlLabel,
@@ -1445,6 +1549,7 @@ let requirementTransactionActive = false;
 let requirementTransactionChanged = false;
 
 const derivationSchema = z.object({
+  relation: z.enum(["derived", "mapped"]).optional(),
   sourceType: z.enum([
     "Control statement",
     "Overlay",
@@ -1458,6 +1563,12 @@ const derivationSchema = z.object({
   sourceId: z.string(),
   sourceLabel: z.string(),
   rationale: z.string(),
+});
+const sourceRecordSchema = z.object({
+  datasetId: z.string(),
+  id: z.string(),
+  uuid: z.string().optional(),
+  data: z.record(z.unknown()),
 });
 const requirementSchema = z.object({
   id: z.string().min(1),
@@ -1492,6 +1603,8 @@ const requirementSchema = z.object({
   successCriteria: z.string(),
   workstream: z.string().nullable(),
   note: z.string(),
+  assessmentMethod: z.enum(["Examine", "Interview", "Test"]).optional(),
+  sourceRecord: sourceRecordSchema.optional(),
 });
 const allocationSchema = z.object({
   id: z.string(),
@@ -1512,6 +1625,7 @@ const allocationSchema = z.object({
   owner: z.string(),
   state: z.enum(["Proposed", "Accepted", "Implemented", "Verified", "Rejected", "Superseded"]),
   rationale: z.string(),
+  sourceRecord: sourceRecordSchema.optional(),
 });
 const decisionSchema = z.object({
   id: z.string(),
@@ -1531,7 +1645,13 @@ const requirementSnapshotSchema = z.object({
     z.tuple([
       z.string(),
       requirementSchema
-        .pick({ state: true, owner: true, method: true, successCriteria: true })
+        .pick({
+          state: true,
+          owner: true,
+          method: true,
+          assessmentMethod: true,
+          successCriteria: true,
+        })
         .partial(),
     ]),
   ),
@@ -1601,6 +1721,14 @@ export function restoreRequirements() {
   const raw = window.localStorage.getItem(requirementsStorageKey);
   if (raw) {
     const snapshot = requirementSnapshotSchema.parse(JSON.parse(raw)) as RequirementSnapshot;
+    // Older browser snapshots predate newly shipped seed data. Preserve those edits
+    // while adding the base records the application now supplies.
+    for (const [id, requirement] of registeredRequirements)
+      if (!snapshot.requirements.some((item) => item.id === id))
+        snapshot.requirements.push(structuredClone(requirement));
+    for (const [id, allocation] of registeredAllocations)
+      if (!snapshot.allocations.some((item) => item.id === id))
+        snapshot.allocations.push(structuredClone(allocation));
     const byId = new Map(snapshot.requirements.map((requirement) => [requirement.id, requirement]));
     if (byId.size !== snapshot.requirements.length)
       throw new Error("Saved requirements contain duplicate identifiers.");

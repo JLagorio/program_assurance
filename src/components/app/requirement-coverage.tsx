@@ -48,6 +48,7 @@ import {
   allocationsFor,
   nestRequirements,
   requirementStateTone,
+  requirementControlOrigin,
   requirementsForProgram,
   resolveTarget,
   unallocatedRequirements,
@@ -63,7 +64,7 @@ import {
 type CarriedBy = "Allocated" | "Nobody responsible" | "Not yet allocatable";
 
 /** Where a requirement came from: the catalog, or the program's own engineering. */
-type Origin = "From a control" | "No control";
+type Origin = ReturnType<typeof requirementControlOrigin>;
 
 /** Whether any test objective names the requirement (or one of its children). */
 type Verification = "Covered" | "Not covered";
@@ -93,12 +94,6 @@ type CoverageBase = {
 
 /** A row with its decomposition under it. */
 type CoverageRow = Nested<CoverageBase>;
-
-function fromControl(r: Requirement): boolean {
-  return r.derivations.some(
-    (d) => d.sourceType === "Control statement" || d.sourceType === "Overlay",
-  );
-}
 
 // The saved questions, as the column filters each one applies. Counts come from the table.
 // Values are arrays, the shape the filter chips write, so a chip and a view agree on what is active.
@@ -159,7 +154,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
           : unallocated.has(r.id)
             ? "Nobody responsible"
             : "Not yet allocatable",
-        origin: fromControl(r) ? "From a control" : "No control",
+        origin: requirementControlOrigin(r),
         verification: notCovered.has(r.id) ? "Not covered" : "Covered",
         currency: links.length ? "Suspect" : "Current",
         suspect: links.length,

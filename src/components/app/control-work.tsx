@@ -1,4 +1,7 @@
 import { useCallback, type SetStateAction, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { descendantsOf, nodeById } from "@/lib/composition";
+import { scopeById } from "@/lib/scopes";
 import { AddEvidenceDialog } from "@/components/app/program-evidence";
 import { useRecordForm } from "@/lib/record-form";
 /**
@@ -14,6 +17,9 @@ import { MoreHorizontal } from "lucide-react";
 import {
   ActionBar,
   DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   IconButton,
   Badge,
   Block,
@@ -49,6 +55,7 @@ import {
   setDeterminationNote,
   setNarrative,
   unlinkEvidence,
+  workForProgram,
   type ControlWork,
   type WorkContext,
 } from "@/lib/control-work";
@@ -126,8 +133,11 @@ export function ControlActionBar({
         states={[
           {
             label: "Implementation",
-            value: work.implementation,
-            tone: implementationTone[work.implementation],
+            value: work.implementationRecorded === false ? "Unrecorded" : work.implementation,
+            tone:
+              work.implementationRecorded === false
+                ? "neutral"
+                : implementationTone[work.implementation],
           },
           {
             label: "Assessment",
@@ -238,6 +248,16 @@ export function GateList({ work, context }: { work: ControlWork; context: WorkCo
 export function Narrative({ work, onChange }: { work: ControlWork; onChange: () => void }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(work.narrative);
+  const element = scopeById.get(work.scope)?.element;
+  const componentIds = new Set(
+    element ? [element, ...descendantsOf(element).map((node) => node.id)] : [],
+  );
+  const contributions = work.componentId
+    ? []
+    : workForProgram(work.program).filter(
+        (item) =>
+          item.control === work.control && item.componentId && componentIds.has(item.componentId),
+      );
 
   if (editing) {
     return (
@@ -286,6 +306,38 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
       >
         {work.narrative ? "Revise" : "Write"}
       </Button>
+      {contributions.length > 0 && (
+        <Box paddingBlockStart="space.200">
+          <Table>
+            <thead>
+              <Table.Row>
+                <Table.Header>Component implementation</Table.Header>
+                <Table.Header>Requirements</Table.Header>
+                <Table.Header>Evidence</Table.Header>
+              </Table.Row>
+            </thead>
+            <tbody>
+              {contributions.map((item) => (
+                <Table.Row key={item.id}>
+                  <Table.Cell>
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId: work.program, controlId: work.control }}
+                        search={{ scope: item.scope }}
+                      >
+                        {nodeById.get(item.componentId!)?.name ?? item.componentId}
+                      </Link>
+                    </TextLink>
+                  </Table.Cell>
+                  <Table.Cell>{item.requirementIds?.length ?? 0}</Table.Cell>
+                  <Table.Cell>{item.evidence.length}</Table.Cell>
+                </Table.Row>
+              ))}
+            </tbody>
+          </Table>
+        </Box>
+      )}
     </div>
   );
 }
@@ -511,11 +563,12 @@ export function AxisControls({ work, context }: { work: ControlWork; context: Wo
     <Stack space="space.100">
       <Field label="Implementation">
         <NativeSelect
-          value={work.implementation}
+          value={work.implementationRecorded === false ? "Unrecorded" : work.implementation}
           disabled
           aria-label="Implementation"
           title="Changed through the actions above, so the gates apply"
         >
+          {work.implementationRecorded === false && <option>Unrecorded</option>}
           {implementationStates.map((s) => (
             <option key={s}>{s}</option>
           ))}
@@ -619,37 +672,36 @@ export function ControlActions({
         </Button>
       ) : null}
       {rest.length ? (
-        <DropdownMenu
-          align="end"
-          width={260}
-          trigger={
-            <IconButton
-              label="More actions"
-              variant="secondary"
-              size="small"
-              icon={<MoreHorizontal />}
-            />
-          }
-        >
-          {(close) => (
-            <>
-              {rest.map((o) => (
-                <DropdownMenu.Item
-                  key={o.def.key}
-                  disabled={!o.allowed}
-                  onSelect={() => {
-                    start(o.def.key);
-                    close();
-                  }}
-                >
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <IconButton
+                label="More actions"
+                variant="secondary"
+                size="small"
+                icon={<MoreHorizontal />}
+              />
+            }
+          />
+          <DropdownMenuContent align="end" style={{ width: 260 }}>
+            {rest.map((o) => (
+              <DropdownMenuItem
+                key={o.def.key}
+                className="h-auto py-075"
+                disabled={!o.allowed}
+                onClick={() => {
+                  start(o.def.key);
+                }}
+              >
+                <span className="min-w-0 flex-1">
                   <span className="block">{o.def.label}</span>
                   {o.blocked ? (
                     <span className="block font-body-xsmall text-subtle">{o.blocked}</span>
                   ) : null}
-                </DropdownMenu.Item>
-              ))}
-            </>
-          )}
+                </span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
         </DropdownMenu>
       ) : null}
 

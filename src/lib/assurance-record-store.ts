@@ -55,6 +55,14 @@ const findingSchema = z.object({
   scope: z.string().optional(),
   requirements: z.array(nonempty).optional(),
   assessmentId: z.string().optional(),
+  controls: z.array(z.string()).optional(),
+  assets: z.array(z.string()).optional(),
+  nodes: z.array(z.string()).optional(),
+  sourceId: z.string().optional(),
+  sourceUuid: z.string().optional(),
+  sourceStatus: z.string().optional(),
+  sourceSeverity: z.string().optional(),
+  sourceIssues: z.array(z.string()).optional(),
   title: nonempty,
   control: nonempty,
   cci: z.string(),
@@ -88,7 +96,7 @@ const findingSchema = z.object({
 const milestoneSchema = z.object({
   id: nonempty,
   title: nonempty,
-  targetDate: nonempty,
+  targetDate: z.string(),
   completedDate: z.string().nullable().optional(),
   status: z.enum(["Planned", "In progress", "Completed", "Missed"]),
 });
@@ -107,6 +115,12 @@ const poamSchema = z.object({
   controls: z.array(z.string()).optional(),
   milestones: z.array(milestoneSchema).optional(),
   legacyUuid: z.string().optional(),
+  requirements: z.array(z.string()).optional(),
+  nodes: z.array(z.string()).optional(),
+  findingIds: z.array(z.string()).optional(),
+  riskIds: z.array(z.string()).optional(),
+  sourceStatus: z.string().optional(),
+  sourceIssues: z.array(z.string()).optional(),
 });
 const savedSchema = z.object({ findings: z.array(findingSchema), poams: z.array(poamSchema) });
 
@@ -419,7 +433,13 @@ export function createPoam(input: NewPoam): PoamItem {
     resources: input.resources?.trim() ?? "",
     milestoneNote: "",
     milestones: [],
-    controls: [...new Set(members.map((finding) => finding.control))],
+    controls: [...new Set(members.flatMap((finding) => finding.controls ?? [finding.control]))],
+    requirements: [...new Set(members.flatMap((finding) => finding.requirements ?? []))],
+    nodes: [
+      ...new Set(
+        members.flatMap((finding) => finding.nodes ?? (finding.node ? [finding.node] : [])),
+      ),
+    ],
   };
   const changed = members.map((finding) => ({
     ...asOwned(finding),
@@ -442,7 +462,21 @@ export function linkFindingToPoam(findingId: string, poamId: string) {
     throw new Error("This finding already has a POA&M. Keep its existing remediation history.");
   commit({
     findings: [{ ...asOwned(finding), poam: poamId }],
-    poams: [{ ...poam, controls: [...new Set([...(poam.controls ?? []), finding.control])] }],
+    poams: [
+      {
+        ...poam,
+        controls: [
+          ...new Set([...(poam.controls ?? []), ...(finding.controls ?? [finding.control])]),
+        ],
+        requirements: [...new Set([...(poam.requirements ?? []), ...(finding.requirements ?? [])])],
+        nodes: [
+          ...new Set([
+            ...(poam.nodes ?? []),
+            ...(finding.nodes ?? (finding.node ? [finding.node] : [])),
+          ]),
+        ],
+      },
+    ],
   });
 }
 

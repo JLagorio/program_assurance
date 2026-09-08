@@ -43,7 +43,6 @@ import {
   InputGroup,
   ModeSwitch,
   Shell as DsShell,
-  Tooltip,
 } from "@ledger/design-system";
 
 /**
@@ -131,20 +130,19 @@ export function Shell({ children }: { children: ReactNode }) {
         <DsShell.TopNav.End>
           <ModeSwitch />
           {topNavEnd.map(([Icon, label]) => (
-            <Tooltip key={label} content={label}>
-              <IconButton
-                label={label}
-                variant="subtle"
-                icon={<Icon />}
-                onClick={() =>
-                  label === "Help and shortcuts"
-                    ? setHelpOpen(true)
-                    : label === "Settings"
-                      ? setSettingsOpen(true)
-                      : void navigate({ to: "/work" })
-                }
-              />
-            </Tooltip>
+            <IconButton
+              key={label}
+              label={label}
+              variant="subtle"
+              icon={<Icon />}
+              onClick={() =>
+                label === "Help and shortcuts"
+                  ? setHelpOpen(true)
+                  : label === "Settings"
+                    ? setSettingsOpen(true)
+                    : void navigate({ to: "/work" })
+              }
+            />
           ))}
         </DsShell.TopNav.End>
       </DsShell.TopNav>

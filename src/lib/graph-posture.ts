@@ -50,6 +50,7 @@ import {
 import type { Finding } from "@/lib/findings";
 import { assets, findings, isOpen } from "@/lib/findings";
 import type { FindingSeverity } from "@/lib/spine";
+import { assuranceVersion } from "@/lib/assurance-record-store";
 
 export type SeverityCounts = {
   catI: number;
@@ -117,7 +118,7 @@ export function invalidatePostureCache() {
 }
 
 function ensureFresh(): number {
-  const version = graphVersion();
+  const version = graphVersion() + assuranceVersion();
   if (version !== cachedVersion) {
     postureCache.clear();
     resolvedNodes = null;
@@ -149,10 +150,13 @@ function resolveNode(nodeId: string): CompositionNode | null {
   return resolvedIndex().get(nodeId) ?? null;
 }
 
-/** The node a finding hangs on: the part it names, else its asset's anchor. */
-function attachNodeOf(f: Finding): string | null {
-  if (f.node && resolveNode(f.node)) return f.node;
-  return nodeForAsset(f.asset)?.id ?? null;
+/** A source finding may affect several components; rollups still deduplicate by finding ID. */
+function attachedNodesOf(f: Finding): string[] {
+  const nodes = f.nodes?.filter((id) => resolveNode(id)) ?? [];
+  if (nodes.length) return [...new Set(nodes)];
+  if (f.node && resolveNode(f.node)) return [f.node];
+  const node = nodeForAsset(f.asset)?.id;
+  return node ? [node] : [];
 }
 
 function attachmentIndex(): Map<string, Finding[]> {
@@ -160,11 +164,11 @@ function attachmentIndex(): Map<string, Finding[]> {
   if (attachments) return attachments;
   const index = new Map<string, Finding[]>();
   for (const f of findings) {
-    const target = attachNodeOf(f);
-    if (!target) continue;
-    const bucket = index.get(target);
-    if (bucket) bucket.push(f);
-    else index.set(target, [f]);
+    for (const target of attachedNodesOf(f)) {
+      const bucket = index.get(target);
+      if (bucket) bucket.push(f);
+      else index.set(target, [f]);
+    }
   }
   attachments = index;
   return index;
@@ -230,12 +234,14 @@ export function postureOf(nodeId: string): NodePosture {
       worstDepth = -1;
     }
     if (f.mitigatedSeverity !== worst) continue;
-    const attached = attachNodeOf(f);
-    if (!attached) continue;
-    const depth = depthOf(attached);
-    if (depth > worstDepth) {
-      worstDepth = depth;
-      worstNode = attached;
+    for (const attached of attachedNodesOf(f).filter((id) =>
+      subtree.some((node) => node.id === id),
+    )) {
+      const depth = depthOf(attached);
+      if (depth > worstDepth) {
+        worstDepth = depth;
+        worstNode = attached;
+      }
     }
   }
 
@@ -398,6 +404,7 @@ export function exposurePathsTo(nodeId: string, maxHops = 4): ExposurePath[] {
   ensureFresh();
   const target = resolveNode(nodeId);
   if (!target) return [];
+  if (target.zone === "Unspecified") return [];
   const targetRank = trustRank(target.zone);
 
   type Step = { at: string; hops: CompositionEdge[]; minRank: number; seen: Set<string> };
@@ -415,6 +422,7 @@ export function exposurePathsTo(nodeId: string, maxHops = 4): ExposurePath[] {
           const from = resolveNode(edge.from);
           const to = resolveNode(edge.to);
           if (!from || !to) continue;
+          if (from.zone === "Unspecified" || to.zone === "Unspecified") continue;
           if (trustRank(from.zone) > trustRank(to.zone)) continue;
 
           const hops = [edge, ...step.hops];

@@ -30,7 +30,7 @@ const withMode: Decorator = (Story, ctx) => (
 /** One tooltip provider per page, as the Shell mounts for a product: the second tooltip shows at once. */
 const withTooltips: Decorator = (Story) => (
   <LedgerProvider>
-    <TooltipProvider>
+    <TooltipProvider delay={300} timeout={300}>
       <Story />
     </TooltipProvider>
   </LedgerProvider>

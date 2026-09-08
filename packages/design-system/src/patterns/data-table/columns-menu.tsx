@@ -10,10 +10,21 @@ import {
   PinOff,
   Settings2,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 
 import { Button } from "../../components/button";
-import { DropdownMenu } from "../../components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from "../../components/dropdown-menu";
 import { IconButton } from "../../components/button";
 import type { DataTableFeatures } from "./features";
 import type { DataTableInstance } from "./use-data-table";
@@ -42,40 +53,42 @@ export function Columns<TData extends RowData>({
   table: DataTableInstance<TData>;
   label?: string | undefined;
   /** The trigger, in place of the default Button. */
-  children?: ReactNode;
+  children?: ReactElement;
 }) {
   const { t } = useLedgerLocale();
 
   const columns = table.getAllLeafColumns().filter((c) => c.getCanHide());
   const hidden = columns.filter((c) => !c.getIsVisible()).length;
   return (
-    <DropdownMenu
-      align="end"
-      width={220}
-      trigger={
-        children ?? (
-          <Button variant="secondary" size="small" iconBefore={<Columns3 />}>
-            {label ?? t("columns")}
-            {hidden ? (
-              <span className="tabular-nums text-subtle">
-                {columns.length - hidden}/{columns.length}
-              </span>
-            ) : null}
-          </Button>
-        )
-      }
-    >
-      <DropdownMenu.Label>{t("show")}</DropdownMenu.Label>
-      {columns.map((c) => (
-        <DropdownMenu.Item
-          key={c.id}
-          isSelected={c.getIsVisible()}
-          closeOnSelect={false}
-          onSelect={() => c.toggleVisibility()}
-        >
-          {labelOf(c)}
-        </DropdownMenu.Item>
-      ))}
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          children ?? (
+            <Button variant="secondary" size="small" iconBefore={<Columns3 />}>
+              {label ?? t("columns")}
+              {hidden ? (
+                <span className="tabular-nums text-subtle">
+                  {columns.length - hidden}/{columns.length}
+                </span>
+              ) : null}
+            </Button>
+          )
+        }
+      />
+      <DropdownMenuContent align="end" style={{ width: 220 }}>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>{t("show")}</DropdownMenuLabel>
+          {columns.map((c) => (
+            <DropdownMenuCheckboxItem
+              key={c.id}
+              checked={c.getIsVisible()}
+              onCheckedChange={(checked) => c.toggleVisibility(checked)}
+            >
+              {labelOf(c)}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 }
@@ -89,7 +102,7 @@ export function Settings<TData extends RowData>({
   table: DataTableInstance<TData>;
   label?: string | undefined;
   /** The trigger, in place of the default IconButton. */
-  children?: ReactNode;
+  children?: ReactElement;
 }) {
   const { t } = useLedgerLocale();
 
@@ -97,36 +110,38 @@ export function Settings<TData extends RowData>({
   const density = table.options.meta?.density ?? "default";
   const setDensity = table.options.meta?.setDensity;
   return (
-    <DropdownMenu
-      align="end"
-      width={220}
-      trigger={
-        children ?? (
-          <IconButton
-            label={label ?? t("tableSettings")}
-            variant="secondary"
-            size="small"
-            icon={<Settings2 />}
-          />
-        )
-      }
-    >
-      {setDensity ? (
-        <>
-          <DropdownMenu.Label>{t("rows")}</DropdownMenu.Label>
-          <DropdownMenu.Item
-            isSelected={density === "compact"}
-            closeOnSelect={false}
-            onSelect={() => setDensity(density === "compact" ? "default" : "compact")}
-          >
-            {t("compactRows")}
-          </DropdownMenu.Item>
-          <DropdownMenu.Separator />
-        </>
-      ) : null}
-      <DropdownMenu.Item onSelect={() => resetView(table)}>
-        {view ? t("resetView") : t("resetColumns")}
-      </DropdownMenu.Item>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          children ?? (
+            <IconButton
+              label={label ?? t("tableSettings")}
+              variant="secondary"
+              size="small"
+              icon={<Settings2 />}
+            />
+          )
+        }
+      />
+      <DropdownMenuContent align="end" style={{ width: 220 }}>
+        {setDensity ? (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>{t("rows")}</DropdownMenuLabel>
+              <DropdownMenuCheckboxItem
+                checked={density === "compact"}
+                onCheckedChange={(checked) => setDensity(checked ? "compact" : "default")}
+              >
+                {t("compactRows")}
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
+        <DropdownMenuItem onClick={() => resetView(table)}>
+          {view ? t("resetView") : t("resetColumns")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 }
@@ -149,71 +164,67 @@ export function HeaderMenu<TData extends RowData>({
   const pinned = column.getIsPinned();
   const sorted = column.getIsSorted();
   return (
-    <DropdownMenu
-      align="end"
-      width={200}
-      trigger={
-        <IconButton
-          label={t("columnMenu", { label: labelOf(column) })}
-          variant="subtle"
-          className="size-250"
-          icon={<ChevronDown />}
-        />
-      }
-    >
-      {canSort ? (
-        <>
-          <DropdownMenu.Item
-            isSelected={sorted === "asc"}
-            onSelect={() => column.toggleSorting(false)}
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <IconButton
+            label={t("columnMenu", { label: labelOf(column) })}
+            variant="subtle"
+            className="size-250"
+            icon={<ChevronDown />}
+          />
+        }
+      />
+      <DropdownMenuContent align="end" style={{ width: 200 }}>
+        {canSort ? (
+          <DropdownMenuRadioGroup
+            value={sorted || ""}
+            onValueChange={(value: string) => column.toggleSorting(value === "desc")}
           >
+            <DropdownMenuRadioItem value="asc" closeOnClick>
+              <ArrowUp className="icon-subtle" />
+              {t("sortAscending")}
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="desc" closeOnClick>
+              <ArrowDown className="icon-subtle" />
+              {t("sortDescending")}
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        ) : null}
+        {canSort && (canPin || canHide) ? <DropdownMenuSeparator /> : null}
+        {canPin ? (
+          <>
+            {pinned !== "start" ? (
+              <DropdownMenuItem onClick={() => column.pin("start")}>
+                <span className="flex items-center gap-100">
+                  <Pin className="size-icon-small icon-subtle" /> {t("pinStart")}
+                </span>
+              </DropdownMenuItem>
+            ) : null}
+            {pinned !== "end" ? (
+              <DropdownMenuItem onClick={() => column.pin("end")}>
+                <span className="flex items-center gap-100">
+                  <Pin className="size-icon-small icon-subtle" /> {t("pinEnd")}
+                </span>
+              </DropdownMenuItem>
+            ) : null}
+            {pinned ? (
+              <DropdownMenuItem onClick={() => column.pin(false)}>
+                <span className="flex items-center gap-100">
+                  <PinOff className="size-icon-small icon-subtle" /> {t("unpin")}
+                </span>
+              </DropdownMenuItem>
+            ) : null}
+          </>
+        ) : null}
+        {canHide ? (
+          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
             <span className="flex items-center gap-100">
-              <ArrowUp className="size-icon-small icon-subtle" /> {t("sortAscending")}
+              <EyeOff className="size-icon-small icon-subtle" /> {t("hideColumn")}
             </span>
-          </DropdownMenu.Item>
-          <DropdownMenu.Item
-            isSelected={sorted === "desc"}
-            onSelect={() => column.toggleSorting(true)}
-          >
-            <span className="flex items-center gap-100">
-              <ArrowDown className="size-icon-small icon-subtle" /> {t("sortDescending")}
-            </span>
-          </DropdownMenu.Item>
-        </>
-      ) : null}
-      {canSort && (canPin || canHide) ? <DropdownMenu.Separator /> : null}
-      {canPin ? (
-        <>
-          {pinned !== "start" ? (
-            <DropdownMenu.Item onSelect={() => column.pin("start")}>
-              <span className="flex items-center gap-100">
-                <Pin className="size-icon-small icon-subtle" /> {t("pinStart")}
-              </span>
-            </DropdownMenu.Item>
-          ) : null}
-          {pinned !== "end" ? (
-            <DropdownMenu.Item onSelect={() => column.pin("end")}>
-              <span className="flex items-center gap-100">
-                <Pin className="size-icon-small icon-subtle" /> {t("pinEnd")}
-              </span>
-            </DropdownMenu.Item>
-          ) : null}
-          {pinned ? (
-            <DropdownMenu.Item onSelect={() => column.pin(false)}>
-              <span className="flex items-center gap-100">
-                <PinOff className="size-icon-small icon-subtle" /> {t("unpin")}
-              </span>
-            </DropdownMenu.Item>
-          ) : null}
-        </>
-      ) : null}
-      {canHide ? (
-        <DropdownMenu.Item onSelect={() => column.toggleVisibility(false)}>
-          <span className="flex items-center gap-100">
-            <EyeOff className="size-icon-small icon-subtle" /> {t("hideColumn")}
-          </span>
-        </DropdownMenu.Item>
-      ) : null}
+          </DropdownMenuItem>
+        ) : null}
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 }

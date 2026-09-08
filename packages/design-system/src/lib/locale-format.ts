@@ -59,6 +59,7 @@ export const defaultMessages = {
   savedQuestions: "Saved questions",
   view: "View",
   tableSettings: "Table settings",
+  metrics: "Metrics",
   details: "Details",
   parts: "Parts",
   detailsLabel: "{label}, details",

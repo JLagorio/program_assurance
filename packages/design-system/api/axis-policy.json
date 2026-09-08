@@ -1470,58 +1470,6 @@
         "packages/design-system/src/components/_overlay-focus.ts"
       ]
     },
-    "DropdownMenu": {
-      "domTarget": "asChild trigger delegates to caller focusable/ref-forwarding child; portaled Radix content div uses fixed classes. No generic content DOM/ref props.",
-      "controlledBehavior": "Local open state initializes from defaultOpen; Radix requests update. Trigger render callback sees open; legacy toggle callback intentionally does nothing because Radix owns trigger activation. Children render callback receives working close().",
-      "defaultBehavior": "align=start, width=200px, defaultOpen=false, sideOffset=4, collisionPadding=8; dependency modal defaults true. Legacy render toggle is compatibility-only; migrate to a plain trigger and children(close). Direction falls back to LedgerProvider locale; an explicit dir overrides it and reaches Radix context.",
-      "props": {
-        "defaultOpen": {
-          "meaning": "Local open state initializes from defaultOpen; Radix requests update. Trigger render callback sees open; legacy toggle callback intentionally does nothing because Radix owns trigger activation. Children render callback receives working close().",
-          "defaultBehavior": "align=start, width=200px, defaultOpen=false, sideOffset=4, collisionPadding=8; dependency modal defaults true. Legacy render toggle is compatibility-only; migrate to a plain trigger and children(close)."
-        },
-        "width": {
-          "meaning": "Menu content width in CSS pixels.",
-          "migration": "Preserve physical dimension units and each family’s preset meaning; do not reinterpret as control size.",
-          "defaultBehavior": "align=start, width=200px, defaultOpen=false, sideOffset=4, collisionPadding=8; dependency modal defaults true. Legacy render toggle is compatibility-only; migrate to a plain trigger and children(close)."
-        },
-        "dir": {
-          "meaning": "Reading and interaction direction passed to the Radix root, including keyboard navigation, portal direction and scroll positioning where applicable.",
-          "migration": "Use the LedgerProvider default for the localized subtree; preserve explicit dir when embedding opposite-direction content.",
-          "defaultBehavior": "Explicit dir wins; otherwise useLedgerLocale().direction."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/dropdown-menu.tsx",
-        "packages/design-system/src/lib/locale.tsx"
-      ]
-    },
-    "DropdownMenu.Item": {
-      "domTarget": "Radix menuitem div or menuitemcheckbox div when isSelected is supplied. No arbitrary DOM/ref API.",
-      "controlledBehavior": "Selection decoration is caller-owned isSelected. onSelect() has no event payload; closeOnSelect=false prevents dependency default dismissal. Caller changes checked state.",
-      "defaultBehavior": "closeOnSelect=true. Omitted isSelected renders action semantics, including false renders checkbox semantics. tone only supports danger; omitted uses ordinary menu colors. Disabled blocks activation.",
-      "props": {
-        "onSelect": {
-          "meaning": "Selection decoration is caller-owned isSelected. onSelect() has no event payload; closeOnSelect=false prevents dependency default dismissal. Caller changes checked state."
-        },
-        "tone": {
-          "meaning": "Destructive action presentation. Only danger is supported; absence is ordinary menu styling.",
-          "migration": "Retain the intentionally limited action palette rather than adding unrelated success/information states."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/dropdown-menu.tsx"]
-    },
-    "DropdownMenu.Label": {
-      "domTarget": "Radix label div; children only, no generic DOM/ref props.",
-      "controlledBehavior": "Stateless menu heading in enclosing menu context.",
-      "defaultBehavior": "No prop fallbacks; fixed menu label styling.",
-      "reviewSources": ["packages/design-system/src/components/dropdown-menu.tsx"]
-    },
-    "DropdownMenu.Separator": {
-      "domTarget": "Radix separator div; no public props/ref.",
-      "controlledBehavior": "Stateless separator in enclosing menu context.",
-      "defaultBehavior": "No prop defaults; fixed menu separator styling.",
-      "reviewSources": ["packages/design-system/src/components/dropdown-menu.tsx"]
-    },
     "Editable.Select": {
       "domTarget": "Outer div with internal edit trigger; Editable.Text swaps button for native input while editing. No public DOM/ref forwarding. label names the internal control and generated IDs associate errors.",
       "controlledBehavior": "Caller owns committed value/onChange; internal draft/edit/save state. Optimistic onChange(next), save promise, and rollback on rejection only while operation still owns that value. Synchronous save throws become rejection; duplicate saves suppressed; unmounted/stale results ignored.",
@@ -2959,23 +2907,6 @@
         }
       },
       "reviewSources": ["packages/design-system/src/components/toolbar.tsx"]
-    },
-    "Tooltip": {
-      "domTarget": "Portaled tooltip div; className targets it. asChild trigger delegates to caller focusable child/ref. No root ref/id API.",
-      "controlledBehavior": "Dependency-owned hover/focus state initialized by defaultOpen. Uses shared TooltipProvider if present, otherwise local provider.",
-      "defaultBehavior": "top/center, delay=300ms, defaultOpen=false, sideOffset=6, collisionPadding=8, max-width=260px. Content direction follows locale. No controlled open callback.",
-      "props": {
-        "defaultOpen": {
-          "meaning": "Dependency-owned hover/focus state initialized by defaultOpen. Uses shared TooltipProvider if present, otherwise local provider."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/tooltip.tsx"]
-    },
-    "TooltipProvider": {
-      "domTarget": "Context/provider only; creates no wrapper DOM element and exposes no DOM/ref props.",
-      "controlledBehavior": "Dependency/provider-owned shared hover delay coordination; no caller-controlled state.",
-      "defaultBehavior": "delayDuration=300ms and skipDelayDuration=300ms; nested Tooltip sees shared provider flag and avoids its fallback provider.",
-      "reviewSources": ["packages/design-system/src/components/tooltip.tsx"]
     },
     "Tree": {
       "domTarget": "Root div role=tree with private ref; label supplies accessible name, className styles root. No generic DOM/ref API.",

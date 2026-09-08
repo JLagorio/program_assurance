@@ -67,12 +67,18 @@
  * from `@/lib/baselines`, which is what keeps the three acyclic.
  */
 
+import { scopesForProgram } from "@/lib/scopes";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { toast, type Tone } from "@ledger/design-system";
 import { workForProgram, useWorkVersion } from "@/lib/control-work";
 import { evidenceForTarget, useEvidenceVersion } from "@/lib/evidence-catalog";
-import { getRequirement, requirementsForControl, useRequirementsVersion } from "@/lib/requirements";
+import {
+  allocationsFor,
+  getRequirement,
+  requirementsForControl,
+  useRequirementsVersion,
+} from "@/lib/requirements";
 import {
   objectiveEvidence,
   objectivesForRequirement,
@@ -434,7 +440,7 @@ function requirementsFor(row: ControlRow, text: ControlTextIndex | null): Requir
   }
   // The register names real DISA ids the loaded catalog slice does not carry.
   for (const f of row.findings) {
-    if (seen.has(f.cci)) continue;
+    if (!f.cci.trim() || seen.has(f.cci)) continue;
     seen.add(f.cci);
     const known = cciById.get(f.cci) ?? null;
     out.push({ unit: "CCI", id: f.cci, statement: known?.definition ?? "—", cci: known });
@@ -731,6 +737,7 @@ export function buildSctm(
   rows: ControlRow[],
   text: ControlTextIndex | null,
 ): Sctm {
+  const imported = scopesForProgram(programId).some((scope) => scope.selectionSource);
   const inheritance = resolveInheritance(programId);
   const graphNodes = nodesForProgram(programId);
   const root = graphNodes.find((n) => n.parent === null) ?? null;
@@ -786,17 +793,34 @@ export function buildSctm(
     const inheritanceSuspect = edge !== null && !providerFailing && edge.state !== "Current";
 
     const allocation =
-      allocationByFamily.get(row.family) ??
+      allocationByFamily.get(imported ? row.id : row.family) ??
       (() => {
-        const computed = allocationRule(row.family, graphNodes, root);
-        allocationByFamily.set(row.family, computed);
+        const computed: Allocation = imported
+          ? {
+              scope: "component",
+              nodes: [
+                ...new Set([
+                  ...workForProgram(programId)
+                    .filter((work) => work.control === row.id && work.componentId)
+                    .map((work) => work.componentId!),
+                  ...requirementsForControl(row.id, programId).flatMap((requirement) =>
+                    allocationsFor(requirement.id)
+                      .filter((allocation) => allocation.targetKind === "node")
+                      .map((allocation) => allocation.target),
+                  ),
+                ]),
+              ],
+              basis: "Recorded component implementation contributions and requirement allocations.",
+            }
+          : allocationRule(row.family, graphNodes, root);
+        allocationByFamily.set(imported ? row.id : row.family, computed);
         return computed;
       })();
 
     const findingNodes = [
       ...new Set(
         row.findings
-          .map((f) => f.node ?? nodeForAsset(f.asset)?.id ?? null)
+          .flatMap((f) => f.nodes ?? [f.node ?? nodeForAsset(f.asset)?.id ?? null])
           .filter((id): id is string => id !== null),
       ),
     ];
@@ -876,7 +900,7 @@ export function buildSctm(
       const supportingArtifacts =
         req.unit === "Requirement"
           ? [
-              ...evidenceForTarget(programId, "control", row.id),
+              ...(imported ? [] : evidenceForTarget(programId, "control", row.id)),
               ...evidenceForTarget(programId, "requirement", req.id),
             ]
           : linkedEvidence;
@@ -975,6 +999,24 @@ export function buildSctm(
             }
           : methodFor(req, row.id, row.family, text);
       const evidenceList = [...evidence];
+      const requirementNodes =
+        imported && req.unit === "Requirement"
+          ? allocationsFor(req.id)
+              .filter((allocation) => allocation.targetKind === "node")
+              .map((allocation) => allocation.target)
+          : responsibleNodes;
+      const requirementWork =
+        imported && req.unit === "Requirement"
+          ? authored.filter(
+              (work) =>
+                work.requirementIds?.includes(req.id) &&
+                (!work.componentId || requirementNodes.includes(work.componentId)),
+            )
+          : authored;
+      const requirementAssertion =
+        imported && req.unit === "Requirement"
+          ? requirementWork.map((work) => work.narrative).join("\n\n") || "—"
+          : assertion;
 
       let gap: string | null = null;
       if (evidenceList.length === 0 && determination === "Satisfied") {
@@ -1046,11 +1088,11 @@ export function buildSctm(
         unit: req.unit,
         requirement: req.id,
         statement: req.statement,
-        assertion,
+        assertion: requirementAssertion,
         origination,
         responsibleParty,
         consumerResponsibility,
-        responsibleNodes,
+        responsibleNodes: requirementNodes,
         allocationBasis,
         allocationScope: allocation.scope,
         systemAllocatedNodes,

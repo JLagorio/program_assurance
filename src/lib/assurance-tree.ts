@@ -305,12 +305,16 @@ function sevTone(f: Finding): BeadTone {
 export function closureData(tree: Tree, programId: string, family: string | null): ClosureData {
   const controls = tree.controls.filter((c) => c.agg.w > 0);
   const inSet = new Set(controls.map((c) => c.id));
-  const findings = findingsForProgram(programId).filter((f) => inSet.has(f.control));
+  const findings = findingsForProgram(programId).filter((f) =>
+    (f.controls ?? [f.control]).some((id) => inSet.has(id)),
+  );
   const findingsByControl = new Map<string, Finding[]>();
   for (const f of findings) {
-    const l = findingsByControl.get(f.control);
-    if (l) l.push(f);
-    else findingsByControl.set(f.control, [f]);
+    for (const control of f.controls ?? [f.control]) {
+      const l = findingsByControl.get(control);
+      if (l) l.push(f);
+      else findingsByControl.set(control, [f]);
+    }
   }
   const poams = poamItems.filter((p) => p.program === programId);
   const poamsByControl = new Map<string, PoamItem[]>();
@@ -319,7 +323,7 @@ export function closureData(tree: Tree, programId: string, family: string | null
     const fs = findings.filter((f) => f.poam === p.id);
     const first = fs[0]?.control ?? null;
     if (first) controlOfPoam.set(p.id, first);
-    for (const c of new Set(fs.map((f) => f.control))) {
+    for (const c of new Set(fs.flatMap((f) => f.controls ?? [f.control]))) {
       const l = poamsByControl.get(c);
       if (l) l.push(p);
       else poamsByControl.set(c, [p]);
@@ -623,8 +627,8 @@ export function chainFor(
     out.push({
       t: "Risk",
       l: `${r.id} — ${r.title}`,
-      tone: r.residual >= 60 ? "ns" : "warn",
-      m: `${r.treatment} · ${r.disposition} · authored inherent ${r.inherent} → residual ${r.residual} · last reviewed ${r.reviewed}`,
+      tone: r.residual !== null && r.residual >= 60 ? "ns" : "warn",
+      m: `${r.treatment} · ${r.disposition} · authored inherent ${r.inherent ?? "Unrecorded"} → residual ${r.residual ?? r.sourceRating?.overall ?? "Unrecorded"} · last reviewed ${r.reviewed}`,
     });
   }
   return out;

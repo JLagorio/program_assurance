@@ -2,7 +2,7 @@
 
 Continue migrating `@ledger/design-system` from the local shadcn Base UI references,
 one complete family at a time. **Breadcrumb, Badge, Separator, Skeleton, Kbd,
-Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard and Popover are complete.**
+Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip and DropdownMenu are complete.**
 
 ## Direction and sources
 
@@ -34,8 +34,10 @@ Completed contracts and migration examples live on their family pages:
 [Switch](../../packages/design-system/src/stories/components/Switch.mdx),
 [RadioGroup](../../packages/design-system/src/stories/components/RadioGroup.mdx),
 [Checkbox](../../packages/design-system/src/stories/components/Checkbox.mdx),
-[HoverCard](../../packages/design-system/src/stories/components/HoverCard.mdx), and
-[Popover](../../packages/design-system/src/stories/components/Popover.mdx).
+[HoverCard](../../packages/design-system/src/stories/components/HoverCard.mdx),
+[Popover](../../packages/design-system/src/stories/components/Popover.mdx),
+[Tooltip](../../packages/design-system/src/stories/components/Tooltip.mdx), and
+[DropdownMenu](../../packages/design-system/src/stories/components/DropdownMenu.mdx).
 
 Keep RecordHeader's tested separator behavior for empty breadcrumb fragments/arrays.
 Badge retains shared Tone and separate Count/Dot/Indicator contracts. The native
@@ -102,10 +104,36 @@ Dialog entry animation releases its transform when complete so fixed popups are 
 clipped by the rounded frame. DatePicker explicitly restores its trigger after Clear;
 its nested-dialog story checks real pointer hit targets as well as focus and dismissal.
 
-Next candidate: Tooltip. Check shadcn's Base UI source and Base UI Tooltip docs, then
-migrate its wrapper and provider. Preserve Shell-wide timing, disabled UnavailableAction
-triggers, IconButton composition and chart marks. There are 12 direct runtime sites
-across 11 files, plus indirect IconButton use.
+Tooltip uses flat Trigger, Content and Provider parts. Provider defaults to zero delay;
+Shell and Storybook explicitly preserve 300ms delay/timeout. Without a provider, the
+upstream trigger default is 600ms; there is no private fallback provider. IconButton
+supplies its own tooltip, so duplicate app-header and Shell-story wrappers are removed.
+Trigger render preserves native links/spans without adding button semantics. Its disabled
+prop disables the tooltip, so native disabled state belongs on the rendered button.
+Base UI 1.7 supplies no automatic tooltip role or described-by association; accessible
+names and essential instructions stay independent. Content has a 320px maximum, 4px
+offset and decorative arrow. It shares the enclosing-dialog portal and Escape guard.
+The package's Radix Tooltip dependency is removed; Recharts tooltips remain unchanged.
+
+DropdownMenu uses shadcn's flat Base UI Menu parts, plus native LinkItem for navigation.
+Content defaults to trigger width with a 128px minimum, bottom/start and 4px side offset;
+existing callers retain explicit widths. Checkbox/radio items stay open by default;
+exclusive saved views, sorting and Editable.Select explicitly close. Group labels belong
+inside Group or RadioGroup. Disabled items remain keyboard-focusable but cannot activate.
+Submenus use logical inline-end placement. Native props, state callbacks, refs, generic
+root payloads and cancellable change events remain upstream contracts. Columns/Settings
+custom triggers are ReactElements, matching render composition. The shared menu recipes
+remain compatible with Select and Command. The package's Radix DropdownMenu dependency
+is removed; reference dependencies remain.
+
+Modal focus restoration resolves disappearing menu items to their stable trigger, including
+submenus. Keep the shared enclosed-popup Escape guard and portal lookup until the modal
+families migrate. DataTable row actions use opacity so concealed triggers remain tabbable.
+
+Next candidate: Select. Check shadcn's Base UI Select source and the installed Base UI
+contract. Preserve Field label/error binding, form values, controlled/uncontrolled state,
+trigger refs, keyboard/typeahead, locale direction and selections inside dialogs. Keep
+NativeSelect as the native form option and leave shared menu recipes compatible.
 
 ## Completion workflow
 
@@ -132,24 +160,27 @@ Do not repeat passing checks without later edits or an unresolved concern.
 
 ## Latest validation
 
-Package and application typechecks, package lint, 15 package tests, 49 application tests,
-API/coverage checks, production/Storybook builds and packed consumer checks passed.
-All 228 affected Storybook checks pass in light and dark modes, covering Popover,
-DatePicker, Editable, FilterChip, DataTable, Shell, charts and the surrounding overlays.
-After fixing dialog animation clipping, all 66 checks covering the affected dialog,
-date-picker, combobox and motion stories passed again. Nested calendar assertions cover
-real pointer hit targets, focus entry, Escape, Clear and parent-dialog persistence.
-Chart assertions wait for stable animated marks before checking anchored previews,
-keyboard reopening and plot/cell focus return.
+DropdownMenu's package and application typechecks, package lint, scoped lint for the four
+migrated app files, API/coverage checks, 15 package tests, package/production/Storybook
+builds and packed consumer checks passed. The application tests passed 72 tests with
+one skipped. Repository-wide application lint was not run.
 
-Packed checks cover all seven flat exports, native button/render integration, refs,
-generic payloads, event details, positioning/focus props and client-only portal behavior.
-The built Popover docs, dark form and nested calendar were visually reviewed. The docs
-and nested calendar had no console errors; the standalone dark canvas only reported a
-missing favicon. Inherited props link to Base UI directly without empty generated tables.
+All 248 affected Storybook checks pass in light and dark modes, covering the menu,
+DataTable controls, Editable, chart actions, menu consumers and surrounding overlays.
+The final 48 DropdownMenu/DataTable checks also verify keyboard access to concealed
+row actions and focus restoration after Escape. Built keyboard playback waits one
+animation frame for Base UI's native listeners; the freshly built submenu and dialog
+stories completed with no console errors.
 
-The intentional API changes are Popover's Base UI root contract and its flat trigger,
-content, header, title, description and close parts/types. The baseline preserves earlier
-migrations and concurrent Table.Id indent and Table.Disclosure changes.
-Repository-wide lint was not rerun; its last run had 12 existing formatting errors in
-`src/hooks/use-mobile.ts` and `src/lib/utils.ts`.
+Packed checks cover all 16 exports and their types, generic payloads, native refs,
+render composition, positioning/state callbacks, choice cancellation, disabled trigger
+semantics and client-only portals. The API diff replaces the configured wrapper with
+native Base UI parts and narrows Columns/Settings custom triggers to ReactElement.
+Coverage reports 140 documented exports, 103 pages and 569 stories, with no gaps.
+
+The built docs, dark preferences, RTL submenu and nested dialog were visually reviewed.
+Keyboard and pointer activation both return a closed dialog to its stable menu trigger.
+The first Escape dismisses the nested menu and the second dismisses its dialog.
+Standalone navigation initially reported a missing favicon; final playback and nested
+interaction checks had no console errors. Temporary screenshots and browser artifacts
+were moved outside the repository.

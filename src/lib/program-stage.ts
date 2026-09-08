@@ -44,6 +44,10 @@ const monthIndex: Record<string, number> = {
 };
 
 export function parseGateDate(value: string): Date | null {
+  if (/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value.trim())) {
+    const parsed = new Date(value.trim());
+    return Number.isFinite(parsed.getTime()) ? parsed : null;
+  }
   const m = /^([A-Z][a-z]{2})\s(\d{1,2}),\s(\d{4})$/.exec(value.trim());
   if (!m) return null;
   const month = monthIndex[m[1]!];
@@ -97,7 +101,17 @@ export function programState(
     gates.find((g) => g.status === "Planned") ??
     null;
 
-  const currentStage: Stage = (currentGate ? gateStage[currentGate.id] : undefined) ?? "Operate";
+  const fallbackStage: Stage =
+    program.status === "Draft"
+      ? "Scope"
+      : program.status === "Expired"
+        ? "Authorize"
+        : program.status === "In assessment" ||
+            (program.status === "POA&M open" && !Number.isFinite(Date.parse(program.authorized)))
+          ? "Assess"
+          : "Operate";
+  const currentStage: Stage =
+    (currentGate ? gateStage[currentGate.id] : undefined) ?? fallbackStage;
 
   const daysOut = currentGate ? daysUntil(currentGate.planned, now) : null;
 

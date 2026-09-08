@@ -356,6 +356,22 @@ export function EvidencePreview({
       <Stack space="space.150">
         <Block title="Provenance">
           <Text as="p">{artifact.provenance}</Text>
+          {artifact.referenceUri ? (
+            <Fact label="Reference">
+              <span className="break-all">{artifact.referenceUri}</span>
+            </Fact>
+          ) : null}
+          {artifact.validThrough ? (
+            <Fact label="Valid through">{artifact.validThrough.slice(0, 10)}</Fact>
+          ) : null}
+          {artifact.sha256 ? (
+            <Fact label="SHA-256">
+              <span className="break-all">{artifact.sha256}</span>
+            </Fact>
+          ) : null}
+          {artifact.componentIds?.length ? (
+            <Fact label="Components">{artifact.componentIds.join(", ")}</Fact>
+          ) : null}
           {!artifact.url ? (
             <Text as="p" size="small" color="color.text.subtle">
               This seeded reference has no linked artifact location.

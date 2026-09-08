@@ -63,6 +63,7 @@ import { staleThresholdDays } from "@/lib/reusable-components";
 import { workstreamsForProgram } from "@/lib/people";
 import { parseGateDate } from "@/lib/program-stage";
 import { gatesForProgram } from "@/lib/grc-data";
+import { rollupControlSet, scopesForProgram, scopesVersion, subscribeScopes } from "@/lib/scopes";
 
 export const controlStatuses = [
   "Satisfied",
@@ -204,6 +205,8 @@ export function baselineFor(programId: string): NistBaseline {
  * it, the way an overlay or a system-specific addition would be.
  */
 function tailoredControls(programId: string, inherited: Iterable<string>): NistControl[] {
+  if (scopesForProgram(programId).some((scope) => scope.selectionSource))
+    return rollupControlSet(programId).controls.map((row) => row.control);
   const picked = new Map<string, NistControl>();
   for (const c of baselineControls(baselineFor(programId))) picked.set(c.id, c);
 
@@ -211,7 +214,9 @@ function tailoredControls(programId: string, inherited: Iterable<string>): NistC
     ...programControls.map((c) => c.id),
     ...inherited,
     ...workstreamsForProgram(programId).flatMap((w) => w.controls),
-    ...findings.filter((f) => findingProgram(f) === programId).map((f) => f.control),
+    ...findings
+      .filter((f) => findingProgram(f) === programId)
+      .flatMap((f) => f.controls ?? [f.control]),
   ];
   for (const id of named) {
     if (picked.has(id)) continue;
@@ -222,15 +227,17 @@ function tailoredControls(programId: string, inherited: Iterable<string>): NistC
 }
 
 function buildMatrix(programId: string): ControlRow[] {
+  const imported = scopesForProgram(programId).some((scope) => scope.selectionSource);
   const inheritance = resolveInheritance(programId);
   const poams = poamItems.filter((p) => p.program === programId);
-  const authored = new Map(programControls.map((c) => [c.id, c]));
+  const authored = new Map((imported ? [] : programControls).map((c) => [c.id, c]));
   const poamById = new Map(poams.map((p) => [p.id, p]));
 
   const findingsByControl = new Map<string, Finding[]>();
   for (const f of findings) {
     if (findingProgram(f) !== programId) continue;
-    findingsByControl.set(f.control, [...(findingsByControl.get(f.control) ?? []), f]);
+    for (const control of f.controls ?? [f.control])
+      findingsByControl.set(control, [...(findingsByControl.get(control) ?? []), f]);
   }
 
   const workstreamByControl = new Map<string, string>();
@@ -256,7 +263,7 @@ function buildMatrix(programId: string): ControlRow[] {
 
   // A Draft program has assessed nothing; the synthetic family posture is for
   // the seeded programs mid-assessment.
-  const draft = programs.find((p) => p.id === programId)?.status === "Draft";
+  const draft = imported || programs.find((p) => p.id === programId)?.status === "Draft";
 
   for (const [famId, famControls] of families) {
     const posture = familyPosture.get(famId);
@@ -336,12 +343,20 @@ function buildMatrix(programId: string): ControlRow[] {
           ? "—"
           : poam
             ? (poamById.get(poam)?.scheduledCompletion ?? shift(anchor, 14))
-            : shift(anchor, ((i * 7 + jitter) % 90) - 10);
+            : imported
+              ? "—"
+              : shift(anchor, ((i * 7 + jitter) % 90) - 10);
 
       const assessed =
         status === "Not assessed"
           ? "—"
-          : (author?.assessed ?? shift(anchor, -30 - ((i + jitter) % 60)));
+          : imported
+            ? (work
+                .map((item) => item.assessedOn)
+                .filter((date): date is string => !!date)
+                .sort()
+                .at(-1) ?? "—")
+            : (author?.assessed ?? shift(anchor, -30 - ((i + jitter) % 60)));
 
       const partial: Omit<ControlRow, "nextAction"> = {
         id,
@@ -384,7 +399,7 @@ const listeners = new Set<() => void>();
 let sourceVersion = "";
 
 function snapshot(programId: string): ControlRow[] {
-  const current = `${assuranceVersion()}/${workVersion()}/${evidenceVersion()}`;
+  const current = `${assuranceVersion()}/${workVersion()}/${evidenceVersion()}/${scopesVersion()}`;
   if (sourceVersion !== current) {
     cache.clear();
     sourceVersion = current;
@@ -422,7 +437,12 @@ export function useControlMatrix(programId: string): ControlRow[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      const off = [subscribeAssurance(cb), subscribeWork(cb), subscribeEvidence(cb)];
+      const off = [
+        subscribeAssurance(cb),
+        subscribeWork(cb),
+        subscribeEvidence(cb),
+        subscribeScopes(cb),
+      ];
       return () => {
         listeners.delete(cb);
         for (const unsubscribe of off) unsubscribe();

@@ -129,11 +129,18 @@ function newestFirst(a: ActivityEntry, b: ActivityEntry) {
   return a.at < b.at ? 1 : a.at > b.at ? -1 : b.id.localeCompare(a.id);
 }
 
-/** The record's feed, newest first: entries on it, and entries that are about it. */
-export function activityFor(subject: Pick<Subject, "kind" | "id">): ActivityEntry[] {
+/** The record's feed, newest first. Natural IDs such as AC-2 are scoped by program. */
+export function activityFor(
+  subject: Pick<Subject, "kind" | "id">,
+  programId?: string,
+): ActivityEntry[] {
   const key = subjectKey(subject);
   return entries
-    .filter((e) => subjectKey(e.subject) === key || (e.about && subjectKey(e.about) === key))
+    .filter(
+      (e) =>
+        (programId === undefined || e.program === programId) &&
+        (subjectKey(e.subject) === key || (e.about && subjectKey(e.about) === key)),
+    )
     .sort(newestFirst);
 }
 

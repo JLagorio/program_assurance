@@ -1,7 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronDown, Download, Plus } from "lucide-react";
 
-import { Button, DropdownMenu, IconButton } from "../../components";
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  IconButton,
+} from "../../components";
 import { PageHeader, RecordHeader } from "../../patterns";
 import { Stack } from "../../primitives";
 import { Pair } from "../_lib/pair";
@@ -43,11 +50,13 @@ export const PageHeaderMatrix: Story = {
         title="Programs"
         description="Each program scopes one or more systems, categorizes each under CNSSI 1253, and assesses the tailored NIST SP 800-53 Rev. 5 control set it selects."
         actions={
-          <DropdownMenu
-            align="end"
-            trigger={<IconButton label="More" icon={<ChevronDown />} size="medium" />}
-          >
-            <DropdownMenu.Item onSelect={() => {}}>Export</DropdownMenu.Item>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={<IconButton label="More" icon={<ChevronDown />} size="medium" />}
+            />
+            <DropdownMenuContent align="end" style={{ width: 200 }}>
+              <DropdownMenuItem onClick={() => {}}>Export</DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
         }
       />

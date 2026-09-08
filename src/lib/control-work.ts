@@ -49,6 +49,7 @@ import {
   type ActivityKind,
 } from "@/lib/activity";
 import { datasetToday } from "@/lib/dataset-clock";
+import type { PlatformSourceRecord } from "@/lib/platform-ids";
 import type { Tone } from "@ledger/design-system";
 
 /* ------------------------------------------------------------------- Roles */
@@ -162,6 +163,12 @@ export type ControlWork = {
   evidence: string[];
   /** Risk authority's acceptance rationale, when residual risk is accepted. */
   riskAcceptance: string;
+  assessedOn?: string;
+  componentId?: string;
+  requirementIds?: string[];
+  source?: PlatformSourceRecord;
+  /** False when the imported component narrative has no implementation-status claim. */
+  implementationRecorded?: boolean;
 };
 
 /** Where the work sits, derived from the two axes rather than stored. */
@@ -169,6 +176,7 @@ export function positionOf(work: ControlWork): string {
   if (!work.owner) return "Unassigned";
   if (work.assessment !== "Not assessed") return work.assessment;
   if (work.submitted) return "With the assessor";
+  if (work.implementationRecorded === false) return "Implementation not recorded";
   if (work.implementation === "Implemented") return "Implemented";
   return work.implementation;
 }
@@ -661,6 +669,17 @@ export function workFor(program: string, scope: string, control: string): Contro
   return byKey.get(keyOf(scope, control)) ?? create(program, scope, control);
 }
 
+/** Register source implementation records without inventing user actions or evidence. */
+export function registerControlWork(input: ControlWork): ControlWork {
+  const existing = byKey.get(keyOf(input.scope, input.control));
+  if (existing) return existing;
+  const created = create(input.program, input.scope, input.control, input);
+  workSeq = Math.max(workSeq, Number(input.id.replace(/^WRK-/, "")) || 0);
+  version += 1;
+  for (const listener of listeners) listener();
+  return created;
+}
+
 /**
  * The scope a reader most likely means for this control.
  *
@@ -792,7 +811,9 @@ export function perform(
   }
 
   const before = positionOf(w);
+  const priorImplementation = w.implementation;
   const summary = offer.def.apply(w, note.trim());
+  if (w.implementation !== priorImplementation) w.implementationRecorded = true;
   log(workId, "transition", summary, {
     field: "position",
     before,
