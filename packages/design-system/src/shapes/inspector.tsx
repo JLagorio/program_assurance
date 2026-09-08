@@ -2,7 +2,12 @@ import { ChevronDown } from "lucide-react";
 import { Collapsible } from "../components/collapsible";
 import { useContext, type ReactNode } from "react";
 
-import { Accordion } from "../components/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../components/accordion";
 
 import { KeyValue } from "../components/key-value";
 import { ScrollArea } from "../components/scroll-area";
@@ -12,7 +17,7 @@ import { PanelContext } from "../lib/panel-context";
 /* Groups of facts beside the work, each group a heading that folds, every group open until the
    reader folds it, a Configure link at the end. An accordion usually opens closed so its titles
    are the overview; a rail of facts is the exception, content the reader will read, so the
-   groups open. The row is a label and a value, no nesting, a small set. An Accordion of Accordion.Item sections and
+   groups open. The row is a label and a value, no nesting, a small set. An Accordion of AccordionItem sections and
    KeyValue rows, sticky beside a page, scrolling with a panel. */
 
 export type InspectorGroupData = {
@@ -38,21 +43,15 @@ function InspectorRoot({ groups, footer, sticky }: InspectorProps) {
   const flush = panel?.flush ?? false;
   const body = (
     <>
-      <Accordion defaultValue={groups.map((g) => g.title)} type="multiple" className="border-b-0">
+      <Accordion defaultValue={groups.map((g) => g.title)} multiple className="border-b-0">
         {groups.map((g, index) => (
-          <Accordion.Item
+          <AccordionItem
             value={g.title}
             key={g.title}
             className={index === 0 ? "border-t-0" : "border-t border-default"}
           >
-            <Accordion.Header asChild>
-              <h3>
-                <Accordion.Trigger className={flush ? "px-300" : undefined}>
-                  {g.title}
-                </Accordion.Trigger>
-              </h3>
-            </Accordion.Header>
-            <Accordion.Content>
+            <AccordionTrigger className={flush ? "px-300" : undefined}>{g.title}</AccordionTrigger>
+            <AccordionContent>
               <div className={flush ? "px-300 pb-200" : "pb-200"}>
                 <div className="flex flex-col">
                   {g.rows.map((r) => (
@@ -62,8 +61,8 @@ function InspectorRoot({ groups, footer, sticky }: InspectorProps) {
                   ))}
                 </div>
               </div>
-            </Accordion.Content>
-          </Accordion.Item>
+            </AccordionContent>
+          </AccordionItem>
         ))}
       </Accordion>
       {footer ? <div className={cn("pt-150", flush && "px-300 pb-200")}>{footer}</div> : null}

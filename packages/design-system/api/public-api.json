@@ -11,16 +11,20 @@
       "kind": "value"
     },
     ".#Accordion": {
-      "target": "\"src/components/accordion\".Accordion",
+      "target": "src/components/accordion.d.ts#Accordion",
+      "kind": "value"
+    },
+    ".#AccordionContent": {
+      "target": "src/components/accordion.d.ts#AccordionContent",
       "kind": "value"
     },
     ".#AccordionContentProps": {
       "target": "\"src/components/accordion\".AccordionContentProps",
       "kind": "type"
     },
-    ".#AccordionHeaderProps": {
-      "target": "\"src/components/accordion\".AccordionHeaderProps",
-      "kind": "type"
+    ".#AccordionItem": {
+      "target": "src/components/accordion.d.ts#AccordionItem",
+      "kind": "value"
     },
     ".#AccordionItemProps": {
       "target": "\"src/components/accordion\".AccordionItemProps",
@@ -29,6 +33,10 @@
     ".#AccordionProps": {
       "target": "\"src/components/accordion\".AccordionProps",
       "kind": "type"
+    },
+    ".#AccordionTrigger": {
+      "target": "src/components/accordion.d.ts#AccordionTrigger",
+      "kind": "value"
     },
     ".#AccordionTriggerProps": {
       "target": "\"src/components/accordion\".AccordionTriggerProps",
@@ -2224,25 +2232,13 @@
     ],
     "\"src/components/alert\".AlertActionProps": [
       {
-        "source": "src/components/alert.d.ts",
-        "declaration": "export type AlertActionProps = ComponentProps<\"div\">;"
+        "declaration": "export type AccordionContentProps = AccordionPrimitive.Panel.Props;"
+        "declaration": "export type AccordionItemProps = AccordionPrimitive.Item.Props;"
       }
     ],
-    "\"src/components/alert\".AlertDescriptionProps": [
+        "declaration": "export type AccordionProps = AccordionPrimitive.Root.Props;"
       {
-        "source": "src/components/alert.d.ts",
-        "declaration": "export type AlertDescriptionProps = ComponentProps<\"div\">;"
-      }
-    ],
-    "\"src/components/alert\".AlertProps": [
-      {
-        "source": "src/components/alert.d.ts",
-        "declaration": "export type AlertProps = Omit<ComponentProps<\"div\">, \"title\"> & {\n    tone?: Tone | undefined;\n    title?: ReactNode;\n    action?: ReactNode;\n    icon?: ReactNode;\n};"
-      }
-    ],
-    "\"src/components/alert\".AlertTitleProps": [
-      {
-        "source": "src/components/alert.d.ts",
+        "declaration": "export type AccordionTriggerProps = AccordionPrimitive.Trigger.Props;"
         "declaration": "export type AlertTitleProps = ComponentProps<\"div\">;"
       }
     ],
@@ -5710,23 +5706,17 @@
     ],
     "src/components/breadcrumb.d.ts#BreadcrumbItem": [
       {
-        "source": "src/components/breadcrumb.d.ts",
-        "declaration": "declare function BreadcrumbItem({ className, ...props }: BreadcrumbItemProps): React.JSX.Element;"
+    "src/components/accordion.d.ts#Accordion": [
+        "declaration": "declare function Accordion({ className, ...props }: AccordionProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/components/breadcrumb.d.ts#BreadcrumbLink": [
+    "src/components/accordion.d.ts#AccordionContent": [
       {
-        "source": "src/components/breadcrumb.d.ts",
-        "declaration": "declare function BreadcrumbLink({ className, render, ...props }: useRender.ComponentProps<\"a\">): React.ReactElement<unknown, string | React.JSXElementConstructor<any>>;"
+        "declaration": "declare function AccordionContent({ className, children, ...props }: AccordionContentProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function AccordionItem({ className, ...props }: AccordionItemProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/components/breadcrumb.d.ts#BreadcrumbList": [
-      {
-        "source": "src/components/breadcrumb.d.ts",
-        "declaration": "declare function BreadcrumbList({ className, ...props }: React.ComponentProps<\"ol\">): React.JSX.Element;"
-      }
-    ],
-    "src/components/breadcrumb.d.ts#BreadcrumbPage": [
+        "declaration": "declare function AccordionTrigger({ className, children, ...props }: AccordionTriggerProps): import(\"react\").JSX.Element;"
       {
         "source": "src/components/breadcrumb.d.ts",
         "declaration": "declare function BreadcrumbPage({ className, ...props }: React.ComponentProps<\"span\">): React.JSX.Element;"
@@ -6585,3 +6575,5 @@
     "sonner": "794ba26cf92cf6d76cc31fd7dd57e2394acab1b719312a8fbc87355510bdb73d"
   }
 }
+    "@base-ui/react": "568423787e1a07f68cdfbee88d7bd7541af8030c974a77cb5ac21a75181d7585",
+    "sonner": "fb6be00883e8ee9535145f6da73492b741e84ed0da4a1d602e921021f407d92e"

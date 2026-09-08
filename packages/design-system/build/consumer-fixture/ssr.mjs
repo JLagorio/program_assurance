@@ -14,6 +14,9 @@ import {
   Attachment,
   Alert,
   Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
   Collapsible,
   Button,
   IconButton,
@@ -300,16 +303,12 @@ const html = renderToString(
       ),
       createElement(
         Accordion,
-        { type: "single", defaultValue: "stable" },
+        { defaultValue: ["stable"] },
         createElement(
-          Accordion.Item,
+          AccordionItem,
           { value: "stable" },
-          createElement(
-            Accordion.Header,
-            null,
-            createElement(Accordion.Trigger, null, "Packed accordion"),
-          ),
-          createElement(Accordion.Content, null, "Packed panel"),
+          createElement(AccordionTrigger, null, "Packed accordion"),
+          createElement(AccordionContent, null, "Packed panel"),
         ),
       ),
       createElement(
