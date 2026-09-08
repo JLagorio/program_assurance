@@ -64,6 +64,7 @@ export const Examples: Story = {
     await userEvent.click(last);
     await expect(first).toHaveAttribute("aria-expanded", "false");
     await expect(last).toHaveAttribute("aria-expanded", "true");
+    await expect(last.closest("h3")?.nextElementSibling).toHaveAttribute("data-open");
     await expect(canvas.getByRole("button", { name: "Unavailable section" })).toBeDisabled();
     await userEvent.click(canvas.getByRole("button", { name: "Alpha section" }));
     await expect(canvas.getByRole("button", { name: "Beta section" })).toHaveAttribute(
