@@ -6,10 +6,12 @@ import { useState } from "react";
 import {
   Badge,
   Button,
+  Count,
   FilterChip,
   NativeSelect,
   Table,
   ToggleGroup,
+  ToggleGroupItem,
   Toolbar,
 } from "../../components";
 import { Stack, Text } from "../../primitives";
@@ -58,16 +60,13 @@ export const ToolbarMatrix: Story = {
           </Text>
         }
       >
-        <ToggleGroup
-          aria-label="Lens"
-          value="gaps"
-          onChange={() => {}}
-          items={[
-            { value: "all", label: "All" },
-            { value: "gaps", label: "Gaps", count: 12 },
-            { value: "mine", label: "Mine" },
-          ]}
-        />
+        <ToggleGroup aria-label="Lens" defaultValue={["gaps"]}>
+          <ToggleGroupItem value="all">All</ToggleGroupItem>
+          <ToggleGroupItem value="gaps">
+            Gaps <Count value={12} />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="mine">Mine</ToggleGroupItem>
+        </ToggleGroup>
       </Toolbar>
       <Toolbar
         search=""

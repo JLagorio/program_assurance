@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Download, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import {
   Badge,
@@ -11,6 +12,7 @@ import {
   Spinner,
   Stat,
   ToggleGroup,
+  ToggleGroupItem,
   type ChartSelection,
 } from "../../components";
 import { Box, Grid, Inline, Stack, Text } from "../../primitives";
@@ -252,13 +254,14 @@ function FramedChart() {
         actions={
           <ToggleGroup
             aria-label="Range"
-            value={range}
-            onChange={setRange}
-            items={[
-              { value: "3m", label: "3 months" },
-              { value: "9m", label: "9 months" },
-            ]}
-          />
+            value={[range]}
+            onValueChange={(values) => {
+              if (values[0]) setRange(values[0]);
+            }}
+          >
+            <ToggleGroupItem value="3m">3 months</ToggleGroupItem>
+            <ToggleGroupItem value="9m">9 months</ToggleGroupItem>
+          </ToggleGroup>
         }
       >
         <Chart.Line data={data} x="month" series={findingSeries} labels="end" />
@@ -370,6 +373,55 @@ export const Details: Story = {
       </Chart>
     </Box>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const plot = canvas.getByRole("application");
+    let previousPath: string | null = null;
+    let changedAt = performance.now();
+    const mark = await waitFor(() => {
+      const element = canvasElement.querySelector<SVGGraphicsElement>(".recharts-bar-rectangle");
+      const path = element?.querySelector("path")?.getAttribute("d") ?? null;
+      if (path !== previousPath) changedAt = performance.now();
+      previousPath = path;
+      expect(plot.getBoundingClientRect().width).toBeGreaterThan(500);
+      expect(element?.getBoundingClientRect().height).toBeGreaterThan(0);
+      // Recharts keys animated marks by their changing coordinates, replacing each SVG node.
+      expect(performance.now() - changedAt).toBeGreaterThan(100);
+      return element!;
+    });
+    const markRect = mark.getBoundingClientRect();
+    await userEvent.click(mark);
+    const dialog = await page.findByRole("dialog", { name: "Coverage by control family, details" });
+    await waitFor(() => expect(within(dialog).getByText("Access control")).toBeVisible());
+    await waitFor(() =>
+      expect(within(dialog).getByRole("button", { name: "Open AC" })).toHaveFocus(),
+    );
+    await waitFor(() => {
+      const popupRect = dialog.getBoundingClientRect();
+      expect(popupRect.left).toBeLessThan(markRect.right);
+      expect(popupRect.right).toBeGreaterThan(markRect.left);
+      expect(
+        Math.min(
+          Math.abs(popupRect.bottom - markRect.top),
+          Math.abs(popupRect.top - markRect.bottom),
+        ),
+      ).toBeLessThan(16);
+    });
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    await waitFor(() => expect(plot).toHaveFocus());
+    await userEvent.keyboard("{ArrowRight}{Enter}");
+    const reopened = await page.findByRole("dialog", {
+      name: "Coverage by control family, details",
+    });
+    await waitFor(() =>
+      expect(within(reopened).getByRole("button", { name: /^Open / })).toHaveFocus(),
+    );
+    await userEvent.click(canvas.getByText("Coverage by control family"));
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    await waitFor(() => expect(plot).toHaveFocus());
+  },
 };
 
 function Filtering_() {
@@ -463,7 +515,7 @@ export const Emphasis: Story = {
   ),
 };
 
-/** The Frame's states hold the plot's height, so the page does not jump when the data arrives. Loading draws the plot's own silhouette; refreshing keeps the last plot under a spinner. */
+/** The Frame's states hold the plot's height, so the page does not jump when the data arrives. Loading draws the plot's own silhouette or a generic placeholder; refreshing keeps the last plot under a spinner. */
 export const States: Story = {
   render: () => (
     <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap="space.300">
@@ -476,6 +528,13 @@ export const States: Story = {
       >
         <Chart.Line data={byMonth} x="month" series={findingSeries} />
       </Chart>
+      <Chart.Frame
+        title="Loading without a plot"
+        description="Generic loading placeholder"
+        status="loading"
+        size="medium"
+        children={null}
+      />
       <Chart
         title="Findings over time"
         description="Refreshing"
@@ -508,6 +567,15 @@ export const States: Story = {
       </Chart>
     </Grid>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const loadingFrame = canvas.getByRole("figure", { name: "Loading without a plot" });
+    const skeleton = loadingFrame.querySelector<HTMLElement>('[data-slot="skeleton"]');
+
+    await expect(skeleton).toHaveAttribute("aria-hidden", "true");
+    // The standard medium plot reserves 200px while its data loads.
+    await expect(skeleton?.getBoundingClientRect().height).toBe(200);
+  },
 };
 
 function Replaying() {
@@ -570,15 +638,10 @@ export const Legends: Story = {
           data={byAssessor}
           x="week"
           actions={
-            <ToggleGroup
-              aria-label="Range"
-              value="5w"
-              onChange={() => {}}
-              items={[
-                { value: "5w", label: "5 weeks" },
-                { value: "13w", label: "13 weeks" },
-              ]}
-            />
+            <ToggleGroup aria-label="Range" defaultValue={["5w"]}>
+              <ToggleGroupItem value="5w">5 weeks</ToggleGroupItem>
+              <ToggleGroupItem value="13w">13 weeks</ToggleGroupItem>
+            </ToggleGroup>
           }
         >
           <Chart.Line data={byAssessor} x="week" series={assessors} size="small" />

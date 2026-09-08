@@ -28,6 +28,8 @@ import type { Program } from "@/lib/grc-data";
 import { addProgram, nextProgramId, updateProgram } from "@/lib/program-store";
 import { addScopes, rollupControlSet, type AssessmentScope } from "@/lib/scopes";
 import { highWaterMark, type SystemParameters } from "@/lib/tailoring";
+import { restoreProgramSetups, saveInitialProgramSetup } from "@/lib/program-setup-store";
+export { restoreProgramSetups } from "@/lib/program-setup-store";
 
 /* ------------------------------------------------------------------ Draft */
 
@@ -228,6 +230,7 @@ export type CreatedProgram = {
  * leaf becomes an assessment scope with its first control-set revision.
  */
 export function createProgramFromDraft(draft: ProgramDraft): CreatedProgram {
+  restoreProgramSetups();
   const programId = nextProgramId();
   const name = draft.name.trim();
   const framework = frameworkById.get(draft.framework);
@@ -345,5 +348,6 @@ export function createProgramFromDraft(draft: ProgramDraft): CreatedProgram {
   });
 
   updateProgram(programId, { controlsTotal: rollupControlSet(programId).total });
+  saveInitialProgramSetup(programId, inputs, scopes);
   return { program, scopes };
 }

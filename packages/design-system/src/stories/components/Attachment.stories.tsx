@@ -6,6 +6,7 @@ import { fn } from "storybook/test";
 import {
   Attachment,
   Button,
+  buttonVariants,
   Dialog,
   Progress,
   Spinner,
@@ -84,14 +85,17 @@ export const Images: Story = {
           <Attachment.Title>evidence-workflow.svg</Attachment.Title>
           <Attachment.Description>SVG · 2 KB</Attachment.Description>
         </Attachment.Content>
-        <Attachment.Trigger asChild>
-          <a
-            href={preview}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Open evidence-workflow.svg in a new tab"
-          />
-        </Attachment.Trigger>
+        <a
+          href={preview}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Open evidence-workflow.svg in a new tab"
+          className={buttonVariants({
+            variant: "subtle",
+            className:
+              "absolute inset-0 z-10 h-full w-full rounded-medium bg-transparent p-0 hover:bg-transparent active:bg-transparent",
+          })}
+        />
       </Attachment>
       <Attachment>
         <Attachment.Media variant="image">
@@ -230,12 +234,9 @@ export const UploadStates: Story = {
     const canvas = within(canvasElement);
     const uploading = canvas.getByText("quarterly-report.pdf").closest('[data-slot="attachment"]')!;
     await expect(uploading).toHaveAttribute("aria-busy", "true");
-    const unavailable = canvas.getByRole("link", { name: "Preview restricted-report.pdf" });
-    await expect(unavailable).toHaveAttribute("aria-disabled", "true");
-    await expect(unavailable).toHaveAttribute("tabindex", "-1");
-    await userEvent.click(unavailable);
-    unavailable.focus();
-    await userEvent.keyboard("{Enter}");
+    const unavailable = canvas.getByRole("button", { name: "Preview restricted-report.pdf" });
+    await expect(unavailable).toBeDisabled();
+    unavailable.click();
     await expect(onUnavailablePreview).not.toHaveBeenCalled();
     await userEvent.click(canvas.getByRole("button", { name: "Retry supporting-evidence.pdf" }));
     await expect(canvas.getByText("Queued for upload")).toBeVisible();
@@ -267,9 +268,11 @@ export const UploadStates: Story = {
           <Attachment.Title>restricted-report.pdf</Attachment.Title>
           <Attachment.Description>Preview available after access is approved.</Attachment.Description>
         </Attachment.Content>
-        <Attachment.Trigger asChild disabled onClick={onUnavailablePreview}>
-          <a href="#restricted-report" aria-label="Preview restricted-report.pdf" />
-        </Attachment.Trigger>
+        <Attachment.Trigger
+          disabled
+          onClick={onUnavailablePreview}
+          aria-label="Preview restricted-report.pdf"
+        />
       </Attachment>
     </Stack>
   ),
@@ -313,9 +316,17 @@ export const Group: Story = {
               <Attachment.Title>{name}</Attachment.Title>
               <Attachment.Description>Open document</Attachment.Description>
             </Attachment.Content>
-            <Attachment.Trigger asChild>
-              <a href={preview} target="_blank" rel="noreferrer" aria-label={`Open ${name}`} />
-            </Attachment.Trigger>
+            <a
+              href={preview}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Open ${name}`}
+              className={buttonVariants({
+                variant: "subtle",
+                className:
+                  "absolute inset-0 z-10 h-full w-full rounded-medium bg-transparent p-0 hover:bg-transparent active:bg-transparent",
+              })}
+            />
           </Attachment>
         ))}
       </Attachment.Group>

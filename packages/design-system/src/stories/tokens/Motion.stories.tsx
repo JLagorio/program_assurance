@@ -3,7 +3,16 @@ import { Collapsible, Count } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Button, Dialog, Popover, Sheet, Spinner, Stat } from "../../components";
+import {
+  Button,
+  Dialog,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Sheet,
+  Spinner,
+  Stat,
+} from "../../components";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
 
@@ -20,17 +29,19 @@ export const Specimens: Story = {
     return (
       <Stack space="space.300">
         <Inline space="space.100" alignBlock="center" shouldWrap>
-          <Popover
-            label="A popover"
-            trigger={
-              <Button variant="secondary" size="small">
-                Popover
-              </Button>
-            }
-          >
-            <Text size="small" color="color.text.subtle">
-              Arrives in medium on the enter curve; leaves in fast on the exit curve.
-            </Text>
+          <Popover>
+            <PopoverTrigger
+              render={
+                <Button variant="secondary" size="small">
+                  Popover
+                </Button>
+              }
+            />
+            <PopoverContent aria-label="A popover">
+              <Text size="small" color="color.text.subtle">
+                Arrives in medium on the enter curve; leaves in fast on the exit curve.
+              </Text>
+            </PopoverContent>
           </Popover>
           <Button variant="secondary" size="small" onClick={() => setDialog(true)}>
             Dialog

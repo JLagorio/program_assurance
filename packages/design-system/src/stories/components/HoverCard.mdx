@@ -1,109 +1,58 @@
-import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
 
-import { HoverCard } from "../../components";
 import * as Stories from "./HoverCard.stories";
 
 <Meta of={Stories} />
 
 # HoverCard
 
-A peek at a record from its id or its name: a few facts, no actions. It opens when the pointer rests on the link for a moment, or when the link takes focus, and it closes when the pointer leaves. The click is the record. It is the first rung of the hover ladder: the card, then the peek in a [PreviewSheet](?path=/docs/patterns-previewsheet--docs), then the record itself.
+A supplementary preview of a link's destination, built from shadcn's Base UI PreviewCard composition. The trigger stays a link; the preview can contain a [Glance](?path=/docs/patterns-glance--docs) or other supporting content available at that destination.
 
-Its body is a [Glance](?path=/docs/patterns-glance--docs): the id and one status, the title, a meta line, at most four facts. A label is a [Tooltip](?path=/docs/components-tooltip--docs); something to act on is a [Popover](?path=/docs/components-popover--docs).
+```tsx
+<HoverCard>
+  <HoverCardTrigger href="/controls/CTRL-0412">CTRL-0412</HoverCardTrigger>
+  <HoverCardContent style={{ width: 300 }}>
+    <Glance id="CTRL-0412" title="Segregation of duties, payables" />
+  </HoverCardContent>
+</HoverCard>
+```
+
+## Composition and placement
+
+`HoverCard` owns the open state. `HoverCardTrigger` renders an anchor and accepts native link props, a ref, state callbacks and `render` for a custom link. `HoverCardContent` includes the portal and positioner; its native props, ref and `render` target the popup.
+
+An action trigger can use `render={<button type="button" />}`. Its native button owns click and keyboard activation; Trigger has no `nativeButton` prop.
+
+Content is 256px wide by default. Override its width through `style`, including a state callback. Placement defaults to `side="bottom"`, `sideOffset={4}`, `align="center"` and `alignOffset={4}`. These four props belong to Content. The positioner handles collisions; logical sides and alignment follow the Ledger locale, with Content's `dir` available as an override.
+
+The surface uses Ledger's overlay, border, text, radius, spacing and motion tokens. Content `className` and `style` callbacks receive Base UI popup state; render props, classes, styles and refs are merged.
 
 <Canvas of={Stories.HoverCardMatrix} />
 
-## Anatomy
+## Interaction
 
-| Part    | What it is                                                                                                                                                |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Trigger | The record's id or name as a link: a TextLink, a Table.Id, an Item's title. One focusable element that takes a ref.                                       |
-| Surface | `elevation.surface.overlay` with `color.border`, `radius.large`, `space.150` inside, `elevation.shadow.overlay`, 280px wide (300 for a Glance). No caret. |
-| Content | The Glance, or a few lines of facts.                                                                                                                      |
+The trigger opens the preview after pointer hover or keyboard focus. `delay` defaults to 600ms and `closeDelay` to 300ms, both on Trigger. Pointer passage from trigger to popup keeps the preview open. Leaving both, moving focus away, an outside press or Escape dismisses it. Escape leaves focus where it was.
 
-## Variants
+Clicking or pressing Enter on the trigger follows the link. A trigger press does not itself guarantee dismissal; navigation or caller-controlled state may close the card. Touch follows the link without the mouse-hover behavior.
 
-HoverCard has one appearance. What varies is the record behind the link:
-
-| The link                               | Use                                                                           |
-| -------------------------------------- | ----------------------------------------------------------------------------- |
-| An id or a name in a register          | `HoverCard` with a Glance; DataTable's `id` kind takes `glance` and draws it. |
-| An id in prose, a fact, a related item | `HoverCard` with a Glance, 300 wide.                                          |
-| A person                               | `HoverCard` with the name, the role and the team; no facts.                   |
-| A label for a control                  | Not a HoverCard: a Tooltip.                                                   |
-| Facts the reader will act on           | Not a HoverCard: the peek, which has the actions, or the record.              |
-
-Anything that opens on click is a Popover. There is no card with buttons, no card that stays open on click (the click is the record), and no card on a plain word.
-
-## Sizes
-
-One: 280px wide by default, 300 for a Glance, as tall as its content. `width` sets it; a card wider than 320 is a peek.
+Use Root's `defaultOpen`, or controlled `open` with `onOpenChange(open, details)`. `details.cancel()` rejects a change. Multiple triggers can share one Root: pass `payload` on each trigger and render the active payload through Root's children function.
 
 <Canvas of={Stories.OnAnId} />
 
-## States
-
-| State   | What changes                                                                                               |
-| ------- | ---------------------------------------------------------------------------------------------------------- |
-| Closed  | The link is itself.                                                                                        |
-| Opening | After `delay`, 400ms by default: the pointer rests, it does not pass.                                      |
-| Open    | On hover, and on keyboard focus of the link.                                                               |
-| Closing | The pointer leaves the link and the card, with 120ms to cross from one to the other; focus leaves; Escape. |
-
-There is no hover state on the card itself, and no pressed state: a click on the link opens the record and the card goes.
-
-## Modifiers
-
-- **`content`**: a Glance, or a few lines.
-- **`side`** and **`align`**: `bottom` and `start` by default, so the card hangs from the words it belongs to; it flips when there is no room.
-- **`width`**: 280 by default; 300 for a Glance.
-- **`delay`**: 400ms by default. Longer than a tooltip's, since a card is more to take in and a register is full of ids the pointer crosses.
-- **`defaultOpen`** for a story.
-
-## Content
-
-- **The Glance shape**: the id and one status on the first line, the title, the meta line (kind, path, owner), then at most four facts as label and value.
-- **Facts, not actions.** Nothing in the card does anything. The way in is the link the card hangs from.
-- **What the record shows, as the record shows it**: a status as its Badge, a date as `d MMM yyyy`, a person by name.
-- **Nothing only here.** Everything in the card is on the record too, since a screen reader never hears the card.
-
-## Style
-
-| Element | Token                                                                                      |
-| ------- | ------------------------------------------------------------------------------------------ |
-| Surface | `elevation.surface.overlay` · `color.border` · `radius.large` · `elevation.shadow.overlay` |
-| Padding | `space.150`                                                                                |
-| Width   | 280px, 300 for a Glance                                                                    |
-| Text    | `font.body` in `color.text`; the Glance's own type inside                                  |
-| Offset  | 6px from the link · 8px from the viewport's edge, flipping when there is no room           |
-| Motion  | enters and exits in `motion.duration.fast`, `motion.easing.standard`                       |
-
 ## Accessibility
 
-- **A preview for sighted readers.** Radix's hover card is not announced and cannot be focused; a screen reader passes straight from the link to the next thing. That is why nothing in the card is only in the card, and why it holds no controls.
-- **The trigger is a link**, so it is focusable: Tab opens the card for a sighted keyboard reader, and Enter opens the record for everyone.
-- **Touch** does not open it; the tap is the record.
-- **Escape closes** it and leaves focus on the link.
-- **Timing.** 400ms of rest before it opens, and 120ms of grace to move the pointer into the card, so a pointer crossing a column of ids opens nothing.
-- **Contrast.** The card is the overlay surface with the default text; the Glance's subtle text passes 4.5:1 on it.
+Keep the preview supplementary. Essential information and actions belong at the linked destination or in a [Popover](?path=/docs/components-popover--docs). Opening the preview does not move focus or add a popup Tab stop, and it is not a dialog announcement. The link remains the way to navigate for keyboard, touch and assistive-technology users.
+
+## Migration
+
+Replace the wrapper's `content` prop with `HoverCardContent` children. Compose an existing link through `HoverCardTrigger render`, or pass `href` and link text directly to Trigger. Move `delay` to Trigger; move placement to Content and replace `width` with `style={{ width }}`. Root retains controlled open state and now provides Base UI event details. The old 280px width and 400ms/120ms timing defaults become 256px and 600ms/300ms.
 
 ## Props
 
-<ArgTypes of={HoverCard} />
-
-### Playground
+HoverCard inherits Base UI's [Root props](https://base-ui.com/react/components/preview-card#root), and HoverCardTrigger inherits its [Trigger props](https://base-ui.com/react/components/preview-card#trigger). HoverCardContent inherits [Popup props](https://base-ui.com/react/components/preview-card#popup) plus the four positioning props described above.
 
 <Canvas of={Stories.Playground} />
 
-<Controls of={Stories.Playground} />
-
 ## Related
 
-- [Glance](?path=/docs/patterns-glance--docs): the card's body. [PreviewSheet](?path=/docs/patterns-previewsheet--docs): the next rung.
-- [Tooltip](?path=/docs/components-tooltip--docs): a label. [Popover](?path=/docs/components-popover--docs): something to act on.
-- [Table](?path=/docs/components-table--docs), [DataTable](?path=/docs/patterns-data-table--docs): where the ids are.
-- [Overlays](?path=/docs/components-overlays--docs): every surface that floats, and which one.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+[Glance](?path=/docs/patterns-glance--docs) · [PreviewSheet](?path=/docs/patterns-previewsheet--docs) · [Tooltip](?path=/docs/components-tooltip--docs) · [Overlays](?path=/docs/components-overlays--docs) · [shadcn Hover Card](https://ui.shadcn.com/docs/components/base/hover-card) · [Base UI Preview Card](https://base-ui.com/react/components/preview-card)

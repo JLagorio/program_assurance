@@ -15,6 +15,7 @@ import {
   useFieldControl,
   NativeSelect,
   RadioGroup,
+  RadioGroupItem,
   Select,
   Switch,
   Textarea,
@@ -284,40 +285,48 @@ function ChoiceFields() {
       <Stack space="space.300">
         <Field label="Parameters" isGroup hint="Each one adds controls to the baseline.">
           <Stack space="space.100">
-            <Checkbox checked={p.pii} onCheckedChange={(v) => setP({ ...p, pii: v === true })}>
+            <label className="inline-flex items-center gap-100">
+              <Checkbox checked={p.pii} onCheckedChange={(v) => setP({ ...p, pii: v })} />
               Handles PII
-            </Checkbox>
-            <Checkbox checked={p.cross} onCheckedChange={(v) => setP({ ...p, cross: v === true })}>
+            </label>
+            <label className="inline-flex items-center gap-100">
+              <Checkbox checked={p.cross} onCheckedChange={(v) => setP({ ...p, cross: v })} />
               Cross-domain
-            </Checkbox>
-            <Checkbox
-              checked={p.safety}
-              onCheckedChange={(v) => setP({ ...p, safety: v === true })}
-            >
+            </label>
+            <label className="inline-flex items-center gap-100">
+              <Checkbox checked={p.safety} onCheckedChange={(v) => setP({ ...p, safety: v })} />
               Safety-critical
-            </Checkbox>
+            </label>
           </Stack>
         </Field>
         <Field label="Frequency" isGroup>
           <RadioGroup value={frequency} onValueChange={setFrequency}>
-            <RadioGroup.Item value="monthly">Monthly</RadioGroup.Item>
-            <RadioGroup.Item value="quarterly">Quarterly</RadioGroup.Item>
-            <RadioGroup.Item value="annually">Annually</RadioGroup.Item>
+            <label className="inline-flex items-center gap-100">
+              <RadioGroupItem value="monthly" />
+              Monthly
+            </label>
+            <label className="inline-flex items-center gap-100">
+              <RadioGroupItem value="quarterly" />
+              Quarterly
+            </label>
+            <label className="inline-flex items-center gap-100">
+              <RadioGroupItem value="annually" />
+              Annually
+            </label>
           </RadioGroup>
         </Field>
-        <Switch
-          checked={notify}
-          onCheckedChange={setNotify}
-          description="Applies at once; it is not part of the Save."
+        <Field
+          label="Notify the owner on status change"
+          hint="Send an email when a finding changes status."
         >
-          Notify the owner on status change
-        </Switch>
+          <Switch checked={notify} onCheckedChange={setNotify} />
+        </Field>
       </Stack>
     </div>
   );
 }
 
-/** The choice controls: a Checkbox group and a RadioGroup in Fields with `isGroup`; a Switch stands on its own, since it applies at once. */
+/** The choice controls: a Checkbox group and a RadioGroup in Fields with `isGroup`; a Switch uses Field for its external label and hint. */
 export const Choices: Story = { render: () => <ChoiceFields /> };
 
 /** A form on a six-column Grid: each field as wide as its answer, a description across the row, the buttons at the end. */

@@ -60,29 +60,44 @@ export type FindingAssessment = {
 
 export type Finding = {
   id: string; // FND-
+  /** Explicit ownership for findings recorded before an asset or remediation exists. */
+  program?: string | undefined;
+  scope?: string | undefined;
+  requirements?: string[] | undefined;
+  assessmentId?: string | undefined;
+  retests?: FindingRetest[] | undefined;
   title: string;
   cci: string; // CCI-
   control: string; // natural key, e.g. AC-2(3)
   asset: string; // AST-
-  node?: string; // CN- — the exact part, when known
-  rule?: string; // V-
+  node?: string | undefined; // CN- — the exact part, when known
+  rule?: string | undefined; // V-
   source: VerificationPath;
   sourceArtifact: string; // EVD-
   rawSeverity: FindingSeverity;
   mitigatedSeverity: FindingSeverity;
-  mitigation?: string;
+  mitigation?: string | undefined;
   lifecycle: FindingLifecycle;
   firstSeen: string;
   lastSeen: string;
   occurrences: number;
   owner: string;
-  poam?: string; // POAM-
-  risk?: string; // RSK-
+  poam?: string | undefined; // POAM-
+  risk?: string | undefined; // RSK-
   /** The finding statement: the condition, stated against the requirement. */
   detail: string;
   assessment: FindingAssessment;
   /** What the assessor says should be done, whether or not it is scheduled. */
   recommendation: string;
+};
+
+export type FindingRetest = {
+  id: string;
+  result: "Passed" | "Failed";
+  evidence: string[];
+  note: string;
+  assessor: string;
+  assessedOn: string;
 };
 
 export const assets: Asset[] = [
@@ -527,6 +542,15 @@ export function isDeficiency(f: Finding) {
 
 export function findingsByAsset(assetId: string) {
   return findings.filter((f) => f.asset === assetId);
+}
+
+/** A finding belongs to a program independently of its remediation disposition. */
+export function findingProgram(finding: Finding): string | undefined {
+  return finding.program ?? assetById.get(finding.asset)?.program;
+}
+
+export function programFindings(programId: string): Finding[] {
+  return findings.filter((finding) => findingProgram(finding) === programId);
 }
 
 export function findingsByCci(cci: string) {

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Table, ToggleGroup, type Tone } from "../../components";
+import { Badge, Table, ToggleGroup, ToggleGroupItem, type Tone } from "../../components";
 import { DataTable, defineColumns, useDataTable } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -202,15 +202,10 @@ export const Dont: Story = {
                   Equinox
                 </Text>
                 <span className="ms-auto">
-                  <ToggleGroup
-                    aria-label="Row density"
-                    value="compact"
-                    onChange={() => {}}
-                    items={[
-                      { value: "default", label: "Comfortable" },
-                      { value: "compact", label: "Compact" },
-                    ]}
-                  />
+                  <ToggleGroup aria-label="Row density" defaultValue={["compact"]}>
+                    <ToggleGroupItem value="default">Comfortable</ToggleGroupItem>
+                    <ToggleGroupItem value="compact">Compact</ToggleGroupItem>
+                  </ToggleGroup>
                 </span>
               </Inline>
               <Plain density="compact" />

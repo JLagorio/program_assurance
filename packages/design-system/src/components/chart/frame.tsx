@@ -332,13 +332,13 @@ export function ChartFrame(props: ChartFrameProps) {
                 <span className="flex items-center gap-050">
                   {twin ? (
                     <Toggle
-                      size="small"
+                      size="sm"
                       pressed={showTable}
                       onPressedChange={setShowTable}
                       disabled={!showing}
                       aria-label={showTable ? t("showChart") : t("showTable")}
                     >
-                      <Table2 className="size-icon-small" />
+                      <Table2 className="size-icon-small" aria-hidden />
                       Table
                     </Toggle>
                   ) : null}

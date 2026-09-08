@@ -1,6 +1,6 @@
 import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Plus } from "lucide-react";
 
 import {
@@ -21,6 +21,7 @@ import {
   Tabs,
   TextLink,
   ToggleGroup,
+  ToggleGroupItem,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -36,7 +37,13 @@ import {
   type TestEvent,
 } from "@/lib/campaigns";
 import { assetById, findings } from "@/lib/findings";
+import {
+  assessmentEventState,
+  assessmentState,
+  useAssessmentsVersion,
+} from "@/lib/assessment-store";
 import { severityTone, statusTone } from "@/lib/spine";
+import { useRunLogVersion } from "@/lib/test-execution";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
@@ -76,14 +83,14 @@ type Tab = (typeof tabs)[number];
 const findingById = new Map(findings.map((f) => [f.id, f]));
 
 function CampaignsPage() {
+  useAssessmentsVersion();
+  useRunLogVersion();
   const [tab, setTab] = useState<Tab>("Campaigns");
   const [selected, setSelected] = useState<TestEvent | null>(null);
   const [campaign, setCampaign] = useState<string>("All");
 
-  const eventRows = useMemo(
-    () => (campaign === "All" ? events : events.filter((e) => e.campaign === campaign)),
-    [campaign],
-  );
+  const eventRows = campaign === "All" ? events : events.filter((e) => e.campaign === campaign);
+  const selectedState = selected ? assessmentEventState(selected) : null;
 
   const counts: Record<Tab, number> = {
     Campaigns: campaigns.length,
@@ -129,13 +136,18 @@ function CampaignsPage() {
               <Inline className="pt-050" space="space.050" alignBlock="center" shouldWrap>
                 <ToggleGroup
                   aria-label="Campaign"
-                  value={campaign}
-                  onChange={setCampaign}
-                  items={["All", ...campaigns.map((c) => c.id)].map((c) => ({
-                    value: c,
-                    label: c,
-                  }))}
-                />
+                  size="sm"
+                  value={[campaign]}
+                  onValueChange={([next]) => {
+                    if (next !== undefined) setCampaign(next);
+                  }}
+                >
+                  {["All", ...campaigns.map((c) => c.id)].map((c) => (
+                    <ToggleGroupItem key={c} value={c}>
+                      {c}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </Inline>
             ) : null}
 
@@ -176,7 +188,7 @@ function CampaignsPage() {
                             <Table.Cell className="truncate">{c.name}</Table.Cell>
                             <Table.Cell className="truncate">{c.trigger}</Table.Cell>
                             <Table.Cell>{c.gate}</Table.Cell>
-                            <Table.Cell className="truncate">{c.state}</Table.Cell>
+                            <Table.Cell className="truncate">{assessmentState(c)}</Table.Cell>
                             <Table.Cell className="truncate">{c.lead}</Table.Cell>
                             <Table.Cell className="tabular-nums text-right">
                               {cov.run}/{cov.objectives}
@@ -234,8 +246,8 @@ function CampaignsPage() {
                           <Table.Cell className="truncate">{e.name}</Table.Cell>
                           <Table.Cell className="truncate">{e.kind}</Table.Cell>
                           <Table.Cell className="truncate">
-                            <Badge variant="secondary" tone={statusTone(e.state)}>
-                              {e.state}
+                            <Badge variant="secondary" tone={statusTone(assessmentEventState(e))}>
+                              {assessmentEventState(e)}
                             </Badge>
                           </Table.Cell>
                           <Table.Cell className="truncate">{e.window}</Table.Cell>
@@ -305,8 +317,8 @@ function CampaignsPage() {
                       </KeyValue>
                       <KeyValue label="Type">{selected.kind}</KeyValue>
                       <KeyValue label="State">
-                        <Badge variant="secondary" tone={statusTone(selected.state)}>
-                          {selected.state}
+                        <Badge variant="secondary" tone={statusTone(selectedState ?? "Planned")}>
+                          {selectedState}
                         </Badge>
                       </KeyValue>
                       <KeyValue label="Window">{selected.window}</KeyValue>
@@ -396,7 +408,9 @@ function CampaignsPage() {
                                 <Id className="text-brand">{e.id}</Id>{" "}
                                 <span className="text-subtle">{e.name}</span>
                               </span>
-                              <span className="shrink-0 text-subtle">{e.state}</span>
+                              <span className="shrink-0 text-subtle">
+                                {assessmentEventState(e)}
+                              </span>
                             </button>
                           ))}
                       </Stack>

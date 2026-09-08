@@ -9,7 +9,14 @@ import {
   Undo,
 } from "lucide-react";
 
-import { Button, ButtonGroup, DropdownMenu, IconButton, ToggleGroup } from "../../components";
+import {
+  Button,
+  ButtonGroup,
+  DropdownMenu,
+  IconButton,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "../../components";
 import { Inline, Stack } from "../../primitives";
 import { Matrix, Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -88,16 +95,11 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <ToggleGroup
-            aria-label="Period"
-            value="week"
-            onChange={() => {}}
-            items={[
-              { value: "day", label: "Day" },
-              { value: "week", label: "Week" },
-              { value: "month", label: "Month" },
-            ]}
-          />
+          <ToggleGroup aria-label="Period" defaultValue={["week"]}>
+            <ToggleGroupItem value="day">Day</ToggleGroupItem>
+            <ToggleGroupItem value="week">Week</ToggleGroupItem>
+            <ToggleGroupItem value="month">Month</ToggleGroupItem>
+          </ToggleGroup>
         }
         doText="A choice among views is a ToggleGroup."
         dont={

@@ -22,9 +22,11 @@ A few facts about one thing are a [KeyValue](?path=/docs/components-keyvalue--do
 | Row        | `Table.Row`: the record, `dimension.row` 40px with a hairline under. It lights on hover and paints `color.background.selected` when chosen; `isStatic` for a row that is not a record.                                                                            |
 | Cell       | `Table.Cell`: `space.150` each side, one line, truncated; a plain string is also the cell's title, so the whole shows on hover.                                                                                                                                   |
 | Id         | `Table.Id`: the id in `Id`, `color.text.brand` on the row's hover, with the eye at the end of the cell, there at rest, that opens the record in the preview.                                                                                                       |
+| List       | `Table.List`: several values on one line, the first by name and the rest as a count, every one in a hover card with its meta line; the click is the row's preview when it has one, else the line is text. |
 | Selection  | `Table.Selection`: the checkbox column, 32px; in the header it chooses every row and reads mixed when only some are.                                                                                                                                              |
 | Group      | `Table.Group`: a band on the sunken surface with a chevron, a title and a Count, holding its rows in a `tbody`.                                                                                                                                                   |
 | Tree cell  | `Table.Tree`: the name cell of a treegrid, one `space.200` indent per level, the chevron on rows with children, a hint after the name.                                                                                                                            |
+| Disclosure | `Table.Disclosure`: the chevron as a leading cell of its own, centred, one narrow column whatever the depth. The disclosure is always the first column, never moves when a column is reordered, hidden or pinned, and never changes width as rows open and close; the indent belongs to the row's first value. What DataTable draws in tree mode. |
 | Detail row | `Table.Detail`: the row a record opens into, one cell across every column on the sunken surface.                                                                                                                                                                  |
 | Handle     | `Table.Handle`: the grip cell of a row that drags into a new order.                                                                                                                                                                                               |
 
@@ -37,7 +39,7 @@ Table has one appearance. What varies is the parts a register takes:
 | Records with nothing to sort, filter or page          | `Table` with `Table.Header`, `Table.Row`, `Table.Cell` and `Table.Id`.                        |
 | Rows the reader chooses for a batch action            | `Table.Selection` in the header and in each row; the bar above names the count and the verbs. |
 | Records under headings                                | `Table.Group`, one per heading, opened and closed.                                            |
-| A hierarchy with columns                              | `role="treegrid"` and `Table.Tree` as the name cell; the caller flattens and folds.           |
+| A hierarchy with columns                              | `role="treegrid"`, `Table.Disclosure` as the leading cell (or `Table.Tree` as the name cell); the caller flattens and folds. |
 | A record that opens into more                         | `Table.Detail` under its row, a chevron in the row.                                           |
 | Rows in an order the reader sets                      | `Table.Handle` as the first cell.                                                             |
 | Sort, filters, pages, pinned columns, a thousand rows | `DataTable`.                                                                                  |
@@ -80,7 +82,7 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 - **`resize` and `trailing`** on a header are the DataTable's: a handle on the trailing edge, a control on hover. By hand only in a header the DataTable cannot draw.
 - **`isSelected` and `isStatic`** on a row.
 - **`tone="subtle"`** on `Table.Id` where the id is not the link, in a grouped listing; `onPreview` and `isActive` for the eye.
-- **`role="treegrid"`** with `aria-level` and `aria-expanded` on the rows, and `Table.Tree` as the name cell.
+- **`role="treegrid"`** with `aria-level` and `aria-expanded` on the rows, and `Table.Disclosure` as the leading cell or `Table.Tree` as the name cell.
 
 <Canvas of={Stories.SortedAndPaged} />
 
@@ -108,7 +110,7 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 | Row         | `dimension.row` 40px, `dimension.row.compact` 36px · `color.border` hairline · hover `color.background.surface.hovered`                                           |
 | Selected    | `color.background.selected` · hover `color.background.selected.hovered`                                                                                           |
 | Cell        | `space.150` sides · `font.body` · one line, truncated                                                                                                             |
-| Id          | `Id` · hover and active `color.text.brand` · the eye `dimension.icon.small` in a 20px button, active on `color.background.selected`                               |
+| Id          | `Id` · hover and active `color.text.brand` · the eye `dimension.icon.small` in a 20px button over the cell's end, revealed on the row's hover, active on `color.background.selected` |
 | Group band  | `elevation.surface.sunken` · `font.body` `font.weight.medium` · `space.100` × `space.075` · hover `color.background.surface.hovered`                              |
 | Detail row  | `elevation.surface.sunken` · `space.200` × `space.150`                                                                                                            |
 | Tree indent | `space.200` 16px per level · a 20px chevron button                                                                                                                |
@@ -146,10 +148,11 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 
 | Part              | Does                                                                                                                                                                                                   |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Table.Id`        | `id`, `onPreview`, `isActive`, `tone` (`brand` or `subtle`), `width`, and the pinned props. The row opens the record; the eye opens the same row in the preview.                                       |
-| `Table.Selection` | `header`, `checked` (`true`, `false` or `"indeterminate"`), `onCheckedChange`, `label`, `disabled`, `pinned`. The click does not reach the row.                                                        |
+| `Table.Id`        | `id`, `onPreview`, `isActive`, `tone` (`brand` or `subtle`), `width`, and the pinned props. The row opens the record; the eye opens the same row in the preview. It takes no room in the cell and shows on the row's hover, on focus, and while that row's preview is open. |
+| `Table.Selection` | `header`, `checked` and `indeterminate` (booleans), `onCheckedChange(checked)`, `label`, `disabled`, `pinned`. The click does not reach the row.                                                        |
 | `Table.Group`     | `colSpan`, `open`, `onToggle`, `title`, `count`, `trailing`. It renders a `tbody`, so several stack in one Table.                                                                                      |
 | `Table.Tree`      | `depth`, `hasChildren`, `expanded`, `onToggle`, `label` (the row's plain name, for the chevron), `hint`. The Table takes `role="treegrid"`, each Row `aria-level` and, with children, `aria-expanded`. |
+| `Table.Disclosure` | `hasChildren`, `expanded`, `onToggle`, `label`, `width`, and the pinned props. One width for every depth, so the columns do not move as rows open and close; a leaf keeps the space, and the caller indents the row's first value. |
 | `Table.Detail`    | `id`, `colSpan`. The chevron that opens it carries `aria-controls` with this row's `id`.                                                                                                               |
 | `Table.Handle`    | `label`, `isDragging`; `ref` and the drag props come from the drag context. The cell is the handle, so the row's own controls keep their clicks.                                                       |
 

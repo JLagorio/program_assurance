@@ -39,7 +39,15 @@ import type { ReactNode } from "react";
 
 /** What a column is, which decides its alignment, its sort, its filter and the part that draws it. */
 export type ColumnKind =
-  "id" | "text" | "number" | "date" | "status" | "person" | "actions" | "custom";
+  | "id"
+  | "text"
+  | "number"
+  | "date"
+  | "status"
+  | "person"
+  | "list"
+  | "actions"
+  | "custom";
 
 /** A row action in the overflow menu of an `actions` column. */
 export type RowAction = {
@@ -103,19 +111,23 @@ export type DataTableMeta = {
   setDensity?: ((density: Density) => void) | undefined;
   /** A column edits in place, so the table is a grid and Enter moves down the column. */
   editable?: boolean | undefined;
-  /** Nested rows: the name column carries the tree cell. */
+  /** Nested rows: the leading disclosure column carries the chevron and the indent. */
   tree?:
     | {
-        /** The column that carries the chevron and the indent; the first data column when unset. */
-        column?: string | undefined;
         /** The row's plain name, for the chevron's label. */
         label: (row: never) => string;
-        /** Muted text after a folded row's name: a count of parts. */
+        /** Muted text after a folded row's first value: a count of parts. */
         hint?: ((row: never, childCount: number) => ReactNode) | undefined;
       }
     | undefined;
   /** A row opens into this. */
   detail?: ((row: never) => ReactNode) | undefined;
+  /** The leading chevron column that opens a detail; `false` when a cell opens it instead. */
+  detailColumn?: boolean | undefined;
+  /** Whether a row's detail is open. Its own state, so a tree's rows open their parts and their detail independently. */
+  detailOpen?: ((rowId: string) => boolean) | undefined;
+  /** Opens and closes one row's detail. */
+  toggleDetail?: ((rowId: string) => void) | undefined;
   /** Rows under a band per value of this column. */
   groupBy?: string | undefined;
   /** Rows can be pinned above and below. */

@@ -52,7 +52,7 @@ Not applicable: a Field is as wide as its container and as tall as its control p
 - **`hint`** for the format, the reason or the consequence: one full sentence with a full stop.
 - **`error`** for what is wrong and what fixes it. The form schema supplies the message for an empty required field; a rule of the store supplies its own sentence.
 - **`isRequired`** paints the mark and sets `aria-required`. It does not set the browser's `required`.
-- **`isGroup`** for a RadioGroup or several Checkboxes: a fieldset with the label as its legend. A RadioGroup inside takes `aria-invalid` and `aria-required`; a stack of Checkboxes takes neither, and the fieldset carries the description.
+- **`isGroup`** for a RadioGroup or several Checkboxes: a fieldset with the label as its legend. A RadioGroup inside takes `aria-invalid` and `aria-required`. Checkboxes keep their individual names, share the group description and error, and do not each inherit the group’s required state.
 - **`className`** for layout only: a column span in a form's Grid.
 
 ## Content
@@ -86,7 +86,7 @@ The label is a noun in sentence case with no colon; the placeholder is the forma
 
 - [Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs), [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs): what a Field holds.
 - [Forms](?path=/docs/patterns-forms--docs): the layout, which control for which answer, and TanStack Form validation.
-- [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): one choice control carries its own label and does not go in a Field; a group of them goes in a Field with `isGroup`.
+- [Switch](?path=/docs/components-switch--docs) and [Checkbox](?path=/docs/components-checkbox--docs) can use Field for an external label, hint and error. Group several checkboxes or a [RadioGroup](?path=/docs/components-radiogroup--docs) in a Field with `isGroup`, and label each choice individually.
 
 ## Don't
 

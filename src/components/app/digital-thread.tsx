@@ -9,6 +9,7 @@ import {
   Badge,
   Box,
   Button,
+  buttonVariants,
   Dialog,
   Eyebrow,
   Field,
@@ -790,15 +791,14 @@ export function CdrPackageModal({
       title="Prepare a CDR package"
       description={`${programName} · ${programId}`}
       footer={
-        <Button asChild variant="primary">
-          <Link
-            to="/programs/$programId/export"
-            params={{ programId }}
-            search={{ tab: "Air-gap bundle" }}
-          >
-            Open package workspace
-          </Link>
-        </Button>
+        <Link
+          to="/programs/$programId/export"
+          params={{ programId }}
+          search={{ tab: "Air-gap bundle" }}
+          className={buttonVariants({ variant: "primary" })}
+        >
+          Open package workspace
+        </Link>
       }
     >
       <p>

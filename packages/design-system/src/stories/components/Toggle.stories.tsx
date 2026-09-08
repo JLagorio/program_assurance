@@ -1,137 +1,120 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Bold, Italic, List, Pin, Underline } from "lucide-react";
+import { Bold, Pin } from "lucide-react";
+import { createRef, useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 
-import { IconButton, Separator, Switch, Toggle, ToggleGroup } from "../../components";
-import { Inline, Stack, Text } from "../../primitives";
+import { Toggle } from "../../components";
+import { Stack, Text } from "../../primitives";
 import { Matrix, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Toggle",
   component: Toggle,
   parameters: { layout: "padded" },
-  args: { "aria-label": "Bold", icon: <Bold /> },
+  args: { "aria-label": "Bold", children: <Bold aria-hidden /> },
 } satisfies Meta<typeof Toggle>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Every size, off and on, disabled, and with a label; then a toolbar of them beside the controls they sit level with. */
+const pinRef = createRef<HTMLButtonElement>();
+const renderedRef = createRef<HTMLButtonElement>();
+
+function PinnedRecord() {
+  const [pinned, setPinned] = useState(false);
+  return (
+    <Specimens title="Controlled state and a required pin">
+      <Toggle
+        ref={pinRef}
+        id="record-pin"
+        pressed={pinned}
+        onPressedChange={setPinned}
+        className={(state) => (state.pressed ? "underline" : "no-underline")}
+        style={(state) => ({ minWidth: state.pressed ? 140 : 120 })}
+        render={<button ref={renderedRef} title="Pin this record" />}
+      >
+        <Pin aria-hidden /> Pin record
+      </Toggle>
+      <Text>{pinned ? "This record appears first." : "This record follows the usual order."}</Text>
+      <Toggle
+        defaultPressed
+        aria-describedby="required-pin-reason"
+        onPressedChange={(pressed, details) => {
+          if (!pressed) details.cancel();
+        }}
+      >
+        <Pin aria-hidden /> Pin required record
+      </Toggle>
+      <Text id="required-pin-reason">Required records stay pinned while under review.</Text>
+    </Specimens>
+  );
+}
+
+/** Standard variants and sizes, independent state, and a controlled record action. */
 export const ToggleMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Matrix
-        rows={["xsmall", "small", "medium"] as const}
-        cols={["off", "on", "off · disabled", "on · disabled", "with a label"] as const}
-        rowLabel="size"
-        render={(size, s) => (
+        rows={["default", "outline"] as const}
+        cols={["sm", "default", "lg", "pressed", "disabled"] as const}
+        render={(variant, state) => (
           <Toggle
-            aria-label={s === "with a label" ? undefined : "Bold"}
-            size={size}
-            icon={s === "with a label" ? <Pin /> : <Bold />}
-            pressed={s.startsWith("on")}
-            disabled={s.includes("disabled")}
-            onPressedChange={() => {}}
+            variant={variant}
+            size={state === "sm" || state === "lg" ? state : "default"}
+            aria-label={`${variant} ${state} bold`}
+            defaultPressed={state === "pressed"}
+            disabled={state === "disabled"}
           >
-            {s === "with a label" ? "Pinned" : null}
+            <Bold aria-hidden />
           </Toggle>
         )}
       />
-      <Specimens title="In a toolbar: toggles, a separator, a group, an icon button, all small">
-        <Inline space="space.050" alignBlock="center">
-          <Toggle aria-label="Bold" icon={<Bold />} defaultPressed />
-          <Toggle aria-label="Italic" icon={<Italic />} />
-          <Toggle aria-label="Underline" icon={<Underline />} />
-          <Separator orientation="vertical" />
-          <ToggleGroup
-            aria-label="View"
-            value="table"
-            onChange={() => {}}
-            items={[
-              { value: "table", label: "Table" },
-              { value: "board", label: "Board" },
-            ]}
-          />
-          <Separator orientation="vertical" />
-          <Toggle icon={<Pin />}>Pinned</Toggle>
-          <IconButton variant="subtle" label="List" icon={<List />} />
-        </Inline>
-      </Specimens>
+      <PinnedRecord />
     </Stack>
   ),
-};
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  // The negative example intentionally demonstrates an unnamed icon toggle.
-  parameters: { a11y: { config: { rules: [{ id: "button-name", enabled: false }] } } },
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Inline space="space.050">
-            <Toggle aria-label="Bold" icon={<Bold />} defaultPressed />
-            <Toggle aria-label="Italic" icon={<Italic />} />
-          </Inline>
-        }
-        doText="A toggle acts at once and in place: bold is on, the text is bold."
-        dont={
-          <Inline space="space.100" alignBlock="center">
-            <Toggle>Email me on every change</Toggle>
-          </Inline>
-        }
-        dontText="A setting that takes effect later, or applies to more than what is in front of the reader, is a Switch."
-      />
-      <Pair
-        do={
-          <ToggleGroup
-            aria-label="View"
-            value="table"
-            onChange={() => {}}
-            items={[
-              { value: "table", label: "Table" },
-              { value: "board", label: "Board" },
-              { value: "timeline", label: "Timeline" },
-            ]}
-          />
-        }
-        doText="Views that exclude each other are a ToggleGroup: exactly one is on."
-        dont={
-          <Inline space="space.050">
-            <Toggle defaultPressed>Table</Toggle>
-            <Toggle>Board</Toggle>
-            <Toggle>Timeline</Toggle>
-          </Inline>
-        }
-        dontText="Three toggles for one choice. Each can be on or off alone, so the reader can turn every view off, or two on."
-      />
-      <Pair
-        do={
-          <Inline space="space.100" alignBlock="center">
-            <Toggle aria-label="Pin to the top" icon={<Pin />} />
-            <Text size="small" color="color.text.subtle">
-              aria-label="Pin to the top"
-            </Text>
-          </Inline>
-        }
-        doText="An icon alone is named: the screen reader hears what it does, on or off."
-        dont={
-          <Inline space="space.100" alignBlock="center">
-            <Toggle icon={<Pin />} />
-            <Text size="small" color="color.text.subtle">
-              no name
-            </Text>
-          </Inline>
-        }
-        dontText="A nameless toggle. It reads as “toggle button, pressed”, and nothing more."
-      />
-      <Pair
-        do={<Switch>Email me on every change</Switch>}
-        doText="The Switch, for the record."
-        dont={<Toggle size="medium">On</Toggle>}
-        dontText="A toggle labelled with its state. The label is what it does; the state is how it looks."
-      />
-    </Stack>
-  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const variant of ["default", "outline"]) {
+      for (const [size, height] of [
+        ["sm", 28],
+        ["default", 32],
+        ["lg", 36],
+      ] as const) {
+        const toggle = canvas.getByRole("button", { name: `${variant} ${size} bold` });
+        await expect(toggle).toHaveAttribute("type", "button");
+        await expect(toggle).toHaveAttribute("data-slot", "toggle");
+        await expect(toggle.getBoundingClientRect().height).toBe(height);
+        await expect(toggle).toHaveAttribute("aria-pressed", "false");
+        await userEvent.click(toggle);
+        await expect(toggle).toHaveAttribute("aria-pressed", "true");
+      }
+      await expect(canvas.getByRole("button", { name: `${variant} pressed bold` })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      const disabled = canvas.getByRole("button", { name: `${variant} disabled bold` });
+      await expect(disabled).toBeDisabled();
+      await userEvent.click(disabled, { pointerEventsCheck: 0 });
+      await expect(disabled).toHaveAttribute("aria-pressed", "false");
+    }
+    const pin = canvas.getByRole("button", { name: "Pin record" });
+    await expect(pinRef.current).toBe(pin);
+    await expect(renderedRef.current).toBe(pin);
+    await expect(pin).toHaveAttribute("id", "record-pin");
+    await expect(pin).toHaveAttribute("title", "Pin this record");
+    await userEvent.click(pin);
+    await expect(pin).toHaveAttribute("aria-pressed", "true");
+    await expect(pin).toHaveClass("underline");
+    await expect(pin).toHaveStyle({ minWidth: "140px" });
+    await expect(canvas.getByText("This record appears first.")).toBeVisible();
+    await userEvent.keyboard("{Enter}");
+    await expect(pin).toHaveAttribute("aria-pressed", "false");
+    await userEvent.keyboard(" ");
+    await expect(pin).toHaveAttribute("aria-pressed", "true");
+    const required = canvas.getByRole("button", { name: "Pin required record" });
+    await userEvent.click(required);
+    await userEvent.keyboard("{Enter} ");
+    await expect(required).toHaveAttribute("aria-pressed", "true");
+  },
 };
 
 export const Playground: Story = {};

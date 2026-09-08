@@ -28,6 +28,7 @@ import {
   Tabs,
   TextLink,
   ToggleGroup,
+  ToggleGroupItem,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -416,13 +417,18 @@ function ProgramConMon() {
             action={
               schedule.length > 0 ? (
                 <ToggleGroup
-                  value={scheduleScope}
-                  onChange={setScheduleScope}
-                  items={[
-                    { value: "needs", label: `Needs action ${scheduleActionable.length}` },
-                    { value: "all", label: `All ${schedule.length}` },
-                  ]}
-                />
+                  aria-label="Assessment schedule scope"
+                  size="sm"
+                  value={[scheduleScope]}
+                  onValueChange={([next]) => {
+                    if (next !== undefined) setScheduleScope(next);
+                  }}
+                >
+                  <ToggleGroupItem value="needs">
+                    Needs action {scheduleActionable.length}
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="all">All {schedule.length}</ToggleGroupItem>
+                </ToggleGroup>
               ) : null
             }
           >
@@ -460,13 +466,16 @@ function ProgramConMon() {
             action={
               freshness.length > 0 ? (
                 <ToggleGroup
-                  value={freshnessScope}
-                  onChange={setFreshnessScope}
-                  items={[
-                    { value: "needs", label: `Past SLA ${pastSla.length}` },
-                    { value: "all", label: `All ${freshness.length}` },
-                  ]}
-                />
+                  aria-label="Evidence freshness scope"
+                  size="sm"
+                  value={[freshnessScope]}
+                  onValueChange={([next]) => {
+                    if (next !== undefined) setFreshnessScope(next);
+                  }}
+                >
+                  <ToggleGroupItem value="needs">Past SLA {pastSla.length}</ToggleGroupItem>
+                  <ToggleGroupItem value="all">All {freshness.length}</ToggleGroupItem>
+                </ToggleGroup>
               ) : null
             }
           >

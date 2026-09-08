@@ -1,13 +1,11 @@
-import { Fragment, useMemo, useState, useEffect } from "react";
+import { Fragment, useCallback, useMemo, useState, useEffect } from "react";
 import { useRecordForm } from "@/lib/record-form";
 import { saveProgramCommand, useProgramsVersion } from "@/lib/program-store";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import type { ReactNode } from "react";
-import { ChevronDown, ChevronRight, Lock, Pencil } from "lucide-react";
+import { ChevronDown, Lock } from "lucide-react";
 
 import { Task } from "@/components/app/task";
-import { CdrPackageModal, DigitalThreadSection } from "@/components/app/digital-thread";
-import { LifecycleSection } from "@/components/app/lifecycle";
+import { CdrPackageModal } from "@/components/app/digital-thread";
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -19,70 +17,73 @@ import {
   ButtonGroup,
   Combobox,
   CommandPalette,
-  DatePicker,
   Dialog,
-  Dot,
   DropdownMenu,
   Editable,
-  Empty,
   Field,
-  Grid,
   Id,
   Inline,
   Inspector,
   Kbd,
   KeyValue,
   Person,
-  Progress,
   RecordHeader,
   Section,
   Select,
   ShowPage,
   Stack,
-  Table,
   Tabs,
-  Textarea,
   TextLink,
   toast,
-  Toolbar,
   useCommandPalette,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
-import { AuthorizationSection } from "@/components/app/authorization";
-import { VerificationSection } from "@/components/app/verification";
+import { ProgramFindings } from "@/components/app/program-findings";
+import { ProgramEvidence } from "@/components/app/program-evidence";
+import { ProgramPoams } from "@/components/app/program-poams";
+import { ProgramSchedule } from "@/components/app/program-schedule";
+import { ProgramAssessments } from "@/components/app/program-assessments";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
+import { evidenceForProgram, useEvidenceVersion } from "@/lib/evidence-catalog";
+import { useProgramScheduleVersion } from "@/lib/program-schedule";
+import { useAssessmentsVersion } from "@/lib/assessment-store";
+import { campaigns } from "@/lib/campaigns";
 import { CoverageBand } from "@/components/app/coverage";
 import { ControlBoard } from "@/components/app/control-board";
 import { RecordActivity } from "@/components/app/record-activity";
 import { StageStrip } from "@/components/app/stage-strip";
-import { ProgramTasks, TaskRows } from "@/components/app/tasks-section";
+import { TaskRows } from "@/components/app/tasks-section";
 import { currentSession } from "@/lib/control-work";
 import { stageOf } from "@/lib/stages";
 import { tasksForProgram, useTasksVersion } from "@/lib/tasks";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { saveProgramField } from "@/lib/program-save";
-import { findingsForProgram, programPosture } from "@/lib/program-actions";
+import { programPosture } from "@/lib/program-actions";
 import { coverageFromRows } from "@/lib/program-coverage";
-import { isOpen } from "@/lib/findings";
 import { programCommands } from "@/lib/program-commands";
 import { ScopeTable } from "@/components/app/scopes";
 import { RequirementCoverage } from "@/components/app/requirement-coverage";
 import { programControls, programStatuses, programStatusTone, programs } from "@/lib/grc-data";
-import { allocationsFor, requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
+import { requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
 import { rollupControlSet, scopesForProgram, useScopesVersion } from "@/lib/scopes";
 import { poamItems as registerPoams } from "@/lib/register";
-import { statusTone } from "@/lib/spine";
 import { programState, type Stage } from "@/lib/program-stage";
 import { peopleForProgram, personById, workstreamsForProgram } from "@/lib/people";
 import { inheritanceForProgram } from "@/lib/inheritance";
-import { staleThresholdDays } from "@/lib/reusable-components";
 
 export const Route = createFileRoute("/programs/$programId")({
-  // Read-only entry point: a record page links back to the tab the reader came
-  // from. Tab clicks deliberately do NOT write here — the tab stays local
-  // state, so the eight existing `setTab` call sites are unaffected.
+  // Program context and open records survive navigation and browser history.
   validateSearch: (
     search: Record<string, unknown>,
-  ): { tab?: Tab | undefined; peek?: string | undefined } => {
+  ): {
+    tab?: Tab | undefined;
+    peek?: string | undefined;
+    findingId?: string | undefined;
+    poamId?: string | undefined;
+    assessmentId?: string | undefined;
+    newFindingAssessment?: string | undefined;
+    scheduleView?: "Plan" | "Tasks" | "Assignments" | undefined;
+  } => {
     const raw = String(search["tab"] ?? "");
     // The peek stack: element ids, outermost first. The browser's back is the sheet's back.
     const peek = typeof search["peek"] === "string" && search["peek"] ? search["peek"] : undefined;
@@ -90,6 +91,21 @@ export const Route = createFileRoute("/programs/$programId")({
       tab:
         tabOrder.find((t) => t.toLowerCase() === raw.toLowerCase()) ?? tabAlias[raw.toLowerCase()],
       peek,
+      findingId: typeof search["findingId"] === "string" ? search["findingId"] : undefined,
+      poamId: typeof search["poamId"] === "string" ? search["poamId"] : undefined,
+      assessmentId: typeof search["assessmentId"] === "string" ? search["assessmentId"] : undefined,
+      newFindingAssessment:
+        typeof search["newFindingAssessment"] === "string"
+          ? search["newFindingAssessment"]
+          : undefined,
+      scheduleView:
+        raw.toLowerCase() === "team"
+          ? "Assignments"
+          : raw.toLowerCase() === "tasks"
+            ? "Tasks"
+            : ["Plan", "Tasks", "Assignments"].includes(String(search["scheduleView"]))
+              ? (search["scheduleView"] as "Plan" | "Tasks" | "Assignments")
+              : undefined,
     };
   },
   loader: ({ params }) => {
@@ -126,7 +142,8 @@ type Tab =
   | "System"
   | "Requirements"
   | "Controls"
-  | "Tasks"
+  | "Schedule"
+  | "Assessments"
   | "Findings"
   | "Evidence"
   | "POA&M"
@@ -137,7 +154,8 @@ const tabOrder: Tab[] = [
   "System",
   "Requirements",
   "Controls",
-  "Tasks",
+  "Assessments",
+  "Schedule",
   "Findings",
   "Evidence",
   "POA&M",
@@ -147,8 +165,11 @@ const tabOrder: Tab[] = [
 /** Old tab names still linked from elsewhere land on the tab that holds them now. */
 const tabAlias: Record<string, Tab> = {
   systems: "System",
-  team: "Overview",
-  timeline: "Overview",
+  team: "Schedule",
+  timeline: "Schedule",
+  tasks: "Schedule",
+  poams: "POA&M",
+  "poa&ms": "POA&M",
   "controls v2": "Controls",
   "controls v3": "Controls",
 };
@@ -187,6 +208,7 @@ const programViews = [
   {
     label: "Operate and report",
     items: [
+      { label: "Authorization", to: "/programs/$programId/authorization", search: undefined },
       { label: "Program dashboard", to: "/programs/$programId/dashboard", search: undefined },
       {
         label: "Continuous monitoring",
@@ -209,10 +231,10 @@ const programViews = [
 
 /** Where each lifecycle stage's work actually lives. */
 const stageHome: Record<Stage, Tab> = {
-  Scope: "Controls",
-  Build: "Evidence",
-  Assess: "Findings",
-  Authorize: "Activity",
+  Scope: "System",
+  Build: "Controls",
+  Assess: "Assessments",
+  Authorize: "Overview",
   Operate: "POA&M",
 };
 
@@ -226,16 +248,35 @@ const segmentStatus: Record<string, ControlStatus> = {
 
 function ProgramDetail() {
   const program = Route.useLoaderData();
-  const [tab, setTab] = useState<Tab>(Route.useSearch().tab ?? "Overview");
-  const teamSize = useMemo(() => peopleForProgram(program.id).length, [program.id]);
-  const scopesVersion = useScopesVersion();
-  const scopeRows = useMemo(() => scopesForProgram(program.id), [program.id, scopesVersion]);
-  const rollup = useMemo(() => rollupControlSet(program.id), [program.id, scopesVersion]);
-  const requirementsVersion = useRequirementsVersion();
-  const requirementRows = useMemo(
-    () => requirementsForProgram(program.id),
-    [program.id, requirementsVersion],
+  const search = Route.useSearch();
+  const tab = search.tab ?? "Overview";
+  const navigate = useNavigate({ from: Route.fullPath });
+  const setTab = useCallback(
+    (next: Tab) => {
+      void navigate({
+        search: (prev) => ({
+          ...prev,
+          tab: next,
+          findingId: undefined,
+          poamId: undefined,
+          assessmentId: undefined,
+          newFindingAssessment: undefined,
+        }),
+      });
+    },
+    [navigate],
   );
+  useAssuranceVersion();
+  useEvidenceVersion();
+  useProgramScheduleVersion();
+  useAssessmentsVersion();
+  const evidenceCount = evidenceForProgram(program.id).length;
+  const assessmentCount = campaigns.filter((c) => c.program === program.id).length;
+  useScopesVersion();
+  const scopeRows = scopesForProgram(program.id);
+  const rollup = rollupControlSet(program.id);
+  useRequirementsVersion();
+  const requirementRows = requirementsForProgram(program.id);
   useProgramsVersion();
   const [assessing, setAssessing] = useState(false);
   const [archiving, setArchiving] = useState(false);
@@ -269,28 +310,18 @@ function ProgramDetail() {
     () => [...new Set([...inheritance.values()].map((v) => v.component))],
     [inheritance],
   );
-  const programPoams = useMemo(
-    () => registerPoams.filter((p) => p.program === program.id),
-    [program.id],
-  );
+  const programPoams = registerPoams.filter((p) => p.program === program.id);
 
   const matrix = useControlMatrix(program.id);
 
-  // `matrix` is load-bearing in both dep lists: posture and the gate blocker
-  // read the same rows the coverage card does, so an inline status edit moves
-  // the rail with the card instead of leaving them 61 controls apart.
-  const posture = useMemo(() => programPosture(program, matrix), [program, matrix]);
+  // Posture and the gate blocker read the same live rows as the coverage card.
+  const posture = programPosture(program, matrix);
   // The Blocker reads the same deficiency count as the tab badge and the
   // coverage legend; `program.controlsFailing` is the last signed package
   // figure, not what this screen is showing.
-  const state = useMemo(
-    () => programState(program, undefined, posture.controlsFailing),
-    [program, posture.controlsFailing],
-  );
+  const state = programState(program, undefined, posture.controlsFailing);
   const coverage = useMemo(() => coverageFromRows(matrix), [matrix]);
-  const openFindings = useMemo(() => findingsForProgram(program.id).filter(isOpen), [program.id]);
   const programWorkstreams = useMemo(() => workstreamsForProgram(program.id), [program.id]);
-  const navigate = useNavigate();
 
   const ownerOptions = useMemo(() => {
     const names = peopleForProgram(program.id).map((p) => p.name);
@@ -327,7 +358,7 @@ function ProgramDetail() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [setTab]);
 
   const commands = useMemo(
     () =>
@@ -589,9 +620,10 @@ function ProgramDetail() {
                   ["System", scopeRows.length || null],
                   ["Requirements", requirementRows.length || null],
                   ["Controls", posture.controlsFailing || null],
-                  ["Tasks", openTaskCount || null],
+                  ["Assessments", assessmentCount || null],
+                  ["Schedule", null],
                   ["Findings", posture.findingsOpen || null],
-                  ["Evidence", posture.evidenceStale || null],
+                  ["Evidence", evidenceCount || null],
                   ["POA&M", posture.poamOpen || null],
                   ["Activity", null],
                 ] as [Tab, number | null][]
@@ -626,7 +658,15 @@ function ProgramDetail() {
                 title="Tasks"
                 count={openTaskCount || null}
                 action={
-                  <Button size="small" variant="subtle" onClick={() => setTab("Tasks")}>
+                  <Button
+                    size="small"
+                    variant="subtle"
+                    onClick={() => {
+                      void navigate({
+                        search: (prev) => ({ ...prev, tab: "Schedule", scheduleView: "Tasks" }),
+                      });
+                    }}
+                  >
                     See all
                   </Button>
                 }
@@ -660,120 +700,71 @@ function ProgramDetail() {
           {tab === "Controls" ? <ControlBoard programId={program.id} /> : null}
 
           {tab === "Findings" ? (
-            <Section
-              title="Verification"
-              action={
-                <Inline space="space.150" alignBlock="center">
-                  <TextLink size="small">
-                    <Link
-                      to="/programs/$programId/te-phases"
-                      params={{ programId: program.id }}
-                      search={{ tab: undefined }}
-                    >
-                      T&amp;E phases
-                    </Link>
-                  </TextLink>
-                  <TextLink size="small">
-                    <Link to="/programs/$programId/ingestion" params={{ programId: program.id }}>
-                      Ingestion
-                    </Link>
-                  </TextLink>
-                </Inline>
-              }
-            >
-              <Box paddingBlockStart="space.200">
-                <VerificationSection programName={program.name} />
-              </Box>
-            </Section>
+            <ProgramFindings
+              key={`${program.id}/${search.findingId ?? ""}/${search.newFindingAssessment ?? ""}`}
+              programId={program.id}
+              initialFindingId={search.findingId}
+              onFindingChange={(findingId) => {
+                void navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    findingId: findingId ?? undefined,
+                    newFindingAssessment: undefined,
+                  }),
+                });
+              }}
+              initialAssessmentId={search.newFindingAssessment}
+            />
           ) : null}
-
-          {tab === "Evidence" ? (
-            <>
-              <Inline alignInline="end">
-                <TextLink size="small">
-                  <Link
-                    to="/programs/$programId/export"
-                    params={{ programId: program.id }}
-                    search={{ tab: undefined }}
-                  >
-                    Export
-                  </Link>
-                </TextLink>
-              </Inline>
-              <LifecycleSection programId={program.id} programName={program.name} />
-              <DigitalThreadSection programId={program.id} programName={program.name} />
-              <AuthorizationSection programId={program.id} programName={program.name} />
-            </>
-          ) : null}
-
+          {tab === "Evidence" ? <ProgramEvidence programId={program.id} /> : null}
           {tab === "POA&M" ? (
-            <>
-              <Section
-                title="POA&M items"
-                action={
-                  <Inline space="space.150" alignBlock="center">
-                    <TextLink size="small">
-                      <Link
-                        to="/programs/$programId/risk"
-                        params={{ programId: program.id }}
-                        search={{ tab: undefined }}
-                      >
-                        Risk scoring
-                      </Link>
-                    </TextLink>
-                    <TextLink size="small">
-                      <Link to="/register">Register</Link>
-                    </TextLink>
-                  </Inline>
-                }
-              >
-                {programPoams.length === 0 ? (
-                  <Empty
-                    title="No POA&M items"
-                    description="Commitments raised against this program will appear here."
-                  />
-                ) : (
-                  <Table className="table-fixed">
-                    <thead>
-                      <tr>
-                        <Table.Header width={96}>ID</Table.Header>
-                        <Table.Header>Weakness</Table.Header>
-                        <Table.Header width={120}>Status</Table.Header>
-                        <Table.Header width={140}>Owner</Table.Header>
-                        <Table.Header width={120} className="text-right">
-                          Scheduled
-                        </Table.Header>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {programPoams.map((p) => (
-                        <Table.Row key={p.id}>
-                          <Table.Cell>
-                            <TextLink>
-                              <Link to="/register/poam/$poamId" params={{ poamId: p.id }}>
-                                <Id>{p.id}</Id>
-                              </Link>
-                            </TextLink>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{p.title}</Table.Cell>
-                          <Table.Cell>
-                            <Badge variant="secondary" tone={statusTone(p.status)}>
-                              {p.status}
-                            </Badge>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">
-                            <Person name={p.owner} />
-                          </Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">
-                            {p.scheduledCompletion}
-                          </Table.Cell>
-                        </Table.Row>
-                      ))}
-                    </tbody>
-                  </Table>
-                )}
-              </Section>
-            </>
+            <ProgramPoams
+              key={`${program.id}/${search.poamId ?? ""}`}
+              programId={program.id}
+              initialPoamId={search.poamId}
+              onPoamChange={(poamId) => {
+                void navigate({ search: (prev) => ({ ...prev, poamId: poamId ?? undefined }) });
+              }}
+            />
+          ) : null}
+          {tab === "Assessments" ? (
+            <ProgramAssessments
+              key={`${program.id}/${search.assessmentId ?? ""}`}
+              programId={program.id}
+              initialAssessmentId={search.assessmentId}
+              onAssessmentChange={(assessmentId) => {
+                void navigate({
+                  search: (prev) => ({ ...prev, assessmentId: assessmentId ?? undefined }),
+                });
+              }}
+              onRaiseFinding={(assessmentId) => {
+                void navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    tab: "Findings",
+                    newFindingAssessment: assessmentId,
+                  }),
+                });
+              }}
+            />
+          ) : null}
+          {tab === "Schedule" ? (
+            <ProgramSchedule
+              key={`${program.id}/${search.scheduleView ?? "Plan"}`}
+              programId={program.id}
+              initialView={search.scheduleView}
+              onViewChange={(scheduleView) => {
+                void navigate({ search: (prev) => ({ ...prev, scheduleView }) });
+              }}
+              onOpenPoam={(poamId) => {
+                void navigate({ search: (prev) => ({ ...prev, tab: "POA&M", poamId }) });
+              }}
+              onOpenAssessment={(assessmentId) => {
+                void navigate({
+                  search: (prev) => ({ ...prev, tab: "Assessments", assessmentId }),
+                });
+              }}
+            />
           ) : null}
 
           {tab === "System" ? (
@@ -781,8 +772,6 @@ function ProgramDetail() {
           ) : null}
 
           {tab === "Requirements" ? <RequirementCoverage programId={program.id} /> : null}
-
-          {tab === "Tasks" ? <ProgramTasks programId={program.id} me={me} /> : null}
 
           {tab === "Activity" ? (
             <RecordActivity

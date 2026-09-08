@@ -7,70 +7,34 @@ import * as Stories from "./Glance.stories";
 
 # Glance
 
-The body of a hover card: what the reader sees when the pointer rests on a record's id or name. The id and one status on the first line, the name on at most two, the meta line, at most four facts. Facts only, no actions: it is the first rung of the hover ladder, the click is the peek in a [PreviewSheet](?path=/docs/patterns-previewsheet--docs) and the footer link there is the record. A record reads the same on every rung because the same parts draw it, and this is the smallest of them. The same card serves a record and a person.
+A compact record summary: an id and status, a title, a meta line and selected facts. It supplies content for a [HoverCard](?path=/docs/components-hovercard--docs); the product chooses the facts and the link's destination.
 
 <Canvas of={Stories.GlanceStory} />
 
 ## Anatomy
 
-| Part   | What it is                                                                  |
-| ------ | --------------------------------------------------------------------------- |
-| Id     | First, `font.body.small` in `color.text.subtle`.                            |
-| Status | At the end of the id's line: a Badge or an Indicator, one.                  |
-| Title  | The record's name, `font.body` medium, at most two lines.                   |
-| Meta   | Under it, `font.body.small` subtle, one line: kind, path, owner.            |
-| Facts  | At most four KeyValue rows, the labels 88px wide.                           |
+| Part | Behavior |
+| --- | --- |
+| Id and status | The id uses small subtle text; the optional status sits at the other end of the line. |
+| Title | Medium body text, clamped to two lines. |
+| Meta | Small subtle text for kind, path, owner or other context. |
+| Facts | Up to four KeyValue rows with 88px labels. Additional facts are omitted. |
 
-## Variants
-
-Glance has one appearance. What varies is the record type, which is the product's: an element, a requirement, a control, each with the four facts that say whether to open it. The three the prototype draws:
+Use a Badge or Indicator with a text label for status. Select facts that help readers decide whether to open the record; keep any essential information available at the destination.
 
 <Canvas of={Stories.GlanceMatrix} />
 
-Not built, and why: an action row, because a hover card has no controls and a keyboard never reaches them; an avatar or an image, because a record is its id and its name; a fifth fact, because the part draws four and the rest belong to the peek; a link in the card, because the trigger is the link.
+## Surface and interaction
 
-## Sizes
+Glance supplies content and has no width or open state of its own. These examples use a 300px surface. A HoverCard defaults to 256px; set `style={{ width: 300 }}` on `HoverCardContent` when the summary needs more space.
 
-One size: the [HoverCard](?path=/docs/components-hovercard--docs) is 300px wide for a Glance (280 for a few lines of text). The card is as tall as its content, at most a two-line title and four facts.
+HoverCard opens after delayed pointer hover or keyboard focus on its trigger, and dismisses on leaving, outside press or Escape. Its content does not add a Tab stop or move focus. Use the trigger link to reach the destination, where the summary's information and actions remain available.
 
-## States
-
-A glance has none. It appears when the card opens and goes when it closes; nothing in it hovers, focuses or presses.
-
-## Modifiers
-
-- **`id`**, **`title`**, **`meta`**, **`status`**, **`facts`** as in Anatomy. Facts past the fourth are dropped.
-
-## Content
-
-- **The title is the record's name** as it reads on its page; a shall statement in full, two lines at most.
-- **The meta is kind, path, owner** in a few words with middle dots: "Subsystem · Atlas payments platform", "Derived · revision 1".
-- **One status**, the one the reader decides by. A second is a fact.
-- **Four facts**, the ones that decide whether to open the record; the label a word or two, the value a word, a number or a name.
-
-## Style
-
-| Element | Token                                                              |
-| ------- | ------------------------------------------------------------------ |
-| Id      | `font.body.small` · `color.text.subtle`                            |
-| Status  | At the end of the id's line, `space.100` from it                   |
-| Title   | `font.body` medium · `color.text` · two lines, then an ellipsis    |
-| Meta    | `font.body.small` · `color.text.subtle` · one line                 |
-| Facts   | KeyValue, label 88px · `space.100` above the group                 |
-| Layout  | `space.025` between the lines of the head                          |
-
-## Accessibility
-
-- **The card's behaviour is the HoverCard's**: it opens on hover after a rest and on focus of the trigger, and closes on Escape and when the pointer leaves. The trigger is the link, so a keyboard reader reaches the record without the card.
-- **The glance is text**, read in order: id, status, title, meta, then the facts as terms and values.
-- **The status carries its word**: a Badge or an Indicator with text, never a bare Dot.
-- **Nothing in it is interactive**, so nothing in it is unreachable.
+When rendered on a page, Glance's text reads in order: id, status, title, meta, then facts. The component has no interactive controls.
 
 ## Props
 
 <ArgTypes of={Glance} />
-
-### Playground
 
 <Canvas of={Stories.Playground} />
 
@@ -78,11 +42,4 @@ A glance has none. It appears when the card opens and goes when it closes; nothi
 
 ## Related
 
-- [HoverCard](?path=/docs/components-hovercard--docs): the shell.
-- [PreviewSheet](?path=/docs/patterns-previewsheet--docs): the next rung.
-- [KeyValue](?path=/docs/components-keyvalue--docs): the facts.
-- [Pages · The hover ladder](?path=/docs/patterns-pages--docs#the-hover-ladder): glance, peek, record; which facts a record type shows is the app's.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+[HoverCard](?path=/docs/components-hovercard--docs) · [PreviewSheet](?path=/docs/patterns-previewsheet--docs) · [KeyValue](?path=/docs/components-keyvalue--docs) · [Pages](?path=/docs/patterns-pages--docs)

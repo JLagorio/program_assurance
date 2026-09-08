@@ -7,96 +7,59 @@ import * as Stories from "./Switch.stories";
 
 # Switch
 
-A setting that is on or off and applies the moment it is flipped: a notification, an inheritance, whether an overlay is applied. There is no Save after a Switch; flipping it is the act. That is the whole difference from a [Checkbox](?path=/docs/components-checkbox--docs), which is a choice the form submits.
+An on/off setting built on Base UI with the shadcn composition API. The thumb is included; compose the setting's label and supporting text outside the switch.
 
-It is one of three choice controls. A choice saved with a form is a Checkbox; one answer from a few is a [RadioGroup](?path=/docs/components-radiogroup--docs). A switch that would need a confirmation, deleting something, turning off access, is a [Button](?path=/docs/components-button--docs) with an [AlertDialog](?path=/docs/components-alertdialog--docs).
+```tsx
+<label className="inline-flex items-center gap-100">
+  <Switch defaultChecked />
+  Notify the owner
+</label>
+```
 
 <Canvas of={Stories.SwitchMatrix} />
 
-## Anatomy
+## Sizes and state
 
-| Part        | What it is                                                                                                                                                       |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Track       | 40px by 20px, round, the light `color.background.neutral` off and `color.background.brand.bold` on.                                                                |
-| Thumb       | 16px, `elevation.surface` with `elevation.shadow.raised`, at the start when off and the end when on. It moves in `motion.duration.medium`.                        |
-| Label       | After the track, `space.100` away, `font.body` in `color.text`: the setting's name, the same on and off. A click on it flips the switch. Without one, `aria-label`. |
-| Description | Under the label, `font.body.small` in `color.text.subtle`: what on means. Read as the switch's description.                                                       |
+| Size | Track | Thumb |
+| --- | --- | --- |
+| `default` | 32 × 20px | 16px |
+| `sm` | 24 × 16px | 12px |
 
-## Variants
+These dimensions use Ledger spacing tokens. The thumb moves toward the inline end when checked, follows RTL direction, and stops animating when reduced motion is requested.
 
-Switch has one appearance. What varies is which control the choice wants:
+Use `defaultChecked` for local state or `checked` and `onCheckedChange(checked, details)` for controlled state. `details.cancel()` rejects a change. `disabled` blocks activation and removes the switch from the tab order; `readOnly` retains focusability while preventing state changes.
 
-| The choice                                            | Use                                                                                  |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| On or off, applied at once                            | `Switch`.                                                                            |
-| On or off, saved with the form                        | `Checkbox`.                                                                          |
-| On or off, but dangerous or not reversible            | A Button that opens an AlertDialog.                                                  |
-| One of three or more                                  | `RadioGroup`.                                                                        |
-| A row's setting in a table                            | `Switch` with `aria-label`, bare in the cell.                                        |
+## Labels, Field and forms
 
-There is no state text ("On", "Off") beside the switch: the thumb's position carries the state without colour, and the state is spoken. There is no small switch, and no icon in the thumb.
+A wrapping `<label>` or a sibling `<label htmlFor={id}>` names the setting and toggles it when clicked. Keep the name stable across on/off states. [Field](?path=/docs/components-field--docs) supplies the label, hint/error description and required/invalid ARIA wiring:
 
-## Sizes
+```tsx
+<Field label="Notify the owner" hint="Send an email when a finding changes status.">
+  <Switch checked={notify} onCheckedChange={setNotify} />
+</Field>
+```
 
-One size: the track 40px by 20px, the thumb 16px, the label `font.body`. It sits in a form's row, a rail, a Block's action slot and a table cell at that size.
+`name`, `value`, `uncheckedValue`, `form` and `required` configure the hidden checkbox used for native submission and validation. Without `uncheckedValue`, an unchecked switch contributes no entry. `Field isRequired` marks the control for assistive technology; use Switch's native `required` when browser validation is intended.
+
+In installed Base UI 1.7, native form reset is caller-owned: restore controlled `checked` state in the form's `onReset` handler.
 
 <Canvas of={Stories.Settings} />
 
-## States
+## Native props and composition
 
-| State    | What changes                                                                                                                       |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Off      | The track in the light `color.background.neutral`, the thumb at the start, its shadow lifting it off the track.                    |
-| On       | The track in `color.background.brand.bold`, the thumb at the end.                                                                  |
-| Focus    | The focus outline around the track, on keyboard focus.                                                                             |
-| Disabled | The track in `color.background.disabled`, the thumb faded to `opacity.disabled`, the label in `color.text.disabled`, the not-allowed cursor. See Accessibility for when. |
+The default visible root is a `<span role="switch">`, with a hidden checkbox beside it. `ref` targets the visible root; `inputRef` and `id` target the hidden input. Native event handlers and state-based `className`/`style` callbacks apply to the root.
 
-There is no hover on the track, no pressed state and no invalid state: a switch cannot be wrong, only on or off.
-
-## Modifiers
-
-- **`checked` with `onCheckedChange`**, or `defaultChecked`. The handler does the work at once: the store updates, the row re-renders. It never waits for a button.
-- **`description`** for a second line: what on means, or what off leaves. One sentence.
-- **`aria-label`** for a switch with no label: a row's setting in a table.
-- **`name`** when a form submits natively, which a switch rarely does.
+For a native button root, pass `nativeButton` and `render={<button />}`. In that mode `id` targets the button, and refs and event handlers merge with those on the rendered element. Every switch needs a visible label, `aria-label`, or `aria-labelledby`.
 
 <Canvas of={Stories.InRows} />
 
-## Content
+## Migration
 
-- **The label names the setting**, in sentence case, and does not change with the state: Notifications, Inherits program categorization. Never "Notifications on".
-- **The description says what on does**, in one sentence: "An email when a finding on this system changes status."
-- **An adjective or a noun, not a verb.** The switch is not an action; "Apply the privacy overlay" as a label reads as a button. "Privacy overlay" with "Applied" as the column header does not.
-- **Under three words** when it can be.
-
-## Style
-
-| Element     | Token                                                                                         |
-| ----------- | --------------------------------------------------------------------------------------------- |
-| Track       | 40 × 20px · round · `color.background.neutral` off · `color.background.brand.bold` on         |
-| Thumb       | 16px · round · `elevation.surface` · `elevation.shadow.raised` · `space.025` inset            |
-| Focus       | The focus outline                                                                             |
-| Disabled    | Track `color.background.disabled` · thumb at `opacity.disabled` · label `color.text.disabled`  |
-| Label       | `font.body` in `color.text`, `space.100` 8px after the track                                   |
-| Description | `font.body.small` in `color.text.subtle`                                                      |
-| Motion      | The thumb slides in `motion.duration.medium`, `motion.easing.standard`; the colours in `fast` |
-
-The on fill passes 3:1 against the surface in both modes and the contrast test covers it. The off track is the light neutral fill on purpose, the way iOS draws it: the white thumb with its shadow, and its place at the start, are what say off.
-
-## Accessibility
-
-- **It is a switch** (Radix): a button with the `switch` role, its state in `aria-checked`.
-- **Keyboard:** Tab reaches it; Space or Enter flips it.
-- **The label is the name.** The `<label>` wraps the track and the text, so the text names the switch and a click on it flips it. A bare switch takes `aria-label`, in a table the row's name with the setting: "Apply Privacy overlay". The description is wired with `aria-describedby`.
-- **The state is not colour alone**: the thumb's position changes, and a screen reader hears on or off.
-- **Flipping it is the act**, so a switch never guards something that needs a confirmation; that is a Button and an AlertDialog.
-- **Disabled is the last resort.** A disabled switch cannot say why; its description can: "Set by the program; ask the ISSM."
+Replace label children and the `description` prop with a wrapping label, sibling label or Field. The track is now 32px wide by default instead of 40px; `sm` adds a 24px option. A root ref now receives the visible span by default, and `inputRef` accesses the form input. Native `checked`, `defaultChecked` and `onCheckedChange` usage remains supported.
 
 ## Props
 
 <ArgTypes of={Switch} />
-
-### Playground
 
 <Canvas of={Stories.Playground} />
 
@@ -104,11 +67,4 @@ The on fill passes 3:1 against the surface in both modes and the contrast test c
 
 ## Related
 
-- [Checkbox](?path=/docs/components-checkbox--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the other choice controls; see Variants for which.
-- [Toggle](?path=/docs/components-toggle--docs): a pressed button that shows a view or a mode, not a setting.
-- [AlertDialog](?path=/docs/components-alertdialog--docs): what an on-or-off that needs confirming opens instead.
-- [Forms](?path=/docs/patterns-forms--docs): which control for which answer.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+[Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Checkbox](?path=/docs/components-checkbox--docs) · [Toggle](?path=/docs/components-toggle--docs) · [shadcn Switch](https://ui.shadcn.com/docs/components/base/switch) · [Base UI Switch](https://base-ui.com/react/components/switch)

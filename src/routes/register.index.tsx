@@ -2,6 +2,7 @@ import { UnavailableAction } from "@/components/app/unavailable-action";
 import { downloadText } from "@/components/app/export";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { Download, Search } from "lucide-react";
 
 import {
@@ -73,6 +74,7 @@ function residualTone(v: number) {
 }
 
 function RegisterPage() {
+  const assuranceVersion = useAssuranceVersion();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("POA&M");
   const [q, setQ] = useState("");
@@ -98,7 +100,7 @@ function RegisterPage() {
       )
       .slice()
       .sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
-  }, [q]);
+  }, [q, assuranceVersion]);
 
   const counts: Record<Tab, number> = {
     "POA&M": poamItems.filter((p) => p.status === "Ongoing" || p.status === "Overdue").length,

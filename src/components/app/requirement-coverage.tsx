@@ -8,47 +8,53 @@
  * one toolbar row with search, the saved views as a menu, the filter chips,
  * then Columns, Settings and the primary action at the end; the id pinned,
  * every column resizable and reorderable, the layout kept under a view name.
- * The one bar per row reads how far the tests that name the requirement have run.
+ * The rows nest as the decomposition does, and the leading chevron is the only
+ * one: a parent opens into its parts. Carried by reads on one line, rests into
+ * a hover card, and clicking it opens the row into the table of what carries
+ * it. The eye on the id opens the requirement beside the list.
  */
 
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { ControlHover, RequirementHover } from "@/components/app/glances";
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
+import { CoverageBar } from "@/components/app/coverage-bar";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
-import { TargetLink } from "@/components/app/requirements";
+import { RequirementPreviewSheet } from "@/components/app/requirement-preview";
 import {
   Button,
   DataTable,
+  Empty,
   Id,
   Indicator,
   Inline,
-  Progress,
   Text,
   TextLink,
   defineColumns,
   useDataTable,
   type Preset,
-  type StackedSegment,
 } from "@ledger/design-system";
+import { AllocationTable } from "@/components/app/requirements";
 import { suspectLinksFor, useLinkCurrencyVersion } from "@/lib/link-currency";
 import {
   coverageOf,
-  coverageWord,
   notCoveredRequirements,
   useVerificationVersion,
   type RequirementCoverage,
 } from "@/lib/requirement-verification";
 import {
   allocationsFor,
+  nestRequirements,
   requirementStateTone,
   requirementsForProgram,
+  resolveTarget,
   unallocatedRequirements,
   useRequirementsVersion,
   type Allocation,
   type Derivation,
+  type Nested,
   type Requirement,
   type RequirementState,
 } from "@/lib/requirements";
@@ -66,21 +72,27 @@ type Verification = "Covered" | "Not covered";
 type Currency = "Current" | "Suspect";
 
 /** One requirement projected onto the columns the table sorts and filters by. */
-type CoverageRow = {
+type CoverageBase = {
   id: string;
+  parent: string | null;
   text: string;
   state: RequirementState;
-  carriedBy: CarriedBy;
+  allocation: CarriedBy;
   origin: Origin;
   verification: Verification;
   currency: Currency;
   suspect: number;
+  /** The allocations whose link has gone suspect, by id. */
+  suspectAllocations: Set<string>;
   coverage: RequirementCoverage;
   requirement: Requirement;
   allocations: Allocation[];
   controls: Derivation[];
   overlays: Derivation[];
 };
+
+/** A row with its decomposition under it. */
+type CoverageRow = Nested<CoverageBase>;
 
 function fromControl(r: Requirement): boolean {
   return r.derivations.some(
@@ -95,7 +107,7 @@ const presets: Preset[] = [
   {
     id: "unallocated",
     label: "Unallocated",
-    filters: [{ id: "carriedBy", value: ["Nobody responsible"] }],
+    filters: [{ id: "allocation", value: ["Nobody responsible"] }],
   },
   { id: "no-control", label: "No control", filters: [{ id: "origin", value: ["No control"] }] },
   {
@@ -111,36 +123,6 @@ const presets: Preset[] = [
   { id: "suspect", label: "Suspect", filters: [{ id: "currency", value: ["Suspect"] }] },
 ];
 
-/** The bar's segments: one per result, and a hatched hole for what no test names. */
-export function coverageSegments(c: RequirementCoverage): StackedSegment[] {
-  return [
-    { key: "met", value: c.met, tone: "success", title: `${c.met} met` },
-    { key: "partial", value: c.partial, tone: "warning", title: `${c.partial} partially met` },
-    { key: "notMet", value: c.notMet, tone: "danger", title: `${c.notMet} not met` },
-    { key: "notRun", value: c.notRun, tone: "information", title: `${c.notRun} not run` },
-    {
-      key: "notCovered",
-      value: c.notCovered,
-      tone: "neutral",
-      appearance: "hatched",
-      title: `${c.notCovered} not covered`,
-    },
-  ];
-}
-
-export function CoverageBar({ coverage }: { coverage: RequirementCoverage }) {
-  return (
-    <Inline as="span" space="space.100" alignBlock="center">
-      <span className="shrink-0" style={{ width: 56 }}>
-        <Progress.Stacked size="medium" segments={coverageSegments(coverage)} />
-      </span>
-      <Text size="xsmall" color="color.text.subtle" maxLines={1}>
-        {coverageWord(coverage)}
-      </Text>
-    </Inline>
-  );
-}
-
 /** The share of a requirement's objectives that are met: what the Verification column sorts by. */
 function metShare(c: RequirementCoverage): number {
   const total = c.met + c.partial + c.notMet + c.notRun + c.notCovered;
@@ -153,29 +135,37 @@ export function RequirementCoverage({ programId }: { programId: string }) {
   const currencyVersion = useLinkCurrencyVersion();
   const [allocating, setAllocating] = useState<Requirement | null>(null);
   const [adding, setAdding] = useState(false);
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  // The columns read the open preview through a ref, so opening one redraws the rows without rebuilding them.
+  const previewRef = useRef(previewId);
+  previewRef.current = previewId;
 
   const all = useMemo(() => requirementsForProgram(programId), [programId, version]);
 
-  // The projection. Every store it reads is subscribed through a version above.
+  // The projection, nested by `parent`. Every store it reads is subscribed through a version above.
   const rows = useMemo<CoverageRow[]>(() => {
     const unallocated = new Set(unallocatedRequirements(programId).map((r) => r.id));
     const notCovered = new Set(notCoveredRequirements(programId).map((r) => r.id));
-    return all.map((r) => {
+    const flat: CoverageBase[] = all.map((r) => {
       const allocations = allocationsFor(r.id);
-      const suspect = suspectLinksFor(r).length;
+      const links = suspectLinksFor(r);
       return {
         id: r.id,
+        parent: r.parent,
         text: r.text,
         state: r.state,
-        carriedBy: allocations.length
+        allocation: allocations.length
           ? "Allocated"
           : unallocated.has(r.id)
             ? "Nobody responsible"
             : "Not yet allocatable",
         origin: fromControl(r) ? "From a control" : "No control",
         verification: notCovered.has(r.id) ? "Not covered" : "Covered",
-        currency: suspect ? "Suspect" : "Current",
-        suspect,
+        currency: links.length ? "Suspect" : "Current",
+        suspect: links.length,
+        suspectAllocations: new Set(
+          links.flatMap((l) => (l.ref.kind === "allocation" ? [l.ref.id] : [])),
+        ),
         coverage: coverageOf(r),
         requirement: r,
         allocations,
@@ -183,6 +173,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
         overlays: r.derivations.filter((d) => d.sourceType === "Overlay"),
       };
     });
+    return nestRequirements(flat);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [all, programId, version, verificationVersion, currencyVersion]);
 
@@ -192,9 +183,11 @@ export function RequirementCoverage({ programId }: { programId: string }) {
       defineColumns<CoverageRow>((c) => [
         c.id("id", {
           header: "Requirement",
-          width: 120,
+          width: 140,
           pin: "start",
           hideable: false,
+          preview: (r) => setPreviewId(r.id),
+          active: (r) => r.id === previewRef.current,
           cell: (r) => (
             <RequirementHover requirementId={r.id}>
               <TextLink>
@@ -209,32 +202,36 @@ export function RequirementCoverage({ programId }: { programId: string }) {
           ),
         }),
         c.text("text", { header: "Shall statement", minWidth: 240, hideable: false }),
-        c.text("carriedBy", {
+        c.list("carriedBy", {
           header: "Carried by",
           width: 240,
-          cell: (r) =>
-            r.allocations.length ? (
-              <Inline
-                className="font-body-small"
-                as="span"
-                space="space.100"
-                rowSpace="space.025"
-                shouldWrap
-              >
-                {r.allocations.slice(0, 3).map((a) => (
-                  <TargetLink key={a.id} allocation={a} programId={programId} />
-                ))}
-                {r.allocations.length > 3 ? (
-                  <Text color="color.text.subtle">+{r.allocations.length - 3}</Text>
-                ) : null}
-                {r.suspect ? <Indicator tone="warning">{r.suspect} suspect</Indicator> : null}
-              </Inline>
-            ) : (
-              <Indicator tone={r.carriedBy === "Nobody responsible" ? "warning" : "neutral"}>
-                {r.carriedBy}
-              </Indicator>
-            ),
+          items: (r) =>
+            r.allocations.map((a) => {
+              const target = resolveTarget(a);
+              return {
+                key: a.id,
+                label: target.name,
+                meta: target.detail,
+                status: r.suspectAllocations.has(a.id) ? (
+                  <Indicator tone="warning">Suspect</Indicator>
+                ) : undefined,
+              };
+            }),
+          empty: (r) => (
+            <Indicator tone={r.allocation === "Nobody responsible" ? "warning" : "neutral"}>
+              {r.allocation}
+            </Indicator>
+          ),
+          note: (r) => {
+            const n = r.suspectAllocations.size;
+            return n
+              ? `${n} link${n === 1 ? "" : "s"} suspect since the element changed`
+              : undefined;
+          },
+          opens: "detail",
         }),
+        // Hidden until asked for: the Unallocated question reads it, the Carried by cell shows it.
+        c.text("allocation", { header: "Allocation", width: 150 }),
         c.text("origin", {
           header: "Controls",
           width: 170,
@@ -273,7 +270,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
           // the met share; a requirement no test names sorts below everything
           sortBy: (r) => metShare(r.coverage),
         }),
-        // Hidden until asked for: the Suspect question reads it, the Carried by cell shows the count.
+        // Hidden until asked for: the Suspect question reads it.
         c.text("currency", { header: "Currency", width: 104 }),
         c.status("state", {
           header: "State",
@@ -293,7 +290,39 @@ export function RequirementCoverage({ programId }: { programId: string }) {
     view: "requirement-coverage",
     resizable: true,
     reorderable: true,
-    initialState: { columnVisibility: { currency: false } },
+    tree: {
+      children: (r) => r.parts,
+      label: (r) => r.id,
+      hint: (_, n) => (
+        <Text size="xsmall" color="color.text.subtle">
+          {n} part{n === 1 ? "" : "s"}
+        </Text>
+      ),
+      initialExpanded: true,
+    },
+    // The row opens into what carries it, from the Carried by cell rather than a chevron of its
+    // own: two chevrons in a row read as twins. The same allocation table the record page shows,
+    // named after its requirement so several open rows are not one landmark repeated.
+    detailColumn: false,
+    detail: (r) =>
+      r.allocations.length ? (
+        <AllocationTable
+          allocations={r.allocations}
+          programId={programId}
+          label={`${r.id} allocations`}
+        />
+      ) : (
+        <Empty
+          title={`${r.id} is not allocated`}
+          description="Allocate it to the elements that answer it, each with the scope of its claim."
+          action={
+            <Button size="small" variant="primary" onClick={() => setAllocating(r.requirement)}>
+              Allocate
+            </Button>
+          }
+        />
+      ),
+    initialState: { columnVisibility: { currency: false, allocation: false } },
   });
 
   const newRequirement = (
@@ -306,7 +335,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
     <Inline space="space.100" alignBlock="center" shouldWrap>
       <DataTable.Search table={table} placeholder="Find a requirement" />
       <DataTable.Presets table={table} presets={presets} variant="menu" aria-label="Saved views" />
-      <DataTable.Filter table={table} column="carriedBy" />
+      <DataTable.Filter table={table} column="allocation" />
       <DataTable.Filter table={table} column="origin" />
       <DataTable.Filter table={table} column="state" />
       <Inline className="ml-auto" space="space.100" alignBlock="center">
@@ -329,6 +358,13 @@ export function RequirementCoverage({ programId }: { programId: string }) {
   return (
     <>
       <DataTable table={table} toolbar={toolbar} empty={empty} />
+
+      <RequirementPreviewSheet
+        programId={programId}
+        requirementId={previewId}
+        onClose={() => setPreviewId(null)}
+        onAllocate={(r) => setAllocating(r)}
+      />
 
       <NewRequirementModal open={adding} onClose={() => setAdding(false)} programId={programId} />
 

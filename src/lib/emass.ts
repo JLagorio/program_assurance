@@ -363,10 +363,7 @@ function registerPoamRow(item: RegisterPoamItem): string[] {
   return [
     item.id,
     item.title,
-    joinOrDash(
-      members.map((f) => f.control),
-      ", ",
-    ),
+    joinOrDash([...(item.controls ?? []), ...members.map((f) => f.control)], ", "),
     item.owner,
     joinOrDash(
       members.map((f) => f.rule ?? f.cci),
@@ -374,7 +371,14 @@ function registerPoamRow(item: RegisterPoamItem): string[] {
     ),
     orDash(item.resources),
     orDash(item.scheduledCompletion),
-    `${item.milestoneNote} Target ${item.scheduledCompletion}.`,
+    item.milestones?.length
+      ? item.milestones
+          .map(
+            (milestone) =>
+              `${milestone.id}: ${milestone.title} — target ${formatOscalDate(milestone.targetDate)}${milestone.completedDate ? `, completed ${formatOscalDate(milestone.completedDate)}` : ""} (${milestone.status})`,
+          )
+          .join(" | ")
+      : `${item.milestoneNote} Target ${item.scheduledCompletion}.`,
     slipped,
     joinOrDash(
       members.map((f) => f.source),
@@ -438,17 +442,30 @@ function oscalPoamRow(item: OscalPoamItem): string[] {
 }
 
 export function emassPoam(programId: string): EmassExport {
-  const oscalRows = oscalPoamItems.filter((i) => i.programId === programId).map(oscalPoamRow);
-  const registerRows = registerPoamItems
-    .filter((i) => i.program === programId)
-    .map(registerPoamRow);
-  const rows = [...oscalRows, ...registerRows];
+  const rows = registerPoamItems
+    .filter((item) => item.program === programId)
+    .map((item) => {
+      const operational = registerPoamRow(item);
+      const legacy = item.legacyUuid
+        ? oscalPoamItems.find((seed) => seed.uuid === item.legacyUuid)
+        : undefined;
+      if (!legacy) return operational;
+      // Keep imported severity/source metadata, with shared fields and any joined
+      // findings coming from the same editable commitment the program displays.
+      const row = oscalPoamRow(legacy);
+      for (const index of [0, 1, 2, 3, 5, 6, 7, 8, 10, 11, 22]) row[index] = operational[index]!;
+      if (findingsForPoam(item.id).length) {
+        for (const index of [4, 9, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21])
+          row[index] = operational[index]!;
+      }
+      return row;
+    });
 
   return {
     kind: "POA&M",
     columns: poamColumns,
     rows,
-    note: `${rows.length} POA&M items of record: ${oscalRows.length} from the OSCAL-shaped register, which carries structured milestones but no finding join, and ${registerRows.length} from the finding-joined remediation register, whose Severity, Likelihood, Impact and Residual Risk Level are computed from the residual score of the worst finding under the item rather than authored. This is the same item set the OSCAL plan-of-action-and-milestones carries. Where an item has no finding joined to it the derived risk columns are the em dash — no value is invented to fill a cell.`,
+    note: `${rows.length} program POA&M commitments, each exported once with its current owner, remediation, dates and milestones. Imported metadata is retained; joined findings supply the derived risk columns where available. This is the same commitment set the OSCAL plan-of-action-and-milestones carries.`,
   };
 }
 

@@ -1,4 +1,5 @@
 import { useCallback, type SetStateAction, useState } from "react";
+import { AddEvidenceDialog } from "@/components/app/program-evidence";
 import { useRecordForm } from "@/lib/record-form";
 /**
  * The control work surface.
@@ -26,8 +27,10 @@ import {
   Stack,
   Table,
   Textarea,
+  TextLink,
 } from "@ledger/design-system";
 import { ActionBarAction, RecordPicker } from "@ledger/design-system";
+import { evidenceForProgram, useEvidenceVersion } from "@/lib/evidence-catalog";
 import { cn } from "@ledger/design-system/cn";
 import {
   activityFor,
@@ -291,14 +294,18 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
 
 export function EvidenceBlock({
   work,
-  available,
   onChange,
 }: {
   work: ControlWork;
-  available: { id: string; label: string; collected: string }[];
+  available?: { id: string; label: string; collected: string }[];
   onChange: () => void;
 }) {
+  useEvidenceVersion();
+  const available = evidenceForProgram(work.program).filter(
+    (artifact) => !artifact.scopeIds.length || artifact.scopeIds.includes(work.scope),
+  );
   const [picking, setPicking] = useState(false);
+  const [adding, setAdding] = useState(false);
   const unlinked = available.filter((a) => !work.evidence.includes(a.id));
 
   return (
@@ -312,7 +319,15 @@ export function EvidenceBlock({
                 <Table.Row key={id}>
                   <Table.Id id={id} width={118} />
                   <Table.Cell className="truncate">
-                    {meta?.label ?? "Not in the evidence store"}
+                    {meta?.url ? (
+                      <TextLink>
+                        <a href={meta.url} target="_blank" rel="noreferrer">
+                          {meta.label}
+                        </a>
+                      </TextLink>
+                    ) : (
+                      (meta?.label ?? "Not in the evidence store")
+                    )}
                   </Table.Cell>
                   <Table.Cell width={124}>{meta?.collected ?? "—"}</Table.Cell>
                   <Table.Cell width={72}>
@@ -336,16 +351,30 @@ export function EvidenceBlock({
         <p className="font-body text-subtle">None linked.</p>
       )}
 
-      <Button className="pt-100" size="small" onClick={() => setPicking(true)}>
-        Link evidence…
-      </Button>
+      <Inline space="space.100" className="pt-100">
+        <Button size="small" onClick={() => setPicking(true)}>
+          Link evidence…
+        </Button>
+        <Button size="small" onClick={() => setAdding(true)}>
+          Add evidence
+        </Button>
+      </Inline>
+      {adding ? (
+        <AddEvidenceDialog
+          programId={work.program}
+          open
+          onClose={() => setAdding(false)}
+          initialLink={{ kind: "control", id: work.control, scopeId: work.scope }}
+          onCreated={onChange}
+        />
+      ) : null}
 
       <RecordPicker
         open={picking}
         onClose={() => setPicking(false)}
         title="Link evidence"
         placeholder="Search by id, source, control or test run…"
-        emptyHint="No artifact matches. Evidence is harvested from findings and test runs."
+        emptyHint="No artifact matches. Add an artifact in the program Evidence tab."
         records={unlinked.map((a) => ({
           id: a.id,
           title: a.label,

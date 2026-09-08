@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ChevronDown, Download, Filter, MoreHorizontal, Pencil, Search, Settings, Trash2, X } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
+import { createRef } from "react";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { Button, ButtonGroup, IconButton } from "../../components";
-import { Inline, Stack, Text } from "../../primitives";
+import { Stack } from "../../primitives";
 import { Matrix as Grid, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/IconButton",
@@ -15,11 +16,13 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Both variants down the side; the two sizes, then selected, loading and disabled across. */
+const matrixAction = fn();
+
+/** All variants and sizes, plus selected, loading and disabled states. */
 export const IconButtonMatrix: Story = {
   render: () => (
     <Grid
-      rows={["secondary", "subtle"] as const}
+      rows={["secondary", "subtle", "primary"] as const}
       cols={["small", "medium", "selected", "loading", "disabled"] as const}
       render={(variant, col) => (
         <IconButton
@@ -30,78 +33,120 @@ export const IconButtonMatrix: Story = {
           isSelected={col === "selected"}
           isLoading={col === "loading"}
           disabled={col === "disabled"}
+          data-testid={`${variant}-${col}`}
+          onClick={matrixAction}
         />
       )}
     />
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    matrixAction.mockClear();
+    for (const variant of ["secondary", "subtle", "primary"]) {
+      for (const col of ["small", "medium", "selected", "loading", "disabled"]) {
+        const button = canvas.getByTestId(`${variant}-${col}`);
+        const size = col === "medium" ? 32 : 28;
+        await expect(button).toHaveAccessibleName("Search");
+        await expect(button).toHaveAttribute("type", "button");
+        await expect(button.getBoundingClientRect().width).toBe(size);
+        await expect(button.getBoundingClientRect().height).toBe(size);
+        const icon = button.querySelector("svg")!;
+        await expect(getComputedStyle(icon).width).toBe(col === "medium" ? "16px" : "14px");
+        if (col !== "loading") await expect(icon).toHaveAttribute("aria-hidden", "true");
+      }
+      await expect(canvas.getByTestId(`${variant}-selected`)).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      const disabled = canvas.getByTestId(`${variant}-disabled`);
+      await expect(disabled).toBeDisabled();
+      await userEvent.click(disabled, { pointerEventsCheck: 0 });
+      const loading = canvas.getByTestId(`${variant}-loading`);
+      await expect(loading).toHaveAttribute("aria-busy", "true");
+      await expect(loading).toHaveAttribute("aria-disabled", "true");
+      await expect(loading).not.toBeDisabled();
+      loading.focus();
+      await userEvent.click(loading);
+      await userEvent.keyboard("{Enter} ");
+      await expect(loading).toHaveFocus();
+    }
+    await expect(matrixAction).not.toHaveBeenCalled();
+  },
 };
 
-/** `icon` is the element, passed bare; `label` is the accessible name and the tooltip. */
-export const IconButtons: Story = {
-  render: () => (
-    <Inline space="space.300" alignBlock="center">
-      <IconButton label="Search" icon={<Search />} />
-      <IconButton label="Settings" variant="subtle" icon={<Settings />} />
-      <IconButton label="Download" size="medium" icon={<Download />} />
-      <IconButton label="Filters" isSelected icon={<Filter />} />
-      <IconButton label="Refreshing" isLoading icon={<Search />} />
-      <IconButton label="Disabled" disabled icon={<Search />} />
-    </Inline>
-  ),
-};
+const searchRef = createRef<HTMLButtonElement>();
+const searchAction = fn();
+const closeAction = fn();
 
-/** Where an IconButton belongs: a toolbar, a row's actions, a header's close, the chevron of a joined pair. */
+/** A named tool, a primary split action, and a close control with its tooltip suppressed. */
 export const InPlace: Story = {
   render: () => (
     <Stack space="space.300">
-      <Specimens title="A toolbar: subtle, small, the label visible on hover">
-        <IconButton label="Filters" variant="subtle" icon={<Filter />} />
-        <IconButton label="Settings" variant="subtle" icon={<Settings />} />
-        <IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />
+      <Specimens title="A toolbar action: its label appears on hover and focus">
+        <IconButton
+          ref={searchRef}
+          id="toolbar-search"
+          label="Search"
+          icon={<Search />}
+          variant="subtle"
+          onClick={searchAction}
+        />
       </Specimens>
-      <Specimens title="A row's actions, beside the text they act on">
-        <Text>Legacy billing gateway</Text>
-        <IconButton label="Edit" variant="subtle" icon={<Pencil />} />
-        <IconButton label="More actions" variant="subtle" icon={<MoreHorizontal />} />
-      </Specimens>
-      <Specimens title="A joined pair: the action and its options">
-        <ButtonGroup>
-          <Button size="small">Export</Button>
-          <IconButton size="small" label="Export options" icon={<ChevronDown />} />
+      <Specimens title="A joined action and its options">
+        <ButtonGroup label="Export">
+          <Button size="small" variant="primary">
+            Export
+          </Button>
+          <IconButton
+            size="small"
+            variant="primary"
+            label="Export options"
+            icon={<ChevronDown />}
+          />
         </ButtonGroup>
       </Specimens>
-      <Specimens title="A header's close, medium beside medium controls">
-        <IconButton label="Close" variant="subtle" size="medium" icon={<X />} />
+      <Specimens title="A close control: a parent can supply its own tooltip">
+        <IconButton
+          label="Close"
+          variant="subtle"
+          size="medium"
+          icon={<X />}
+          isTooltipDisabled
+          onClick={closeAction}
+        />
       </Specimens>
     </Stack>
   ),
-};
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Inline space="space.100">
-            <Button variant="subtle">Cancel</Button>
-            <Button variant="danger" iconBefore={<Trash2 />}>
-              Delete program
-            </Button>
-          </Inline>
-        }
-        doText="A destructive action carries its word."
-        dont={<IconButton label="Delete program" icon={<Trash2 />} />}
-        dontText="An icon alone for Delete. The reader finds out what it did after it did it."
-      />
-      <Pair
-        do={<IconButton label="Search" icon={<Search />} />}
-        doText="The label names the action: Search."
-        dont={<IconButton label="Magnifier" icon={<Search />} />}
-        dontText="The label names the picture. A screen reader hears 'Magnifier' and learns nothing."
-      />
-    </Stack>
-  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    searchAction.mockClear();
+    closeAction.mockClear();
+    const search = canvas.getByRole("button", { name: "Search" });
+    await expect(searchRef.current).toBe(search);
+    await expect(search.tagName).toBe("BUTTON");
+    await expect(search).toHaveAttribute("id", "toolbar-search");
+    search.focus();
+    await expect(await page.findByRole("tooltip")).toHaveTextContent("Search");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("tooltip")).not.toBeInTheDocument());
+    await userEvent.keyboard("{Enter} ");
+    await expect(searchAction).toHaveBeenCalledTimes(2);
+    await userEvent.hover(search);
+    await expect(await page.findByRole("tooltip")).toHaveTextContent("Search");
+    await userEvent.unhover(search);
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: "Export" })).toHaveFocus();
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: "Export options" })).toHaveFocus();
+    await userEvent.tab();
+    const close = canvas.getByRole("button", { name: "Close" });
+    await expect(close).toHaveFocus();
+    await expect(close).not.toHaveAttribute("aria-describedby");
+    await userEvent.keyboard("{Enter}");
+    await expect(closeAction).toHaveBeenCalledTimes(1);
+    await expect(close).toHaveAccessibleName("Close");
+  },
 };
 
 export const Playground: Story = { args: { variant: "secondary", size: "small" } };

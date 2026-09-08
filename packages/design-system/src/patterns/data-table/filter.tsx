@@ -5,12 +5,13 @@ import { useMemo, useState, type ReactNode } from "react";
 
 import { Count } from "../../components/badge";
 import { Button } from "../../components/button";
+import { Checkbox } from "../../components/checkbox";
 import { FilterChip } from "../../components/chip";
-import { Checkbox, Input } from "../../components/controls";
+import { Input } from "../../components/controls";
 import { DropdownMenu } from "../../components/dropdown-menu";
 import { InputGroup } from "../../components/input-group";
-import { Popover } from "../../components/popover";
-import { ToggleGroup } from "../../components/toggle";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/popover";
+import { ToggleGroup, ToggleGroupItem } from "../../components/toggle-group";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
@@ -42,24 +43,25 @@ function FacetBody({
   return (
     <div className="flex flex-col gap-075">
       {values.map(([value, count]) => (
-        <Checkbox
+        <label
           key={String(value)}
-          checked={has(value)}
-          onCheckedChange={(next) =>
-            onChange(
-              next === true
-                ? [...chosen, value]
-                : chosen.filter((c) => String(c) !== String(value)),
-            )
-          }
+          className="inline-flex items-center gap-100 font-body text-default"
         >
-          <span className="flex items-center gap-100">
+          <Checkbox
+            checked={has(value)}
+            onCheckedChange={(checked) =>
+              onChange(
+                checked ? [...chosen, value] : chosen.filter((c) => String(c) !== String(value)),
+              )
+            }
+          />
+          <span className="flex select-none items-center gap-100">
             <span>{String(value)}</span>
             <span className="tabular-nums font-body-small text-subtlest">
               {formatNumber(count)}
             </span>
           </span>
-        </Checkbox>
+        </label>
       ))}
     </div>
   );
@@ -127,7 +129,14 @@ export function Filter<TData extends RowData>({
   const title = label ?? (typeof header === "string" ? header : columnId);
   const raw = column?.getFilterValue();
   const facets = useMemo(() => {
-    if (!column || kind === "number" || kind === "date" || kind === "custom" || kind === "actions")
+    if (
+      !column ||
+      kind === "number" ||
+      kind === "date" ||
+      kind === "list" ||
+      kind === "custom" ||
+      kind === "actions"
+    )
       return null;
     const values = [...column.getFacetedUniqueValues().entries()].filter(
       ([v]) => v != null && v !== "",
@@ -197,22 +206,22 @@ export function Filter<TData extends RowData>({
   }
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-      width={width}
-      trigger={<FilterChip label={title} value={value} isActive={value !== undefined} />}
-    >
-      <div className="flex flex-col gap-100">
-        {body}
-        {value !== undefined ? (
-          <div className="flex justify-end">
-            <Button variant="link" size="small" onClick={() => column.setFilterValue(undefined)}>
-              {t("clear")}
-            </Button>
-          </div>
-        ) : null}
-      </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={<FilterChip label={title} value={value} isActive={value !== undefined} />}
+      />
+      <PopoverContent aria-label={title} align="start" style={{ width }}>
+        <div className="flex flex-col gap-100">
+          {body}
+          {value !== undefined ? (
+            <div className="flex justify-end">
+              <Button variant="link" size="small" onClick={() => column.setFilterValue(undefined)}>
+                {t("clear")}
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      </PopoverContent>
     </Popover>
   );
 }
@@ -249,7 +258,7 @@ export type Preset = {
   filters?: ColumnFiltersState | undefined;
 };
 
-/** How many rows a set of column filters would show, of every row: before search and before pagination. */
+/** How many rows a set of column filters would show, of every row, a tree's nested rows included: before search and before pagination. */
 export function countRows<TData extends RowData>(
   table: DataTableInstance<TData>,
   filters: ColumnFiltersState = [],
@@ -260,7 +269,7 @@ export function countRows<TData extends RowData>(
   });
   return table
     .getPreFilteredRowModel()
-    .rows.filter((row) => resolved.every((f) => f.fn(row, f.id, f.value))).length;
+    .flatRows.filter((row) => resolved.every((f) => f.fn(row, f.id, f.value))).length;
 }
 
 /**
@@ -322,16 +331,20 @@ export function Presets<TData extends RowData>({
     <ToggleGroup<string>
       aria-label={ariaLabel ?? t("savedQuestions")}
       className={className}
-      value={active?.id ?? ""}
-      onChange={(id) => {
+      size="sm"
+      value={active ? [active.id] : []}
+      onValueChange={([id]) => {
+        if (id === undefined) return;
         const preset = presets.find((p) => p.id === id);
         table.setColumnFilters(preset?.filters ?? []);
       }}
-      items={presets.map((p) => ({
-        value: p.id,
-        label: p.label,
-        count: countRows(table, p.filters),
-      }))}
-    />
+    >
+      {presets.map((p) => (
+        <ToggleGroupItem key={p.id} value={p.id}>
+          {p.label}
+          <Count value={countRows(table, p.filters)} max={9999} />
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   );
 }

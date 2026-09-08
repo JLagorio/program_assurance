@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Box, Button, PageHeader, Section, Stack, TextLink } from "@ledger/design-system";
+import { Box, buttonVariants, PageHeader, Section, Stack, TextLink } from "@ledger/design-system";
 
 import { ActivityFeed } from "@/components/app/record-activity";
 import { Shell } from "@/components/app/shell";
@@ -45,9 +45,9 @@ function MyWork() {
         <PageHeader
           title="My work"
           actions={
-            <Button size="small" asChild>
-              <Link to="/scope">Control set changes</Link>
-            </Button>
+            <Link to="/scope" className={buttonVariants({ size: "small" })}>
+              Control set changes
+            </Link>
           }
         />
 

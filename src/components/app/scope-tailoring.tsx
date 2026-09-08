@@ -32,6 +32,7 @@ import {
   Table,
   Textarea,
   ToggleGroup,
+  ToggleGroupItem,
 } from "@ledger/design-system";
 import {
   contestedOverlays,
@@ -123,9 +124,10 @@ export function ScopeTailoringPane({
           count={`CNSSI 1253 · ${triadLabel(p)}`}
           action={
             inherits && !readOnly ? (
-              <Switch checked={inherits.on} onCheckedChange={(v) => inherits.onToggle(v === true)}>
-                Inherits program categorization
-              </Switch>
+              <label className="inline-flex items-center gap-100 font-body text-default">
+                <Switch checked={inherits.on} onCheckedChange={inherits.onToggle} />
+                <span className="select-none">Inherits program categorization</span>
+              </label>
             ) : null
           }
         >
@@ -165,10 +167,19 @@ export function ScopeTailoringPane({
                   ) : (
                     <ToggleGroup
                       aria-label={`${o} impact`}
-                      value={value}
-                      onChange={(v) => setParameters({ [key]: v } as Partial<SystemParameters>)}
-                      items={impactLevels.map((l) => ({ value: l, label: l }))}
-                    />
+                      size="sm"
+                      value={[value]}
+                      onValueChange={([next]) => {
+                        if (next !== undefined)
+                          setParameters({ [key]: next } as Partial<SystemParameters>);
+                      }}
+                    >
+                      {impactLevels.map((l) => (
+                        <ToggleGroupItem key={l} value={l}>
+                          {l}
+                        </ToggleGroupItem>
+                      ))}
+                    </ToggleGroup>
                   )}
                 </Inline>
               );
@@ -292,24 +303,27 @@ export function ScopeTailoringPane({
                 </Field>
               </Grid>
               <Inline space="space.300" rowSpace="space.100" shouldWrap>
-                <Checkbox
-                  checked={p.handlesPii}
-                  onCheckedChange={(v) => setParameters({ handlesPii: v === true })}
-                >
-                  Handles PII
-                </Checkbox>
-                <Checkbox
-                  checked={p.crossDomain}
-                  onCheckedChange={(v) => setParameters({ crossDomain: v === true })}
-                >
-                  Cross-domain
-                </Checkbox>
-                <Checkbox
-                  checked={p.safetyCritical}
-                  onCheckedChange={(v) => setParameters({ safetyCritical: v === true })}
-                >
-                  Safety-critical
-                </Checkbox>
+                <label className="inline-flex items-center gap-100 font-body text-default">
+                  <Checkbox
+                    checked={p.handlesPii}
+                    onCheckedChange={(handlesPii) => setParameters({ handlesPii })}
+                  />
+                  <span className="select-none">Handles PII</span>
+                </label>
+                <label className="inline-flex items-center gap-100 font-body text-default">
+                  <Checkbox
+                    checked={p.crossDomain}
+                    onCheckedChange={(crossDomain) => setParameters({ crossDomain })}
+                  />
+                  <span className="select-none">Cross-domain</span>
+                </label>
+                <label className="inline-flex items-center gap-100 font-body text-default">
+                  <Checkbox
+                    checked={p.safetyCritical}
+                    onCheckedChange={(safetyCritical) => setParameters({ safetyCritical })}
+                  />
+                  <span className="select-none">Safety-critical</span>
+                </label>
               </Inline>
             </Stack>
           )}
@@ -346,10 +360,10 @@ export function ScopeTailoringPane({
                         aria-label={`Apply ${overlay.name}`}
                         checked={d.applied}
                         disabled={readOnly}
-                        onCheckedChange={(v) =>
+                        onCheckedChange={(checked) =>
                           onChange({
                             overlays: decideOverlay(draft.overlays, d.overlay, {
-                              applied: v === true,
+                              applied: checked,
                             }),
                           })
                         }

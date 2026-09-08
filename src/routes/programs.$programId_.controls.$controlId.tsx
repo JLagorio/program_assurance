@@ -57,7 +57,6 @@ import {
   workFor,
 } from "@/lib/control-work";
 import { useControlMatrix } from "@/lib/control-matrix";
-import { evidenceCatalog } from "@/lib/evidence-catalog";
 import { isOpen } from "@/lib/findings";
 import { programs } from "@/lib/grc-data";
 import { catalogVersion } from "@/lib/nist-catalog";
@@ -75,9 +74,14 @@ import { askFor, createTask, gateTaskFor, resolveGateTasks, useTasksVersion } fr
  * the feed with the log bar last.
  */
 export const Route = createFileRoute("/programs/$programId_/controls/$controlId")({
-  validateSearch: (search: Record<string, unknown>): { tab?: string | undefined } => {
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { tab?: string | undefined; scope?: string | undefined } => {
     const raw = search["tab"];
-    return { tab: typeof raw === "string" && raw ? raw : undefined };
+    return {
+      tab: typeof raw === "string" && raw ? raw : undefined,
+      scope: typeof search["scope"] === "string" ? search["scope"] : undefined,
+    };
   },
   loader: async ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
@@ -111,13 +115,16 @@ function ControlRecord() {
   const requirementsVersion = useRequirementsVersion();
   useTasksVersion();
   const scopes = useMemo(() => scopesForProgram(programId), [programId]);
+  const requestedScope = Route.useSearch().scope;
   const [scopeId, setScopeId] = useState(
     () =>
+      (scopes.some((scope) => scope.id === requestedScope) ? requestedScope : undefined) ??
       preferredScope(
         programId,
         controlId,
         scopes.map((s) => s.id),
-      ) ?? "",
+      ) ??
+      "",
   );
   const [, tick] = useState(0);
   const refresh = () => tick((n) => n + 1);
@@ -465,7 +472,7 @@ function ControlRecord() {
 
         <Section title="Evidence" count={work.evidence.length || null}>
           <Box paddingBlockStart="space.100">
-            <EvidenceBlock work={work} available={evidenceCatalog} onChange={refresh} />
+            <EvidenceBlock work={work} onChange={refresh} />
           </Box>
         </Section>
 

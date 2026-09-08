@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useRef, useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, Calendar, DatePicker, Field, Input, useRequired } from "../../components";
+import { Button, Calendar, DatePicker, Dialog, Field, Input, useRequired } from "../../components";
 import { Inline, Stack } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -65,36 +66,93 @@ export const Open: Story = {
 };
 
 function FormDemo() {
+  const [open, setOpen] = useState(false);
   const [scheduled, setScheduled] = useState("");
   const [target, setTarget] = useState("2026-10-02");
   const req = useRequired({ scheduled });
   return (
-    <div style={{ width: 360 }}>
-      <Stack space="space.200">
-        <Field
-          label="Scheduled completion"
-          isRequired
-          hint="When the milestone is due."
-          error={req.errorFor("scheduled")}
-        >
-          <DatePicker value={scheduled} onChange={setScheduled} />
-        </Field>
-        <Field label="Target date" hint="Optional. Clear it if the target is not set.">
-          <DatePicker value={target} onChange={setTarget} />
-        </Field>
-        <Inline space="space.100" alignInline="end">
-          <Button variant="subtle">Cancel</Button>
-          <Button variant="primary" onClick={() => req.check()}>
-            Save milestone
-          </Button>
-        </Inline>
-      </Stack>
-    </div>
+    <>
+      <Button onClick={() => setOpen(true)}>Edit milestone dates</Button>
+      <Dialog open={open} onClose={() => setOpen(false)} title="Milestone dates">
+        <Stack space="space.200">
+          <Field
+            label="Scheduled completion"
+            isRequired
+            hint="When the milestone is due."
+            error={req.errorFor("scheduled")}
+          >
+            <DatePicker value={scheduled} onChange={setScheduled} />
+          </Field>
+          <Field label="Target date" hint="Optional. Clear it if the target is not set.">
+            <DatePicker value={target} onChange={setTarget} />
+          </Field>
+          <Inline space="space.100" alignInline="end">
+            <Button variant="subtle" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                if (req.check()) setOpen(false);
+              }}
+            >
+              Save milestone
+            </Button>
+          </Inline>
+        </Stack>
+      </Dialog>
+    </>
   );
 }
 
-/** Inside a Field with a label, a hint and, on submit, the error. Press Save with the first date unchosen; clear the second from its month. */
-export const InField: Story = { render: () => <FormDemo /> };
+/** A milestone form in a dialog: required validation and a calendar that closes back to its field before the dialog closes. */
+export const InField: Story = {
+  render: () => <FormDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
+    const expectPointerTarget = async (button: HTMLElement) => {
+      await waitFor(() => {
+        const bounds = button.getBoundingClientRect();
+        const hit = button.ownerDocument.elementFromPoint(
+          bounds.left + bounds.width / 2,
+          bounds.top + bounds.height / 2,
+        );
+        expect(button.contains(hit)).toBe(true);
+      });
+    };
+    const opener = canvas.getByRole("button", { name: "Edit milestone dates" });
+    await userEvent.click(opener);
+    const dialog = await screen.findByRole("dialog", { name: "Milestone dates" });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save milestone" }));
+    await expect(within(dialog).getByRole("alert")).toHaveTextContent("Required.");
+
+    const target = within(dialog).getByRole("button", { name: "Target date" });
+    await userEvent.click(target);
+    const calendar = await screen.findByRole("dialog", { name: "Choose a date" });
+    await waitFor(() => expect(calendar.contains(calendar.ownerDocument.activeElement)).toBe(true));
+    await expectPointerTarget(within(calendar).getByRole("button", { name: "Today" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Choose a date" })).toBeNull());
+    await expect(dialog).toBeVisible();
+    await waitFor(() => expect(target).toHaveFocus());
+
+    await userEvent.click(target);
+    const reopened = await screen.findByRole("dialog", { name: "Choose a date" });
+    const clear = within(reopened).getByRole("button", { name: "Clear" });
+    await expectPointerTarget(clear);
+    await userEvent.click(clear);
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Choose a date" })).toBeNull());
+    await expect(target).toHaveTextContent("Choose a date");
+    await expect(dialog).toBeVisible();
+    await waitFor(() => expect(target).toHaveFocus());
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Milestone dates" })).toBeNull(),
+    );
+    await waitFor(() => expect(opener).toHaveFocus());
+  },
+};
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
@@ -190,16 +248,17 @@ function NativeFormDemo() {
 export const NativeForm: Story = {
   render: () => <NativeFormDemo />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
     const form = canvas.getByRole("form", { name: "Date submission" }) as HTMLFormElement;
     const value = (name: string) => new FormData(form).get(name);
     await expect(value("scheduled")).toBe("2026-09-18");
     await expect(value("external")).toBe("2026-09-22");
     await userEvent.click(canvas.getByRole("button", { name: "Uncontrolled date" }));
     await expect(value("scheduled")).toBe("2026-09-18");
-    await userEvent.click(within(document.body).getByRole("button", { name: "Clear" }));
+    await userEvent.click(screen.getByRole("button", { name: "Clear" }));
     await waitFor(() => expect(value("scheduled")).toBe(""));
+    await waitFor(() => expect(screen.queryByRole("dialog", { hidden: true })).toBeNull());
     await userEvent.click(canvas.getByRole("button", { name: "Reset dates" }));
     await waitFor(() => expect(value("scheduled")).toBe("2026-09-18"));
     await expect(value("controlled")).toBe("2026-09-20");
@@ -245,7 +304,6 @@ function FocusIntegrationDemo() {
 export const FocusIntegration: Story = {
   render: () => <FocusIntegrationDemo />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: "Validate date" }));
     const trigger = canvas.getByRole("button", { name: "Due date" });

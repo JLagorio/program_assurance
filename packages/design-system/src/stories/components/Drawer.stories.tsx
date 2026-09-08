@@ -49,10 +49,22 @@ const actions = (
 
 const filters = (
   <Stack space="space.100">
-    <Checkbox defaultChecked>Overdue</Checkbox>
-    <Checkbox>In review</Checkbox>
-    <Checkbox>Verified</Checkbox>
-    <Checkbox>Draft</Checkbox>
+    <label className="inline-flex items-center gap-100">
+      <Checkbox defaultChecked />
+      Overdue
+    </label>
+    <label className="inline-flex items-center gap-100">
+      <Checkbox />
+      In review
+    </label>
+    <label className="inline-flex items-center gap-100">
+      <Checkbox />
+      Verified
+    </label>
+    <label className="inline-flex items-center gap-100">
+      <Checkbox />
+      Draft
+    </label>
   </Stack>
 );
 

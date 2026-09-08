@@ -1400,6 +1400,8 @@ export type ProgramGate = LifecycleGate & {
   actual: string;
   owner: string;
   artifact: string;
+  dependsOn?: string[];
+  workstreams?: string[];
 };
 
 type GateOverride = {
@@ -1495,16 +1497,23 @@ const gateDates = [
   "Nov 19, 2026",
 ];
 
+const scheduleGateRecords = new Map<string, Map<string, ProgramGate>>();
+
+/** The schedule command store supplies persisted, program-owned gate records. */
+export function setProgramGateRecord(programId: string, gate: ProgramGate) {
+  const records = scheduleGateRecords.get(programId) ?? new Map<string, ProgramGate>();
+  records.set(gate.id, { ...gate });
+  scheduleGateRecords.set(programId, records);
+}
+
 export function gatesForProgram(programId: string): ProgramGate[] {
-  // A program created at runtime has no seeded lifecycle. A Draft one sits at
-  // the first gate with nobody assigned; anything else borrows the reference
-  // configuration as before.
-  const draft = programs.find((p) => p.id === programId)?.status === "Draft";
-  const cfg =
-    programLifecycle[programId] ??
-    (draft ? { current: lifecycleGates[0]!.id, owners: {} } : programLifecycle["PRG-1028"]!);
+  const cfg = programLifecycle[programId];
+  const overrides = scheduleGateRecords.get(programId);
+  // A new program starts with its own empty plan. It must never borrow another
+  // program's dates, artifacts or approvals.
+  if (!cfg) return [...(overrides?.values() ?? [])].map((gate) => ({ ...gate }));
   const currentIndex = lifecycleGates.findIndex((g) => g.id === cfg.current);
-  return lifecycleGates.map((gate, i) => {
+  const seeded = lifecycleGates.map((gate, i) => {
     const base: ProgramGate = {
       ...gate,
       status: i < currentIndex ? "Complete" : i === currentIndex ? "In progress" : "Planned",
@@ -1513,6 +1522,8 @@ export function gatesForProgram(programId: string): ProgramGate[] {
       owner: cfg.owners[gate.kind] ?? "Unassigned",
       artifact: i < currentIndex ? `${gate.id} package` : "—",
     };
-    return { ...base, ...(cfg.overrides?.[gate.id] ?? {}) };
+    return { ...base, ...(cfg.overrides?.[gate.id] ?? {}), ...overrides?.get(gate.id) };
   });
+  const seedIds = new Set(seeded.map((gate) => gate.id));
+  return [...seeded, ...[...(overrides?.values() ?? [])].filter((gate) => !seedIds.has(gate.id))];
 }

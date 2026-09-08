@@ -1,88 +1,120 @@
-import { useLedgerLocale } from "../lib/locale";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { DirectionProvider, useDirection } from "@base-ui/react/direction-provider";
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
+import type { ComponentProps } from "react";
 
+import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
-import { menuMotion } from "./menu";
+import { useLedgerLocale } from "../lib/locale";
+import { useOverlayContainer } from "./_overlay-focus";
 
-type Side = NonNullable<ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>["side"]>;
-type Align = NonNullable<ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>["align"]>;
+export type PopoverProps<Payload = unknown> = PopoverPrimitive.Root.Props<Payload>;
 
-export type PopoverProps = {
-  /** One focusable element that takes a ref and props, usually a Button or an IconButton. It carries the aria. */
-  trigger: ReactNode;
-  /** The dialog's accessible name: what the task is ("Filters", "Choose a date"). */
-  label?: string | undefined;
-  /** Which side of the trigger; it flips when there is no room. `bottom` by default. */
-  side?: Side | undefined;
-  /** `start` by default: the surface's edge flush with the trigger's. */
-  align?: Align | undefined;
-  /** The surface's width in pixels. Unset, it is as wide as its content. */
-  width?: number | undefined;
-  /** The surface as wide as its trigger: a list under a field. */
-  matchTriggerWidth?: boolean | undefined;
-  /** Starts open. For a story. */
-  defaultOpen?: boolean | undefined;
-  /** Owned from outside, with `onOpenChange`: a popover that closes when its task is done. */
-  open?: boolean | undefined;
-  onOpenChange?: ((open: boolean) => void) | undefined;
-  className?: string | undefined;
-  /** The task: a small form, a list of checkboxes, a picker. Anything larger is a Sheet. */
-  children: ReactNode;
-};
-
-/** An anchored surface for a small task: a filter form, a picker, a confirmation. Closes on Escape, an outside click, or Popover.Close. */
-function PopoverRoot({
-  trigger,
-  label,
-  side = "bottom",
-  align = "start",
-  width,
-  matchTriggerWidth = false,
-  defaultOpen = false,
-  open,
-  onOpenChange,
-  className,
-  children,
-}: PopoverProps) {
+export function Popover<Payload = unknown>(props: PopoverProps<Payload>) {
   const { direction } = useLedgerLocale();
   return (
-    <PopoverPrimitive.Root
-      {...(open === undefined ? { defaultOpen } : { open })}
-      {...(onOpenChange ? { onOpenChange } : {})}
-    >
-      <PopoverPrimitive.Trigger asChild>{trigger}</PopoverPrimitive.Trigger>
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
-          dir={direction}
-          side={side}
-          align={align}
-          sideOffset={4}
-          collisionPadding={8}
-          aria-label={label}
-          style={
-            width
-              ? { width }
-              : matchTriggerWidth
-                ? { width: "var(--radix-popover-trigger-width)" }
-                : undefined
-          }
-          className={cn(
-            "z-50 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none",
-            menuMotion,
-            className,
-          )}
-        >
-          {children}
-        </PopoverPrimitive.Content>
-      </PopoverPrimitive.Portal>
-    </PopoverPrimitive.Root>
+    <DirectionProvider direction={direction}>
+      <PopoverPrimitive.Root {...props} />
+    </DirectionProvider>
   );
 }
 
-/** Closes the popover it sits in. Wraps one element, usually a Button. */
-function PopoverClose({ children }: { children: ReactNode }) {
-  return <PopoverPrimitive.Close asChild>{children}</PopoverPrimitive.Close>;
+export type PopoverTriggerProps<Payload = unknown> = PopoverPrimitive.Trigger.Props<Payload>;
+
+export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Payload>) {
+  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
 }
 
-export const Popover = Object.assign(PopoverRoot, { Close: PopoverClose });
+export type PopoverContentProps = PopoverPrimitive.Popup.Props &
+  Pick<PopoverPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">;
+
+export function PopoverContent({
+  className,
+  style,
+  dir,
+  align = "center",
+  alignOffset = 0,
+  side = "bottom",
+  sideOffset = 4,
+  ...props
+}: PopoverContentProps) {
+  const inheritedDirection = useDirection();
+  const portal = useOverlayContainer();
+  const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
+  const defaults = {
+    width: 288,
+    maxWidth: "var(--available-width)",
+    transformOrigin: "var(--transform-origin)",
+  };
+  return (
+    <DirectionProvider direction={direction}>
+      <span hidden ref={portal.ref} />
+      <PopoverPrimitive.Portal data-slot="popover-portal" container={portal.container}>
+        <PopoverPrimitive.Positioner
+          align={align}
+          alignOffset={alignOffset}
+          side={side}
+          sideOffset={sideOffset}
+          positionMethod={portal.container ? "fixed" : undefined}
+          className="isolate z-50"
+        >
+          <PopoverPrimitive.Popup
+            data-slot="popover-content"
+            dir={dir ?? direction}
+            className={classes(
+              "flex flex-col gap-100 rounded-large border border-default bg-surface-overlay p-150 font-body-small text-default shadow-overlay outline-none data-open:animate-enter data-closed:animate-exit data-instant:animate-none motion-reduce:animate-none",
+              className,
+            )}
+            style={
+              typeof style === "function"
+                ? (state) => ({ ...defaults, ...style(state) })
+                : { ...defaults, ...style }
+            }
+            {...props}
+          />
+        </PopoverPrimitive.Positioner>
+      </PopoverPrimitive.Portal>
+    </DirectionProvider>
+  );
+}
+
+export type PopoverHeaderProps = ComponentProps<"div">;
+
+export function PopoverHeader({ className, ...props }: PopoverHeaderProps) {
+  return (
+    <div
+      data-slot="popover-header"
+      className={cn("flex flex-col gap-025 font-body-small", className)}
+      {...props}
+    />
+  );
+}
+
+export type PopoverTitleProps = PopoverPrimitive.Title.Props;
+
+export function PopoverTitle({ className, ...props }: PopoverTitleProps) {
+  return (
+    <PopoverPrimitive.Title
+      data-slot="popover-title"
+      className={classes("font-medium", className)}
+      {...props}
+    />
+  );
+}
+
+export type PopoverDescriptionProps = PopoverPrimitive.Description.Props;
+
+export function PopoverDescription({ className, ...props }: PopoverDescriptionProps) {
+  return (
+    <PopoverPrimitive.Description
+      data-slot="popover-description"
+      className={classes("text-subtle", className)}
+      {...props}
+    />
+  );
+}
+
+export type PopoverCloseProps = PopoverPrimitive.Close.Props;
+
+export function PopoverClose(props: PopoverCloseProps) {
+  return <PopoverPrimitive.Close data-slot="popover-close" {...props} />;
+}

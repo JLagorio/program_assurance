@@ -39,6 +39,7 @@
  * it except `@/lib/airgap` and the export route, so it introduces no cycle.
  */
 
+import { evidenceById } from "@/lib/evidence-catalog";
 import { authorizedBuild } from "@/lib/baselines";
 import { campaigns, objectiveById } from "@/lib/campaigns";
 import {
@@ -50,7 +51,7 @@ import {
   type CompositionNode,
 } from "@/lib/composition";
 import { controlMatrix } from "@/lib/control-matrix";
-import { assetById, assets, findings, isOpen, type Finding } from "@/lib/findings";
+import { assetById, assets, findings, findingProgram, isOpen, type Finding } from "@/lib/findings";
 import {
   poamItems as oscalPoamItems,
   programs,
@@ -70,7 +71,13 @@ import {
 import { scoreRisk } from "@/lib/risk-scoring";
 import type { SctmRow } from "@/lib/sctm";
 import { effectsForScenario, phasesForProgram, scenariosForProgram } from "@/lib/te-phases";
-import { procedures } from "@/lib/test-execution";
+import { allTestRuns, procedures, resolvedObjectiveResult } from "@/lib/test-execution";
+import { ancestorsOfRequirement, getRequirement, requirementsForControl } from "@/lib/requirements";
+import {
+  objectiveProgram,
+  objectivesForRequirement,
+  requirementsForObjective,
+} from "@/lib/requirement-verification";
 
 /* ── JSON model ──────────────────────────────────────────────────────────── */
 
@@ -516,9 +523,13 @@ function partySet(program: Program, providers: ResolvedInheritance[]): PartySet 
    * carry them too: a declared party nothing references is inert, while a
    * reference to a party nothing declares is a broken artifact.
    */
-  const assetIds = new Set(programAssets.map((a) => a.id));
   const findingAssessors = dedupe(
-    findings.filter((f) => assetIds.has(f.asset)).map((f) => f.assessment.assessedBy),
+    findings
+      .filter((f) => findingProgram(f) === program.id)
+      .flatMap((f) => [
+        f.assessment.assessedBy,
+        ...(f.retests ?? []).map((retest) => retest.assessor),
+      ]),
   ).sort();
   const poamOrigins = dedupe(
     oscalPoamItems
@@ -1150,17 +1161,42 @@ function implementedRequirement(
 
 /* ── Back matter ─────────────────────────────────────────────────────────── */
 
-function evidenceResources(rows: SctmRow[]): JsonObject[] {
-  return dedupe(rows.flatMap((r) => r.evidence))
+function evidenceResources(rows: SctmRow[], additional: string[] = []): JsonObject[] {
+  return dedupe([...rows.flatMap((r) => r.evidence), ...additional])
     .sort()
-    .map((id) => ({
-      uuid: stableUuid(`resource|${id}`),
-      title: id,
-      description: /^EVD-/.test(id)
-        ? `Evidence artifact ${id} held in the assessment record.`
-        : `Provider attestation "${id}" carried on an inherited control offer.`,
-      props: [eq("evidence-kind", /^EVD-/.test(id) ? "artifact" : "provider attestation")],
-    }));
+    .map((id) => {
+      const artifact = evidenceById(id);
+      return {
+        uuid: stableUuid(`resource|${id}`),
+        title: artifact ? `${id} — ${artifact.label}` : id,
+        description:
+          artifact?.provenance ??
+          (/^EVD-/.test(id)
+            ? `Evidence reference ${id}; artifact location is not recorded.`
+            : `Provider attestation "${id}" carried on an inherited control offer.`),
+        props: [
+          eq(
+            "evidence-kind",
+            artifact?.kind ?? (/^EVD-/.test(id) ? "artifact" : "provider attestation"),
+          ),
+          ...(artifact
+            ? [
+                eq("artifact-version", artifact.version),
+                eq("artifact-owner", artifact.owner),
+                eq("collected-on", artifact.collected),
+                eq("review-status", artifact.review),
+                ...artifact.links.map((target) =>
+                  eq(
+                    "supports",
+                    `${target.kind}:${target.id}${target.scopeId ? `:${target.scopeId}` : ""}`,
+                  ),
+                ),
+              ]
+            : []),
+        ],
+        ...(artifact?.url ? { rlinks: [{ href: artifact.url }] } : {}),
+      };
+    });
 }
 
 /* ── SSP ─────────────────────────────────────────────────────────────────── */
@@ -1272,6 +1308,61 @@ export function oscalSsp(programId: string, rows: SctmRow[]): OscalDocument {
 
 /* ── Assessment plan ─────────────────────────────────────────────────────── */
 
+/** Locally authored requirements are explicit assessment objectives, never catalog CCIs. */
+function engineeringObjectives(programId: string): JsonObject[] {
+  return controlMatrix(programId).flatMap((control) =>
+    requirementsForControl(control.id, programId)
+      .filter((requirement) => objectivesForRequirement(requirement.id).length > 0)
+      .map((requirement) => {
+        const objectiveIds = new Set(
+          objectivesForRequirement(requirement.id).map((objective) => objective.id),
+        );
+        const methods = procedures.filter((procedure) => objectiveIds.has(procedure.objective));
+        return {
+          "control-id": oscalControlId(control.id),
+          description: requirement.text,
+          parts: [
+            {
+              id: `${oscalControlId(control.id)}_${requirement.id}`,
+              name: "assessment-objective",
+              prose: requirement.text,
+              ...listOf(
+                "props",
+                methods.map((procedure) =>
+                  prop(
+                    "method-id",
+                    `method-${oscalControlId(control.id)}-${requirement.id}-${procedure.id}`,
+                  ),
+                ),
+              ),
+            },
+            ...methods.map((procedure) => ({
+              id: `method-${oscalControlId(control.id)}-${requirement.id}-${procedure.id}`,
+              name: "assessment-method",
+              props: [
+                prop(
+                  "method",
+                  (
+                    procedure.assessmentMethod ??
+                    (procedure.method === "Test" || procedure.method === "Demonstration"
+                      ? "Test"
+                      : "Examine")
+                  ).toUpperCase(),
+                ),
+              ],
+              parts: [
+                {
+                  name: "assessment-objects",
+                  prose: procedure.steps.map((step) => step.action).join(" "),
+                },
+              ],
+            })),
+          ],
+        };
+      }),
+  );
+}
+
 function procedureActivity(procedureId: string): JsonObject | null {
   const procedure = procedures.find((p) => p.id === procedureId);
   if (!procedure) return null;
@@ -1280,17 +1371,31 @@ function procedureActivity(procedureId: string): JsonObject | null {
    * A control-selection that includes nothing selects nothing, so the whole
    * `related-controls` assembly is dropped rather than left hollow.
    */
-  const includeControls = dedupe(
-    (objective?.ccis ?? []).flatMap((cci) =>
+  const includeControls = dedupe([
+    ...(objective?.ccis ?? []).flatMap((cci) =>
       findings.filter((f) => f.cci === cci).map((f) => f.control),
     ),
-  ).map((control) => ({ "control-id": oscalControlId(control) }));
+    ...requirementsForObjective(procedure.objective).flatMap((id) =>
+      [getRequirement(id), ...ancestorsOfRequirement(id)].flatMap(
+        (requirement) =>
+          requirement?.derivations
+            .filter(
+              (source) =>
+                source.sourceType === "Control statement" || source.sourceType === "Overlay",
+            )
+            .map((source) => source.sourceId) ?? [],
+      ),
+    ),
+  ]).map((control) => ({ "control-id": oscalControlId(control) }));
   return {
     uuid: stableUuid(`activity|${procedure.id}`),
     title: `${procedure.id} — ${procedure.title}`,
     description: `${objective?.statement ?? "Test objective not on file."} Written against ${procedure.nodes.join(", ")}; ${procedure.duration} minutes of wall clock; authored by ${procedure.author} at ${procedure.version}.`,
     props: [
-      eq("verification-method", procedure.method),
+      eq("verification-method", procedure.assessmentMethod ?? procedure.method),
+      ...requirementsForObjective(procedure.objective).map((id) =>
+        eq("engineering-requirement", id),
+      ),
       eq("test-objective", procedure.objective),
       eq("duration-minutes", String(procedure.duration)),
       ...procedure.preconditions.map((p) => eq("precondition", p)),
@@ -1331,6 +1436,7 @@ export function oscalAssessmentPlan(programId: string): OscalDocument {
   const tools = dedupe(scans.map((s) => s.tool)).sort();
 
   const activities = procedures
+    .filter((procedure) => objectiveProgram(procedure.objective) === program.id)
     .map((p) => procedureActivity(p.id))
     .filter((a): a is JsonObject => a !== null);
   const programAssets = assets.filter((a) => a.program === program.id);
@@ -1458,7 +1564,8 @@ export function oscalAssessmentPlan(programId: string): OscalDocument {
         remarks: `The ${program.acronym} System Security Plan generated from the same control matrix.`,
       },
       "local-definitions": {
-        activities,
+        ...listOf("activities", activities),
+        ...listOf("objectives-and-methods", engineeringObjectives(program.id)),
         remarks: `Activities are the ${activities.length} written test procedures of record, with their steps, expected results and required evidence carried verbatim.`,
       },
       "terms-and-conditions": {
@@ -1569,11 +1676,14 @@ function findingObservation(finding: Finding): JsonObject {
       },
     ],
     ...listOf("subjects", subjects),
-    "relevant-evidence": dedupe([finding.sourceArtifact, ...finding.assessment.evidence]).map(
-      (id) => ({
-        href: `#${stableUuid(`resource|${id}`)}`,
-        description: `Evidence artifact ${id}.`,
-      }),
+    ...listOf(
+      "relevant-evidence",
+      dedupe([finding.sourceArtifact, ...finding.assessment.evidence])
+        .filter(Boolean)
+        .map((id) => ({
+          href: `#${stableUuid(`resource|${id}`)}`,
+          description: `Evidence artifact ${id}.`,
+        })),
     ),
     collected,
     remarks: `${finding.assessment.procedure} Determination: ${finding.assessment.determination} Recommendation: ${finding.recommendation}`,
@@ -1750,7 +1860,11 @@ function sctmFinding(
   ];
   let targetType: string;
   let targetId: string;
-  if (row.unit === "CCI") {
+  if (row.unit === "Requirement") {
+    targetType = "objective-id";
+    targetId = `${oscalControlId(row.control)}_${row.requirement}`;
+    targetProps.push(eq("objective-system", "Program engineering requirement"));
+  } else if (row.unit === "CCI") {
     targetType = "objective-id";
     targetId = row.requirement;
     targetProps.push(eq("objective-system", "DISA Control Correlation Identifier"));
@@ -1824,10 +1938,26 @@ function sctmFinding(
      */
     ...(statementUuid ? { "implementation-statement-uuid": statementUuid } : {}),
   };
-  if (row.findings.length > 0) {
-    out["related-observations"] = row.findings.map((id) => ({
-      "observation-uuid": stableUuid(`observation|finding|${id}`),
+  const assessedRuns =
+    row.unit === "Requirement"
+      ? dedupe(
+          objectivesForRequirement(row.requirement).flatMap((objective) => {
+            const result = resolvedObjectiveResult(objective.id);
+            return result.run ? [result.run] : [];
+          }),
+        )
+      : [];
+  if (assessedRuns.length)
+    out["related-observations"] = assessedRuns.map((id) => ({
+      "observation-uuid": stableUuid(`observation|run|${id}`),
     }));
+  if (row.findings.length > 0) {
+    out["related-observations"] = [
+      ...assessedRuns.map((id) => ({ "observation-uuid": stableUuid(`observation|run|${id}`) })),
+      ...row.findings.map((id) => ({
+        "observation-uuid": stableUuid(`observation|finding|${id}`),
+      })),
+    ];
     const risks = dedupe(
       row.findings
         .map((id) => findings.find((f) => f.id === id)?.risk)
@@ -1848,12 +1978,79 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
   const apUuid = stableUuid(`assessment-plan|${program.id}`);
   const inheritance = resolveInheritance(program.id);
   const parties = partySet(program, [...inheritance.values()]);
-  const programAssets = new Set(assets.filter((a) => a.program === program.id).map((a) => a.id));
-  const programFindings = findings.filter((f) => programAssets.has(f.asset));
+  const programFindings = findings.filter((f) => findingProgram(f) === program.id);
   const scans = scansForProgram(program.id);
 
   const cooperativeObservations: JsonObject[] = [
     ...programFindings.map(findingObservation),
+    ...programFindings.flatMap((finding) =>
+      (finding.retests ?? []).map((retest, index): JsonObject => ({
+        uuid: stableUuid(`observation|retest|${finding.id}|${index}`),
+        title: `${finding.id} — remediation retest ${index + 1}`,
+        description: retest.note,
+        props: [eq("finding-id", finding.id), eq("retest-result", retest.result)],
+        methods: [methodOf[finding.assessment.method] ?? "TEST"],
+        types: ["finding"],
+        collected: oscalStamp(retest.assessedOn) ?? oscalNow,
+        origins: [
+          {
+            actors: [
+              { type: "party", "actor-uuid": partyUuid(retest.assessor), "role-id": "assessor" },
+            ],
+          },
+        ],
+        ...listOf(
+          "relevant-evidence",
+          retest.evidence.map((id) => ({
+            href: `#${stableUuid(`resource|${id}`)}`,
+            description: evidenceById(id)?.label ?? id,
+          })),
+        ),
+      })),
+    ),
+    ...allTestRuns()
+      .filter(
+        (run) =>
+          run.records.length > 0 &&
+          objectiveProgram(
+            procedures.find((procedure) => procedure.id === run.procedure)?.objective ?? "",
+          ) === program.id,
+      )
+      .map((run): JsonObject => {
+        const procedure = procedures.find((item) => item.id === run.procedure)!;
+        const evidence = dedupe(run.records.flatMap((record) => record.evidence));
+        return {
+          uuid: stableUuid(`observation|run|${run.id}`),
+          title: `${run.id} — ${procedure.title}`,
+          description: run.records
+            .map((record) => `${record.step}: ${record.result}. ${record.observed}`)
+            .join(" "),
+          props: [
+            eq("test-run", run.id),
+            eq("test-objective", procedure.objective),
+            ...requirementsForObjective(procedure.objective).map((id) =>
+              eq("engineering-requirement", id),
+            ),
+          ],
+          methods: [
+            (
+              procedure.assessmentMethod ??
+              (procedure.method === "Test" || procedure.method === "Demonstration"
+                ? "Test"
+                : "Examine")
+            ).toUpperCase(),
+          ],
+          types: ["control-objective"],
+          collected: oscalStamp(run.completed) ?? oscalStamp(run.started) ?? oscalNow,
+          ...listOf(
+            "relevant-evidence",
+            evidence.map((id) => ({
+              href: `#${stableUuid(`resource|${id}`)}`,
+              description: evidenceById(id)?.label ?? id,
+            })),
+          ),
+        };
+      }),
     ...scans.map((scan) => ({
       uuid: stableUuid(`observation|scan|${scan.id}`),
       title: `${scan.id} — ${scan.tool} against ${scan.targets.join(", ")}`,
@@ -2019,7 +2216,23 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
     });
   }
 
-  const arResources = evidenceResources(rows);
+  const arResources = evidenceResources(rows, [
+    ...programFindings
+      .flatMap((finding) => [
+        finding.sourceArtifact,
+        ...finding.assessment.evidence,
+        ...(finding.retests ?? []).flatMap((retest) => retest.evidence),
+      ])
+      .filter(Boolean),
+    ...allTestRuns()
+      .filter(
+        (run) =>
+          objectiveProgram(
+            procedures.find((procedure) => procedure.id === run.procedure)?.objective ?? "",
+          ) === program.id,
+      )
+      .flatMap((run) => run.records.flatMap((record) => record.evidence)),
+  ]);
 
   const json: JsonObject = {
     "assessment-results": {
@@ -2030,6 +2243,7 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
         remarks: `The ${program.acronym} Security Assessment Plan generated from the same T&E record.`,
       },
       "local-definitions": {
+        ...listOf("objectives-and-methods", engineeringObjectives(program.id)),
         remarks:
           "Components, inventory items and users are defined once in the System Security Plan this assessment imports; they are referenced here by uuid rather than redefined.",
       },
@@ -2141,8 +2355,8 @@ function poamRisks(items: OscalPoamItem[]): JsonObject[] {
       };
       if (characterizations.length > 0) entry["characterizations"] = characterizations;
       else {
-        entry["remarks"] =
-          `${associated.riskId} is not joined to a scored finding in this dataset, so no characterization is exported rather than a defaulted one.`;
+        entry["statement"] =
+          `${associated.title} ${associated.riskId} is not joined to a scored finding in this dataset, so no characterization is exported.`;
       }
       risks.set(associated.riskUuid, entry);
     }
@@ -2159,7 +2373,31 @@ export function oscalPoam(programId: string): OscalDocument {
   const sspUuid = stableUuid(`system-security-plan|${program.id}`);
   const inheritance = resolveInheritance(program.id);
   const parties = partySet(program, [...inheritance.values()]);
-  const items = oscalPoamItems.filter((i) => i.programId === program.id);
+  const items = oscalPoamItems
+    .filter((i) => i.programId === program.id)
+    .map((item) => {
+      const current = registerPoamItems.find((record) => record.legacyUuid === item.uuid);
+      return current
+        ? {
+            ...item,
+            title: current.title,
+            description: current.remediation,
+            pointOfContact: current.owner,
+            status: current.status === "Overdue" ? ("Ongoing" as const) : current.status,
+            scheduledCompletion: current.scheduledCompletion,
+            controls: current.controls ?? item.controls,
+            milestones: (current.milestones ?? []).map((milestone) => ({
+              uuid: stableUuid(`milestone|${milestone.id}`),
+              id: milestone.id,
+              title: milestone.title,
+              description: milestone.title,
+              targetDate: oscalStamp(milestone.targetDate) ?? oscalNow,
+              completedDate: milestone.completedDate ? oscalStamp(milestone.completedDate) : null,
+              status: milestone.status,
+            })),
+          }
+        : item;
+    });
 
   const observations: JsonObject[] = [];
   const seenObservations = new Set<string>();
@@ -2255,7 +2493,7 @@ export function oscalPoam(programId: string): OscalDocument {
    * their findings as observations and their register risk as the related risk,
    * so the OSCAL and eMASS POA&M carry exactly the same item set.
    */
-  for (const item of registerPoamItems.filter((i) => i.program === program.id)) {
+  for (const item of registerPoamItems.filter((i) => i.program === program.id && !i.legacyUuid)) {
     const members = findingsForPoam(item.id);
     for (const finding of members) {
       const observationUuid = stableUuid(`observation|finding|${finding.id}`);

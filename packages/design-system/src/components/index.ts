@@ -61,7 +61,13 @@ export {
   type BreadcrumbItemProps,
   type BreadcrumbProps,
 } from "./breadcrumb";
-export { Button, IconButton, type ButtonProps, type IconButtonProps } from "./button";
+export {
+  Button,
+  IconButton,
+  buttonVariants,
+  type ButtonProps,
+  type IconButtonProps,
+} from "./button";
 export { ButtonGroup, type ButtonGroupProps } from "./button-group";
 export { Calendar, type CalendarProps } from "./calendar";
 export {
@@ -127,22 +133,23 @@ export {
 } from "./combobox";
 export { Command, type CommandDialogProps } from "./command";
 export {
-  Checkbox,
   Field,
   useFieldControl,
   Input,
   NativeSelect,
-  RadioGroup,
-  Switch,
   Textarea,
   controlBase,
   controlHeight,
-  type CheckboxProps,
   type FieldProps,
-  type RadioGroupItemProps,
-  type RadioGroupProps,
-  type SwitchProps,
 } from "./controls";
+export { Checkbox, type CheckboxProps } from "./checkbox";
+export {
+  RadioGroup,
+  RadioGroupItem,
+  type RadioGroupProps,
+  type RadioGroupItemProps,
+} from "./radio-group";
+export { Switch, type SwitchProps } from "./switch";
 export { DatePicker, type DatePickerProps } from "./date-picker";
 export { Dialog, type DialogProps } from "./dialog";
 export { AlertDialog, type AlertDialogProps } from "./alert-dialog";
@@ -177,14 +184,36 @@ export {
   type EditableTextProps,
 } from "./editable";
 export { Gates, type GateItemProps, type GatesProps } from "./gates";
-export { HoverCard, type HoverCardProps } from "./hover-card";
+export {
+  HoverCard,
+  HoverCardTrigger,
+  HoverCardContent,
+  type HoverCardProps,
+  type HoverCardTriggerProps,
+  type HoverCardContentProps,
+} from "./hover-card";
 export { Id, type IdListProps, type IdProps } from "./id";
 export { InputGroup } from "./input-group";
 export { Item, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
 export { Kbd, KbdGroup, type KbdGroupProps, type KbdProps } from "./kbd";
 export { KeyValue, type KeyValueProps } from "./key-value";
 export { Pagination, type PaginationProps } from "./pagination";
-export { Popover, type PopoverProps } from "./popover";
+export {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverDescription,
+  PopoverClose,
+  type PopoverProps,
+  type PopoverTriggerProps,
+  type PopoverContentProps,
+  type PopoverHeaderProps,
+  type PopoverTitleProps,
+  type PopoverDescriptionProps,
+  type PopoverCloseProps,
+} from "./popover";
 export {
   Progress,
   type ProgressProps,
@@ -227,14 +256,12 @@ export {
 } from "./timeline";
 export { Toaster, toast, type ToasterProps, type Toast, type ToastOptions } from "./toaster";
 export {
-  Toggle,
   ToggleGroup,
-  type ToggleGroupItem,
+  ToggleGroupItem,
+  type ToggleGroupItemProps,
   type ToggleGroupProps,
-  type ToggleGroupSize,
-  type ToggleProps,
-  type ToggleSize,
-} from "./toggle";
+} from "./toggle-group";
+export { Toggle, toggleVariants, type ToggleProps } from "./toggle";
 export { Toolbar, type ToolbarProps } from "./toolbar";
 export { Tooltip, TooltipProvider, type TooltipProps } from "./tooltip";
 export { Tree, type TreeItemProps, type TreeProps, type TreeSize } from "./tree";

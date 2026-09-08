@@ -7,86 +7,74 @@ import * as Stories from "./Skeleton.stories";
 
 # Skeleton
 
-A placeholder in the shape of what is loading, so the layout holds still and the reader knows what is coming: a line where text will be, a circle where the avatar, a block where the chart. One shape in any size rather than a skeleton per component: four kinds, sized to the thing. A page's first paint is a [PageSkeleton](?path=/docs/patterns-pageskeleton--docs) built from these; a wait on an action is a [Spinner](?path=/docs/components-spinner--docs).
+A placeholder that holds the space of loading content. It follows shadcn's native div contract, with Ledger's line, heading, circle and block options. Use [PageSkeleton](?path=/docs/patterns-pageskeleton--docs) for a page's first paint and [Spinner](?path=/docs/components-spinner--docs) for an action in progress.
 
 <Canvas of={Stories.SkeletonMatrix} />
 
 ## Anatomy
 
-| Part   | What it is                                                                                                    |
-| ------ | ------------------------------------------------------------------------------------------------------------- |
-| Shape  | A rounded box in `color.skeleton`, pulsing: a line, a heading, a circle or a block.                           |
-| Lines  | Several lines `space.100` apart, the last two thirds wide, the way a paragraph ends.                          |
-| Region | The container that waits, which says so with `aria-busy`; the skeleton itself is hidden from a screen reader. |
+The outer element is a `div` with `data-slot="skeleton"`, hidden from assistive technology by default. A single shape paints this element in `color.skeleton`. With `shape="line"` and `lines > 1`, the outer div groups the generated lines with `space.100` between them.
 
-## Variants
+Native attributes, events and refs always belong to the outer div. IDs, labels and handlers are never copied to each generated line.
 
-| Shape     | Size                                            | Where                                         |
-| --------- | ----------------------------------------------- | --------------------------------------------- |
-| `line`    | 12px tall, `radius.small`                       | A line of body text; `lines` for a paragraph. |
-| `heading` | 20px tall, `radius.small`                       | A title, a record's name.                     |
-| `circle`  | `width` square, 32px by default                 | An avatar, an icon, a marker.                 |
-| `block`   | `height` tall, 96px by default, `radius.medium` | A card, a chart, an image, a table's body.    |
+## Shapes and sizing
 
-Not built, and why: a shimmer, because a pulse says the same with less motion and stops under reduced motion; per-component skeletons, because the four shapes compose into any of them, and the compositions live where the components do (PageSkeleton, Chart's skeleton per kind); a colour prop, because the skeleton is always `color.skeleton`.
+| Shape | Default geometry | Use |
+| --- | --- | --- |
+| `line` | 12px tall, full width, `radius.small` | Body text. Use `lines` for a paragraph. |
+| `heading` | 20px tall, full width, `radius.small` | A title or record name. |
+| `circle` | 32px square, `radius.full` | An avatar or icon. `width` also sets its height unless `height` is supplied. |
+| `block` | 96px tall, full width, `radius.medium` | A card, chart or image. |
 
-## Sizes
+`width` and `height` accept a number in pixels or a CSS length. On a single shape, explicit `style` values override those dimensions. Existing className overrides continue through the package's class merger.
 
-The size is the thing's. `width` and `height` take a number in px or a CSS length; without them a line or a heading is as wide as its container, a circle is 32px and a block 96px tall. Match the text's line height (a line is 12px in an 18px line, a heading 20px in a 28px one) and the layout does not move when the content lands.
+For generated lines, `width` and `height` apply to **each line**; `className` and `style` apply to **the wrapper**. The last line is two thirds wide when `width` is omitted. An explicit `width` sizes every line equally, including the last.
 
-## States
+## Native props and content
 
-A skeleton has one state: waiting. It pulses in `motion.duration.slow` and stops under reduced motion. When the content arrives the skeleton is gone; it never sits beside what loaded.
+<Canvas of={Stories.NativeAttributes} />
 
-## Modifiers
+```tsx
+<Skeleton
+  ref={placeholderRef}
+  id="record-placeholder"
+  shape="block"
+  height={120}
+  data-record="preview"
+/>
+```
 
-- **`shape`** as in Variants; **`lines`** for a paragraph of lines.
-- **`width`** and **`height`** in px or any length.
-- **`className`** and **`style`** for the rest: a flex child, a fixed width from a token.
+Native children render once. In multiline mode, supplied children replace the automatic lines; omitting children generates them. Explicit `null`, `false` or `0` are supplied content. Native HTML content also replaces automatic lines and follows React's normal content rules.
 
-## Content
+Skeleton uses a native div, as the shadcn reference does. It has no `render` or `asChild` prop. Compose a more specific loading layout with several Skeletons inside a normal container.
 
-- **The shape of what is coming**, in its size and its place: as many lines as the text has, a circle where the avatar sits.
-- **No more than arrives.** Six lines for a two-line note means the page shrinks when it loads.
-- **Load in place.** A skeleton for content that arrives progressively; a Spinner for an action that has no place to hold.
-- **Not for a wait the reader caused** (saving, exporting): that is the button's `isLoading`.
+## Accessibility and motion
 
-## Style
-
-| Element | Token                                                  |
-| ------- | ------------------------------------------------------ |
-| Fill    | `color.skeleton`                                       |
-| Line    | 12px · `radius.small`                                  |
-| Heading | 20px · `radius.small`                                  |
-| Circle  | `radius.full`                                          |
-| Block   | `radius.medium`                                        |
-| Lines   | `space.100` apart, the last 66% wide                   |
-| Motion  | opacity pulse, 2s; none under `prefers-reduced-motion` |
-
-## Accessibility
-
-- **Hidden from a screen reader** (`aria-hidden`): a skeleton says nothing a reader can use.
-- **The region says it is busy**: put `aria-busy` on the container that waits, and remove it when the content lands, so a screen reader hears the change once.
-- **Reduced motion stops the pulse**; the shape stays.
-- **Contrast is not required**: a skeleton is decorative, and `color.skeleton` is deliberately faint.
+- `aria-hidden` defaults to `true` so placeholders do not announce meaningless shapes. Explicit native ARIA props can override the default.
+- Put `aria-busy` and any loading message on the region that is waiting; clear its busy state when content arrives.
+- Keep placeholders noninteractive. Use a nearby status message for meaningful loading information.
+- Shapes pulse while waiting. The existing reduced-motion stylesheet stops the pulse and keeps the layout in place.
+- Match the size and amount of expected content, then replace the placeholders when it arrives.
 
 ## Props
 
-<ArgTypes of={Skeleton} />
+`SkeletonProps` includes native div props plus `shape`, `lines`, `width` and `height`.
 
-### Playground
+<ArgTypes of={Skeleton} />
 
 <Canvas of={Stories.Playground} />
 
 <Controls of={Stories.Playground} />
 
+## Migration
+
+Existing shapes, line counts, dimensions and style overrides retain their behavior. Skeleton now forwards native attributes, events, children and refs and exposes `data-slot="skeleton"` on the outer div. Multiline refs point to the wrapper, not an individual line. No existing consumer changes are required.
+
 ## Related
 
-- [PageSkeleton](?path=/docs/patterns-pageskeleton--docs): a page's first paint.
-- [Spinner](?path=/docs/components-spinner--docs): a wait on an action.
-- [Chart](?path=/docs/components-chart-overview--docs): a skeleton per kind of plot.
-- [Empty](?path=/docs/patterns-empty--docs): what a region shows when nothing is coming.
-
-## Don't
+- [PageSkeleton](?path=/docs/patterns-pageskeleton--docs): the page's first paint.
+- [Spinner](?path=/docs/components-spinner--docs): progress for an action.
+- [Chart](?path=/docs/components-chart-overview--docs): loading layouts for plots.
+- [Empty](?path=/docs/patterns-empty--docs): a region with no content to load.
 
 <Canvas of={Stories.Dont} />

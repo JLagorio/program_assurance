@@ -11,6 +11,7 @@ import {
   toast,
   Box,
   Button,
+  buttonVariants,
   DatePicker,
   Dialog,
   Field,
@@ -127,9 +128,9 @@ function RiskDetail() {
           title="Risk not found"
           description="The record may be stored in another browser."
           action={
-            <Button asChild variant="secondary">
-              <Link to="/risks">Back to risks</Link>
-            </Button>
+            <Link to="/risks" className={buttonVariants({ variant: "secondary" })}>
+              Back to risks
+            </Link>
           }
         />
       </Shell>

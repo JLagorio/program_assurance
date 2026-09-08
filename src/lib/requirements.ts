@@ -38,9 +38,10 @@
  * secure-boot thread seeded here does not need them.
  */
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { z } from "zod";
 
-import type { Tone } from "@ledger/design-system";
+import { toast, type Tone } from "@ledger/design-system";
 import { nodeById, pathLabel, type CompositionNode } from "@/lib/composition";
 import { componentByKey, type SystemComponent } from "@/lib/reusable-components";
 import { datasetToday } from "@/lib/dataset-clock";
@@ -690,6 +691,22 @@ export function ancestorsOfRequirement(requirementId: string): Requirement[] {
   return out;
 }
 
+/** Control obligations follow a derived requirement down its decomposition tree. */
+export function controlDerivationsForRequirement(requirementId: string): Derivation[] {
+  const requirement = getRequirement(requirementId);
+  if (!requirement) return [];
+  const controls = new Map<string, Derivation>();
+  for (const related of [requirement, ...ancestorsOfRequirement(requirementId)]) {
+    if (related.program !== requirement.program) continue;
+    for (const derivation of related.derivations) {
+      if (derivation.sourceType === "Control statement" && !controls.has(derivation.sourceId)) {
+        controls.set(derivation.sourceId, derivation);
+      }
+    }
+  }
+  return [...controls.values()];
+}
+
 export function allocationsFor(requirementId: string): Allocation[] {
   return allocations.filter((a) => a.requirement === requirementId).map(resolveAllocation);
 }
@@ -974,6 +991,10 @@ const listeners = new Set<() => void>();
 let version = 0;
 
 function bump() {
+  if (requirementTransactionActive) {
+    requirementTransactionChanged = true;
+    return;
+  }
   version += 1;
   for (const l of listeners) l();
 }
@@ -990,21 +1011,25 @@ export function requirementsVersion(): number {
 }
 
 export function setRequirementField(requirementId: string, patch: RequirementPatch) {
-  if (!requirementById.has(requirementId)) return;
-  requirementOverrides.set(requirementId, {
-    ...requirementOverrides.get(requirementId),
-    ...patch,
+  return withRequirementsTransaction(() => {
+    if (!requirementById.has(requirementId)) return;
+    requirementOverrides.set(requirementId, {
+      ...requirementOverrides.get(requirementId),
+      ...patch,
+    });
+    bump();
   });
-  bump();
 }
 
 export function setAllocationField(allocationId: string, patch: AllocationPatch) {
-  if (!allocations.some((a) => a.id === allocationId)) return;
-  allocationOverrides.set(allocationId, {
-    ...allocationOverrides.get(allocationId),
-    ...patch,
+  return withRequirementsTransaction(() => {
+    if (!allocations.some((a) => a.id === allocationId)) return;
+    allocationOverrides.set(allocationId, {
+      ...allocationOverrides.get(allocationId),
+      ...patch,
+    });
+    bump();
   });
-  bump();
 }
 
 /** Seed record with any accepted edits applied. */
@@ -1139,37 +1164,39 @@ export function decideApplicability(input: {
     owner: string;
   };
 }): void {
-  const existing = decisionFor(input.requirement, input.target);
-  if (existing) {
-    existing.applies = input.applies;
-    existing.rationale = input.rationale;
-    existing.decidedBy = input.decidedBy;
-    existing.decidedOn = datasetToday;
-  } else {
-    decisionSeq += 1;
-    decisions.push({
-      id: `APP-${String(decisionSeq).padStart(4, "0")}`,
-      requirement: input.requirement,
-      target: input.target,
-      targetKind: input.targetKind,
-      applies: input.applies,
-      rationale: input.rationale,
-      decidedBy: input.decidedBy,
-      decidedOn: datasetToday,
-    });
-  }
+  return withRequirementsTransaction(() => {
+    const existing = decisionFor(input.requirement, input.target);
+    if (existing) {
+      existing.applies = input.applies;
+      existing.rationale = input.rationale;
+      existing.decidedBy = input.decidedBy;
+      existing.decidedOn = datasetToday;
+    } else {
+      decisionSeq += 1;
+      decisions.push({
+        id: `APP-${String(decisionSeq).padStart(4, "0")}`,
+        requirement: input.requirement,
+        target: input.target,
+        targetKind: input.targetKind,
+        applies: input.applies,
+        rationale: input.rationale,
+        decidedBy: input.decidedBy,
+        decidedOn: datasetToday,
+      });
+    }
 
-  if (input.applies && input.allocation) {
-    addAllocation({
-      requirement: input.requirement,
-      target: input.target,
-      targetKind: input.targetKind,
-      ...input.allocation,
-      rationale: input.rationale,
-    });
-    return;
-  }
-  bump();
+    if (input.applies && input.allocation) {
+      addAllocation({
+        requirement: input.requirement,
+        target: input.target,
+        targetKind: input.targetKind,
+        ...input.allocation,
+        rationale: input.rationale,
+      });
+      return;
+    }
+    bump();
+  });
 }
 
 /* -------------------------------------------------------------- Creation */
@@ -1188,39 +1215,45 @@ export function addRequirement(input: {
   successCriteria: string;
   derivations: Derivation[];
 }): Requirement {
-  if (input.derivations.length === 0) {
-    throw new Error("A requirement needs at least one derivation source");
-  }
-  // Children number under their parent; top-level requirements take the next
-  // whole number, so REQ-0042.6 sits with its siblings rather than at the end.
-  let id: string;
-  if (input.parent) {
-    const siblings = requirements.filter((r) => r.parent === input.parent).length;
-    id = `${input.parent}.${siblings + 1}`;
-  } else {
-    requirementSeq += 1;
-    id = `REQ-${String(requirementSeq).padStart(4, "0")}`;
-  }
+  return withRequirementsTransaction(() => {
+    if (input.derivations.length === 0) {
+      throw new Error("A requirement needs at least one derivation source");
+    }
+    if (!input.text.trim() || !input.owner.trim())
+      throw new Error("Requirement statement and owner are required.");
+    if (input.parent && requirementById.get(input.parent)?.program !== input.program)
+      throw new Error("Parent requirement must belong to this program.");
+    // Children number under their parent; top-level requirements take the next
+    // whole number, so REQ-0042.6 sits with its siblings rather than at the end.
+    let id: string;
+    if (input.parent) {
+      const siblings = requirements.filter((r) => r.parent === input.parent).length;
+      id = `${input.parent}.${siblings + 1}`;
+    } else {
+      requirementSeq += 1;
+      id = `REQ-${String(requirementSeq).padStart(4, "0")}`;
+    }
 
-  const created: Requirement = {
-    id,
-    program: input.program,
-    parent: input.parent,
-    type: input.type,
-    text: input.text,
-    revision: 1,
-    state: "Draft",
-    owner: input.owner,
-    derivations: input.derivations,
-    method: input.method,
-    successCriteria: input.successCriteria,
-    workstream: input.parent ? (requirementById.get(input.parent)?.workstream ?? null) : null,
-    note: "",
-  };
-  requirements.push(created);
-  requirementById.set(created.id, created);
-  bump();
-  return created;
+    const created: Requirement = {
+      id,
+      program: input.program,
+      parent: input.parent,
+      type: input.type,
+      text: input.text,
+      revision: 1,
+      state: "Draft",
+      owner: input.owner,
+      derivations: input.derivations,
+      method: input.method,
+      successCriteria: input.successCriteria,
+      workstream: input.parent ? (requirementById.get(input.parent)?.workstream ?? null) : null,
+      note: "",
+    };
+    requirements.push(created);
+    requirementById.set(created.id, created);
+    bump();
+    return created;
+  });
 }
 
 export function addAllocation(input: {
@@ -1233,15 +1266,21 @@ export function addAllocation(input: {
   owner: string;
   rationale: string;
 }): Allocation {
-  allocationSeq += 1;
-  const created: Allocation = {
-    id: `ALC-${String(allocationSeq).padStart(4, "0")}`,
-    ...input,
-    state: "Proposed",
-  };
-  allocations.push(created);
-  bump();
-  return created;
+  return withRequirementsTransaction(() => {
+    const requirement = requirementById.get(input.requirement);
+    if (!requirement) throw new Error("Requirement not found.");
+    if (input.targetKind === "node" && nodeById.get(input.target)?.program !== requirement.program)
+      throw new Error("Allocated element must belong to the requirement's program.");
+    allocationSeq += 1;
+    const created: Allocation = {
+      id: `ALC-${String(allocationSeq).padStart(4, "0")}`,
+      ...input,
+      state: "Proposed",
+    };
+    allocations.push(created);
+    bump();
+    return created;
+  });
 }
 
 /**
@@ -1257,6 +1296,15 @@ export function addAllocation(input: {
  *   const rows = useMemo(() => requirementsForProgram(id), [id, v]);
  */
 export function useRequirementsVersion(): number {
+  useEffect(() => {
+    try {
+      restoreRequirements();
+    } catch (error) {
+      toast.error("Requirements could not be restored", {
+        description: error instanceof Error ? error.message : "Saved requirements are invalid.",
+      });
+    }
+  }, []);
   return useSyncExternalStore(subscribeRequirements, requirementsVersion, requirementsVersion);
 }
 
@@ -1366,23 +1414,254 @@ export function mapRequirementToControl(
   controlLabel: string,
   rationale: string,
 ): boolean {
-  const r = requirements.find((x) => x.id === requirementId);
-  if (!r) return false;
-  if (
-    r.derivations.some(
-      (d) =>
-        (d.sourceType === "Control statement" || d.sourceType === "Overlay") &&
-        d.sourceId === controlId,
-    )
-  ) {
-    return false;
-  }
-  r.derivations.push({
-    sourceType: "Control statement",
-    sourceId: controlId,
-    sourceLabel: controlLabel,
-    rationale: rationale.trim() || `Satisfies ${controlId}`,
+  return withRequirementsTransaction(() => {
+    const r = requirements.find((x) => x.id === requirementId);
+    if (!r) return false;
+    if (
+      r.derivations.some(
+        (d) =>
+          (d.sourceType === "Control statement" || d.sourceType === "Overlay") &&
+          d.sourceId === controlId,
+      )
+    ) {
+      return false;
+    }
+    r.derivations.push({
+      sourceType: "Control statement",
+      sourceId: controlId,
+      sourceLabel: controlLabel,
+      rationale: rationale.trim() || `Satisfies ${controlId}`,
+    });
+    bump();
+    return true;
   });
+}
+
+/* ------------------------------------------------------ Browser persistence */
+
+export const requirementsStorageKey = "equinox.requirements.v1";
+let requirementsRestored = false;
+let requirementTransactionActive = false;
+let requirementTransactionChanged = false;
+
+const derivationSchema = z.object({
+  sourceType: z.enum([
+    "Control statement",
+    "Overlay",
+    "Policy",
+    "Threat",
+    "Architecture decision",
+    "Interface contract",
+    "Finding",
+    "Supplier constraint",
+  ]),
+  sourceId: z.string(),
+  sourceLabel: z.string(),
+  rationale: z.string(),
+});
+const requirementSchema = z.object({
+  id: z.string().min(1),
+  program: z.string().min(1),
+  parent: z.string().nullable(),
+  type: z.enum([
+    "System security",
+    "Derived",
+    "Subsystem",
+    "Component",
+    "Interface",
+    "Process",
+    "Assurance",
+    "Protection need",
+  ]),
+  text: z.string().min(1),
+  revision: z.number().int().positive(),
+  state: z.enum([
+    "Draft",
+    "Proposed",
+    "Approved",
+    "Allocated",
+    "Implemented",
+    "Verified",
+    "Rejected",
+    "Superseded",
+    "Retired",
+  ]),
+  owner: z.string(),
+  derivations: z.array(derivationSchema),
+  method: z.enum(["Test", "Demonstration", "Analysis", "Inspection"]),
+  successCriteria: z.string(),
+  workstream: z.string().nullable(),
+  note: z.string(),
+});
+const allocationSchema = z.object({
+  id: z.string(),
+  requirement: z.string(),
+  target: z.string(),
+  targetKind: z.enum(["node", "provider", "process"]),
+  responsibility: z.enum([
+    "Primary",
+    "Supporting",
+    "Verifier",
+    "Provider",
+    "Operator",
+    "Sender",
+    "Receiver",
+  ]),
+  coverage: z.enum(["Full", "Partial", "Conditional", "Shared"]),
+  scope: z.string(),
+  owner: z.string(),
+  state: z.enum(["Proposed", "Accepted", "Implemented", "Verified", "Rejected", "Superseded"]),
+  rationale: z.string(),
+});
+const decisionSchema = z.object({
+  id: z.string(),
+  requirement: z.string(),
+  target: z.string(),
+  targetKind: z.enum(["node", "provider", "process"]),
+  applies: z.boolean(),
+  rationale: z.string(),
+  decidedBy: z.string(),
+  decidedOn: z.string(),
+});
+const requirementSnapshotSchema = z.object({
+  requirements: z.array(requirementSchema),
+  allocations: z.array(allocationSchema),
+  decisions: z.array(decisionSchema),
+  requirementOverrides: z.array(
+    z.tuple([
+      z.string(),
+      requirementSchema
+        .pick({ state: true, owner: true, method: true, successCriteria: true })
+        .partial(),
+    ]),
+  ),
+  allocationOverrides: z.array(
+    z.tuple([
+      z.string(),
+      allocationSchema
+        .pick({ responsibility: true, coverage: true, state: true, owner: true, scope: true })
+        .partial(),
+    ]),
+  ),
+});
+type RequirementSnapshot = {
+  requirements: Requirement[];
+  allocations: Allocation[];
+  decisions: ApplicabilityDecision[];
+  requirementOverrides: [string, RequirementPatch][];
+  allocationOverrides: [string, AllocationPatch][];
+};
+function requirementSnapshot(): RequirementSnapshot {
+  return structuredClone({
+    requirements,
+    allocations,
+    decisions,
+    requirementOverrides: [...requirementOverrides.entries()],
+    allocationOverrides: [...allocationOverrides.entries()],
+  });
+}
+function applyRequirementSnapshot(snapshot: RequirementSnapshot) {
+  const replace = <T extends { id: string }>(target: T[], source: T[]) => {
+    const existing = new Map(target.map((item) => [item.id, item]));
+    target.splice(
+      0,
+      target.length,
+      ...source.map((item) => {
+        const previous = existing.get(item.id);
+        return previous ? Object.assign(previous, item) : item;
+      }),
+    );
+  };
+  replace(requirements, snapshot.requirements);
+  replace(allocations, snapshot.allocations);
+  replace(decisions, snapshot.decisions);
+  requirementById.clear();
+  for (const requirement of requirements) requirementById.set(requirement.id, requirement);
+  requirementOverrides.clear();
+  for (const [id, patch] of snapshot.requirementOverrides) requirementOverrides.set(id, patch);
+  allocationOverrides.clear();
+  for (const [id, patch] of snapshot.allocationOverrides) allocationOverrides.set(id, patch);
+  requirementSeq = Math.max(
+    42,
+    ...requirements
+      .filter((requirement) => !requirement.parent)
+      .map((requirement) => Number(requirement.id.replace("REQ-", "")) || 0),
+  );
+  allocationSeq = Math.max(
+    0,
+    ...allocations.map((allocation) => Number(allocation.id.replace("ALC-", "")) || 0),
+  );
+  decisionSeq = Math.max(
+    0,
+    ...decisions.map((decision) => Number(decision.id.replace("APP-", "")) || 0),
+  );
+}
+export function restoreRequirements() {
+  if (requirementsRestored || typeof window === "undefined") return;
+  const raw = window.localStorage.getItem(requirementsStorageKey);
+  if (raw) {
+    const snapshot = requirementSnapshotSchema.parse(JSON.parse(raw)) as RequirementSnapshot;
+    const byId = new Map(snapshot.requirements.map((requirement) => [requirement.id, requirement]));
+    if (byId.size !== snapshot.requirements.length)
+      throw new Error("Saved requirements contain duplicate identifiers.");
+    for (const requirement of snapshot.requirements)
+      if (requirement.parent && byId.get(requirement.parent)?.program !== requirement.program)
+        throw new Error("Saved requirement has an invalid parent.");
+    for (const allocation of snapshot.allocations)
+      if (!byId.has(allocation.requirement))
+        throw new Error("Saved allocation has no requirement.");
+    applyRequirementSnapshot(snapshot);
+  }
+  requirementsRestored = true;
   bump();
-  return true;
+}
+function withRequirementsTransaction<T>(change: () => T): T {
+  restoreRequirements();
+  if (requirementTransactionActive) return change();
+  const before = requirementSnapshot();
+  requirementTransactionActive = true;
+  requirementTransactionChanged = false;
+  try {
+    const result = change();
+    if (requirementTransactionChanged && typeof window !== "undefined") {
+      window.localStorage.setItem(requirementsStorageKey, JSON.stringify(requirementSnapshot()));
+    }
+    requirementTransactionActive = false;
+    if (requirementTransactionChanged) bump();
+    requirementTransactionChanged = false;
+    return result;
+  } catch (error) {
+    applyRequirementSnapshot(before);
+    requirementTransactionActive = false;
+    requirementTransactionChanged = false;
+    throw error;
+  }
+}
+
+/* ------------------------------------------------------------------ Tree */
+
+/** A row with its parts under it, for a treegrid. */
+export type Nested<T> = T & { parts: Nested<T>[] };
+
+/**
+ * Nests a flat list by `parent`. A row whose parent is outside the list is a root; a row reached
+ * twice (a cycle) is drawn once; anything unreached still gets a row.
+ */
+export function nestRequirements<T extends { id: string; parent: string | null }>(
+  rows: T[],
+): Nested<T>[] {
+  const ids = new Set(rows.map((r) => r.id));
+  const byParent = new Map<string, T[]>();
+  for (const r of rows) {
+    if (r.parent && ids.has(r.parent))
+      byParent.set(r.parent, [...(byParent.get(r.parent) ?? []), r]);
+  }
+  const seen = new Set<string>();
+  const build = (r: T): Nested<T>[] => {
+    if (seen.has(r.id)) return [];
+    seen.add(r.id);
+    return [{ ...r, parts: (byParent.get(r.id) ?? []).flatMap(build) }];
+  };
+  const roots = rows.filter((r) => !r.parent || !ids.has(r.parent));
+  return [...roots.flatMap(build), ...rows.flatMap(build)];
 }

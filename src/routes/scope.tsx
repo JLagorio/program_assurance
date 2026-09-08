@@ -6,6 +6,7 @@ import {
   Badge,
   Block,
   Button,
+  Count,
   Id,
   IndexPage,
   Indicator,
@@ -19,6 +20,7 @@ import {
   Text,
   TextLink,
   ToggleGroup,
+  ToggleGroupItem,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -106,14 +108,22 @@ function ScopeApprovals() {
       <IndexPage header={<PageHeader title="Control-set approvals" />}>
         <ToggleGroup<(typeof filters)[number]>
           aria-label="State"
-          value={tab}
-          onChange={setTab}
-          items={filters.map((f) => ({
-            value: f,
-            label: f,
-            count: f === "All" ? all.length : all.filter((r) => r.state === f).length,
-          }))}
-        />
+          size="sm"
+          value={[tab]}
+          onValueChange={([next]) => {
+            if (next !== undefined) setTab(next);
+          }}
+        >
+          {filters.map((f) => (
+            <ToggleGroupItem key={f} value={f}>
+              {f}
+              <Count
+                value={f === "All" ? all.length : all.filter((r) => r.state === f).length}
+                max={9999}
+              />
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
         <Section title="Revisions">
           <Table className="table-fixed">
             <thead>

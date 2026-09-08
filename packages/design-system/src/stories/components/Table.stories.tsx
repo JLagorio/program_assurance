@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Filter, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, fireEvent, userEvent, within } from "storybook/test";
 
 import {
   Badge,
@@ -130,7 +130,8 @@ function Register() {
           <tr>
             <Table.Selection
               header
-              checked={all ? true : some ? "indeterminate" : false}
+              checked={all}
+              indeterminate={some}
               onCheckedChange={(next) =>
                 setSelected(next ? new Set(rows.map((r) => r.id)) : new Set())
               }
@@ -200,7 +201,34 @@ function Register() {
   );
 }
 
-export const RegisterStory: Story = { name: "Register", render: () => <Register /> };
+export const RegisterStory: Story = {
+  name: "Register",
+  render: () => <Register />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const all = canvas.getByRole("checkbox", { name: "Select all" });
+    await expect(all).toBePartiallyChecked();
+    await userEvent.click(all);
+    for (const checkbox of canvas.getAllByRole("checkbox")) await expect(checkbox).toBeChecked();
+    await userEvent.click(all);
+    for (const checkbox of canvas.getAllByRole("checkbox"))
+      await expect(checkbox).not.toBeChecked();
+    const selection = canvas.getByRole("checkbox", { name: "Select CTRL-0412" });
+    const row = selection.closest("tr")!;
+    const preview = within(row).getByRole("button", { name: "Preview row" });
+    await userEvent.click(selection);
+    await expect(selection).toBeChecked();
+    await expect(all).toBePartiallyChecked();
+    await expect(preview).not.toHaveAttribute("aria-pressed", "true");
+    await fireEvent.click(
+      selection.closest("td")!.querySelector<HTMLInputElement>('input[type="checkbox"]')!,
+    );
+    await expect(selection).not.toBeChecked();
+    await expect(preview).not.toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(within(row).getByText("Segregation of duties, payables"));
+    await expect(preview).toHaveAttribute("aria-pressed", "true");
+  },
+};
 
 function Grouped() {
   const [open, setOpen] = useState<Record<string, boolean>>({
@@ -285,8 +313,13 @@ const parts = [
   },
 ];
 
-/** A hierarchy with columns: the treegrid. The caller flattens and folds; Table.Tree is the name cell. */
-function TreeGrid() {
+/**
+ * A hierarchy with columns: the treegrid. The caller flattens and folds. Two shapes: `Table.Tree`
+ * puts the chevron and the indent in the name cell; `Table.Disclosure` gives them a leading column
+ * of their own, so the chevron stays leftmost however the columns are ordered. DataTable draws the
+ * second.
+ */
+function TreeGrid({ leading = false }: { leading?: boolean }) {
   const [open, setOpen] = useState(() => new Set(["SYS-01", "SUB-011"]));
   const toggle = (id: string) =>
     setOpen((prev) => {
@@ -307,6 +340,11 @@ function TreeGrid() {
     <Table role="treegrid">
       <thead>
         <tr>
+          {leading ? (
+            <Table.Header width={28} className="px-0">
+              <span className="sr-only">Parts</span>
+            </Table.Header>
+          ) : null}
           <Table.Header>Element</Table.Header>
           <Table.Header width={110}>Kind</Table.Header>
           <Table.Header width={96} className="text-right">
@@ -323,22 +361,42 @@ function TreeGrid() {
               aria-level={p.depth + 1}
               aria-expanded={p.children ? expanded : undefined}
             >
-              <Table.Tree
-                depth={p.depth}
-                hasChildren={p.children > 0}
-                expanded={expanded}
-                onToggle={() => toggle(p.id)}
-                label={p.name}
-                hint={
-                  p.children && !expanded ? (
-                    <Text size="xsmall" color="color.text.subtle">
-                      {p.children} part{p.children === 1 ? "" : "s"}
-                    </Text>
-                  ) : null
-                }
-              >
-                {p.name}
-              </Table.Tree>
+              {leading ? (
+                <>
+                  <Table.Disclosure
+                    hasChildren={p.children > 0}
+                    expanded={expanded}
+                    onToggle={() => toggle(p.id)}
+                    label={p.name}
+                    width={28}
+                  />
+                  <Table.Cell className="max-w-none">
+                    <span
+                      className="flex min-w-0 items-center"
+                      style={{ paddingInlineStart: p.depth * 16 }}
+                    >
+                      {p.name}
+                    </span>
+                  </Table.Cell>
+                </>
+              ) : (
+                <Table.Tree
+                  depth={p.depth}
+                  hasChildren={p.children > 0}
+                  expanded={expanded}
+                  onToggle={() => toggle(p.id)}
+                  label={p.name}
+                  hint={
+                    p.children && !expanded ? (
+                      <Text size="xsmall" color="color.text.subtle">
+                        {p.children} part{p.children === 1 ? "" : "s"}
+                      </Text>
+                    ) : null
+                  }
+                >
+                  {p.name}
+                </Table.Tree>
+              )}
               <Table.Cell>{p.kind}</Table.Cell>
               <Table.Cell className="text-right">{p.controls}</Table.Cell>
             </Table.Row>
@@ -348,7 +406,15 @@ function TreeGrid() {
     </Table>
   );
 }
-export const TreeStory: Story = { name: "Tree", render: () => <TreeGrid /> };
+export const TreeStory: Story = {
+  name: "Tree",
+  render: () => (
+    <Stack space="space.300">
+      <TreeGrid />
+      <TreeGrid leading />
+    </Stack>
+  ),
+};
 
 function GroupStates() {
   const [open, setOpen] = useState(true);
@@ -414,7 +480,8 @@ export const TableMatrix: Story = {
           <tr>
             <Table.Selection
               header
-              checked="indeterminate"
+              checked={false}
+              indeterminate
               onCheckedChange={() => {}}
               label="Select all"
             />
@@ -631,7 +698,8 @@ function Selected({ withColumn }: { withColumn: boolean }) {
           {withColumn ? (
             <Table.Selection
               header
-              checked="indeterminate"
+              checked={false}
+              indeterminate
               onCheckedChange={() => {}}
               label="Select all"
             />

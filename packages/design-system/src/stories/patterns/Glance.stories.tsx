@@ -1,10 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ReactNode } from "react";
 
-import { Badge, Button, HoverCard, Id, Indicator, KeyValue, TextLink } from "../../components";
+import {
+  Badge,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  Id,
+  Indicator,
+  TextLink,
+} from "../../components";
 import { Glance } from "../../patterns";
-import { Box, Inline, Stack } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import { Box, Inline } from "../../primitives";
 
 const meta = {
   title: "Patterns/Glance",
@@ -68,7 +75,7 @@ const glances = {
   ),
 } as const;
 
-/** The card a glance is drawn in, at the HoverCard's width for one. */
+/** A static 300px surface for comparing the content independently of hover behavior. */
 function GlanceCard({ children }: { children: ReactNode }) {
   return (
     <Box
@@ -88,14 +95,15 @@ export const GlanceStory: Story = {
   render: () => (
     <Inline space="space.300" alignBlock="center">
       {(Object.keys(glances) as (keyof typeof glances)[]).map((k) => (
-        <HoverCard key={k} content={glances[k]} width={300}>
+        <HoverCard key={k}>
           <TextLink>
-            <a href={`#${k}`}>
+            <HoverCardTrigger href={`#${k}`}>
               <Id>
                 {k === "element" ? "CN-0300" : k === "requirement" ? "REQ-0042.4" : "SI-7(1)"}
               </Id>
-            </a>
+            </HoverCardTrigger>
           </TextLink>
+          <HoverCardContent style={{ width: 300 }}>{glances[k]}</HoverCardContent>
         </HoverCard>
       ))}
     </Inline>
@@ -110,54 +118,6 @@ export const GlanceMatrix: Story = {
         <GlanceCard key={k}>{glances[k]}</GlanceCard>
       ))}
     </Inline>
-  ),
-};
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={<GlanceCard>{glances.requirement}</GlanceCard>}
-        doText="Four facts: the ones that tell the reader whether to open it."
-        dont={
-          <GlanceCard>
-            {glances.requirement}
-            <KeyValue label="Source" labelWidth={88}>
-              SRD 4.2.1
-            </KeyValue>
-            <KeyValue label="Priority" labelWidth={88}>
-              High
-            </KeyValue>
-            <KeyValue label="Created" labelWidth={88}>
-              3 Aug 2026
-            </KeyValue>
-            <KeyValue label="Updated" labelWidth={88}>
-              2h ago
-            </KeyValue>
-          </GlanceCard>
-        }
-        dontText="Eight facts. The card is the record's rail in a hover, taller than the row it hangs from."
-      />
-      <Pair
-        do={<GlanceCard>{glances.control}</GlanceCard>}
-        doText="Facts only. The click is the peek, and the actions are there."
-        dont={
-          <GlanceCard>
-            <Stack space="space.150">
-              {glances.control}
-              <Inline space="space.100">
-                <Button size="small" variant="primary">
-                  Mark satisfied
-                </Button>
-                <Button size="small">Open</Button>
-              </Inline>
-            </Stack>
-          </GlanceCard>
-        }
-        dontText="Buttons in a glance. A hover card has no controls; it closes when the pointer leaves, and a keyboard never reaches them."
-      />
-    </Stack>
   ),
 };
 

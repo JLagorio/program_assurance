@@ -7,16 +7,19 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { restoreWorkspaceRecords } from "@/lib/workspace-restore";
 
 import {
   Box,
   Button,
+  buttonVariants,
   Inline,
   ModeProvider,
   Toaster,
   modeScript,
   shellScript,
+  toast,
 } from "@ledger/design-system";
 
 import appCss from "../styles.css?url";
@@ -33,9 +36,9 @@ function NotFoundComponent() {
           The page you're looking for doesn't exist or has been moved.
         </p>
         <Box paddingBlockStart="space.300">
-          <Button asChild variant="primary">
-            <Link to="/">Go home</Link>
-          </Button>
+          <Link to="/" className={buttonVariants({ variant: "primary" })}>
+            Go home
+          </Link>
         </Box>
       </div>
     </Inline>
@@ -66,9 +69,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             Try again
           </Button>
-          <Button asChild variant="secondary">
-            <Link to="/">Go home</Link>
-          </Button>
+          <Link to="/" className={buttonVariants({ variant: "secondary" })}>
+            Go home
+          </Link>
         </Inline>
       </div>
     </Inline>
@@ -121,12 +124,36 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let active = true;
+    const errors = restoreWorkspaceRecords();
+    if (errors.length)
+      toast.error("Some saved workspace records could not be restored", {
+        description: errors.join(" "),
+      });
+    // Server loaders cannot see browser-saved records. Re-resolve deep links
+    // after restoration, before rendering their record components.
+    void router.invalidate().finally(() => {
+      if (active) setReady(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <ModeProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        {ready ? (
+          <Outlet />
+        ) : (
+          <Inline className="min-h-screen" alignBlock="center" alignInline="center">
+            <p role="status">Loading workspace…</p>
+          </Inline>
+        )}
         <Toaster />
         <PersonaSwitch />
       </ModeProvider>

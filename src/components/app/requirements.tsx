@@ -37,6 +37,7 @@ import {
   setAllocationField,
   coverageTone,
   derivationSourceTone,
+  nestRequirements,
   requirementStateTone,
   resolveTarget,
   responsibilityTone,
@@ -44,6 +45,7 @@ import {
   type AllocationPatch,
   type ControlTraceHop,
   type Derivation,
+  type Nested,
   type NodeControlTrace,
   type Requirement,
 } from "@/lib/requirements";
@@ -133,11 +135,7 @@ function SourceCell({ derivations }: { derivations: Derivation[] }) {
 }
 
 /** A requirement with its decomposition under it, and what the table shows beside it. */
-type RequirementNode = Requirement & {
-  parts: RequirementNode[];
-  allocations: number;
-  isSelected: boolean;
-};
+type RequirementNode = Nested<Requirement & { allocations: number; isSelected: boolean }>;
 
 /**
  * The top-level view, in tree mode: the decomposition is structure the reader
@@ -155,32 +153,17 @@ export function RequirementTable({
   allocationCount: (requirementId: string) => number;
   selected?: string;
 }) {
-  // The list is flat with `parent` ids. A parent outside the list makes a root; a row
-  // reached twice (a cycle) is drawn once, and anything unreached still gets a row.
-  const rows = useMemo(() => {
-    const byParent = new Map<string, Requirement[]>();
-    for (const r of requirements) {
-      if (r.parent && requirements.some((p) => p.id === r.parent))
-        byParent.set(r.parent, [...(byParent.get(r.parent) ?? []), r]);
-    }
-    const seen = new Set<string>();
-    const build = (r: Requirement): RequirementNode[] => {
-      if (seen.has(r.id)) return [];
-      seen.add(r.id);
-      return [
-        {
+  const rows = useMemo<RequirementNode[]>(
+    () =>
+      nestRequirements(
+        requirements.map((r) => ({
           ...r,
-          parts: (byParent.get(r.id) ?? []).flatMap(build),
           allocations: allocationCount(r.id),
           isSelected: selected === r.id,
-        },
-      ];
-    };
-    const roots = requirements.filter(
-      (r) => !r.parent || !requirements.some((p) => p.id === r.parent),
-    );
-    return [...roots.flatMap(build), ...requirements.flatMap(build)];
-  }, [requirements, allocationCount, selected]);
+        })),
+      ),
+    [requirements, allocationCount, selected],
+  );
 
   const columns = useMemo(
     () =>
@@ -236,7 +219,6 @@ export function RequirementTable({
     tree: {
       children: (r) => r.parts,
       label: (r) => r.id,
-      column: "text",
       hint: (_, n) => (
         <Text size="xsmall" color="color.text.subtle">
           {n} part{n === 1 ? "" : "s"}
@@ -375,10 +357,13 @@ export function AllocationTable({
   allocations,
   programId,
   editable = false,
+  label = "Allocations",
 }: {
   allocations: Allocation[];
   programId: string;
   editable?: boolean;
+  /** Names the table. Several on one page (a detail row per requirement) need names of their own. */
+  label?: string | undefined;
 }) {
   const columns = useMemo(() => {
     // One editor contract per field: commit into the store at once, then settle the save.
@@ -434,7 +419,7 @@ export function AllocationTable({
     columns,
     data: allocations,
     getRowId: (a) => a.id,
-    label: "Allocations",
+    label,
   });
 
   if (allocations.length === 0) {

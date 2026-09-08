@@ -83,12 +83,15 @@ decorative overflow mark; compose it inside a named menu trigger when an overflo
 The default list wraps. See [Breadcrumb](?path=/docs/components-breadcrumb--docs) for the full
 anatomy and migration examples.
 
-Existing Button and Tabs.Tab APIs continue to use `asChild`:
+For navigation with button styling, put `buttonVariants` on the router link. It keeps its native
+link behavior. Action composition uses Button's `render`; Tabs.Tab keeps its existing `asChild` API.
 
 ```tsx
-<Button asChild variant="primary">
-  <Link to="/controls/new">New control</Link>
-</Button>
+import { buttonVariants } from "@ledger/design-system";
+
+<Link to="/controls/new" className={buttonVariants({ variant: "primary" })}>
+  New control
+</Link>;
 ```
 
 ## Colour mode

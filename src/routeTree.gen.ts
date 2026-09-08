@@ -36,6 +36,7 @@ import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstream
 import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
 import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
 import { Route as LibraryComponentsComponentKeyRouteImport } from './routes/library.components.$componentKey'
+import { Route as ProgramsProgramIdAuthorizationRouteImport } from './routes/programs.$programId_.authorization'
 import { Route as ProgramsProgramIdBaselineRouteImport } from './routes/programs.$programId_.baseline'
 import { Route as ProgramsProgramIdCompositionRouteImport } from './routes/programs.$programId_.composition'
 import { Route as ProgramsProgramIdConmonRouteImport } from './routes/programs.$programId_.conmon'
@@ -189,6 +190,12 @@ const LibraryComponentsComponentKeyRoute =
     path: '/library/components/$componentKey',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ProgramsProgramIdAuthorizationRoute =
+  ProgramsProgramIdAuthorizationRouteImport.update({
+    id: '/$programId_/authorization',
+    path: '/$programId/authorization',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
 const ProgramsProgramIdBaselineRoute =
   ProgramsProgramIdBaselineRouteImport.update({
     id: '/$programId_/baseline',
@@ -307,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/programs/$programId/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
@@ -352,6 +360,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/programs/$programId/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
@@ -398,6 +407,7 @@ export interface FileRoutesById {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/programs/$programId_/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId_/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId_/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId_/conmon': typeof ProgramsProgramIdConmonRoute
@@ -445,6 +455,7 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/programs/$programId/authorization'
     | '/programs/$programId/baseline'
     | '/programs/$programId/composition'
     | '/programs/$programId/conmon'
@@ -490,6 +501,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/programs/$programId/authorization'
     | '/programs/$programId/baseline'
     | '/programs/$programId/composition'
     | '/programs/$programId/conmon'
@@ -535,6 +547,7 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/programs/$programId_/authorization'
     | '/programs/$programId_/baseline'
     | '/programs/$programId_/composition'
     | '/programs/$programId_/conmon'
@@ -773,6 +786,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryComponentsComponentKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/programs/$programId_/authorization': {
+      id: '/programs/$programId_/authorization'
+      path: '/$programId/authorization'
+      fullPath: '/programs/$programId/authorization'
+      preLoaderRoute: typeof ProgramsProgramIdAuthorizationRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
     '/programs/$programId_/baseline': {
       id: '/programs/$programId_/baseline'
       path: '/$programId/baseline'
@@ -903,6 +923,7 @@ const CampaignsRouteWithChildren = CampaignsRoute._addFileChildren(
 interface ProgramsRouteChildren {
   ProgramsProgramIdRoute: typeof ProgramsProgramIdRoute
   ProgramsNewRoute: typeof ProgramsNewRoute
+  ProgramsProgramIdAuthorizationRoute: typeof ProgramsProgramIdAuthorizationRoute
   ProgramsProgramIdBaselineRoute: typeof ProgramsProgramIdBaselineRoute
   ProgramsProgramIdCompositionRoute: typeof ProgramsProgramIdCompositionRoute
   ProgramsProgramIdConmonRoute: typeof ProgramsProgramIdConmonRoute
@@ -922,6 +943,7 @@ interface ProgramsRouteChildren {
 const ProgramsRouteChildren: ProgramsRouteChildren = {
   ProgramsProgramIdRoute: ProgramsProgramIdRoute,
   ProgramsNewRoute: ProgramsNewRoute,
+  ProgramsProgramIdAuthorizationRoute: ProgramsProgramIdAuthorizationRoute,
   ProgramsProgramIdBaselineRoute: ProgramsProgramIdBaselineRoute,
   ProgramsProgramIdCompositionRoute: ProgramsProgramIdCompositionRoute,
   ProgramsProgramIdConmonRoute: ProgramsProgramIdConmonRoute,

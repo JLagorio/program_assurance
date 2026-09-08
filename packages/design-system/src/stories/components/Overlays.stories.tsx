@@ -12,10 +12,15 @@ import {
   DropdownMenu,
   Field,
   HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
   IconButton,
   Input,
   KeyValue,
   Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverClose,
   Sheet,
   Textarea,
   Tooltip,
@@ -35,27 +40,25 @@ export const Anchored: Story = {
       <Tooltip content="Schedule the next assessment">
         <Button>Tooltip</Button>
       </Tooltip>
-      <Popover label="A small task" width={280} trigger={<Button>Popover</Button>}>
-        <Stack space="space.200">
-          <Field label="Reason">
-            <Input placeholder="Why this control is deferred" />
-          </Field>
-          <Inline space="space.100" alignInline="end">
-            <Popover.Close>
-              <Button variant="subtle" size="small">
-                Cancel
-              </Button>
-            </Popover.Close>
-            <Popover.Close>
-              <Button variant="primary" size="small">
-                Defer
-              </Button>
-            </Popover.Close>
-          </Inline>
-        </Stack>
+      <Popover>
+        <PopoverTrigger render={<Button>Popover</Button>} />
+        <PopoverContent aria-label="A small task" style={{ width: 280 }}>
+          <Stack space="space.200">
+            <Field label="Reason">
+              <Input placeholder="Why this control is deferred" />
+            </Field>
+            <Inline space="space.100" alignInline="end">
+              <PopoverClose render={<Button variant="subtle" size="small" />}>Cancel</PopoverClose>
+              <PopoverClose render={<Button variant="primary" size="small" />}>Defer</PopoverClose>
+            </Inline>
+          </Stack>
+        </PopoverContent>
       </Popover>
-      <HoverCard
-        content={
+      <HoverCard>
+        <HoverCardTrigger href="#CTRL-0412" className="text-brand hover:underline">
+          HoverCard on an id
+        </HoverCardTrigger>
+        <HoverCardContent>
           <Stack space="space.050">
             <Text weight="medium">CTRL-0412 Segregation of duties, payables</Text>
             <Text size="small" color="color.text.subtle">
@@ -65,9 +68,7 @@ export const Anchored: Story = {
               Verified
             </Badge>
           </Stack>
-        }
-      >
-        <Button variant="link">HoverCard on an id</Button>
+        </HoverCardContent>
       </HoverCard>
       <DropdownMenu trigger={<Button iconAfter={<ChevronDown />}>Actions</Button>}>
         <DropdownMenu.Label>Control</DropdownMenu.Label>

@@ -8,7 +8,7 @@ import * as Stories from "./NativeSelect.stories";
 
 One answer from a short, plain list: an owner from a team, a responsibility, a status. It is the browser's own `<select>` with the kit's field around it, so the list is the operating system's and needs no code, no positioning and no focus management. Use it when the options are few, are plain words, and are known before the page loads.
 
-It is the lightest of four ways to choose. Two or three options are a [RadioGroup](?path=/docs/components-radiogroup--docs), every one in view. More than a dozen, or names the reader would rather type, are a [Combobox](?path=/docs/components-combobox--docs). Options that need a description, an icon or a status beside them are a [Select](?path=/docs/components-select--docs). A list of actions is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs), not a select at all.
+It is the lightest of four ways to choose. Use a [RadioGroup](?path=/docs/components-radiogroup--docs) to keep the choices visible. More than a dozen, or names the reader would rather type, are a [Combobox](?path=/docs/components-combobox--docs). Options that need a description, an icon or a status beside them are a [Select](?path=/docs/components-select--docs). A list of actions is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs), not a select at all.
 
 <Canvas of={Stories.NativeSelectMatrix} />
 
@@ -29,7 +29,7 @@ NativeSelect has one appearance. What varies is which control the list wants:
 
 | The list                                                    | Use                                                                         |
 | ----------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Two or three answers                                        | `RadioGroup`: every option in view, nothing to open.                        |
+| Visible choices                                             | `RadioGroup`: every option in view, nothing to open.                        |
 | Four to a dozen plain words                                 | `NativeSelect`.                                                             |
 | Options with a description, an icon or a status beside them | `Select`: the kit draws the list.                                           |
 | More than a dozen, or names the reader would type           | `Combobox`: the reader searches.                                            |

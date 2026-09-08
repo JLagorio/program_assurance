@@ -1,45 +1,45 @@
-import { Slot, Slottable } from "@radix-ui/react-slot";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import {
   cloneElement,
   isValidElement,
-  type ComponentPropsWithoutRef,
   type DOMAttributes,
-  type ElementType,
-  type HTMLAttributes,
-  type MouseEvent,
   type ReactElement,
   type ReactNode,
-  type Ref,
   type SyntheticEvent,
 } from "react";
 
+import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { Spinner } from "./spinner";
 import { Tooltip } from "./tooltip";
 
-/**
- * A button starts an action. The recipe: a fill per variant with hovered and pressed tokens,
- * disabled as its own tokens rather than an opacity, one focus outline. Primary is the brand bold
- * fill with a flat face; secondary is the raised surface with the raised shadow (the
- * hairline-and-soft-drop button). Navigation that reads as text is TextLink, not a Button.
- */
-
 export type ButtonVariant = "primary" | "secondary" | "subtle" | "danger" | "link";
 export type ButtonSize = "xsmall" | "small" | "medium";
 
+type ButtonStyleProps = {
+  /** Secondary is the default; primary emphasizes the main action. */
+  variant?: ButtonVariant | undefined;
+  /** Medium is 32px, small 28px and xsmall 24px. Link treatment has natural height. */
+  size?: ButtonSize | undefined;
+  /** Paint the selected state and, on Button, set aria-pressed. */
+  isSelected?: boolean | undefined;
+  /** Fill the available width. */
+  isFullWidth?: boolean | undefined;
+};
+
 const base =
-  "inline-flex select-none items-center justify-center gap-075 whitespace-nowrap rounded-medium font-body font-medium transition-colors duration-fast ease-standard focus-visible:outline-focused disabled:pointer-events-none";
+  "inline-flex select-none items-center justify-center gap-075 whitespace-nowrap rounded-medium font-body font-medium transition-colors duration-fast ease-standard focus-visible:outline-focused disabled:pointer-events-none [&>svg]:size-icon-small [&>svg]:shrink-0";
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand-bold text-inverse hover:bg-brand-bold-hovered active:bg-brand-bold-pressed disabled:bg-disabled disabled:text-disabled",
+    "bg-brand-bold text-inverse hover:bg-brand-bold-hovered active:bg-brand-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled",
   secondary:
-    "bg-surface-raised text-default shadow-raised hover:bg-surface-raised-hovered active:bg-surface-raised-pressed disabled:bg-disabled disabled:text-disabled disabled:shadow-none",
+    "bg-surface-raised text-default shadow-raised hover:bg-surface-raised-hovered active:bg-surface-raised-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled data-[disabled]:not-data-[loading]:shadow-none",
   subtle:
-    "bg-neutral-subtle text-subtle hover:bg-neutral-subtle-hovered hover:text-default active:bg-neutral-subtle-pressed disabled:text-disabled",
+    "bg-neutral-subtle text-subtle hover:bg-neutral-subtle-hovered hover:text-default active:bg-neutral-subtle-pressed data-[disabled]:not-data-[loading]:text-disabled",
   danger:
-    "bg-danger-bold text-inverse hover:bg-danger-bold-hovered active:bg-danger-bold-pressed disabled:bg-disabled disabled:text-disabled",
-  link: "text-brand underline-offset-2 hover:underline disabled:text-disabled",
+    "bg-danger-bold text-inverse hover:bg-danger-bold-hovered active:bg-danger-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled",
+  link: "text-brand underline-offset-2 hover:underline data-[disabled]:not-data-[loading]:text-disabled",
 };
 
 const sizes: Record<ButtonSize, string> = {
@@ -48,75 +48,68 @@ const sizes: Record<ButtonSize, string> = {
   medium: "h-control-medium px-150",
 };
 
-const selected =
-  "bg-selected text-selected hover:bg-selected-hovered active:bg-selected-pressed shadow-none";
-const iconSlot = "size-icon-small shrink-0";
-const onBold = (variant: ButtonVariant, isSelected: boolean | undefined) =>
-  !isSelected && (variant === "primary" || variant === "danger");
-
-type ButtonElementProps =
-  | ({
-      asChild?: false | undefined;
-      ref?: Ref<HTMLButtonElement> | undefined;
-    } & DOMAttributes<HTMLButtonElement>)
-  | ({
-      /** Render a single child that forwards its ref and event props to its DOM element. */
-      asChild: true;
-      ref?: Ref<HTMLElement> | undefined;
-    } & DOMAttributes<HTMLElement>);
-
-/** Guard before Radix's child-first event merge, including keyboard activation and custom children. */
-function guardedChild(children: ReactNode, blocked: boolean, disabled: boolean | undefined) {
-  if (!isValidElement<HTMLAttributes<HTMLElement>>(children)) return children;
-  const props = children.props;
-  const stop = (event: SyntheticEvent<HTMLElement>) => {
-    if (!blocked || ("key" in event && event.key !== "Enter" && event.key !== " ")) return false;
-    event.preventDefault();
-    event.stopPropagation();
-    return true;
-  };
-  return cloneElement(children, {
-    ...(blocked ? { "aria-disabled": true } : {}),
-    ...(disabled ? { tabIndex: -1 } : {}),
-    onClick: (event) => {
-      if (!stop(event)) props.onClick?.(event);
-    },
-    onClickCapture: (event) => {
-      if (!stop(event)) props.onClickCapture?.(event);
-    },
-    onKeyDown: (event) => {
-      if (!stop(event)) props.onKeyDown?.(event);
-    },
-    onKeyDownCapture: (event) => {
-      if (!stop(event)) props.onKeyDownCapture?.(event);
-    },
-  });
+/** Shared styling for Button and real navigation links. Does not add interaction or ARIA. */
+export function buttonVariants({
+  variant = "secondary",
+  size = "medium",
+  isSelected,
+  isFullWidth,
+  className,
+}: ButtonStyleProps & { className?: string | undefined } = {}) {
+  return cn(
+    base,
+    variants[variant],
+    variant === "link" ? "h-auto px-0" : sizes[size],
+    isSelected &&
+      "bg-selected text-selected hover:bg-selected-hovered active:bg-selected-pressed shadow-none",
+    isFullWidth && "w-full",
+    className,
+  );
 }
 
-export type ButtonProps = {
-  /** The emphasis. `secondary` is the default; at most one `primary` per view. */
-  variant?: ButtonVariant | undefined;
-  /** `medium` (32px) for forms and pages, `small` (28px) for toolbars, rows and rails, `xsmall` (24px) for the densest chrome. `link` has no size. */
-  size?: ButtonSize | undefined;
-  /** An icon before the label. Pass the element bare; the button sizes it. */
-  iconBefore?: ReactElement | undefined;
-  /** An icon after the label: a chevron for a menu, an arrow for a step. Pass the element bare. */
-  iconAfter?: ReactElement | undefined;
-  /** The action is in flight: a spinner takes the icon's place, the label stays, clicks are ignored and focus is kept. */
-  isLoading?: boolean | undefined;
-  /** The button is the current choice: a filter applied, a view chosen. Sets `aria-pressed` and paints the selected role. */
-  isSelected?: boolean | undefined;
-  /** Fills the container: a sheet's footer, a narrow form. */
-  isFullWidth?: boolean | undefined;
-  /** The visible label, or a single ref-forwarding element when asChild is true. */
-  children?: ReactNode;
-  className?: string | undefined;
-} & ButtonElementProps &
-  Omit<
-    ComponentPropsWithoutRef<"button">,
-    "children" | "className" | keyof DOMAttributes<HTMLElement>
-  >;
+export type ButtonProps = ButtonPrimitive.Props &
+  ButtonStyleProps & {
+    /** Decorative leading icon, replaced by a spinner while loading. */
+    iconBefore?: ReactElement | undefined;
+    /** Decorative trailing icon. */
+    iconAfter?: ReactElement | undefined;
+    /** Block activation and show a spinner while keeping focus unless explicitly disabled. */
+    isLoading?: boolean | undefined;
+  };
 
+// Render props merge child handlers before the primitive's handlers. Capture must block
+// activation before that merge can run a child's action. Custom targets must forward props.
+function guardActivation<Props extends DOMAttributes<HTMLElement>>(props: Props): Props {
+  const guard =
+    <Event extends SyntheticEvent<HTMLElement>>(handler?: (event: Event) => void) =>
+    (event: Event) => {
+      if ("key" in event && event.key !== "Enter" && event.key !== " ") {
+        handler?.(event);
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      (event as Event & { preventBaseUIHandler?: () => void }).preventBaseUIHandler?.();
+    };
+  return {
+    ...props,
+    onClickCapture: guard(props.onClickCapture),
+    onKeyDownCapture: guard(props.onKeyDownCapture),
+    onKeyUpCapture: guard(props.onKeyUpCapture),
+  };
+}
+
+function decorativeIcon(icon: ReactElement, position: "inline-start" | "inline-end") {
+  return cloneElement(
+    icon as ReactElement<{
+      "aria-hidden"?: boolean;
+      "data-icon"?: string;
+    }>,
+    { "aria-hidden": true, "data-icon": position },
+  );
+}
+
+/** A Base UI action button with Ledger styling and a focus-preserving loading state. */
 export function Button({
   variant = "secondary",
   size = "medium",
@@ -125,154 +118,106 @@ export function Button({
   isLoading,
   isSelected,
   isFullWidth,
-  asChild,
-  disabled,
+  disabled = false,
+  focusableWhenDisabled,
   className,
-  type,
-  onClick,
   children,
-  ...rest
+  render,
+  ...props
 }: ButtonProps) {
-  const Comp = (asChild ? Slot : "button") as ElementType;
-  return (
-    <Comp
-      className={cn(
-        base,
-        variants[variant],
-        variant === "link" ? "h-auto px-0" : sizes[size],
-        isSelected && selected,
-        isFullWidth && "w-full",
-        isLoading && "cursor-progress",
-        className,
-      )}
-      aria-pressed={isSelected}
-      aria-busy={isLoading || undefined}
-      aria-disabled={isLoading || disabled || undefined}
-      disabled={asChild ? undefined : disabled}
-      tabIndex={asChild && disabled ? -1 : undefined}
-      type={asChild ? undefined : (type ?? "button")}
-      onClick={(e: MouseEvent<HTMLElement>) => {
-        if (isLoading || disabled) {
-          e.preventDefault();
-          return;
-        }
-        if (asChild) onClick?.(e);
-        else onClick?.(e as MouseEvent<HTMLButtonElement>);
-      }}
-      {...rest}
-    >
+  const blocked = Boolean(disabled || isLoading);
+  const element = isValidElement<{ children?: ReactNode }>(render) ? render : undefined;
+  const content = children === undefined ? element?.props.children : children;
+  const contents = (
+    <>
       {isLoading ? (
         <Spinner
           isDecorative
-          className={cn(iconSlot, onBold(variant, isSelected) && "icon-inverse")}
+          appearance={
+            !isSelected && (variant === "primary" || variant === "danger") ? "inverse" : "subtle"
+          }
         />
       ) : iconBefore ? (
-        <Slot className={iconSlot} aria-hidden>
-          {iconBefore}
-        </Slot>
+        decorativeIcon(iconBefore, "inline-start")
       ) : null}
-      <Slottable>
-        {asChild ? guardedChild(children, Boolean(isLoading || disabled), disabled) : children}
-      </Slottable>
-      {iconAfter ? (
-        <Slot className={iconSlot} aria-hidden>
-          {iconAfter}
-        </Slot>
-      ) : null}
-    </Comp>
+      {content}
+      {iconAfter ? decorativeIcon(iconAfter, "inline-end") : null}
+    </>
+  );
+  const composedRender: ButtonProps["render"] = element
+    ? cloneElement(element, {
+        ...(blocked ? guardActivation(element.props) : element.props),
+        children: contents,
+      })
+    : typeof render === "function" && blocked
+      ? (renderProps, state) => {
+          const result = render(renderProps, state) as ReactElement<DOMAttributes<HTMLElement>>;
+          return cloneElement(result, guardActivation(result.props));
+        }
+      : render;
+
+  return (
+    <ButtonPrimitive
+      data-slot="button"
+      data-loading={isLoading && !disabled ? "" : undefined}
+      aria-pressed={isSelected}
+      aria-busy={isLoading || undefined}
+      {...(blocked ? guardActivation(props) : props)}
+      disabled={blocked}
+      focusableWhenDisabled={focusableWhenDisabled ?? Boolean(isLoading && !disabled)}
+      className={classes(
+        cn(
+          buttonVariants({ variant, size, isSelected, isFullWidth }),
+          isLoading && "cursor-progress",
+        ),
+        className,
+      )}
+      render={composedRender}
+    >
+      {contents}
+    </ButtonPrimitive>
   );
 }
 
-export type IconButtonProps = {
-  /** The accessible name and the tooltip. Required: the icon has no text. */
+export type IconButtonProps = Omit<
+  ButtonProps,
+  "children" | "iconBefore" | "iconAfter" | "isFullWidth" | "aria-label" | "variant" | "size"
+> & {
+  /** Accessible action name, also used by the tooltip. */
   label: string;
-  /** The icon, passed bare; the button sizes it. */
+  /** Decorative icon, replaced by a spinner while loading. */
   icon: ReactElement;
-  /** `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. */
   variant?: "primary" | "secondary" | "subtle" | undefined;
-  /** `small` (28px) is the default, for toolbars and rows; `medium` (32px) sits beside medium controls. */
+  /** Small is 28px; medium is 32px with a larger icon. */
   size?: "small" | "medium" | undefined;
-  /** Hides the tooltip where the label is already visible beside the button. The accessible name stays. */
+  /** Keep the accessible name while omitting the tooltip. */
   isTooltipDisabled?: boolean | undefined;
-  /** The action is in flight: a spinner takes the icon's place, clicks are ignored and focus is kept. */
-  isLoading?: boolean | undefined;
-  /** The button is the current choice. Sets `aria-pressed` and paints the selected role. */
-  isSelected?: boolean | undefined;
-  /** A single ref-forwarding element when asChild is true; the icon goes inside it. */
-  children?: ReactNode;
-  className?: string | undefined;
-} & ButtonElementProps &
-  Omit<
-    ComponentPropsWithoutRef<"button">,
-    "children" | "className" | "aria-label" | keyof DOMAttributes<HTMLElement>
-  >;
+};
 
-const iconButtonSizes = { small: "size-control-small", medium: "size-control-medium" } as const;
-const iconButtonIcons = {
-  small: "size-icon-small shrink-0",
-  medium: "size-icon-medium shrink-0",
-} as const;
-
-/** A square button holding one icon. `label` is its accessible name and its tooltip. */
+/** A square Button with a required accessible name and optional tooltip. */
 export function IconButton({
   label,
   icon,
-  variant = "secondary",
   size = "small",
   isTooltipDisabled,
-  isLoading,
-  isSelected,
-  asChild,
-  disabled,
   className,
-  type,
-  onClick,
-  children,
-  ...rest
+  ...props
 }: IconButtonProps) {
-  const Comp = (asChild ? Slot : "button") as ElementType;
   const button = (
-    <Comp
-      className={cn(
-        base,
-        variants[variant],
-        "shrink-0 px-0",
-        iconButtonSizes[size],
-        isSelected && selected,
-        isLoading && "cursor-progress",
+    <Button
+      data-slot="icon-button"
+      aria-label={label}
+      iconBefore={icon}
+      size={size}
+      {...props}
+      className={classes(
+        cn(
+          "shrink-0 px-0",
+          size === "medium" ? "size-control-medium [&>svg]:size-icon-medium" : "size-control-small",
+        ),
         className,
       )}
-      aria-label={label}
-      aria-pressed={isSelected}
-      aria-busy={isLoading || undefined}
-      aria-disabled={isLoading || disabled || undefined}
-      disabled={asChild ? undefined : disabled}
-      tabIndex={asChild && disabled ? -1 : undefined}
-      type={asChild ? undefined : (type ?? "button")}
-      onClick={(e: MouseEvent<HTMLElement>) => {
-        if (isLoading || disabled) {
-          e.preventDefault();
-          return;
-        }
-        if (asChild) onClick?.(e);
-        else onClick?.(e as MouseEvent<HTMLButtonElement>);
-      }}
-      {...rest}
-    >
-      <Slottable>
-        {asChild ? guardedChild(children, Boolean(isLoading || disabled), disabled) : children}
-      </Slottable>
-      {isLoading ? (
-        <Spinner
-          isDecorative
-          className={cn(iconButtonIcons[size], onBold(variant, isSelected) && "icon-inverse")}
-        />
-      ) : (
-        <Slot className={iconButtonIcons[size]} aria-hidden>
-          {icon}
-        </Slot>
-      )}
-    </Comp>
+    />
   );
   return isTooltipDisabled ? button : <Tooltip content={label}>{button}</Tooltip>;
 }

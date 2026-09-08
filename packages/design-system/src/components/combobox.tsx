@@ -16,6 +16,7 @@ import {
 
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
+import { useOverlayContainer } from "./_overlay-focus";
 import { useLedgerLocale } from "../lib/locale";
 import { controlBase, controlHeight, useFieldControl, type ControlSize } from "./controls";
 
@@ -224,10 +225,7 @@ function ComboboxContent({
   ...props
 }: ComboboxContentProps) {
   const direction = useContext(DirectionContext);
-  const [enclosingDialog, setEnclosingDialog] = useState<HTMLElement | null>(null);
-  const locateDialog = useCallback((node: HTMLSpanElement | null) => {
-    setEnclosingDialog(node?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? null);
-  }, []);
+  const portal = useOverlayContainer();
   const defaults = {
     width: "var(--anchor-width)",
     maxWidth: "var(--available-width)",
@@ -235,9 +233,9 @@ function ComboboxContent({
   };
   return (
     <>
-      <span hidden ref={locateDialog} />
+      <span hidden ref={portal.ref} />
       <Primitive.Portal
-        container={portalContainer === undefined ? (enclosingDialog ?? undefined) : portalContainer}
+        container={portalContainer === undefined ? portal.container : portalContainer}
         keepMounted={keepMounted}
       >
         <Primitive.Positioner

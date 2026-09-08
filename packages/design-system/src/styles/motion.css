@@ -109,9 +109,10 @@
     animation-delay: 0ms;
   }
 }
-/* A dialog: the same move, one tier slower, because it is bigger and further. */
+/* A dialog: the same move, one tier slower, because it is bigger and further.
+   Release the transform after entry so fixed popups can extend past the rounded frame. */
 @utility animate-dialog-in {
-  animation: ds-enter var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
+  animation: ds-enter var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) backwards;
   @media (prefers-reduced-motion: reduce) {
     animation-duration: 0.01ms;
     animation-delay: 0ms;

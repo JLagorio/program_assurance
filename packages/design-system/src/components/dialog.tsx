@@ -1,5 +1,5 @@
 import { useLedgerLocale } from "../lib/locale";
-import { preserveComboboxEscape, useOverlayFocus } from "./_overlay-focus";
+import { preserveNestedPopupEscape, useOverlayFocus } from "./_overlay-focus";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import type { ReactNode, RefObject } from "react";
@@ -64,7 +64,7 @@ export function Dialog({
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
         <div className="fixed inset-0 z-50 flex items-start justify-center p-200 sm:p-600">
           <DialogPrimitive.Content
-            onEscapeKeyDown={preserveComboboxEscape}
+            onEscapeKeyDown={preserveNestedPopupEscape}
             onCloseAutoFocus={restoreFocus}
             dir={direction}
             {...(description ? {} : { "aria-describedby": undefined })}

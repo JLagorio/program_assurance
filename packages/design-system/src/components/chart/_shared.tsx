@@ -1,5 +1,5 @@
 import { useLedgerLocale } from "../../lib/locale";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import {
   createContext,
   useCallback,
@@ -27,7 +27,8 @@ import {
 import { token, tokenValue, type TokenName } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
 import type { Tone } from "../badge";
-import { menuMotion } from "../menu";
+import { useOverlayContainer } from "../_overlay-focus";
+import { Popover } from "../popover";
 
 /*
  * The furniture every chart part shares, internal to this folder: the tones and the scales, the data
@@ -1027,43 +1028,53 @@ function Card({
   children: ReactNode;
 }) {
   const { t, direction } = useLedgerLocale();
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const portal = useOverlayContainer();
 
   return (
-    <PopoverPrimitive.Root
+    <Popover
       open
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
     >
-      <PopoverPrimitive.Anchor asChild>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute"
-          style={{ left: anchor.x, top: anchor.y, width: anchor.width, height: anchor.height }}
-        />
-      </PopoverPrimitive.Anchor>
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
+      <div
+        ref={anchorRef}
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{ left: anchor.x, top: anchor.y, width: anchor.width, height: anchor.height }}
+      />
+      <span hidden ref={portal.ref} />
+      <PopoverPrimitive.Portal container={portal.container}>
+        <PopoverPrimitive.Positioner
+          anchor={anchorRef}
           side="top"
           align="center"
           sideOffset={6}
           collisionPadding={8}
-          dir={direction}
-          aria-label={label ? t("detailsLabel", { label }) : t("details")}
-          onCloseAutoFocus={(e) => {
-            e.preventDefault();
-            refocus();
-          }}
-          className={cn(
-            "z-50 flex flex-col gap-150 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none",
-            menuMotion,
-          )}
-          style={{ width: 280 }}
+          positionMethod={portal.container ? "fixed" : undefined}
+          className="isolate z-50"
         >
-          {children}
-        </PopoverPrimitive.Content>
+          <PopoverPrimitive.Popup
+            data-slot="popover-content"
+            dir={direction}
+            aria-label={label ? t("detailsLabel", { label }) : t("details")}
+            finalFocus={() => {
+              refocus();
+              return false;
+            }}
+            className="flex flex-col gap-150 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none data-open:animate-enter data-closed:animate-exit data-instant:animate-none motion-reduce:animate-none"
+            style={{
+              width: 280,
+              maxWidth: "var(--available-width)",
+              transformOrigin: "var(--transform-origin)",
+            }}
+          >
+            {children}
+          </PopoverPrimitive.Popup>
+        </PopoverPrimitive.Positioner>
       </PopoverPrimitive.Portal>
-    </PopoverPrimitive.Root>
+    </Popover>
   );
 }
 

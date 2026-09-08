@@ -20,7 +20,7 @@ It is the one setting that belongs to the document. Row [density](?path=/docs/co
 | Attribute      | `data-color-mode="light"` or `"dark"` on the root pins a mode; no attribute lets `prefers-color-scheme` decide. `tokens.css` and `base.css` read it.                                                                        |
 | Script         | `modeScript`: a string for the document head, above the stylesheet. It applies the stored choice before the first paint so nothing flashes. `modeScriptFor(key)` for another storage key.                                    |
 | Provider       | `ModeProvider`: owns the choice. On mount it reads storage and applies it (a no-op after the script); every change is stored and applied at once. `useMode()` returns `{ mode, setMode, resolved }`, `resolved` being what is on screen. |
-| Switch         | `ModeSwitch`: a ToggleGroup of three, sun, moon and monitor, `small`. Icons only in chrome; `showLabels` in a settings form.                                                                                                |
+| Switch         | `ModeSwitch`: a ToggleGroup of three, sun, moon and monitor, `sm`. Icons only in chrome; `showLabels` in a settings form.                                                                                                |
 
 ## Variants
 
@@ -32,7 +32,7 @@ There is no two-state form. A light-or-dark toggle has no answer for a machine t
 
 ## Sizes
 
-One: the ToggleGroup's `small`, 28px, the height of the chrome it sits in.
+One: the ToggleGroup's `sm`, 28px, the height of the chrome it sits in.
 
 ## States
 
@@ -63,14 +63,14 @@ One: the ToggleGroup's `small`, 28px, the height of the chrome it sits in.
 
 | Element   | Token                                                                                              |
 | --------- | -------------------------------------------------------------------------------------------------- |
-| Switch    | The ToggleGroup, `small`: `dimension.control.small` 28px · `dimension.icon.small` 14px              |
+| Switch    | The ToggleGroup, `sm`: `dimension.control.small` 28px · `dimension.icon.small` 14px              |
 | Attribute | `data-color-mode` on `html` · every `color.*` and `elevation.*` token has a light and a dark value  |
 | Motion    | None. A mode changes at once; a fade across every surface reads as a fault.                        |
 
 ## Accessibility
 
-- **The switch is a radio group** named Appearance; each state is a radio with its word as the accessible name, so icons only still read as Light, Dark, System.
-- **Keyboard:** Tab reaches the group on the selected item; Left and Right move and select; Space and Enter select.
+- **The switch is a group of toggle buttons** named Appearance. Each button has `aria-pressed` and an accessible name, including Light, Dark and System when only icons are visible.
+- **Keyboard:** Tab enters and leaves the group as one stop; Left and Right move focus, and Space or Enter selects. The switch retains a selected mode when it is pressed again.
 - **System honours the reader's machine,** including `prefers-color-scheme` set for a vision reason, so it is the default and never overridden by the product.
 - **Contrast is tested in both modes:** every pairing on the Colour sheet, and the a11y gate runs each matrix in the mode the toolbar sets.
 - **No flash:** the script marks the root before the first paint, so a reader who chose dark never sees a light page load.

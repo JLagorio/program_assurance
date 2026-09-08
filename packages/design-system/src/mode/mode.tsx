@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { ToggleGroup } from "../components/toggle";
+import { ToggleGroup, ToggleGroupItem } from "../components/toggle-group";
 
 /**
  * The colour mode. tokens.css and base.css read `data-color-mode` on the root: "light" and "dark" pin a
@@ -149,19 +149,20 @@ export function ModeSwitch({
     <ToggleGroup<ColorMode>
       aria-label={ariaLabel ?? t("colorMode")}
       className={className}
-      value={current}
-      onChange={change}
-      items={modes.map(({ value: v, icon: Icon }) => ({
-        value: v,
-        label: (
-          <>
-            <Icon className="size-icon-small" />
-            <span className={showLabels ? undefined : "sr-only"}>
-              {t(v === "light" ? "lightMode" : v === "dark" ? "darkMode" : "systemMode")}
-            </span>
-          </>
-        ),
-      }))}
-    />
+      size="sm"
+      value={[current]}
+      onValueChange={([next]) => {
+        if (next !== undefined) change(next);
+      }}
+    >
+      {modes.map(({ value: v, icon: Icon }) => (
+        <ToggleGroupItem key={v} value={v}>
+          <Icon className="size-icon-small" aria-hidden />
+          <span className={showLabels ? undefined : "sr-only"}>
+            {t(v === "light" ? "lightMode" : v === "dark" ? "darkMode" : "systemMode")}
+          </span>
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   );
 }

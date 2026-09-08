@@ -7,88 +7,60 @@ import * as Stories from "./Kbd.stories";
 
 # Kbd
 
-A key as it appears on the keyboard: a cap with a hairline, sunken. One cap per key; a shortcut of several keys is a `Kbd.Group`. It sits in a sentence, in a tooltip after the action's name, and at the end of a menu item. The rule: the glyphs are the keyboard's, and a glyph a screen reader would not say is given its name.
+Keyboard input displayed as a keycap, in text, tooltips and menu hints. Use `KbdGroup`
+to show the keys of a shortcut together. The existing `Kbd.Group` alias also works.
 
 <Canvas of={Stories.KbdMatrix} />
 
 ## Anatomy
 
-| Part  | What it is                                                                                                         |
-| ----- | ------------------------------------------------------------------------------------------------------------------ |
-| Cap   | A `<kbd>`, 16px tall and at least 16px wide, `elevation.surface.sunken`, `color.border` hairline, `radius.xsmall`. |
-| Key   | The key as it reads on the cap: "K", "esc", ⌘, ↵. `font.body.xsmall` medium, `color.text.subtle`.                  |
-| Name  | `label`: what a screen reader says for a glyph. "Command" for ⌘, "Enter" for ↵.                                    |
-| Group | Several caps `space.050` apart, one `<kbd>` around them: one shortcut.                                             |
+Both parts render native `<kbd>` elements and accept their native props and refs.
+`Kbd` draws a 16px-tall cap, at least 16px wide, using the sunken surface, default
+border, extra-small radius and small text tokens. `KbdGroup` spaces its caps 4px apart.
 
-## Variants
+```tsx
+import { Kbd, KbdGroup } from "@ledger/design-system";
 
-| Kbd           | Use                                                                          |
-| ------------- | ---------------------------------------------------------------------------- |
-| A key         | One cap: `Kbd`.                                                              |
-| A chord       | Caps in a `Kbd.Group`, in the order they are pressed: ⌘ then K.              |
-| In a sentence | "Press ⌘ K to search." The caps sit in the line at the text's baseline.      |
-| In a tooltip  | After the action's name, so the reader learns the shortcut where they hover. |
-| In a menu     | In the item's `trailing`, the way every menu shows one.                      |
+<KbdGroup>
+  <Kbd label="Command">⌘</Kbd>
+  <Kbd>K</Kbd>
+</KbdGroup>
+```
 
-Not built, and why: a size, because a cap is read beside 12px text everywhere it goes; a pressed state, because a cap is never a control; platform switching (⌘ on a Mac, Ctrl elsewhere), because that is the caller's to decide from the platform it runs on, and a product does it once.
-
-## Sizes
-
-One size: 16px tall, `font.body.xsmall`. It sits in a line of body or small text without changing the line's height.
-
-## States
-
-A cap has no state. It does not hover, focus or press: it says what to press.
-
-## Modifiers
-
-- **`label`** for a glyph's spoken name.
-- **`Kbd.Group`** around the caps of one shortcut.
-
-## Content
-
-- **One key per cap.** ⌘ and K are two caps, not "⌘K" on one.
-- **The keyboard's glyphs**: ⌘ ⇧ ⌥ ⌃ ↵ ⎋ ↑ ↓, or the word where the key has one: "esc", "Ctrl", "Tab".
-- **Letters in capitals**, as on the keys: "K", not "k".
-- **Name the glyphs**: "Command", "Shift", "Option", "Enter". Letters and words need none.
-- **The sentence says what it does**: "Press ⌘ K to search."
-
-## Style
-
-| Element | Token                                                                                          |
-| ------- | ---------------------------------------------------------------------------------------------- |
-| Cap     | `elevation.surface.sunken` · `color.border` · `radius.xsmall` · 16px tall · `space.050` inline |
-| Key     | `font.body.xsmall` medium · `color.text.subtle`                                                |
-| Group   | `space.050` between caps                                                                       |
+Use separate caps when that makes a multi-key shortcut easier to read. Choose the
+platform's keys in the calling application. There is no platform detection or shortcut
+handler inside these components.
 
 ## Accessibility
 
-- **A `<kbd>` element**, so assistive technology knows it is keyboard input.
-- **Glyphs are named** by `label`; without it a screen reader reads the Unicode name, which for ⌘ is "place of interest sign".
-- **A group is one `<kbd>`** around the caps, so the shortcut is read as one thing.
-- **Never a control.** A cap is not focusable and does nothing when clicked; what it describes is a Button somewhere.
-- **Contrast**: the key's text passes 4.5:1 on the sunken surface.
+`<kbd>` marks up keyboard input. Caps and groups have no built-in focus or activation
+behavior; the surrounding button or menu item owns the action. Keep the action's name
+in the surrounding text, such as “Press Command K to search.”
+
+Use `label` to supply a glyph's `aria-label`; an explicit `aria-label` takes precedence.
+Screen-reader handling of glyphs and labels varies, so the shortcut should remain
+understandable from its visible text and context.
 
 ## Props
 
+`className`, `style`, attributes, events and `ref` target each part's own `<kbd>`.
+Both refs use `HTMLElement`. Parts expose `data-slot="kbd"` and `data-slot="kbd-group"`.
+
 <ArgTypes of={Kbd} />
-
-### Kbd.Group
-
-<ArgTypes of={Kbd.Group} />
 
 ### Playground
 
 <Canvas of={Stories.Playground} />
-
 <Controls of={Stories.Playground} />
+
+## Migration
+
+Existing `Kbd`, `label`, and `Kbd.Group` callers need no edits. Native attributes and
+refs are now supported on both parts; use the flat `KbdGroup` export for new compositions.
+Geometry and token styling are unchanged.
 
 ## Related
 
-- [Tooltip](?path=/docs/components-tooltip--docs): where a shortcut is learned.
-- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the item's `trailing`.
-- [Command](?path=/docs/components-command--docs): the palette's hint.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+- [Tooltip](?path=/docs/components-tooltip--docs): show a shortcut beside an action's name.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): put a shortcut in an item's `trailing` slot.
+- [Command](?path=/docs/components-command--docs): keyboard hints in the palette.

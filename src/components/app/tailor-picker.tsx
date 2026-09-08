@@ -147,7 +147,8 @@ export function TailorControlsSheet({
             <tr>
               <Table.Selection
                 header
-                checked={allShown ? true : someShown ? "indeterminate" : false}
+                checked={allShown}
+                indeterminate={!allShown && someShown}
                 onCheckedChange={(checked) =>
                   setChosen((prev) => {
                     const next = new Set(prev);

@@ -9,6 +9,7 @@ import {
   BreadcrumbSeparator,
   Button,
   Editable,
+  Empty,
   Inspector,
   RecordHeader,
   Section,
@@ -28,6 +29,7 @@ import {
   reopenTask,
   setTaskNote,
   taskById,
+  tasksRestored,
   useTasksVersion,
 } from "@/lib/tasks";
 
@@ -37,7 +39,9 @@ import {
  */
 export const Route = createFileRoute("/tasks/$taskId")({
   loader: ({ params }) => {
-    if (!taskById(params.taskId)) throw notFound();
+    // Browser-saved tasks are restored after mount; the server cannot decide
+    // whether a well-formed task ID exists in this user's workspace.
+    if (!/^TSK-\d+$/.test(params.taskId)) throw notFound();
   },
   head: ({ params }) => ({ meta: [{ title: `${params.taskId} — Equinox` }] }),
   component: TaskPage,
@@ -55,7 +59,19 @@ function TaskPage() {
     () => mentionablePeople(task?.program).map((p) => p.name),
     [task?.program],
   );
-  if (!task) return null;
+  if (!task)
+    return (
+      <Shell>
+        <Empty
+          title={tasksRestored() ? "Task not found" : "Loading task"}
+          description={
+            tasksRestored()
+              ? "This task is not available in this workspace."
+              : "Restoring your saved tasks."
+          }
+        />
+      </Shell>
+    );
   const program = programs.find((p) => p.id === task.program);
   const done = task.state === "Done";
 
@@ -83,7 +99,7 @@ function TaskPage() {
                           <Link
                             to="/programs/$programId"
                             params={{ programId: program.id }}
-                            search={{ tab: "Tasks", peek: undefined }}
+                            search={{ tab: "Schedule", scheduleView: "Tasks", peek: undefined }}
                           />
                         }
                       >

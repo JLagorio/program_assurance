@@ -6,7 +6,7 @@ import * as Stories from "./Overlays.stories";
 
 # Overlays
 
-Everything that floats over the page, from the smallest label to a full task. Four are anchored to the thing that opened them and four cover the page under a blanket. Every one is Radix underneath (vaul for the Drawer): focus moves in and back, Escape closes, the page behind stops scrolling where it should. The surfaces share one recipe, `elevation.surface.overlay`, `elevation.shadow.overlay`, the large radius, the enter and exit motion, so a product's overlays read as one family.
+Everything that floats over the page, from the smallest label to a full task. Four are anchored to the thing that opened them and four cover the page under a blanket. HoverCard and Popover use Base UI; the other overlays use Radix, with vaul for Drawer. Modal overlays manage focus and page scrolling; anchored previews keep focus on their trigger. The surfaces share one recipe, `elevation.surface.overlay`, `elevation.shadow.overlay`, the large radius, the enter and exit motion, so a product's overlays read as one family.
 
 Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [HoverCard](?path=/docs/components-hovercard--docs), [Popover](?path=/docs/components-popover--docs), [DropdownMenu](?path=/docs/components-dropdownmenu--docs), [Dialog](?path=/docs/components-dialog--docs), [Sheet](?path=/docs/components-sheet--docs), [Drawer](?path=/docs/components-drawer--docs), [AlertDialog](?path=/docs/components-alertdialog--docs).
 
@@ -15,7 +15,7 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 | Need                                                       | Use              | Opens on                            | Closes on                              |
 | ---------------------------------------------------------- | ---------------- | ----------------------------------- | -------------------------------------- |
 | A short label                                              | **Tooltip**      | Hover or focus, after 300ms         | Leaving, Escape                        |
-| A peek at a record: a few facts, no actions                | **HoverCard**    | Hover or focus, after 400ms         | Leaving, Escape                        |
+| A peek at a record: a few facts, no actions                | **HoverCard**    | Hover or focus, after 600ms         | Leaving, Escape                        |
 | A small task at its button: a filter, a reason, a picker   | **Popover**      | Click                               | Escape, outside click, Done            |
 | A list of actions                                          | **DropdownMenu** | Click, Enter, Space, the down arrow | Choosing, Escape, outside click        |
 | A focused task over the page                               | **Dialog**       | The caller's state                  | Escape, the blanket, Cancel, the verb  |
@@ -50,7 +50,7 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 
 ## Props
 
-- **Triggers are elements**: `trigger={<Button>…</Button>}` for a Popover or a DropdownMenu, the child of a Tooltip or a HoverCard. The overlay clones the element and adds the aria; the element must take a ref and spread its props, which every kit control does.
+- **Trigger composition follows each component's API**: Popover uses `PopoverTrigger render={<Button />}`; DropdownMenu takes `trigger={<Button>…</Button>}`; Tooltip takes a child element. HoverCard uses `HoverCardTrigger`, an anchor by default, with `render` for a custom link. Custom trigger components must forward their props and ref.
 - **The blanketed four are opened by state**: `open` and `onClose`. An act sets it; the caller clears it. Nothing opens a Dialog for the reader who did not ask.
 - **Where the task lives decides the overlay.** At the button: Popover. Over the page: Dialog. Beside the list: Sheet. Under the thumb: Drawer.
 

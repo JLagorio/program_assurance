@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Search } from "lucide-react";
+import { createRef } from "react";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, DropdownMenu, IconButton, Kbd, Tooltip } from "../../components";
+import { Button, DropdownMenu, IconButton, Kbd, KbdGroup, Tooltip } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Kbd",
@@ -15,31 +16,58 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Letters, glyphs with their spoken names, chords in a Kbd.Group, and the cap in a sentence, a tooltip and a menu. */
+const keyRef = createRef<HTMLElement>();
+const groupRef = createRef<HTMLElement>();
+const editAction = fn();
+
+/** Letters, named glyphs, grouped shortcuts, and key hints in a sentence, tooltip and menu. */
 export const KbdMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="Keys: letters say themselves; glyphs take a label">
-        <Kbd>K</Kbd>
+        <Kbd
+          ref={keyRef}
+          id="search-key"
+          title="Search key"
+          lang="en"
+          dir="ltr"
+          data-key="search"
+          className="align-middle"
+          style={{ verticalAlign: "middle" }}
+        >
+          K
+        </Kbd>
         <Kbd>esc</Kbd>
-        <Kbd label="Command">⌘</Kbd>
+        <Kbd label="Command" aria-label="Meta" title="Meta key">
+          ⌘
+        </Kbd>
         <Kbd label="Shift">⇧</Kbd>
         <Kbd label="Option">⌥</Kbd>
         <Kbd label="Enter">↵</Kbd>
         <Kbd label="Up">↑</Kbd>
         <Kbd>Ctrl</Kbd>
       </Specimens>
-      <Specimens title="Chords: Kbd.Group">
-        <Kbd.Group>
+      <Specimens title="Chords: KbdGroup and the Kbd.Group alias">
+        <KbdGroup
+          ref={groupRef}
+          id="search-shortcut"
+          title="Search shortcut"
+          aria-label="Command K"
+          lang="en"
+          dir="ltr"
+          data-shortcut="search"
+          className="align-middle"
+          style={{ verticalAlign: "middle" }}
+        >
           <Kbd label="Command">⌘</Kbd>
           <Kbd>K</Kbd>
-        </Kbd.Group>
-        <Kbd.Group>
+        </KbdGroup>
+        <KbdGroup>
           <Kbd label="Command">⌘</Kbd>
           <Kbd label="Shift">⇧</Kbd>
           <Kbd>P</Kbd>
-        </Kbd.Group>
-        <Kbd.Group>
+        </KbdGroup>
+        <Kbd.Group title="Control bracket shortcut" aria-label="Control left bracket">
           <Kbd>Ctrl</Kbd>
           <Kbd>[</Kbd>
         </Kbd.Group>
@@ -47,10 +75,10 @@ export const KbdMatrix: Story = {
       <Specimens title="In a sentence, a tooltip, a menu">
         <Text size="small" color="color.text.subtle">
           Press{" "}
-          <Kbd.Group>
+          <KbdGroup>
             <Kbd label="Command">⌘</Kbd>
             <Kbd>K</Kbd>
-          </Kbd.Group>{" "}
+          </KbdGroup>{" "}
           to search.
         </Text>
         <Tooltip
@@ -58,10 +86,10 @@ export const KbdMatrix: Story = {
           content={
             <Inline space="space.075" alignBlock="center">
               Search
-              <Kbd.Group>
+              <KbdGroup>
                 <Kbd label="Command">⌘</Kbd>
                 <Kbd>K</Kbd>
-              </Kbd.Group>
+              </KbdGroup>
             </Inline>
           }
         >
@@ -69,12 +97,12 @@ export const KbdMatrix: Story = {
         </Tooltip>
         <DropdownMenu trigger={<Button size="small">Actions</Button>}>
           <DropdownMenu.Item
-            onSelect={() => {}}
+            onSelect={editAction}
             trailing={
-              <Kbd.Group>
+              <KbdGroup>
                 <Kbd label="Command">⌘</Kbd>
                 <Kbd>E</Kbd>
-              </Kbd.Group>
+              </KbdGroup>
             }
           >
             Edit
@@ -82,11 +110,11 @@ export const KbdMatrix: Story = {
           <DropdownMenu.Item
             onSelect={() => {}}
             trailing={
-              <Kbd.Group>
+              <KbdGroup>
                 <Kbd label="Command">⌘</Kbd>
                 <Kbd label="Shift">⇧</Kbd>
                 <Kbd>D</Kbd>
-              </Kbd.Group>
+              </KbdGroup>
             }
           >
             Duplicate
@@ -95,75 +123,70 @@ export const KbdMatrix: Story = {
       </Specimens>
     </Stack>
   ),
-};
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const key = canvas.getByTitle("Search key");
+    const group = canvas.getByTitle("Search shortcut");
+    const aliasGroup = canvas.getByTitle("Control bracket shortcut");
+    await expect(aliasGroup.tagName).toBe("KBD");
+    await expect(aliasGroup).toHaveAttribute("data-slot", "kbd-group");
+    await expect(aliasGroup).toHaveAttribute("aria-label", "Control left bracket");
+    await expect(aliasGroup.querySelectorAll('[data-slot="kbd"]')).toHaveLength(2);
+    await expect(aliasGroup).toHaveTextContent("Ctrl[");
+    await expect(keyRef.current).toBe(key);
+    await expect(groupRef.current).toBe(group);
+    for (const [element, id, slot] of [
+      [key, "search-key", "kbd"],
+      [group, "search-shortcut", "kbd-group"],
+    ] as const) {
+      await expect(element.tagName).toBe("KBD");
+      await expect(element).toHaveAttribute("id", id);
+      await expect(element).toHaveAttribute("data-slot", slot);
+      await expect(element).toHaveAttribute("lang", "en");
+      await expect(element).toHaveAttribute("dir", "ltr");
+      await expect(element).toHaveClass("align-middle");
+      await expect(element).toHaveStyle({ verticalAlign: "middle" });
+    }
+    await expect(key).toHaveAttribute("data-key", "search");
+    await expect(key).toHaveTextContent("K");
+    await expect(key).not.toHaveAttribute("aria-label");
+    await expect(group).toHaveAttribute("data-shortcut", "search");
+    await expect(group).toHaveAttribute("aria-label", "Command K");
+    await expect(group.children).toHaveLength(2);
+    await expect(within(group).getByLabelText("Command")).toHaveTextContent("⌘");
+    await expect(canvas.getByTitle("Meta key")).toHaveAttribute("aria-label", "Meta");
+    await expect(canvas.getByLabelText("Enter")).toHaveTextContent("↵");
 
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Kbd.Group>
-            <Kbd label="Command">⌘</Kbd>
-            <Kbd label="Shift">⇧</Kbd>
-            <Kbd>P</Kbd>
-          </Kbd.Group>
-        }
-        doText="One cap per key, in a group: the reader sees three keys pressed together."
-        dont={<Kbd>⌘ ⇧ P</Kbd>}
-        dontText="A chord on one cap. It reads as one key, and no keyboard has it."
-      />
-      <Pair
-        do={
-          <Text size="small" color="color.text.subtle">
-            Press{" "}
-            <Kbd.Group>
-              <Kbd>Ctrl</Kbd>
-              <Kbd>K</Kbd>
-            </Kbd.Group>{" "}
-            to search.
-          </Text>
-        }
-        doText="Keys as caps, in the sentence that says what they do."
-        dont={
-          <Text size="small" color="color.text.subtle">
-            Press Ctrl+K to search.
-          </Text>
-        }
-        dontText="A shortcut as text. The plus is not a key, and the eye cannot find the keys in the sentence."
-      />
-      <Pair
-        do={
-          <Inline space="space.075" alignBlock="center">
-            <Kbd label="Command">⌘</Kbd>
-            <Text size="small" color="color.text.subtle">
-              read as “Command”
-            </Text>
-          </Inline>
-        }
-        doText="A glyph is given its name, so the screen reader says the key."
-        dont={
-          <Inline space="space.075" alignBlock="center">
-            <Kbd>⌘</Kbd>
-            <Text size="small" color="color.text.subtle">
-              read as “place of interest sign”
-            </Text>
-          </Inline>
-        }
-        dontText="A glyph left to Unicode's name for it."
-      />
-      <Pair
-        do={<Button size="small">Search</Button>}
-        doText="A thing to click is a Button, which may show the shortcut in its tooltip."
-        dont={
-          <Kbd className="cursor-pointer" label="Search">
-            ⌘ K
-          </Kbd>
-        }
-        dontText="A cap as a control. A key cap is what to press, never what to click."
-      />
-    </Stack>
-  ),
+    for (const cap of canvasElement.querySelectorAll<HTMLElement>('[data-slot="kbd"]')) {
+      await expect(cap.getBoundingClientRect().height).toBe(16);
+      await expect(cap.getBoundingClientRect().width).toBeGreaterThanOrEqual(16);
+      await expect(cap.tabIndex).toBe(-1);
+    }
+    for (const chord of canvasElement.querySelectorAll<HTMLElement>('[data-slot="kbd-group"]')) {
+      await expect(getComputedStyle(chord).columnGap).toBe("4px");
+      await expect(chord.tabIndex).toBe(-1);
+    }
+
+    const search = canvas.getByRole("button", { name: "Search" });
+    const actions = canvas.getByRole("button", { name: "Actions" });
+    search.focus();
+    await userEvent.tab();
+    await expect(actions).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    await expect(search).toHaveFocus();
+    await userEvent.tab();
+    await userEvent.keyboard("{Enter}");
+    const menu = await page.findByRole("menu");
+    const edit = within(menu).getByRole("menuitem", { name: /^Edit/ });
+    await waitFor(() => expect(edit).toHaveFocus());
+    await expect(edit.querySelector('[data-slot="kbd-group"]')).toBeVisible();
+    await expect(edit.querySelectorAll('[data-slot="kbd"]')).toHaveLength(2);
+    editAction.mockClear();
+    await userEvent.keyboard("{Enter}");
+    await expect(editAction).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(actions).toHaveFocus());
+  },
 };
 
 export const Playground: Story = {};

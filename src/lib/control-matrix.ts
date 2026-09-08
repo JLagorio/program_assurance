@@ -33,7 +33,17 @@
 import { useSyncExternalStore } from "react";
 
 import { controlFamilies, programControls, programs } from "@/lib/grc-data";
-import { assetById, findings, isDeficiency, isOpen, type Finding } from "@/lib/findings";
+import {
+  assetById,
+  findingProgram,
+  findings,
+  isDeficiency,
+  isOpen,
+  type Finding,
+} from "@/lib/findings";
+import { assuranceVersion, subscribeAssurance } from "@/lib/assurance-record-store";
+import { workForProgram, workVersion, subscribeWork } from "@/lib/control-work";
+import { evidenceVersion, subscribeEvidence } from "@/lib/evidence-catalog";
 import {
   baselineControls,
   controlTitle,
@@ -201,7 +211,7 @@ function tailoredControls(programId: string, inherited: Iterable<string>): NistC
     ...programControls.map((c) => c.id),
     ...inherited,
     ...workstreamsForProgram(programId).flatMap((w) => w.controls),
-    ...findings.filter((f) => assetById.get(f.asset)?.program === programId).map((f) => f.control),
+    ...findings.filter((f) => findingProgram(f) === programId).map((f) => f.control),
   ];
   for (const id of named) {
     if (picked.has(id)) continue;
@@ -219,7 +229,7 @@ function buildMatrix(programId: string): ControlRow[] {
 
   const findingsByControl = new Map<string, Finding[]>();
   for (const f of findings) {
-    if (assetById.get(f.asset)?.program !== programId) continue;
+    if (findingProgram(f) !== programId) continue;
     findingsByControl.set(f.control, [...(findingsByControl.get(f.control) ?? []), f]);
   }
 
@@ -299,6 +309,13 @@ function buildMatrix(programId: string): ControlRow[] {
                 : "Other than satisfied";
       }
       if (deficient.length > 0) status = "Other than satisfied";
+      const work = workForProgram(programId).filter((w) => w.control === id);
+      if (work.length) {
+        if (deficient.length || work.some((w) => w.assessment === "Other than satisfied"))
+          status = "Other than satisfied";
+        else if (work.every((w) => w.assessment === "Satisfied")) status = "Satisfied";
+        else status = "Not assessed";
+      }
 
       const implementation: Implementation = edge
         ? implementationForDesignation[edge.designation]
@@ -338,7 +355,7 @@ function buildMatrix(programId: string): ControlRow[] {
         status,
         implementation,
         source: edge ? sourceLabel(edge) : (author?.source ?? "System-implemented"),
-        owner,
+        owner: work.find((w) => w.owner)?.owner ?? owner,
         assessed,
         due,
         poam,
@@ -364,8 +381,14 @@ type Patch = Partial<
 const overrides = new Map<string, Map<string, Patch>>();
 const cache = new Map<string, ControlRow[]>();
 const listeners = new Set<() => void>();
+let sourceVersion = "";
 
 function snapshot(programId: string): ControlRow[] {
+  const current = `${assuranceVersion()}/${workVersion()}/${evidenceVersion()}`;
+  if (sourceVersion !== current) {
+    cache.clear();
+    sourceVersion = current;
+  }
   const hit = cache.get(programId);
   if (hit) return hit;
   const patches = overrides.get(programId);
@@ -381,6 +404,12 @@ export function controlMatrix(programId: string): ControlRow[] {
   return snapshot(programId);
 }
 
+/** Findings and reassessments invalidate this projection across all readers. */
+export function invalidateControlMatrix() {
+  cache.clear();
+  for (const listener of listeners) listener();
+}
+
 export function updateControl(programId: string, id: string, patch: Patch) {
   const map = overrides.get(programId) ?? new Map<string, Patch>();
   map.set(id, { ...map.get(id), ...patch });
@@ -393,7 +422,11 @@ export function useControlMatrix(programId: string): ControlRow[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      return () => listeners.delete(cb);
+      const off = [subscribeAssurance(cb), subscribeWork(cb), subscribeEvidence(cb)];
+      return () => {
+        listeners.delete(cb);
+        for (const unsubscribe of off) unsubscribe();
+      };
     },
     () => snapshot(programId),
     () => snapshot(programId),

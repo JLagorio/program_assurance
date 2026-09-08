@@ -40,6 +40,7 @@ export function useViewStore<TData extends RowData>(
           id: column.id,
           ...(column.columnDef.minSize === undefined ? {} : { minSize: column.columnDef.minSize }),
           ...(column.columnDef.maxSize === undefined ? {} : { maxSize: column.columnDef.maxSize }),
+          ...(column.columnDef.meta?.kind === "actions" ? { trailing: true } : {}),
         })),
       );
       table.setColumnOrder(stored.order);

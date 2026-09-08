@@ -7,89 +7,37 @@ import * as Stories from "./Toggle.stories";
 
 # Toggle
 
-One thing on or off, in place: bold, a pin, a filter. It is the subtle button with a recessed on state, and it acts at once on what is in front of the reader. A "toggle" that is a switch is the [Switch](?path=/docs/components-switch--docs); this is a button with a selected state. Several toggles that share one answer are a [ToggleGroup](?path=/docs/components-togglegroup--docs).
+A two-state button built on Base UI with the shadcn composition API. Put icons and labels in `children`; give an icon-only toggle an `aria-label`.
+
+```tsx
+<Toggle aria-label="Bold">
+  <Bold aria-hidden />
+</Toggle>
+```
 
 <Canvas of={Stories.ToggleMatrix} />
 
-## Anatomy
+## Variants and state
 
-| Part      | What it is                                                                                                                            |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Container | The subtle button's box: no fill off, `color.background.neutral` on, `radius.medium`, as tall as the buttons beside it.               |
-| Icon      | `icon`, passed bare, sized by the toggle: 12px at `xsmall`, 16px at `small`, 20px at `medium`. `color.icon.subtle`, default on.       |
-| Label     | `children`, after the icon or alone, `font.body` medium (`font.body.small` at `xsmall`), `color.text.subtle` off and `color.text` on. |
-| Name      | `aria-label` when the toggle is an icon alone: what it does, not its state.                                                           |
+`variant="default"` is unbordered; `variant="outline"` adds a border. Sizes are `sm` (28px), `default` (32px) and `lg` (36px). The default size is `default`.
 
-## Variants
+Use `defaultPressed` for local state, or `pressed` and `onPressedChange(pressed, details)` for controlled state. Calling `details.cancel()` rejects a change. `disabled` blocks activation and removes the toggle from the normal tab order.
 
-Toggle has one appearance. What varies is what it holds:
-
-| Toggle         | Use                                                                          |
-| -------------- | ---------------------------------------------------------------------------- |
-| Icon alone     | A toolbar: bold, italic, a pin. Named by `aria-label`.                       |
-| Icon and label | A filter or a mode with a word: "Pinned", "Mine". The label says what is on. |
-| Label alone    | The same, where the word carries it.                                         |
-
-Not built, and why: an outline variant, because a bordered toggle reads as a secondary button; a bold on state, because on is a recess, not a fill, so a row of toggles never looks like a row of primary buttons; a toggle with a menu, because a control that opens is a Button.
-
-## Sizes
-
-| Size     | Height | Icon | Where                                                                     |
-| -------- | ------ | ---- | ------------------------------------------------------------------------- |
-| `xsmall` | 24px   | 12px | The densest chrome: a table's header row, a rail.                         |
-| `small`  | 28px   | 16px | The default: toolbars and rows, level with small Buttons and IconButtons. |
-| `medium` | 32px   | 20px | Beside medium controls on a page header.                                  |
-
-The Button's scale, so a toggle and the button beside it are one height. An icon alone is a square: its width is its height.
-
-## States
-
-| State    | What changes                                                                                    |
-| -------- | ----------------------------------------------------------------------------------------------- |
-| Off      | No fill, `color.text.subtle`.                                                                   |
-| Hover    | `color.background.neutral.subtle.hovered`, text and icon to default.                            |
-| On       | `color.background.neutral`, text and icon default; `color.background.neutral.hovered` on hover. |
-| Focus    | The focus outline, on keyboard focus only.                                                      |
-| Disabled | `color.text.disabled`, no hover; the on fill stays so the reader can see what was on.           |
-
-## Modifiers
-
-- **`pressed`** and **`onPressedChange`** control it; **`defaultPressed`** starts it on, uncontrolled.
-- **`size`** as in Sizes.
-- **`icon`**, passed bare; **`children`** for the label; **`aria-label`** when there is no label.
-- **`disabled`** when the action is not available now.
-
-## Content
-
-- **The label is what it does**, not its state: "Pinned", not "On". The state is how it looks.
-- **An icon alone is named** the same way: "Bold", "Pin to the top".
-- **One word or two.** A toggle with a sentence is a Switch with a label.
-
-## Style
-
-| Element   | Token                                                                                                      |
-| --------- | ---------------------------------------------------------------------------------------------------------- |
-| Container | `dimension.control.{xsmall,small,medium}` · `radius.medium` · `space.075`, `space.100`, `space.150` inline |
-| Off       | transparent · `color.text.subtle`                                                                          |
-| Hover     | `color.background.neutral.subtle.hovered` · `color.text`                                                   |
-| On        | `color.background.neutral` · `color.text` · hovered `color.background.neutral.hovered`                     |
-| Label     | `font.body` medium; `font.body.small` at `xsmall`                                                          |
-| Icon      | 12, 16, 20px · `space.050` or `space.075` before the label                                                 |
-| Motion    | colours in `motion.duration.fast`                                                                          |
+Native attributes, event handlers and refs reach the button. `render` composes another action element; it must forward props and refs. Set `nativeButton={false}` for a non-button action. `className` and `style` accept callbacks with `{ pressed, disabled }`. `toggleVariants({ variant, size, className })` exposes the shared styling recipe.
 
 ## Accessibility
 
-- **A button with `aria-pressed`**, so a screen reader hears "Bold, toggle button, pressed". Radix Toggle underneath.
-- **The name is the action.** With a label the label is the name; an icon alone takes `aria-label`. Never put the state in the name.
-- **Space and Enter toggle it**; Tab moves on. Every toggle in a toolbar is its own stop.
-- **On is not colour alone**: the recess, the darker text and `aria-pressed` all say it.
-- **Disabled toggles stay in the tab order** as Buttons do here, so the reader can find them and hear why they are off in a tooltip.
+The native button reports `aria-pressed`. Enter and Space toggle it; Tab moves to the next control. Keep its name stable when the pressed state changes. Icons supplied as children should be decorative when the label already names the action.
+
+For coordinated selection, use [ToggleGroup](?path=/docs/components-togglegroup--docs). It provides one tab stop and arrow-key navigation among its items.
+
+## Migration
+
+Replace `icon={<Bold />}` with `<Bold aria-hidden />` inside the toggle. Size names are now `sm`, `default` and `lg`; use `sm` for a former 28px `small` toggle and `default` for a former 32px `medium` toggle. There is no 24px size preset. The appearance follows the shared shadcn toggle recipe rather than the previous recessed control.
 
 ## Props
 
 <ArgTypes of={Toggle} />
-
-### Playground
 
 <Canvas of={Stories.Playground} />
 
@@ -97,11 +45,4 @@ The Button's scale, so a toggle and the button beside it are one height. An icon
 
 ## Related
 
-- [ToggleGroup](?path=/docs/components-togglegroup--docs): one of several views, always exactly one on.
-- [Switch](?path=/docs/components-switch--docs): a setting that takes effect later or applies beyond what is in view.
-- [Button](?path=/docs/components-button--docs): the sizes, and `isSelected` for a button that is also a state.
-- [Separator](?path=/docs/components-separator--docs): between groups of toggles in a toolbar.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+[ToggleGroup](?path=/docs/components-togglegroup--docs) · [Switch](?path=/docs/components-switch--docs) · [Button](?path=/docs/components-button--docs) · [Base UI Toggle](https://base-ui.com/react/components/toggle)

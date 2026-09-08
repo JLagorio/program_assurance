@@ -22,6 +22,7 @@ import {
   Tabs,
   TextLink,
   ToggleGroup,
+  ToggleGroupItem,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -155,13 +156,15 @@ function PackageRecord() {
               <Box paddingBlockStart="space.050">
                 <ToggleGroup
                   aria-label="Traceability filter"
-                  value={gapsOnly ? "gaps" : "all"}
-                  onChange={(v) => setGapsOnly(v === "gaps")}
-                  items={[
-                    { value: "all", label: "All CCIs" },
-                    { value: "gaps", label: `Gaps only (${ready.gaps.length})` },
-                  ]}
-                />
+                  size="sm"
+                  value={[gapsOnly ? "gaps" : "all"]}
+                  onValueChange={([next]) => {
+                    if (next !== undefined) setGapsOnly(next === "gaps");
+                  }}
+                >
+                  <ToggleGroupItem value="all">All CCIs</ToggleGroupItem>
+                  <ToggleGroupItem value="gaps">Gaps only ({ready.gaps.length})</ToggleGroupItem>
+                </ToggleGroup>
               </Box>
             ) : null}
 

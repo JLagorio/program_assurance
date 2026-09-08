@@ -1,7 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Copy, Info, Pencil, Pin, Trash2 } from "lucide-react";
 
-import { Button, Field, IconButton, Input, Kbd, Popover, Tooltip } from "../../components";
+import {
+  Button,
+  Field,
+  IconButton,
+  Input,
+  Kbd,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Tooltip,
+} from "../../components";
 import { Grid, Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -132,16 +142,14 @@ export const Dont: Story = {
       <Pair
         do={
           <div style={{ height: 150 }}>
-            <Popover
-              label="Undo"
-              width={220}
-              defaultOpen
-              trigger={<Button variant="secondary">Deleted</Button>}
-            >
-              <Stack space="space.100">
-                <Text size="small">The finding is deleted.</Text>
-                <Button size="small">Undo</Button>
-              </Stack>
+            <Popover defaultOpen>
+              <PopoverTrigger render={<Button variant="secondary">Deleted</Button>} />
+              <PopoverContent aria-label="Undo" style={{ width: 220 }}>
+                <Stack space="space.100">
+                  <Text size="small">The finding is deleted.</Text>
+                  <Button size="small">Undo</Button>
+                </Stack>
+              </PopoverContent>
             </Popover>
           </div>
         }

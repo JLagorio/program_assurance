@@ -7,7 +7,7 @@ import { cn } from "../lib/cn";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
 import { controlBase, controlHeight, useFieldControl, type ControlSize } from "./controls";
-import { Popover } from "./popover";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 type DatePickerOwnProps = {
   /** The chosen day as an ISO date ("2026-09-14"), controlled; pair it with `onChange`. */
@@ -115,48 +115,55 @@ export function DatePicker({
         disabled={disabled}
         data-ds-focus-target={triggerId}
       />
-      <Popover
-        open={open && !disabled}
-        onOpenChange={(next) => setOpen(next && !disabled)}
-        label={t("chooseDate")}
-        className="p-0"
-        trigger={
-          <button
-            type="button"
-            form={form}
-            disabled={disabled}
-            {...field}
-            id={triggerId}
-            aria-required={undefined}
-            className={cn(
-              controlBase,
-              controlHeight[size],
-              "flex items-center gap-100 text-left",
-              className,
-            )}
-          >
-            <CalendarIcon className="size-icon-small shrink-0 icon-subtle" />
-            <span className={cn("min-w-0 flex-1 truncate tabular-nums", !date && "text-subtlest")}>
-              {date
-                ? formatCalendarDate(date, { month: "short", day: "numeric", year: "numeric" })
-                : (placeholder ?? t("chooseDate"))}
-            </span>
-          </button>
-        }
-      >
-        <Calendar
-          mode="single"
-          {...(date ? { selected: date, defaultMonth: date } : {})}
-          onSelect={pick}
+      <Popover open={open && !disabled} onOpenChange={(next) => setOpen(next && !disabled)}>
+        <PopoverTrigger
+          render={
+            <button
+              type="button"
+              form={form}
+              disabled={disabled}
+              {...field}
+              id={triggerId}
+              aria-required={undefined}
+              className={cn(
+                controlBase,
+                controlHeight[size],
+                "flex items-center gap-100 text-left",
+                className,
+              )}
+            >
+              <CalendarIcon className="size-icon-small shrink-0 icon-subtle" />
+              <span
+                className={cn("min-w-0 flex-1 truncate tabular-nums", !date && "text-subtlest")}
+              >
+                {date
+                  ? formatCalendarDate(date, { month: "short", day: "numeric", year: "numeric" })
+                  : (placeholder ?? t("chooseDate"))}
+              </span>
+            </button>
+          }
         />
-        <div className="flex items-center justify-between gap-100 border-t border-default px-150 py-100">
-          <Button variant="subtle" size="small" onClick={() => pick(new Date())}>
-            {t("today")}
-          </Button>
-          <Button variant="subtle" size="small" disabled={!date} onClick={() => pick(undefined)}>
-            {t("clear")}
-          </Button>
-        </div>
+        <PopoverContent
+          aria-label={t("chooseDate")}
+          finalFocus={() => input.current?.ownerDocument.getElementById(triggerId) ?? null}
+          align="start"
+          className="gap-0 p-0"
+          style={{ width: "auto" }}
+        >
+          <Calendar
+            mode="single"
+            {...(date ? { selected: date, defaultMonth: date } : {})}
+            onSelect={pick}
+          />
+          <div className="flex items-center justify-between gap-100 border-t border-default px-150 py-100">
+            <Button variant="subtle" size="small" onClick={() => pick(new Date())}>
+              {t("today")}
+            </Button>
+            <Button variant="subtle" size="small" disabled={!date} onClick={() => pick(undefined)}>
+              {t("clear")}
+            </Button>
+          </div>
+        </PopoverContent>
       </Popover>
     </>
   );

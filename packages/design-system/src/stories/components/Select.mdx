@@ -9,7 +9,7 @@ import * as Stories from "./Select.stories";
 
 One answer from a short, fixed list whose options mean more than their words: a status with its Dot, a severity, a kind with its Badge. The kit draws the list, so an option can carry the same mark the record shows in its table row and its header, and the reader picks the colour they already know.
 
-It is the second of four ways to choose. Plain words are a [NativeSelect](?path=/docs/components-nativeselect--docs), the browser's own list. Two or three answers are a [RadioGroup](?path=/docs/components-radiogroup--docs). More than a dozen, or names the reader would rather type, are a [Combobox](?path=/docs/components-combobox--docs). Actions are a [DropdownMenu](?path=/docs/components-dropdownmenu--docs), which looks like this list and is not a field.
+It is the second of four ways to choose. Plain words are a [NativeSelect](?path=/docs/components-nativeselect--docs), the browser's own list. Visible choices can use a [RadioGroup](?path=/docs/components-radiogroup--docs). More than a dozen, or names the reader would rather type, are a [Combobox](?path=/docs/components-combobox--docs). Actions are a [DropdownMenu](?path=/docs/components-dropdownmenu--docs), which looks like this list and is not a field.
 
 <Canvas of={Stories.SelectMatrix} />
 
@@ -34,7 +34,7 @@ Select has one appearance. What varies is what an option carries, and which cont
 | A status, a severity: a word with its colour | `Select`, each option with its `Dot`, the same tone the Badge and the row use. |
 | A kind, a source: a word with its mark       | `Select`, each option with its `Badge`.                                        |
 | More than a dozen, or names                  | `Combobox`.                                                                    |
-| Two or three answers                         | `RadioGroup`.                                                                  |
+| Visible choices                             | `RadioGroup`.                                                                  |
 
 There is no multi-select: several values in a toolbar are a [FilterChip](?path=/docs/components-filterchip--docs), and in a form a group of [Checkbox](?path=/docs/components-checkbox--docs)es. There is no borderless select. There is no typed entry: a list the reader types into is a Combobox.
 

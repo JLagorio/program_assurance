@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@import "@ledger/design-system/reset.css";
+@import "@ledger/design-system/ledger.css";
+@import "@ledger/design-system/base.css";

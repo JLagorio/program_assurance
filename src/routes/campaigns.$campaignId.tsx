@@ -44,6 +44,11 @@ import {
 } from "@/lib/campaigns";
 import { statusTone } from "@/lib/spine";
 import {
+  assessmentEventState,
+  assessmentState,
+  useAssessmentsVersion,
+} from "@/lib/assessment-store";
+import {
   campaignExecution,
   completionBlockedBy,
   objectiveDisagrees,
@@ -99,6 +104,7 @@ export const Route = createFileRoute("/campaigns/$campaignId")({
 });
 
 function CampaignRecord() {
+  useAssessmentsVersion();
   const { campaign } = Route.useLoaderData();
   const tab = Route.useSearch().tab ?? "Execution";
   const navigate = useNavigate({ from: Route.fullPath });
@@ -197,6 +203,7 @@ function CampaignRecord() {
   );
 
   const events = eventsByCampaign(campaign.id);
+  const state = assessmentState(campaign);
 
   const selectedObjective = objective
     ? (objectiveRows.find((r) => r.objective === objective) ?? null)
@@ -268,8 +275,8 @@ function CampaignRecord() {
               meta={`${campaign.program} · ${campaign.trigger} · ${campaign.gate} gate · lead ${campaign.lead} · ${campaign.opened} → ${campaign.target}`}
               actions={
                 <>
-                  <Badge variant="secondary" tone={statusTone(campaign.state)}>
-                    {campaign.state}
+                  <Badge variant="secondary" tone={statusTone(state)}>
+                    {state}
                   </Badge>
                   {disagreements.length > 0 ? (
                     <Badge variant="secondary" tone="warning">
@@ -449,8 +456,8 @@ function CampaignRecord() {
                       </Link>
                     </TextLink>
                     <span className="font-body font-medium">{e.name}</span>
-                    <Badge variant="secondary" tone={statusTone(e.state)}>
-                      {e.state}
+                    <Badge variant="secondary" tone={statusTone(assessmentEventState(e))}>
+                      {assessmentEventState(e)}
                     </Badge>
                     <span className="font-body-small text-subtle">{e.kind}</span>
                     <span className="tabular-nums font-body-small text-subtle">{e.window}</span>

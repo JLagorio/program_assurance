@@ -18,7 +18,7 @@ The register with its state. [Table](?path=/docs/components-table--docs) is the 
 | `useDataTable({ columns, data, ... })` | The table instance. `getRowId` names rows; `selectable` draws the checkbox column; `pageSize` pages and draws Pagination; `label` names the table. Any TanStack state slice can be owned outside: pass `sorting` and `onSortingChange`, or `state.columnFilters` from the route's own filters. `initialState` seeds what the table keeps. `manual` hands sorting, filtering or pagination to the server. |
 | `DataTable table={table}`              | The renderer: the `toolbar` slot above the header, the Table parts closed by a hairline under the last row, the states drawn under the header so it never moves, and [Pagination](?path=/docs/components-pagination--docs) below when the table pages. No frame: the register sits on the page and its rules are the only lines.                                                                            |
 | The toolbar parts                      | `DataTable.Search`, `.Filter`, `.Presets`, `.Columns` and `.Settings`, each taking the `table`; `.SelectionBar` appears above the table while rows are chosen. `Presets` is a strip on its own line, or `variant="menu"` for one button in a toolbar that also holds search and filters.                                                                                                                  |
-| The Table parts                        | It draws `Table.Header`, `.Row`, `.Cell`, `.Id`, `.Selection`, `.Group`, `.Tree`, `.Detail` and `.Handle`; nothing of its own.                                                                                                                                                                                                                                                                           |
+| The Table parts                        | It draws `Table.Header`, `.Row`, `.Cell`, `.Id`, `.List`, `.Selection`, `.Disclosure`, `.Group`, `.Detail` and `.Handle`; nothing of its own.                                                                                                                                                                                                                                                                           |
 
 ## Variants
 
@@ -28,6 +28,7 @@ Which table first: a table sorts, filters, pages, chooses, pins, nests or scroll
 | ---------------------------------- | ----------------------------- | ---------- |
 | Sorted, filtered, paged, chosen    | `pageSize`, `selectable`      | `table`    |
 | A hierarchy with columns           | `tree`                        | `treegrid` |
+| A hierarchy whose rows open too    | `tree` with `detail` and `detailColumn: false` | `treegrid` |
 | A record that opens into more      | `detail`                      | `table`    |
 | Records under headings             | `groupBy`                     | `table`    |
 | Rows held above and below          | `pinRows`                     | `table`    |
@@ -39,6 +40,8 @@ Which table first: a table sorts, filters, pages, chooses, pins, nests or scroll
 There is no per-column filter row under the header: filters are chips in the toolbar, built from the columns. There is no zebra, no radio selection, no expand-all; see Table. There is no third component for a tree: it is a mode of this one.
 
 <Canvas of={Stories.TreeStory} />
+
+<Canvas of={Stories.TreeWithDetailRows} />
 
 <Canvas of={Stories.DetailRows} />
 
@@ -77,8 +80,8 @@ The row states (hover, selected, active id, static, scrolled edge, expanded) are
 The hook's options, each one feature:
 
 - **`selectable`**: the checkbox column; a function says which rows can be chosen. **`pageSize`** pages. **`label`** names the table. **`manual`** with `rowCount` hands sorting, filtering or pagination to a server.
-- **`pinnable`, `hideable`, `resizable`, `reorderable`, `columnMenu`, `layout`, `view`**: the columns the reader owns. The column menu on a header's hover sorts, pins and hides; `DataTable.Columns` in the toolbar shows and hides, and the gear beside it, `DataTable.Settings`, holds the rows' density and Reset view. The checkbox column is always first and always pinned; a pinned column keeps its hairline while the frame is scrolled; a band's heading sticks to the frame's leading edge. The preview eye sits at the end of the row's first value cell, there at rest. A column's `pin` is the author's default and `hideable: false` keeps it on screen. `view: "risks"` names the table, and the reader's order, widths, visibility and pins persist in this browser under `ledger.table.risks.view`; the URL keeps sort, filters and page.
-- **`tree`**: `children` reads a row's parts, `label` names the row for the chevron, `hint` is the muted count after a folded row, `initialExpanded` says which open first, `column` says which column carries the chevron. **`detail`** opens a row into what it returns, a child table included. **`groupBy`** puts the rows under a band per value; pagination is off while it is on. **`pinRows`** lets `row.pin("top")` and `"bottom"` hold rows under the header or above the footer. **`reorderRows`** puts a handle on every row and tells you which row moved next to which; sorting is off while it is on.
+- **`pinnable`, `hideable`, `resizable`, `reorderable`, `columnMenu`, `layout`, `view`**: the columns the reader owns. The column menu on a header's hover sorts, pins and hides; `DataTable.Columns` in the toolbar shows and hides, and the gear beside it, `DataTable.Settings`, holds the rows' density and Reset view. The checkbox, the disclosure, the handle and the detail chevron are always the first columns and always pinned; the row's actions are always the last and always pinned to the end, so the kebab sits at the table's trailing edge however far the columns scroll; a pinned column keeps its hairline while the frame is scrolled; a band's heading sticks to the frame's leading edge. The preview eye sits at the end of the row's first value cell, taking no room: it appears on the row's hover and on focus, and stays on the row whose preview is open. A column's `pin` is the author's default and `hideable: false` keeps it on screen. `view: "risks"` names the table, and the reader's order, widths, visibility and pins persist in this browser under `ledger.table.risks.view`; the URL keeps sort, filters and page.
+- **`tree`**: `children` reads a row's parts, `label` names the row for the chevron, `hint` is the muted text after a folded row's first value, `initialExpanded` says which open first; a filter or a search keeps a matching row's ancestors, so a child never shows without its parent. The chevron is a leading column of its own, always first and always pinned, so the disclosure never moves when the reader reorders, hides or pins a column. It is one narrow width at every depth, so opening and closing a row never shifts the columns; the nesting reads as an indent on the row's first value. **`detail`** opens a row into what it returns, a child table included; its open rows are its own state, so a tree's row opens its parts and its detail apart and neither closes the other (`initialState.expanded` still says which details start open). It draws a leading chevron column of its own, which **`detailColumn: false`** leaves out: in a treegrid two chevron columns read as twins, so the row is opened from a cell instead, a `list` column with `opens: "detail"`. **`groupBy`** puts the rows under a band per value; pagination is off while it is on. **`pinRows`** lets `row.pin("top")` and `"bottom"` hold rows under the header or above the footer. **`reorderRows`** puts a handle on every row and tells you which row moved next to which; sorting is off while it is on.
 - **`virtualize`**: only the rows in view are drawn; give the renderer a `maxHeight` and leave `pageSize` off.
 - **A number column's `footer`** totals the rows the filters leave: sum, mean, min, max, count, or your own.
 - **`editable`** on a text or status column: `onChange` commits the value at once, `save` settles it (the cell shows saving, saved or the error and rolls back on failure), `validate` blocks a bad value, and a status column's `options` are its menu.
@@ -103,11 +106,14 @@ The kinds carry the rules, so a DataTable cannot get them wrong:
 | `c.date(key, { format })`                      | start   | date                          | range      | an ISO date as `d MMM yyyy`; anything else as given                                                       |
 | `c.status(key, { tone })`                      | start   | alphanumeric                  | equals     | `Badge` in the tone the row decides                                                                       |
 | `c.person(key)`                                | start   | text                          | equals     | `Person`                                                                                                  |
-| `c.actions((row) => RowAction[])`              | end     | never                         | never      | the kebab on row hover and focus, always the last column                                                  |
+| `c.list(id, { items, empty, note, opens })`    | start   | the labels                    | contains   | `Table.List`: the first item by name, the rest as a count, every item in a hover card; the click is the row's preview, or its `detail`, which the line then carries a chevron for and whose card is suppressed while the row is open |
+| `c.actions((row) => RowAction[])`              | end     | never                         | never      | the kebab on row hover and focus; always the last column and pinned to the trailing edge                  |
 | `c.custom(id, { cell, sort, align })`          | as said | `sort`'s value, or not at all | never      | whatever `cell` returns: a bar, an icon, a composed cell                                                  |
 | `c.group(header, columns)`                     |         |                               |            | a second header row over the columns                                                                      |
 
 Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sortable: false` and `cell(row)` to draw the value its own way while keeping the kind's behaviour. An absent value is `Absent`. Headers are one or two words in sentence case; a number's header ends with its numbers; the id first, the name second, actions last; a status is a Badge and a person a Person. Cells truncate, and the full text is the cell's title; a column that must wrap says `wrap: true` and is never the one sorted by eye.
+
+<Canvas of={Stories.ListCells} />
 
 ## Style
 
@@ -116,6 +122,8 @@ Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sort
 | Frame         | none: no border, no radius; the header's hairline and the one under the last row bound the register                   |
 | Toolbar slot  | above the header, flush with the table's edge, `space.200` under, no rule                                             |
 | Header, rows  | As Table: `dimension.row.header`, `dimension.row`, the hairline, the hovered and selected surfaces                    |
+| Leading columns | the checkbox, the handle and the detail chevron 32px, the disclosure 28px, each centred; the tree's indent is `space.200` per level on the row's first value |
+| Preview eye   | over the end of the first value cell, `opacity` 0 until the row is hovered or focused, on the row's own surface |
 | Pinned column | `elevation.surface.current` · `color.border.bold` at the edge while the frame is scrolled                             |
 | Skeleton rows | one `Skeleton` line per row, the row's height                                                                         |
 | Empty, error  | under the header, `space.150` around                                                                                  |

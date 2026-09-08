@@ -62,19 +62,24 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   view?: string | undefined;
   /** The rows' height at first: `compact` (36px) for a picker's table; `default` (40px) unsaid. The reader changes it from the Columns menu, and the choice persists with `view`. */
   density?: Density | undefined;
-  /** Nested rows: `children` reads a row's parts; the table is a treegrid and the name column carries the chevron. */
+  /** Nested rows: `children` reads a row's parts; the table is a treegrid and the leading disclosure column carries the chevron. */
   tree?:
     | {
         children: (row: TData) => ReadonlyArray<TData> | undefined;
         label: (row: TData) => string;
         hint?: ((row: TData, childCount: number) => ReactNode) | undefined;
-        column?: string | undefined;
         /** Row ids open at first, or `true` for every row. */
         initialExpanded?: true | string[] | undefined;
       }
     | undefined;
   /** A row opens into this: a child table, the record's detail. */
   detail?: ((row: TData) => ReactNode) | undefined;
+  /**
+   * The leading chevron column that opens a `detail`. `false` leaves it out, for a table whose rows
+   * are opened from a cell instead: a `list` column with `opens: "detail"`. A treegrid takes this,
+   * so the disclosure column is the only chevron and the two never read as twins.
+   */
+  detailColumn?: boolean | undefined;
   /** A band per value of this column, each opened and closed as one. Pagination is off while it is on. */
   groupBy?: string | undefined;
   /** Rows can be pinned above and below through `row.pin`. */
@@ -121,6 +126,7 @@ export function useDataTable<TData extends RowData>({
   density: defaultDensity = "default",
   tree,
   detail,
+  detailColumn = true,
   groupBy,
   pinRows = false,
   reorderRows,
@@ -130,6 +136,13 @@ export function useDataTable<TData extends RowData>({
 }: DataTableOptions<TData>) {
   const pins = pinsOf(columns);
   const [density, setDensity] = useState<Density>(defaultDensity);
+  // A detail row has its own open set, not TanStack's expansion, so a treegrid's rows can open
+  // their parts and their detail at the same time and one never closes the other. Which details
+  // start open still comes from `initialState.expanded`, as it did when they shared that state.
+  const [openDetails, setOpenDetails] = useState<Record<string, boolean>>(() => {
+    const seed = initialState?.expanded;
+    return seed && typeof seed === "object" ? { ...seed } : {};
+  });
   const editable = columns.some((c) => c.meta?.editable);
   const expanded =
     tree?.initialExpanded === true || groupBy
@@ -155,8 +168,8 @@ export function useDataTable<TData extends RowData>({
     enableRowPinning: pinRows,
     enableGrouping: Boolean(groupBy),
     groupedColumnMode: "remove",
-    ...(tree ? { getSubRows: (row: TData) => tree.children(row) } : {}),
-    ...(detail ? { getRowCanExpand: () => true } : {}),
+    // a filter or a search keeps a matching row's ancestors, so a child never shows without its parent
+    ...(tree ? { getSubRows: (row: TData) => tree.children(row), filterFromLeafRows: true } : {}),
     initialState: {
       ...(pageSize === undefined ? {} : { pagination: { pageIndex: 0, pageSize } }),
       columnPinning: pins,
@@ -180,13 +193,16 @@ export function useDataTable<TData extends RowData>({
       ...(tree
         ? {
             tree: {
-              column: tree.column,
               label: tree.label as (row: never) => string,
               hint: tree.hint as ((row: never, childCount: number) => ReactNode) | undefined,
             },
           }
         : {}),
       detail: detail as ((row: never) => ReactNode) | undefined,
+      detailColumn,
+      detailOpen: (rowId: string) => Boolean(openDetails[rowId]),
+      toggleDetail: (rowId: string) =>
+        setOpenDetails((open) => ({ ...open, [rowId]: !open[rowId] })),
       groupBy,
       pinRows,
       editable,

@@ -5,9 +5,16 @@
  * types, one Glance each; the kit's HoverCard is the shell.
  */
 
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 
-import { Badge, Glance, HoverCard, Indicator } from "@ledger/design-system";
+import {
+  Badge,
+  Glance,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  Indicator,
+} from "@ledger/design-system";
 import { descendantsOf, nodeById, pathLabel } from "@/lib/composition";
 import { workIndex } from "@/lib/control-board";
 import { controlById, inForceRevision, openRevision, revisionTone } from "@/lib/control-set";
@@ -122,10 +129,13 @@ export function ControlGlance({ controlId, programId }: { controlId: string; pro
 
 /* The hovers. The child is the trigger: a TextLink around a Link, or a focusable span. */
 
-export function ElementHover({ nodeId, children }: { nodeId: string; children: ReactNode }) {
+export function ElementHover({ nodeId, children }: { nodeId: string; children: ReactElement }) {
   return (
-    <HoverCard content={<ElementGlance nodeId={nodeId} />} width={300}>
-      {children}
+    <HoverCard>
+      <HoverCardTrigger render={children} />
+      <HoverCardContent align="start" alignOffset={0} style={{ width: 300 }}>
+        <ElementGlance nodeId={nodeId} />
+      </HoverCardContent>
     </HoverCard>
   );
 }
@@ -135,11 +145,14 @@ export function RequirementHover({
   children,
 }: {
   requirementId: string;
-  children: ReactNode;
+  children: ReactElement;
 }) {
   return (
-    <HoverCard content={<RequirementGlance requirementId={requirementId} />} width={300}>
-      {children}
+    <HoverCard>
+      <HoverCardTrigger render={children} />
+      <HoverCardContent align="start" alignOffset={0} style={{ width: 300 }}>
+        <RequirementGlance requirementId={requirementId} />
+      </HoverCardContent>
     </HoverCard>
   );
 }
@@ -151,11 +164,14 @@ export function ControlHover({
 }: {
   controlId: string;
   programId: string;
-  children: ReactNode;
+  children: ReactElement;
 }) {
   return (
-    <HoverCard content={<ControlGlance controlId={controlId} programId={programId} />} width={300}>
-      {children}
+    <HoverCard>
+      <HoverCardTrigger render={children} />
+      <HoverCardContent align="start" alignOffset={0} style={{ width: 300 }}>
+        <ControlGlance controlId={controlId} programId={programId} />
+      </HoverCardContent>
     </HoverCard>
   );
 }

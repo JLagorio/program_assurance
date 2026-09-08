@@ -1,4 +1,4 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import {
@@ -46,6 +46,7 @@ export const Route = createFileRoute("/register/poam/$poamId")({
 });
 
 function PoamRecord() {
+  useAssuranceVersion();
   const { poamId } = Route.useParams();
   const item = poamItems.find((p) => p.id === poamId);
 
@@ -127,12 +128,18 @@ function PoamRecord() {
                   <Badge variant="secondary" tone={statusTone(item.status)}>
                     {item.status}
                   </Badge>
-                  <UnavailableAction
-                    reason="This register snapshot is read-only. Edit milestones in the program record."
+                  <Button
                     variant="secondary"
+                    render={
+                      <Link
+                        to="/programs/$programId"
+                        params={{ programId: item.program }}
+                        search={{ tab: "POA&M", poamId: item.id }}
+                      />
+                    }
                   >
-                    Update milestone
-                  </UnavailableAction>
+                    Manage in program
+                  </Button>
                 </>
               }
             />

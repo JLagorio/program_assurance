@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Badge, Tabs, ToggleGroup } from "../../components";
+import { Badge, Tabs, ToggleGroup, ToggleGroupItem } from "../../components";
 import { Empty, Section } from "../../patterns";
 import { Box, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -204,15 +204,14 @@ export const Dont: Story = {
         do={
           <ToggleGroup
             aria-label="Scope"
-            size="small"
-            items={[
-              { value: "all", label: "All" },
-              { value: "open", label: "Open" },
-              { value: "closed", label: "Closed" },
-            ]}
-            value="open"
-            onChange={() => {}}
-          />
+            size="sm"
+
+            defaultValue={["open"]}
+          >
+            <ToggleGroupItem value="all">All</ToggleGroupItem>
+            <ToggleGroupItem value="open">Open</ToggleGroupItem>
+            <ToggleGroupItem value="closed">Closed</ToggleGroupItem>
+          </ToggleGroup>
         }
         doText="One register, three scopes: a ToggleGroup, or FilterChips. The rows are the same content narrowed."
         dont={

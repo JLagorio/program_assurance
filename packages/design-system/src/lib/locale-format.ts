@@ -60,6 +60,7 @@ export const defaultMessages = {
   view: "View",
   tableSettings: "Table settings",
   details: "Details",
+  parts: "Parts",
   detailsLabel: "{label}, details",
   reorder: "Reorder",
   rowsError: "The rows could not be loaded.",

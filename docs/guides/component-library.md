@@ -69,8 +69,9 @@ Hooks that belong with parts live in the package too: `useRequired` for legacy c
 shell. A product keeps no copy of anything generic; the prototype is the test vehicle, and when it
 breaks the system is what gets fixed.
 
-The package has no router. `BreadcrumbLink` takes a router link through `render`; existing
-Button and TextLink use `asChild`, while Item and RecordHeader accept a link element as a prop.
+The package has no router. `BreadcrumbLink` takes a router link through `render`.
+Navigation with button styling uses `buttonVariants` on a real router Link. TextLink uses
+`asChild`, while Item and RecordHeader accept a link element as a prop.
 Custom rendered elements must accept the merged attributes, handlers and ref.
 
 ## Component contracts
@@ -102,13 +103,35 @@ composition helpers and combines six shadcn variants with `tone`, `appearance`, 
 families keep their current APIs until their own migration updates implementation, consumers,
 stories and any necessary compatibility notes together.
 
-Separator now uses the Base UI primitive with native props/refs, `render` and state callbacks,
-while retaining Ledger's decorative option and border-token styling. Existing callers continue
-to work; see its [migration notes](../../packages/design-system/src/stories/components/Separator.mdx#migration).
-
-The [migration handoff](design-system-migration-handoff.md) records the completed Breadcrumb, Badge and Separator
-slices, the recommended Skeleton slice, integration constraints, and validation commands for the
-next agent.
+[Separator](../../packages/design-system/src/stories/components/Separator.mdx#migration)
+uses the Base UI primitive. [Skeleton](../../packages/design-system/src/stories/components/Skeleton.mdx#migration)
+and [Kbd/KbdGroup](../../packages/design-system/src/stories/components/Kbd.mdx#migration)
+follow shadcn's native element contracts. These families retain their Ledger options and
+styling while accepting native attributes and refs; existing callers need no edits.
+[Toggle and ToggleGroup](../../packages/design-system/src/stories/components/ToggleGroup.mdx#migration)
+use shadcn's Base UI API: composed `ToggleGroupItem` children, array selection,
+`default`/`outline` variants and `default`/`sm`/`lg` sizes. Required single-selection
+rules belong in the consuming screen or pattern's callback.
+[Switch](../../packages/design-system/src/stories/components/Switch.mdx#migration)
+uses shadcn's Base UI control with external labels and descriptions, `default`/`sm`
+sizes and native root/input refs. It continues to bind to Ledger Field.
+[RadioGroup](../../packages/design-system/src/stories/components/RadioGroup.mdx#migration)
+uses flat `RadioGroupItem` exports and external labels/descriptions; CSS controls layout.
+Field group binding and Base UI's native selection, form and keyboard behavior remain.
+[Checkbox](../../packages/design-system/src/stories/components/Checkbox.mdx#migration)
+uses external labels and descriptions, boolean `checked` and a separate `indeterminate`
+prop. Table.Selection uses the same state split; keep `checked={false}` while mixed so
+activation selects all. Field binding and Ledger's check/minus indicators remain.
+[HoverCard](../../packages/design-system/src/stories/components/HoverCard.mdx#migration)
+composes `HoverCardTrigger` and `HoverCardContent` over Base UI PreviewCard. Timing belongs
+on the trigger; positioning and native popup styles belong on the content. Existing
+glances keep their 300px width and start alignment, with locale-aware placement.
+[Popover](../../packages/design-system/src/stories/components/Popover.mdx#migration-and-api)
+uses flat trigger, content, header, title, description and close parts. Root owns open
+state and modality; Content owns placement, native styles and initial/final focus.
+Compose existing buttons through Trigger or Close's `render` prop.
+The [migration handoff](design-system-migration-handoff.md) records the next family and
+integration constraints. Family pages own their detailed contracts.
 
 ## Naming
 
@@ -217,9 +240,9 @@ changelog entry.
 
 ## What is underneath
 
-Base UI powers Avatar, Combobox and Separator and supplies Badge and BreadcrumbLink's composition helpers. The rest
+Base UI powers Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Avatar, Combobox and Separator and supplies Badge and BreadcrumbLink's composition helpers. The rest
 of Breadcrumb is native HTML; there is no dedicated Base UI breadcrumb primitive. Existing
-families still use Radix under overlays, choice controls, Tabs, Toggle, Progress and ScrollArea;
+families still use Radix under overlays, Tabs, Progress and ScrollArea;
 cmdk under Command; vaul under Drawer; react-day-picker under Calendar and DatePicker;
 react-resizable-panels under Resizable; sonner under Toaster; recharts under Chart. Preserve the
 dependency's focus, Escape, outside-click, keyboard and ARIA behavior through the public parts.

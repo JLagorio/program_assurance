@@ -36,11 +36,13 @@
  *    pure parse, so the server and client renders agree.
  */
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { z } from "zod";
 
 import type { Tone } from "@ledger/design-system";
 import {
   eventsByCampaign,
+  eventById,
   objectiveById,
   objectivesForEvent,
   type ObjectiveResult,
@@ -61,6 +63,8 @@ export type ProcedureStep = {
 };
 
 export type TestProcedure = {
+  /** RMF assessment method, distinct from engineering verification technique. */
+  assessmentMethod?: "Examine" | "Interview" | "Test";
   id: string; // TP-
   title: string;
   /** TO- the procedure executes. One procedure proves one objective. */
@@ -608,13 +612,6 @@ export const procedures: TestProcedure[] = [
 ];
 
 export const procedureById = new Map(procedures.map((p) => [p.id, p]));
-
-const proceduresByObjective = new Map<string, TestProcedure[]>();
-for (const p of procedures) {
-  const list = proceduresByObjective.get(p.objective);
-  if (list) list.push(p);
-  else proceduresByObjective.set(p.objective, [p]);
-}
 
 /* ------------------------------------------------------------------- runs */
 
@@ -1428,6 +1425,8 @@ const monthIndex: Record<string, number> = {
  * constructed anywhere, so the server and the client agree.
  */
 function stamp(value: string): number {
+  const iso = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value);
+  if (iso) return Number(`${iso[1]}${iso[2]}${iso[3]}${iso[4]}${iso[5]}`);
   const m = /^([A-Z][a-z]{2}) (\d{2}), (\d{4}) (\d{2}):(\d{2})$/.exec(value);
   if (!m) return 0;
   const month = monthIndex[m[1] ?? ""] ?? 0;
@@ -1444,6 +1443,9 @@ function stamp(value: string): number {
 type RunPatch = { state?: RunState; completed?: string; records?: StepRecord[] };
 
 const overrides = new Map<string, RunPatch>();
+const createdRuns: TestRun[] = [];
+const runStorageKey = "equinox.assessment-runs.v1";
+let restoredRuns = false;
 const listeners = new Set<() => void>();
 let cache: TestRun[] | null = null;
 let version = 0;
@@ -1452,8 +1454,8 @@ function snapshot(): TestRun[] {
   if (cache) return cache;
   cache =
     overrides.size === 0
-      ? testRuns
-      : testRuns.map((r) => {
+      ? [...testRuns, ...createdRuns]
+      : [...testRuns, ...createdRuns].map((r) => {
           const patch = overrides.get(r.id);
           return patch ? { ...r, ...patch } : r;
         });
@@ -1466,7 +1468,7 @@ function emit() {
   for (const l of listeners) l();
 }
 
-function subscribeRuns(cb: () => void): () => void {
+export function subscribeRuns(cb: () => void): () => void {
   listeners.add(cb);
   return () => {
     listeners.delete(cb);
@@ -1479,7 +1481,171 @@ export function runLogVersion(): number {
 }
 
 export function useTestRuns(): TestRun[] {
+  useEffect(() => restoreTestRuns(), []);
   return useSyncExternalStore(subscribeRuns, snapshot, snapshot);
+}
+
+export function useRunLogVersion(): number {
+  useEffect(() => restoreTestRuns(), []);
+  return useSyncExternalStore(subscribeRuns, runLogVersion, runLogVersion);
+}
+
+export function allTestRuns(): TestRun[] {
+  return snapshot();
+}
+
+const stepRecordSchema = z.object({
+  step: z.string(),
+  result: z.enum(["Pass", "Fail", "Inconclusive", "Not run"]),
+  observed: z.string(),
+  evidence: z.array(z.string()),
+  at: z.string(),
+});
+const runStateSchema = z.enum(["Planned", "In progress", "Complete", "Aborted"]);
+const runSchema = z.object({
+  id: z.string(),
+  procedure: z.string(),
+  event: z.string().nullable(),
+  operator: z.string(),
+  witness: z.string(),
+  state: runStateSchema,
+  started: z.string(),
+  completed: z.string(),
+  build: z.string(),
+  configuration: z.string(),
+  nodes: z.array(z.string()),
+  records: z.array(stepRecordSchema),
+  retestOf: z.string().nullable(),
+  findings: z.array(z.string()),
+  notes: z.string(),
+});
+
+export function restoreTestRuns(): void {
+  if (restoredRuns || typeof window === "undefined") return;
+  const raw = window.localStorage.getItem(runStorageKey);
+  if (raw) {
+    const data = z
+      .object({
+        created: z.array(runSchema),
+        overrides: z.array(
+          z.tuple([
+            z.string(),
+            z.object({
+              state: runStateSchema.optional(),
+              completed: z.string().optional(),
+              records: z.array(stepRecordSchema).optional(),
+            }),
+          ]),
+        ),
+      })
+      .parse(JSON.parse(raw));
+    const known = new Map(testRuns.map((run) => [run.id, run]));
+    for (const run of data.created) {
+      if (known.has(run.id)) throw new Error("Saved assessment runs contain duplicate IDs.");
+      known.set(run.id, run);
+    }
+    if (new Set(data.overrides.map(([id]) => id)).size !== data.overrides.length)
+      throw new Error("Saved assessment runs contain duplicate changes.");
+    for (const [id, patch] of data.overrides) {
+      const base = known.get(id);
+      if (!base) throw new Error("A saved observation refers to an unknown run.");
+      known.set(id, { ...base, ...patch } as TestRun);
+    }
+    const changed = new Set([
+      ...data.created.map((run) => run.id),
+      ...data.overrides.map(([id]) => id),
+    ]);
+    for (const id of changed) {
+      const run = known.get(id)!;
+      const procedure = procedureById.get(run.procedure);
+      const event = run.event ? eventById.get(run.event) : null;
+      if (!procedure || (run.event && (!event || !event.objectives.includes(procedure.objective))))
+        throw new Error("A saved run no longer belongs to its assessment procedure and event.");
+      if (
+        new Set(run.records.map((record) => record.step)).size !== run.records.length ||
+        run.records.some((record) => !procedure.steps.some((step) => step.id === record.step))
+      )
+        throw new Error("Saved observations do not match the run's procedure steps.");
+      const ancestry = new Set([run.id]);
+      let previous = run.retestOf;
+      while (previous) {
+        const parent = known.get(previous);
+        if (
+          !parent ||
+          ancestry.has(previous) ||
+          parent.procedure !== run.procedure ||
+          parent.event !== run.event
+        )
+          throw new Error("Saved retest history has an invalid run relationship.");
+        ancestry.add(previous);
+        previous = parent.retestOf;
+      }
+    }
+    createdRuns.splice(0, createdRuns.length, ...data.created);
+    overrides.clear();
+    for (const [id, patch] of data.overrides) overrides.set(id, patch as RunPatch);
+  }
+  restoredRuns = true;
+  emit();
+}
+
+function saveRunPatch(id: string, patch: RunPatch): void {
+  const next = new Map(overrides);
+  next.set(id, { ...next.get(id), ...patch });
+  if (typeof window !== "undefined")
+    window.localStorage.setItem(
+      runStorageKey,
+      JSON.stringify({ created: createdRuns, overrides: [...next] }),
+    );
+  overrides.set(id, next.get(id)!);
+  emit();
+}
+
+export function createTestRun(input: {
+  procedure: string;
+  event: string;
+  operator: string;
+  build: string;
+  retestOf?: string;
+}): TestRun {
+  restoreTestRuns();
+  const procedure = procedureById.get(input.procedure);
+  const event = eventById.get(input.event);
+  if (!procedure || !event || !event.objectives.includes(procedure.objective))
+    throw new Error("Choose a procedure from this assessment event.");
+  if (!input.operator.trim() || !input.build.trim())
+    throw new Error("Operator and tested build are required.");
+  const previous = input.retestOf ? runById(input.retestOf) : null;
+  if (
+    input.retestOf &&
+    (!previous || previous.procedure !== procedure.id || previous.event !== event.id)
+  )
+    throw new Error("The retest must use the original assessment and procedure.");
+  const run: TestRun = {
+    id: `TR-${String(Math.max(0, ...snapshot().map((r) => Number(r.id.replace("TR-", "")) || 0)) + 1).padStart(4, "0")}`,
+    procedure: procedure.id,
+    event: event.id,
+    operator: input.operator.trim(),
+    witness: "—",
+    state: "In progress",
+    started: new Date().toISOString(),
+    completed: "—",
+    build: input.build.trim(),
+    configuration: "",
+    nodes: [...procedure.nodes],
+    records: [],
+    retestOf: previous?.id ?? null,
+    findings: [],
+    notes: "",
+  };
+  if (typeof window !== "undefined")
+    window.localStorage.setItem(
+      runStorageKey,
+      JSON.stringify({ created: [...createdRuns, run], overrides: [...overrides] }),
+    );
+  createdRuns.push(run);
+  emit();
+  return run;
 }
 
 /* -------------------------------------------------------------- selectors */
@@ -1489,7 +1655,7 @@ export function runById(runId: string): TestRun | null {
 }
 
 export function proceduresForObjective(objectiveId: string): TestProcedure[] {
-  return proceduresByObjective.get(objectiveId) ?? [];
+  return procedures.filter((p) => p.objective === objectiveId);
 }
 
 /** Execution order. A run that has not started yet sorts last, not first. */
@@ -1627,6 +1793,9 @@ export function runVerdict(runId: string): RunVerdict | null {
   } else if (inconclusive > 0) {
     result = "Partially met";
     basis = `Partially met — no step failed, but ${firstInconclusive?.id ?? "a step"} is inconclusive, so the run cannot carry the objective on its own.${tail}`;
+  } else if (total > 0 && pass === total && unevidenced > 0) {
+    result = "Partially met";
+    basis = `All ${total} steps are recorded as passing, but ${unevidenced} lack the required supporting evidence.`;
   } else if (total > 0 && pass === total) {
     result = "Met";
     basis = `Met — all ${total} steps passed.${tail}`;
@@ -1696,7 +1865,7 @@ export function resolvedObjectiveResult(objectiveId: string): {
     (a, b) => objectiveResultRank[a.verdict.result] - objectiveResultRank[b.verdict.result],
   )[0];
   if (worst) {
-    const result = worst.verdict.result;
+    let result = worst.verdict.result;
     const named = contributors
       .map(
         (c) =>
@@ -1706,6 +1875,7 @@ export function resolvedObjectiveResult(objectiveId: string): {
     const unexecuted = procs
       .filter((p) => !contributors.some((c) => c.procedure === p.id))
       .map((p) => p.id);
+    if (result === "Met" && unexecuted.length) result = "Partially met";
     const gap = unexecuted.length
       ? ` ${unexecuted.join(", ")} ${unexecuted.length === 1 ? "has" : "have"} no completed run, so this is a partial picture.`
       : "";
@@ -1897,6 +2067,10 @@ function emptyRecord(stepId: string): StepRecord {
 export function recordStep(runId: string, step: string, patch: Partial<StepRecord>): void {
   const run = runById(runId);
   if (!run) return;
+  if (run.state === "Complete")
+    throw new Error(
+      "Completed runs are retained as assessment history. Start a retest to record new results.",
+    );
   const procedure = procedureById.get(run.procedure);
   if (!procedure || !procedure.steps.some((s) => s.id === step)) return;
 
@@ -1915,8 +2089,7 @@ export function recordStep(runId: string, step: string, patch: Partial<StepRecor
     ? run.records.map((r) => (r.step === step ? next : r))
     : [...run.records, next].sort((a, b) => (order.get(a.step) ?? 0) - (order.get(b.step) ?? 0));
 
-  overrides.set(runId, { ...overrides.get(runId), records });
-  emit();
+  saveRunPatch(runId, { records });
 }
 
 /**
@@ -1951,13 +2124,13 @@ export function setRunState(runId: string, state: RunState): void {
       if (latest === "—" && stamp(run.started) !== 0) latest = run.started;
       if (latest !== "—") patch.completed = latest;
     }
-    overrides.set(runId, { ...overrides.get(runId), ...patch });
-    emit();
+    saveRunPatch(runId, patch);
     return;
   }
 
-  overrides.set(runId, { ...overrides.get(runId), state });
-  emit();
+  if (run.state === "Complete")
+    throw new Error("Completed runs cannot be reopened. Start a retest.");
+  saveRunPatch(runId, { state });
 }
 
 /** Why `setRunState(id, "Complete")` would refuse, or null when it would not. */
@@ -1971,7 +2144,15 @@ export function completionBlockedBy(runId: string): string | null {
   const unrecorded = procedure.steps.filter(
     (s) => (byStep.get(s.id)?.result ?? "Not run") === "Not run",
   );
-  if (unrecorded.length === 0) return null;
+  if (unrecorded.length === 0) {
+    const unsupported = procedure.steps.filter((step) => {
+      const record = byStep.get(step.id);
+      return !record?.evidence.length || !record.observed.trim() || record.observed === "—";
+    });
+    return unsupported.length
+      ? `${unsupported.length} steps need observations and supporting evidence.`
+      : null;
+  }
   return `${unrecorded.length} of ${procedure.steps.length} steps have no result recorded (${unrecorded
     .map((s) => s.id)
     .join(", ")}).`;

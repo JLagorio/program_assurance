@@ -1,7 +1,16 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 
-import { Badge, Empty, Section, TextLink, ToggleGroup, type Tone } from "@ledger/design-system";
+import {
+  Badge,
+  Count,
+  Empty,
+  Section,
+  TextLink,
+  ToggleGroup,
+  ToggleGroupItem,
+  type Tone,
+} from "@ledger/design-system";
 import { Stack } from "@ledger/design-system";
 
 import { Activity } from "@/components/app/activity";
@@ -256,14 +265,22 @@ export function RecordActivity({
         {filters ? (
           <ToggleGroup<Filter>
             aria-label="Kind"
-            value={kind}
-            onChange={setKind}
-            items={kindFilters.map((f) => ({
-              value: f.value,
-              label: f.label,
-              count: f.value === "all" ? all.length : (counts.get(f.value) ?? 0),
-            }))}
-          />
+            size="sm"
+            value={[kind]}
+            onValueChange={([next]) => {
+              if (next !== undefined) setKind(next);
+            }}
+          >
+            {kindFilters.map((f) => (
+              <ToggleGroupItem key={f.value} value={f.value}>
+                {f.label}
+                <Count
+                  value={f.value === "all" ? all.length : (counts.get(f.value) ?? 0)}
+                  max={9999}
+                />
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         ) : null}
         <ActivityFeed
           entries={shown}

@@ -940,6 +940,28 @@ export function createInitialRevision(input: Omit<NewRevision, "seed">): Control
   return rev;
 }
 
+/** Restore a wizard's first revision with its original IDs and history. */
+export function restoreInitialControlSetRevision(revision: ControlSetRevision, history: RevisionEvent[]) {
+  const scope = scopeById.get(revision.scope);
+  if (!scope || scope.program !== revision.program || revision.number !== 1 || revision.supersedes !== null)
+    throw new Error("Initial revision does not belong to this program scope.");
+  const existing = revisionById(revision.id);
+  if (existing) {
+    if (existing.program !== revision.program || existing.scope !== revision.scope) throw new Error("Control-set revision ID conflict.");
+    return existing;
+  }
+  if (revisionsForScope(revision.scope).length) throw new Error("This scope already has a control-set revision.");
+  if (history.some((event) => event.revision !== revision.id || event.scope !== revision.scope || events.some((existingEvent) => existingEvent.id === event.id))) throw new Error("Control-set history does not match its revision.");
+  const restored = structuredClone(revision);
+  revisions.push(restored);
+  events.push(...structuredClone(history));
+  revSeq = Math.max(revSeq, Number(restored.id.replace(/^SCS-/, "")) || 0);
+  for (const event of history) eventSeq = Math.max(eventSeq, Number(event.id.replace(/^SCE-/, "")) || 0);
+  applyRevision(restored);
+  bump();
+  return restored;
+}
+
 /* ------------------------------------------------------------------ Seeds */
 
 function seedApproved(scopeId: string, created: string, decided: string) {

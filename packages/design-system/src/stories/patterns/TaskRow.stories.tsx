@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, fireEvent, userEvent, within } from "storybook/test";
 
 import { Badge, Button, Item, Person } from "../../components";
 import { TaskRow } from "../../patterns";
@@ -76,6 +76,9 @@ export const Completion: Story = {
     await expect(
       canvas.getByRole("checkbox", { name: "Complete: Review draft" }),
     ).not.toBeChecked();
+    await fireEvent.click(canvasElement.querySelector<HTMLInputElement>('input[type="checkbox"]')!);
+    await expect(canvas.getByRole("checkbox", { name: "Reopen: Review draft" })).toBeChecked();
+    await expect(canvas.getByText("Opened: 0; actions: 0")).toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Review draft" }));
     await userEvent.click(canvas.getByRole("button", { name: "Details" }));
     await expect(canvas.getByText("Opened: 1; actions: 1")).toBeVisible();

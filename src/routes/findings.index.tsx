@@ -1,6 +1,7 @@
 import { downloadText } from "@/components/app/export";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { Download, Search } from "lucide-react";
 
 import {
@@ -22,6 +23,7 @@ import {
   Tabs,
   TextLink,
   ToggleGroup,
+  ToggleGroupItem,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -101,6 +103,7 @@ function TrackedCell({ assetId }: { assetId: string }) {
 }
 
 function FindingsPage() {
+  const assuranceVersion = useAssuranceVersion();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("Findings");
   const [scope, setScope] = useState<Scope>("Open");
@@ -122,7 +125,7 @@ function FindingsPage() {
       )
       .slice()
       .sort(bySeverity);
-  }, [scope, q]);
+  }, [scope, q, assuranceVersion]);
 
   const counts: Record<Tab, number> = {
     Findings: findings.filter(isOpen).length,
@@ -178,10 +181,18 @@ function FindingsPage() {
                 </InputGroup>
                 <ToggleGroup
                   aria-label="Scope"
-                  value={scope}
-                  onChange={setScope}
-                  items={scopes.map((s) => ({ value: s, label: s }))}
-                />
+                  size="sm"
+                  value={[scope]}
+                  onValueChange={([next]) => {
+                    if (next !== undefined) setScope(next);
+                  }}
+                >
+                  {scopes.map((s) => (
+                    <ToggleGroupItem key={s} value={s}>
+                      {s}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </Inline>
             ) : null}
 

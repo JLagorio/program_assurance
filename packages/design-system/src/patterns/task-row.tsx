@@ -52,8 +52,9 @@ export function TaskRow({
           <Checkbox
             checked={completed}
             disabled={completionDisabled}
-            onCheckedChange={(next) => onCompletedChange(next === true)}
+            onCheckedChange={onCompletedChange}
             aria-label={completionLabel ?? `${completed ? "Reopen" : "Complete"}: ${title}`}
+            className="z-10"
           />
         ) : undefined
       }

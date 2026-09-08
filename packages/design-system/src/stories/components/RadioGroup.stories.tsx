@@ -1,34 +1,27 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { createRef, useState } from "react";
+import { expect, fn, userEvent, within } from "storybook/test";
 
-import { Button, Field, NativeSelect, RadioGroup, useRequired } from "../../components";
-import { Inline, Stack } from "../../primitives";
-import { Matrix as Grid } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import { Button, Field, RadioGroup, RadioGroupItem } from "../../components";
+import { LedgerProvider } from "../../lib/locale";
+import { Inline, Stack, Text } from "../../primitives";
+import { Specimens } from "../_lib/matrix";
 
-const frequencies = ["Monthly", "Quarterly", "Annually"];
-
-function Items({ description }: { description?: boolean }) {
+function FrequencyItems({ disableQuarterly = false }: { disableQuarterly?: boolean }) {
   return (
     <>
-      <RadioGroup.Item
-        value="monthly"
-        description={description ? "Twelve reviews a year; for a system in change." : undefined}
-      >
+      <label className="inline-flex items-center gap-100">
+        <RadioGroupItem value="monthly" />
         Monthly
-      </RadioGroup.Item>
-      <RadioGroup.Item
-        value="quarterly"
-        description={description ? "The program's default." : undefined}
-      >
+      </label>
+      <label className="inline-flex items-center gap-100">
+        <RadioGroupItem value="quarterly" disabled={disableQuarterly} />
         Quarterly
-      </RadioGroup.Item>
-      <RadioGroup.Item
-        value="annually"
-        description={description ? "For a system that rarely changes." : undefined}
-      >
+      </label>
+      <label className="inline-flex items-center gap-100">
+        <RadioGroupItem value="annually" />
         Annually
-      </RadioGroup.Item>
+      </label>
     </>
   );
 }
@@ -37,215 +30,317 @@ const meta = {
   title: "Components/RadioGroup",
   component: RadioGroup,
   parameters: { layout: "padded" },
-  args: { "aria-label": "Frequency", defaultValue: "quarterly", children: <Items /> },
+  args: { "aria-label": "Frequency", defaultValue: "quarterly" },
+  render: (args) => (
+    <RadioGroup {...args}>
+      <FrequencyItems />
+    </RadioGroup>
+  ),
 } satisfies Meta<typeof RadioGroup>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Disabled labels are exempt from contrast (WCAG 1.4.3, inactive components); axe cannot tell the
-// Radix control beside them is disabled, so it measures color.text.disabled anyway.
-const disabledLabels = {
-  a11y: { config: { rules: [{ id: "color-contrast", selector: "*:not(label:has(:disabled) *)" }] } },
-};
+const blockedChange = fn();
 
-const states = ["none chosen", "chosen", "invalid", "disabled"] as const;
-type State = (typeof states)[number];
-const stateProps = (s: State) => ({
-  value: s === "none chosen" ? "" : "quarterly",
-  onValueChange: () => undefined,
-  ...(s === "disabled" ? { disabled: true } : {}),
-});
-
-/** Every state down the side; bare, in a Field, and with descriptions across. */
+/** No selection, selected, disabled and read-only groups, plus an application rule that cancels a change. */
 export const RadioGroupMatrix: Story = {
-  parameters: disabledLabels,
-  render: () => (
-    <Grid
-      rows={states}
-      cols={["bare", "in a Field", "with descriptions"] as const}
-      rowLabel="state"
-      render={(state, col) =>
-        col === "bare" ? (
-          <RadioGroup
-            aria-label="Frequency"
-            {...stateProps(state)}
-            {...(state === "invalid" ? { "aria-invalid": true } : {})}
-          >
-            <Items />
-          </RadioGroup>
-        ) : (
-          <div style={{ width: 280 }}>
-            <Field
-              label="Frequency"
-              isGroup
-              isRequired
-              hint={state === "invalid" ? undefined : "How often the control is reviewed."}
-              error={state === "invalid" ? "Choose a frequency." : undefined}
-            >
-              <RadioGroup {...stateProps(state)}>
-                <Items description={col === "with descriptions"} />
-              </RadioGroup>
-            </Field>
-          </div>
-        )
-      }
-    />
-  ),
-};
-
-/** `vertical` is the rule. `horizontal` for two or three short options in a row; the arrow keys follow the direction. */
-export const Orientation: Story = {
   render: () => (
     <Stack space="space.300">
-      <Field label="Scope" isGroup>
-        <RadioGroup defaultValue="system" orientation="horizontal">
-          <RadioGroup.Item value="system">This system</RadioGroup.Item>
-          <RadioGroup.Item value="program">The whole program</RadioGroup.Item>
+      <Specimens title="Selection states">
+        {(["No selection", "Selected", "Disabled", "Read-only"] as const).map((state) => (
+          <Stack key={state} space="space.100">
+            <Text size="small">{state}</Text>
+            <RadioGroup
+              aria-label={state}
+              className="w-auto"
+              defaultValue={state === "No selection" ? undefined : "quarterly"}
+              disabled={state === "Disabled"}
+              readOnly={state === "Read-only"}
+              onValueChange={
+                state === "Disabled" || state === "Read-only" ? blockedChange : undefined
+              }
+            >
+              <FrequencyItems />
+            </RadioGroup>
+          </Stack>
+        ))}
+      </Specimens>
+      <Specimens title="Cancel a change that needs approval">
+        <RadioGroup
+          aria-label="Approved frequency"
+          aria-describedby="annual-approval"
+          defaultValue="quarterly"
+          onValueChange={(value, details) => {
+            if (value === "annually") details.cancel();
+          }}
+        >
+          <FrequencyItems />
         </RadioGroup>
-      </Field>
-      <Field label="Frequency" isGroup>
-        <RadioGroup defaultValue="quarterly">
-          <Items />
-        </RadioGroup>
-      </Field>
+        <Text id="annual-approval">Annual reviews require program approval.</Text>
+      </Specimens>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    blockedChange.mockClear();
+    const empty = within(canvas.getByRole("radiogroup", { name: "No selection" }));
+    for (const radio of empty.getAllByRole("radio")) {
+      await expect(radio.tagName).toBe("SPAN");
+      await expect(radio).toHaveAttribute("data-slot", "radio-group-item");
+      await expect(radio.getBoundingClientRect().width).toBe(16);
+      await expect(radio.getBoundingClientRect().height).toBe(16);
+      await expect(radio).not.toBeChecked();
+    }
+    await userEvent.click(empty.getByText("Monthly"));
+    await expect(empty.getByRole("radio", { name: "Monthly" })).toBeChecked();
+    await userEvent.click(empty.getByText("Quarterly"));
+    const quarterly = empty.getByRole("radio", { name: "Quarterly" });
+    await expect(quarterly).toBeChecked();
+    await expect(empty.getByRole("radio", { name: "Monthly" })).not.toBeChecked();
+    const indicator = quarterly.querySelector('[data-slot="radio-group-indicator"]')!;
+    await expect(indicator).toBeVisible();
+    await expect(indicator.querySelector("span")!.getBoundingClientRect().width).toBe(8);
+    await userEvent.click(quarterly);
+    await expect(quarterly).toBeChecked();
+    for (const name of ["Disabled", "Read-only"]) {
+      const group = canvas.getByRole("radiogroup", { name });
+      await expect(group).toHaveAttribute(
+        name === "Disabled" ? "aria-disabled" : "aria-readonly",
+        "true",
+      );
+      const choices = within(group);
+      await userEvent.click(choices.getByRole("radio", { name: "Monthly" }), {
+        pointerEventsCheck: 0,
+      });
+      if (name === "Read-only") await userEvent.keyboard(" ");
+      await expect(choices.getByRole("radio", { name: "Quarterly" })).toBeChecked();
+      await expect(choices.getByRole("radio", { name: "Monthly" })).not.toBeChecked();
+    }
+    await expect(blockedChange).not.toHaveBeenCalled();
+    const approved = within(canvas.getByRole("radiogroup", { name: "Approved frequency" }));
+    await userEvent.click(approved.getByRole("radio", { name: "Annually" }));
+    await expect(approved.getByRole("radio", { name: "Quarterly" })).toBeChecked();
+    await expect(approved.getByRole("radio", { name: "Annually" })).not.toBeChecked();
+  },
 };
+
+/** Layout uses CSS; both arrow axes select, with horizontal direction inherited or explicitly overridden. */
+export const Orientation: Story = {
+  name: "Layout and keyboard",
+  render: () => (
+    <Stack space="space.300">
+      <Specimens title="Horizontal layout, with an unavailable option">
+        <RadioGroup
+          aria-label="Horizontal frequency"
+          className="flex flex-row flex-wrap gap-200"
+          defaultValue="monthly"
+        >
+          <FrequencyItems disableQuarterly />
+        </RadioGroup>
+      </Specimens>
+      <LedgerProvider direction="rtl">
+        <Stack space="space.300">
+          <Specimens title="RTL follows the locale">
+            <RadioGroup aria-label="RTL frequency" defaultValue="monthly">
+              <FrequencyItems />
+            </RadioGroup>
+          </Specimens>
+          <Specimens title="A group can override the locale direction">
+            <RadioGroup aria-label="LTR frequency" dir="ltr" defaultValue="monthly">
+              <FrequencyItems />
+            </RadioGroup>
+          </Specimens>
+        </Stack>
+      </LedgerProvider>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const horizontal = within(canvas.getByRole("radiogroup", { name: "Horizontal frequency" }));
+    const monthly = horizontal.getByRole("radio", { name: "Monthly" });
+    const annual = horizontal.getByRole("radio", { name: "Annually" });
+    monthly.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(annual).toHaveFocus();
+    await expect(annual).toBeChecked();
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(monthly).toHaveFocus();
+    await expect(monthly).toBeChecked();
+    await userEvent.tab();
+    await expect(
+      within(canvas.getByRole("radiogroup", { name: "RTL frequency" })).getByRole("radio", {
+        name: "Monthly",
+      }),
+    ).toHaveFocus();
+    for (const [name, arrow] of [
+      ["RTL frequency", "ArrowLeft"],
+      ["LTR frequency", "ArrowRight"],
+    ] as const) {
+      const group = within(canvas.getByRole("radiogroup", { name }));
+      group.getByRole("radio", { name: "Monthly" }).focus();
+      await userEvent.keyboard(`{${arrow}}`);
+      await expect(group.getByRole("radio", { name: "Quarterly" })).toHaveFocus();
+      await expect(group.getByRole("radio", { name: "Quarterly" })).toBeChecked();
+    }
+  },
+};
+
+const groupRef = createRef<HTMLDivElement>();
+const renderedGroupRef = createRef<HTMLDivElement>();
+const groupInputRef = createRef<HTMLInputElement>();
+const itemRef = createRef<HTMLElement>();
+const itemInputRef = createRef<HTMLInputElement>();
+const buttonRef = createRef<HTMLElement>();
+const renderedButtonRef = createRef<HTMLButtonElement>();
+const changed = fn();
 
 function FormDemo() {
   const [frequency, setFrequency] = useState("");
-  const [scope, setScope] = useState("system");
-  const req = useRequired({ frequency });
+  const [tried, setTried] = useState(false);
+  const [saved, setSaved] = useState("No review scheduled.");
+  const invalid = tried && !frequency;
   return (
-    <div style={{ width: 360 }}>
-      <Stack space="space.300">
+    <form
+      noValidate
+      aria-label="Review schedule"
+      style={{ width: 360 }}
+      onReset={() => {
+        setFrequency("");
+        setTried(false);
+        setSaved("No review scheduled.");
+      }}
+      onSubmit={(event) => {
+        event.preventDefault();
+        setTried(true);
+        if (frequency)
+          setSaved(`Scheduled: ${new FormData(event.currentTarget).get("frequency")}.`);
+      }}
+    >
+      <Stack space="space.200">
         <Field
           label="Frequency"
           isGroup
           isRequired
           hint="How often the control is reviewed."
-          error={req.errorFor("frequency")}
+          error={invalid ? "Choose a frequency." : undefined}
         >
-          <RadioGroup value={frequency} onValueChange={setFrequency}>
-            <Items description />
+          <RadioGroup
+            ref={groupRef}
+            inputRef={groupInputRef}
+            id="review-frequency"
+            name="frequency"
+            required
+            value={frequency}
+            onValueChange={(value) => {
+              setFrequency(value);
+              changed(value);
+            }}
+            className={(state) => (state.required ? "border border-default" : "border-0")}
+            style={(state) => ({ minWidth: state.required ? 240 : 160 })}
+            render={
+              <div ref={renderedGroupRef} className="rounded-medium" style={{ padding: 8 }} />
+            }
+          >
+            <label className="inline-flex items-center gap-100">
+              <RadioGroupItem
+                ref={itemRef}
+                inputRef={itemInputRef}
+                value="monthly"
+                id="monthly-frequency"
+                aria-invalid={invalid || undefined}
+              />
+              Monthly
+            </label>
+            <Inline space="space.100" alignBlock="center">
+              <RadioGroupItem
+                ref={buttonRef}
+                nativeButton
+                render={<button ref={renderedButtonRef} title="Quarterly review" />}
+                value="quarterly"
+                id="quarterly-frequency"
+                aria-invalid={invalid || undefined}
+              />
+              <label htmlFor="quarterly-frequency">Quarterly</label>
+            </Inline>
+            <Stack space="space.050">
+              <Inline space="space.100" alignBlock="center">
+                <RadioGroupItem
+                  value="annually"
+                  id="annual-frequency"
+                  aria-describedby="annual-frequency-description"
+                  aria-invalid={invalid || undefined}
+                />
+                <label htmlFor="annual-frequency">Annually</label>
+              </Inline>
+              <Text id="annual-frequency-description" size="small" color="color.text.subtle">
+                One review each year.
+              </Text>
+            </Stack>
           </RadioGroup>
         </Field>
-        <Field label="Scope" isGroup>
-          <RadioGroup value={scope} onValueChange={setScope} orientation="horizontal">
-            <RadioGroup.Item value="system">This system</RadioGroup.Item>
-            <RadioGroup.Item value="program">The whole program</RadioGroup.Item>
-          </RadioGroup>
-        </Field>
-        <Inline space="space.100" alignInline="end">
-          <Button variant="subtle">Cancel</Button>
-          <Button variant="primary" onClick={() => req.check()}>
+        <Inline space="space.100">
+          <Button type="submit" variant="primary">
             Schedule
           </Button>
+          <Button type="reset">Reset schedule</Button>
         </Inline>
+        <Text role="status">{saved}</Text>
       </Stack>
-    </div>
+    </form>
   );
 }
 
-/** Inside a Field with `isGroup`: the legend, the hint and, on submit, the error. Press Schedule with nothing chosen. */
-export const InField: Story = { render: () => <FormDemo /> };
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <div style={{ width: 240 }}>
-            <Field label="Baseline">
-              <NativeSelect defaultValue="Moderate">
-                {[
-                  "Low",
-                  "Moderate",
-                  "High",
-                  "Low · privacy",
-                  "Moderate · privacy",
-                  "High · privacy",
-                ].map((b) => (
-                  <option key={b}>{b}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-          </div>
-        }
-        doText="Six or more options are a NativeSelect."
-        dont={
-          <Field label="Baseline" isGroup>
-            <RadioGroup defaultValue="Moderate">
-              {[
-                "Low",
-                "Moderate",
-                "High",
-                "Low · privacy",
-                "Moderate · privacy",
-                "High · privacy",
-              ].map((b) => (
-                <RadioGroup.Item key={b} value={b}>
-                  {b}
-                </RadioGroup.Item>
-              ))}
-            </RadioGroup>
-          </Field>
-        }
-        dontText="Six radios. The group is taller than the form around it."
-      />
-      <Pair
-        do={
-          <Field label="Frequency" isGroup>
-            <RadioGroup defaultValue="quarterly">
-              <Items />
-            </RadioGroup>
-          </Field>
-        }
-        doText="The common answer is chosen already; the reader changes it or moves on."
-        dont={
-          <Field label="Frequency" isGroup>
-            <RadioGroup>
-              <Items />
-            </RadioGroup>
-          </Field>
-        }
-        dontText="Nothing chosen when quarterly is what nearly everyone wants. Every reader must click."
-      />
-      <Pair
-        do={
-          <Field label="Frequency" isGroup>
-            <RadioGroup defaultValue="quarterly">
-              {frequencies.map((f) => (
-                <RadioGroup.Item key={f} value={f}>
-                  {f}
-                </RadioGroup.Item>
-              ))}
-            </RadioGroup>
-          </Field>
-        }
-        doText="Vertical, so the eye runs down one column of answers."
-        dont={
-          <div style={{ width: 360 }}>
-            <Field label="Frequency" isGroup>
-              <RadioGroup defaultValue="Quarterly" orientation="horizontal">
-                {[
-                  "Monthly, for systems in change",
-                  "Quarterly, the program default",
-                  "Annually, for stable systems",
-                ].map((f) => (
-                  <RadioGroup.Item key={f} value={f.split(",")[0] ?? f}>
-                    {f}
-                  </RadioGroup.Item>
-                ))}
-              </RadioGroup>
-            </Field>
-          </div>
-        }
-        dontText="Long labels in a row. They wrap, and the reader cannot tell which dot belongs to which words."
-      />
-    </Stack>
-  ),
+/** External labels, Field validation, native form values/reset, and native/ref/render targets. */
+export const InField: Story = {
+  render: () => <FormDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    changed.mockClear();
+    const group = canvas.getByRole("radiogroup", { name: "Frequency" });
+    const monthly = canvas.getByRole("radio", { name: "Monthly" });
+    const quarterly = canvas.getByRole("radio", { name: "Quarterly" });
+    await expect(groupRef.current).toBe(group);
+    await expect(renderedGroupRef.current).toBe(group);
+    await expect(group).toHaveAttribute("id", "review-frequency");
+    await expect(group).toHaveClass("border", "rounded-medium");
+    await expect(group).toHaveStyle({ minWidth: "240px", padding: "8px" });
+    await expect(group).toHaveAttribute("aria-required", "true");
+    await expect(group).toHaveAccessibleDescription("How often the control is reviewed.");
+    await expect(itemRef.current).toBe(monthly);
+    await expect(itemInputRef.current).toHaveAttribute("id", "monthly-frequency");
+    await expect(itemInputRef.current).toHaveAttribute("required");
+    await expect(monthly).not.toHaveAttribute("id", "monthly-frequency");
+    await expect(buttonRef.current).toBe(quarterly);
+    await expect(renderedButtonRef.current).toBe(quarterly);
+    await expect(quarterly.tagName).toBe("BUTTON");
+    await expect(quarterly).toHaveAttribute("id", "quarterly-frequency");
+    await expect(quarterly).toHaveAttribute("title", "Quarterly review");
+    await expect(canvas.getByRole("radio", { name: "Annually" })).toHaveAccessibleDescription(
+      "One review each year.",
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Schedule" }));
+    await expect(group).toHaveAttribute("aria-invalid", "true");
+    await expect(group).toHaveAccessibleDescription("Choose a frequency.");
+    await expect(canvas.getByRole("alert")).toHaveTextContent("Choose a frequency.");
+    await userEvent.click(canvas.getByText("Monthly"));
+    await expect(monthly).toBeChecked();
+    await expect(changed).toHaveBeenLastCalledWith("monthly");
+    await expect(groupInputRef.current).toBe(itemInputRef.current);
+    await expect(group).not.toHaveAttribute("aria-invalid", "true");
+    await expect(group).toHaveAccessibleDescription("How often the control is reviewed.");
+    await userEvent.click(canvas.getByText("Quarterly"));
+    await expect(quarterly).toBeChecked();
+    await expect(groupInputRef.current).toHaveAttribute("value", "quarterly");
+    await userEvent.click(canvas.getByRole("button", { name: "Schedule" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("Scheduled: quarterly.");
+    await userEvent.click(canvas.getByRole("button", { name: "Reset schedule" }));
+    for (const radio of canvas.getAllByRole("radio")) await expect(radio).not.toBeChecked();
+    monthly.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(monthly).not.toBeChecked();
+    await userEvent.keyboard(" ");
+    await expect(monthly).toBeChecked();
+  },
 };
 
 export const Playground: Story = {};

@@ -45,6 +45,7 @@ import {
   Textarea,
   TextLink,
   ToggleGroup,
+  ToggleGroupItem,
   Toolbar,
   Eyebrow,
 } from "@ledger/design-system";
@@ -1143,10 +1144,19 @@ export function ControlBoard({ programId }: { programId: string }) {
         }
       >
         <ToggleGroup
-          items={lenses.map((l) => ({ value: l, label: lensLabels[l] }))}
-          value={lens}
-          onChange={setLens}
-        />
+          aria-label="Control lens"
+          size="sm"
+          value={[lens]}
+          onValueChange={([next]) => {
+            if (next !== undefined) setLens(next);
+          }}
+        >
+          {lenses.map((l) => (
+            <ToggleGroupItem key={l} value={l}>
+              {lensLabels[l]}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
         <FilterChip label="Gaps" isActive={gapsOnly} onClick={() => setGapsOnly((v) => !v)} />
         <FilterChip
           label="Unassigned"

@@ -135,10 +135,10 @@ export const ControlledOwnership: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const before = canvas.getByText(/^Choice:/).textContent;
-    const draft = within(canvas.getByRole("radiogroup", { name: "Read-only draft" }));
-    await userEvent.click(draft.getByRole("radio", { name: "Dark" }));
-    await expect(draft.getByRole("radio", { name: "Light" })).toHaveAttribute(
-      "aria-checked",
+    const draft = within(canvas.getByRole("group", { name: "Read-only draft" }));
+    await userEvent.click(draft.getByRole("button", { name: "Dark" }));
+    await expect(draft.getByRole("button", { name: "Light" })).toHaveAttribute(
+      "aria-pressed",
       "true",
     );
     await expect(canvas.getByText(/^Choice:/)).toHaveTextContent(before ?? "");

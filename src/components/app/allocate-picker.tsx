@@ -287,7 +287,8 @@ export function AllocateRequirementsSheet({
             <tr>
               <Table.Selection
                 header
-                checked={allShown ? true : someShown ? "indeterminate" : false}
+                checked={allShown}
+                indeterminate={!allShown && someShown}
                 onCheckedChange={(checked) =>
                   choice.setChosen((prev) => {
                     const next = new Set(prev);
@@ -574,7 +575,8 @@ export function AllocateElementsSheet({
             <tr>
               <Table.Selection
                 header
-                checked={allShown ? true : someShown ? "indeterminate" : false}
+                checked={allShown}
+                indeterminate={!allShown && someShown}
                 onCheckedChange={(checked) =>
                   choice.setChosen((prev) => {
                     const next = new Set(prev);

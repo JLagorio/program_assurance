@@ -12,7 +12,7 @@ import { datasetNow } from "@/lib/dataset-clock";
 import type { Program } from "@/lib/grc-data";
 import { programState, type Stage } from "@/lib/program-stage";
 import { poamItems } from "@/lib/register";
-import { findings, isOpen } from "@/lib/findings";
+import { programFindings, isOpen } from "@/lib/findings";
 import { inheritanceForProgram } from "@/lib/inheritance";
 import { staleThresholdDays } from "@/lib/reusable-components";
 import { scopeApprovals } from "@/lib/tailoring";
@@ -49,6 +49,10 @@ const monthIndex: Record<string, number> = {
 };
 
 function parseDate(value: string): Date | null {
+  if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+    const date = new Date(value.slice(0, 10) + "T00:00:00Z");
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
   const m = /^([A-Z][a-z]{2})\s(\d{1,2}),\s(\d{4})$/.exec(value.trim());
   if (!m) return null;
   const month = monthIndex[m[1]!];
@@ -68,13 +72,9 @@ function daysFromNow(value: string, now: Date): number | null {
   return Math.round((d.getTime() - base) / 86_400_000);
 }
 
-/** Findings reachable from this program through its POA&M items and risks. */
+/** Include findings before triage has assigned remediation or a risk. */
 export function findingsForProgram(programId: string) {
-  const poams = new Set(poamItems.filter((p) => p.program === programId).map((p) => p.id));
-  const risks = new Set(
-    poamItems.filter((p) => p.program === programId && p.risk).map((p) => p.risk!),
-  );
-  return findings.filter((f) => (f.poam && poams.has(f.poam)) || (f.risk && risks.has(f.risk)));
+  return programFindings(programId);
 }
 
 export type Posture = {

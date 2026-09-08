@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ArrowRight, ChevronDown, Download, Filter, Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight, ChevronDown, Download, Plus, Trash2 } from "lucide-react";
+import { createRef, useState } from "react";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, ButtonGroup, IconButton, TextLink } from "../../components";
+import { Button, buttonVariants } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Button",
@@ -19,125 +19,173 @@ type Story = StoryObj<typeof meta>;
 const variants = ["primary", "secondary", "subtle", "danger", "link"] as const;
 const sizes = ["medium", "small", "xsmall"] as const;
 
-/** Every variant down the side; the three sizes, then disabled, selected, loading and with an icon across. */
+/** The variants and sizes, plus disabled, selected, loading and icon placement. */
 export const Matrix: Story = {
   tags: ["matrix"],
   render: () => (
     <Stack space="space.300">
-      {variants.map((v) => (
-        <Inline key={v} space="space.300" alignBlock="center">
-          <Text size="xsmall" color="color.text.subtlest" className="w-800">
-            {v}
-          </Text>
-          {sizes.map((s) => (
-            <Button key={s} variant={v} size={s}>
-              Schedule assessment
+      {variants.map((variant) => (
+        <Specimens key={variant} title={variant}>
+          {sizes.map((size) => (
+            <Button key={size} variant={variant} size={size} data-testid={`${variant}-${size}`}>
+              {size}
             </Button>
           ))}
-          <Button variant={v} disabled>
+          <Button variant={variant} disabled>
             Disabled
           </Button>
-          <Button variant={v} isSelected>
+          <Button variant={variant} isSelected>
             Selected
           </Button>
-          <Button variant={v} isLoading>
+          <Button variant={variant} isLoading>
             Saving
           </Button>
-          <Button variant={v} iconBefore={<Plus />}>
-            With icon
+          <Button variant={variant} iconBefore={<Plus />}>
+            Add control
           </Button>
-        </Inline>
+          <Button variant={variant} iconAfter={<ChevronDown />}>
+            Views
+          </Button>
+        </Specimens>
       ))}
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const variant of variants) {
+      const buttons = sizes.map((size) => canvas.getByTestId(`${variant}-${size}`));
+      for (const [index, button] of buttons.entries()) {
+        await expect(button).toHaveAttribute("type", "button");
+        await expect(button).toHaveAttribute("data-slot", "button");
+        if (variant !== "link") {
+          await expect(button.getBoundingClientRect().height).toBe([32, 28, 24][index]);
+          await expect(button.getBoundingClientRect().width).toBeGreaterThanOrEqual(24);
+        }
+      }
+      await expect(buttons[0]!.getBoundingClientRect().right).toBeLessThanOrEqual(
+        buttons[1]!.getBoundingClientRect().left,
+      );
+    }
+    for (const button of canvas.getAllByRole("button", { name: "Disabled" }))
+      await expect(button).toBeDisabled();
+    for (const button of canvas.getAllByRole("button", { name: "Selected" }))
+      await expect(button).toHaveAttribute("aria-pressed", "true");
+    for (const button of canvas.getAllByRole("button", { name: "Saving" })) {
+      await expect(button).toHaveAttribute("aria-busy", "true");
+      await expect(button).toHaveAttribute("aria-disabled", "true");
+      await expect(button).not.toBeDisabled();
+    }
+    for (const button of canvas.getAllByRole("button", { name: /^(Add control|Views)$/ })) {
+      const icon = button.querySelector("svg")!;
+      await expect(icon).toHaveAttribute("aria-hidden", "true");
+      await expect(icon.getBoundingClientRect().width).toBe(14);
+    }
+  },
 };
 
-/** The button sizes the icon and sets the gap; the element is passed bare. */
-export const Icons: Story = {
-  render: () => (
-    <Inline space="space.200" alignBlock="center">
-      <Button iconBefore={<Plus />}>Add control</Button>
-      <Button iconAfter={<ChevronDown />}>Views</Button>
-      <Button variant="link" iconAfter={<ArrowRight />}>
-        Risk register
-      </Button>
-      <Button variant="primary" iconBefore={<Download />}>
-        Export
-      </Button>
-      <IconButton label="Edit" variant="subtle" icon={<Pencil />} />
-    </Inline>
-  ),
-};
+const previewRef = createRef<HTMLButtonElement>();
+const previewAction = fn();
+const submitAction = fn();
+const submitClick = fn();
 
 function LoadingDemo() {
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   return (
-    <Inline space="space.200" alignBlock="center">
-      <Button
-        variant="primary"
-        isLoading={saving}
-        onClick={() => {
-          setSaving(true);
-          setTimeout(() => setSaving(false), 1800);
-        }}
-      >
-        Save changes
-      </Button>
-      <Button isLoading>Syncing</Button>
-      <Button variant="subtle" isLoading iconBefore={<Plus />}>
-        Adding
-      </Button>
-      <Button variant="danger" isLoading>
-        Deleting
-      </Button>
-    </Inline>
+    <form
+      aria-label="Assessment actions"
+      style={{ width: 320 }}
+      onSubmit={(event) => {
+        event.preventDefault();
+        submitAction();
+        setSaving(true);
+        setTimeout(() => {
+          setSaving(false);
+          setSaved(true);
+        }, 1800);
+      }}
+    >
+      <Stack space="space.100">
+        <Button
+          type="submit"
+          name="intent"
+          value="submit"
+          variant="primary"
+          isFullWidth
+          isLoading={saving}
+          onClick={submitClick}
+        >
+          Submit package
+        </Button>
+        <Button
+          ref={previewRef}
+          id="preview-package"
+          title="Preview package"
+          onClick={previewAction}
+          iconBefore={<Download />}
+        >
+          Preview package
+        </Button>
+        <Text role="status">
+          {saving ? "Submitting package…" : saved ? "Package submitted." : "Ready to submit."}
+        </Text>
+      </Stack>
+    </form>
   );
 }
 
-/** Press Save: the spinner takes the icon's place, the label stays, clicks are ignored and focus is kept. */
-export const Loading: Story = { render: () => <LoadingDemo /> };
-
-/** `isFullWidth` fills the container: a sheet's footer, a narrow form. */
-export const FullWidth: Story = {
-  render: () => (
-    <div style={{ width: 320 }}>
-      <Stack space="space.100">
-        <Button variant="primary" isFullWidth>
-          Submit package
-        </Button>
-        <Button isFullWidth iconBefore={<Download />}>
-          Download the report
-        </Button>
-      </Stack>
-    </div>
-  ),
+/** The submit action keeps its name and focus while pending; a default button does not submit. */
+export const Loading: Story = {
+  render: () => <LoadingDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    previewAction.mockClear();
+    submitAction.mockClear();
+    submitClick.mockClear();
+    const preview = canvas.getByRole("button", { name: "Preview package" });
+    const submit = canvas.getByRole("button", { name: "Submit package" });
+    await expect(previewRef.current).toBe(preview);
+    await expect(preview).toHaveAttribute("id", "preview-package");
+    await expect(preview).toHaveAttribute("type", "button");
+    await userEvent.click(preview);
+    await userEvent.keyboard("{Enter} ");
+    await expect(previewAction).toHaveBeenCalledTimes(3);
+    await expect(submitAction).not.toHaveBeenCalled();
+    await expect(submit).toHaveAttribute("type", "submit");
+    await expect(submit).toHaveAttribute("name", "intent");
+    await expect(submit).toHaveAttribute("value", "submit");
+    await expect(submit.getBoundingClientRect().width).toBe(320);
+    await userEvent.click(submit);
+    await expect(submit).toHaveAttribute("aria-busy", "true");
+    await expect(submit).toHaveAttribute("aria-disabled", "true");
+    await expect(submit).not.toBeDisabled();
+    await expect(submit).toHaveFocus();
+    await expect(submit).toHaveAccessibleName("Submit package");
+    await userEvent.click(submit);
+    await userEvent.keyboard("{Enter} ");
+    await expect(submitClick).toHaveBeenCalledTimes(1);
+    await expect(submitAction).toHaveBeenCalledTimes(1);
+    await waitFor(
+      () => expect(canvas.getByRole("status")).toHaveTextContent("Package submitted."),
+      { timeout: 2500 },
+    );
+    await expect(submit).not.toHaveAttribute("aria-busy");
+    await expect(submit).toHaveFocus();
+  },
 };
 
-/** One primary per view. What sits beside it steps down; a toolbar has no primary at all. */
+/** Labelled actions in a header and footer, including a destructive confirmation. */
 export const Emphasis: Story = {
   render: () => (
     <Stack space="space.300">
-      <Specimens title="A dialog's footer: the primary on the right, cancel subtle">
-        <Button variant="subtle">Cancel</Button>
-        <Button variant="primary">Save changes</Button>
-      </Specimens>
-      <Specimens title="A page header: one primary, the rest secondary">
+      <Specimens title="A page header">
         <Button variant="primary" iconBefore={<Plus />}>
           New program
         </Button>
         <Button iconBefore={<Download />}>Export</Button>
         <Button iconAfter={<ChevronDown />}>Views</Button>
       </Specimens>
-      <Specimens title="A toolbar: subtle, small; a ButtonGroup where two controls act as one">
-        <Button variant="subtle" size="small" iconBefore={<Filter />}>
-          Filters
-        </Button>
-        <ButtonGroup>
-          <Button size="small">Export</Button>
-          <IconButton size="small" label="Export options" icon={<ChevronDown />} />
-        </ButtonGroup>
-      </Specimens>
-      <Specimens title="A destructive decision: danger, after the AlertDialog asks">
+      <Specimens title="A confirmation footer">
         <Button variant="subtle">Cancel</Button>
         <Button variant="danger" iconBefore={<Trash2 />}>
           Delete program
@@ -147,171 +195,96 @@ export const Emphasis: Story = {
   ),
 };
 
-/** `asChild` puts the router's Link inside; it takes the button's classes and its icons. */
-export const AsLink: Story = {
-  render: () => (
-    <Inline space="space.200" alignBlock="center">
-      <Button asChild variant="primary">
-        <a href="#top">A link that looks like a button</a>
-      </Button>
-      <TextLink>
-        <a href="#top">A link that reads as text</a>
-      </TextLink>
-      <Button variant="secondary" iconAfter={<ChevronDown />}>
-        Open
-      </Button>
-    </Inline>
-  ),
-};
+const renderedRef = createRef<HTMLButtonElement>();
+const childRef = createRef<HTMLButtonElement>();
+const renderedAction = fn();
+const childAction = fn();
+const blockedAction = fn();
 
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
+/** Real links use the shared recipe; render composes controls that keep button semantics. */
+export const AsLink: Story = {
+  name: "Navigation and composition",
   render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Inline space="space.100">
-            <Button variant="subtle">Cancel</Button>
-            <Button variant="primary">Submit package</Button>
-          </Inline>
-        }
-        doText="One primary. The other actions step down."
-        dont={
-          <Inline space="space.100">
-            <Button variant="primary">Cancel</Button>
-            <Button variant="primary">Submit package</Button>
-          </Inline>
-        }
-        dontText="Two primaries. Nothing is the one thing to do."
-      />
-      <Pair
-        do={
-          <Text>
-            Traces to{" "}
-            <TextLink asChild={false} href="#req" className="underline">
-              REQ-0118
-            </TextLink>
-            .
-          </Text>
-        }
-        doText="Navigation reads as text: TextLink."
-        dont={
-          <Text>
-            Traces to <Button variant="link">REQ-0118</Button>.
-          </Text>
-        }
-        dontText="A Button that looks like a link is for an action in place, not a destination."
-      />
-      <Pair
-        do={<Button iconBefore={<Download />}>Export report</Button>}
-        doText="A verb and its object, sentence case, no punctuation."
-        dont={<Button iconBefore={<Download />}>Click here to export!</Button>}
-        dontText="Filler and a shout, and the reader still has to guess what is exported."
-      />
-      <Pair
-        do={
-          <Inline space="space.100">
-            <Button variant="subtle">Cancel</Button>
-            <Button variant="danger">Delete program</Button>
-          </Inline>
-        }
-        doText="Danger for what destroys, after the AlertDialog asks."
-        dont={
-          <Inline space="space.100">
-            <Button variant="subtle">Cancel</Button>
-            <Button variant="danger">Archive program</Button>
-          </Inline>
-        }
-        dontText="Archiving can be undone. A recoverable action is secondary or primary, never danger."
-      />
+    <Stack space="space.300">
+      <Specimens title="Navigation: an anchor or router Link with buttonVariants">
+        <a href="#button-destination" className={buttonVariants({ variant: "primary" })}>
+          View requirements <ArrowRight aria-hidden className="size-icon-small" />
+        </a>
+      </Specimens>
+      <Specimens title="Composition: render an existing action control">
+        <Button
+          ref={renderedRef}
+          id="rendered-action"
+          onClick={renderedAction}
+          className={(state) => (state.disabled ? "cursor-not-allowed" : "self-start")}
+          style={(state) => ({ minWidth: state.disabled ? 160 : 120 })}
+          render={
+            <button
+              ref={childRef}
+              className="align-middle"
+              style={{ textDecorationLine: "underline" }}
+              onClick={childAction}
+            />
+          }
+        >
+          Apply filter
+        </Button>
+        <Button
+          disabled
+          className={(state) => (state.disabled ? "cursor-not-allowed" : "self-start")}
+          style={(state) => ({ minWidth: state.disabled ? 160 : 120 })}
+          render={(props, state) => (
+            <button
+              {...props}
+              data-render-disabled={String(state.disabled)}
+              onClick={blockedAction}
+            />
+          )}
+        >
+          Unavailable action
+        </Button>
+        <Button isLoading nativeButton={false} render={<div onClick={blockedAction} />}>
+          Updating results
+        </Button>
+      </Specimens>
+      <Text id="button-destination">Requirements overview</Text>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    renderedAction.mockClear();
+    childAction.mockClear();
+    blockedAction.mockClear();
+    const link = canvas.getByRole("link", { name: "View requirements" });
+    await expect(link.tagName).toBe("A");
+    await expect(link).toHaveAttribute("href", "#button-destination");
+    await expect(link).not.toHaveAttribute("role", "button");
+    const action = canvas.getByRole("button", { name: "Apply filter" });
+    await expect(renderedRef.current).toBe(action);
+    await expect(childRef.current).toBe(action);
+    await expect(action.tagName).toBe("BUTTON");
+    await expect(action).toHaveAttribute("id", "rendered-action");
+    await expect(action).toHaveClass("align-middle", "self-start");
+    await expect(action).toHaveStyle({ minWidth: "120px", textDecorationLine: "underline" });
+    await userEvent.click(action);
+    await userEvent.keyboard("{Enter} ");
+    await expect(renderedAction).toHaveBeenCalledTimes(3);
+    await expect(childAction).toHaveBeenCalledTimes(3);
+    const disabled = canvas.getByRole("button", { name: "Unavailable action" });
+    await expect(disabled).toBeDisabled();
+    await expect(disabled).toHaveAttribute("data-render-disabled", "true");
+    await expect(disabled).toHaveClass("cursor-not-allowed");
+    await expect(disabled).toHaveStyle({ minWidth: "160px" });
+    await userEvent.click(disabled, { pointerEventsCheck: 0 });
+    const loading = canvas.getByRole("button", { name: "Updating results" });
+    await expect(loading.tagName).toBe("DIV");
+    await expect(loading).toHaveAttribute("aria-disabled", "true");
+    loading.focus();
+    await userEvent.click(loading);
+    await userEvent.keyboard("{Enter} ");
+    await expect(loading).toHaveFocus();
+    await expect(blockedAction).not.toHaveBeenCalled();
+  },
 };
 
 export const Playground: Story = { args: { variant: "primary", size: "medium" } };
-
-function SlottedDemo() {
-  const [blocked, setBlocked] = useState(true);
-  const [calls, setCalls] = useState(0);
-  return (
-    <Stack space="space.200">
-      <Button onClick={() => setBlocked((value) => !value)}>Toggle blocking</Button>
-      <Button asChild isLoading={blocked} onClick={() => setCalls((n) => n + 1)}>
-        <a
-          href="#record-navigation"
-          onClick={(event) => {
-            event.preventDefault();
-            setCalls((n) => n + 1);
-          }}
-        >
-          Loading link
-        </a>
-      </Button>
-      <Button asChild disabled={blocked}>
-        <a
-          href="#record-navigation"
-          onClick={(event) => {
-            event.preventDefault();
-            setCalls((n) => n + 1);
-          }}
-        >
-          Disabled link
-        </a>
-      </Button>
-      <IconButton asChild disabled={blocked} label="Disabled icon link" icon={<Plus />}>
-        <a
-          href="#record-navigation"
-          onClick={(event) => {
-            event.preventDefault();
-            setCalls((n) => n + 1);
-          }}
-        />
-      </IconButton>
-      <output aria-label="Handler calls">{calls}</output>
-    </Stack>
-  );
-}
-
-export const SlottedActivation: Story = {
-  render: () => <SlottedDemo />,
-  play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
-    const canvas = within(canvasElement);
-    for (const name of ["Loading link", "Disabled link", "Disabled icon link"]) {
-      const link = canvas.getByRole("link", { name });
-      await userEvent.click(link);
-      link.focus();
-      await userEvent.keyboard("{Enter}");
-    }
-    await expect(canvas.getByLabelText("Handler calls")).toHaveTextContent("0");
-    await userEvent.click(canvas.getByRole("button", { name: "Toggle blocking" }));
-    await userEvent.click(canvas.getByRole("link", { name: "Loading link" }));
-    await expect(canvas.getByLabelText("Handler calls")).toHaveTextContent("2");
-    await userEvent.click(canvas.getByRole("link", { name: "Disabled link" }));
-    await userEvent.click(canvas.getByRole("link", { name: "Disabled icon link" }));
-    await expect(canvas.getByLabelText("Handler calls")).toHaveTextContent("4");
-  },
-};
-
-/** Dense controls retain a minimum 24 CSS-pixel target without overlapping neighbors. */
-export const TargetSize: Story = {
-  render: () => (
-    <Inline space="space.100">
-      <Button size="xsmall">Dense action</Button>
-      <Button size="small">Small action</Button>
-      <IconButton size="small" icon={<Plus />} label="Add item" />
-    </Inline>
-  ),
-  play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
-    const buttons = within(canvasElement).getAllByRole("button");
-    for (const button of buttons) {
-      const rect = button.getBoundingClientRect();
-      await expect(rect.width).toBeGreaterThanOrEqual(24);
-      await expect(rect.height).toBeGreaterThanOrEqual(24);
-    }
-    await expect(buttons[0]!.getBoundingClientRect().right).toBeLessThanOrEqual(
-      buttons[1]!.getBoundingClientRect().left,
-    );
-  },
-};

@@ -19,7 +19,7 @@ Compose only the parts the file needs:
 | Attachment.Content     | Groups the name, metadata and optional progress.                      |
 | Attachment.Title       | Truncated filename; native `title` can expose the full name on hover. |
 | Attachment.Description | File type, size, status or a wrapping failure explanation.            |
-| Attachment.Trigger     | Optional card-wide button or slotted link.                            |
+| Attachment.Trigger     | Optional card-wide action button.                                     |
 | Attachment.Actions     | Independent controls above the trigger.                               |
 | Attachment.Action      | IconButton with a required `label` and `icon`.                        |
 | Attachment.Group       | Horizontally scrollable row.                                          |
@@ -62,13 +62,24 @@ Compose only the parts the file needs:
 
 Native attributes, event handlers, `className`, `style` and refs reach each part's own element. Title and Description are spans; structural parts are divs. The root's native `title` remains a tooltip attribute. Set explicit `aria-busy` if the default busy mapping does not fit the composition.
 
-Trigger is a button with `type="button"` by default. Use `asChild` with one ref-forwarding link for navigation, putting its URL and accessible name on the link. Native disabled buttons and disabled slotted links block activation. A root upload state does not disable actions automatically; removing or cancelling an upload may still be useful.
+Trigger is an action button with `type="button"` by default. Use `render` to compose a custom button that forwards its props and ref. For navigation or downloads, style an ordinary anchor with `buttonVariants` and the same overlay geometry. It retains native link keyboard behavior and browser actions. A native disabled Trigger represents an unavailable action. A root upload state does not disable actions automatically; removing or cancelling an upload may still be useful.
 
 ```tsx
-<Attachment.Trigger asChild>
-  <a href={file.url} download aria-label={`Download ${file.name}`} />
-</Attachment.Trigger>
+import { buttonVariants } from "@ledger/design-system";
+
+<a
+  href={file.url}
+  download
+  aria-label={`Download ${file.name}`}
+  className={buttonVariants({
+    variant: "subtle",
+    className:
+      "absolute inset-0 z-10 h-full w-full rounded-medium bg-transparent p-0 hover:bg-transparent active:bg-transparent",
+  })}
+/>;
 ```
+
+Existing `Attachment.Trigger asChild` navigation migrates to this anchor. Trigger follows Button's action contract, so links no longer pass through its button interaction behavior.
 
 ## Content
 
@@ -92,7 +103,7 @@ No live region is imposed. `aria-busy` identifies in-progress content but does n
 
 <ArgTypes of={Attachment} />
 
-All compound part prop types are exported. `Attachment.Action` accepts IconButton props; Trigger supports native button props and the existing Button `asChild` ref/event behavior. The app's old shadcn copy uses different size and action APIs; import the Ledger component from `@ledger/design-system`.
+All compound part prop types are exported. `Attachment.Action` accepts IconButton props; Trigger supports Button's native attributes, ref and `render` composition. The app's old shadcn copy uses different size and action APIs; import the Ledger component from `@ledger/design-system`.
 
 ### Playground
 

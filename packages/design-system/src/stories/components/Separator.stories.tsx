@@ -32,8 +32,12 @@ export const SeparatorMatrix: Story = {
       </Specimens>
       <Specimens title="Vertical, between groups in a toolbar row">
         <Inline space="space.050" alignBlock="center">
-          <Toggle aria-label="Bold" icon={<Bold />} />
-          <Toggle aria-label="Italic" icon={<Italic />} />
+          <Toggle aria-label="Bold" size="sm">
+            <Bold aria-hidden />
+          </Toggle>
+          <Toggle aria-label="Italic" size="sm">
+            <Italic aria-hidden />
+          </Toggle>
           <Separator orientation="vertical" />
           <IconButton variant="subtle" label="Link" icon={<Link2 />} />
           <Separator orientation="vertical" />

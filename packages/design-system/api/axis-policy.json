@@ -171,9 +171,9 @@
       "reviewSources": ["packages/design-system/src/components/attachment.tsx"]
     },
     "Attachment.Action": {
-      "domTarget": "Native HTMLButtonElement or the single Slot child HTMLElement when asChild. id, ref and events reach that interactive target; native attributes require a compatible target.",
-      "controlledBehavior": "isLoading, isSelected and disabled are caller-owned. Loading and disabled suppress click activation, including slotted-child handlers; blocked slotted controls suppress Enter/Space activation. The component does not run or persist async actions.",
-      "defaultBehavior": "Delegates to IconButton with subtle variant and small size. Required label names the control and tooltip; icon is caller-supplied. Existing disabled, loading, focus and asChild behavior is retained.",
+      "domTarget": "IconButton action target; native button by default.",
+      "controlledBehavior": "Delegates activation, disabled and loading behavior to IconButton.",
+      "defaultBehavior": "subtle, small. Required label names the control and tooltip; icon is decorative.",
       "reviewSources": [
         "packages/design-system/src/components/attachment.tsx",
         "packages/design-system/src/components/button.tsx"
@@ -191,9 +191,9 @@
       }
     },
     "Attachment.Trigger": {
-      "domTarget": "Native HTMLButtonElement or the single Slot child HTMLElement when asChild. id, ref and events reach that interactive target; native attributes require a compatible target.",
-      "controlledBehavior": "Delegates to Button for native and slotted activation. No preview dialog or navigation inferred. Disabled slotted links guard both parent and child handlers.",
-      "defaultBehavior": "Empty full-card overlay with button type=button by default. asChild renders one caller-supplied element. Caller supplies accessible name and action; focus outline follows card bounds.",
+      "domTarget": "Card-wide Button action. Navigation uses a styled anchor.",
+      "controlledBehavior": "Disabled uses Button activation guards; preview behavior remains caller-owned.",
+      "defaultBehavior": "type=button; caller supplies the accessible name and action. Focus outline follows card bounds.",
       "reviewSources": [
         "packages/design-system/src/components/attachment.tsx",
         "packages/design-system/src/components/button.tsx"
@@ -401,9 +401,9 @@
       "reviewSources": ["packages/design-system/src/components/breadcrumb.tsx"]
     },
     "Button": {
-      "domTarget": "Native HTMLButtonElement or the single Slot child HTMLElement when asChild. id, ref and events reach that interactive target; native attributes require a compatible target.",
-      "controlledBehavior": "isLoading, isSelected and disabled are caller-owned. Loading and disabled suppress click activation, including slotted-child handlers; blocked slotted controls suppress Enter/Space activation. The component does not run or persist async actions.",
-      "defaultBehavior": "variant=secondary. Button size=medium (32px); IconButton size=small (28px). Native type defaults to button. Link recipe uses automatic height. Omitted loading/selected/full-width flags are false. IconButton requires label and normally provides its tooltip; slots use the component icon sizing.",
+      "domTarget": "Native button by default; Base UI render composes action controls. Navigation uses buttonVariants on real links.",
+      "controlledBehavior": "Caller-owned selected, loading and disabled. Loading preserves focus by default; capture guards block rendered-child activation.",
+      "defaultBehavior": "secondary, medium (32px), type=button. Existing Ledger variants, sizes and decorative icon options remain.",
       "reviewSources": ["packages/design-system/src/components/button.tsx"],
       "props": {
         "variant": {
@@ -768,23 +768,6 @@
           "defaultBehavior": "Absent callback is never invoked; a details renderer alone still enables selection."
         }
       }
-    },
-    "Checkbox": {
-      "domTarget": "Radix button receives id, aria attributes, className and button events; optional label wraps the button and description. Public ComponentPropsWithoutRef contract does not expose a ref. Radix owns the native form input.",
-      "controlledBehavior": "Radix checked/onCheckedChange controls state; defaultChecked initializes uncontrolled state. Checkbox additionally accepts controlled indeterminate. Native onChange is not the selection callback.",
-      "defaultBehavior": "Radix defaults checked to false and submission value to on. Optional children produce a wrapping label; no children requires an accessible name. Field merges descriptions, invalid and required states; no package persistence.",
-      "props": {
-        "checked": {
-          "meaning": "Radix checked/onCheckedChange controls state; defaultChecked initializes uncontrolled state. Checkbox additionally accepts controlled indeterminate. Native onChange is not the selection callback."
-        },
-        "defaultChecked": {
-          "meaning": "Radix checked/onCheckedChange controls state; defaultChecked initializes uncontrolled state. Checkbox additionally accepts controlled indeterminate. Native onChange is not the selection callback."
-        },
-        "onCheckedChange": {
-          "meaning": "Radix checked/onCheckedChange controls state; defaultChecked initializes uncontrolled state. Checkbox additionally accepts controlled indeterminate. Native onChange is not the selection callback."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/controls.tsx"]
     },
     "CodeBlock": {
       "domTarget": "Outer div with a named focusable scrolling region and preformatted lines. className reaches outer div; no native/ref prop bag.",
@@ -1314,9 +1297,9 @@
       }
     },
     "DataTable.Presets": {
-      "domTarget": "Strip: ToggleGroup radiogroup and radio buttons; className and aria-label target the group. Menu: DropdownMenu with a button trigger; className and aria-label target that trigger. No ref/general DOM forwarding.",
+      "domTarget": "Strip: ToggleGroup group and toggle buttons with aria-pressed; className and aria-label target the group. Menu: DropdownMenu with a button trigger; className and aria-label target that trigger. No ref/general DOM forwarding.",
       "controlledBehavior": "Table owns column filters; selecting a preset replaces filters. Active id derives from serialized filter equality; no local selection.",
-      "defaultBehavior": "variant defaults strip. Missing aria-label uses localized Saved questions. A preset without filters means []; no matching preset produces empty selected ID. Counts use rows before global search/pagination.",
+      "defaultBehavior": "variant defaults strip. Missing aria-label uses localized Saved questions. A preset without filters means []; no matching preset leaves every toggle unpressed. Counts use rows before global search/pagination.",
       "reviewSources": [
         "packages/design-system/src/patterns/data-table/filter.tsx",
         "packages/design-system/src/patterns/data-table/use-data-table.ts",
@@ -1407,12 +1390,12 @@
       "reviewSources": ["packages/design-system/src/mode/density.tsx"]
     },
     "DensitySwitch": {
-      "domTarget": "ToggleGroup radiogroup and native buttons with radio roles; className/aria-label target group. No public ref/DOM passthrough.",
+      "domTarget": "ToggleGroup group and native toggle buttons with aria-pressed; className/aria-label target group. No public ref/DOM passthrough.",
       "controlledBehavior": "Deprecated controlled standalone control; value/onChange only. Does not read a provider or change document/table density.",
       "defaultBehavior": "value=default, onChange=no-op, showLabels=false, aria-label=Row density. Visible labels Comfortable/Compact are legacy English copy.",
       "reviewSources": [
         "packages/design-system/src/mode/density.tsx",
-        "packages/design-system/src/components/toggle.tsx"
+        "packages/design-system/src/components/toggle-group.tsx"
       ],
       "props": {
         "value": {
@@ -1710,25 +1693,10 @@
         }
       }
     },
-    "HoverCard": {
-      "domTarget": "Portaled content div; className targets it. asChild trigger delegates to caller link/ref. No generic content DOM/ref forwarding.",
-      "controlledBehavior": "Dependency-owned open state initialized by defaultOpen; hover/focus open and leave/blur close. No controlled open callback exposed.",
-      "defaultBehavior": "bottom/start, width=280px, delay=400ms, closeDelay=120ms, defaultOpen=false, sideOffset=6, collisionPadding=8. Locale sets content direction. Read-only preview content.",
-      "props": {
-        "defaultOpen": {
-          "meaning": "Dependency-owned open state initialized by defaultOpen; hover/focus open and leave/blur close. No controlled open callback exposed."
-        },
-        "width": {
-          "meaning": "Popover content width in CSS pixels.",
-          "migration": "Preserve physical dimension units and each family’s preset meaning; do not reinterpret as control size."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/hover-card.tsx"]
-    },
     "IconButton": {
-      "domTarget": "Native HTMLButtonElement or the single Slot child HTMLElement when asChild. id, ref and events reach that interactive target; native attributes require a compatible target.",
-      "controlledBehavior": "isLoading, isSelected and disabled are caller-owned. Loading and disabled suppress click activation, including slotted-child handlers; blocked slotted controls suppress Enter/Space activation. The component does not run or persist async actions.",
-      "defaultBehavior": "variant=secondary. Button size=medium (32px); IconButton size=small (28px). Native type defaults to button. Link recipe uses automatic height. Omitted loading/selected/full-width flags are false. IconButton requires label and normally provides its tooltip; slots use the component icon sizing.",
+      "domTarget": "Button action target; native button by default. Custom rendered controls must forward props and refs.",
+      "controlledBehavior": "Delegates activation, disabled and loading behavior to Button.",
+      "defaultBehavior": "secondary, small (28px), type=button. Required label names the control and its optional tooltip; icon is decorative.",
       "reviewSources": ["packages/design-system/src/components/button.tsx"],
       "props": {
         "icon": {
@@ -1923,12 +1891,12 @@
       "reviewSources": ["packages/design-system/src/mode/mode.tsx"]
     },
     "ModeSwitch": {
-      "domTarget": "ToggleGroup radiogroup and native buttons with radio roles; className/aria-label reach group. No ref/general native DOM forwarding.",
+      "domTarget": "ToggleGroup group and native toggle buttons with aria-pressed; className/aria-label reach group. No ref/general native DOM forwarding.",
       "controlledBehavior": "value is caller-controlled when supplied; onChange overrides provider setter. Without value the provider owns choice; without either provider or value displays system. An explicit value with no handler is read-only and does not mutate provider storage.",
       "defaultBehavior": "showLabels=false; accessible name uses localized Color mode. current=value then provider mode then system; callback=onChange, else provider setter only when value omitted, else no-op.",
       "reviewSources": [
         "packages/design-system/src/mode/mode.tsx",
-        "packages/design-system/src/components/toggle.tsx"
+        "packages/design-system/src/components/toggle-group.tsx"
       ],
       "props": {
         "value": {
@@ -2070,33 +2038,6 @@
         }
       }
     },
-    "Popover": {
-      "domTarget": "Portaled content div plus an asChild trigger; className styles content. Trigger child must accept props and ref. No content ref/id API.",
-      "controlledBehavior": "Radix open/onOpenChange controls open state or defaultOpen initializes it. Popover.Close requests context dismissal; outside interaction and Escape close uncontrolled popovers.",
-      "defaultBehavior": "bottom/start, sideOffset=4, collisionPadding=8, defaultOpen=false, matchTriggerWidth=false. Nonzero width wins over matching-trigger width; omitted width is intrinsic. Dependency defaults nonmodal. label is optional but task content should have an accessible name.",
-      "props": {
-        "defaultOpen": {
-          "meaning": "Radix open/onOpenChange controls open state or defaultOpen initializes it. Popover.Close requests context dismissal; outside interaction and Escape close uncontrolled popovers."
-        },
-        "onOpenChange": {
-          "meaning": "Radix open/onOpenChange controls open state or defaultOpen initializes it. Popover.Close requests context dismissal; outside interaction and Escape close uncontrolled popovers."
-        },
-        "open": {
-          "meaning": "Radix open/onOpenChange controls open state or defaultOpen initializes it. Popover.Close requests context dismissal; outside interaction and Escape close uncontrolled popovers."
-        },
-        "width": {
-          "meaning": "Content width in CSS pixels, taking precedence over matchTriggerWidth when nonzero.",
-          "migration": "Preserve physical dimension units and each family’s preset meaning; do not reinterpret as control size."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/popover.tsx"]
-    },
-    "Popover.Close": {
-      "domTarget": "Radix Close asChild delegates button behavior to the single child and its forwarded ref; wrapper itself exposes children only.",
-      "controlledBehavior": "Context-owned dismissal request; controlled parent must accept onOpenChange(false).",
-      "defaultBehavior": "No local state. Child must be a focusable element capable of receiving props/ref.",
-      "reviewSources": ["packages/design-system/src/components/popover.tsx"]
-    },
     "PreviewRail": {
       "domTarget": "aside named by a generated useId label on visible Preview plus record id; no DOM/ref passthrough.",
       "controlledBehavior": "Caller owns selection/visibility. Close button requests onClose; the rail never hides itself.",
@@ -2203,52 +2144,6 @@
           "meaning": "Semantic tone from the component allowed union; neutral is not a category hue. Uses the family tone styling described above."
         }
       }
-    },
-    "RadioGroup": {
-      "domTarget": "Radix div/radiogroup receives id, className and native events; children are item controls. Public wrapper has no ref.",
-      "controlledBehavior": "Radix value/onValueChange or defaultValue owns selected item. Group context supplies disabled, required, form and selection to items; native onChange is not the selection contract.",
-      "defaultBehavior": "orientation=vertical; dependency roving focus loops. Without value/defaultValue no radio is selected. Field group context supplies accessible name and descriptions. Direction falls back to LedgerProvider locale; an explicit dir overrides it and reaches Radix context.",
-      "props": {
-        "defaultValue": {
-          "meaning": "Radix value/onValueChange or defaultValue owns selected item. Group context supplies disabled, required, form and selection to items; native onChange is not the selection contract.",
-          "defaultBehavior": "orientation=vertical; dependency roving focus loops. Without value/defaultValue no radio is selected. Field group context supplies accessible name and descriptions."
-        },
-        "onValueChange": {
-          "meaning": "Radix value/onValueChange or defaultValue owns selected item. Group context supplies disabled, required, form and selection to items; native onChange is not the selection contract.",
-          "defaultBehavior": "orientation=vertical; dependency roving focus loops. Without value/defaultValue no radio is selected. Field group context supplies accessible name and descriptions."
-        },
-        "value": {
-          "meaning": "Radix value/onValueChange or defaultValue owns selected item. Group context supplies disabled, required, form and selection to items; native onChange is not the selection contract.",
-          "defaultBehavior": "orientation=vertical; dependency roving focus loops. Without value/defaultValue no radio is selected. Field group context supplies accessible name and descriptions."
-        },
-        "dir": {
-          "meaning": "Reading and interaction direction passed to the Radix root, including keyboard navigation, portal direction and scroll positioning where applicable.",
-          "migration": "Use the LedgerProvider default for the localized subtree; preserve explicit dir when embedding opposite-direction content.",
-          "defaultBehavior": "Explicit dir wins; otherwise useLedgerLocale().direction."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/controls.tsx",
-        "packages/design-system/src/lib/locale.tsx"
-      ]
-    },
-    "RadioGroup.Item": {
-      "domTarget": "Radix radio button receives id, button attributes and className; optional label and description wrap it. Public wrapper has no ref.",
-      "controlledBehavior": "Selection is group-context-owned by value equality. Item checked/defaultChecked from inherited button types do not independently control group selection; change the parent RadioGroup value instead.",
-      "defaultBehavior": "No own selected/default state. Group disabled wins over item disabled. Description id is generated and merged; unnamed bare items require aria-label.",
-      "props": {
-        "checked": {
-          "meaning": "Inherited native-type surface, not this component’s selected state. Radix explicitly derives checked from parent RadioGroup value and ignores item checked.",
-          "migration": "Use value/onValueChange, value/onChange, or parent group value as documented. Do not introduce an independent checked state.",
-          "defaultBehavior": "No package checked fallback; semantic state follows the owning parent/control contract."
-        },
-        "value": {
-          "meaning": "Native form submission payload for RadioGroup.Item. Required option identity also used for parent selection equality.",
-          "migration": "Preserve native submission strings and keep checked state separate.",
-          "defaultBehavior": "Radix uses on when omitted for Checkbox/Switch; RadioGroup.Item requires explicit value."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/controls.tsx"]
     },
     "RecordHeader": {
       "domTarget": "Root div with Breadcrumb and h1; id is visible Id content in current crumb. No native DOM id/ref passthrough.",
@@ -2790,23 +2685,6 @@
         }
       }
     },
-    "Switch": {
-      "domTarget": "Radix button receives id, aria attributes, className and button events; optional label wraps the button and description. Public ComponentPropsWithoutRef contract does not expose a ref. Radix owns the native form input.",
-      "controlledBehavior": "Radix checked/onCheckedChange controls state; defaultChecked initializes uncontrolled state. Checkbox additionally accepts controlled indeterminate. Native onChange is not the selection callback.",
-      "defaultBehavior": "Radix defaults checked to false and submission value to on. Optional children produce a wrapping label; no children requires an accessible name. Field merges descriptions, invalid and required states; no package persistence.",
-      "props": {
-        "checked": {
-          "meaning": "Radix checked/onCheckedChange controls state; defaultChecked initializes uncontrolled state. Checkbox additionally accepts controlled indeterminate. Native onChange is not the selection callback."
-        },
-        "defaultChecked": {
-          "meaning": "Radix checked/onCheckedChange controls state; defaultChecked initializes uncontrolled state. Checkbox additionally accepts controlled indeterminate. Native onChange is not the selection callback."
-        },
-        "onCheckedChange": {
-          "meaning": "Radix checked/onCheckedChange controls state; defaultChecked initializes uncontrolled state. Checkbox additionally accepts controlled indeterminate. Native onChange is not the selection callback."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/controls.tsx"]
-    },
     "Table": {
       "domTarget": "table receives native props/className/style/id/role. frameRef targets the outer scroll div, whose maxHeight/density and overflow keyboard affordance are package-owned. No public table ref prop.",
       "controlledBehavior": "Caller owns content/density; local DOM tracking detects scroll position and overflow to expose a focusable named region/group. No sort or selection state exists at root.",
@@ -2900,23 +2778,6 @@
       "defaultBehavior": "isSelected/isStatic absent are false. Hover is enabled except isStatic; selected changes data-selected and colors without toggling selection.",
       "reviewSources": ["packages/design-system/src/components/table.tsx"]
     },
-    "Table.Selection": {
-      "domTarget": "th when header=true, otherwise td; nested Checkbox receives checked/disabled/label; pinned/offset/edge target cell. No generic DOM/ref forwarding.",
-      "controlledBehavior": "Caller owns checked including indeterminate. Checkbox reports next===true to onCheckedChange and stops row click propagation; no local selection store.",
-      "defaultBehavior": "header=false, disabled absent false, offset defaults 0 if pinned. checked/onCheckedChange/label required; tri-state display reports boolean activation.",
-      "reviewSources": ["packages/design-system/src/components/table.tsx"],
-      "props": {
-        "checked": {
-          "meaning": "Caller-owned boolean or indeterminate checkbox state for this row or page.",
-          "migration": "Preserve this family-specific contract; any replacement must retain payload, units and state ownership.",
-          "defaultBehavior": "Required; no default selection."
-        },
-        "onCheckedChange": {
-          "meaning": "Reports boolean next selection; Checkbox indeterminate is normalized to false.",
-          "migration": "Preserve this family-specific contract; any replacement must retain payload, units and state ownership."
-        }
-      }
-    },
     "Table.Tree": {
       "domTarget": "td containing indented name and optional toggle button; className targets td. No DOM/ref passthrough.",
       "controlledBehavior": "Caller owns expanded and tree hierarchy; optional onToggle reports request only. Containing treegrid and rows must provide tree aria/key navigation.",
@@ -2997,7 +2858,7 @@
           "migration": "Keep caller-composed controls and their event ownership; do not replace this ReactNode slot with a callback or action configuration."
         },
         "onCompletedChange": {
-          "meaning": "Optional boolean request callback; presence creates a controlled Checkbox, converting Radix checked state to next===true.",
+          "meaning": "Optional boolean request callback; presence creates a controlled Base UI Checkbox.",
           "migration": "Preserve caller-controlled completion and optional control; product status vocabulary or async saving belongs outside this primitive."
         },
         "onSelect": {
@@ -3086,54 +2947,6 @@
       "controlledBehavior": "Sonner store owns queue, dismissal and timers. Exported toast methods enqueue notifications; component props configure presentation. Promise/error behavior delegates through the package toast adapter.",
       "defaultBehavior": "position=bottom-right, expand=false, closeButton=false; fixed gap=8, offset=16, visibleToasts=4. Locale supplies direction/messages. toast.error defaults duration=8000 and closeButton=true, then caller options override those defaults.",
       "reviewSources": ["packages/design-system/src/components/toaster.tsx"]
-    },
-    "Toggle": {
-      "domTarget": "Radix button receives native button attributes/id/events and className. ComponentPropsWithoutRef excludes public ref. Icon element is cloned only to merge size classes.",
-      "controlledBehavior": "Radix pressed/onPressedChange or defaultPressed owns pressed state. Native onChange/value are not the pressed-state contract.",
-      "defaultBehavior": "size=small (28px), xsmall=24px, medium=32px. Dependency defaults pressed=false and type=button. Icon-only use requires aria-label; no label fallback is invented.",
-      "props": {
-        "icon": {
-          "meaning": "Rendered ReactElement cloned to merge the size class; accessible name must come from aria-label or visible children.",
-          "migration": "Keep element API rather than changing to an icon constructor; preserve existing icon className."
-        },
-        "onPressedChange": {
-          "meaning": "Radix pressed/onPressedChange or defaultPressed owns pressed state. Native onChange/value are not the pressed-state contract."
-        },
-        "size": {
-          "meaning": "Button height xsmall=24px/small=28px/medium=32px.",
-          "migration": "Keep family-relative geometry and native attribute exceptions explicit; no global enum normalization."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/toggle.tsx"]
-    },
-    "ToggleGroup": {
-      "domTarget": "Radix single toggle group div with generated item buttons. className targets group; no generic DOM/ref forwarding.",
-      "controlledBehavior": "Always controlled value/onChange; empty deselection callback from Radix is suppressed so pressing current item keeps selection. Caller must supply a valid nonempty item value to ensure one selected item.",
-      "defaultBehavior": "size=small. Item labels become visually hidden accessible text and Tooltip for isIconOnly. Null/undefined counts omitted; zero retained. Disabled is per item; no group disabled/defaultValue API. Direction falls back to LedgerProvider locale; an explicit dir overrides it and reaches Radix context.",
-      "props": {
-        "onChange": {
-          "meaning": "Always controlled value/onChange; empty deselection callback from Radix is suppressed so pressing current item keeps selection. Caller must supply a valid nonempty item value to ensure one selected item.",
-          "defaultBehavior": "size=small. Item labels become visually hidden accessible text and Tooltip for isIconOnly. Null/undefined counts omitted; zero retained. Disabled is per item; no group disabled/defaultValue API."
-        },
-        "size": {
-          "meaning": "Group outer height small=28px/medium=32px with inset item heights 24px/28px.",
-          "migration": "Keep family-relative geometry and native attribute exceptions explicit; no global enum normalization.",
-          "defaultBehavior": "size=small. Item labels become visually hidden accessible text and Tooltip for isIconOnly. Null/undefined counts omitted; zero retained. Disabled is per item; no group disabled/defaultValue API."
-        },
-        "value": {
-          "meaning": "Always controlled value/onChange; empty deselection callback from Radix is suppressed so pressing current item keeps selection. Caller must supply a valid nonempty item value to ensure one selected item.",
-          "defaultBehavior": "size=small. Item labels become visually hidden accessible text and Tooltip for isIconOnly. Null/undefined counts omitted; zero retained. Disabled is per item; no group disabled/defaultValue API."
-        },
-        "dir": {
-          "meaning": "Reading and interaction direction passed to the Radix root, including keyboard navigation, portal direction and scroll positioning where applicable.",
-          "migration": "Use the LedgerProvider default for the localized subtree; preserve explicit dir when embedding opposite-direction content.",
-          "defaultBehavior": "Explicit dir wins; otherwise useLedgerLocale().direction."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/toggle.tsx",
-        "packages/design-system/src/lib/locale.tsx"
-      ]
     },
     "Toolbar": {
       "domTarget": "Outer layout div; className targets it. Search is internal Input; actions is a trailing span slot. No generic root DOM/ref forwarding.",

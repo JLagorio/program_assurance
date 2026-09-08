@@ -99,11 +99,21 @@ Port source into the package with relative imports and package `cn`; application
 
 Breadcrumb has seven composable exports and uses Base UI `render` for links. Badge combines shadcn variants and semantic status options in one component; its [Storybook page](src/stories/components/Badge.mdx) owns the usage and migration examples. Other families retain their documented APIs until their own migration.
 
-Separator uses the Base UI primitive with native props/refs, `render` and state callbacks. Existing orientation and decorative options remain, with Ledger's one-pixel border styling. See its [usage and migration guidance](src/stories/components/Separator.mdx).
+[Separator](src/stories/components/Separator.mdx) uses the Base UI primitive; [Skeleton](src/stories/components/Skeleton.mdx) and [Kbd/KbdGroup](src/stories/components/Kbd.mdx) follow shadcn's native element contracts. Each accepts native attributes and refs while retaining Ledger's styling and useful options. [Toggle and ToggleGroup](src/stories/components/ToggleGroup.mdx) use shadcn's Base UI composition, standard variants/sizes and array selection API. Detailed contracts live on those family pages.
 
 Semantic axes keep clear meanings: `tone` communicates status, `variant` chooses treatment and `size` chooses density. Native DOM names retain their meanings. Extend components deliberately instead of creating parallel standard and product versions of the same control.
 
-DOM attributes and refs belong on the element that consumers must label, submit, focus, measure or integrate. Standard parts preserve their native targets and composition affordances; patterns document any narrower contract. Custom Field controls call `useFieldControl`. A `BreadcrumbLink render={<Link to="/records" />}` child must accept its merged props and ref. Existing Button navigation uses `Button asChild` around one anchor; its child must also accept injected props and ref.
+DOM attributes and refs belong on the element that consumers must label, submit, focus, measure or integrate. Standard parts preserve their native targets and composition affordances; patterns document any narrower contract. Custom Field controls call `useFieldControl`. A `BreadcrumbLink render={<Link to="/records" />}` child must accept its merged props and ref. Button and IconButton share Base UI action behavior; navigation uses `buttonVariants` on a real anchor or router Link. See the [Button page](src/stories/components/Button.mdx) for loading, render composition and migration examples.
+
+[Switch](src/stories/components/Switch.mdx) uses shadcn's Base UI control with externally composed labels and descriptions. Its default root ref targets the visible span; `id` and `inputRef` target the hidden checkbox. Field binding is preserved.
+
+[RadioGroup](src/stories/components/RadioGroup.mdx) uses flat `RadioGroupItem` exports, external labels/descriptions and CSS layout. It preserves Field group binding and Base UI's generic selection, native form and keyboard contracts.
+
+[Checkbox](src/stories/components/Checkbox.mdx) uses external labels/descriptions and boolean `checked` with a separate `indeterminate` prop. Table.Selection uses the same state split. Field binding and Ledger's check/minus indicators remain, with Base UI handling native input and keyboard behavior.
+
+[HoverCard](src/stories/components/HoverCard.mdx) composes `HoverCardTrigger` and `HoverCardContent` over Base UI PreviewCard. Triggers preserve native links and accept `render`; timing belongs on the trigger and placement/width on the content. Ledger locale supplies positioning direction.
+
+[Popover](src/stories/components/Popover.mdx) uses shadcn's flat Base UI parts, with `PopoverClose` for dismissal. Compose the trigger through `render`, name Content with Title or `aria-label`, and use Description for supporting text. Content owns positioning, width and initial/final focus; Root owns open state and modality.
 
 Base UI, Radix, Vaul and layout helpers are implementation dependencies. Consumers use the package's public parts and their documented native and dependency-derived contracts. **Explicit public adapters** also include Sonner's toast options/promise API, TanStack table definitions, and chart configuration types exposed by the package. Upgrades that affect public contracts require checking consumer types and migration notes. React and Tailwind remain peers. `MODE_STORAGE_KEY` and `SHELL_STORAGE_KEY` are public storage integration constants; persisted data must be validated and fall back safely.
 

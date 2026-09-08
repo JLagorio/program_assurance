@@ -1,42 +1,41 @@
-import type { ReactNode } from "react";
+import type { ComponentProps } from "react";
 
 import { cn } from "../lib/cn";
 
 /* A key is a <kbd> drawn as the cap; a chord is several caps in a Group. The glyphs are
    the keyboard's (⌘ ⇧ ⌥ ↵ esc), and a glyph a screen reader would not say is given its name. */
 
-export type KbdProps = {
-  /** The key as it reads on the cap: "K", "⌘", "esc", "↵". One key per cap. */
-  children: ReactNode;
-  /** What a screen reader says when the cap is a glyph: "Command" for ⌘, "Enter" for ↵. Letters need none. */
+export type KbdProps = ComponentProps<"kbd"> & {
+  /** A glyph's spoken name, such as "Command" for ⌘. Explicit aria-label takes precedence. */
   label?: string | undefined;
-  className?: string | undefined;
 };
 
 /** A key as it appears on the keyboard: a cap in `elevation.surface.sunken` with a hairline. */
-function KbdRoot({ children, label, className }: KbdProps) {
+function KbdRoot({ label, className, ...props }: KbdProps) {
   return (
     <kbd
+      data-slot="kbd"
       aria-label={label}
       className={cn(
         "inline-flex h-200 min-w-200 items-center justify-center rounded-xsmall border border-default bg-surface-sunken px-050 font-body-xsmall font-medium text-subtle",
         className,
       )}
-    >
-      {children}
-    </kbd>
+      {...props}
+    />
   );
 }
 
-export type KbdGroupProps = {
-  /** The caps of one shortcut, in the order they are pressed. */
-  children: ReactNode;
-  className?: string | undefined;
-};
+export type KbdGroupProps = ComponentProps<"kbd">;
 
-/** A chord: the caps of one shortcut, `space.050` apart, read as one. */
-export function KbdGroup({ children, className }: KbdGroupProps) {
-  return <kbd className={cn("inline-flex items-center gap-050", className)}>{children}</kbd>;
+/** A chord: the caps of one shortcut, `space.050` apart. */
+export function KbdGroup({ className, ...props }: KbdGroupProps) {
+  return (
+    <kbd
+      data-slot="kbd-group"
+      className={cn("inline-flex items-center gap-050", className)}
+      {...props}
+    />
+  );
 }
 
 export const Kbd = Object.assign(KbdRoot, { Group: KbdGroup });

@@ -7,12 +7,15 @@
  * result column per test event.
  */
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { z } from "zod";
+import { allTestRuns, resolvedObjectiveResult, useRunLogVersion } from "@/lib/test-execution";
 
 import { suspectLinksFor } from "@/lib/link-currency";
 
 import {
   eventById,
+  campaignById,
   objectiveById,
   objectives,
   type ObjectiveResult,
@@ -21,6 +24,7 @@ import {
 } from "@/lib/campaigns";
 import {
   allocationsFor,
+  getRequirement,
   childrenOfRequirement,
   needsOf,
   requirementsForProgram,
@@ -67,6 +71,67 @@ const links: VerificationLink[] = [
 
 const listeners = new Set<() => void>();
 let version = 0;
+let restored = false;
+const storageKey = "equinox.requirement-verification.v1";
+const removedLinks = new Set<string>();
+const linkKey = (l: Pick<VerificationLink, "requirement" | "objective">) =>
+  `${l.requirement}/${l.objective}`;
+
+export function restoreVerificationLinks(): void {
+  if (restored || typeof window === "undefined") return;
+  const raw = window.localStorage.getItem(storageKey);
+  if (raw) {
+    const saved = z
+      .object({
+        links: z.array(
+          z.object({
+            requirement: z.string(),
+            objective: z.string(),
+            linkedBy: z.string(),
+            linkedOn: z.string(),
+          }),
+        ),
+        removed: z.array(z.string()),
+      })
+      .parse(JSON.parse(raw));
+    for (const key of saved.removed) removedLinks.add(key);
+    const merged = new Map([...links, ...saved.links].map((l) => [linkKey(l), l]));
+    links.splice(
+      0,
+      links.length,
+      ...[...merged.values()].filter((l) => !removedLinks.has(linkKey(l))),
+    );
+  }
+  restored = true;
+  bump();
+}
+
+function saveLinks(next: VerificationLink[]): void {
+  const deleted = new Set(removedLinks);
+  for (const link of links)
+    if (!next.some((l) => linkKey(l) === linkKey(link))) deleted.add(linkKey(link));
+  for (const link of next) deleted.delete(linkKey(link));
+  if (typeof window !== "undefined")
+    window.localStorage.setItem(storageKey, JSON.stringify({ links: next, removed: [...deleted] }));
+  removedLinks.clear();
+  for (const key of deleted) removedLinks.add(key);
+  links.splice(0, links.length, ...next);
+  bump();
+}
+
+/** Initial relationship persisted with an assessment; explicit unlink overrides survive restore. */
+export function registerAssessmentVerification(link: VerificationLink): void {
+  restoreVerificationLinks();
+  if (removedLinks.has(linkKey(link)) || links.some((l) => linkKey(l) === linkKey(link))) return;
+  links.push(link);
+  bump();
+}
+
+export function objectiveProgram(objectiveId: string): string | undefined {
+  const objective = objectiveById.get(objectiveId);
+  const event = objective?.event ? eventById.get(objective.event) : undefined;
+  return event ? campaignById.get(event.campaign)?.program : undefined;
+}
 
 function bump() {
   version += 1;
@@ -81,30 +146,41 @@ export function subscribeVerification(cb: () => void): () => void {
 }
 
 export function useVerificationVersion(): number {
-  return useSyncExternalStore(
-    subscribeVerification,
-    () => version,
-    () => version,
+  useEffect(() => restoreVerificationLinks(), []);
+  const runs = useRunLogVersion();
+  return (
+    runs +
+    useSyncExternalStore(
+      subscribeVerification,
+      () => version,
+      () => version,
+    )
   );
 }
 
 export function linkVerification(requirementId: string, objectiveId: string, by: string): void {
+  restoreVerificationLinks();
+  const requirement = getRequirement(requirementId);
+  if (!requirement || objectiveProgram(objectiveId) !== requirement.program)
+    throw new Error("Choose an assessment objective from this requirement's program.");
   if (links.some((l) => l.requirement === requirementId && l.objective === objectiveId)) return;
   if (!objectiveById.has(objectiveId)) return;
-  links.push({
-    requirement: requirementId,
-    objective: objectiveId,
-    linkedBy: by,
-    linkedOn: "Sep 2, 2026",
-  });
-  bump();
+  saveLinks([
+    ...links,
+    {
+      requirement: requirementId,
+      objective: objectiveId,
+      linkedBy: by,
+      linkedOn: new Date().toISOString(),
+    },
+  ]);
 }
 
 export function unlinkVerification(requirementId: string, objectiveId: string): void {
+  restoreVerificationLinks();
   const i = links.findIndex((l) => l.requirement === requirementId && l.objective === objectiveId);
   if (i < 0) return;
-  links.splice(i, 1);
-  bump();
+  saveLinks(links.filter((_, index) => index !== i));
 }
 
 /* ------------------------------------------------------------------ Reads */
@@ -125,7 +201,10 @@ export function unlinkedObjectives(requirementId: string): TestObjective[] {
   const mine = new Set(
     links.filter((l) => l.requirement === requirementId).map((l) => l.objective),
   );
-  return objectives.filter((o) => !mine.has(o.id));
+  const requirement = getRequirement(requirementId);
+  return requirement
+    ? objectives.filter((o) => !mine.has(o.id) && objectiveProgram(o.id) === requirement.program)
+    : [];
 }
 
 export type RequirementCoverage = {
@@ -172,7 +251,7 @@ export function coverageOf(requirement: Requirement): RequirementCoverage {
   const objs = objectivesForRequirement(requirement.id);
   if (objs.length === 0) return { ...empty(), notCovered: 1 };
   const c = empty();
-  for (const o of objs) c[bucket(o.result)] += 1;
+  for (const o of objs) c[bucket(resolvedObjectiveResult(o.id).result)] += 1;
   return c;
 }
 
@@ -265,11 +344,28 @@ export function rtm(programId: string): { events: TestEvent[]; rows: RtmRow[] } 
         ...base,
         objective: o.id,
         objectiveStatement: o.statement,
-        results: Object.fromEntries(events.map((e) => [e.id, e.id === o.event ? o.result : ""])),
-        evidence: o.evidence ?? "",
+        results: Object.fromEntries(
+          events.map((e) => [e.id, e.id === o.event ? resolvedObjectiveResult(o.id).result : ""]),
+        ),
+        evidence: objectiveEvidence(o.id).join("; "),
       });
   }
   return { events, rows };
+}
+
+export function objectiveEvidence(objectiveId: string): string[] {
+  const resolved = resolvedObjectiveResult(objectiveId);
+  if (resolved.source === "Run" && resolved.run) {
+    return [
+      ...new Set(
+        allTestRuns()
+          .find((r) => r.id === resolved.run)
+          ?.records.flatMap((r) => r.evidence) ?? [],
+      ),
+    ];
+  }
+  const evidence = objectiveById.get(objectiveId)?.evidence;
+  return evidence ? [evidence] : [];
 }
 
 /** The matrix as CSV, for the assessor's spreadsheet. */

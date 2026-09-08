@@ -32,6 +32,7 @@ import { openTasks, tasksAssignedTo, useTasksVersion } from "@/lib/tasks";
 import {
   Avatar,
   Button,
+  buttonVariants,
   CommandPalette,
   Dialog,
   Stack,
@@ -228,9 +229,9 @@ export function Shell({ children }: { children: ReactNode }) {
             close a dialog.
           </p>
           <p>On a program record, ⌘K or Ctrl+K opens its command palette.</p>
-          <Button asChild variant="secondary">
-            <Link to="/work">Open my work</Link>
-          </Button>
+          <Link to="/work" className={buttonVariants({ variant: "secondary" })}>
+            Open my work
+          </Link>
         </Stack>
       </Dialog>
       <Dialog

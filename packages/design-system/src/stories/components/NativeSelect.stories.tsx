@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
-import { Button, Combobox, Field, NativeSelect, RadioGroup, useRequired } from "../../components";
+import { Button, Combobox, Field, NativeSelect, useRequired } from "../../components";
 import { Inline, Stack } from "../../primitives";
 import { Matrix as Grid, Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -199,30 +199,6 @@ export const InField: Story = { render: () => <FormDemo /> };
 export const Dont: Story = {
   render: () => (
     <Stack space="space.400">
-      <Pair
-        do={
-          <div style={{ width: 240 }}>
-            <Field label="Scope">
-              <RadioGroup defaultValue="system">
-                <RadioGroup.Item value="system">This system</RadioGroup.Item>
-                <RadioGroup.Item value="program">The whole program</RadioGroup.Item>
-              </RadioGroup>
-            </Field>
-          </div>
-        }
-        doText="Two or three answers are a RadioGroup: every option is in view."
-        dont={
-          <div style={{ width: 240 }}>
-            <Field label="Scope">
-              <NativeSelect defaultValue="This system">
-                <option>This system</option>
-                <option>The whole program</option>
-              </NativeSelect>
-            </Field>
-          </div>
-        }
-        dontText="A select hiding two options. The reader opens a list to learn there was one other choice."
-      />
       <Pair
         do={
           <div style={{ width: 240 }}>

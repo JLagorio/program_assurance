@@ -7,7 +7,7 @@ import { cn } from "../lib/cn";
 import { Bleed } from "../primitives/bleed";
 import { Command } from "./command";
 import { DropdownMenu } from "./dropdown-menu";
-import { Popover } from "./popover";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Spinner } from "./spinner";
 import { Absent } from "./typography";
 
@@ -277,39 +277,40 @@ function EditableSelect<T extends string>({
   return (
     <div className="flex min-w-0 flex-col gap-025">
       {searchable ? (
-        <Popover
-          label={props.label}
-          open={open}
-          onOpenChange={setOpen}
-          width={240}
-          className="p-0"
-          trigger={trigger}
-        >
-          <Command className="rounded-large">
-            <Command.Input placeholder={t("search")} hint={null} autoFocus />
-            <Command.List style={{ maxHeight: 260 }}>
-              {options.map((o) => (
-                <Command.Item
-                  key={o}
-                  value={o}
-                  onSelect={() => {
-                    setOpen(false);
-                    commit(o);
-                  }}
-                >
-                  <span className="min-w-0 flex-1 truncate">{o}</span>
-                  <Check
-                    aria-hidden
-                    className={cn(
-                      "size-icon-small shrink-0",
-                      o === props.value ? "visible" : "invisible",
-                    )}
-                  />
-                </Command.Item>
-              ))}
-            </Command.List>
-            <Command.Empty>{t("noMatches")}</Command.Empty>
-          </Command>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger render={trigger} />
+          <PopoverContent
+            aria-label={props.label}
+            align="start"
+            style={{ width: 240 }}
+            className="p-0"
+          >
+            <Command className="rounded-large">
+              <Command.Input placeholder={t("search")} hint={null} autoFocus />
+              <Command.List style={{ maxHeight: 260 }}>
+                {options.map((o) => (
+                  <Command.Item
+                    key={o}
+                    value={o}
+                    onSelect={() => {
+                      setOpen(false);
+                      commit(o);
+                    }}
+                  >
+                    <span className="min-w-0 flex-1 truncate">{o}</span>
+                    <Check
+                      aria-hidden
+                      className={cn(
+                        "size-icon-small shrink-0",
+                        o === props.value ? "visible" : "invisible",
+                      )}
+                    />
+                  </Command.Item>
+                ))}
+              </Command.List>
+              <Command.Empty>{t("noMatches")}</Command.Empty>
+            </Command>
+          </PopoverContent>
         </Popover>
       ) : (
         <DropdownMenu align="start" width={220} trigger={trigger}>

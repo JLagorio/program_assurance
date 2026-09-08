@@ -491,13 +491,13 @@ export function TailoringSection({
                 ["safetyCritical", "Safety-critical function"],
               ] as const
             ).map(([key, label]) => (
-              <Checkbox
-                key={key}
-                checked={draft[key]}
-                onCheckedChange={(v) => setDraft({ ...draft, [key]: v === true })}
-              >
-                {label}
-              </Checkbox>
+              <label key={key} className="inline-flex items-center gap-100 font-body text-default">
+                <Checkbox
+                  checked={draft[key]}
+                  onCheckedChange={(checked) => setDraft({ ...draft, [key]: checked })}
+                />
+                <span className="select-none">{label}</span>
+              </label>
             ))}
           </Inline>
         </Stack>

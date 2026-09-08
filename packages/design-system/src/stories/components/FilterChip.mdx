@@ -9,7 +9,7 @@ import * as Stories from "./FilterChip.stories";
 
 A filter the reader adds to a [Toolbar](?path=/docs/components-toolbar--docs): dashed with a plus until it is on, then solid and selected, with the chosen value after its label. A chip is one question of the register, Owner or Status or Gaps; the chips together are the question the table answers.
 
-A chip asks; a [Badge](?path=/docs/components-badge--docs) tells. A set of choices where one is always on is a [ToggleGroup](?path=/docs/components-togglegroup--docs); a thing to do is a [Button](?path=/docs/components-button--docs).
+A chip asks; a [Badge](?path=/docs/components-badge--docs) tells. A coordinated set of single or multiple choices is a [ToggleGroup](?path=/docs/components-togglegroup--docs); a thing to do is a [Button](?path=/docs/components-button--docs).
 
 <Canvas of={Stories.FilterChipMatrix} />
 
@@ -31,8 +31,8 @@ FilterChip has one appearance. What varies is what a click does:
 | Yes or no about the rows: Gaps, Hide closed    | A toggle: `isActive` flips, no value.                                                                                                                                                          |
 | A column with a value: Owner, Status, Due      | The trigger of a [Popover](?path=/docs/components-popover--docs); the DataTable's `Filter` builds one from the column (checkboxes, a range, a contains field) and the value reads on the chip. |
 | Three values the reader steps through          | A toggle that cycles, the value showing which. Past three, a popover.                                                                                                                          |
-| One of a few, always one on: All, High, Medium | A ToggleGroup, not chips.                                                                                                                                                                      |
-| A saved question with its count                | The DataTable's `Presets`, a ToggleGroup with counts.                                                                                                                                          |
+| Exclusive choices: All, High, Medium | A ToggleGroup, not chips.                                                                                                                                                                      |
+| A saved question with its count                | The DataTable's `Presets`, a ToggleGroup with Count children.                                                                                                                                          |
 
 There is no remove cross on the chip: a click on an active toggle turns it off, and a popover chip has Clear. There is no chip with an icon, and no chip with a count: the rows a question would leave belong to a preset's Count.
 
@@ -102,7 +102,7 @@ One: `dimension.control.small` 28px, the Toolbar's height, `space.100` each side
 
 - [Toolbar](?path=/docs/components-toolbar--docs): where chips live.
 - [DataTable](?path=/docs/patterns-data-table--docs): `Filter` builds a chip and its popover from a column; `Presets` are saved questions.
-- [ToggleGroup](?path=/docs/components-togglegroup--docs): one of a few, always one on. [Popover](?path=/docs/components-popover--docs): what a value chip opens.
+- [ToggleGroup](?path=/docs/components-togglegroup--docs): single or multiple toggle buttons. [Popover](?path=/docs/components-popover--docs): what a value chip opens.
 - [Badge](?path=/docs/components-badge--docs): a status told, not asked.
 
 ## Don't

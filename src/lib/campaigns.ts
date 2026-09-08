@@ -36,6 +36,8 @@ export type TestEvent = {
   kind: EventKind;
   state: TestEventState;
   window: string;
+  start?: string;
+  end?: string;
   team: string;
   assets: string[]; // AST-
   objectives: string[]; // TO-

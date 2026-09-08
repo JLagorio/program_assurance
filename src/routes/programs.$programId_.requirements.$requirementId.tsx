@@ -9,6 +9,8 @@ import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
 import { RecordActivity } from "@/components/app/record-activity";
 import { TasksSection } from "@/components/app/tasks-section";
+import { RequirementEvidence } from "@/components/app/program-evidence";
+import { resolvedObjectiveResult } from "@/lib/test-execution";
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -42,6 +44,7 @@ import {
   linkVerification,
   needsWithVerification,
   objectivesForRequirement,
+  objectiveEvidence,
   unlinkedObjectives,
   useVerificationVersion,
 } from "@/lib/requirement-verification";
@@ -464,9 +467,13 @@ function RequirementRecord() {
                               )}
                             </Table.Cell>
                             <Table.Cell>
-                              <Indicator tone={objectiveTone(o.result)}>{o.result}</Indicator>
+                              <Indicator tone={objectiveTone(resolvedObjectiveResult(o.id).result)}>
+                                {resolvedObjectiveResult(o.id).result}
+                              </Indicator>
                             </Table.Cell>
-                            <Table.Cell>{o.evidence ? <Id>{o.evidence}</Id> : "—"}</Table.Cell>
+                            <Table.Cell>
+                              <Id.List ids={objectiveEvidence(o.id)} empty="None collected" />
+                            </Table.Cell>
                           </Table.Row>
                         );
                       })}
@@ -491,6 +498,7 @@ function RequirementRecord() {
                   </Fact>
                 </Fact.Group>
               </Section>
+              <RequirementEvidence programId={programId} requirementId={requirement.id} />
               <TasksSection
                 program={programId}
                 subject={{ kind: "requirement", id: requirement.id, label: requirement.text }}

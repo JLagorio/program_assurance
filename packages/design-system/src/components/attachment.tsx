@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 
 import { cn } from "../lib/cn";
+import { classes } from "../lib/base-ui";
 import { Button, IconButton, type ButtonProps, type IconButtonProps } from "./button";
 
 export type AttachmentState = "idle" | "uploading" | "processing" | "error" | "done";
@@ -21,7 +22,7 @@ export type AttachmentContentProps = ComponentProps<"div">;
 export type AttachmentTitleProps = ComponentProps<"span">;
 export type AttachmentDescriptionProps = ComponentProps<"span">;
 export type AttachmentActionsProps = ComponentProps<"div">;
-/** IconButton's required label, tooltip, loading, disabled and slotted-element behavior. */
+/** IconButton's required label, tooltip, loading, disabled and render composition. */
 export type AttachmentActionProps = IconButtonProps;
 type TriggerProps<Props> = Props extends unknown
   ? Omit<
@@ -29,7 +30,7 @@ type TriggerProps<Props> = Props extends unknown
       "variant" | "size" | "iconBefore" | "iconAfter" | "isSelected" | "isFullWidth" | "isLoading"
     >
   : never;
-/** A button, or asChild around a link. Supply aria-label or aria-labelledby; the overlay has no visible label. */
+/** A card-wide action button. Supply aria-label or aria-labelledby; the overlay has no visible label. */
 export type AttachmentTriggerProps = TriggerProps<ButtonProps>;
 export type AttachmentGroupProps = ComponentProps<"div">;
 
@@ -138,7 +139,7 @@ function AttachmentTrigger({ className, ...props }: AttachmentTriggerProps) {
     <Button
       data-slot="attachment-trigger"
       variant="subtle"
-      className={cn(
+      className={classes(
         "absolute inset-0 z-10 h-full w-full rounded-medium bg-transparent p-0 hover:bg-transparent active:bg-transparent",
         className,
       )}

@@ -9,7 +9,9 @@
  * A request is a task that waits on someone, usually a person who never opens
  * the platform. It stays Waiting until the asker logs what came back.
  */
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { z } from "zod";
+import { toast } from "@ledger/design-system";
 
 import { clockNow, isoFromDatasetDate, record, type Subject } from "@/lib/activity";
 
@@ -41,6 +43,77 @@ const tasks: Task[] = [];
 const listeners = new Set<() => void>();
 let version = 0;
 let seq = 0;
+let seeding = true;
+let restored = false;
+const storageKey = "equinox.tasks.v1";
+const dateSchema = z
+  .string()
+  .refine(
+    (value) =>
+      /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+      Number.isFinite(Date.parse(`${value}T00:00:00Z`)) &&
+      new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value,
+    "Enter a valid task due date.",
+  );
+const taskSchema = z.object({
+  id: z.string().regex(/^TSK-\d+$/),
+  program: z.string().min(1),
+  title: z.string().trim().min(1),
+  subject: z.object({
+    kind: z.enum([
+      "program",
+      "node",
+      "control",
+      "requirement",
+      "task",
+      "evidence",
+      "finding",
+      "scope",
+      "person",
+    ]),
+    id: z.string().min(1),
+    label: z.string().optional(),
+  }),
+  assignee: z.string().min(1),
+  requester: z.string().min(1),
+  due: dateSchema.nullable(),
+  state: z.enum(["Open", "Waiting", "Done", "Blocked"]),
+  waitingOn: z.string().nullable(),
+  note: z.string(),
+  createdAt: z.string().datetime(),
+  doneAt: z.string().datetime().nullable(),
+  gate: z.object({ scope: z.string(), control: z.string(), key: z.string() }).nullable(),
+});
+
+/** Restore only after mount or before a command, never during server rendering. */
+export function restoreTasks() {
+  if (seeding || restored || typeof window === "undefined") return;
+  const raw = window.localStorage.getItem(storageKey);
+  if (raw) {
+    const next = z.array(taskSchema).parse(JSON.parse(raw));
+    if (new Set(next.map((task) => task.id)).size !== next.length)
+      throw new Error("Duplicate saved task IDs.");
+    tasks.splice(0, tasks.length, ...next);
+    seq = next.reduce((max, task) => Math.max(max, Number(task.id.slice(4))), seq);
+  }
+  restored = true;
+  bump();
+}
+
+export function tasksRestored() {
+  return restored;
+}
+
+function persistTasks(next: Task[]) {
+  if (seeding || typeof window === "undefined") return;
+  window.localStorage.setItem(storageKey, JSON.stringify(next));
+}
+
+function changeTask(task: Task, patch: Partial<Task>) {
+  const next = taskSchema.parse({ ...task, ...patch });
+  persistTasks(tasks.map((item) => (item.id === task.id ? next : item)));
+  Object.assign(task, next);
+}
 
 function bump() {
   version += 1;
@@ -48,6 +121,15 @@ function bump() {
 }
 
 export function useTasksVersion(): number {
+  useEffect(() => {
+    try {
+      restoreTasks();
+    } catch {
+      toast.error("Saved tasks could not be restored", {
+        description: "Check browser storage before changing tasks.",
+      });
+    }
+  }, []);
   const subscribe = (cb: () => void) => {
     listeners.add(cb);
     return () => listeners.delete(cb);
@@ -75,9 +157,9 @@ export type CreateTaskInput = {
 };
 
 export function createTask(input: CreateTaskInput): Task {
-  seq += 1;
+  restoreTasks();
   const task: Task = {
-    id: `TSK-${String(seq).padStart(4, "0")}`,
+    id: `TSK-${String(seq + 1).padStart(4, "0")}`,
     program: input.program,
     title: input.title.trim(),
     subject: input.subject,
@@ -91,6 +173,9 @@ export function createTask(input: CreateTaskInput): Task {
     doneAt: null,
     gate: input.gate ?? null,
   };
+  taskSchema.parse(task);
+  persistTasks([...tasks, task]);
+  seq += 1;
   tasks.push(task);
   if (input.log !== false) {
     record({
@@ -116,10 +201,10 @@ export function taskById(id: string): Task | undefined {
 }
 
 export function completeTask(id: string, actor: string, reason?: string) {
+  restoreTasks();
   const t = taskById(id);
   if (!t || t.state === "Done") return;
-  t.state = "Done";
-  t.doneAt = clockNow().toISOString();
+  changeTask(t, { state: "Done", doneAt: clockNow().toISOString() });
   record({
     program: t.program,
     actor,
@@ -132,10 +217,10 @@ export function completeTask(id: string, actor: string, reason?: string) {
 }
 
 export function reopenTask(id: string, actor: string) {
+  restoreTasks();
   const t = taskById(id);
   if (!t || t.state !== "Done") return;
-  t.state = t.waitingOn ? "Waiting" : "Open";
-  t.doneAt = null;
+  changeTask(t, { state: t.waitingOn ? "Waiting" : "Open", doneAt: null });
   record({
     program: t.program,
     actor,
@@ -153,13 +238,16 @@ export function setTaskState(
   actor: string,
   waitingOn?: string | null,
 ) {
+  restoreTasks();
   const t = taskById(id);
   if (!t) return;
   if (state === "Done") return completeTask(id, actor);
   const before = t.state === "Waiting" && t.waitingOn ? `Waiting on ${t.waitingOn}` : t.state;
-  t.state = state;
-  t.waitingOn = state === "Waiting" ? (waitingOn ?? t.waitingOn) : null;
-  t.doneAt = null;
+  changeTask(t, {
+    state,
+    waitingOn: state === "Waiting" ? (waitingOn ?? t.waitingOn) : null,
+    doneAt: null,
+  });
   const after = t.state === "Waiting" && t.waitingOn ? `Waiting on ${t.waitingOn}` : t.state;
   record({
     program: t.program,
@@ -176,10 +264,11 @@ export function setTaskState(
 }
 
 export function reassignTask(id: string, assignee: string, actor: string) {
+  restoreTasks();
   const t = taskById(id);
   if (!t || t.assignee === assignee) return;
   const before = t.assignee;
-  t.assignee = assignee;
+  changeTask(t, { assignee });
   record({
     program: t.program,
     actor,
@@ -195,10 +284,11 @@ export function reassignTask(id: string, assignee: string, actor: string) {
 }
 
 export function setTaskDue(id: string, due: string | null, actor: string) {
+  restoreTasks();
   const t = taskById(id);
   if (!t || t.due === due) return;
   const before = t.due ?? "undated";
-  t.due = due;
+  changeTask(t, { due });
   record({
     program: t.program,
     actor,
@@ -558,11 +648,12 @@ for (const entry of logSeeds) record(entry);
 /* ----------------------------------------------------------- Table edits */
 
 export function renameTask(id: string, title: string, actor: string) {
+  restoreTasks();
   const t = taskById(id);
   const next = title.trim();
   if (!t || !next || t.title === next) return;
   const before = t.title;
-  t.title = next;
+  changeTask(t, { title: next });
   record({
     program: t.program,
     actor,
@@ -578,10 +669,11 @@ export function renameTask(id: string, title: string, actor: string) {
 }
 
 export function setTaskNote(id: string, note: string, actor: string) {
+  restoreTasks();
   const t = taskById(id);
   const next = note.trim();
   if (!t || t.note === next) return;
-  t.note = next;
+  changeTask(t, { note: next });
   record({
     program: t.program,
     actor,
@@ -640,3 +732,5 @@ const gateCloseWords: Record<string, string> = {
 export function gateCloses(key: string): string {
   return gateCloseWords[key] ?? "the gate is met";
 }
+
+seeding = false;

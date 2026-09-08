@@ -1,63 +1,72 @@
+import { DirectionProvider, useDirection } from "@base-ui/react/direction-provider";
+import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card";
+
+import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
-import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
-import { cn } from "../lib/cn";
-import { menuMotion } from "./menu";
+export type HoverCardProps<Payload = unknown> = PreviewCardPrimitive.Root.Props<Payload>;
 
-type Side = NonNullable<ComponentPropsWithoutRef<typeof HoverCardPrimitive.Content>["side"]>;
-type Align = NonNullable<ComponentPropsWithoutRef<typeof HoverCardPrimitive.Content>["align"]>;
-
-export type HoverCardProps = {
-  /** The peek: a Glance, or a few lines of facts. No controls; the click opens the record. */
-  content: ReactNode;
-  /** Which side of the trigger; it flips when there is no room. `bottom` by default. */
-  side?: Side | undefined;
-  /** `start` by default, so the card hangs from the id or name it belongs to. */
-  align?: Align | undefined;
-  /** The card's width in pixels. 280 by default; a Glance takes 300. */
-  width?: number | undefined;
-  /** Milliseconds of hover before it opens. 400 by default: a rest, not a pass. */
-  delay?: number | undefined;
-  /** Starts open. For a story. */
-  defaultOpen?: boolean | undefined;
-  className?: string | undefined;
-  /** The trigger: the record's id or name as a link, one focusable element that takes a ref. */
-  children: ReactNode;
-};
-
-/** A peek at a record from its id or name: a few facts, no actions. Opens on hover after a short delay and on focus. */
-export function HoverCard({
-  content,
-  side = "bottom",
-  align = "start",
-  width = 280,
-  delay = 400,
-  defaultOpen = false,
-  className,
-  children,
-}: HoverCardProps) {
+export function HoverCard<Payload = unknown>(props: HoverCardProps<Payload>) {
   const { direction } = useLedgerLocale();
   return (
-    <HoverCardPrimitive.Root openDelay={delay} closeDelay={120} defaultOpen={defaultOpen}>
-      <HoverCardPrimitive.Trigger asChild>{children}</HoverCardPrimitive.Trigger>
-      <HoverCardPrimitive.Portal>
-        <HoverCardPrimitive.Content
-          dir={direction}
-          side={side}
+    <DirectionProvider direction={direction}>
+      <PreviewCardPrimitive.Root {...props} />
+    </DirectionProvider>
+  );
+}
+
+export type HoverCardTriggerProps<Payload = unknown> = PreviewCardPrimitive.Trigger.Props<Payload>;
+
+export function HoverCardTrigger<Payload = unknown>(props: HoverCardTriggerProps<Payload>) {
+  return <PreviewCardPrimitive.Trigger data-slot="hover-card-trigger" {...props} />;
+}
+
+export type HoverCardContentProps = PreviewCardPrimitive.Popup.Props &
+  Pick<PreviewCardPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">;
+
+export function HoverCardContent({
+  className,
+  style,
+  dir,
+  side = "bottom",
+  sideOffset = 4,
+  align = "center",
+  alignOffset = 4,
+  ...props
+}: HoverCardContentProps) {
+  const inheritedDirection = useDirection();
+  const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
+  const defaults = {
+    width: 256,
+    maxWidth: "var(--available-width)",
+    transformOrigin: "var(--transform-origin)",
+  };
+  return (
+    <DirectionProvider direction={direction}>
+      <PreviewCardPrimitive.Portal data-slot="hover-card-portal">
+        <PreviewCardPrimitive.Positioner
           align={align}
-          sideOffset={6}
-          collisionPadding={8}
-          style={{ width }}
-          className={cn(
-            "z-50 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none",
-            menuMotion,
-            className,
-          )}
+          alignOffset={alignOffset}
+          side={side}
+          sideOffset={sideOffset}
+          className="isolate z-50"
         >
-          {content}
-        </HoverCardPrimitive.Content>
-      </HoverCardPrimitive.Portal>
-    </HoverCardPrimitive.Root>
+          <PreviewCardPrimitive.Popup
+            data-slot="hover-card-content"
+            dir={dir ?? direction}
+            className={classes(
+              "rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none data-open:animate-enter data-closed:animate-exit data-instant:animate-none motion-reduce:animate-none",
+              className,
+            )}
+            style={
+              typeof style === "function"
+                ? (state) => ({ ...defaults, ...style(state) })
+                : { ...defaults, ...style }
+            }
+            {...props}
+          />
+        </PreviewCardPrimitive.Positioner>
+      </PreviewCardPrimitive.Portal>
+    </DirectionProvider>
   );
 }

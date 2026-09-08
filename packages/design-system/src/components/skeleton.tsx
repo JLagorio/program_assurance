@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { ComponentProps, CSSProperties } from "react";
 
 import { cn } from "../lib/cn";
 
@@ -15,20 +15,18 @@ const shapes: Record<SkeletonShape, string> = {
   block: "rounded-medium",
 };
 
-export type SkeletonProps = {
+export type SkeletonProps = ComponentProps<"div"> & {
   /** `line` (12px, the default) for a line of body text; `heading` (20px) for a title; `circle` for an avatar or an icon, `width` its size; `block` for a card, a chart, an image, at `height`. */
   shape?: SkeletonShape | undefined;
-  /** Several lines stacked `space.100` apart, the last one two thirds wide. Lines only. */
+  /** Several lines stacked `space.100` apart. The last is two thirds wide unless width is supplied. Native content replaces these generated lines. Lines only. */
   lines?: number | undefined;
   /** A number in px, or a CSS length. Full width by default; a circle is 32px. */
   width?: number | string | undefined;
   /** A number in px, or a CSS length. The shape's height by default; a block is 96px. */
   height?: number | string | undefined;
-  className?: string | undefined;
-  style?: CSSProperties | undefined;
 };
 
-/** A placeholder in the shape of what is loading. Hidden from a screen reader; the waiting region carries `aria-busy`. */
+/** A placeholder with native props/ref on its outer div. Hidden by default; the waiting region carries `aria-busy`. */
 export function Skeleton({
   shape = "line",
   lines,
@@ -36,6 +34,8 @@ export function Skeleton({
   height,
   className,
   style,
+  children,
+  ...props
 }: SkeletonProps) {
   const size: CSSProperties = {
     ...(width !== undefined ? { width } : shape === "circle" ? { width: 32 } : {}),
@@ -49,25 +49,37 @@ export function Skeleton({
   };
   if (shape === "line" && lines && lines > 1)
     return (
-      <div aria-hidden className={cn("flex flex-col gap-100", className)} style={style}>
-        {Array.from({ length: lines }, (_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "w-full animate-pulse bg-skeleton",
-              shapes.line,
-              i === lines - 1 && "w-2/3",
-            )}
-            style={size}
-          />
-        ))}
+      <div
+        data-slot="skeleton"
+        aria-hidden
+        className={cn("flex flex-col gap-100", className)}
+        style={style}
+        {...props}
+      >
+        {children !== undefined || props.dangerouslySetInnerHTML !== undefined
+          ? children
+          : Array.from({ length: lines }, (_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "w-full animate-pulse bg-skeleton",
+                  shapes.line,
+                  i === lines - 1 && "w-2/3",
+                )}
+                style={size}
+              />
+            ))}
       </div>
     );
   return (
     <div
+      data-slot="skeleton"
       aria-hidden
       className={cn("w-full animate-pulse bg-skeleton", shapes[shape], className)}
       style={{ ...size, ...style }}
-    />
+      {...props}
+    >
+      {children}
+    </div>
   );
 }

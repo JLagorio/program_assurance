@@ -14,7 +14,7 @@ import { memo, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } 
 import { Alert } from "../../components/alert";
 import { IconButton } from "../../components/button";
 import { DropdownMenu } from "../../components/dropdown-menu";
-import { HoverCard } from "../../components/hover-card";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "../../components/hover-card";
 import { Id } from "../../components/id";
 import { Pagination } from "../../components/pagination";
 import { Skeleton } from "../../components/skeleton";
@@ -83,23 +83,44 @@ const pinning = <TData extends RowData>(column: Column<F, TData, unknown>, befor
   };
 };
 
-/**
- * The leading columns the renderer adds: selection, the drag handle, the detail chevron. They are
- * always the first columns and always pinned, whatever the reader pins, so the checkbox never
- * scrolls away or lands after a pinned column.
- */
-type Leading = { selectable: boolean; handle: boolean; detail: boolean };
+/** One level of a tree's indent, `space.200`, applied to the row's first value. */
+const INDENT = 16;
 
-const leadingCount = (l: Leading) => [l.selectable, l.handle, l.detail].filter(Boolean).length;
-const leadingWidth = (l: Leading) => leadingCount(l) * NARROW;
+/** The disclosure column: the chevron and a hair either side, nothing reserved for the indent. */
+const DISCLOSURE = 28;
+
+/**
+ * The leading columns the renderer adds: selection, the tree's disclosure, the drag handle, the
+ * detail chevron. They are always the first columns, in this order, and always pinned, whatever the
+ * reader reorders, hides or pins, so the checkbox and the chevron never scroll away or land after a
+ * pinned column.
+ */
+type Leading = { selectable: boolean; tree: boolean; handle: boolean; detail: boolean };
+type LeadingKey = keyof Leading;
+
+const LEADING: readonly LeadingKey[] = ["selectable", "tree", "handle", "detail"];
+
+const leadingKeys = (l: Leading) => LEADING.filter((k) => l[k]);
+const leadingCount = (l: Leading) => leadingKeys(l).length;
+
+/** Every leading column is `NARROW`, except the disclosure, which holds only its chevron. */
+const leadingSizes: Record<LeadingKey, number> = {
+  selectable: NARROW,
+  tree: DISCLOSURE,
+  handle: NARROW,
+  detail: NARROW,
+};
+
+const leadingWidth = (l: Leading) => leadingKeys(l).reduce((sum, k) => sum + leadingSizes[k], 0);
 
 /** Each leading column's offset from the start edge, and whether it is the last of them. */
 const leadingPins = (l: Leading, dataPinned: boolean) => {
-  const order = (["selectable", "handle", "detail"] as const).filter((k) => l[k]);
+  const order = leadingKeys(l);
+  const sizes = leadingSizes;
   const last = order[order.length - 1];
-  return (key: (typeof order)[number]) => ({
+  return (key: LeadingKey) => ({
     pinned: "start" as const,
-    offset: order.indexOf(key) * NARROW,
+    offset: order.slice(0, order.indexOf(key)).reduce((sum, k) => sum + sizes[k], 0),
     edge: key === last && !dataPinned ? ("scrolled" as const) : false,
   });
 };
@@ -200,14 +221,14 @@ function BodyCell<TData extends RowData>({
   cell,
   row,
   before,
-  treeColumn,
+  hintAt,
   previewAt,
 }: {
   cell: Cell<F, TData, unknown>;
   row: Row<F, TData>;
   before: number;
-  /** The column that carries the tree cell, in tree mode. */
-  treeColumn: string | undefined;
+  /** The column that carries a folded row's hint and the tree indent: the first column with a value. */
+  hintAt: string | undefined;
   /** The column whose cell carries the preview eye, when an id column has `preview`. */
   previewAt: string | undefined;
 }) {
@@ -230,21 +251,26 @@ function BodyCell<TData extends RowData>({
       }
     : undefined;
 
-  if (options?.tree && cell.column.id === treeColumn) {
-    const folded = row.getCanExpand() && !row.getIsExpanded();
-    return (
-      <Table.Tree
-        depth={row.depth}
-        hasChildren={row.getCanExpand()}
-        expanded={row.getIsExpanded()}
-        onToggle={() => row.toggleExpanded()}
-        label={options.tree.label(record)}
-        hint={folded ? options.tree.hint?.(record, row.subRows.length) : null}
-      >
-        {content}
-      </Table.Tree>
-    );
-  }
+  // A folded row's hint sits after its first value; the chevron and the indent are the leading
+  // disclosure column's, so no data column changes shape in tree mode.
+  const hint =
+    options?.tree &&
+    cell.column.id === hintAt &&
+    row.getCanExpand() &&
+    !row.getIsExpanded() &&
+    options.tree.hint
+      ? options.tree.hint(record, row.subRows.length)
+      : null;
+  const body = hint ? (
+    <span className="flex min-w-0 items-center gap-100">
+      <span className="min-w-0 truncate">{content}</span>
+      {hint}
+    </span>
+  ) : (
+    content
+  );
+  // The nesting reads on the row's first value; the disclosure stays one narrow column.
+  const indent = options?.tree && cell.column.id === hintAt ? row.depth * INDENT : 0;
 
   if (meta?.kind === "id") {
     const glance = meta.glance?.(record);
@@ -252,13 +278,20 @@ function BodyCell<TData extends RowData>({
       <Table.Id
         id={
           glance ? (
-            <HoverCard content={glance} width={300}>
-              <span
-                tabIndex={0}
-                className="rounded-xsmall outline-none focus-visible:outline-focused"
-              >
-                <Id>{content}</Id>
-              </span>
+            <HoverCard>
+              <HoverCardTrigger
+                render={
+                  <span
+                    tabIndex={0}
+                    className="rounded-xsmall outline-none focus-visible:outline-focused"
+                  >
+                    <Id>{content}</Id>
+                  </span>
+                }
+              />
+              <HoverCardContent align="start" alignOffset={0} style={{ width: 300 }}>
+                {glance}
+              </HoverCardContent>
             </HoverCard>
           ) : (
             content
@@ -268,6 +301,7 @@ function BodyCell<TData extends RowData>({
         pinned={pin.pinned}
         offset={pin.offset}
         edge={pin.edge}
+        {...(indent ? { indent } : {})}
         {...(preview ? { onPreview: preview.onPreview } : {})}
         {...(meta.active ? { isActive: meta.active(record) } : {})}
       />
@@ -279,7 +313,7 @@ function BodyCell<TData extends RowData>({
     if (actions.length === 0)
       return (
         <Table.Cell
-          className="max-w-none pe-100"
+          className="max-w-none px-0"
           pinned={pin.pinned}
           offset={pin.offset}
           edge={pin.edge}
@@ -287,7 +321,7 @@ function BodyCell<TData extends RowData>({
       );
     return (
       <Table.Cell
-        className="max-w-none pe-100 text-right"
+        className="max-w-none px-0 text-center"
         pinned={pin.pinned}
         offset={pin.offset}
         edge={pin.edge}
@@ -329,9 +363,21 @@ function BodyCell<TData extends RowData>({
         {...(typeof content === "string" ? { title: content } : {})}
         {...(meta?.editable ? { onKeyDown: enterMovesDown } : {})}
       >
-        <span className="flex items-center gap-075">
-          <span className="min-w-0 flex-1 truncate">{content}</span>
-          <PreviewButton onPreview={preview.onPreview} isActive={preview.isActive} />
+        <span
+          className="relative flex items-center"
+          {...(indent ? { style: { paddingInlineStart: indent } } : {})}
+        >
+          <span className="min-w-0 flex-1 truncate">{body}</span>
+          <span
+            className={cn(
+              "absolute inset-y-0 end-0 flex items-center ps-050 opacity-0 transition-opacity duration-fast ease-standard",
+              "bg-surface-current group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected",
+              "focus-within:opacity-100 group-hover/row:opacity-100",
+              preview.isActive && "opacity-100",
+            )}
+          >
+            <PreviewButton onPreview={preview.onPreview} isActive={preview.isActive} />
+          </span>
         </span>
       </Table.Cell>
     );
@@ -344,7 +390,13 @@ function BodyCell<TData extends RowData>({
       edge={pin.edge}
       {...(meta?.editable ? { onKeyDown: enterMovesDown } : {})}
     >
-      {content}
+      {indent ? (
+        <span className="flex min-w-0 items-center" style={{ paddingInlineStart: indent }}>
+          {body}
+        </span>
+      ) : (
+        body
+      )}
     </Table.Cell>
   );
 }
@@ -372,15 +424,17 @@ type BodyRowProps<TData extends RowData> = {
   canSelect: boolean;
   /** The id column's active flag, read by the parent so the memo sees it change. */
   isActive: boolean;
-  /** Expanded, in tree mode or with a detail; the parent reads it so the memo sees it change. */
+  /** Open in tree mode; the parent reads it so the memo sees it change. */
   isExpanded: boolean;
+  /** The row's detail is open; its own state, so a tree row opens its parts and its detail apart. */
+  isDetailOpen: boolean;
   /** The visible columns in order; a change re-renders every row. */
   columnsKey: string;
   /** The width of the pinned leading columns. */
   before: number;
   /** A data column is pinned to the start, so the leading columns' edge is not the table's. */
   dataPinned: boolean;
-  treeColumn: string | undefined;
+  hintAt: string | undefined;
   previewAt: string | undefined;
   columnCount: number;
   isPinnedRow: boolean;
@@ -400,11 +454,12 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   isSelected,
   canSelect,
   isExpanded,
+  isDetailOpen,
   columnsKey: _columnsKey,
   isActive: _isActive,
   before,
   dataPinned,
-  treeColumn,
+  hintAt,
   previewAt,
   columnCount,
   isPinnedRow,
@@ -449,6 +504,16 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
             {...pins("selectable")}
           />
         ) : null}
+        {leading.tree ? (
+          <Table.Disclosure
+            hasChildren={row.getCanExpand()}
+            expanded={isExpanded}
+            onToggle={() => row.toggleExpanded()}
+            label={options?.tree?.label(row.original as never) ?? row.id}
+            width={leadingSizes.tree}
+            {...pins("tree")}
+          />
+        ) : null}
         {leading.handle ? (
           <Table.Handle
             {...(drag.handle ?? {})}
@@ -459,22 +524,22 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
         ) : null}
         {leading.detail ? (
           <Table.Cell
-            className="w-400 max-w-none pe-0"
+            className="w-400 max-w-none px-0 text-center"
             onClick={(e) => e.stopPropagation()}
             {...pins("detail")}
           >
             <IconButton
-              label={isExpanded ? t("close") : t("open")}
+              label={isDetailOpen ? t("close") : t("open")}
               variant="subtle"
               className="size-250"
-              aria-expanded={isExpanded}
+              aria-expanded={isDetailOpen}
               aria-controls={detailId}
-              onClick={() => row.toggleExpanded()}
+              onClick={() => options?.toggleDetail?.(row.id)}
               icon={
                 <ChevronRight
                   className={cn(
                     "transition-transform duration-fast ease-standard",
-                    isExpanded && "rotate-90",
+                    isDetailOpen && "rotate-90",
                   )}
                 />
               }
@@ -487,12 +552,12 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
             cell={cell}
             row={row}
             before={before}
-            treeColumn={treeColumn}
+            hintAt={hintAt}
             previewAt={previewAt}
           />
         ))}
       </Table.Row>
-      {detail && isExpanded ? (
+      {detail && isDetailOpen ? (
         <Table.Detail id={detailId} colSpan={columnCount}>
           {detail(row.original as never)}
         </Table.Detail>
@@ -579,8 +644,9 @@ function DataTableRoot<TData extends RowData>({
   const selectable = Boolean(table.options.enableRowSelection);
   const leading: Leading = {
     selectable,
+    tree: Boolean(options?.tree),
     handle: Boolean(options?.reorderRows),
-    detail: Boolean(options?.detail),
+    detail: Boolean(options?.detail) && options?.detailColumn !== false,
   };
   const pageSize = options?.pageSize;
   const label = options?.label;
@@ -600,6 +666,7 @@ function DataTableRoot<TData extends RowData>({
     ?.columnDef.meta;
   const active = idMeta?.active;
   const previewAt = idMeta?.preview ? previewColumn(visibleColumns) : undefined;
+  const hintAt = tree ? previewColumn(visibleColumns) : undefined;
   const fixed = options?.layout === "fixed";
   // The leading columns are always pinned, so every start offset begins after them.
   const before = leadingWidth(leading);
@@ -613,12 +680,6 @@ function DataTableRoot<TData extends RowData>({
           c.getIsPinned();
         return sum + (sized ? c.getSize() : (c.columnDef.minSize ?? 120));
       }, leadingWidth(leading))
-    : undefined;
-  const treeColumn = tree
-    ? (tree.column ??
-      visibleColumns.find(
-        (c) => c.columnDef.meta?.kind !== "id" && c.columnDef.meta?.kind !== "actions",
-      )?.id)
     : undefined;
   const onKeyDown = tree ? treeKeys(table, direction) : undefined;
 
@@ -659,10 +720,11 @@ function DataTableRoot<TData extends RowData>({
       canSelect={row.getCanSelect()}
       isActive={active ? active(row.original as never) : false}
       isExpanded={row.getIsExpanded()}
+      isDetailOpen={Boolean(options?.detailOpen?.(row.id))}
       columnsKey={columnsKey}
       before={before}
       dataPinned={dataPinned}
-      treeColumn={treeColumn}
+      hintAt={hintAt}
       previewAt={previewAt}
       columnCount={columnCount}
       isPinnedRow={isPinnedRow}
@@ -671,9 +733,11 @@ function DataTableRoot<TData extends RowData>({
     />
   );
 
-  const narrowHeader = (key: "handle" | "detail") => (
-    <Table.Header key={key} className="w-400 pe-0" {...pins(key)}>
-      <span className="sr-only">{key === "detail" ? t("details") : t("reorder")}</span>
+  const narrowHeader = (key: "tree" | "handle" | "detail") => (
+    <Table.Header key={key} className="px-0" width={leadingSizes[key]} {...pins(key)}>
+      <span className="sr-only">
+        {key === "detail" ? t("details") : key === "tree" ? t("parts") : t("reorder")}
+      </span>
     </Table.Header>
   );
 
@@ -737,18 +801,16 @@ function DataTableRoot<TData extends RowData>({
                       {leading.selectable ? (
                         <Table.Selection
                           header
-                          checked={
-                            table.getIsAllPageRowsSelected()
-                              ? true
-                              : table.getIsSomePageRowsSelected()
-                                ? "indeterminate"
-                                : false
+                          checked={table.getIsAllPageRowsSelected()}
+                          indeterminate={
+                            !table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()
                           }
                           onCheckedChange={(next) => table.toggleAllPageRowsSelected(next)}
                           label={t("selectPage")}
                           {...pins("selectable")}
                         />
                       ) : null}
+                      {leading.tree ? narrowHeader("tree") : null}
                       {leading.handle ? narrowHeader("handle") : null}
                       {leading.detail ? narrowHeader("detail") : null}
                     </>

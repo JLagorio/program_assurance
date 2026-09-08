@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useMemo, useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, Input, Spinner, Toolbar, type Tone } from "../../components";
+import { Button, Indicator, Input, Spinner, Toolbar, type Tone } from "../../components";
 import {
   ColumnSortable,
   DataTable,
@@ -42,6 +43,7 @@ type Finding = {
   family: string;
   open: number;
   due: string;
+  systems: string[];
 };
 
 const statusTone: Record<Finding["status"], Tone> = {
@@ -64,6 +66,7 @@ const names = [
   "Data retention schedule",
 ];
 const statuses: Finding["status"][] = ["Draft", "In review", "Verified", "Overdue"];
+const components = ["Payments API", "Ledger database", "Batch settlement", "Auth gateway"];
 
 /** Deterministic rows, so a story renders the same every time. */
 function makeFindings(count: number): Finding[] {
@@ -75,6 +78,7 @@ function makeFindings(count: number): Finding[] {
     family: families[(i * 3) % families.length] ?? "",
     open: (i * 37) % 120,
     due: `2026-${String(1 + (i % 12)).padStart(2, "0")}-${String(1 + ((i * 11) % 28)).padStart(2, "0")}`,
+    systems: components.slice(0, i % 4),
   }));
 }
 
@@ -162,7 +166,23 @@ function Register() {
   );
 }
 
-export const RegisterStory: Story = { name: "Register", render: () => <Register /> };
+export const RegisterStory: Story = {
+  name: "Register",
+  render: () => <Register />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = within(canvas.getByRole("table", { name: "Findings" }));
+    const [page, firstRow] = table.getAllByRole("checkbox");
+    await expect(page).not.toBeChecked();
+    await userEvent.click(firstRow!);
+    await expect(firstRow).toBeChecked();
+    await expect(page).toBePartiallyChecked();
+    await userEvent.click(page!);
+    for (const checkbox of table.getAllByRole("checkbox")) await expect(checkbox).toBeChecked();
+    await userEvent.click(page!);
+    for (const checkbox of table.getAllByRole("checkbox")) await expect(checkbox).not.toBeChecked();
+  },
+};
 
 /** Wide enough to scroll: the id and the name pinned at the start, actions at the end, and every column resizable, reorderable by its grip, hideable from the Columns menu or its own. The layout is the reader's and is kept under a view name. */
 const wideColumns = defineColumns<Finding>((c) => [
@@ -435,6 +455,136 @@ function Tree() {
 }
 
 export const TreeStory: Story = { name: "Tree", render: () => <Tree /> };
+
+/** A tree whose rows also open into a child table. One chevron only: the leading disclosure shows the parts, and the row opens into its claims from the Claims cell, which carries its own chevron. Two chevron columns in a row read as twins, so `detailColumn: false` leaves the second out. The two disclosures are separate state, so neither closes the other. */
+type Claim = { id: string; requirement: string; responsibility: string; coverage: string };
+const claimsOf = (p: Part): Claim[] =>
+  Array.from({ length: 1 + (p.controls % 3) }, (_, i) => ({
+    id: `${p.id}-c${i + 1}`,
+    requirement: `REQ-${1000 + p.controls + i}`,
+    responsibility: i === 0 ? "Primary" : "Shared",
+    coverage: i % 2 === 0 ? "Full" : "Partial",
+  }));
+const claimColumns = defineColumns<Claim>((c) => [
+  c.id("id", { header: "Claim", width: 150 }),
+  c.text("requirement", { header: "Requirement", width: 140 }),
+  c.text("responsibility", { header: "Responsibility", width: 150 }),
+  c.status("coverage", {
+    header: "Coverage",
+    width: 120,
+    tone: (r) => (r.coverage === "Full" ? "success" : "warning"),
+  }),
+]);
+
+function Claims({ part }: { part: Part }) {
+  const table = useDataTable({
+    columns: claimColumns,
+    data: claimsOf(part),
+    getRowId: (r) => r.id,
+    label: `${part.name} claims`,
+  });
+  return <DataTable table={table} />;
+}
+
+const claimingColumns = defineColumns<Part>((c) => [
+  c.text("name", { header: "Element", sortable: false }),
+  c.text("kind", { header: "Kind", width: 130, sortable: false }),
+  c.list("claims", {
+    header: "Claims",
+    width: 220,
+    opens: "detail",
+    items: (r) => claimsOf(r).map((x) => ({ key: x.id, label: x.requirement, meta: x.coverage })),
+  }),
+  c.person("owner", { header: "Owner", width: 180, sortable: false }),
+]);
+
+function TreeWithDetail() {
+  const table = useDataTable({
+    columns: claimingColumns,
+    data: system,
+    getRowId: (r) => r.id,
+    label: "System and its claims",
+    view: "storybook-tree-detail",
+    tree: {
+      children: (r) => r.parts,
+      label: (r) => r.name,
+      initialExpanded: ["fc"],
+    },
+    detailColumn: false,
+    detail: (r) => <Claims part={r} />,
+  });
+  return <DataTable table={table} />;
+}
+
+export const TreeWithDetailRows: Story = {
+  name: "Tree with detail rows",
+  render: () => <TreeWithDetail />,
+};
+
+/** Several values in one cell: the first by name, the rest as a count, every one in a hover card with its meta line and one status. With a preview on the id, the line is a button and the click is the peek, the same as the eye; a row with none says why. */
+function Lists() {
+  const [opened, setOpened] = useState<string | null>(null);
+  const columns = useMemo(
+    () =>
+      defineColumns<Finding>((c) => [
+        c.id("id", { preview: (r) => setOpened(r.id), active: (r) => r.id === opened }),
+        c.text("name", { header: "Finding", minWidth: 200 }),
+        c.list("systems", {
+          header: "Systems",
+          width: 220,
+          items: (r) =>
+            r.systems.map((s, i) => ({
+              key: s,
+              label: s,
+              meta: "Component · Payments platform",
+              status:
+                i === 0 && r.status === "Overdue" ? (
+                  <Indicator tone="warning">Suspect</Indicator>
+                ) : undefined,
+            })),
+          empty: () => <Indicator tone="neutral">Not yet allocated</Indicator>,
+          note: (r) =>
+            r.status === "Overdue" ? "1 link suspect since its upstream changed" : undefined,
+        }),
+        c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+      ]),
+    [opened],
+  );
+  const table = useDataTable({
+    columns,
+    data: findings.slice(0, 6),
+    getRowId: (r) => r.id,
+    label: "Findings by system",
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} />
+      <Text size="small" color="color.text.subtle">
+        {opened
+          ? `preview ${opened}`
+          : "rest on a system to see them all; click it, or the eye, to preview the row"}
+      </Text>
+    </Stack>
+  );
+}
+
+export const ListCells: Story = {
+  name: "List cells",
+  render: () => <Lists />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const row = canvas.getByText("FND-2201").closest("tr")!;
+    const trigger = within(row).getByRole("button", { name: "Payments API" });
+    await userEvent.hover(trigger);
+    const popup = () =>
+      canvasElement.ownerDocument.querySelector('[data-slot="hover-card-content"]');
+    await waitFor(() => expect(popup()).toBeVisible(), { timeout: 2000 });
+    await expect(popup()).toHaveTextContent("Component · Payments platform");
+    await userEvent.click(trigger);
+    await expect(canvas.getByText("preview FND-2201")).toBeVisible();
+    await waitFor(() => expect(popup()).not.toBeInTheDocument());
+  },
+};
 
 /** A row opens into its detail: here a child table of the finding's items, drawn by the same renderer. */
 type Item = { id: string; step: string; state: "Done" | "Open" };
@@ -792,7 +942,6 @@ export const ServerStory: Story = {
   name: "Server",
   render: () => <Server />,
   play: async ({ canvasElement }) => {
-    const { expect, within, waitFor } = await import("storybook/test");
     // Wait for the response before checking the settled, interactive table.
     const table = within(canvasElement).getByRole("table", { name: "Findings from the server" });
     await waitFor(() => expect(table.closest("[aria-busy]")).toHaveAttribute("aria-busy", "false"));
@@ -851,6 +1000,8 @@ export const DataTableMatrix: Story = {
       <Groups />
       <Reordering />
       <Tree />
+      <TreeWithDetail />
+      <Lists />
       <Details />
       <Grouped />
       <PinnedRows />
@@ -962,7 +1113,6 @@ export const KeyboardResizeMatrix: Story = {
     </LedgerProvider>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const handles = within(canvasElement).getAllByRole("separator", {
       name: "Resize column",
     });
@@ -1032,7 +1182,6 @@ function StoredViewsFixture() {
 export const StoredViewsMatrix: Story = {
   render: () => <StoredViewsFixture />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);
     const firstHeader = () => canvas.getAllByRole("columnheader")[0]!;
     const nameWidth = () =>

@@ -19,6 +19,8 @@ import {
   NativeSelect,
   Person,
   Popover,
+  PopoverContent,
+  PopoverTrigger,
   PreviewSheet,
   Section,
   Stack,
@@ -184,46 +186,50 @@ export function DueField({ task, me }: { task: Task; me: string }) {
   const overdue = isOverdue(task);
   const date = task.due ? dateOf(task.due) : undefined;
   return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-      label={`Due: ${task.title}`}
-      className="p-0"
-      trigger={
-        <button
-          type="button"
-          aria-label={`Due: ${task.title}`}
-          className={cn(
-            "truncate rounded-small text-left tabular-nums outline-none hover:underline focus-visible:outline-focused",
-            overdue ? "text-danger" : label ? undefined : "text-subtlest",
-          )}
-        >
-          {label ?? "Add due"}
-        </button>
-      }
-    >
-      <Calendar
-        mode="single"
-        {...(date ? { selected: date, defaultMonth: date } : {})}
-        onSelect={(d) => {
-          setTaskDue(task.id, d ? isoOf(d) : null, me);
-          setOpen(false);
-        }}
-      />
-      {task.due ? (
-        <Box paddingInline="space.150" paddingBlockEnd="space.100">
-          <Button
-            size="small"
-            variant="subtle"
-            onClick={() => {
-              setTaskDue(task.id, null, me);
-              setOpen(false);
-            }}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            aria-label={`Due: ${task.title}`}
+            className={cn(
+              "truncate rounded-small text-left tabular-nums outline-none hover:underline focus-visible:outline-focused",
+              overdue ? "text-danger" : label ? undefined : "text-subtlest",
+            )}
           >
-            Clear
-          </Button>
-        </Box>
-      ) : null}
+            {label ?? "Add due"}
+          </button>
+        }
+      />
+      <PopoverContent
+        aria-label={`Due: ${task.title}`}
+        align="start"
+        className="gap-0 p-0"
+        style={{ width: "auto" }}
+      >
+        <Calendar
+          mode="single"
+          {...(date ? { selected: date, defaultMonth: date } : {})}
+          onSelect={(d) => {
+            setTaskDue(task.id, d ? isoOf(d) : null, me);
+            setOpen(false);
+          }}
+        />
+        {task.due ? (
+          <Box paddingInline="space.150" paddingBlockEnd="space.100">
+            <Button
+              size="small"
+              variant="subtle"
+              onClick={() => {
+                setTaskDue(task.id, null, me);
+                setOpen(false);
+              }}
+            >
+              Clear
+            </Button>
+          </Box>
+        ) : null}
+      </PopoverContent>
     </Popover>
   );
 }
@@ -506,7 +512,9 @@ export function TaskTable({
             <Checkbox
               aria-label={`${r.state === "Done" ? "Reopen" : "Complete"}: ${r.title}`}
               checked={r.state === "Done"}
-              onCheckedChange={(v) => (v === true ? completeTask(r.id, me) : reopenTask(r.id, me))}
+              onCheckedChange={(checked) =>
+                checked ? completeTask(r.id, me) : reopenTask(r.id, me)
+              }
             />
           ),
         }),

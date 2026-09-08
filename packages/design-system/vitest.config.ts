@@ -12,6 +12,9 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 export default mergeConfig(
   viteConfig,
   defineConfig({
+    optimizeDeps: {
+      include: ["@base-ui/react/checkbox-group"],
+    },
     test: {
       maxWorkers: 3,
       projects: ["light", "dark"].map((mode) => ({

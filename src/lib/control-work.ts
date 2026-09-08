@@ -30,7 +30,17 @@
  *    changed it or why. This records it.
  */
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import {
+  evidenceById,
+  evidenceForTarget,
+  linkArtifact,
+  unlinkArtifact,
+  registerEvidenceSource,
+  subscribeEvidence,
+  useEvidenceVersion,
+  type EvidenceArtifact,
+} from "@/lib/evidence-catalog";
 
 import {
   clockNow,
@@ -553,17 +563,21 @@ export function addComment(workId: string, body: string) {
     body: body.trim(),
   });
   log(workId, "comment", `${session.name} commented`, {}, body.trim());
+  bump();
 }
 
 /* -------------------------------------------------------------- The store */
 
 const work: ControlWork[] = [];
+const evidenceSeeds: EvidenceArtifact[] = [];
+registerEvidenceSource(() => evidenceSeeds);
 const byKey = new Map<string, ControlWork>();
 const listeners = new Set<() => void>();
 let version = 0;
 let workSeq = 0;
 
 function bump() {
+  persistWork();
   version += 1;
   for (const l of listeners) l();
 }
@@ -581,6 +595,10 @@ export function workVersion(): number {
 
 /** Stable-snapshot contract — see the note on `useRequirementsVersion`. */
 export function useWorkVersion(): number {
+  useEvidenceVersion();
+  useEffect(() => {
+    restoreWork();
+  }, []);
   return useSyncExternalStore(subscribeWork, workVersion, workVersion);
 }
 
@@ -606,6 +624,27 @@ function create(program: string, scope: string, control: string, seed: Partial<C
     riskAcceptance: "",
     ...seed,
   };
+  const initialEvidence = [...created.evidence];
+  initialEvidence.forEach((id) =>
+    evidenceSeeds.push({
+      id,
+      program,
+      label: `Implementation evidence · ${control}`,
+      collected: "Unrecorded",
+      owner: created.owner ?? "Unassigned",
+      provenance: `Implementation statement for ${control} in ${scope}`,
+      kind: "Document",
+      version: "Unrecorded",
+      scopeIds: [scope],
+      review: "Pending review",
+      links: [{ kind: "control", id: control, scopeId: scope }],
+    }),
+  );
+  Object.defineProperty(created, "evidence", {
+    enumerable: true,
+    configurable: true,
+    get: () => evidenceForTarget(program, "control", control, scope).map((artifact) => artifact.id),
+  });
   work.push(created);
   byKey.set(keyOf(scope, control), created);
   return created;
@@ -645,6 +684,10 @@ export function workById(id: string): ControlWork | undefined {
 }
 
 /** Only the items somebody has started. */
+export function workForProgram(programId: string): ControlWork[] {
+  return work.filter((w) => w.program === programId);
+}
+
 export function startedWork(programId: string): ControlWork[] {
   return work.filter((w) => w.program === programId && !!w.owner);
 }
@@ -678,6 +721,15 @@ export function setNarrative(workId: string, text: string) {
   const before = w.narrative;
   w.narrative = text;
   w.narrativeRevision += 1;
+  w.submitted = false;
+  if (w.assessment === "Satisfied") {
+    w.assessment = "Not assessed";
+    log(workId, "transition", "Implementation revised; reassessment required", {
+      field: "assessment",
+      before: "Satisfied",
+      after: "Not assessed",
+    });
+  }
   log(workId, "narrative", `Implementation revised to r${w.narrativeRevision}`, {
     field: "narrative",
     before: before || "(empty)",
@@ -689,7 +741,9 @@ export function setNarrative(workId: string, text: string) {
 export function linkEvidence(workId: string, evidenceId: string) {
   const w = workById(workId);
   if (!w || w.evidence.includes(evidenceId)) return;
-  w.evidence.push(evidenceId);
+  if (evidenceById(evidenceId)?.program !== w.program)
+    throw new Error("Evidence must belong to this program.");
+  linkArtifact(evidenceId, { kind: "control", id: w.control, scopeId: w.scope });
   log(workId, "evidence-linked", `Linked ${evidenceId}`, { field: "evidence", after: evidenceId });
   bump();
 }
@@ -697,7 +751,7 @@ export function linkEvidence(workId: string, evidenceId: string) {
 export function unlinkEvidence(workId: string, evidenceId: string) {
   const w = workById(workId);
   if (!w) return;
-  w.evidence = w.evidence.filter((e) => e !== evidenceId);
+  unlinkArtifact(evidenceId, { kind: "control", id: w.control, scopeId: w.scope });
   log(workId, "evidence-unlinked", `Unlinked ${evidenceId}`, {
     field: "evidence",
     before: evidenceId,
@@ -1215,3 +1269,59 @@ for (const c of seedComments) {
     c.author,
   );
 }
+
+const workStorageKey = "equinox.control-work.v1";
+let workRestored = false;
+function persistWork() {
+  if (typeof window !== "undefined")
+    window.localStorage.setItem(
+      workStorageKey,
+      JSON.stringify({ work, events, comments, eventSeq, commentSeq, workSeq }),
+    );
+}
+export function restoreWork() {
+  if (workRestored || typeof window === "undefined") return;
+  const raw = window.localStorage.getItem(workStorageKey);
+  if (raw) {
+    const data = JSON.parse(raw) as {
+      work: ControlWork[];
+      events: WorkEvent[];
+      comments: Comment[];
+      eventSeq: number;
+      commentSeq: number;
+      workSeq: number;
+    };
+    if (
+      !Array.isArray(data.work) ||
+      !Array.isArray(data.events) ||
+      !Array.isArray(data.comments) ||
+      !data.work.every(
+        (row) =>
+          typeof row.id === "string" &&
+          typeof row.program === "string" &&
+          typeof row.narrative === "string" &&
+          Array.isArray(row.evidence),
+      )
+    )
+      throw new Error("Saved control work could not be read.");
+    for (const row of data.work) {
+      const existing = byKey.get(keyOf(row.scope, row.control));
+      if (existing) {
+        const { evidence: _evidence, ...fields } = row;
+        Object.assign(existing, fields);
+      } else create(row.program, row.scope, row.control, row);
+    }
+    events.splice(0, events.length, ...data.events);
+    comments.splice(0, comments.length, ...data.comments);
+    eventSeq = Math.max(eventSeq, data.eventSeq);
+    commentSeq = Math.max(commentSeq, data.commentSeq);
+    workSeq = Math.max(workSeq, data.workSeq);
+  }
+  workRestored = true;
+  version += 1;
+  listeners.forEach((listener) => listener());
+}
+subscribeEvidence(() => {
+  version += 1;
+  listeners.forEach((listener) => listener());
+});

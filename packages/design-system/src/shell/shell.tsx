@@ -28,7 +28,7 @@ import {
 
 import { IconButton } from "../components/button";
 import { Kbd } from "../components/kbd";
-import { Popover } from "../components/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/popover";
 import { Tooltip, TooltipProvider } from "../components/tooltip";
 import { Eyebrow } from "../components/typography";
 import { token } from "../generated/tokens";
@@ -563,17 +563,19 @@ function TopNavEnd({ label = "Actions", moreLabel = "More", children }: ShellTop
         ))}
       </ul>
       <div className="md:hidden">
-        <Popover
-          align="end"
-          trigger={<IconButton label={moreLabel} variant="subtle" icon={<MoreHorizontal />} />}
-        >
-          <ul aria-label={label} className="flex flex-col gap-050">
-            {items.map((child, i) => (
-              <li key={i} className="flex items-center">
-                {child}
-              </li>
-            ))}
-          </ul>
+        <Popover>
+          <PopoverTrigger
+            render={<IconButton label={moreLabel} variant="subtle" icon={<MoreHorizontal />} />}
+          />
+          <PopoverContent aria-label={label} align="end" style={{ width: "auto" }}>
+            <ul aria-label={label} className="flex flex-col gap-050">
+              {items.map((child, i) => (
+                <li key={i} className="flex items-center">
+                  {child}
+                </li>
+              ))}
+            </ul>
+          </PopoverContent>
         </Popover>
       </div>
     </div>

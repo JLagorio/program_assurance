@@ -10,6 +10,15 @@
 
 import type { FindingSeverity, PoamStatus, RiskDisposition } from "@/lib/spine";
 import { findings, isOpen, type Finding } from "@/lib/findings";
+import { poamItems as legacyPoams } from "@/lib/grc-data";
+
+export type PoamMilestone = {
+  id: string;
+  title: string;
+  targetDate: string;
+  completedDate?: string | null | undefined;
+  status: "Planned" | "In progress" | "Completed" | "Missed";
+};
 
 export type PoamItem = {
   id: string; // POAM-
@@ -21,8 +30,12 @@ export type PoamItem = {
   scheduledCompletion: string;
   originalCompletion: string;
   milestoneNote: string;
-  risk?: string; // RSK-
+  risk?: string | undefined; // RSK-
   remediation: string;
+  controls?: string[] | undefined;
+  milestones?: PoamMilestone[] | undefined;
+  /** Stable identity of an imported OSCAL-shaped seed record. */
+  legacyUuid?: string | undefined;
 };
 
 export type RegisterRisk = {
@@ -173,6 +186,41 @@ export const registerRisks: RegisterRisk[] = [
     reviewed: "Aug 27, 2026",
   },
 ];
+
+// Expose the earlier OSCAL-shaped records through the same operational register.
+// The UUID is retained so export adapters can emit each commitment exactly once.
+for (const legacy of legacyPoams) {
+  if (poamItems.some((item) => item.id === legacy.poamId)) continue;
+  poamItems.push({
+    id: legacy.poamId,
+    legacyUuid: legacy.uuid,
+    program: legacy.programId,
+    title: legacy.title,
+    status:
+      legacy.status === "Completed" || legacy.status === "Risk accepted"
+        ? legacy.status
+        : "Ongoing",
+    owner: legacy.pointOfContact,
+    resources: legacy.props.find((prop) => prop.name === "resources-required")?.value ?? "",
+    scheduledCompletion: legacy.scheduledCompletion,
+    originalCompletion: legacy.scheduledCompletion,
+    milestoneNote: legacy.remarks,
+    remediation: legacy.description,
+    controls: [...legacy.controls],
+    milestones: legacy.milestones.map((milestone) => ({
+      id: milestone.id,
+      title: milestone.title,
+      targetDate: milestone.targetDate,
+      completedDate: milestone.completedDate,
+      status: milestone.status,
+    })),
+    risk: legacy.associatedRisks[0]?.riskId,
+  });
+}
+
+export function poamsForProgram(programId: string): PoamItem[] {
+  return poamItems.filter((item) => item.program === programId);
+}
 
 export const poamById = new Map(poamItems.map((p) => [p.id, p]));
 export const riskById = new Map(registerRisks.map((r) => [r.id, r]));

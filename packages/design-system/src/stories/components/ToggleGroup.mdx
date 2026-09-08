@@ -1,98 +1,52 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { ToggleGroup } from "../../components";
+import { ToggleGroup, ToggleGroupItem } from "../../components";
 import * as Stories from "./ToggleGroup.stories";
 
 <Meta of={Stories} />
 
 # ToggleGroup
 
-One of several views or modes of the same thing, always exactly one on: table or board, all or open, week or month. The recessed segmented control, with the chosen item raised. A content switcher by another name: not Tabs, which are views of a record, and not a Toggle, which is one thing on or off.
+A group of toggle buttons with shared selection and keyboard navigation. Compose each choice with `ToggleGroupItem`, using a unique `value` and explicit children for its label, icon or count.
 
-A ToggleGroup sorts or re-lays the same content; distinct content is [Tabs](?path=/docs/components-tabs--docs), and two answers are a [Switch](?path=/docs/components-switch--docs).
+```tsx
+<ToggleGroup aria-label="View" defaultValue={["table"]} variant="outline">
+  <ToggleGroupItem value="table">Table</ToggleGroupItem>
+  <ToggleGroupItem value="board">Board</ToggleGroupItem>
+</ToggleGroup>
+```
 
 <Canvas of={Stories.ToggleGroupMatrix} />
 
-## Anatomy
+## Selection and layout
 
-| Part  | What it is                                                                                                                             |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Track | `color.background.neutral`, `radius.medium`, `space.025` inside. The recess the items sit in.                                          |
-| Item  | A word or two, an icon before it or alone, `font.body.small` medium (`font.body` at `medium`), `color.text.subtle`.                    |
-| On    | The chosen item, raised: `elevation.surface.raised` with `elevation.shadow.raised`, `radius.small`, `color.text`. Exactly one, always. |
-| Count | After the label, a Count, the way a Tabs.Tab carries one: how many rows the view holds.                                                |
-| Name  | `aria-label` on the group: what is being chosen. "View", "Scope", "Period".                                                            |
+Selection is an array in both modes. By default, at most one item can be pressed; pressing it again clears the selection. Add `multiple` to allow several pressed items. `defaultValue` initializes local state; `value` and `onValueChange(values, details)` control it. Call `details.cancel()` to reject a change, such as clearing a required view.
 
-## Variants
+Group `variant` and `size` pass to its items. Variants are `default` and `outline`; sizes are `sm` (28px), `default` (32px) and `lg` (36px). Default `spacing={2}` leaves an 8px gap; `spacing={0}` joins the items. `orientation="vertical"` stacks them and changes arrow navigation.
 
-| Items         | Use                                                                                                       |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| Words         | The default: "All", "Open", "Settled". Nouns of a word or two.                                            |
-| Icon and word | When the icon helps the eye: a table, a board, a list.                                                    |
-| Icons alone   | `isIconOnly` on every item: the toolbar's view switch. The label becomes the item's name and its tooltip. |
-| With counts   | `count` on each: how many the view holds, so the reader chooses knowing.                                  |
-
-Not built, and why: multiple selection, because several on is a row of Toggles or a set of FilterChips; equal-width items, because the words are short and the group sits in a toolbar, not on a grid; a group with nothing on, because the group is a choice, and a choice has an answer.
-
-## Sizes
-
-| Size     | Track | Item | Where                                                    |
-| -------- | ----- | ---- | -------------------------------------------------------- |
-| `small`  | 28px  | 24px | The default: a toolbar, a section head, a card's corner. |
-| `medium` | 32px  | 28px | A page header, beside medium controls.                   |
-
-Two heights, the toolbar's and the page's. The track's height is the Button's, so the group sits level with the buttons beside it.
+The group and items support native attributes, refs, `render`, and state callbacks for `className` and `style`. Use `disabled` on an item or the whole group to block selection.
 
 <Canvas of={Stories.ViewsStory} />
 
-## States
-
-| State    | What changes                                                                                      |
-| -------- | ------------------------------------------------------------------------------------------------- |
-| Off      | On the track, `color.text.subtle`; `color.text` on hover.                                         |
-| On       | Raised on `elevation.surface.raised`, `color.text`. Pressing it again does nothing: one stays on. |
-| Focus    | The focus outline on the item, keyboard only.                                                     |
-| Disabled | `color.text.disabled`, no hover. A view that is not available now.                                |
-
-## Modifiers
-
-- **`items`**: `value`, `label`, `icon`, `isIconOnly`, `count`, `disabled` per item.
-- **`value`** and **`onChange`**: the one on. Controlled always, because the page owns the view.
-- **`size`** as in Sizes.
-- **`aria-label`** names the choice.
-
-## Content
-
-- **Nouns, one word or two**: what the reader will see. "Table", "Open", "This week". Three words at most.
-- **Never verbs or sentences.** "Show archived" is a Switch; "Switch to the month view" is what the group does, not what an item says.
-- **Two to five items.** Past five it is a Select.
-- **The name is the question**: "View", "Scope", "Period".
-
-## Style
-
-| Element | Token                                                                                                              |
-| ------- | ------------------------------------------------------------------------------------------------------------------ |
-| Track   | `color.background.neutral` · `radius.medium` · `space.025` padding and gap · `dimension.control.small` or `medium` |
-| Item    | `dimension.control.xsmall` or `small` · `radius.small` · `space.100` or `space.150` inline, `space.075` alone      |
-| Off     | `color.text.subtle` · hover `color.text`                                                                           |
-| On      | `elevation.surface.raised` · `elevation.shadow.raised` · `color.text`                                              |
-| Label   | `font.body.small` medium; `font.body` at `medium`                                                                  |
-| Icon    | 16px · `space.075` before the label                                                                                |
-| Motion  | colours in `motion.duration.fast`                                                                                  |
-
 ## Accessibility
 
-- **A radio group in the ARIA sense**: Radix ToggleGroup gives the group `role="group"` and each item `aria-checked` as a radio, named by `aria-label`.
-- **Arrows move among the items**; Tab enters and leaves the group as one stop. Space or Enter chooses.
-- **Exactly one on, always.** The kit ignores the press that would turn the last one off.
-- **Icons alone are named** by their label, which is also the tooltip, so pointer and screen reader hear the same word.
-- **The on item is not colour alone**: it is raised, its text is darker, and `aria-checked` says so.
+- The root has `role="group"`; each item is a button with `aria-pressed`. Name the group with `aria-label` or `aria-labelledby`, and give icon-only items an accessible name.
+- Tab enters and leaves the group as one stop. Arrow keys move focus; Enter or Space changes selection. Disabled items are skipped.
+- Horizontal arrows follow the Ledger locale direction; `dir` on the group overrides it. Vertical groups use Up and Down. Home and End reach the first and last enabled items.
+- Focus wraps by default. Set `loopFocus={false}` to stop at the ends.
+- Add [Tooltip](?path=/docs/components-tooltip--docs) explicitly when an icon needs a visible explanation.
+
+## Migration
+
+Replace `items` with `ToggleGroupItem` children, scalar `value` with an array, and `onChange` with `onValueChange`. The old required single-selection rule now belongs to the consumer: ignore or cancel an empty selection when one choice must remain active. `small` becomes `sm`; `medium` becomes `default`. Counts are explicit Count children, and icons are ordinary children. `isIconOnly` and automatic item tooltips are removed.
+
+This uses the installed Base UI array API with `multiple`; it does not use Radix's `type="single"` or `type="multiple"` API.
 
 ## Props
 
 <ArgTypes of={ToggleGroup} />
 
-### Playground
+<ArgTypes of={ToggleGroupItem} />
 
 <Canvas of={Stories.Playground} />
 
@@ -100,12 +54,4 @@ Two heights, the toolbar's and the page's. The track's height is the Button's, s
 
 ## Related
 
-- [Toggle](?path=/docs/components-toggle--docs): one thing on or off.
-- [Tabs](?path=/docs/components-tabs--docs): distinct content, not the same content another way.
-- [FilterChip](?path=/docs/components-filterchip--docs): several filters that can each be on.
-- [Switch](?path=/docs/components-switch--docs): two answers.
-- [Count](?path=/docs/components-count--docs): the number after a label.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+[Toggle](?path=/docs/components-toggle--docs) · [Count](?path=/docs/components-count--docs) · [shadcn Toggle Group](https://ui.shadcn.com/docs/components/base/toggle-group) · [Base UI Toggle Group](https://base-ui.com/react/components/toggle-group)

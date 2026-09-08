@@ -12,6 +12,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
   type ComponentPropsWithoutRef,
   type CSSProperties,
   type ReactNode,
@@ -22,9 +23,11 @@ import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 import type { Density } from "../mode/density";
 import { Count } from "./badge";
-import { Checkbox } from "./controls";
+import { Checkbox } from "./checkbox";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 import { Id } from "./id";
 import { Tooltip } from "./tooltip";
+import { Absent } from "./typography";
 
 export type TableProps = {
   /** The table's accessible name, when no heading above it says what the rows are: "Findings". */
@@ -394,6 +397,7 @@ function IdCell({
   isActive,
   tone = "brand",
   width,
+  indent,
   pinned,
   offset,
   edge,
@@ -404,13 +408,18 @@ function IdCell({
   tone?: "brand" | "subtle" | undefined;
   /** For a table without a header row, where the cells carry the widths. */
   width?: number | undefined;
+  /** Pixels of tree indent before the id, one level's worth per level of nesting. */
+  indent?: number | undefined;
 }) {
   return (
     <Td className="max-w-none" width={width} pinned={pinned} offset={offset} edge={edge}>
-      <span className="flex items-center gap-075">
+      <span
+        className="relative flex items-center"
+        {...(indent ? { style: { paddingInlineStart: indent } } : {})}
+      >
         <Id
           className={cn(
-            "transition-colors duration-fast ease-standard",
+            "min-w-0 flex-1 truncate transition-colors duration-fast ease-standard",
             isActive ? "text-brand" : null,
             tone === "brand" && !isActive ? "group-hover/row:text-brand" : null,
           )}
@@ -418,7 +427,17 @@ function IdCell({
           {id}
         </Id>
         {onPreview ? (
-          <PreviewButton onPreview={onPreview} isActive={isActive} className="ms-auto" />
+          <span
+            className={cn(
+              "absolute inset-y-0 end-0 flex items-center ps-050 opacity-0 transition-opacity duration-fast ease-standard",
+              "bg-surface-current group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected",
+              "focus-within:opacity-100 group-hover/row:opacity-100",
+              // the row whose preview is open keeps its eye, so the reader can see which row it is
+              isActive && "opacity-100",
+            )}
+          >
+            <PreviewButton onPreview={onPreview} isActive={isActive} />
+          </span>
         ) : null}
       </span>
     </Td>
@@ -429,6 +448,7 @@ function IdCell({
 function SelectionCell({
   header = false,
   checked,
+  indeterminate,
   onCheckedChange,
   label,
   disabled,
@@ -437,7 +457,8 @@ function SelectionCell({
   edge,
 }: PinnedProps & {
   header?: boolean | undefined;
-  checked: boolean | "indeterminate";
+  checked: boolean;
+  indeterminate?: boolean | undefined;
   onCheckedChange: (checked: boolean) => void;
   label: string;
   disabled?: boolean | undefined;
@@ -445,7 +466,8 @@ function SelectionCell({
   const box = (
     <Checkbox
       checked={checked}
-      onCheckedChange={(next) => onCheckedChange(next === true)}
+      indeterminate={indeterminate}
+      onCheckedChange={onCheckedChange}
       aria-label={label}
       {...(disabled ? { disabled } : {})}
       onClick={(e) => e.stopPropagation()}
@@ -582,6 +604,62 @@ function TreeCell({
 }
 
 /**
+ * The chevron column of a treegrid: its own leading cell, always first, so the disclosure never
+ * moves when the reader reorders, hides or pins a column. One narrow column whatever the depth: the
+ * indent belongs to the row's first value, so no width is reserved for a nesting most rows do not
+ * have. A row with no parts keeps the space, so the values below it line up.
+ */
+function DisclosureCell({
+  hasChildren = false,
+  expanded = false,
+  onToggle,
+  label,
+  width,
+  pinned,
+  offset,
+  edge,
+}: PinnedProps & {
+  hasChildren?: boolean | undefined;
+  expanded?: boolean | undefined;
+  onToggle?: (() => void) | undefined;
+  /** The row's plain name, for the chevron's accessible label. */
+  label: string;
+  width?: number | undefined;
+}) {
+  const { t } = useLedgerLocale();
+  return (
+    <Td
+      className="max-w-none px-0"
+      width={width}
+      pinned={pinned}
+      offset={offset}
+      edge={edge}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <span className="flex items-center justify-center">
+        {hasChildren ? (
+          <button
+            type="button"
+            aria-label={expanded ? t("collapseLabel", { label }) : t("expandLabel", { label })}
+            onClick={onToggle}
+            className="inline-flex size-250 shrink-0 items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
+          >
+            <ChevronRight
+              className={cn(
+                "size-icon-small transition-transform duration-fast ease-standard",
+                expanded && "rotate-90",
+              )}
+            />
+          </button>
+        ) : (
+          <span aria-hidden className="block size-250 shrink-0" />
+        )}
+      </span>
+    </Td>
+  );
+}
+
+/**
  * The row a record opens into: one cell spanning every column, holding whatever the record has to
  * show at length, a child table included. The chevron that opens it carries `aria-controls` with
  * this row's `id`.
@@ -645,11 +723,131 @@ function HandleCell({
   );
 }
 
+/** One item of a list cell: what the line writes and what the card lists. */
+export type ListItem = {
+  key: string;
+  label: string;
+  /** Under the label in the card: kind, path, owner. One line. */
+  meta?: ReactNode | undefined;
+  /** At the end of the item's line in the card: an Indicator, one. */
+  status?: ReactNode | undefined;
+};
+
+/**
+ * Several values in one cell, on one line: the first by name, the rest as a count, every one in a
+ * hover card with its meta line. The card is facts only. With `onOpen` the line is a button;
+ * without it the line is text the keyboard can still rest on. Given `expanded`, the line carries a
+ * chevron and reads as the row's disclosure, so a cell that opens the row into a table says so.
+ * The full list is the line's title.
+ */
+function ListCell({
+  items,
+  empty,
+  note,
+  onOpen,
+  expanded,
+  controls,
+}: {
+  items: ReadonlyArray<ListItem>;
+  /** Drawn in place of the line when there are no items. `Absent` unsaid. */
+  empty?: ReactNode | undefined;
+  /** One line under the card's list: what among the items needs attention. */
+  note?: ReactNode | undefined;
+  /** The click: the row's preview, or the row's detail. */
+  onOpen?: (() => void) | undefined;
+  /** The line opens the row's detail, and this is whether it is open: it draws the chevron. */
+  expanded?: boolean | undefined;
+  /** The id of the detail row the line opens. */
+  controls?: string | undefined;
+}) {
+  const { formatNumber } = useLedgerLocale();
+  // The card is the substitute for opening the row. Once the row is open the whole list is on
+  // screen below, so the card is suppressed rather than sitting over what it stands in for.
+  const [open, setOpen] = useState(false);
+  const [first, ...rest] = items;
+  if (!first) return <>{empty ?? <Absent />}</>;
+  const title = items.map((i) => i.label).join(", ");
+  const line = (
+    <>
+      <span className="min-w-0 truncate">{first.label}</span>
+      {rest.length ? (
+        <span className="shrink-0 font-body-small tabular-nums text-subtle">
+          +{formatNumber(rest.length)}
+        </span>
+      ) : null}
+      {expanded === undefined ? null : (
+        <ChevronRight
+          aria-hidden
+          className={cn(
+            "size-icon-small shrink-0 icon-subtlest transition-transform duration-fast ease-standard",
+            expanded && "rotate-90",
+          )}
+        />
+      )}
+    </>
+  );
+  const shape =
+    "flex min-w-0 max-w-full items-center gap-075 rounded-xsmall text-left outline-none focus-visible:outline-focused";
+  const card = (
+    <div className="flex flex-col gap-100">
+      <ul className="flex flex-col gap-075">
+        {items.map((i) => (
+          <li key={i.key} className="flex flex-col gap-025">
+            <span className="flex items-center gap-100">
+              <span className="min-w-0 truncate font-medium">{i.label}</span>
+              {i.status ? <span className="ms-auto shrink-0">{i.status}</span> : null}
+            </span>
+            {i.meta ? (
+              <span className="truncate font-body-small text-subtle">{i.meta}</span>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+      {note ? (
+        <div className="border-t border-default pt-075 font-body-small text-subtle">{note}</div>
+      ) : null}
+    </div>
+  );
+  return (
+    <HoverCard open={open && !expanded} onOpenChange={setOpen}>
+      <HoverCardTrigger
+        render={
+          onOpen ? (
+            <button
+              type="button"
+              title={title}
+              {...(expanded === undefined ? {} : { "aria-expanded": expanded })}
+              {...(controls ? { "aria-controls": controls } : {})}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(false);
+                onOpen();
+              }}
+              className={cn(shape, "hover:underline")}
+            >
+              {line}
+            </button>
+          ) : (
+            <span tabIndex={0} title={title} className={shape}>
+              {line}
+            </span>
+          )
+        }
+      />
+      <HoverCardContent align="start" alignOffset={0} style={{ width: 300 }}>
+        {card}
+      </HoverCardContent>
+    </HoverCard>
+  );
+}
+
 export const Table = Object.assign(TableRoot, {
   Row: Tr,
   Cell: Td,
   Header: Th,
+  Disclosure: DisclosureCell,
   Id: IdCell,
+  List: ListCell,
   Selection: SelectionCell,
   Group: TableGroup,
   Tree: TreeCell,

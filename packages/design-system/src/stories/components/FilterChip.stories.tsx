@@ -1,7 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Button, Checkbox, FilterChip, Popover, ToggleGroup, Toolbar } from "../../components";
+import {
+  Button,
+  Checkbox,
+  Count,
+  FilterChip,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  ToggleGroup,
+  ToggleGroupItem,
+  Toolbar,
+} from "../../components";
 import { Inline, Stack } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -40,23 +51,34 @@ export const FilterChipMatrix: Story = {
             />
           );
         return (
-          <Popover
-            width={220}
-            label="Status"
-            trigger={
-              <FilterChip
-                label="Status"
-                value={isActive ? "2 chosen" : undefined}
-                isActive={isActive}
-                disabled={disabled}
-              />
-            }
-          >
-            <Stack space="space.075">
-              <Checkbox defaultChecked={isActive}>Overdue</Checkbox>
-              <Checkbox defaultChecked={isActive}>In review</Checkbox>
-              <Checkbox>Verified</Checkbox>
-            </Stack>
+          <Popover>
+            <PopoverTrigger
+              disabled={disabled}
+              render={
+                <FilterChip
+                  label="Status"
+                  value={isActive ? "2 chosen" : undefined}
+                  isActive={isActive}
+                  disabled={disabled}
+                />
+              }
+            />
+            <PopoverContent style={{ width: 220 }} aria-label="Status">
+              <Stack space="space.075">
+                <label className="inline-flex items-center gap-100">
+                  <Checkbox defaultChecked={isActive} />
+                  Overdue
+                </label>
+                <label className="inline-flex items-center gap-100">
+                  <Checkbox defaultChecked={isActive} />
+                  In review
+                </label>
+                <label className="inline-flex items-center gap-100">
+                  <Checkbox />
+                  Verified
+                </label>
+              </Stack>
+            </PopoverContent>
           </Popover>
         );
       }}
@@ -107,33 +129,34 @@ function ToolbarDemo() {
             )
           }
         />
-        <Popover
-          width={220}
-          label="Status"
-          trigger={<FilterChip label="Status" value={statusValue} isActive={chosen.length > 0} />}
-        >
-          <Stack space="space.100">
-            <Stack space="space.075">
-              {statuses.map((s) => (
-                <Checkbox
-                  key={s}
-                  checked={chosen.includes(s)}
-                  onCheckedChange={(v) =>
-                    setChosen((c) => (v === true ? [...c, s] : c.filter((x) => x !== s)))
-                  }
-                >
-                  {s}
-                </Checkbox>
-              ))}
+        <Popover>
+          <PopoverTrigger
+            render={<FilterChip label="Status" value={statusValue} isActive={chosen.length > 0} />}
+          />
+          <PopoverContent style={{ width: 220 }} aria-label="Status">
+            <Stack space="space.100">
+              <Stack space="space.075">
+                {statuses.map((s) => (
+                  <label key={s} className="inline-flex items-center gap-100">
+                    <Checkbox
+                      checked={chosen.includes(s)}
+                      onCheckedChange={(v) =>
+                        setChosen((c) => (v ? [...c, s] : c.filter((x) => x !== s)))
+                      }
+                    />
+                    {s}
+                  </label>
+                ))}
+              </Stack>
+              {chosen.length ? (
+                <Inline alignInline="end">
+                  <Button variant="link" size="small" onClick={() => setChosen([])}>
+                    Clear
+                  </Button>
+                </Inline>
+              ) : null}
             </Stack>
-            {chosen.length ? (
-              <Inline alignInline="end">
-                <Button variant="link" size="small" onClick={() => setChosen([])}>
-                  Clear
-                </Button>
-              </Inline>
-            ) : null}
-          </Stack>
+          </PopoverContent>
         </Popover>
       </Toolbar>
     </div>
@@ -149,19 +172,22 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <ToggleGroup
-            aria-label="Severity"
-            value="high"
-            onChange={() => {}}
-            items={[
-              { value: "all", label: "All", count: 24 },
-              { value: "high", label: "High", count: 6 },
-              { value: "medium", label: "Medium", count: 11 },
-              { value: "low", label: "Low", count: 7 },
-            ]}
-          />
+          <ToggleGroup aria-label="Severity" defaultValue={["high"]}>
+            <ToggleGroupItem value="all">
+              All <Count value={24} />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="high">
+              High <Count value={6} />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="medium">
+              Medium <Count value={11} />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="low">
+              Low <Count value={7} />
+            </ToggleGroupItem>
+          </ToggleGroup>
         }
-        doText="One of a few, always one on: a ToggleGroup, its counts as Counts."
+        doText="A ToggleGroup coordinates exclusive choices; Count displays the totals."
         dont={
           <Inline space="space.075">
             {["All", "High", "Medium", "Low"].map((s) => (

@@ -70,6 +70,15 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { toast, type Tone } from "@ledger/design-system";
+import { workForProgram, useWorkVersion } from "@/lib/control-work";
+import { evidenceForTarget, useEvidenceVersion } from "@/lib/evidence-catalog";
+import { getRequirement, requirementsForControl, useRequirementsVersion } from "@/lib/requirements";
+import {
+  objectiveEvidence,
+  objectivesForRequirement,
+  useVerificationVersion,
+} from "@/lib/requirement-verification";
+import { resolvedObjectiveResult, runById } from "@/lib/test-execution";
 import { rowCurrency } from "@/lib/baselines";
 import { objectivesForCci, type TestObjective } from "@/lib/campaigns";
 import { ccis, ccisByControl, rulesByCci, type Cci } from "@/lib/catalog";
@@ -93,7 +102,7 @@ import type { ControlOrigination, FindingSeverity, VerificationMethod } from "@/
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
-export type RequirementUnit = "CCI" | "Objective" | "Control";
+export type RequirementUnit = "CCI" | "Objective" | "Control" | "Requirement";
 export type Determination =
   "Satisfied" | "Other than satisfied" | "Not assessed" | "Not applicable";
 
@@ -730,7 +739,15 @@ export function buildSctm(
   const out: SctmRow[] = [];
 
   for (const row of rows) {
-    const requirements = requirementsFor(row, text);
+    const requirements: Requirement[] = [
+      ...requirementsFor(row, text),
+      ...requirementsForControl(row.id, programId).map((requirement): Requirement => ({
+        unit: "Requirement",
+        id: requirement.id,
+        statement: requirement.text,
+        cci: null,
+      })),
+    ];
     // The resolution is authoritative for everything on the inheritance side.
     // It has already run the CCP precedence ladder, evaluated the offer against
     // this system's real inventory and split the responsibility, so nothing
@@ -803,7 +820,7 @@ export function buildSctm(
     // One call per control, not per requirement: currency is a property of the
     // control's allocation and its provider, and every requirement the control
     // decomposes to shares both.
-    const { currency, currencyReason } = currencyFor(
+    const baseCurrency = currencyFor(
       programId,
       row.id,
       responsibleNodes,
@@ -813,11 +830,36 @@ export function buildSctm(
       inheritanceSuspect,
     );
 
-    const assertion = assertions[row.id] ?? threadStatementByControl.get(row.id) ?? "—";
+    const controlWork = workForProgram(programId).filter(
+      (work) =>
+        work.control === row.id &&
+        (work.narrativeRevision > 0 || work.assessment !== "Not assessed"),
+    );
+    const authored = controlWork.filter((work) => work.narrativeRevision > 0);
+    const assertion = authored.length
+      ? authored
+          .map(
+            (work) =>
+              `${authored.length > 1 ? `${work.scope}: ` : ""}${work.narrative.trim() || "—"}`,
+          )
+          .join("\n\n")
+      : ((programId === "PRG-1041"
+          ? (assertions[row.id] ?? threadStatementByControl.get(row.id))
+          : undefined) ?? "—");
+    const linkedEvidence = [
+      ...evidenceForTarget(programId, "control", row.id),
+      ...requirementsForControl(row.id, programId).flatMap((requirement) =>
+        evidenceForTarget(programId, "requirement", requirement.id),
+      ),
+    ];
 
     for (const req of requirements) {
       const reqFindings =
-        req.unit === "CCI" ? row.findings.filter((f) => f.cci === req.id) : row.findings;
+        req.unit === "CCI"
+          ? row.findings.filter((f) => f.cci === req.id)
+          : req.unit === "Requirement"
+            ? row.findings.filter((f) => f.requirements?.includes(req.id))
+            : row.findings;
       // `openList` is operational — what is still being worked. `deficient` is
       // the assessment set: a risk-accepted residual is no longer open, but it is
       // still a recorded deficiency and 800-53A knows no third determination.
@@ -825,13 +867,30 @@ export function buildSctm(
       const deficient = reqFindings.filter(isDeficiency);
       const worst = worstOf(deficient);
 
-      const covering = req.unit === "CCI" ? objectivesForCci(req.id) : [];
-      const evidence = new Set<string>();
+      const covering =
+        req.unit === "CCI"
+          ? objectivesForCci(req.id)
+          : req.unit === "Requirement"
+            ? objectivesForRequirement(req.id)
+            : [];
+      const supportingArtifacts =
+        req.unit === "Requirement"
+          ? [
+              ...evidenceForTarget(programId, "control", row.id),
+              ...evidenceForTarget(programId, "requirement", req.id),
+            ]
+          : linkedEvidence;
+      const evidence = new Set<string>(supportingArtifacts.map((artifact) => artifact.id));
       for (const f of reqFindings) {
-        evidence.add(f.sourceArtifact);
-        for (const e of f.assessment.evidence) evidence.add(e);
+        if (f.sourceArtifact) evidence.add(f.sourceArtifact);
+        for (const e of [
+          ...f.assessment.evidence,
+          ...(f.retests ?? []).flatMap((retest) => retest.evidence),
+        ])
+          evidence.add(e);
       }
-      for (const o of covering) if (o.evidence) evidence.add(o.evidence);
+      for (const objective of covering)
+        for (const id of objectiveEvidence(objective.id)) evidence.add(id);
       // A withdrawn offer carries no evidence label; "—" is not an artifact id.
       if (edge && edge.provided.evidence !== "—") {
         evidence.add(edge.provided.evidence);
@@ -857,6 +916,34 @@ export function buildSctm(
             : `${row.id} is assessed other than satisfied. Next action: ${row.nextAction}.`;
       }
 
+      if (controlWork.length && determination !== "Not applicable") {
+        determination = controlWork.some((work) => work.assessment === "Other than satisfied")
+          ? "Other than satisfied"
+          : controlWork.every((work) => work.assessment === "Satisfied")
+            ? "Satisfied"
+            : "Not assessed";
+        determinationNote = controlWork
+          .map(
+            (work) =>
+              `${work.scope}: ${work.determinationNote || "Awaiting assessment of the current implementation."}`,
+          )
+          .join(" ");
+      }
+      if (req.unit === "Requirement") {
+        const results = covering.map((objective) => resolvedObjectiveResult(objective.id));
+        determination = results.some(
+          (result) => result.result === "Not met" || result.result === "Partially met",
+        )
+          ? "Other than satisfied"
+          : results.length && results.every((result) => result.result === "Met")
+            ? "Satisfied"
+            : "Not assessed";
+        determinationNote = results.length
+          ? results
+              .map((result, index) => `${covering[index]!.id}: ${result.result}. ${result.basis}`)
+              .join(" ")
+          : "No assessment objective is linked to this requirement.";
+      }
       if (providerFailing && determination !== "Other than satisfied") {
         determination = "Other than satisfied";
         if (edge && !worst) {
@@ -880,7 +967,13 @@ export function buildSctm(
         determinationNote = `${req.id} is recorded as not applicable to this system, so no determination is owed against it.`;
       }
 
-      const { method, basis } = methodFor(req, row.id, row.family, text);
+      const { method, basis } =
+        req.unit === "Requirement"
+          ? {
+              method: getRequirement(req.id)?.method ?? "Test",
+              basis: "Verification method specified on the engineering requirement.",
+            }
+          : methodFor(req, row.id, row.family, text);
       const evidenceList = [...evidence];
 
       let gap: string | null = null;
@@ -895,6 +988,24 @@ export function buildSctm(
       } else if (responsibleNodes.length === 0) {
         gap = "Not allocated to a component";
       }
+
+      const runDates = covering
+        .map((objective) => resolvedObjectiveResult(objective.id))
+        .flatMap((result) => (result.run ? [runById(result.run)?.completed ?? ""] : []))
+        .filter((date) => Number.isFinite(Date.parse(date)));
+      const assessed = runDates.sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? row.assessed;
+      const { currency, currencyReason } =
+        req.unit === "Requirement" && runDates.length
+          ? currencyFor(
+              programId,
+              row.id,
+              responsibleNodes,
+              systemAllocatedNodes,
+              assessed,
+              edge,
+              inheritanceSuspect,
+            )
+          : baseCurrency;
 
       // ── Currency overlay ────────────────────────────────────────────────
       // Applied last, and deliberately narrow. An invalidation retracts a
@@ -953,7 +1064,7 @@ export function buildSctm(
         currencyReason,
         inheritanceState: edge?.state ?? null,
         inheritanceReason: edge?.stateReason ?? "—",
-        assessed: row.assessed,
+        assessed,
         findings: reqFindings.map((f) => f.id),
         openFindings: openList.length,
         worstSeverity: worst?.mitigatedSeverity ?? "—",
@@ -1086,13 +1197,26 @@ export function sctmCsv(sctm: Sctm): string {
  */
 export function useSctm(programId: string, text: ControlTextIndex | null): Sctm {
   const rows = useControlMatrix(programId);
+  const workVersion = useWorkVersion();
+  const verificationVersion = useVerificationVersion();
+  const evidenceVersion = useEvidenceVersion();
+  const requirementsVersion = useRequirementsVersion();
   const version = useSyncExternalStore(subscribeGraph, graphVersion, graphVersion);
   return useMemo(
     // `version` moves whenever a node is re-classified, which changes control
     // allocation; it belongs in the key even though buildSctm reads the graph
     // itself rather than taking the number.
     () => buildSctm(programId, rows, text),
-    [programId, rows, text, version],
+    [
+      programId,
+      rows,
+      text,
+      version,
+      workVersion,
+      evidenceVersion,
+      requirementsVersion,
+      verificationVersion,
+    ],
   );
 }
 

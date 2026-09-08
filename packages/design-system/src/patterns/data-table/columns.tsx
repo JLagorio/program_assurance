@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { Badge, type Tone } from "../../components/badge";
 import { Editable } from "../../components/editable";
 import { Person } from "../../components/avatar";
+import { Table, type ListItem } from "../../components/table";
 import { Absent } from "../../components/typography";
 import type { RowAction } from "./features";
 import { createDataTableColumnHelper, type DataTableColumn } from "./use-data-table";
@@ -28,7 +29,8 @@ export const minWidths = {
   date: 112,
   status: 120,
   person: 160,
-  actions: 40,
+  list: 160,
+  actions: 32,
   custom: 96,
 } as const;
 
@@ -401,7 +403,91 @@ export function columnKinds<TData extends RowData>() {
       },
     });
 
-  /** The overflow menu, always the last column: a kebab on row hover and focus. */
+  /**
+   * Several values in one cell: `items` reads them from the row; the first shows by name, the rest
+   * as a count, all of them in a hover card. Sorts and filters (contains) by the labels; exports
+   * them joined. Click opens the row's preview when the id column has one.
+   */
+  const list = (
+    columnId: string,
+    {
+      header,
+      width,
+      minWidth,
+      sortable = true,
+      pin,
+      hideable,
+      resizable,
+      items,
+      empty,
+      note,
+      opens = "preview",
+    }: Pick<
+      Shared<TData>,
+      "header" | "width" | "minWidth" | "sortable" | "pin" | "hideable" | "resizable"
+    > & {
+      /** The row's items, in the order they show. */
+      items: (row: TData) => ReadonlyArray<ListItem>;
+      /** Drawn when the row has none: an Indicator that says why. `Absent` unsaid. */
+      empty?: ((row: TData) => ReactNode) | undefined;
+      /** One line under the card's list: what among the items needs attention. */
+      note?: ((row: TData) => ReactNode) | undefined;
+      /**
+       * What the line opens: the row's preview surface (the id column's `preview`), or the row's
+       * `detail`, which the line then carries the chevron for. `preview` unsaid.
+       */
+      opens?: "preview" | "detail" | undefined;
+    },
+  ): DataTableColumn<TData> => {
+    const labels = (row: TData) =>
+      items(row)
+        .map((i) => i.label)
+        .join(", ");
+    return helper.accessor(labels, {
+      id: columnId,
+      header: header ?? columnId,
+      ...(width === undefined ? {} : { size: width }),
+      minSize: minOf(width, minWidth ?? minWidths.list),
+      enableSorting: sortable,
+      sortFn: "alphanumeric",
+      filterFn: "matches",
+      enableGlobalFilter: false,
+      ...shared({ pin, hideable, resizable }),
+      meta: { pin, kind: "list", align: "start", export: labels as (row: never) => string },
+      cell: ({ row, table }) => {
+        const meta = table.options.meta;
+        const preview = table
+          .getAllLeafColumns()
+          .find((c) => c.columnDef.meta?.kind === "id")?.columnDef.meta?.preview;
+        const opensDetail = opens === "detail" && Boolean(meta?.detail);
+        const onOpen = opensDetail
+          ? () => meta?.toggleDetail?.(row.id)
+          : preview
+            ? () => preview(row.original as never)
+            : undefined;
+        return (
+          <Table.List
+            items={items(row.original)}
+            empty={empty?.(row.original)}
+            note={note?.(row.original)}
+            onOpen={onOpen}
+            {...(opensDetail
+              ? {
+                  expanded: Boolean(meta?.detailOpen?.(row.id)),
+                  controls: `${meta?.view ?? "table"}-${row.id}-detail`,
+                }
+              : {})}
+          />
+        );
+      },
+    });
+  };
+
+  /**
+   * The overflow menu: a kebab on row hover and focus. Always the last column and always pinned to
+   * the end, whatever the reader reorders or pins, so it sits at the table's trailing edge however
+   * far the columns scroll.
+   */
   const actions = (rowActions: (row: TData) => RowAction[]) =>
     helper.display({
       id: "actions",
@@ -411,7 +497,7 @@ export function columnKinds<TData extends RowData>() {
       enableSorting: false,
       enableHiding: false,
       enableResizing: false,
-      meta: { kind: "actions", align: "end", actions: rowActions },
+      meta: { kind: "actions", align: "end", pin: "end", actions: rowActions },
     });
 
   /** Anything else: a bar, an icon, a composed cell. `sort` reads the value the column sorts by; without it the column does not sort. `pin`, `hideable` and `resizable` as on every kind. */
@@ -474,7 +560,7 @@ export function columnKinds<TData extends RowData>() {
   const group = (header: string, columns: ReadonlyArray<DataTableColumn<TData>>) =>
     helper.group({ id: header, header, columns });
 
-  return { id, text, number, date, status, person, actions, custom, group };
+  return { id, text, number, date, status, person, list, actions, custom, group };
 }
 
 export type ColumnKinds<TData extends RowData> = ReturnType<typeof columnKinds<TData>>;

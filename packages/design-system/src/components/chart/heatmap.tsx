@@ -1,10 +1,11 @@
 import { useLedgerLocale } from "../../lib/locale";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
 import { toneClasses, type Tone } from "../badge";
-import { menuMotion } from "../menu";
+import { useOverlayContainer } from "../_overlay-focus";
+import { Popover } from "../popover";
 import {
   CardHead,
   divergingColor,
@@ -76,7 +77,8 @@ export function ChartHeatmap({
   details,
   className,
 }: ChartHeatmapProps) {
-  const { t } = useLedgerLocale();
+  const { t, direction } = useLedgerLocale();
+  const portal = useOverlayContainer();
   const { format: defaultFormat } = useChartFormat();
   const format = formatProp ?? defaultFormat;
 
@@ -130,6 +132,7 @@ export function ChartHeatmap({
   const head = "h-row-header px-050 pb-050 align-bottom font-body-xsmall font-medium text-subtlest";
   return (
     <div className={cn("overflow-x-auto", className)}>
+      <span hidden ref={portal.ref} />
       <table
         aria-label={loading ? t("loadingLabel", { label }) : label}
         aria-busy={loading || undefined}
@@ -214,36 +217,44 @@ export function ChartHeatmap({
         </tbody>
       </table>
       {picked && details ? (
-        <PopoverPrimitive.Root
+        <Popover
           open
           onOpenChange={(open) => {
             if (!open) close();
           }}
         >
-          <PopoverPrimitive.Anchor virtualRef={anchor} />
-          <PopoverPrimitive.Portal>
-            <PopoverPrimitive.Content
+          <PopoverPrimitive.Portal container={portal.container}>
+            <PopoverPrimitive.Positioner
+              anchor={anchor}
               side="top"
               align="center"
               sideOffset={6}
               collisionPadding={8}
-              aria-label={t("detailsLabel", { label })}
-              onCloseAutoFocus={(e) => e.preventDefault()}
-              className={cn(
-                "z-50 flex flex-col gap-150 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none",
-                menuMotion,
-              )}
-              style={{ width: 280 }}
+              positionMethod={portal.container ? "fixed" : undefined}
+              className="isolate z-50"
             >
-              <CardHead
-                title={`${picked.row}, ${picked.column}`}
-                subtitle={rowLabel && columnLabel ? `${rowLabel} by ${columnLabel}` : undefined}
-                value={format(picked.value)}
-              />
-              {details(picked)}
-            </PopoverPrimitive.Content>
+              <PopoverPrimitive.Popup
+                data-slot="popover-content"
+                dir={direction}
+                aria-label={t("detailsLabel", { label })}
+                finalFocus={false}
+                className="flex flex-col gap-150 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none data-open:animate-enter data-closed:animate-exit data-instant:animate-none motion-reduce:animate-none"
+                style={{
+                  width: 280,
+                  maxWidth: "var(--available-width)",
+                  transformOrigin: "var(--transform-origin)",
+                }}
+              >
+                <CardHead
+                  title={`${picked.row}, ${picked.column}`}
+                  subtitle={rowLabel && columnLabel ? `${rowLabel} by ${columnLabel}` : undefined}
+                  value={format(picked.value)}
+                />
+                {details(picked)}
+              </PopoverPrimitive.Popup>
+            </PopoverPrimitive.Positioner>
           </PopoverPrimitive.Portal>
-        </PopoverPrimitive.Root>
+        </Popover>
       ) : null}
     </div>
   );

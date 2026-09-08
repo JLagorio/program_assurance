@@ -10,7 +10,7 @@
 
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Trash2 } from "lucide-react";
-import { useMemo, useReducer, useState } from "react";
+import { useId, useMemo, useReducer, useState } from "react";
 
 import {
   AlertDialog,
@@ -30,6 +30,7 @@ import {
   NativeSelect,
   PageHeader,
   RadioGroup,
+  RadioGroupItem,
   Sheet,
   Stack,
   Stepper,
@@ -295,15 +296,24 @@ export function ProgramWizard() {
 
   const create = () => {
     setCreating(true);
-    const { program } = createProgramFromDraft(draft);
-    toast.success(`${program.id} created`, {
-      description: `${draft.scopes.length} scope${draft.scopes.length === 1 ? "" : "s"} · ${union} controls · revision 1 ${draft.submitOnCreate ? "pending approval" : "draft"}`,
-    });
-    void navigate({
-      to: "/programs/$programId",
-      params: { programId: program.id },
-      search: { tab: "System" },
-    });
+    try {
+      const { program } = createProgramFromDraft(draft);
+      toast.success(`${program.id} created`, {
+        description: `${draft.scopes.length} scope${draft.scopes.length === 1 ? "" : "s"} · ${union} controls · revision 1 ${draft.submitOnCreate ? "pending approval" : "draft"}`,
+      });
+      void navigate({
+        to: "/programs/$programId",
+        params: { programId: program.id },
+        search: { tab: "System" },
+      });
+    } catch (error) {
+      toast.error("Program could not be created", {
+        description:
+          error instanceof Error ? error.message : "Check browser storage and try again.",
+      });
+    } finally {
+      setCreating(false);
+    }
   };
 
   return (
@@ -523,14 +533,13 @@ function FrameworkStep({
   draft: ProgramDraft;
   dispatch: (a: Action) => void;
 }) {
+  const frameworkId = useId();
   return (
     <Block title="Framework edition">
-      <RadioGroup
+      <RadioGroup<ProgramDraft["framework"]>
         aria-label="Framework edition"
         value={draft.framework}
-        onValueChange={(v) =>
-          dispatch({ type: "field", patch: { framework: v as ProgramDraft["framework"] } })
-        }
+        onValueChange={(framework) => dispatch({ type: "field", patch: { framework } })}
         className="gap-0 divide-y"
       >
         {frameworks.map((f) => (
@@ -541,13 +550,25 @@ function FrameworkStep({
             alignBlock="start"
             spread="space-between"
           >
-            <RadioGroup.Item
-              value={f.id}
-              disabled={!f.available}
-              description={`${f.version} · selects under ${f.policy}`}
-            >
-              {f.name}
-            </RadioGroup.Item>
+            <label className="group inline-flex items-start gap-100 font-body text-default has-[:disabled]:cursor-not-allowed has-[:disabled]:text-disabled">
+              <RadioGroupItem
+                value={f.id}
+                disabled={!f.available}
+                aria-labelledby={`${frameworkId}-${f.id}-label`}
+                aria-describedby={`${frameworkId}-${f.id}-description`}
+              />
+              <Stack as="span" className="min-w-0">
+                <span id={`${frameworkId}-${f.id}-label`} className="select-none">
+                  {f.name}
+                </span>
+                <span
+                  id={`${frameworkId}-${f.id}-description`}
+                  className="font-body-small text-subtle group-has-[:disabled]:text-disabled"
+                >
+                  {f.version} · selects under {f.policy}
+                </span>
+              </Stack>
+            </label>
             <span className="shrink-0 text-right font-body-small text-subtle">
               {f.available ? (
                 <span className="tabular-nums">{f.controls} controls and enhancements</span>
@@ -894,6 +915,7 @@ function ReviewStep({
   dispatch: (a: Action) => void;
   union: number;
 }) {
+  const submitId = useId();
   const framework = frameworks.find((f) => f.id === draft.framework);
   const decisions = draft.scopes.flatMap((s) => [
     ...contestedOverlays(s.overlays).map((d) => ({
@@ -1012,15 +1034,24 @@ function ReviewStep({
       </Block>
 
       <Block title="On create">
-        <Checkbox
-          checked={draft.submitOnCreate}
-          description="Off leaves every revision 1 as a draft the engineer submits later."
-          onCheckedChange={(v) =>
-            dispatch({ type: "field", patch: { submitOnCreate: v === true } })
-          }
-        >
-          Submit control sets for approval now
-        </Checkbox>
+        <label className="inline-flex items-start gap-100 font-body text-default">
+          <Checkbox
+            checked={draft.submitOnCreate}
+            aria-labelledby={`${submitId}-label`}
+            aria-describedby={`${submitId}-description`}
+            onCheckedChange={(submitOnCreate) =>
+              dispatch({ type: "field", patch: { submitOnCreate } })
+            }
+          />
+          <Stack as="span" className="min-w-0">
+            <span id={`${submitId}-label`} className="select-none">
+              Submit control sets for approval now
+            </span>
+            <span id={`${submitId}-description`} className="font-body-small text-subtle">
+              Off leaves every revision 1 as a draft the engineer submits later.
+            </span>
+          </Stack>
+        </label>
       </Block>
     </Stack>
   );

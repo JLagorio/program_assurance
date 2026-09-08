@@ -71,7 +71,12 @@ function AlertDialogStates() {
         confirmLabel={danger ? "Archive" : "Submit"}
         pending={open === "pending" && saving}
       >
-        {open === "control" ? <Checkbox>Also close its open findings</Checkbox> : null}
+        {open === "control" ? (
+          <label className="inline-flex items-center gap-100">
+            <Checkbox />
+            Also close its open findings
+          </label>
+        ) : null}
       </AlertDialog>
     </Stack>
   );

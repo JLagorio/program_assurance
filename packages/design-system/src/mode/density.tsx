@@ -1,7 +1,7 @@
 import { AlignJustify, Rows3 } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { ToggleGroup } from "../components/toggle";
+import { ToggleGroup, ToggleGroupItem } from "../components/toggle-group";
 
 /*
  * Row density is a table's setting, not the document's. `Table` takes `density`; a DataTable keeps
@@ -76,17 +76,18 @@ export function DensitySwitch({
     <ToggleGroup<Density>
       aria-label={ariaLabel}
       className={className}
-      value={value}
-      onChange={onChange}
-      items={densities.map(({ value: v, label, icon: Icon }) => ({
-        value: v,
-        label: (
-          <>
-            <Icon className="size-icon-small" />
-            <span className={showLabels ? undefined : "sr-only"}>{label}</span>
-          </>
-        ),
-      }))}
-    />
+      size="sm"
+      value={[value]}
+      onValueChange={([next]) => {
+        if (next !== undefined) onChange(next);
+      }}
+    >
+      {densities.map(({ value: v, label, icon: Icon }) => (
+        <ToggleGroupItem key={v} value={v}>
+          <Icon className="size-icon-small" aria-hidden />
+          <span className={showLabels ? undefined : "sr-only"}>{label}</span>
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   );
 }

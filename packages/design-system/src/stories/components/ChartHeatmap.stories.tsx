@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Badge, Button, Chart, KeyValue } from "../../components";
 import { Grid, Stack } from "../../primitives";
@@ -194,6 +195,45 @@ export const Details: Story = {
       />
     </Chart>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const cell = canvas
+      .getByTitle(`Certain, Critical: ${riskCount("Certain", "Critical")}`)
+      .closest("button");
+    await expect(cell).not.toBeNull();
+    await userEvent.click(cell!);
+    const dialog = await page.findByRole("dialog", { name: "Risk matrix, details" });
+    await waitFor(() => expect(within(dialog).getByText("Certain, Critical")).toBeVisible());
+    await expect(cell).toHaveAttribute("aria-pressed", "true");
+    await waitFor(() =>
+      expect(within(dialog).getByRole("button", { name: "Open the register" })).toHaveFocus(),
+    );
+    await waitFor(() => {
+      const popupRect = dialog.getBoundingClientRect();
+      const cellRect = cell!.getBoundingClientRect();
+      expect(popupRect.left).toBeLessThan(cellRect.right);
+      expect(popupRect.right).toBeGreaterThan(cellRect.left);
+      expect(
+        Math.min(
+          Math.abs(popupRect.bottom - cellRect.top),
+          Math.abs(popupRect.top - cellRect.bottom),
+        ),
+      ).toBeLessThan(16);
+    });
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    await expect(cell).not.toHaveAttribute("aria-pressed", "true");
+    await waitFor(() => expect(cell).toHaveFocus());
+    await userEvent.keyboard("{Enter}");
+    const reopened = await page.findByRole("dialog", { name: "Risk matrix, details" });
+    await waitFor(() =>
+      expect(within(reopened).getByRole("button", { name: "Open the register" })).toHaveFocus(),
+    );
+    await userEvent.click(canvas.getByText("Risk matrix"));
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    await waitFor(() => expect(cell).toHaveFocus());
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */

@@ -1,6 +1,6 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo } from "react";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
 
 import {
   BreadcrumbItem,
@@ -8,6 +8,7 @@ import {
   Badge,
   Box,
   Button,
+  buttonVariants,
   Empty,
   Grid,
   Id,
@@ -30,7 +31,14 @@ import { RemediationPlanSection } from "@/components/app/remediation";
 import { TextBlock } from "@/components/app/control-text";
 import { ccis } from "@/lib/catalog";
 import { useControlMatrix } from "@/lib/control-matrix";
-import { assetById, findings, findingsByCci, isDeficiency, isOpen } from "@/lib/findings";
+import {
+  assetById,
+  findingProgram,
+  findings,
+  findingsByCci,
+  isDeficiency,
+  isOpen,
+} from "@/lib/findings";
 import { controlTitle, nistControlById } from "@/lib/nist-catalog";
 import { planForFinding } from "@/lib/remediation";
 import { poamById } from "@/lib/register";
@@ -77,16 +85,23 @@ export const Route = createFileRoute("/findings/$findingId")({
 });
 
 function FindingRecord() {
+  const assuranceVersion = useAssuranceVersion();
   const { findingId } = Route.useParams();
   const tab = Route.useSearch().tab ?? "Finding";
   const navigate = useNavigate({ from: Route.fullPath });
   const finding = findings.find((f) => f.id === findingId);
 
   const asset = finding ? assetById.get(finding.asset) : undefined;
-  const programId = asset?.program ?? "PRG-1041";
+  const programId = finding ? (findingProgram(finding) ?? "PRG-1041") : "PRG-1041";
   const rows = useControlMatrix(programId);
-  const plan = useMemo(() => (finding ? planForFinding(finding, rows) : null), [finding, rows]);
-  const residual = useMemo(() => (finding ? scoreFinding(finding.id) : null), [finding]);
+  const plan = useMemo(
+    () => (finding ? planForFinding(finding, rows) : null),
+    [finding, rows, assuranceVersion],
+  );
+  const residual = useMemo(
+    () => (finding ? scoreFinding(finding.id) : null),
+    [finding, assuranceVersion],
+  );
 
   if (!finding) {
     return (
@@ -243,19 +258,27 @@ function FindingRecord() {
                     {finding.lifecycle}
                   </Badge>
                   {finding.poam ? (
-                    <Button asChild variant="secondary" size="small">
-                      <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
-                        Open {finding.poam}
-                      </Link>
-                    </Button>
+                    <Link
+                      to="/register/poam/$poamId"
+                      params={{ poamId: finding.poam }}
+                      className={buttonVariants({ variant: "secondary", size: "small" })}
+                    >
+                      Open {finding.poam}
+                    </Link>
                   ) : (
-                    <UnavailableAction
-                      reason="Add a POA&M item from the relevant program record."
+                    <Button
                       variant="secondary"
                       size="small"
+                      render={
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId }}
+                          search={{ tab: "Findings", findingId: finding.id }}
+                        />
+                      }
                     >
-                      Add to POA&amp;M
-                    </UnavailableAction>
+                      Manage in program
+                    </Button>
                   )}
                 </>
               }

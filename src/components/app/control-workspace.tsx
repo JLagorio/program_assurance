@@ -34,6 +34,7 @@ import {
   Inline,
   Stack,
   ToggleGroup,
+  ToggleGroupItem,
   token,
   Eyebrow,
 } from "@ledger/design-system";
@@ -1184,13 +1185,21 @@ export function ControlWorkspace({ programId }: { programId: string }) {
         </Breadcrumb>
         <Inline className="ml-auto" space="space.100" alignBlock="center">
           <ToggleGroup
-            items={views.map((v) => ({ value: v.value, label: v.label }))}
-            value={view}
-            onChange={(v) => {
-              setView(v);
+            aria-label="Control view"
+            size="sm"
+            value={[view]}
+            onValueChange={([next]) => {
+              if (next === undefined) return;
+              setView(next);
               setHov(null);
             }}
-          />
+          >
+            {views.map((v) => (
+              <ToggleGroupItem key={v.value} value={v.value}>
+                {v.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
           <Button
             size="small"
             variant="primary"

@@ -54,14 +54,20 @@ export function parseStoredView(value: unknown): StoredView | null {
 /** Remove obsolete IDs, append new columns and clamp restored widths to current column constraints. */
 export function reconcileStoredView(
   stored: StoredView,
-  columns: { id: string; minSize?: number; maxSize?: number }[],
+  columns: { id: string; minSize?: number; maxSize?: number; trailing?: boolean }[],
 ): StoredView {
   const known = new Map(columns.map((column) => [column.id, column]));
   const keep = (list: string[]) => list.filter((id) => known.has(id));
-  const order = keep(stored.order);
+  // A trailing column (the row's actions) is last and pinned to the end whatever the store says.
+  const trailing = columns.filter((column) => column.trailing).map((column) => column.id);
+  const held = (list: string[]) => list.filter((id) => !trailing.includes(id));
+  const order = held(keep(stored.order));
+  const unseen = columns
+    .map((column) => column.id)
+    .filter((id) => !order.includes(id) && !trailing.includes(id));
   return {
     ...stored,
-    order: [...order, ...columns.map((column) => column.id).filter((id) => !order.includes(id))],
+    order: [...order, ...unseen, ...trailing],
     sizing: Object.fromEntries(
       Object.entries(stored.sizing)
         .filter(([id]) => known.has(id))
@@ -73,7 +79,10 @@ export function reconcileStoredView(
     visibility: Object.fromEntries(
       Object.entries(stored.visibility).filter(([id]) => known.has(id)),
     ),
-    pinning: { start: keep(stored.pinning.start), end: keep(stored.pinning.end) },
+    pinning: {
+      start: held(keep(stored.pinning.start)),
+      end: [...new Set([...held(keep(stored.pinning.end)), ...trailing])],
+    },
   };
 }
 

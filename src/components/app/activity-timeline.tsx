@@ -10,12 +10,14 @@ import { ChevronDown, Circle } from "lucide-react";
 import {
   Avatar,
   Button,
+  buttonVariants,
   DropdownMenu,
   Empty,
   Inline,
   Sheet,
   Timeline,
   ToggleGroup,
+  ToggleGroupItem,
 } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
@@ -80,18 +82,21 @@ export function ActivityTimeline({
       <Inline className="pb-150 pt-150" space="space.075" alignBlock="center" shouldWrap>
         <ToggleGroup
           aria-label="Activity type"
-          value={filters.kind}
-          onChange={(k) => update({ kind: k })}
-          items={(["All", ...activityKinds] as const).map((k) => ({
-            value: k,
-            label: (
+          size="sm"
+          value={[filters.kind]}
+          onValueChange={([kind]) => {
+            if (kind !== undefined) update({ kind });
+          }}
+        >
+          {(["All", ...activityKinds] as const).map((k) => (
+            <ToggleGroupItem key={k} value={k}>
               <Inline as="span" display="inline-flex" space="space.075" alignBlock="center">
                 {k}
                 <span className="tabular-nums opacity-disabled">{counts[k] ?? 0}</span>
               </Inline>
-            ),
-          }))}
-        />
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
 
         <Inline className="ml-auto" as="span" space="space.075" alignBlock="center">
           <FilterMenu
@@ -205,11 +210,13 @@ export function ActivityTimeline({
                 Mark unread
               </Button>
               {active.to ? (
-                <Button asChild variant="primary" size="small">
-                  <Link to={active.to} params={active.params as never}>
-                    Open record
-                  </Link>
-                </Button>
+                <Link
+                  to={active.to}
+                  params={active.params as never}
+                  className={buttonVariants({ variant: "primary", size: "small" })}
+                >
+                  Open record
+                </Link>
               ) : null}
             </>
           ) : null

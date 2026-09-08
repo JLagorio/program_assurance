@@ -19,12 +19,12 @@ How the form controls go together: which control answers which question, how a f
 | One line of free text: a name, an email, a number        | [Input](?path=/docs/components-input--docs), with `type` for the value's kind.                                    |
 | Several lines: a note, a description, a narrative        | [Textarea](?path=/docs/components-textarea--docs), with `rows` for the expected length.                           |
 | A search box, a number with a unit                       | [InputGroup](?path=/docs/components-inputgroup--docs) around the Input.                                           |
-| One of two or three answers, all worth seeing            | [RadioGroup](?path=/docs/components-radiogroup--docs).                                                            |
+| One answer from visible choices                         | [RadioGroup](?path=/docs/components-radiogroup--docs).                                                            |
 | One of four to a dozen plain words                       | [NativeSelect](?path=/docs/components-nativeselect--docs).                                                        |
 | One of a short list whose options carry a Dot or a Badge | [Select](?path=/docs/components-select--docs).                                                                    |
 | One of many, or names the reader would type              | [Combobox](?path=/docs/components-combobox--docs).                                                                |
 | Several things that can each be true                     | [Checkbox](?path=/docs/components-checkbox--docs)es in a Field with `isGroup`.                                    |
-| On or off, applied the moment it is flipped              | [Switch](?path=/docs/components-switch--docs), outside the form's Save.                                           |
+| An on/off setting              | [Switch](?path=/docs/components-switch--docs), with an external label or Field.                                           |
 | A day to schedule                                        | [DatePicker](?path=/docs/components-datepicker--docs). A remembered date is an Input with the format in the hint. |
 | A record: a person, a control, a requirement             | Combobox, or a [RecordPicker](?path=/docs/patterns-recordpicker--docs) when the choice needs more than a row.     |
 
@@ -163,7 +163,7 @@ const form = useForm({
 
 The live examples use `noValidate` to demonstrate schema errors. For production, retain native constraints such as `required`, `type` and `maxLength`; omit `noValidate` when native browser feedback is appropriate. `isRequired` alone sets the accessible requirement and visual marker, not native validation.
 
-Bind Input, Textarea and NativeSelect with `value`, `onBlur={field.handleBlur}` and `onChange` passing `event.target.value`. Select and RadioGroup use `value` and `onValueChange={field.handleChange}`; Checkbox and Switch use `checked` and `onCheckedChange` (normalize an indeterminate checkbox to a boolean when the schema expects one). Combobox and DatePicker use their `value` and `onChange` APIs. Forward blur to the focusable control. For checkbox arrays, use `form.Field` with `mode="array"` and TanStack's `pushValue`/`removeValue` helpers.
+Bind Input, Textarea and NativeSelect with `value`, `onBlur={field.handleBlur}` and `onChange` passing `event.target.value`. Select and RadioGroup use `value` and `onValueChange={field.handleChange}`; Checkbox and Switch use boolean `checked` and `onCheckedChange`; a checkbox’s mixed presentation uses the separate boolean `indeterminate` prop. Combobox and DatePicker use their `value` and `onChange` APIs. Forward blur to the focusable control. For checkbox arrays, use `form.Field` with `mode="array"` and TanStack's `pushValue`/`removeValue` helpers.
 
 ### Existing forms
 

@@ -21,6 +21,7 @@ import {
   Table,
   Tabs,
   ToggleGroup,
+  ToggleGroupItem,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -137,10 +138,18 @@ function Catalog() {
                 </InputGroup>
                 <ToggleGroup
                   aria-label="Family"
-                  value={family}
-                  onChange={setFamily}
-                  items={["All", ...families.map((f) => f.id)].map((f) => ({ value: f, label: f }))}
-                />
+                  size="sm"
+                  value={[family]}
+                  onValueChange={([next]) => {
+                    if (next !== undefined) setFamily(next);
+                  }}
+                >
+                  {["All", ...families.map((f) => f.id)].map((f) => (
+                    <ToggleGroupItem key={f} value={f}>
+                      {f}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </Inline>
             ) : null}
 
