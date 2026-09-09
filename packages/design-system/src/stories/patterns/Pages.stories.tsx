@@ -187,8 +187,8 @@ export const Preview: Story = {
         title="Privileged access review"
         onClose={() => undefined}
         openTo={
-          <TextLink size="small">
-            <a href="#open">Open control</a>
+          <TextLink size="small" render={<a href="#open" />}>
+            Open control
           </TextLink>
         }
       >

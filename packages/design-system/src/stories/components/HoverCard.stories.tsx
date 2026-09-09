@@ -182,16 +182,18 @@ export const OnAnId: Story = {
                   {rows.map((row) => (
                     <Table.Row key={row.id}>
                       <Table.Cell>
-                        <TextLink>
-                          <HoverCardTrigger
-                            href={`#${row.id}`}
-                            payload={row}
-                            data-preview={row.preview ? "available" : "unavailable"}
-                            delay={80}
-                            closeDelay={80}
-                          >
-                            {row.id}
-                          </HoverCardTrigger>
+                        <TextLink
+                          render={
+                            <HoverCardTrigger
+                              href={`#${row.id}`}
+                              payload={row}
+                              data-preview={row.preview ? "available" : "unavailable"}
+                              delay={80}
+                              closeDelay={80}
+                            />
+                          }
+                        >
+                          {row.id}
                         </TextLink>
                       </Table.Cell>
                       <Table.Cell>
@@ -281,9 +283,7 @@ export const Playground: Story = {
   render: (args) => (
     <div style={{ height: 240 }} className="flex items-center justify-center">
       <HoverCard {...args}>
-        <TextLink>
-          <HoverCardTrigger href="#review-guide">Review guide</HoverCardTrigger>
-        </TextLink>
+        <TextLink render={<HoverCardTrigger href="#review-guide" />}>Review guide</TextLink>
         <HoverCardContent>How to prepare evidence and schedule a control review.</HoverCardContent>
       </HoverCard>
     </div>

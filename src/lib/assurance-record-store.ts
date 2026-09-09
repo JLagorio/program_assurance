@@ -183,7 +183,10 @@ export function useAssuranceVersion() {
     try {
       restoreAssuranceRecords();
     } catch (error) {
-      toast.error("Assurance records could not be restored", {
+      toast.add({
+        title: "Assurance records could not be restored",
+        type: "error",
+        timeout: 8000,
         description: error instanceof Error ? error.message : "Saved records are invalid.",
       });
     }

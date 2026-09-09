@@ -136,15 +136,17 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
     <>
       <Table.Cell>
         {programId ? (
-          <TextLink>
-            <Link
-              to="/programs/$programId/controls/$controlId"
-              params={{ programId, controlId: row.control }}
-              search={{ tab: undefined }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Id>{row.control}</Id>
-            </Link>
+          <TextLink
+            render={
+              <Link
+                to="/programs/$programId/controls/$controlId"
+                params={{ programId, controlId: row.control }}
+                search={{ tab: undefined }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            }
+          >
+            <Id>{row.control}</Id>
           </TextLink>
         ) : (
           <Id>{row.control}</Id>
@@ -689,10 +691,13 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
       <Section
         title="Determination currency"
         action={
-          <TextLink size="small">
-            <Link to="/programs/$programId/baseline" params={{ programId: sctm.program }}>
-              Change impact →
-            </Link>
+          <TextLink
+            size="small"
+            render={
+              <Link to="/programs/$programId/baseline" params={{ programId: sctm.program }} />
+            }
+          >
+            Change impact →
           </TextLink>
         }
       >

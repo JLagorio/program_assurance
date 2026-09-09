@@ -8,7 +8,10 @@
  *
  * What it appends / rewrites
  *   - one assessment          ASM-2026-002       (expanded control set, in-progress)
- *   - 300 assessment_results  AR-002-0001..0300  (every row carries id + assessment_id)
+ *   - 300 assessment_results  AR-002-0001..0300  (every row carries id + assessment_id;
+ *                                                 the notes are hand-authored, one entry per
+ *                                                 requirement and outcome, in
+ *                                                 scripts/wsx90-result-notes.json)
  *   - 36 findings             FND-017..FND-052   (one per fail result)
  *   - 24 risks                RSK-017..RSK-040   (each clusters 1-3 findings by theme)
  *   - 24 poam_items           POAM-017..POAM-040 (one per new risk)
@@ -28,6 +31,15 @@
  *   - Every authored string carries a synthetic-content marker.
  *   - Only the 6 existing subsystems and 20 existing LRUs are referenced.
  *   - Nothing is dated before 2026-09-08.
+ *   - Only the four owner roles, in a field or in prose.
+ *   - Cause before effect, in both directions the data can run backwards:
+ *       * no result cites evidence collected on or after its own assessed_on;
+ *       * no milestone reports work finished that the reporting date (2026-11-20)
+ *         has not reached - a completed milestone carries a completed_at at or
+ *         before it, and a milestone targeted after it is planned or in-progress.
+ *         Milestone status is derived from the schedule, never asserted beside it.
+ *   - The POA&M horizon 2026-10-01 -> 2027-03-31 holds for milestone target_dates
+ *     AND for planned_completion, close-out review included.
  *   - The four pinned warning counts (23 / 6 / 3 / 48) gain nothing:
  *       * every pass and fail row carries >= 1 evidence_id, and the artifact lists
  *         the same requirement_id in its own requirement_ids;
@@ -79,6 +91,18 @@ const FINDINGS_PATH = path.join(HERE, "wsx90-findings.json");
  */
 const RISKS_PATH = path.join(HERE, "wsx90-risks.json");
 
+/**
+ * The assessment result notes are authored the same way, and for the sharpest version
+ * of the same reason. A note is the assessor's observation for one requirement on the
+ * LRUs allocated to it: what was examined, interviewed or tested, and what was seen.
+ * That is a judgement about this requirement, its implementation gap and the artifact
+ * cited, and no rule can produce 300 of them from the record shape without collapsing
+ * into a sentence bank. scripts/wsx90-result-notes.json carries one hand-written entry
+ * per (requirement, outcome) pair, plus the verification method as a binding assertion
+ * the generator checks, so a note and the row it lands on cannot drift apart.
+ */
+const NOTES_PATH = path.join(HERE, "wsx90-result-notes.json");
+
 // ---------------------------------------------------------------------------
 // uuid5 - the same recipe assembly used (brief section 2.1)
 // ---------------------------------------------------------------------------
@@ -114,6 +138,9 @@ const RESULTS_FIRST_DAY = "2026-09-16";
 const RESULTS_LAST_DAY = "2026-11-18";
 const EARLIEST_DATE = "2026-09-08";
 const MARKER = "This observation is synthetic demo content.";
+/** Maximum 4-gram Jaccard permitted between any two authored result notes. */
+const NOTE_SIMILARITY_CEILING = 0.2;
+let noteSimilarityObserved = 0;
 const PROSE_MARKER = "This narrative is synthetic demo content.";
 const OWNER_ROLES = new Set([
   "System Security Engineer",
@@ -175,9 +202,9 @@ const stampFor = (dayOffset, slot) => {
 
 // ---------------------------------------------------------------------------
 // themes - the functional grouping that drives fail selection, how findings cluster
-// into risks, POA&M ownership and the domain texture in an assessment result note.
-// A theme carries no prose that reaches a finding, a risk or a POA&M item: all of
-// that is authored per record in wsx90-findings.json and wsx90-risks.json.
+// into risks and POA&M ownership. A theme carries no prose at all: every sentence that
+// reaches a finding, a risk, a POA&M item or an assessment result note is authored per
+// record in wsx90-findings.json, wsx90-risks.json and wsx90-result-notes.json.
 // ---------------------------------------------------------------------------
 
 /** SC splits: cryptography and session/transmission protection vs. everything boundary. */
@@ -213,143 +240,45 @@ const themeOf = (controlId) => {
 const THEMES = {
   crypto: {
     owner: "Product Security Engineer",
-    detail: [
-      "The check centred on how key material is used and retired rather than on the algorithms themselves.",
-      "Attention fell on the boundary between mission compute and the protected cryptographic services.",
-      "Scope was limited to keys in operational use on WS-X90; wrapped spares were not opened.",
-      "Key generation was left to the module's own attestation; the assessor looked at issue, use and destruction.",
-      "The question was whether protected data leaving the mission enclave stays protected, not how fast it is processed.",
-    ],
   },
   boundary: {
     owner: "Product Security Engineer",
-    detail: [
-      "The mediation path between the mission enclave and every external interface was the focus.",
-      "Both the permitted flows and the default-deny fallback were considered, not the permitted set alone.",
-      "The assessor followed one representative flow from origin to egress rather than sampling rules at rest.",
-      "Interfaces that are only enabled during integration were included, since they exist on the delivered article.",
-      "The assessor distinguished a policy that is configured from a policy that is actually enforced at the gateway.",
-    ],
   },
   audit: {
     owner: "System Security Engineer",
-    detail: [
-      "Both the generating component and the collector that holds the exported record were in scope.",
-      "Retention was checked against the program schedule rather than against available storage.",
-      "The assessor traced one event from generation through export to the retained copy.",
-      "Clock quality was considered, because an audit record that cannot be ordered is of limited use.",
-      "The assessor checked what happens when the collector is unreachable, not only the nominal path.",
-    ],
   },
   access: {
     owner: "System Security Engineer",
-    detail: [
-      "Privileged and unprivileged roles were exercised separately; the two paths differ on WS-X90.",
-      "Enforcement was checked at the point of decision, not only in the role register.",
-      "Emergency and maintenance roles were included because they carry the widest reach.",
-      "Enforcement after a session is established was checked as well as enforcement at the point of entry.",
-      "Payload command paths were treated as a distinct case because a wrong authorisation there is not recoverable.",
-    ],
   },
   ident: {
     owner: "System Security Engineer",
-    detail: [
-      "Device authentication was treated separately from operator authentication throughout.",
-      "Credential lifecycle steps were followed as far as revocation, not only as far as issue.",
-      "Both the interactive path and the machine-to-machine path were exercised.",
-      "Shared and service identities were pulled out and looked at on their own terms.",
-      "Re-authentication after a role change was exercised, not only the initial bind.",
-    ],
   },
   integrity: {
     owner: "Firmware Lead",
-    detail: [
-      "Verification at load and verification at rest were treated as separate questions.",
-      "The signed artifact chain was followed back to the approved release record.",
-      "Integrity reaction, not just integrity detection, was in scope for this objective.",
-      "The assessor looked for what the system does when verification fails, not only that it verifies.",
-      "Update staging was included, since an artifact is exposed for longest while it waits to be applied.",
-    ],
   },
   config: {
     owner: "Firmware Lead",
-    detail: [
-      "The as-built state was compared against the approved baseline, not against the design intent.",
-      "Unauthorized-change detection was exercised as well as the recorded baseline itself.",
-      "Inventory accuracy was checked against the components physically present in the test rig.",
-      "Configuration settings applied at runtime were compared with the settings recorded as approved.",
-      "The assessor asked what happens to an unapproved component that appears in the inventory, not only whether it is noticed.",
-    ],
   },
   maint: {
     owner: "Platform Lead",
-    detail: [
-      "Both scheduled depot activity and unscheduled field service were considered.",
-      "Authorization of the technician and authorization of the tool were checked separately.",
-      "The session record, not the technician's account of it, was treated as the artifact.",
-      "Remote and on-platform service paths were separated, because they authorise differently on WS-X90.",
-      "The assessor followed one service action from request through authorisation to the closing record.",
-    ],
   },
   contingency: {
     owner: "Platform Lead",
-    detail: [
-      "Availability for WS-X90 is categorised moderate, so the objective was read at that level and no continuous failover was expected.",
-      "Recovery to a known-good configuration was the question, not uninterrupted operation.",
-      "The restore path was walked as far as a verified configuration, not merely a readable copy.",
-      "Backup currency was read against the last approved baseline rather than against the backup schedule.",
-      "The assessor asked what state the system comes back in, not only whether it comes back.",
-    ],
   },
   supply: {
     owner: "Product Security Engineer",
-    detail: [
-      "Supplier obligations were read against the flow-down actually present in the contract set.",
-      "Development-process artifacts were checked for currency against the shipping release.",
-      "Component provenance was traced to the approved source of record rather than to a purchase note.",
-      "The assessor separated what the program requires of a supplier from what the supplier has agreed in writing.",
-      "Development-environment protections were treated as in scope, since they shape what ships.",
-    ],
   },
   assessrisk: {
     owner: "System Security Engineer",
-    detail: [
-      "The monitoring cadence was read against the program schedule, not against tool availability.",
-      "Both the scan coverage and the disposition of what it returned were in scope.",
-      "Risk determinations were checked for a named decision authority, not only for a score.",
-      "The assessor looked for evidence the monitoring output reaches a decision, not only that it is produced.",
-      "Coverage was compared against the expanded control set rather than the original authorization scope.",
-    ],
   },
   incident: {
     owner: "System Security Engineer",
-    detail: [
-      "Detection, containment and reporting were treated as three separate obligations.",
-      "The reporting path off-platform was exercised as well as the on-platform handling.",
-      "Exercise records were read for corrective actions, not only for attendance.",
-      "Timeliness of reporting was checked against the program obligation rather than against team practice.",
-      "The assessor asked how an incident on a fielded article reaches the program, not only how one in the lab does.",
-    ],
   },
   physical: {
     owner: "Platform Lead",
-    detail: [
-      "The integration facility and the flight-line enclosure were assessed as distinct environments.",
-      "Media in transit between the two was included, not only media at rest.",
-      "Sanitisation was read as far as verification of the result.",
-      "Escort and unescorted access were separated, and the record of each was read on its own.",
-      "Removable media used to move builds between environments was treated as in scope.",
-    ],
   },
   people: {
     owner: "Platform Lead",
-    detail: [
-      "Role-based content was distinguished from the general awareness material throughout.",
-      "Position risk designations were read against the roles actually performing the work.",
-      "Plan currency was checked against the expanded WS-X90 scope, not the original scope.",
-      "Training records were read for the roles that actually touch the expanded scope, not for headcount.",
-      "The assessor checked that a role change triggers a review, not only that an initial screening happened.",
-    ],
   },
 };
 
@@ -418,92 +347,13 @@ const RISK_PLAN = {
 };
 
 // ---------------------------------------------------------------------------
-// observation frames - four per (method, outcome), then a theme sentence.
-// The frames say what the assessor did; the theme sentence says what it was about.
-// ---------------------------------------------------------------------------
-
-const FRAMES = {
-  "examine|pass": [
-    "The assessor examined the configuration export and release record lodged for {R} and confirmed every acceptance criterion holds on {K}.",
-    "Document review against {R} traced each {C} acceptance criterion to a dated artifact covering {K}, with no unexplained gap.",
-    "Examination of the change record and its approvals showed the state {R} calls for is present on {K} and attributable to an approved baseline.",
-    "The artifact supplied for {R} was read against {C} criterion by criterion; the recorded state on {K} matches what the requirement asks for.",
-  ],
-  "examine|fail": [
-    "Examination of the artifact supplied for {R} found the {C} criteria only partly evidenced on {K}; one criterion has no supporting record at all.",
-    "Review against {R} showed the documented state on {K} has drifted from the approved baseline, so the {C} criteria cannot be judged met.",
-    "Document review for {R} found the artifact covers a subset of {K}; the remaining components in scope are unaddressed.",
-    "Examination found the record lodged for {R} predates the last approved change to {K}, so it does not evidence the current {C} state.",
-  ],
-  "examine|inconclusive": [
-    "The artifact offered for {R} is dated inside the window but does not identify which of {K} it covers, so the assessor reached no determination.",
-    "Examination of {R} was suspended pending a complete export from {K}; the supplied record stops part way through the period.",
-    "Review of {R} raised a scoping question the program has not yet answered for {K}, so the {C} determination is held over.",
-    "The evidence for {R} disagrees with the change record for {K}; the {C} judgement waits on that reconciliation.",
-  ],
-  "examine|not-assessed": [
-    "{R} is inside the campaign scope but the {C} examination on {K} is not yet scheduled in this period.",
-    "No examination of {R} has begun; the work on {K} is still in build and no artifact has been offered.",
-    "The assessor deferred {R} to a later increment because the {C} baseline for {K} has not been approved.",
-    "{R} remains unexamined this period; the program lists the {C} activity on {K} as planned rather than delivered.",
-  ],
-  "interview|pass": [
-    "Interviews with the engineers accountable for {K} described the practice {R} calls for, and their account reconciled with the {C} record on file.",
-    "The responsible role walked the assessor through the {C} workflow on {K}; the described practice meets every acceptance criterion in {R}.",
-    "Discussion with the operating staff confirmed the {R} steps are performed as written for {K}, with named accountability at each hand-off.",
-    "Interview responses about {K} were consistent across roles and matched the {C} expectation recorded in {R}.",
-  ],
-  "interview|fail": [
-    "Interviews about {K} described a practice that departs from {R} at the hand-off step, and no compensating step for {C} was identified.",
-    "The roles interviewed for {R} gave differing accounts of who authorises the {C} action on {K}; accountability is not established.",
-    "Discussion showed the {R} procedure for {K} is understood but not performed at the stated cadence, so the {C} criteria are not met.",
-    "Interview responses for {R} confirmed the {C} step on {K} is skipped when the schedule compresses, which the requirement does not allow.",
-  ],
-  "interview|inconclusive": [
-    "Only one of the two roles named in {R} was available this period, so the {C} account for {K} could not be corroborated.",
-    "Interviews for {R} described a practice on {K} that the assessor could not reconcile with the record before the window closed.",
-    "The staff interviewed about {K} referred the {C} question in {R} to a role that has since changed hands; the determination is held over.",
-    "Accounts of the {C} step on {K} varied between shifts, and {R} was left unresolved pending a further session.",
-  ],
-  "interview|not-assessed": [
-    "The interview for {R} was not held; the roles that perform the {C} activity on {K} are not yet stood up for the expanded scope.",
-    "{R} carries no determination because the {C} responsibilities for {K} are still being assigned.",
-    "No interview covering {R} took place this period; the program deferred the {C} discussion for {K} to the next increment.",
-    "The assessor scheduled but did not conduct the {R} session; {C} practice on {K} remains undescribed.",
-  ],
-  "test|pass": [
-    "A sample of {N} runs on {K} exercised the behaviour {R} specifies, and every run produced the {C} outcome the requirement expects.",
-    "Functional testing against {K} reproduced the enforcement {R} describes across {N} cases with no exception recorded.",
-    "The assessor drove {N} negative cases at {K}; each was refused as {R} requires and each refusal was recorded as {C} expects.",
-    "Test execution on {K} confirmed the {C} state {R} calls for, including across restart, over {N} observations.",
-  ],
-  "test|fail": [
-    "Of {N} test cases run against {K}, {F} did not produce the outcome {R} specifies; the {C} enforcement is not consistent.",
-    "Testing on {K} showed the {C} behaviour {R} requires holds on the primary path but not on the fallback path, which failed {F} of {N} times.",
-    "The assessor reproduced a bypass of the enforcement {R} describes on {K} in {F} of {N} attempts.",
-    "Test runs against {K} recorded {F} of {N} cases where the {C} state {R} expects was not reached inside the required interval.",
-  ],
-  "test|inconclusive": [
-    "The test on {K} could not be completed: {N} runs ended in an instrumentation fault, leaving the {R} determination open.",
-    "Testing of {R} was cut short when the harness lost telemetry from {K}; the {C} judgement waits on a rerun.",
-    "Results from {N} runs on {K} split between the expected state and an unexplained one, so {R} is recorded as unresolved.",
-    "The assessor could not separate {C} behaviour on {K} from adjacent activity in the rig, so {R} carries no determination this period.",
-  ],
-  "test|not-assessed": [
-    "{R} was not tested this period; the {C} function on {K} is not yet available in the integration rig.",
-    "No test of {R} has been run because the {C} build for {K} has not been released to the assessor.",
-    "The assessor deferred testing of {R}; rig time for {K} is committed to the original scope through this window.",
-    "{R} remains untested; the program has scheduled the {C} activity on {K} for a later increment.",
-  ],
-};
-
-// ---------------------------------------------------------------------------
 // load
 // ---------------------------------------------------------------------------
 
 const seed = JSON.parse(readFileSync(SEED_PATH, "utf8"));
 const authoredFindings = JSON.parse(readFileSync(FINDINGS_PATH, "utf8"));
 const authoredRisks = JSON.parse(readFileSync(RISKS_PATH, "utf8"));
+const authoredNotes = JSON.parse(readFileSync(NOTES_PATH, "utf8"));
 
 const componentName = new Map(seed.components.map((c) => [c.id, c.name]));
 const componentSubsystem = new Map(seed.components.map((c) => [c.id, c.subsystem_id]));
@@ -795,39 +645,42 @@ const closedRequirementIds = new Set(
 // authored prose
 // ---------------------------------------------------------------------------
 
-const joinNames = (componentIds) => {
-  const names = componentIds.map((id) => `${componentName.get(id)} (${id})`);
-  if (names.length === 1) return names[0];
-  if (names.length === 2) return `${names[0]} and ${names[1]}`;
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-};
-const joinIds = (list) => {
-  if (list.length === 1) return list[0];
-  if (list.length === 2) return `${list[0]} and ${list[1]}`;
-  return `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
-};
-
-/** A stable small integer per record, used for sample sizes and frame rotation. */
+/** A stable small integer per record, used for the review lag and the hour slot. */
 const spread = (key, modulo) => {
   const digest = createHash("sha1").update(key, "utf8").digest();
   return ((digest[0] << 8) | digest[1]) % modulo;
 };
 
-const composeNote = (requirement, outcome, salt) => {
-  const key = `${FRAMES[`${requirement.verification_method}|${outcome}`] ? "" : "x"}${requirement.id}:${outcome}:${salt}`;
-  const bank = FRAMES[`${requirement.verification_method}|${outcome}`];
-  const frame = bank[spread(`frame:${key}`, bank.length)];
-  const theme = THEMES[themeOf(requirement.control_ids[0])];
-  const detail = theme.detail[spread(`detail:${key}`, theme.detail.length)];
-  const sample = 6 + spread(`sample:${key}`, 19); // 6..24
-  const failed = 1 + spread(`failed:${key}`, Math.max(1, Math.floor(sample / 3)));
-  const text = frame
-    .replaceAll("{R}", requirement.id)
-    .replaceAll("{C}", joinIds(requirement.control_ids))
-    .replaceAll("{K}", joinNames(requirement.component_ids))
-    .replaceAll("{N}", String(sample))
-    .replaceAll("{F}", String(failed));
-  return `${text} ${detail} ${MARKER}`;
+/**
+ * The authored observation for one result row. Nothing is composed here: the note is
+ * looked up by (requirement, outcome), the pairing is checked against the requirement
+ * the record actually carries, and the synthetic marker is appended so every note ends
+ * the same way whatever the authored text says. A row with no authored entry, or one
+ * whose authored method has drifted from the requirement, aborts the run rather than
+ * shipping an observation that describes work the assessor did not do.
+ */
+const noteKey = (requirementId, outcome) => `${requirementId}|${outcome}`;
+const usedNoteKeys = new Set();
+const composeNote = (requirement, outcome) => {
+  const key = noteKey(requirement.id, outcome);
+  const authored = authoredNotes[key];
+  if (!authored) {
+    fail("note-not-authored", key, "no entry in scripts/wsx90-result-notes.json");
+    return `Observation pending for ${requirement.id}. ${MARKER}`;
+  }
+  if (usedNoteKeys.has(key))
+    fail("note-key-reused", key, "two result rows would take the same authored observation");
+  usedNoteKeys.add(key);
+  if (authored.method !== requirement.verification_method)
+    fail(
+      "note-method-drift",
+      key,
+      `authored for ${authored.method}, ${requirement.id} is verified by ${requirement.verification_method}`,
+    );
+  const text = String(authored.note ?? "").trim();
+  if (text.includes(MARKER))
+    fail("note-carries-marker", key, "the marker is appended here, not authored into the note");
+  return `${text} ${MARKER}`;
 };
 
 // ---------------------------------------------------------------------------
@@ -875,7 +728,7 @@ const pushRow = (requirement, outcome, dayOffset, salt, { hurry = false } = {}) 
     evidence_ids: evidenceIds,
     dayOffset: resolved,
     slot: spread(`slot:${requirement.id}:${salt}`, 6),
-    notes: composeNote(requirement, outcome, salt),
+    notes: composeNote(requirement, outcome),
   });
 };
 
@@ -1468,6 +1321,63 @@ const tally = (values) =>
     if (row.component_ids.some((c) => !componentName.has(c)))
       fail("broken-reference", row.id, row.component_ids.join(","));
   }
+
+  /**
+   * Every authored note has to be spent, or the table and the campaign have drifted.
+   */
+  for (const key of Object.keys(authoredNotes))
+    if (key !== "_comment" && !usedNoteKeys.has(key))
+      fail("note-authored-orphan", key, "authored but no result row takes this observation");
+
+  /**
+   * The notes are the largest authored collection in the assurance layer, and the
+   * failure mode a template produces is not duplication but similarity. Two guards run
+   * over the finished set: no sentence may appear in two notes, and no pair of notes may
+   * share more than NOTE_SIMILARITY_CEILING of their 4-gram vocabulary. The observed
+   * maximum over the authored table is about 0.07; the ceiling sits well under the 0.315
+   * the requirement descriptions clear, so a mail-merged replacement fails the run rather
+   * than shipping.
+   */
+  const sentenceOwner = new Map();
+  for (const row of assessmentResults)
+    for (const sentence of String(row.notes ?? "")
+      .split(/(?<=\.)\s+/)
+      .map((s2) => s2.trim())
+      .filter((s2) => s2 && s2 !== MARKER)) {
+      const held = sentenceOwner.get(sentence);
+      if (held) fail("shared-note-sentence", row.id, `${held} uses the same sentence`);
+      else sentenceOwner.set(sentence, row.id);
+    }
+
+  const shingles = assessmentResults.map((row) => {
+    const words = String(row.notes ?? "")
+      .replace(MARKER, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]+/g, " ")
+      .split(/\s+/)
+      .filter(Boolean);
+    const set = new Set();
+    for (let i = 0; i + 4 <= words.length; i += 1) set.add(words.slice(i, i + 4).join(" "));
+    return { id: row.id, set };
+  });
+  let worstPair = 0;
+  for (let i = 0; i < shingles.length; i += 1)
+    for (let j = i + 1; j < shingles.length; j += 1) {
+      const a = shingles[i].set;
+      const b = shingles[j].set;
+      if (a.size === 0 || b.size === 0) continue;
+      let shared = 0;
+      for (const gram of a) if (b.has(gram)) shared += 1;
+      const score = shared / (a.size + b.size - shared);
+      if (score > worstPair) worstPair = score;
+      if (score > NOTE_SIMILARITY_CEILING)
+        fail(
+          "note-similarity",
+          `${shingles[i].id}/${shingles[j].id}`,
+          `4-gram Jaccard ${score.toFixed(3)} exceeds ${NOTE_SIMILARITY_CEILING}`,
+        );
+    }
+  noteSimilarityObserved = worstPair;
 }
 
 // findings
@@ -1685,7 +1595,7 @@ const tally = (values) =>
       else {
         if (!DATE_RE.test(milestone.target_date))
           fail("date-format", milestone.id, milestone.target_date);
-        if (milestone.target_date < "2026-10-01" || milestone.target_date > "2027-03-31")
+        if (milestone.target_date < POAM_WINDOW_START || milestone.target_date > POAM_WINDOW_END)
           fail("milestone-window", milestone.id, milestone.target_date);
         if (milestone.target_date <= last)
           fail("milestone-order", milestone.id, "targets must advance");
@@ -1696,8 +1606,66 @@ const tally = (values) =>
     }
     if (item.planned_completion <= last)
       fail("planned-completion-order", item.id, "must fall after the last milestone target_date");
+    if (item.planned_completion < POAM_WINDOW_START || item.planned_completion > POAM_WINDOW_END)
+      fail(
+        "planned-completion-window",
+        item.id,
+        `${item.planned_completion} escapes ${POAM_WINDOW_START}..${POAM_WINDOW_END}`,
+      );
+    if (item.status === "completed" && item.milestones.some((m) => m.status !== "completed"))
+      fail("completed-poam-open-milestone", item.id, "a completed item cannot carry an open step");
+    if (item.status === "open" && item.milestones.every((m) => m.status === "completed"))
+      fail("open-poam-fully-completed", item.id, "every step is done but the item is still open");
     if (!item.description.includes(PROSE_MARKER)) fail("missing-marker", item.id, "description");
   }
+}
+
+/**
+ * Cause before effect in the POA&M layer: nothing may report work finished that the
+ * dataset's own reporting date has not reached. This runs over EVERY item in the
+ * file, the 16 original ones included, so a hand edit upstream cannot reintroduce
+ * the defect either. The original milestones carry no dates at all - they are the
+ * 48 pinned `undated-milestone` warnings - so the target_date rules pass over them
+ * vacuously and only the completed_at rules can bite.
+ */
+{
+  for (const item of seed.poam_items)
+    for (const milestone of item.milestones ?? []) {
+      if (milestone.status === "completed") {
+        if (milestone.target_date && milestone.target_date > REPORT_DAY)
+          fail(
+            "completion-beyond-report-date",
+            milestone.id,
+            `target_date ${milestone.target_date} is after the report date ${REPORT_DAY}, so it cannot be completed`,
+          );
+        // The 48 original rows are undated by design and keep their status as-is;
+        // anything that carries a target_date has to say when it finished.
+        if (milestone.target_date && !milestone.completed_at)
+          fail(
+            "completed-without-completed-at",
+            milestone.id,
+            "a dated milestone that reports completion must carry completed_at",
+          );
+      } else if (milestone.completed_at) {
+        fail(
+          "completed-at-without-completion",
+          milestone.id,
+          `status ${milestone.status} but completed_at ${milestone.completed_at}`,
+        );
+      }
+      if (milestone.completed_at) {
+        if (!STAMP_RE.test(milestone.completed_at))
+          fail("date-format", milestone.id, milestone.completed_at);
+        if (milestone.completed_at > WINDOW_END)
+          fail(
+            "completion-beyond-report-date",
+            milestone.id,
+            `completed_at ${milestone.completed_at} is after the report date ${WINDOW_END}`,
+          );
+        if (milestone.completed_at < EARLIEST_DATE)
+          fail("date-floor", milestone.id, milestone.completed_at);
+      }
+    }
 }
 
 // traceability views agree with the live relationships
@@ -1905,6 +1873,10 @@ line(
       .sort()
       .map(([k, v]) => `${k} ${v}`)
       .join(", "),
+);
+line(
+  `  result notes             ${assessmentResults.length} authored, max pairwise 4-gram Jaccard ` +
+    `${noteSimilarityObserved.toFixed(3)} (ceiling ${NOTE_SIMILARITY_CEILING})`,
 );
 line(`  new milestones           ${allMilestones.length} (all dated)`);
 line(

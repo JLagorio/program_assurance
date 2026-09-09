@@ -673,8 +673,12 @@ function PoamDetailModal({
                     </Box>
                     <Stack className="pt-100 font-body" space="space.050">
                       {item.links.map((l) => (
-                        <TextLink key={l.href + l.rel} className="block truncate">
-                          <Link to={l.href}>{l.text}</Link>
+                        <TextLink
+                          key={l.href + l.rel}
+                          className="block truncate"
+                          render={<Link to={l.href} />}
+                        >
+                          {l.text}
                         </TextLink>
                       ))}
                     </Stack>

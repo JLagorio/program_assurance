@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@ledger/design-system", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@ledger/design-system", () => ({ toast: { add: vi.fn() } }));
 vi.mock("@/lib/reusable-components", () => ({ componentByKey: new Map() }));
 
 beforeEach(() => {

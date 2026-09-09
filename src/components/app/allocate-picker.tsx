@@ -257,7 +257,9 @@ export function AllocateRequirementsSheet({
       if (made) reviewLink({ kind: "allocation", id: made.id }, who);
     }
     const out = Object.keys(ruledOut).length;
-    toast.success(`${applying.length} allocated to ${node.name}`, {
+    toast.add({
+      title: `${applying.length} allocated to ${node.name}`,
+      type: "success",
       description: out ? `${out} recorded as not applying` : undefined,
     });
     close();
@@ -546,7 +548,7 @@ export function AllocateElementsSheet({
       });
       reviewLink({ kind: "allocation", id: made.id }, currentSession().name);
     }
-    toast.success(`${requirement.id} allocated to ${chosenRows.length}`);
+    toast.add({ title: `${requirement.id} allocated to ${chosenRows.length}`, type: "success" });
     close();
   };
 

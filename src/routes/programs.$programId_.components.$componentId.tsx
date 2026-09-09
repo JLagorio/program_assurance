@@ -179,14 +179,17 @@ function ComponentRecord() {
           <p className="max-w-layout-measure font-body text-subtle">
             {componentId} is not a component of {program.id}.
           </p>
-          <TextLink size="medium">
-            <Link
-              to="/programs/$programId/composition"
-              params={{ programId }}
-              search={{ tab: undefined }}
-            >
-              Back to system composition
-            </Link>
+          <TextLink
+            size="medium"
+            render={
+              <Link
+                to="/programs/$programId/composition"
+                params={{ programId }}
+                search={{ tab: undefined }}
+              />
+            }
+          >
+            Back to system composition
           </TextLink>
         </Stack>
       </Shell>
@@ -238,13 +241,15 @@ function ComponentRecord() {
                   ) : null}
                   <KeyValue label="Sits in">
                     {parent ? (
-                      <TextLink>
-                        <Link
-                          to="/programs/$programId/components/$componentId"
-                          params={{ programId, componentId: parent.id }}
-                        >
-                          {parent.name}
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link
+                            to="/programs/$programId/components/$componentId"
+                            params={{ programId, componentId: parent.id }}
+                          />
+                        }
+                      >
+                        {parent.name}
                       </TextLink>
                     ) : (
                       "Top of the tree"
@@ -355,14 +360,16 @@ function ComponentRecord() {
                           return (
                             <Table.Row key={sc.id} title={edge?.rationale ?? sc.mission}>
                               <Table.Cell className="max-w-none">
-                                <TextLink>
-                                  <Link
-                                    to="/programs/$programId/components/$componentId"
-                                    params={{ programId, componentId: sc.element }}
-                                    search={{ tab: "Control set" }}
-                                  >
-                                    <Id>{sc.id}</Id>
-                                  </Link>
+                                <TextLink
+                                  render={
+                                    <Link
+                                      to="/programs/$programId/components/$componentId"
+                                      params={{ programId, componentId: sc.element }}
+                                      search={{ tab: "Control set" }}
+                                    />
+                                  }
+                                >
+                                  <Id>{sc.id}</Id>
                                 </TextLink>
                               </Table.Cell>
                               <Table.Cell className="truncate">{sc.name}</Table.Cell>
@@ -420,13 +427,15 @@ function ComponentRecord() {
                       {children.map((child) => (
                         <Table.Row key={child.id}>
                           <Table.Cell className="max-w-none">
-                            <TextLink>
-                              <Link
-                                to="/programs/$programId/components/$componentId"
-                                params={{ programId, componentId: child.id }}
-                              >
-                                <Id>{child.id}</Id>
-                              </Link>
+                            <TextLink
+                              render={
+                                <Link
+                                  to="/programs/$programId/components/$componentId"
+                                  params={{ programId, componentId: child.id }}
+                                />
+                              }
+                            >
+                              <Id>{child.id}</Id>
                             </TextLink>
                           </Table.Cell>
                           <Table.Cell className="truncate">{child.name}</Table.Cell>
@@ -467,13 +476,15 @@ function ComponentRecord() {
                           <Table.Row key={`${edge.from}-${edge.to}-${i}`} title={edge.via}>
                             <Table.Cell>{dir}</Table.Cell>
                             <Table.Cell className="max-w-none">
-                              <TextLink>
-                                <Link
-                                  to="/programs/$programId/components/$componentId"
-                                  params={{ programId, componentId: other }}
-                                >
-                                  <Id>{other}</Id>
-                                </Link>
+                              <TextLink
+                                render={
+                                  <Link
+                                    to="/programs/$programId/components/$componentId"
+                                    params={{ programId, componentId: other }}
+                                  />
+                                }
+                              >
+                                <Id>{other}</Id>
                               </TextLink>
                             </Table.Cell>
                             <Table.Cell className="truncate">{peer?.name ?? other}</Table.Cell>
@@ -515,14 +526,16 @@ function ComponentRecord() {
                         return (
                           <Table.Row key={d.id}>
                             <Table.Cell className="max-w-none">
-                              <TextLink>
-                                <Link
-                                  to="/programs/$programId/requirements/$requirementId"
-                                  params={{ programId, requirementId: d.requirement }}
-                                  search={{ tab: undefined }}
-                                >
-                                  <Id>{d.requirement}</Id>
-                                </Link>
+                              <TextLink
+                                render={
+                                  <Link
+                                    to="/programs/$programId/requirements/$requirementId"
+                                    params={{ programId, requirementId: d.requirement }}
+                                    search={{ tab: undefined }}
+                                  />
+                                }
+                              >
+                                <Id>{d.requirement}</Id>
                               </TextLink>
                             </Table.Cell>
                             <Table.Cell className="truncate" title={r?.text}>
@@ -564,10 +577,12 @@ function ComponentRecord() {
                       {open.map((f) => (
                         <Table.Row key={f.id}>
                           <Table.Cell className="max-w-none">
-                            <TextLink>
-                              <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                                <Id>{f.id}</Id>
-                              </Link>
+                            <TextLink
+                              render={
+                                <Link to="/findings/$findingId" params={{ findingId: f.id }} />
+                              }
+                            >
+                              <Id>{f.id}</Id>
                             </TextLink>
                           </Table.Cell>
                           <Table.Cell>
@@ -577,14 +592,16 @@ function ComponentRecord() {
                           </Table.Cell>
                           <Table.Cell className="truncate">{f.title}</Table.Cell>
                           <Table.Cell>
-                            <TextLink>
-                              <Link
-                                to="/programs/$programId/controls/$controlId"
-                                params={{ programId, controlId: f.control }}
-                                search={{ tab: undefined }}
-                              >
-                                <Id>{f.control}</Id>
-                              </Link>
+                            <TextLink
+                              render={
+                                <Link
+                                  to="/programs/$programId/controls/$controlId"
+                                  params={{ programId, controlId: f.control }}
+                                  search={{ tab: undefined }}
+                                />
+                              }
+                            >
+                              <Id>{f.control}</Id>
                             </TextLink>
                           </Table.Cell>
                           <Table.Cell className="truncate">{f.lifecycle}</Table.Cell>

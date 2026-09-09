@@ -58,8 +58,8 @@ function PoamRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">POA&M item not found</h1>
-          <TextLink size="medium">
-            <Link to="/register">Back to the register</Link>
+          <TextLink size="medium" render={<Link to="/register" />}>
+            Back to the register
           </TextLink>
         </Stack>
       </Shell>
@@ -93,18 +93,18 @@ function PoamRecord() {
               </Inspector.Group>
               <Inspector.Group title="Joins">
                 <KeyValue label="Program">
-                  <TextLink>
-                    <Link to="/programs/$programId" params={{ programId: item.program }}>
-                      <Id>{item.program}</Id>
-                    </Link>
+                  <TextLink
+                    render={<Link to="/programs/$programId" params={{ programId: item.program }} />}
+                  >
+                    <Id>{item.program}</Id>
                   </TextLink>
                 </KeyValue>
                 <KeyValue label="Risk">
                   {risk ? (
-                    <TextLink>
-                      <Link to="/register/risks/$riskId" params={{ riskId: risk.id }}>
-                        <Id>{risk.id}</Id>
-                      </Link>
+                    <TextLink
+                      render={<Link to="/register/risks/$riskId" params={{ riskId: risk.id }} />}
+                    >
+                      <Id>{risk.id}</Id>
                     </TextLink>
                   ) : (
                     "Not aggregated"
@@ -155,14 +155,17 @@ function PoamRecord() {
               controls.length ? (
                 <Inline className="font-body-small" as="span" space="space.100" alignBlock="center">
                   {controls.map((c) => (
-                    <TextLink key={c}>
-                      <Link
-                        to="/programs/$programId/controls/$controlId"
-                        params={{ programId: item.program, controlId: c }}
-                        search={{ tab: "Assessment" as const }}
-                      >
-                        {c} plan
-                      </Link>
+                    <TextLink
+                      key={c}
+                      render={
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId: item.program, controlId: c }}
+                          search={{ tab: "Assessment" as const }}
+                        />
+                      }
+                    >
+                      {c} plan
                     </TextLink>
                   ))}
                 </Inline>
@@ -204,29 +207,31 @@ function PoamRecord() {
                   {fs.map((f) => (
                     <Table.Row key={f.id}>
                       <Table.Cell>
-                        <TextLink>
-                          <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                            <Id>{f.id}</Id>
-                          </Link>
+                        <TextLink
+                          render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
+                        >
+                          <Id>{f.id}</Id>
                         </TextLink>
                       </Table.Cell>
                       <Table.Cell className="truncate">
-                        <TextLink>
-                          <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                            {f.title}
-                          </Link>
+                        <TextLink
+                          render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
+                        >
+                          {f.title}
                         </TextLink>
                       </Table.Cell>
                       <Table.Cell>
-                        <TextLink>
-                          <Link
-                            to="/programs/$programId/controls/$controlId"
-                            params={{ programId: item.program, controlId: f.control }}
-                            search={{ tab: "Assessment" as const }}
-                            title={`Remediation plan for ${f.control}`}
-                          >
-                            <Id>{f.control}</Id>
-                          </Link>
+                        <TextLink
+                          render={
+                            <Link
+                              to="/programs/$programId/controls/$controlId"
+                              params={{ programId: item.program, controlId: f.control }}
+                              search={{ tab: "Assessment" as const }}
+                              title={`Remediation plan for ${f.control}`}
+                            />
+                          }
+                        >
+                          <Id>{f.control}</Id>
                         </TextLink>
                       </Table.Cell>
                       <Table.Cell>

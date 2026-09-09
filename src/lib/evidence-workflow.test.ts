@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-vi.mock("@ledger/design-system", () => ({ toast: { error: vi.fn(), dismiss: vi.fn() } }));
+vi.mock("@ledger/design-system", () => ({ toast: { add: vi.fn(), close: vi.fn() } }));
 let storage: Map<string, string>;
 let setItem: ReturnType<typeof vi.fn>;
 beforeEach(() => {

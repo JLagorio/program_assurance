@@ -222,10 +222,16 @@ export function TeamSection({ programId }: { programId: string }) {
                         <Table.Cell className="truncate">
                           <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
                             {e.via.map((id) => (
-                              <TextLink key={id}>
-                                <Link to="/workstreams/$workstreamId" params={{ workstreamId: id }}>
-                                  <Id>{id}</Id>
-                                </Link>
+                              <TextLink
+                                key={id}
+                                render={
+                                  <Link
+                                    to="/workstreams/$workstreamId"
+                                    params={{ workstreamId: id }}
+                                  />
+                                }
+                              >
+                                <Id>{id}</Id>
                               </TextLink>
                             ))}
                           </Inline>
@@ -243,10 +249,12 @@ export function TeamSection({ programId }: { programId: string }) {
                 title={ws.title}
                 onClose={() => setWs(null)}
                 openTo={
-                  <TextLink>
-                    <Link to="/workstreams/$workstreamId" params={{ workstreamId: ws.id }}>
-                      Open workstream
-                    </Link>
+                  <TextLink
+                    render={
+                      <Link to="/workstreams/$workstreamId" params={{ workstreamId: ws.id }} />
+                    }
+                  >
+                    Open workstream
                   </TextLink>
                 }
               >
@@ -284,10 +292,10 @@ export function TeamSection({ programId }: { programId: string }) {
                 title={person.name}
                 onClose={() => setPerson(null)}
                 openTo={
-                  <TextLink>
-                    <Link to="/people/$personId" params={{ personId: person.id }}>
-                      Open person
-                    </Link>
+                  <TextLink
+                    render={<Link to="/people/$personId" params={{ personId: person.id }} />}
+                  >
+                    Open person
                   </TextLink>
                 }
               >
@@ -308,10 +316,16 @@ export function TeamSection({ programId }: { programId: string }) {
                           alignBlock="baseline"
                           spread="space-between"
                         >
-                          <TextLink className="min-w-0 truncate">
-                            <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
-                              {w.title}
-                            </Link>
+                          <TextLink
+                            className="min-w-0 truncate"
+                            render={
+                              <Link
+                                to="/workstreams/$workstreamId"
+                                params={{ workstreamId: w.id }}
+                              />
+                            }
+                          >
+                            {w.title}
                           </TextLink>
                           <span className="shrink-0 font-body-small text-subtle">{w.status}</span>
                         </Inline>

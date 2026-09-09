@@ -163,14 +163,17 @@ function RequirementRecord() {
           <p className="max-w-layout-measure font-body text-subtle">
             {requirementId} is not a security requirement of {program.id}.
           </p>
-          <TextLink size="medium">
-            <Link
-              to="/programs/$programId"
-              params={{ programId }}
-              search={{ tab: "Requirements", element: elementId }}
-            >
-              Back to security requirements
-            </Link>
+          <TextLink
+            size="medium"
+            render={
+              <Link
+                to="/programs/$programId"
+                params={{ programId }}
+                search={{ tab: "Requirements", element: elementId }}
+              />
+            }
+          >
+            Back to security requirements
           </TextLink>
         </Stack>
       </Shell>
@@ -248,17 +251,20 @@ function RequirementRecord() {
                     {controlSources.length ? (
                       <Inline as="span" space="space.050" shouldWrap>
                         {controlSources.map((d) => (
-                          <TextLink key={d.sourceId}>
-                            <Link
-                              to="/programs/$programId/controls/$controlId"
-                              params={{ programId, controlId: d.sourceId }}
-                              search={{ tab: undefined }}
-                            >
-                              <span className="text-subtle">
-                                {d.relation === "mapped" ? "Mapped to " : "Derived from "}
-                              </span>
-                              <Id>{d.sourceId}</Id>
-                            </Link>
+                          <TextLink
+                            key={d.sourceId}
+                            render={
+                              <Link
+                                to="/programs/$programId/controls/$controlId"
+                                params={{ programId, controlId: d.sourceId }}
+                                search={{ tab: undefined }}
+                              />
+                            }
+                          >
+                            <span className="text-subtle">
+                              {d.relation === "mapped" ? "Mapped to " : "Derived from "}
+                            </span>
+                            <Id>{d.sourceId}</Id>
                           </TextLink>
                         ))}
                       </Inline>
@@ -321,14 +327,16 @@ function RequirementRecord() {
                 <Inspector.Group title="Position">
                   <KeyValue label="Parent">
                     {parent ? (
-                      <TextLink>
-                        <Link
-                          to="/programs/$programId/requirements/$requirementId"
-                          params={{ programId, requirementId: parent.id }}
-                          search={{ tab: undefined, element: elementId }}
-                        >
-                          <Id>{parent.id}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link
+                            to="/programs/$programId/requirements/$requirementId"
+                            params={{ programId, requirementId: parent.id }}
+                            search={{ tab: undefined, element: elementId }}
+                          />
+                        }
+                      >
+                        <Id>{parent.id}</Id>
                       </TextLink>
                     ) : (
                       "Top level"
@@ -338,27 +346,31 @@ function RequirementRecord() {
                   <KeyValue label="Revision">{requirement.revision}</KeyValue>
                   <KeyValue label="Workstream">
                     {requirement.workstream ? (
-                      <TextLink>
-                        <Link
-                          to="/workstreams/$workstreamId"
-                          params={{ workstreamId: requirement.workstream }}
-                        >
-                          <Id>{requirement.workstream}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link
+                            to="/workstreams/$workstreamId"
+                            params={{ workstreamId: requirement.workstream }}
+                          />
+                        }
+                      >
+                        <Id>{requirement.workstream}</Id>
                       </TextLink>
                     ) : (
                       "—"
                     )}
                   </KeyValue>
                   <KeyValue label="Program">
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId"
-                        params={{ programId }}
-                        search={{ tab: "Requirements", element: elementId }}
-                      >
-                        <Id>{programId}</Id>
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId }}
+                          search={{ tab: "Requirements", element: elementId }}
+                        />
+                      }
+                    >
+                      <Id>{programId}</Id>
                     </TextLink>
                   </KeyValue>
                 </Inspector.Group>
@@ -578,18 +590,20 @@ function RequirementRecord() {
                             </Table.Cell>
                             <Table.Cell className="truncate">
                               {event && campaign ? (
-                                <TextLink>
-                                  <Link
-                                    to="/programs/$programId"
-                                    params={{ programId }}
-                                    search={{
-                                      tab: "Assessments",
-                                      assessmentId: campaign.id,
-                                    }}
-                                    title={event.window}
-                                  >
-                                    {event.name}
-                                  </Link>
+                                <TextLink
+                                  render={
+                                    <Link
+                                      to="/programs/$programId"
+                                      params={{ programId }}
+                                      search={{
+                                        tab: "Assessments",
+                                        assessmentId: campaign.id,
+                                      }}
+                                      title={event.window}
+                                    />
+                                  }
+                                >
+                                  {event.name}
                                 </TextLink>
                               ) : (
                                 "—"
@@ -696,45 +710,49 @@ function SourceRef({
 
   if (sourceType === "Control statement" || sourceType === "Overlay") {
     return (
-      <TextLink>
-        <Link
-          to="/programs/$programId/controls/$controlId"
-          params={{ programId, controlId: sourceId }}
-          search={{ tab: undefined }}
-        >
-          <Id>{sourceId}</Id>
-        </Link>
+      <TextLink
+        render={
+          <Link
+            to="/programs/$programId/controls/$controlId"
+            params={{ programId, controlId: sourceId }}
+            search={{ tab: undefined }}
+          />
+        }
+      >
+        <Id>{sourceId}</Id>
       </TextLink>
     );
   }
   if (sourceType === "Threat") {
     return (
-      <TextLink>
-        <Link
-          to="/programs/$programId/te-phases"
-          params={{ programId }}
-          search={{ tab: "Threat scenarios", scenario: sourceId }}
-        >
-          <Id>{sourceId}</Id>
-        </Link>
+      <TextLink
+        render={
+          <Link
+            to="/programs/$programId/te-phases"
+            params={{ programId }}
+            search={{ tab: "Threat scenarios", scenario: sourceId }}
+          />
+        }
+      >
+        <Id>{sourceId}</Id>
       </TextLink>
     );
   }
   if (sourceId.startsWith("CMP-")) {
     return (
-      <TextLink>
-        <Link to="/library/components/$componentKey" params={{ componentKey: sourceId }}>
-          <Id>{sourceId}</Id>
-        </Link>
+      <TextLink
+        render={<Link to="/library/components/$componentKey" params={{ componentKey: sourceId }} />}
+      >
+        <Id>{sourceId}</Id>
       </TextLink>
     );
   }
   if (sourceId.startsWith("WS-")) {
     return (
-      <TextLink>
-        <Link to="/workstreams/$workstreamId" params={{ workstreamId: sourceId }}>
-          <Id>{sourceId}</Id>
-        </Link>
+      <TextLink
+        render={<Link to="/workstreams/$workstreamId" params={{ workstreamId: sourceId }} />}
+      >
+        <Id>{sourceId}</Id>
       </TextLink>
     );
   }

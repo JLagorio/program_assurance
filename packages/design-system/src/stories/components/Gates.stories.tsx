@@ -110,8 +110,8 @@ export const InRail: Story = {
             label="Contested overlays resolved"
             reason="Two overlays disagree on AC-2(3)."
             action={
-              <TextLink size="small">
-                <a href="#overlays">Resolve</a>
+              <TextLink size="small" render={<a href="#overlays" />}>
+                Resolve
               </TextLink>
             }
           />

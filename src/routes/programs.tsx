@@ -121,10 +121,11 @@ const programColumns = defineColumns<Program>((c) => [
     hideable: false,
     cell: (p) => (
       <>
-        <TextLink weight="medium">
-          <Link to="/programs/$programId" params={{ programId: p.id }}>
-            {p.name}
-          </Link>
+        <TextLink
+          weight="medium"
+          render={<Link to="/programs/$programId" params={{ programId: p.id }} />}
+        >
+          {p.name}
         </TextLink>
         <Box className="text-subtle" as="span" paddingInlineStart="space.100">
           {p.system}
@@ -323,9 +324,13 @@ function ProgramList() {
               onClick={() => {
                 try {
                   saveProgramCommands(selected, { archivedAt: "" });
-                  toast.success("Programs restored");
+                  toast.add({ title: "Programs restored", type: "success" });
                 } catch {
-                  toast.error("Programs could not be restored");
+                  toast.add({
+                    title: "Programs could not be restored",
+                    type: "error",
+                    timeout: 8000,
+                  });
                 }
               }}
             >
@@ -392,14 +397,19 @@ function ProgramList() {
                           assessmentScheduled: d.toISOString().slice(0, 10),
                         });
                       } catch {
-                        toast.error("Schedule could not be saved");
+                        toast.add({
+                          title: "Schedule could not be saved",
+                          type: "error",
+                          timeout: 8000,
+                        });
                         return;
                       }
                       setScheduling(false);
-                      toast.success(
-                        `Assessment scheduled for ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
-                        { description: selected.join(", ") },
-                      );
+                      toast.add({
+                        title: `Assessment scheduled for ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
+                        type: "success",
+                        description: selected.join(", "),
+                      });
                     }}
                   >
                     Schedule

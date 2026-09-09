@@ -155,10 +155,12 @@ export function RevisionActions({
     if (!acting) return;
     const result = performRevision(revision.id, acting.def.key, note);
     if (!result.ok) {
-      toast.error("Not applied", { description: result.reason });
+      toast.add({ title: "Not applied", type: "error", timeout: 8000, description: result.reason });
       return;
     }
-    toast.success(acting.def.label, {
+    toast.add({
+      title: acting.def.label,
+      type: "success",
       description: `${scope?.name ?? revision.scope} · v${revision.number}`,
     });
     setActing(null);
@@ -316,7 +318,8 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
         const rev = proposeRevision(scopeId, reason);
         setProposing(false);
         setReason("");
-        if (rev) toast.success(`v${rev.number} drafted`, { description: rev.reason });
+        if (rev)
+          toast.add({ title: `v${rev.number} drafted`, type: "success", description: rev.reason });
       },
     });
   };
@@ -776,14 +779,16 @@ function DeltaBlock({
             {delta.controls.slice(0, 40).map((c) => (
               <Table.Row key={c.control.id}>
                 <Table.Cell className="max-w-none">
-                  <TextLink>
-                    <Link
-                      to="/programs/$programId/controls/$controlId"
-                      params={{ programId, controlId: c.control.id }}
-                      search={{ tab: undefined }}
-                    >
-                      <Id>{c.control.id}</Id>
-                    </Link>
+                  <TextLink
+                    render={
+                      <Link
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId, controlId: c.control.id }}
+                        search={{ tab: undefined }}
+                      />
+                    }
+                  >
+                    <Id>{c.control.id}</Id>
                   </TextLink>
                 </Table.Cell>
                 {compact ? null : <Table.Cell className="truncate">{c.control.title}</Table.Cell>}

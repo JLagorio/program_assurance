@@ -1,6 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
-vi.mock("@ledger/design-system", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@ledger/design-system", () => ({ toast: { add: vi.fn() } }));
 let entries: Map<string, string>;
 beforeEach(() => {
   vi.resetModules();

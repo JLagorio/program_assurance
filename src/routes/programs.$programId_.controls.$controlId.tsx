@@ -203,14 +203,17 @@ function ControlRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Control not in scope</h1>
-          <TextLink size="medium">
-            <Link
-              to="/programs/$programId"
-              params={{ programId }}
-              search={{ tab: "Controls", element: originElementId }}
-            >
-              Back to controls
-            </Link>
+          <TextLink
+            size="medium"
+            render={
+              <Link
+                to="/programs/$programId"
+                params={{ programId }}
+                search={{ tab: "Controls", element: originElementId }}
+              />
+            }
+          >
+            Back to controls
           </TextLink>
         </Stack>
       </Shell>
@@ -328,14 +331,16 @@ function ControlRecord() {
         </KeyValue>
         <KeyValue label="POA&M">
           {row.poam ? (
-            <TextLink>
-              <Link
-                to="/programs/$programId"
-                params={{ programId }}
-                search={{ tab: "POA&M", poamId: row.poam, element: originElementId }}
-              >
-                <Id>{row.poam}</Id>
-              </Link>
+            <TextLink
+              render={
+                <Link
+                  to="/programs/$programId"
+                  params={{ programId }}
+                  search={{ tab: "POA&M", poamId: row.poam, element: originElementId }}
+                />
+              }
+            >
+              <Id>{row.poam}</Id>
             </TextLink>
           ) : (
             "None"
@@ -556,14 +561,20 @@ function ControlRecord() {
                   {open.map((f) => (
                     <Table.Row key={f.id}>
                       <Table.Cell className="max-w-none" width={104}>
-                        <TextLink>
-                          <Link
-                            to="/programs/$programId"
-                            params={{ programId }}
-                            search={{ tab: "Findings", findingId: f.id, element: originElementId }}
-                          >
-                            <Id>{f.id}</Id>
-                          </Link>
+                        <TextLink
+                          render={
+                            <Link
+                              to="/programs/$programId"
+                              params={{ programId }}
+                              search={{
+                                tab: "Findings",
+                                findingId: f.id,
+                                element: originElementId,
+                              }}
+                            />
+                          }
+                        >
+                          <Id>{f.id}</Id>
                         </TextLink>
                       </Table.Cell>
                       <Table.Cell width={88}>

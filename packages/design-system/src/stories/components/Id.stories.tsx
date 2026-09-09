@@ -26,10 +26,8 @@ export const IdMatrix: Story = {
           <Id className="text-subtle">CTRL-0412</Id>
           <Text weight="medium">Segregation of duties, payables</Text>
         </Inline>
-        <TextLink>
-          <a href="#f">
-            <Id>FND-2231</Id>
-          </a>
+        <TextLink render={<a href="#f" />}>
+          <Id>FND-2231</Id>
         </TextLink>
       </Specimens>
       <Specimens title="A hash breaks anywhere">

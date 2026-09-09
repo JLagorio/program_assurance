@@ -30,9 +30,7 @@ export const KeyValueMatrix: Story = {
             </Badge>
           </KeyValue>
           <KeyValue label="Evidence">
-            <TextLink>
-              <a href="#ev">EV-2201 Bank reconciliation, July</a>
-            </TextLink>
+            <TextLink render={<a href="#ev" />}>EV-2201 Bank reconciliation, July</TextLink>
           </KeyValue>
           <KeyValue label="Assessor">
             <Absent />

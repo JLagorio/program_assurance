@@ -4,7 +4,7 @@
 
 **Do not hand-edit it — regenerate with `node scripts/gen-wsx90-seed.mjs`.**
 
-SHA-256: `6d0148ee3153c16ca3388d9192132dc5afcd1e4ceb28158348914878bb8b88c8`
+SHA-256: `4221c55b7c7892eefc2d175f35883064c06cfe699874d4c8efec2850911803b3`
 
 `src/lib/platform-seed.ts` validates the file at import time and
 `platform-ingestion.ts` registers it in the existing program stores before saved
@@ -173,3 +173,67 @@ recorded here because nothing else would show it:
   `src/lib/platform-seed.test.ts` now pins both the milestone status vocabulary
   (`planned`, `in-progress`, `completed` — nothing else) and these nine ids, so
   the spelling cannot drift back unnoticed.
+
+## What the app's own validation does not check
+
+`validatePlatformSeed` in `src/lib/platform-seed.ts` is the validation a reader
+of this application sees, and it returns `errors: []` on this file. That is not
+the same as "the dataset is internally consistent". Two invariants that the
+generators enforce have **no rule at all** in the app validator, so a reader who
+trusts the app's clean bill of health would draw a conclusion the data does not
+support:
+
+- **Cause before effect between evidence and results.** No rule compares an
+  artifact's `collected_at` with the `assessed_on` of a result that cites it. The
+  invariant — an assessor cannot have relied on an artifact that did not yet
+  exist — is enforced only in `scripts/gen-wsx90-campaign.mjs` (which refuses to
+  write a campaign row that breaks it) and ratcheted in `scripts/gen-wsx90-seed.mjs`
+  (which pins the pre-existing debt at 37 rows and lets it shrink, never grow).
+  Delete both generators and nothing in the shipped application would notice the
+  rule was gone.
+- **Cause before effect in the POA&M layer.** No rule stops a milestone reading
+  `status: "completed"` with a `target_date` in the future or with no completion
+  date at all. That invariant is likewise enforced only in
+  `gen-wsx90-campaign.mjs`, which now refuses to write unless every completed
+  milestone carries a `completed_at` at or before the reporting date
+  (2026-11-20) and every milestone targeted after that date is `planned` or
+  `in-progress`. The rule runs over all 40 POA&M items, the 16 original ones
+  included. `src/lib/platform-seed.test.ts` pins the milestone status vocabulary
+  but not the chronology.
+
+## The pre-existing ASM-2026-001 rows
+
+420 assessment results ship here and they are **not** one uniform population.
+The 300 rows of `ASM-2026-002` were authored by the later pass; the 120 rows of
+`ASM-2026-001` (assessed 2026-08-03 → 2026-08-21) came with the original
+fictional program and were deliberately left as they were. Three things about
+them are worth stating plainly, because the UI does not show any of them:
+
+- **They carry neither an `id` nor an `assessment_id`.** Every one of the 300
+  new rows carries both; not one of the 120 original rows carries either. So no
+  original result is actually linked to `ASM-2026-001` in the data — the
+  association exists only in the reader's head and in the date range. Anything
+  that groups results by assessment sees 300 rows, not 420.
+- **37 of the 120 cite evidence collected after the result that relies on it**,
+  by 8 to 18 days (31 `pass`, 5 `fail`, 1 `not-assessed`). This is exactly the
+  inversion that was found and fixed for the new scope, where it now stands at
+  zero. It was **not** introduced by that work and was deliberately not
+  rewritten: these are carried-forward records, and silently re-dating a hundred
+  and twenty rows of someone else's fictional history would have hidden the
+  condition rather than disclosed it. `LEGACY_INVERTED_ROWS = 37` in
+  `gen-wsx90-seed.mjs` holds the line.
+- **They predate the 2026-09-08 floor** the later authoring pass works to. That
+  floor binds authored content, not the carried-forward campaign.
+
+The same split applies to the POA&M horizon. The 24 authored items are held to
+2026-10-01 → 2027-03-31 on both their milestone `target_date`s and their
+`planned_completion`, and the generator refuses to write outside it. Five of the
+16 original items — `POAM-003`, `-006`, `-009`, `-012`, `-015` — carry a
+`planned_completion` between 2026-09-08 and 2026-09-20, which is earlier than
+that window rather than later. They are carried-forward records with no
+milestone dates at all, and they were left alone for the same reason the 37
+inverted results were.
+
+The short version: the newer campaign is clean on cause-before-effect and the
+older one is not, the app cannot tell you which is which, and 30 percent of the
+older campaign's rows would fail the rule the newer one is held to.

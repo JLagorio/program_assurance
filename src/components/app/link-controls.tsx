@@ -93,7 +93,11 @@ export function LinkControlsSheet({
         });
       close();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Controls could not be linked.");
+      toast.add({
+        title: error instanceof Error ? error.message : "Controls could not be linked.",
+        type: "error",
+        timeout: 8000,
+      });
     }
   };
   const relationItems = [

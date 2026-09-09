@@ -169,10 +169,8 @@ export function ProgramAssessments({
           preview: (r) => setSelected(r.id),
           active: (r) => selectedRef.current === r.id,
           cell: (r) => (
-            <TextLink>
-              <button type="button" onClick={() => setSelected(r.id)}>
-                <Id>{r.id}</Id>
-              </button>
+            <TextLink render={<button type="button" onClick={() => setSelected(r.id)} />}>
+              <Id>{r.id}</Id>
             </TextLink>
           ),
         }),
@@ -331,14 +329,17 @@ export function ProgramAssessments({
                       </Text>
                       <Inline className="pt-050" space="space.100" shouldWrap>
                         {requirementsForObjective(o.id).map((id) => (
-                          <TextLink key={id}>
-                            <Link
-                              to="/programs/$programId/requirements/$requirementId"
-                              params={{ programId, requirementId: id }}
-                              search={{ element: elementId }}
-                            >
-                              {id}
-                            </Link>
+                          <TextLink
+                            key={id}
+                            render={
+                              <Link
+                                to="/programs/$programId/requirements/$requirementId"
+                                params={{ programId, requirementId: id }}
+                                search={{ element: elementId }}
+                              />
+                            }
+                          >
+                            {id}
                           </TextLink>
                         ))}
                       </Inline>
@@ -350,14 +351,17 @@ export function ProgramAssessments({
               <Block title="Findings" count={assessmentFindings.length}>
                 <Stack space="space.100">
                   {assessmentFindings.map((f) => (
-                    <TextLink key={f.id}>
-                      <Link
-                        to="/programs/$programId"
-                        params={{ programId }}
-                        search={{ tab: "Findings", findingId: f.id, element: elementId }}
-                      >
-                        {f.id} · {f.title}
-                      </Link>
+                    <TextLink
+                      key={f.id}
+                      render={
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId }}
+                          search={{ tab: "Findings", findingId: f.id, element: elementId }}
+                        />
+                      }
+                    >
+                      {f.id} · {f.title}
                     </TextLink>
                   ))}
                 </Stack>
@@ -405,9 +409,9 @@ export function ProgramAssessments({
                     onComplete={() => {
                       try {
                         setRunState(run.id, "Complete");
-                        toast.success("Assessment run completed");
+                        toast.add({ title: "Assessment run completed", type: "success" });
                       } catch (e) {
-                        toast.error(errorText(e));
+                        toast.add({ title: errorText(e), type: "error", timeout: 8000 });
                       }
                     }}
                   />
@@ -574,9 +578,9 @@ function NewAssessmentDialog({
                 save: () => {
                   try {
                     onCreated(createAssessment({ program: programId, ...values }));
-                    toast.success("Assessment created");
+                    toast.add({ title: "Assessment created", type: "success" });
                   } catch (error) {
-                    toast.error(errorText(error));
+                    toast.add({ title: errorText(error), type: "error", timeout: 8000 });
                   }
                 },
               });
@@ -822,7 +826,7 @@ function StartRunDialog({
                       }),
                     );
                   } catch (error) {
-                    toast.error(errorText(error));
+                    toast.add({ title: errorText(error), type: "error", timeout: 8000 });
                   }
                 },
               });
@@ -1006,9 +1010,9 @@ function RecordStepDialog({
                       at: new Date().toISOString(),
                     });
                     onClose();
-                    toast.success("Observation recorded");
+                    toast.add({ title: "Observation recorded", type: "success" });
                   } catch (error) {
-                    toast.error(errorText(error));
+                    toast.add({ title: errorText(error), type: "error", timeout: 8000 });
                   }
                 },
               });

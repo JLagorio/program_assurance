@@ -31,10 +31,8 @@ function PreviewSheetStates() {
         <Id>{id}</Id>
       </Button>
     ) : (
-      <TextLink>
-        <a href="#req">
-          <Id>{id}</Id>
-        </a>
+      <TextLink render={<a href="#req" />}>
+        <Id>{id}</Id>
       </TextLink>
     );
   return (
@@ -88,9 +86,7 @@ function PreviewSheetStates() {
         openTo={<a href="#record" />}
         links={
           open === "full" ? (
-            <TextLink>
-              <a href="#controls">Control set and revisions</a>
-            </TextLink>
+            <TextLink render={<a href="#controls" />}>Control set and revisions</TextLink>
           ) : null
         }
         actions={
@@ -187,7 +183,7 @@ export const Dont: Story = {
       <Pair
         do={
           <Footer>
-            <TextLink weight="medium" asChild={false} href="#record">
+            <TextLink weight="medium" href="#record">
               Open the full record
             </TextLink>
             <Inline space="space.100">

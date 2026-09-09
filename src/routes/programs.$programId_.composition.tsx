@@ -222,10 +222,11 @@ function ProgramComposition() {
                   <Badge variant="secondary" tone={stats.unattested > 0 ? "warning" : "success"}>
                     {stats.unattested} unattested
                   </Badge>
-                  <TextLink size="small">
-                    <Link to="/programs/$programId" params={{ programId: program.id }}>
-                      Program record
-                    </Link>
+                  <TextLink
+                    size="small"
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                  >
+                    Program record
                   </TextLink>
                 </>
               }
@@ -286,10 +287,11 @@ function ProgramComposition() {
                     {edges.map((e) => (
                       <Table.Row key={`${e.from}-${e.kind}-${e.to}`}>
                         <Table.Cell className="truncate">
-                          <TextLink asChild className="truncate text-left">
-                            <button type="button" onClick={() => select(e.from)}>
-                              {nameOf(e.from)}
-                            </button>
+                          <TextLink
+                            className="truncate text-left"
+                            render={<button type="button" onClick={() => select(e.from)} />}
+                          >
+                            {nameOf(e.from)}
                           </TextLink>
                         </Table.Cell>
                         <Table.Cell>
@@ -298,10 +300,11 @@ function ProgramComposition() {
                           </Badge>
                         </Table.Cell>
                         <Table.Cell className="truncate">
-                          <TextLink asChild className="truncate text-left">
-                            <button type="button" onClick={() => select(e.to)}>
-                              {nameOf(e.to)}
-                            </button>
+                          <TextLink
+                            className="truncate text-left"
+                            render={<button type="button" onClick={() => select(e.to)} />}
+                          >
+                            {nameOf(e.to)}
                           </TextLink>
                         </Table.Cell>
                         <Table.Cell className="truncate" title={e.via}>
@@ -408,14 +411,17 @@ function ProgramComposition() {
                             {d.components}
                           </Table.Cell>
                           <Table.Cell className="truncate">
-                            <TextLink asChild className="truncate text-left">
-                              <button
-                                type="button"
-                                onClick={() => openInTree(d.subject)}
-                                title={nameOf(d.subject)}
-                              >
-                                {nameOf(d.subject)}
-                              </button>
+                            <TextLink
+                              className="truncate text-left"
+                              render={
+                                <button
+                                  type="button"
+                                  onClick={() => openInTree(d.subject)}
+                                  title={nameOf(d.subject)}
+                                />
+                              }
+                            >
+                              {nameOf(d.subject)}
                             </TextLink>
                           </Table.Cell>
                           <Table.Cell>
@@ -463,13 +469,15 @@ function ProgramComposition() {
                   <NodeRail node={selected} posture={selectedPosture} />
                   <Inspector.Group title="Record">
                     <KeyValue label="Open">
-                      <TextLink>
-                        <Link
-                          to="/programs/$programId/components/$componentId"
-                          params={{ programId: program.id, componentId: selected.id }}
-                        >
-                          {selected.name}
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link
+                            to="/programs/$programId/components/$componentId"
+                            params={{ programId: program.id, componentId: selected.id }}
+                          />
+                        }
+                      >
+                        {selected.name}
                       </TextLink>
                     </KeyValue>
                     <KeyValue label="Requirements">{selectedAllocations.length || "None"}</KeyValue>
@@ -487,10 +495,15 @@ function ProgramComposition() {
                     </KeyValue>
                     <KeyValue label="Asset">
                       {selected.asset && assetById.has(selected.asset) ? (
-                        <TextLink>
-                          <Link to="/findings/assets/$assetId" params={{ assetId: selected.asset }}>
-                            <Id>{selected.asset}</Id>
-                          </Link>
+                        <TextLink
+                          render={
+                            <Link
+                              to="/findings/assets/$assetId"
+                              params={{ assetId: selected.asset }}
+                            />
+                          }
+                        >
+                          <Id>{selected.asset}</Id>
                         </TextLink>
                       ) : (
                         "Not a boundary asset"
@@ -509,10 +522,12 @@ function ProgramComposition() {
                       )}
                     </KeyValue>
                     <KeyValue label="Program">
-                      <TextLink>
-                        <Link to="/programs/$programId" params={{ programId: program.id }}>
-                          <Id>{program.id}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link to="/programs/$programId" params={{ programId: program.id }} />
+                        }
+                      >
+                        <Id>{program.id}</Id>
                       </TextLink>
                     </KeyValue>
                   </Inspector.Group>

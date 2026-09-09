@@ -1,53 +1,56 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-import { Toaster } from "../../components";
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
 import * as Stories from "./Toaster.stories";
 
 <Meta of={Stories} />
 
 # Toaster
 
-Short feedback after an action. Mount Toaster near the application root and call `toast.success("Evidence linked")` from the workflow. Sonner owns the stack, timer, swipe and live region.
+Short feedback after an action. This family follows shadcn's Base UI Toast implementation, with Ledger surfaces, typography, motion and localized labels.
 
 ## Anatomy
 
-Each toast contains a message, optional description and icon, and optional action, cancel or close buttons. Ledger supplies token styles, localized labels and direction.
+Mount one Toaster near the application root. It composes ToastProvider, ToastPortal, ToastViewport and a stack of Toast / ToastContent / ToastTitle / ToastDescription / ToastAction / ToastClose parts. The default stack is at the bottom end edge, bounded on narrow screens.
 
-<Canvas of={Stories.Playground} />
+```tsx
+<Toaster />;
+// After the provider mounts, from a workflow:
+const id = toast.add({ title: "Evidence linked", type: "success" });
+toast.update(id, { description: "Bank reconciliation, July" });
+toast.close(id);
+```
 
 ## Variants and states
 
-Use plain, success, info, warning or error messages. The error helper defaults to eight seconds with a close button; other normal toasts default to four seconds. Explicit per-toast options override those defaults.
+Set `type` to success, info, warning, error or loading for the standard icons. Toaster defaults to a 4000ms timeout and four visible toasts. Set `timeout: 0` for persistent feedback. Application errors explicitly use 8000ms; the native manager does not infer timeouts from type.
 
-Actions can undo a completed operation. Questions and destructive confirmations belong in AlertDialog.
+<Canvas of={Stories.Playground} />
+
+Supply `actionProps` with `children` and `onClick`. The action does not close automatically: call `close(id)` when it should dismiss. This lets an action update a toast or keep it visible while work continues.
 
 <Canvas of={Stories.WithAction} />
 
-Loading and promise toasts stay while work is pending. A promise replaces its pending message with the resolved or rejected outcome.
+`promise` replaces loading feedback with the resolved or rejected result and returns a promise with the original value. Await or handle its rejection as usual.
 
 <Canvas of={Stories.Working} />
 
 ## Accessibility
 
-Sonner supplies the notification region, keyboard shortcut and focus behavior. Ledger provides the localized region and close labels. Override `containerAriaLabel`, `hotkey` or `toastOptions.closeButtonAriaLabel` through Sonner's native props when appropriate. Essential record state belongs in persistent page content.
+Base UI owns announcements, timers, stack focus and swipe dismissal. F6 focuses the notification viewport; Shift+Tab from that viewport returns to the previous element. Hover and focus pause timers. Each default toast includes a localized Close button. Loading icons are decorative because the toast already announces the work.
+
+Keep essential record state in persistent page content. Toast portals participate in Base UI popup accessibility, including while a dialog is open.
+
+<Canvas of={Stories.InDialog} />
 
 ## Props
 
-<ArgTypes of={Toaster} />
-
-Toaster accepts all installed Sonner props and its native HTMLElement ref: position, duration, visibleToasts, gap, offsets, theme, direction, icons, toastOptions, styles and more. Defaults remain bottom-right, four visible toasts, 8px gap and 16px offset. Token colors follow Ledger's active theme. At narrow widths, the stack is bounded by Sonner's native mobile offsets in either direction; toasts fill that space unless a per-toast width overrides it.
-
-Partial icons, toastOptions styles and per-part classNames preserve unspecified Ledger defaults. A supplied classNames entry replaces that part's default classes. Other native props take precedence over defaults.
+Toaster accepts native Provider props: `children`, `timeout`, `limit` and `toastManager`. It is state-only and has no DOM ref. For custom placement or presentation, compose the exported parts; ToastViewport owns native div props/ref, direction and accessible name. Styled parts retain native `render`, refs and class/style state callbacks. `createToastManager` isolates stacks, and `useToastManager` reads the nearest provider's toasts and actions.
 
 <Canvas of={Stories.NativeOptions} />
 
-### Migration
-
-Existing Toaster calls keep working. Options previously blocked by the wrapper can now be passed directly. If multiple stacks are needed, give each an `id` and target it with `toast(..., { toasterId })`. The examples use separate IDs so they can coexist on this page.
+Migration: replace `toast.success(message, options)` with `toast.add({ title: message, type: "success", ...options })`; use `close` instead of `dismiss`, `timeout` instead of `duration`, zero instead of Infinity, and `actionProps.children` instead of `action.label`. The callable Sonner adapter and Sonner Toaster options are removed. Independent stacks use separate managers. A manager must have a mounted provider before feedback can be shown.
 
 ## Related
 
 [Alert](?path=/docs/components-alert--docs), [Banner](?path=/docs/components-banner--docs), [AlertDialog](?path=/docs/components-alertdialog--docs), [Spinner](?path=/docs/components-spinner--docs).
 
-This page documents the Sonner wrapper. Shadcn’s [current Toast family](https://ui.shadcn.com/docs/components/base/toast) uses Base UI Toast; adopting that manager is a separate migration.
-
-Sources: [shadcn Sonner implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/sonner.tsx), [Sonner documentation](https://sonner.emilkowal.ski/toaster).
+Sources: [shadcn Toast](https://ui.shadcn.com/docs/components/base/toast), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/toast.tsx), [Base UI Toast](https://base-ui.com/react/components/toast).

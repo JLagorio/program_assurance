@@ -676,11 +676,7 @@ export const StatusGuidance: Story = {
         dontText="A colour per category: here a tone is a status, and a reader would look for what is wrong with Analysis."
       />
       <Pair
-        do={
-          <TextLink>
-            <a href="#component">SVC-PAY-01</a>
-          </TextLink>
-        }
+        do={<TextLink render={<a href="#component" />}>SVC-PAY-01</TextLink>}
         doText="Something that takes the reader somewhere is a link."
         dont={
           <Badge

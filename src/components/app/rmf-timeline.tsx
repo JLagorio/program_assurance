@@ -165,29 +165,33 @@ export function RmfTimeline({
                               return (
                                 <Table.Row key={w.id}>
                                   <Table.Cell width={88}>
-                                    <TextLink>
-                                      <Link
-                                        to="/workstreams/$workstreamId"
-                                        params={{ workstreamId: w.id }}
-                                      >
-                                        <Id>{w.id}</Id>
-                                      </Link>
+                                    <TextLink
+                                      render={
+                                        <Link
+                                          to="/workstreams/$workstreamId"
+                                          params={{ workstreamId: w.id }}
+                                        />
+                                      }
+                                    >
+                                      <Id>{w.id}</Id>
                                     </TextLink>
                                   </Table.Cell>
                                   <Table.Cell className="truncate">{w.title}</Table.Cell>
                                   <Table.Cell width={120}>{w.status}</Table.Cell>
                                   <Table.Cell width={140}>
                                     {w.controls.length ? (
-                                      <TextLink asChild>
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            onOpenControls?.(w.controls[0]!.split("-")[0]!)
-                                          }
-                                        >
-                                          {w.controls.length} controls
-                                          {wOpen ? ` · ${wOpen} open` : ""}
-                                        </button>
+                                      <TextLink
+                                        render={
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              onOpenControls?.(w.controls[0]!.split("-")[0]!)
+                                            }
+                                          />
+                                        }
+                                      >
+                                        {w.controls.length} controls
+                                        {wOpen ? ` · ${wOpen} open` : ""}
                                       </TextLink>
                                     ) : (
                                       "—"

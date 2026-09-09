@@ -74,8 +74,8 @@ function AssetRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Asset not found</h1>
-          <TextLink size="medium">
-            <Link to="/findings">Back to findings</Link>
+          <TextLink size="medium" render={<Link to="/findings" />}>
+            Back to findings
           </TextLink>
         </Stack>
       </Shell>
@@ -107,10 +107,12 @@ function AssetRecord() {
                 <KeyValue label="Environment">{asset.environment}</KeyValue>
                 <KeyValue label="Owner">{asset.owner}</KeyValue>
                 <KeyValue label="Program">
-                  <TextLink>
-                    <Link to="/programs/$programId" params={{ programId: asset.program }}>
-                      <Id>{asset.program}</Id>
-                    </Link>
+                  <TextLink
+                    render={
+                      <Link to="/programs/$programId" params={{ programId: asset.program }} />
+                    }
+                  >
+                    <Id>{asset.program}</Id>
                   </TextLink>
                 </KeyValue>
               </Inspector.Group>
@@ -240,10 +242,10 @@ function AssetRecord() {
                 {rows.map((f) => (
                   <Table.Row key={f.id}>
                     <Table.Cell>
-                      <TextLink>
-                        <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                          <Id>{f.id}</Id>
-                        </Link>
+                      <TextLink
+                        render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
+                      >
+                        <Id>{f.id}</Id>
                       </TextLink>
                     </Table.Cell>
                     <Table.Cell className="truncate">{f.title}</Table.Cell>

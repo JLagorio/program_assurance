@@ -286,10 +286,11 @@ function ProgramExport() {
                 <Badge variant="secondary" tone="neutral">
                   {sctm.counts.total} exported requirement rows
                 </Badge>
-                <TextLink size="medium">
-                  <Link to="/programs/$programId/sctm" params={{ programId }}>
-                    Open SCTM
-                  </Link>
+                <TextLink
+                  size="medium"
+                  render={<Link to="/programs/$programId/sctm" params={{ programId }} />}
+                >
+                  Open SCTM
                 </TextLink>
               </>
             }

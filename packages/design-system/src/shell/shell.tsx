@@ -1,4 +1,5 @@
-import { Slot, Slottable } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import {
   ChevronDown,
   ChevronRight,
@@ -41,7 +42,7 @@ import { applyShell, readShell, SHELL_STORAGE_KEY, writeShell } from "./storage"
  * The package owns the areas and their behaviour: the side nav collapses, resizes, flies out on
  * hover and overlays the page on a narrow viewport; the panel resizes and overlays; the banner
  * pushes everything down. The product owns what goes in them: the nav data, the router, the
- * search, the actions, whatever fills the panel. A link is a slot the product fills with asChild.
+ * search, the actions, whatever fills the panel. The product composes router links with Base UI render.
  */
 
 /* ---------- state ---------- */
@@ -599,67 +600,51 @@ function Mark() {
   );
 }
 
-export type AppLogoProps = {
+export type AppLogoProps = useRender.ComponentProps<"span"> & {
   /** The product's mark; the brand square by default. */
   mark?: ReactNode;
   name: string;
-  /** The line under the name: the tenant, the workspace, the environment. Hidden with the name below the large breakpoint. */
+  /** The tenant, workspace or environment. Hidden with the name below the large breakpoint. */
   secondaryName?: string | undefined;
-  /** The router's Link as the child, with no children of its own; the logo fills it. */
-  asChild?: boolean | undefined;
-  /** A switcher instead of a link: a chevron follows the name. */
-  onClick?: (() => void) | undefined;
-  className?: string | undefined;
-  children?: ReactNode;
 };
 
-/** The product's mark and name, in the top nav's start slot. A link home, or a switcher, or plain. */
+/** The product identity. Use render={<Link />} for home or render={<button />} for a switcher. */
 function AppLogo({
   mark = <Mark />,
   name,
   secondaryName,
-  asChild,
-  onClick,
+  render,
   className,
   children,
+  ...props
 }: AppLogoProps) {
-  const base = cn(
-    "flex min-w-0 items-center gap-100 rounded-medium text-left outline-none focus-visible:outline-focused",
-    className,
-  );
-  const names = (
-    <span className="hidden min-w-0 flex-col lg:flex">
-      <span className="truncate font-body font-medium text-default">{name}</span>
-      {secondaryName ? (
-        <span className="truncate font-body-small text-subtle">{secondaryName}</span>
-      ) : null}
-    </span>
-  );
-  const chevron = onClick ? (
-    <ChevronDown className="hidden size-icon-small shrink-0 icon-subtle lg:block" />
-  ) : null;
-  if (asChild)
-    return (
-      <Slot className={base} aria-label={name} onClick={onClick}>
-        {mark}
-        <Slottable>{children}</Slottable>
-        {names}
-      </Slot>
-    );
-  if (onClick)
-    return (
-      <button type="button" aria-label={name} onClick={onClick} className={base}>
-        {mark}
-        {names}
-        {chevron}
-      </button>
-    );
-  return (
-    <span className={base}>
-      {mark}
-      {names}
-    </span>
-  );
+  return useRender({
+    defaultTagName: "span",
+    render,
+    state: { slot: "app-logo" },
+    props: mergeProps<"span">(
+      {
+        "aria-label": name,
+        className: cn(
+          "flex min-w-0 items-center gap-100 rounded-medium text-left outline-none focus-visible:outline-focused",
+          className,
+        ),
+        children: (
+          <>
+            {mark}
+            <span className="hidden min-w-0 flex-col lg:flex">
+              <span className="truncate font-body font-medium text-default">{name}</span>
+              {secondaryName ? (
+                <span className="truncate font-body-small text-subtle">{secondaryName}</span>
+              ) : null}
+            </span>
+            {children}
+          </>
+        ),
+      },
+      props,
+    ),
+  });
 }
 
 /** Opens the switcher between products. */
@@ -815,9 +800,7 @@ function SideNavSection({ heading, children }: SideNavSectionProps) {
   );
 }
 
-export type SideNavItemProps = {
-  /** The router's Link as the child; its own children are the label. */
-  asChild?: boolean | undefined;
+export type SideNavItemProps = useRender.ComponentProps<"a"> & {
   /** The current page. */
   isActive?: boolean | undefined;
   icon?: ComponentType<{ className?: string | undefined; strokeWidth?: number }> | undefined;
@@ -825,7 +808,7 @@ export type SideNavItemProps = {
   badge?: ReactNode;
   children: ReactNode;
   className?: string | undefined;
-} & Omit<ComponentPropsWithoutRef<"a">, "children" | "className">;
+};
 
 const itemBase =
   "flex h-control-small w-full items-center gap-100 rounded-medium px-150 font-body text-left outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused";
@@ -838,39 +821,48 @@ const indent = (depth: number) =>
     ? { paddingInlineStart: `calc(${token("space.150")} + ${depth} * ${token("space.250")})` }
     : undefined;
 
-/** One destination. A link (asChild around the router's Link, or href), or a button when it only has onClick. */
+/** A native anchor. Use render for a router link or an explicit button action. */
 function SideNavItem({
-  asChild,
+  render,
   isActive,
   icon: Icon,
   badge,
   className,
   children,
-  ...rest
+  ...props
 }: SideNavItemProps) {
   const depth = useContext(DepthContext);
-  const Comp = asChild ? Slot : rest.href === undefined && rest.onClick ? "button" : "a";
-  const buttonProps = Comp === "button" ? { type: "button" as const } : {};
-  return (
-    <Comp
-      aria-current={isActive ? "page" : undefined}
-      className={cn(itemBase, itemTone(isActive), className)}
-      style={indent(depth)}
-      {...buttonProps}
-      {...(rest as object)}
-    >
-      {Icon ? (
-        <Icon
-          className={cn("size-icon-small shrink-0", isActive ? "icon-default" : "icon-subtle")}
-          strokeWidth={2}
-        />
-      ) : null}
-      <Slottable>{children}</Slottable>
-      {badge ? (
-        <span className="ms-auto font-body-xsmall text-subtle tabular-nums">{badge}</span>
-      ) : null}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "a",
+    render,
+    state: { slot: "side-nav-item" },
+    props: mergeProps<"a">(
+      {
+        "aria-current": isActive ? "page" : undefined,
+        className: cn(itemBase, itemTone(isActive), className),
+        style: indent(depth),
+        children: (
+          <>
+            {Icon ? (
+              <Icon
+                aria-hidden
+                className={cn(
+                  "size-icon-small shrink-0",
+                  isActive ? "icon-default" : "icon-subtle",
+                )}
+                strokeWidth={2}
+              />
+            ) : null}
+            {children}
+            {badge ? (
+              <span className="ms-auto font-body-xsmall text-subtle tabular-nums">{badge}</span>
+            ) : null}
+          </>
+        ),
+      },
+      props,
+    ),
+  });
 }
 
 export type SideNavExpandableProps = {

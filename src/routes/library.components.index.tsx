@@ -153,13 +153,15 @@ function ComponentLibrary() {
               title={preview.name}
               onClose={() => setPreview(null)}
               openTo={
-                <TextLink>
-                  <Link
-                    to="/library/components/$componentKey"
-                    params={{ componentKey: preview.key }}
-                  >
-                    Open component
-                  </Link>
+                <TextLink
+                  render={
+                    <Link
+                      to="/library/components/$componentKey"
+                      params={{ componentKey: preview.key }}
+                    />
+                  }
+                >
+                  Open component
                 </TextLink>
               }
             >

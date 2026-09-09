@@ -110,7 +110,7 @@ export function PreviewSheet({
         <SheetFooter>
           <div className="flex w-full items-center justify-between gap-150">
             <div className="flex min-w-0 flex-wrap items-center gap-200 font-body">
-              <TextLink weight="medium">{open_}</TextLink>
+              <TextLink weight="medium" render={open_} />
               {links}
             </div>
             {actions ? <div className="flex shrink-0 items-center gap-100">{actions}</div> : null}

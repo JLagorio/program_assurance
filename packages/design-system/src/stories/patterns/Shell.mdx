@@ -15,13 +15,13 @@ The navigation system: how a reader gets around a product. `Shell` is the root, 
 
 The areas, in their order:
 
-| Area            | Does                                                                                                                                                                                                                                                                                                                                                 |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Shell.Banner`  | Above everything, `dimension.layout.banner` tall, holding a Banner. Render it while the message is true; it pushes the rest down and is gone when it unmounts.                                                                                                                                                                                       |
-| `Shell.TopNav`  | `dimension.layout.topnav` tall, the full width, sticky. Three slots: `Start`, `Middle`, `End`.                                                                                                                                                                                                                                                       |
-| `Shell.SideNav` | `dimension.layout.sidenav` wide on the sunken surface, sticky under the top nav. Three slots: `Header` and `Footer` stay put, `Body` scrolls and pushes the footer down.                                                                                                                                                                              |
-| `Shell.Main`    | The page. Fills what the others leave, body scroll, `space.200` inset and `space.300` on a desktop.                                                                                                                                                                                                                                                  |
-| `Shell.Panel`   | Beside the page at the end, under the top nav, `dimension.layout.panel` wide. Render it anywhere under the Shell, a route or a page: it is fixed beside the page and the root reserves its column, on the server as on the client. Mounted when there is something to show and unmounted when there is not. It is an area, not a feature.            |
+| Area            | Does                                                                                                                                                                                                                                                                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Shell.Banner`  | Above everything, `dimension.layout.banner` tall, holding a Banner. Render it while the message is true; it pushes the rest down and is gone when it unmounts.                                                                                                                                                                            |
+| `Shell.TopNav`  | `dimension.layout.topnav` tall, the full width, sticky. Three slots: `Start`, `Middle`, `End`.                                                                                                                                                                                                                                            |
+| `Shell.SideNav` | `dimension.layout.sidenav` wide on the sunken surface, sticky under the top nav. Three slots: `Header` and `Footer` stay put, `Body` scrolls and pushes the footer down.                                                                                                                                                                  |
+| `Shell.Main`    | The page. Fills what the others leave, body scroll, `space.200` inset and `space.300` on a desktop.                                                                                                                                                                                                                                       |
+| `Shell.Panel`   | Beside the page at the end, under the top nav, `dimension.layout.panel` wide. Render it anywhere under the Shell, a route or a page: it is fixed beside the page and the root reserves its column, on the server as on the client. Mounted when there is something to show and unmounted when there is not. It is an area, not a feature. |
 
 The top nav's slots and items:
 
@@ -29,24 +29,24 @@ The top nav's slots and items:
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `TopNav.Start`      | `toggle` takes the `SideNav.ToggleButton`; children are the `AppSwitcher` and the `AppLogo`. While the side nav is expanded the slot takes the side nav's width and surface, so the logo heads that column and the side nav reads full height; the toggle moves to the slot's end. |
 | `TopNav.Middle`     | The search first, then the create action. Centred while the side nav is collapsed, start-aligned while it is expanded.                                                                                                                                                             |
-| `TopNav.End`        | A list of icon buttons, right-aligned with no gaps: mode, help, notifications, settings. Below the medium breakpoint they fold into one More button.                                                                                                                                |
-| `Shell.AppLogo`     | The product's mark and name with a `secondaryName` under it, hidden with the name below the large breakpoint. As a link home it is `asChild` around the router's Link; with `onClick` it is a switcher and grows a chevron. `Shell.Mark` is the default mark.                       |
+| `TopNav.End`        | A list of icon buttons, right-aligned with no gaps: mode, help, notifications, settings. Below the medium breakpoint they fold into one More button.                                                                                                                               |
+| `Shell.AppLogo`     | The product's mark and name with a `secondaryName` under it, hidden with the name below the large breakpoint. Use `render={<Link />}` for home or `render={<button type="button" />}` for a switcher. Additional children can supply a chevron. `Shell.Mark` is the default mark.  |
 | `Shell.AppSwitcher` | The grid button that opens the switcher between products.                                                                                                                                                                                                                          |
-| `Shell.Profile`     | The person, avatar, name and role, for the side nav's footer. A button with `onClick`; a label without.                                                                                                                                                                             |
+| `Shell.Profile`     | The person, avatar, name and role, for the side nav's footer. A button with `onClick`; a label without.                                                                                                                                                                            |
 
 The side nav's slots and items:
 
-| Part                   | Does                                                                                                                                                                   |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SideNav.Header`       | Fixed at the top: a container switcher, a search, a title.                                                                                                             |
-| `SideNav.Body`         | The sections and items. It scrolls.                                                                                                                                    |
-| `SideNav.Footer`       | Fixed at the bottom, above a rule: the Profile, a settings link.                                                                                                       |
-| `SideNav.Section`      | A group of items under an eyebrow `heading`, which is the group's name.                                                                                                |
-| `SideNav.Item`         | One destination: `asChild` around the router's Link, or `href`, or a button when it only has `onClick`. `icon`, `badge` on the right, `isActive` for the current page. |
-| `SideNav.Expandable`   | A row that opens a level of items under it, indented one step per level. Uncontrolled with `defaultOpen`, or `open` and `onOpenChange`.                                |
-| `SideNav.ToggleButton` | Shows and hides the side nav, in `TopNav.Start`'s `toggle` slot. Its tooltip shows the shortcut when one is on.                                                        |
-| `SideNav.Splitter`     | Makes the side nav resizable from its end edge. A double-click collapses it.                                                                                           |
-| `Panel.Splitter`       | Makes the panel resizable from its start edge.                                                                                                                         |
+| Part                   | Does                                                                                                                                                                                         |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SideNav.Header`       | Fixed at the top: a container switcher, a search, a title.                                                                                                                                   |
+| `SideNav.Body`         | The sections and items. It scrolls.                                                                                                                                                          |
+| `SideNav.Footer`       | Fixed at the bottom, above a rule: the Profile, a settings link.                                                                                                                             |
+| `SideNav.Section`      | A group of items under an eyebrow `heading`, which is the group's name.                                                                                                                      |
+| `SideNav.Item`         | One destination: `href` for an anchor, `render={<Link />}` for routing, or `render={<button type="button" />}` for an action. `icon`, `badge` on the right, `isActive` for the current page. |
+| `SideNav.Expandable`   | A row that opens a level of items under it, indented one step per level. Uncontrolled with `defaultOpen`, or `open` and `onOpenChange`.                                                      |
+| `SideNav.ToggleButton` | Shows and hides the side nav, in `TopNav.Start`'s `toggle` slot. Its tooltip shows the shortcut when one is on.                                                                              |
+| `SideNav.Splitter`     | Makes the side nav resizable from its end edge. A double-click collapses it.                                                                                                                 |
+| `Panel.Splitter`       | Makes the panel resizable from its start edge.                                                                                                                                               |
 
 <Canvas of={Stories.ShellMatrix} />
 
@@ -54,13 +54,13 @@ The side nav's slots and items:
 
 The frame has one appearance. What varies is which areas are on and how the side nav sits:
 
-| Frame                  | Use                                                                                                                                    |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Top nav, side nav, main | Every page: the default frame.                                                                                                        |
-| With a banner          | A message true of the whole product for now: the audit window closing. It pushes the frame down; nothing covers anything.              |
-| With a panel           | The detail of a selected row beside its table, a thread, a form: the product mounts `Shell.Panel` with a Panel in it and unmounts it after. |
-| Collapsed              | The side nav hidden, the logo mark alone in the start slot, the middle slot centred. Hover the toggle for the flyout.                    |
-| Overlay                | Below the large breakpoint: the side nav opens over the page behind a scrim, the panel over the page without one.                        |
+| Frame                   | Use                                                                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Top nav, side nav, main | Every page: the default frame.                                                                                                              |
+| With a banner           | A message true of the whole product for now: the audit window closing. It pushes the frame down; nothing covers anything.                   |
+| With a panel            | The detail of a selected row beside its table, a thread, a form: the product mounts `Shell.Panel` with a Panel in it and unmounts it after. |
+| Collapsed               | The side nav hidden, the logo mark alone in the start slot, the middle slot centred. Hover the toggle for the flyout.                       |
+| Overlay                 | Below the large breakpoint: the side nav opens over the page behind a scrim, the panel over the page without one.                           |
 
 <Canvas of={Stories.WithBannerAndPanel} />
 
@@ -70,13 +70,13 @@ Not built, and why: a rail of icons for the collapsed side nav, because a collap
 
 ## Sizes
 
-| Dimension | Token                     | Value                                                                       |
-| --------- | ------------------------- | --------------------------------------------------------------------------- |
-| Banner    | `dimension.layout.banner` | 48px                                                                        |
-| Top nav   | `dimension.layout.topnav` | 48px                                                                        |
-| Side nav  | `dimension.layout.sidenav` | 228px at first; dragged between 200px and half the viewport                 |
-| Panel     | `dimension.layout.panel`  | 320px at first; dragged between 240px and half the viewport                 |
-| Overlay   |                           | The side nav or the panel at its width, at most 90% of the viewport         |
+| Dimension | Token                      | Value                                                               |
+| --------- | -------------------------- | ------------------------------------------------------------------- |
+| Banner    | `dimension.layout.banner`  | 48px                                                                |
+| Top nav   | `dimension.layout.topnav`  | 48px                                                                |
+| Side nav  | `dimension.layout.sidenav` | 228px at first; dragged between 200px and half the viewport         |
+| Panel     | `dimension.layout.panel`   | 320px at first; dragged between 240px and half the viewport         |
+| Overlay   |                            | The side nav or the panel at its width, at most 90% of the viewport |
 
 | Breakpoint            | Side nav          | Panel             | Top nav                                  |
 | --------------------- | ----------------- | ----------------- | ---------------------------------------- |
@@ -86,15 +86,15 @@ Not built, and why: a rail of icons for the collapsed side nav, because a collap
 
 ## States
 
-| State      | What changes                                                                                                                                                                                              |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Expanded   | The side nav inline beside the page; the start slot takes its width and surface; the toggle at the slot's end.                                                                                            |
-| Collapsed  | The side nav hidden; the toggle beside the logo; the middle slot centred. The toggle button, `useSideNav()` from product code, Ctrl+[ when `sideNavShortcut` is on, or a double-click on the splitter.   |
-| Flyout     | Hovering the toggle while collapsed flies the side nav out over the page; moving away closes it. A popup opened inside the flyout holds it open; the next click outside closes both.                       |
-| Overlay    | Below the large breakpoint the side nav opens over the page behind a scrim; Escape or the scrim closes it and focus returns to the toggle.                                                                 |
-| Dragging   | The splitter in `color.background.brand.bold` while dragged or focused; the arrow keys move it 16px; `onResizeEnd` reports the final width. The width survives a collapse.                                |
-| Remembered | `persist` keeps the collapsed state and the dragged widths in this browser; `shellScript` in the document head applies them before the first paint, so nothing flashes open on reload.                    |
-| Active     | A side nav item with `isActive`: `color.background.neutral`, medium weight, `aria-current="page"`.                                                                                                        |
+| State      | What changes                                                                                                                                                                                           |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Expanded   | The side nav inline beside the page; the start slot takes its width and surface; the toggle at the slot's end.                                                                                         |
+| Collapsed  | The side nav hidden; the toggle beside the logo; the middle slot centred. The toggle button, `useSideNav()` from product code, Ctrl+[ when `sideNavShortcut` is on, or a double-click on the splitter. |
+| Flyout     | Hovering the toggle while collapsed flies the side nav out over the page; moving away closes it. A popup opened inside the flyout holds it open; the next click outside closes both.                   |
+| Overlay    | Below the large breakpoint the side nav opens over the page behind a scrim; Escape or the scrim closes it and focus returns to the toggle.                                                             |
+| Dragging   | The splitter in `color.background.brand.bold` while dragged or focused; the arrow keys move it 16px; `onResizeEnd` reports the final width. The width survives a collapse.                             |
+| Remembered | `persist` keeps the collapsed state and the dragged widths in this browser; `shellScript` in the document head applies them before the first paint, so nothing flashes open on reload.                 |
+| Active     | A side nav item with `isActive`: `color.background.neutral`, medium weight, `aria-current="page"`.                                                                                                     |
 
 <Canvas of={Stories.Remembered} />
 
@@ -103,8 +103,8 @@ Not built, and why: a rail of icons for the collapsed side nav, because a collap
 - **Root**: `defaultSideNavCollapsed`, `sideNavShortcut`, `persist` (`true` for the default key, or a key of your own).
 - **Areas**: `id` and `label` on each, the landmark's name; `defaultWidth` on the side nav and the panel; `onCollapse` and `onExpand` on the side nav.
 - **Top nav**: `toggle` on Start; `label` and `moreLabel` on End.
-- **Logo**: `mark`, `name`, `secondaryName`, `asChild`, `onClick`.
-- **Items**: `icon`, `badge`, `isActive`, `asChild` or `href` or `onClick`; `label`, `defaultOpen`, `open`, `onOpenChange` on an expandable.
+- **Logo**: `mark`, `name`, `secondaryName`, `render`, native props/ref and children.
+- **Items**: `icon`, `badge`, `isActive`, `href` or `render`, native props/ref; `label`, `defaultOpen`, `open`, `onOpenChange` on an expandable.
 - **Splitters**: `label`, `onResizeStart`, `onResizeEnd`.
 - **`useSideNav()`** from product code: `isExpanded`, `expand`, `collapse`, `toggle`.
 
@@ -119,18 +119,18 @@ Not built, and why: a rail of icons for the collapsed side nav, because a collap
 
 ## Style
 
-| Element   | Token                                                                                                                                                       |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Root      | `elevation.surface` · a grid of banner, top nav, side nav, main and panel; the panel's column reserved while one is mounted                                   |
-| Top nav   | `elevation.surface` · `color.border` under · `space.150` inside the slots · the start slot `elevation.surface.sunken` with `color.border` at its end while the side nav is expanded |
-| Side nav  | `elevation.surface.sunken` · `color.border` at the end · `space.150` inset · `space.200` between sections · `elevation.shadow.overlay` as an overlay          |
+| Element   | Token                                                                                                                                                                                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Root      | `elevation.surface` · a grid of banner, top nav, side nav, main and panel; the panel's column reserved while one is mounted                                                                                                                                        |
+| Top nav   | `elevation.surface` · `color.border` under · `space.150` inside the slots · the start slot `elevation.surface.sunken` with `color.border` at its end while the side nav is expanded                                                                                |
+| Side nav  | `elevation.surface.sunken` · `color.border` at the end · `space.150` inset · `space.200` between sections · `elevation.shadow.overlay` as an overlay                                                                                                               |
 | Item      | `dimension.control.small` tall · `space.150` inline · `radius.medium` · `font.body` · `color.text.subtle`, hover `color.background.neutral.subtle.hovered` and `color.text` · active `color.background.neutral` medium `color.text` · indent `space.250` per level |
-| Eyebrow   | Eyebrow · `space.150` inline · `space.100` above · `space.050` under                                                                                          |
-| Footer    | `color.border` above · `space.150` inset                                                                                                                     |
-| Panel     | `elevation.surface` · `color.border` at the start · `elevation.shadow.overlay` as an overlay                                                                  |
-| Splitter  | `space.050` wide, invisible · `color.background.brand.bold` on hover, focus and drag                                                                          |
-| Scrim     | `color.blanket`                                                                                                                                              |
-| Skip link | Visually hidden until focused: `elevation.surface.overlay` · `elevation.shadow.overlay` · `radius.medium` · `space.150` from the corner                       |
+| Eyebrow   | Eyebrow · `space.150` inline · `space.100` above · `space.050` under                                                                                                                                                                                               |
+| Footer    | `color.border` above · `space.150` inset                                                                                                                                                                                                                           |
+| Panel     | `elevation.surface` · `color.border` at the start · `elevation.shadow.overlay` as an overlay                                                                                                                                                                       |
+| Splitter  | `space.050` wide, invisible · `color.background.brand.bold` on hover, focus and drag                                                                                                                                                                               |
+| Scrim     | `color.blanket`                                                                                                                                                                                                                                                    |
+| Skip link | Visually hidden until focused: `elevation.surface.overlay` · `elevation.shadow.overlay` · `radius.medium` · `space.150` from the corner                                                                                                                            |
 
 ## Accessibility
 
@@ -175,9 +175,11 @@ head: () => ({ scripts: [{ children: modeScript }, { children: shellScript }] })
 <Shell sideNavShortcut persist>
   <Shell.TopNav>
     <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
-      <Shell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
-        <Link to="/" aria-label="Equinox home" />
-      </Shell.AppLogo>
+      <Shell.AppLogo
+        name="Equinox"
+        secondaryName="Northwind Corp"
+        render={<Link to="/" aria-label="Equinox home" />}
+      />
     </Shell.TopNav.Start>
     <Shell.TopNav.Middle>{search}</Shell.TopNav.Middle>
     <Shell.TopNav.End>
@@ -190,8 +192,12 @@ head: () => ({ scripts: [{ children: modeScript }, { children: shellScript }] })
   <Shell.SideNav>
     <Shell.SideNav.Body>
       <Shell.SideNav.Section heading="Work">
-        <Shell.SideNav.Item asChild icon={ShieldCheck} isActive={pathname.startsWith("/scope")}>
-          <Link to="/scope">My queue</Link>
+        <Shell.SideNav.Item
+          icon={ShieldCheck}
+          isActive={pathname.startsWith("/scope")}
+          render={<Link to="/scope" />}
+        >
+          My queue
         </Shell.SideNav.Item>
       </Shell.SideNav.Section>
     </Shell.SideNav.Body>
@@ -239,3 +245,9 @@ The frame before the navigation system (`Shell.Sidebar`, `TopBar`, `Brand`, `Nav
 ## Don't
 
 <Canvas of={Stories.Dont} />
+
+### Navigation composition migration
+
+Replace AppLogo and SideNav.Item `asChild` with Base UI `render`. AppLogo defaults to a span; SideNav.Item defaults to an anchor. Actions explicitly render a button, including `type="button"`; an onClick handler does not change the element. AppLogo switchers compose their own chevron as children. Put the label inside SideNav.Item and leave the rendered router Link empty so the item keeps its icon and badge. Native refs, events, ARIA and styles merge onto that element; custom style preserves depth indentation unless it explicitly overrides paddingInlineStart.
+
+Sources: [shadcn Sidebar implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/sidebar.tsx), [Base UI useRender](https://base-ui.com/react/utils/use-render).

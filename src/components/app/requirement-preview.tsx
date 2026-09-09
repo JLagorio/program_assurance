@@ -110,14 +110,16 @@ export function RequirementPreviewSheet({
       }
       links={
         requirement ? (
-          <TextLink>
-            <Link
-              to="/programs/$programId/requirements/$requirementId"
-              params={{ programId, requirementId: requirement.id }}
-              search={{ tab: "Provenance", element: elementId }}
-            >
-              Provenance
-            </Link>
+          <TextLink
+            render={
+              <Link
+                to="/programs/$programId/requirements/$requirementId"
+                params={{ programId, requirementId: requirement.id }}
+                search={{ tab: "Provenance", element: elementId }}
+              />
+            }
+          >
+            Provenance
           </TextLink>
         ) : undefined
       }

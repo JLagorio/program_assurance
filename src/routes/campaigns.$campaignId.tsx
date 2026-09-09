@@ -470,10 +470,11 @@ function CampaignRecord() {
                     alignBlock="baseline"
                     shouldWrap
                   >
-                    <TextLink className="shrink-0">
-                      <Link to="/campaigns" aria-label={`Back to campaigns for ${e.id}`}>
-                        <Id>{e.id}</Id>
-                      </Link>
+                    <TextLink
+                      className="shrink-0"
+                      render={<Link to="/campaigns" aria-label={`Back to campaigns for ${e.id}`} />}
+                    >
+                      <Id>{e.id}</Id>
                     </TextLink>
                     <span className="font-body font-medium">{e.name}</span>
                     <Badge variant="secondary" tone={statusTone(assessmentEventState(e))}>

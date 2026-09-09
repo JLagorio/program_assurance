@@ -539,10 +539,10 @@ function ProgramDetail() {
         <KeyValue label="AO">{program.authorizingOfficial}</KeyValue>
         {programWorkstreams.map((w) => (
           <KeyValue key={w.id} label={w.title} wrap>
-            <TextLink>
-              <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
-                {personById.get(w.lead)?.name ?? w.lead}
-              </Link>
+            <TextLink
+              render={<Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }} />}
+            >
+              {personById.get(w.lead)?.name ?? w.lead}
             </TextLink>
           </KeyValue>
         ))}
@@ -565,10 +565,13 @@ function ProgramDetail() {
         <Stack className="font-body-small" space="space.075">
           {inheritedComponents.map((c) => (
             <Inline key={c.id} space="space.100" alignBlock="center" spread="space-between">
-              <TextLink className="truncate">
-                <Link to="/library/components/$componentKey" params={{ componentKey: c.key }}>
-                  {c.name}
-                </Link>
+              <TextLink
+                className="truncate"
+                render={
+                  <Link to="/library/components/$componentKey" params={{ componentKey: c.key }} />
+                }
+              >
+                {c.name}
               </TextLink>
               {c.sourceProgramId && !c.sourceAccessible ? (
                 <Lock
@@ -939,12 +942,17 @@ function ProgramDetail() {
                   try {
                     saveProgramCommand(program.id, { archivedAt: new Date().toISOString() });
                     setArchiving(false);
-                    toast.success("Program archived", {
+                    toast.add({
+                      title: "Program archived",
+                      type: "success",
                       description: "Saved in this browser. Restore it from the Archived list.",
                     });
                     void navigate({ to: "/programs" });
                   } catch {
-                    toast.error("Program could not be archived", {
+                    toast.add({
+                      title: "Program could not be archived",
+                      type: "error",
+                      timeout: 8000,
                       description:
                         "Browser storage is unavailable. Try again after freeing storage.",
                     });

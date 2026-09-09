@@ -53,7 +53,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const openTo = (
-  <TextLink size="small" asChild={false} href="#open">
+  <TextLink size="small" href="#open">
     Open finding
   </TextLink>
 );

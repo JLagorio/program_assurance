@@ -385,7 +385,7 @@ function NewFindingSheet({
                   assessor: currentSession().name,
                 };
                 const finding = createFinding(input);
-                toast.success("Finding created");
+                toast.add({ title: "Finding created", type: "success" });
                 onCreated(finding);
               } catch (failure) {
                 report(failure, setError);
@@ -830,7 +830,7 @@ function FindingEditor({
         mitigation,
       });
       setLifecycleEdited(false);
-      toast.success("Finding updated");
+      toast.add({ title: "Finding updated", type: "success" });
       return true;
     } catch (failure) {
       report(failure, setError);
@@ -974,23 +974,29 @@ function FindingEditor({
                   </Field>
                   <Inline space="space.150" shouldWrap className="pt-100">
                     {(finding.controls ?? [finding.control]).filter(Boolean).map((control) => (
-                      <TextLink key={control}>
-                        <Link
-                          to="/programs/$programId/controls/$controlId"
-                          params={{ programId, controlId: control }}
-                        >
-                          Control {control}
-                        </Link>
+                      <TextLink
+                        key={control}
+                        render={
+                          <Link
+                            to="/programs/$programId/controls/$controlId"
+                            params={{ programId, controlId: control }}
+                          />
+                        }
+                      >
+                        Control {control}
                       </TextLink>
                     ))}
                     {finding.requirements?.map((id) => (
-                      <TextLink key={id}>
-                        <Link
-                          to="/programs/$programId/requirements/$requirementId"
-                          params={{ programId, requirementId: id }}
-                        >
-                          {id}
-                        </Link>
+                      <TextLink
+                        key={id}
+                        render={
+                          <Link
+                            to="/programs/$programId/requirements/$requirementId"
+                            params={{ programId, requirementId: id }}
+                          />
+                        }
+                      >
+                        {id}
                       </TextLink>
                     ))}
                   </Inline>
@@ -1134,7 +1140,7 @@ function FindingEditor({
                         try {
                           linkFindingEvidence(finding.id, attachEvidence);
                           setAttachEvidence("");
-                          toast.success("Evidence attached");
+                          toast.add({ title: "Evidence attached", type: "success" });
                         } catch (failure) {
                           report(failure, setError);
                         }
@@ -1328,11 +1334,13 @@ function FindingEditor({
                             setLifecycle(result === "Passed" ? "Closed" : "Remediating");
                             setLifecycleEdited(false);
                             setRetesting(false);
-                            toast.success(
-                              result === "Passed"
-                                ? "Finding closed with retest evidence"
-                                : "Retest recorded; remediation remains open",
-                            );
+                            toast.add({
+                              title:
+                                result === "Passed"
+                                  ? "Finding closed with retest evidence"
+                                  : "Retest recorded; remediation remains open",
+                              type: "success",
+                            });
                           } catch (failure) {
                             report(failure, setError);
                           }

@@ -66,18 +66,18 @@ function WorkstreamDetail() {
             <>
               <Inspector.Group title="Workstream">
                 <KeyValue label="Program">
-                  <TextLink>
-                    <Link to="/programs/$programId" params={{ programId: ws.program }}>
-                      <Id>{ws.program}</Id>
-                    </Link>
+                  <TextLink
+                    render={<Link to="/programs/$programId" params={{ programId: ws.program }} />}
+                  >
+                    <Id>{ws.program}</Id>
                   </TextLink>
                 </KeyValue>
                 <KeyValue label="Lead">
                   {lead ? (
-                    <TextLink>
-                      <Link to="/people/$personId" params={{ personId: lead.id }}>
-                        {lead.name}
-                      </Link>
+                    <TextLink
+                      render={<Link to="/people/$personId" params={{ personId: lead.id }} />}
+                    >
+                      {lead.name}
                     </TextLink>
                   ) : (
                     "—"
@@ -163,10 +163,10 @@ function WorkstreamDetail() {
                   return (
                     <Table.Row key={m.person}>
                       <Table.Cell>
-                        <TextLink>
-                          <Link to="/people/$personId" params={{ personId: m.person }}>
-                            <Id>{m.person}</Id>
-                          </Link>
+                        <TextLink
+                          render={<Link to="/people/$personId" params={{ personId: m.person }} />}
+                        >
+                          <Id>{m.person}</Id>
                         </TextLink>
                       </Table.Cell>
                       <Table.Cell className="truncate">{p?.name ?? "—"}</Table.Cell>
@@ -199,10 +199,12 @@ function WorkstreamDetail() {
                   <Table.Row key={`${dir}-${w.id}`}>
                     <Table.Cell>{dir}</Table.Cell>
                     <Table.Cell>
-                      <TextLink>
-                        <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
-                          <Id>{w.id}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }} />
+                        }
+                      >
+                        <Id>{w.id}</Id>
                       </TextLink>
                     </Table.Cell>
                     <Table.Cell className="truncate">{w.title}</Table.Cell>

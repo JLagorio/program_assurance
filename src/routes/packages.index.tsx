@@ -125,10 +125,8 @@ function PackagesIndex() {
               title={preview.name}
               onClose={() => setPreview(null)}
               openTo={
-                <TextLink>
-                  <Link to="/packages/$pkgId" params={{ pkgId: preview.id }}>
-                    Open package
-                  </Link>
+                <TextLink render={<Link to="/packages/$pkgId" params={{ pkgId: preview.id }} />}>
+                  Open package
                 </TextLink>
               }
             >

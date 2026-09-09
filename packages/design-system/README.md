@@ -105,7 +105,7 @@ Port source into the package with relative imports and package `cn`; application
 
 Breadcrumb has seven composable exports and uses Base UI `render` for links. Badge combines shadcn variants and semantic status options in one component; its [Storybook page](src/stories/components/Badge.mdx) owns the usage and migration examples. Other families retain their documented APIs until their own migration.
 
-[Card](src/stories/components/Card.mdx) and [Empty](src/stories/components/Empty.mdx) use flat native parts in the components layer. [Spinner](src/stories/components/Spinner.mdx) accepts native SVG props/refs and retains delay and decorative behavior. [Toaster](src/stories/components/Toaster.mdx) forwards Sonner props/refs with Ledger defaults and partial style/icon overrides.
+[Card](src/stories/components/Card.mdx) and [Empty](src/stories/components/Empty.mdx) use flat native parts in the components layer. [Spinner](src/stories/components/Spinner.mdx) accepts native SVG props/refs and retains delay and decorative behavior. [Toaster](src/stories/components/Toaster.mdx) uses Base UI Toast, with native manager operations and composable parts. TextLink and Shell navigation use Base UI render/mergeProps.
 
 [Separator](src/stories/components/Separator.mdx) uses the Base UI primitive; [Skeleton](src/stories/components/Skeleton.mdx) and [Kbd/KbdGroup](src/stories/components/Kbd.mdx) follow shadcn's native element contracts. Each accepts native attributes and refs while retaining Ledger's styling and useful options. [Toggle and ToggleGroup](src/stories/components/ToggleGroup.mdx) use shadcn's Base UI composition, standard variants/sizes and array selection API. Detailed contracts live on those family pages.
 
@@ -137,7 +137,7 @@ DOM attributes and refs belong on the element that consumers must label, submit,
 
 [Progress](src/stories/components/Progress.mdx) uses the Base UI numeric range, label and value contracts, retaining Ledger tone/size and the separate ProgressStacked coverage bar. [ScrollArea](src/stories/components/ScrollArea.mdx) uses Base UI with an explicit horizontal ScrollBar; `viewportProps` targets the scrolling element for ARIA, refs and events.
 
-Base UI, Radix Slot and layout helpers are implementation dependencies. Consumers use the package's public parts and their documented native and dependency-derived contracts. **Explicit public adapters** also include Sonner's toast options/promise API, TanStack table definitions, and chart configuration types exposed by the package. Upgrades that affect public contracts require checking consumer types and migration notes. React and Tailwind remain peers. `MODE_STORAGE_KEY` and `SHELL_STORAGE_KEY` are public storage integration constants; persisted data must be validated and fall back safely.
+Base UI and layout helpers are implementation dependencies. Consumers use the package's public parts and their documented native and dependency-derived contracts. **Explicit public adapters** also include Base UI's toast manager API, TanStack table definitions, and chart configuration types exposed by the package. Upgrades that affect public contracts require checking consumer types and migration notes. React and Tailwind remain peers. `MODE_STORAGE_KEY` and `SHELL_STORAGE_KEY` are public storage integration constants; persisted data must be validated and fall back safely.
 
 ## Lifecycle and contribution
 

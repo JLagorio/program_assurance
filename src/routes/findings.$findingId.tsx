@@ -111,8 +111,8 @@ function FindingRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Finding not found</h1>
-          <TextLink size="medium">
-            <Link to="/findings">Back to findings</Link>
+          <TextLink size="medium" render={<Link to="/findings" />}>
+            Back to findings
           </TextLink>
         </Stack>
       </Shell>
@@ -131,13 +131,15 @@ function FindingRecord() {
   const bandScale = "80+ Very high · 60–79 High · 40–59 Moderate · 20–39 Low · under 20 Very low.";
 
   const controlLink = controlRow ? (
-    <TextLink>
-      <Link
-        to="/programs/$programId/controls/$controlId"
-        params={{ programId, controlId: finding.control }}
-      >
-        <Id>{finding.control}</Id>
-      </Link>
+    <TextLink
+      render={
+        <Link
+          to="/programs/$programId/controls/$controlId"
+          params={{ programId, controlId: finding.control }}
+        />
+      }
+    >
+      <Id>{finding.control}</Id>
     </TextLink>
   ) : (
     <Id>{finding.control}</Id>
@@ -158,10 +160,12 @@ function FindingRecord() {
                   </KeyValue>
                   <KeyValue label="Control">{controlLink}</KeyValue>
                   <KeyValue label="Asset">
-                    <TextLink>
-                      <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }}>
-                        {asset?.name ?? finding.asset}
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }} />
+                      }
+                    >
+                      {asset?.name ?? finding.asset}
                     </TextLink>
                   </KeyValue>
                   <KeyValue label="Rule">{finding.rule ? <Id>{finding.rule}</Id> : "—"}</KeyValue>
@@ -207,10 +211,12 @@ function FindingRecord() {
                 <Inspector.Group title="Rolls up to">
                   <KeyValue label="POA&M">
                     {finding.poam ? (
-                      <TextLink>
-                        <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
-                          <Id>{finding.poam}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }} />
+                        }
+                      >
+                        <Id>{finding.poam}</Id>
                       </TextLink>
                     ) : (
                       "Not yet scheduled"
@@ -218,20 +224,20 @@ function FindingRecord() {
                   </KeyValue>
                   <KeyValue label="Risk">
                     {finding.risk ? (
-                      <TextLink>
-                        <Link to="/register/risks/$riskId" params={{ riskId: finding.risk }}>
-                          <Id>{finding.risk}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link to="/register/risks/$riskId" params={{ riskId: finding.risk }} />
+                        }
+                      >
+                        <Id>{finding.risk}</Id>
                       </TextLink>
                     ) : (
                       "Not aggregated"
                     )}
                   </KeyValue>
                   <KeyValue label="Program">
-                    <TextLink>
-                      <Link to="/programs/$programId" params={{ programId }}>
-                        <Id>{programId}</Id>
-                      </Link>
+                    <TextLink render={<Link to="/programs/$programId" params={{ programId }} />}>
+                      <Id>{programId}</Id>
                     </TextLink>
                   </KeyValue>
                 </Inspector.Group>
@@ -378,10 +384,12 @@ function FindingRecord() {
                     ) : null}
                   </TextBlock>
                   <TextBlock label="Asset">
-                    <TextLink>
-                      <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }}>
-                        {asset?.name ?? finding.asset}
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }} />
+                      }
+                    >
+                      {asset?.name ?? finding.asset}
                     </TextLink>
                     {asset ? (
                       <Box className="text-subtle" as="span" paddingInlineStart="space.100">
@@ -411,10 +419,12 @@ function FindingRecord() {
                       {siblings.map((f) => (
                         <Table.Row key={f.id}>
                           <Table.Cell>
-                            <TextLink>
-                              <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                                <Id>{f.id}</Id>
-                              </Link>
+                            <TextLink
+                              render={
+                                <Link to="/findings/$findingId" params={{ findingId: f.id }} />
+                              }
+                            >
+                              <Id>{f.id}</Id>
                             </TextLink>
                           </Table.Cell>
                           <Table.Cell className="truncate">{f.title}</Table.Cell>
@@ -480,10 +490,8 @@ function FindingRecord() {
                       .map((id, i) => (
                         <span key={id}>
                           {i > 0 && " · "}
-                          <TextLink>
-                            <Link to="/evidence">
-                              <Id>{id}</Id>
-                            </Link>
+                          <TextLink render={<Link to="/evidence" />}>
+                            <Id>{id}</Id>
                           </TextLink>
                         </span>
                       ))}

@@ -25,6 +25,7 @@ import {
   Boxes,
   Bug,
   CircleHelp,
+  ChevronDown,
   ClipboardList,
   Command as CommandIcon,
   FileCheck2,
@@ -38,7 +39,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { ModeSwitch } from "../../mode";
 import { PageHeader, RecordHeader, ShowPage } from "../../patterns";
@@ -77,44 +78,40 @@ function Nav() {
   return (
     <>
       <Shell.SideNav.Section heading="Work">
-        <Shell.SideNav.Item asChild icon={ShieldCheck} badge="1">
-          <a href="#queue">My queue</a>
+        <Shell.SideNav.Item icon={ShieldCheck} badge="1" render={<a href="#queue" />}>
+          My queue
         </Shell.SideNav.Item>
-        <Shell.SideNav.Item asChild icon={ClipboardList} isActive>
-          <a href="#programs">Programs</a>
+        <Shell.SideNav.Item icon={ClipboardList} isActive render={<a href="#programs" />}>
+          Programs
         </Shell.SideNav.Item>
-        <Shell.SideNav.Item asChild icon={FlaskConical}>
-          <a href="#campaigns">Test campaigns</a>
+        <Shell.SideNav.Item icon={FlaskConical} render={<a href="#campaigns" />}>
+          Test campaigns
         </Shell.SideNav.Item>
-        <Shell.SideNav.Item asChild icon={Gauge}>
-          <a href="#portfolio">Portfolio</a>
+        <Shell.SideNav.Item icon={Gauge} render={<a href="#portfolio" />}>
+          Portfolio
         </Shell.SideNav.Item>
       </Shell.SideNav.Section>
       <Shell.SideNav.Section heading="Risk">
         <Shell.SideNav.Expandable icon={Bug} label="Findings and assets" badge="7" defaultOpen>
-          <Shell.SideNav.Item asChild>
-            <a href="#findings">Findings</a>
-          </Shell.SideNav.Item>
-          <Shell.SideNav.Item asChild>
-            <a href="#assets">Assets</a>
-          </Shell.SideNav.Item>
+          <Shell.SideNav.Item render={<a href="#findings" />}>Findings</Shell.SideNav.Item>
+          <Shell.SideNav.Item render={<a href="#assets" />}>Assets</Shell.SideNav.Item>
         </Shell.SideNav.Expandable>
-        <Shell.SideNav.Item asChild icon={ShieldAlert} badge="4">
-          <a href="#register">POA&M and risk</a>
+        <Shell.SideNav.Item icon={ShieldAlert} badge="4" render={<a href="#register" />}>
+          POA&M and risk
         </Shell.SideNav.Item>
-        <Shell.SideNav.Item asChild icon={Archive}>
-          <a href="#packages">Packages</a>
+        <Shell.SideNav.Item icon={Archive} render={<a href="#packages" />}>
+          Packages
         </Shell.SideNav.Item>
       </Shell.SideNav.Section>
       <Shell.SideNav.Section heading="Libraries">
-        <Shell.SideNav.Item asChild icon={FileCheck2}>
-          <a href="#controls">Control catalog</a>
+        <Shell.SideNav.Item icon={FileCheck2} render={<a href="#controls" />}>
+          Control catalog
         </Shell.SideNav.Item>
-        <Shell.SideNav.Item asChild icon={Boxes}>
-          <a href="#stigs">STIG and SRG library</a>
+        <Shell.SideNav.Item icon={Boxes} render={<a href="#stigs" />}>
+          STIG and SRG library
         </Shell.SideNav.Item>
-        <Shell.SideNav.Item asChild icon={Library}>
-          <a href="#providers">Providers</a>
+        <Shell.SideNav.Item icon={Library} render={<a href="#providers" />}>
+          Providers
         </Shell.SideNav.Item>
       </Shell.SideNav.Section>
     </>
@@ -164,9 +161,11 @@ function Demo({
       <Shell.TopNav>
         <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
           <Shell.AppSwitcher onClick={() => undefined} />
-          <Shell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
-            <a href="#home" aria-label="Equinox home" />
-          </Shell.AppLogo>
+          <Shell.AppLogo
+            name="Equinox"
+            secondaryName="Northwind Corp"
+            render={<a href="#home" aria-label="Equinox home" />}
+          />
         </Shell.TopNav.Start>
         <Shell.TopNav.Middle>
           <InputGroup style={{ width: 480, maxWidth: "100%" }}>
@@ -360,10 +359,14 @@ export const ShellMatrix: Story = {
                 With a badge
               </Shell.SideNav.Item>
               <Shell.SideNav.Item href="#noicon">No icon</Shell.SideNav.Item>
-              <Shell.SideNav.Item asChild icon={ClipboardList}>
-                <a href="#link">A link child</a>
+              <Shell.SideNav.Item icon={ClipboardList} render={<a href="#link" />}>
+                A link child
               </Shell.SideNav.Item>
-              <Shell.SideNav.Item icon={Plus} onClick={() => undefined}>
+              <Shell.SideNav.Item
+                icon={Plus}
+                onClick={() => undefined}
+                render={<button type="button" />}
+              >
                 A button
               </Shell.SideNav.Item>
             </Shell.SideNav.Section>
@@ -393,10 +396,21 @@ export const ShellMatrix: Story = {
         <Inline space="space.500" alignBlock="center">
           <Shell.AppLogo name="Equinox" />
           <Shell.AppLogo name="Equinox" secondaryName="Northwind Corp" />
-          <Shell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
-            <a href="#home" aria-label="Equinox home" />
+          <Shell.AppLogo
+            name="Equinox"
+            secondaryName="Northwind Corp"
+            render={<a href="#home" aria-label="Equinox home" />}
+          />
+          <Shell.AppLogo
+            name="Equinox"
+            secondaryName="Northwind Corp"
+            render={<button type="button" onClick={() => undefined} />}
+          >
+            <ChevronDown
+              aria-hidden
+              className="hidden size-icon-small shrink-0 icon-subtle lg:block"
+            />
           </Shell.AppLogo>
-          <Shell.AppLogo name="Equinox" secondaryName="Northwind Corp" onClick={() => undefined} />
           <Shell.AppLogo
             name="Meridian"
             secondaryName="Northwind Corp"
@@ -493,9 +507,11 @@ function RecordDemo() {
     <Shell>
       <Shell.TopNav>
         <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
-          <Shell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
-            <a href="#home" aria-label="Equinox home" />
-          </Shell.AppLogo>
+          <Shell.AppLogo
+            name="Equinox"
+            secondaryName="Northwind Corp"
+            render={<a href="#home" aria-label="Equinox home" />}
+          />
         </Shell.TopNav.Start>
         <Shell.TopNav.Middle>
           <InputGroup style={{ width: 480, maxWidth: "100%" }}>
@@ -722,16 +738,66 @@ export const Forwarding: Story = {
     );
     await userEvent.click(canvas.getByRole("button", { name: "Account console" }));
     await expect(canvas.getByText("Opened 1 time")).toBeVisible();
+    await userEvent.keyboard(" ");
+    await expect(canvas.getByText("Opened 2 time")).toBeVisible();
+    const link = canvas.getByRole("link", { name: "Records 3" });
+    await expect(link).toHaveAttribute("href", "#records");
+    await expect(link).toHaveAttribute("aria-current", "page");
+    await expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    await expect(link.querySelector("a")).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Focus destination" }));
+    await expect(link).toHaveFocus();
+    await userEvent.keyboard(" ");
+    await expect(canvas.getByText("Navigated 0 times")).toBeVisible();
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByText("Navigated 2 times")).toBeVisible();
+    await expect(link.style.paddingInlineStart).toContain("calc(");
+    await expect(link.style.opacity).toBe("0.9");
   },
 };
 
 function ForwardingExample() {
   const [count, setCount] = useState(0);
+  const [navigated, setNavigated] = useState(0);
+  const rootRef = useRef<HTMLAnchorElement>(null);
+  const linkRef = useRef<HTMLAnchorElement>(null);
   return (
     <Stack>
-      <Shell.AppLogo name="Account console" asChild onClick={() => setCount((n) => n + 1)}>
-        <button type="button" />
-      </Shell.AppLogo>
+      <Shell.AppLogo
+        name="Account console"
+        onClick={() => setCount((n) => n + 1)}
+        render={<button type="button" />}
+      />
+      <Shell.SideNav.Expandable label="Workspace" defaultOpen>
+        <Shell.SideNav.Item
+          ref={rootRef}
+          icon={Archive}
+          badge={3}
+          isActive
+          style={{ opacity: 0.9 }}
+          onClick={() => setNavigated((n) => n + 1)}
+          render={
+            <a
+              ref={linkRef}
+              href="#records"
+              onClick={(event) => {
+                event.preventDefault();
+                setNavigated((n) => n + 1);
+              }}
+            />
+          }
+        >
+          Records
+        </Shell.SideNav.Item>
+      </Shell.SideNav.Expandable>
+      <Button
+        onClick={() => {
+          if (rootRef.current === linkRef.current) rootRef.current?.focus();
+        }}
+      >
+        Focus destination
+      </Button>
+      <Text>Navigated {navigated} times</Text>
       <Shell.Main id="account-content" label="Account content">
         <Text>Opened {count} time</Text>
       </Shell.Main>

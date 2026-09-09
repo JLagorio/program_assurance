@@ -281,10 +281,16 @@ function ProgramIngestion() {
                   <Badge variant="secondary" tone={heldAcrossProgram > 0 ? "warning" : "success"}>
                     {heldAcrossProgram} held for analyst
                   </Badge>
-                  <TextLink size="small">
-                    <Link to="/programs/$programId/composition" params={{ programId: program.id }}>
-                      Composition
-                    </Link>
+                  <TextLink
+                    size="small"
+                    render={
+                      <Link
+                        to="/programs/$programId/composition"
+                        params={{ programId: program.id }}
+                      />
+                    }
+                  >
+                    Composition
                   </TextLink>
                 </>
               }

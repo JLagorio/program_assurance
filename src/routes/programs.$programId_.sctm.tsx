@@ -615,13 +615,15 @@ function ProgramSctm() {
                   </Inline>
                   <SctmRail row={selectedRow} />
                   <Box className="font-body-small" paddingBlockStart="space.150">
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/controls/$controlId"
-                        params={{ programId, controlId: selectedRow.control }}
-                      >
-                        Open {selectedRow.control}
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId, controlId: selectedRow.control }}
+                        />
+                      }
+                    >
+                      Open {selectedRow.control}
                     </TextLink>
                   </Box>
                 </div>

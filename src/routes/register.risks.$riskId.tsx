@@ -77,8 +77,8 @@ function RiskRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Risk not found</h1>
-          <TextLink size="medium">
-            <Link to="/register">Back to the register</Link>
+          <TextLink size="medium" render={<Link to="/register" />}>
+            Back to the register
           </TextLink>
         </Stack>
       </Shell>
@@ -159,10 +159,10 @@ function RiskRecord() {
                 <KeyValue label="Owner">{risk.owner}</KeyValue>
                 <KeyValue label="Reviewed">{risk.reviewed}</KeyValue>
                 <KeyValue label="Program">
-                  <TextLink>
-                    <Link to="/programs/$programId" params={{ programId: risk.program }}>
-                      <Id>{risk.program}</Id>
-                    </Link>
+                  <TextLink
+                    render={<Link to="/programs/$programId" params={{ programId: risk.program }} />}
+                  >
+                    <Id>{risk.program}</Id>
                   </TextLink>
                 </KeyValue>
               </Inspector.Group>
@@ -380,10 +380,10 @@ function RiskRecord() {
                   {poams.map((p) => (
                     <Table.Row key={p.id}>
                       <Table.Cell>
-                        <TextLink>
-                          <Link to="/register/poam/$poamId" params={{ poamId: p.id }}>
-                            <Id>{p.id}</Id>
-                          </Link>
+                        <TextLink
+                          render={<Link to="/register/poam/$poamId" params={{ poamId: p.id }} />}
+                        >
+                          <Id>{p.id}</Id>
                         </TextLink>
                       </Table.Cell>
                       <Table.Cell className="truncate">{p.title}</Table.Cell>
@@ -420,10 +420,10 @@ function RiskRecord() {
                 {fs.map((f) => (
                   <Table.Row key={f.id}>
                     <Table.Cell>
-                      <TextLink>
-                        <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                          <Id>{f.id}</Id>
-                        </Link>
+                      <TextLink
+                        render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
+                      >
+                        <Id>{f.id}</Id>
                       </TextLink>
                     </Table.Cell>
                     <Table.Cell className="truncate">{f.title}</Table.Cell>

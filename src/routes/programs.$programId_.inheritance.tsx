@@ -183,10 +183,11 @@ function ProgramInheritance() {
                       {unstated} obligation unstated
                     </Badge>
                   ) : null}
-                  <TextLink size="small">
-                    <Link to="/programs/$programId" params={{ programId: program.id }}>
-                      Program record
-                    </Link>
+                  <TextLink
+                    size="small"
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                  >
+                    Program record
                   </TextLink>
                 </>
               }
@@ -264,37 +265,45 @@ function ProgramInheritance() {
                   <ResolutionRail row={selected} />
                   <Inspector.Group title="Joins">
                     <KeyValue label="Provider">
-                      <TextLink>
-                        <Link
-                          to="/library/components/$componentKey"
-                          params={{ componentKey: selected.component.key }}
-                        >
-                          <Id>{selected.component.key}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link
+                            to="/library/components/$componentKey"
+                            params={{ componentKey: selected.component.key }}
+                          />
+                        }
+                      >
+                        <Id>{selected.component.key}</Id>
                       </TextLink>
                     </KeyValue>
                     <KeyValue label="Control">
-                      <TextLink>
-                        <Link
-                          to="/programs/$programId/controls/$controlId"
-                          params={{ programId: program.id, controlId: selected.control }}
-                        >
-                          <Id>{selected.control}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link
+                            to="/programs/$programId/controls/$controlId"
+                            params={{ programId: program.id, controlId: selected.control }}
+                          />
+                        }
+                      >
+                        <Id>{selected.control}</Id>
                       </TextLink>
                     </KeyValue>
                     <KeyValue label="Matrix">
-                      <TextLink>
-                        <Link to="/programs/$programId/sctm" params={{ programId: program.id }}>
-                          <span className="font-body-small">Open the SCTM</span>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link to="/programs/$programId/sctm" params={{ programId: program.id }} />
+                        }
+                      >
+                        <span className="font-body-small">Open the SCTM</span>
                       </TextLink>
                     </KeyValue>
                     <KeyValue label="Program">
-                      <TextLink>
-                        <Link to="/programs/$programId" params={{ programId: program.id }}>
-                          <Id>{program.id}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link to="/programs/$programId" params={{ programId: program.id }} />
+                        }
+                      >
+                        <Id>{program.id}</Id>
                       </TextLink>
                     </KeyValue>
                   </Inspector.Group>

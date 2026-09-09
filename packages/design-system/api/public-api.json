@@ -974,6 +974,10 @@
       "target": "\"src/lib/locale-format\".createLedgerLocale",
       "kind": "value"
     },
+    ".#createToastManager": {
+      "target": "\"src/components/toaster\".createToastManager",
+      "kind": "value"
+    },
     ".#DataTable": {
       "target": "\"src/patterns/data-table/data-table\".DataTable",
       "kind": "value"
@@ -2716,7 +2720,23 @@
     },
     ".#Toast": {
       "target": "\"src/components/toaster\".Toast",
-      "kind": "type"
+      "kind": "value"
+    },
+    ".#ToastAction": {
+      "target": "\"src/components/toaster\".ToastAction",
+      "kind": "value"
+    },
+    ".#ToastClose": {
+      "target": "\"src/components/toaster\".ToastClose",
+      "kind": "value"
+    },
+    ".#ToastContent": {
+      "target": "\"src/components/toaster\".ToastContent",
+      "kind": "value"
+    },
+    ".#ToastDescription": {
+      "target": "\"src/components/toaster\".ToastDescription",
+      "kind": "value"
     },
     ".#Toaster": {
       "target": "\"src/components/toaster\".Toaster",
@@ -2729,6 +2749,22 @@
     ".#ToastOptions": {
       "target": "\"src/components/toaster\".ToastOptions",
       "kind": "type"
+    },
+    ".#ToastPortal": {
+      "target": "\"src/components/toaster\".ToastPortal",
+      "kind": "value"
+    },
+    ".#ToastProvider": {
+      "target": "\"src/components/toaster\".ToastProvider",
+      "kind": "value"
+    },
+    ".#ToastTitle": {
+      "target": "\"src/components/toaster\".ToastTitle",
+      "kind": "value"
+    },
+    ".#ToastViewport": {
+      "target": "\"src/components/toaster\".ToastViewport",
+      "kind": "value"
     },
     ".#toCsv": {
       "target": "\"src/patterns/data-table/to-rows\".toCsv",
@@ -2916,6 +2952,10 @@
     },
     ".#useTableContext": {
       "target": "\"src/patterns/data-table/use-data-table\".useTableContext",
+      "kind": "value"
+    },
+    ".#useToastManager": {
+      "target": "\"src/components/toaster\".useToastManager",
       "kind": "value"
     },
     ".#utilities": {
@@ -6015,13 +6055,13 @@
     "\"src/components/text-link\".TextLink": [
       {
         "source": "src/components/text-link.d.ts",
-        "declaration": "export declare function TextLink({ asChild, size, weight, className, ...rest }: TextLinkProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function TextLink({ render, size, weight, className, ...props }: TextLinkProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
       }
     ],
     "\"src/components/text-link\".TextLinkProps": [
       {
         "source": "src/components/text-link.d.ts",
-        "declaration": "export type TextLinkProps = ComponentPropsWithoutRef<\"a\"> & {\n    asChild?: boolean | undefined;\n    size?: \"small\" | \"medium\" | undefined;\n    weight?: \"regular\" | \"medium\" | undefined;\n};"
+        "declaration": "export type TextLinkProps = useRender.ComponentProps<\"a\"> & {\n    size?: \"small\" | \"medium\" | undefined;\n    weight?: \"regular\" | \"medium\" | undefined;\n};"
       }
     ],
     "\"src/components/textarea\".Textarea": [
@@ -6096,34 +6136,94 @@
         "declaration": "export type TimelineTimePosition = \"end\" | \"start\" | \"above\" | \"below\";"
       }
     ],
+    "\"src/components/toaster\".createToastManager": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "createToastManager: typeof ToastPrimitive.createToastManager"
+      }
+    ],
     "\"src/components/toaster\".toast": [
       {
         "source": "src/components/toaster.d.ts",
-        "declaration": "toast: Toast"
+        "declaration": "toast: ToastManager"
       }
     ],
     "\"src/components/toaster\".Toast": [
       {
         "source": "src/components/toaster.d.ts",
-        "declaration": "export type Toast = ((message: Message, data?: ExternalToast) => ReturnType<typeof sonnerToast>) & Pick<typeof sonnerToast, \"success\" | \"info\" | \"warning\" | \"error\" | \"loading\" | \"promise\" | \"message\" | \"custom\" | \"dismiss\">;"
+        "declaration": "export declare function Toast({ className, ...props }: ToastPrimitive.Root.Props): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/toaster\".ToastAction": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "export declare function ToastAction({ className, render, ...props }: ToastPrimitive.Action.Props): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/toaster\".ToastClose": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "export declare function ToastClose({ className, children, render, ...props }: ToastPrimitive.Close.Props): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/toaster\".ToastContent": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "export declare function ToastContent({ className, ...props }: ToastPrimitive.Content.Props): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/toaster\".ToastDescription": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "export declare function ToastDescription({ className, ...props }: ToastPrimitive.Description.Props): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/toaster\".Toaster": [
       {
         "source": "src/components/toaster.d.ts",
-        "declaration": "export declare function Toaster({ position, expand, closeButton, icons, toastOptions, className, ...props }: ToasterProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Toaster({ children, toastManager, timeout, limit, ...props }: ToasterProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/toaster\".ToasterProps": [
       {
         "source": "src/components/toaster.d.ts",
-        "declaration": "export type ToasterProps = ComponentProps<typeof Sonner>;"
+        "declaration": "export type ToasterProps = ToastPrimitive.Provider.Props;"
       }
     ],
     "\"src/components/toaster\".ToastOptions": [
       {
         "source": "src/components/toaster.d.ts",
-        "declaration": "export type ToastOptions = ExternalToast;"
+        "declaration": "export type ToastOptions<Data extends object = Record<string, unknown>> = ToastManagerAddOptions<Data>;"
+      }
+    ],
+    "\"src/components/toaster\".ToastPortal": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "export declare function ToastPortal(props: ToastPrimitive.Portal.Props): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/toaster\".ToastProvider": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "export declare function ToastProvider(props: ToastPrimitive.Provider.Props): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/toaster\".ToastTitle": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "export declare function ToastTitle({ className, ...props }: ToastPrimitive.Title.Props): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/toaster\".ToastViewport": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "export declare function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/toaster\".useToastManager": [
+      {
+        "source": "src/components/toaster.d.ts",
+        "declaration": "useToastManager: typeof ToastPrimitive.useToastManager"
       }
     ],
     "\"src/components/toggle-group\".ToggleGroup": [
@@ -7371,7 +7471,7 @@
     "\"src/shell/shell\".AppLogoProps": [
       {
         "source": "src/shell/shell.d.ts",
-        "declaration": "export type AppLogoProps = {\n    mark?: ReactNode;\n    name: string;\n    secondaryName?: string | undefined;\n    asChild?: boolean | undefined;\n    onClick?: (() => void) | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n};"
+        "declaration": "export type AppLogoProps = useRender.ComponentProps<\"span\"> & {\n    mark?: ReactNode;\n    name: string;\n    secondaryName?: string | undefined;\n};"
       }
     ],
     "\"src/shell/shell\".AppSwitcherProps": [
@@ -7455,7 +7555,7 @@
     "\"src/shell/shell\".SideNavItemProps": [
       {
         "source": "src/shell/shell.d.ts",
-        "declaration": "export type SideNavItemProps = {\n    asChild?: boolean | undefined;\n    isActive?: boolean | undefined;\n    icon?: ComponentType<{\n        className?: string | undefined;\n        strokeWidth?: number;\n    }> | undefined;\n    badge?: ReactNode;\n    children: ReactNode;\n    className?: string | undefined;\n} & Omit<ComponentPropsWithoutRef<\"a\">, \"children\" | \"className\">;"
+        "declaration": "export type SideNavItemProps = useRender.ComponentProps<\"a\"> & {\n    isActive?: boolean | undefined;\n    icon?: ComponentType<{\n        className?: string | undefined;\n        strokeWidth?: number;\n    }> | undefined;\n    badge?: ReactNode;\n    children: ReactNode;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/shell/shell\".SideNavProps": [
@@ -7848,12 +7948,6 @@
         "declaration": "declare function TimelineRoot({ label, orientation, size, timePosition, align, wrap, children, className, }: TimelineProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/components/toaster.d.ts#Message": [
-      {
-        "source": "src/components/toaster.d.ts",
-        "declaration": "type Message = Parameters<typeof sonnerToast>[0];"
-      }
-    ],
     "src/components/toggle.d.ts#toggleVariants": [
       {
         "source": "src/components/toggle.d.ts",
@@ -8091,7 +8185,7 @@
     "src/shell/shell.d.ts#AppLogo": [
       {
         "source": "src/shell/shell.d.ts",
-        "declaration": "declare function AppLogo({ mark, name, secondaryName, asChild, onClick, className, children, }: AppLogoProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function AppLogo({ mark, name, secondaryName, render, className, children, ...props }: AppLogoProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
       }
     ],
     "src/shell/shell.d.ts#AppSwitcher": [
@@ -8169,7 +8263,7 @@
     "src/shell/shell.d.ts#SideNavItem": [
       {
         "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavItem({ asChild, isActive, icon: Icon, badge, className, children, ...rest }: SideNavItemProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function SideNavItem({ render, isActive, icon: Icon, badge, className, children, ...props }: SideNavItemProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
       }
     ],
     "src/shell/shell.d.ts#SideNavRoot": [
@@ -8228,7 +8322,7 @@
     ]
   },
   "dependencyContracts": {
-    "@base-ui/react": "70cedbbb41c8dbcbacda3a34a09813d6bb34dcf02dc44463eeee186cb28c5c48",
+    "@base-ui/react": "834e15cc1b207b205e5404f076238433c7ce77ae9659c0539d5016026230cbb0",
     "@base-ui/utils": "a71988b4234a15dd1dcecb2aaaac6ab8c6472d75cd26993efe45671a8247777a",
     "@floating-ui/core": "581cec84f04c06ef6908cd1af8471390d1d96893d63abdaf0391ef43ae0a1815",
     "@floating-ui/dom": "82afab4c16f6bedc49dfed4eec228766546f4e0a8aed010cab33ad05aeed4568",
@@ -8243,7 +8337,6 @@
     "cmdk": "110f023bcf23f68085e2b35896923bd265dbe60929c9a22959bd4f42bbdae30d",
     "date-fns": "96b0d61772667b309833ec24aedc6b4faf9ab3d6f19932099e77bd01a97ddc34",
     "react-day-picker": "e12857af386f71dd3352ece9f674d271121cf2be66fb2252cdb12885eab54f94",
-    "react-resizable-panels": "a6cd8fccea2a811f41f264815061c441369f333a3ff1b5bed999360554479c00",
-    "sonner": "794ba26cf92cf6d76cc31fd7dd57e2394acab1b719312a8fbc87355510bdb73d"
+    "react-resizable-panels": "a6cd8fccea2a811f41f264815061c441369f333a3ff1b5bed999360554479c00"
   }
 }

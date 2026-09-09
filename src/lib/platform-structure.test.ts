@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@ledger/design-system", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@ledger/design-system", () => ({ toast: { add: vi.fn() } }));
 vi.mock("@/lib/reusable-components", () => ({ componentByKey: new Map() }));
 
 let entries: Map<string, string>;
@@ -22,7 +22,7 @@ describe("platform records in the existing program stores", () => {
     const { platformSeed } = await import("./platform-seed");
     const canonicalSnapshot = readFileSync("src/data/wsx90-platform-seed.json", "utf8");
     expect(createHash("sha256").update(canonicalSnapshot).digest("hex")).toBe(
-      "6d0148ee3153c16ca3388d9192132dc5afcd1e4ceb28158348914878bb8b88c8",
+      "4221c55b7c7892eefc2d175f35883064c06cfe699874d4c8efec2850911803b3",
     );
     expect(platformSeed).toEqual(JSON.parse(canonicalSnapshot));
     const { registerPlatformStructure } = await import("./platform-structure");

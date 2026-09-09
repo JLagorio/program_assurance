@@ -87,8 +87,8 @@ function PackageRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Package not found</h1>
-          <TextLink size="medium">
-            <Link to="/packages">Back to packages</Link>
+          <TextLink size="medium" render={<Link to="/packages" />}>
+            Back to packages
           </TextLink>
         </Stack>
       </Shell>

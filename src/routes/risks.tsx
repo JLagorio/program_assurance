@@ -96,10 +96,8 @@ const riskColumns = defineColumns<Risk>((c) => [
     header: "Risk",
     hideable: false,
     cell: (r) => (
-      <TextLink weight="medium">
-        <Link to="/risks/$riskId" params={{ riskId: r.id }}>
-          {r.title}
-        </Link>
+      <TextLink weight="medium" render={<Link to="/risks/$riskId" params={{ riskId: r.id }} />}>
+        {r.title}
       </TextLink>
     ),
   }),
@@ -183,7 +181,9 @@ function RiskList() {
                     a.download = "risk-register.csv";
                     a.click();
                     URL.revokeObjectURL(url);
-                    toast.success("Risk register exported", {
+                    toast.add({
+                      title: "Risk register exported",
+                      type: "success",
                       description: `${shown} risks · the columns shown, in the sort chosen`,
                     });
                   }, 300);

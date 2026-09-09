@@ -44,7 +44,7 @@ export const SectionMatrix: Story = {
         title="Activity"
         count={19}
         action={
-          <TextLink asChild={false} size="small" href="#all">
+          <TextLink size="small" href="#all">
             Full timeline
           </TextLink>
         }

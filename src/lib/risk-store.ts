@@ -106,7 +106,10 @@ export function useRisksVersion() {
     try {
       restoreRisks();
     } catch {
-      toast.error("Saved risks could not be restored", {
+      toast.add({
+        title: "Saved risks could not be restored",
+        type: "error",
+        timeout: 8000,
         description:
           "Browser storage is unavailable or the saved data is invalid. Existing data has not been overwritten.",
       });

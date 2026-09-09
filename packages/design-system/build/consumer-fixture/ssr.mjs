@@ -1405,7 +1405,18 @@ assert.match(
   /aria-hidden="true"/,
 );
 assert.match(
-  renderToString(createElement(ledger.Toaster, { containerAriaLabel: "Exports" })),
+  renderToString(createElement(ledger.ToastProvider, null, createElement(ledger.ToastViewport, { "aria-label": "Exports" }))),
   /Exports/,
 );
 console.log("Packed Card, Empty, Spinner and Toaster native composition passed");
+
+const textLinkHtml = renderToString(createElement(ledger.TextLink, { render: createElement("a", { href: "/records", target: "_blank" }) }, "Records"));
+assert.match(textLinkHtml, /href="\/records"/);
+assert.match(textLinkHtml, /target="_blank"/);
+assert.equal((textLinkHtml.match(/<a /g) || []).length, 1);
+const sideNavHtml = renderToString(createElement(ledger.Shell.SideNav.Item, { render: createElement("a", { href: "/records" }), isActive: true, badge: 3 }, "Records"));
+assert.match(sideNavHtml, /aria-current="page"/);
+assert.match(sideNavHtml, /Records/);
+assert.match(sideNavHtml, />3</);
+assert.equal((sideNavHtml.match(/<a /g) || []).length, 1);
+console.log("Packed Base UI navigation and toast exports passed");

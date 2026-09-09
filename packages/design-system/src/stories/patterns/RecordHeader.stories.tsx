@@ -44,9 +44,7 @@ const facts = (
       </Badge>
     </Fact>
     <Fact label="Allocated to">
-      <TextLink asChild={false} href="#cmp">
-        Telemetry gateway
-      </TextLink>
+      <TextLink href="#cmp">Telemetry gateway</TextLink>
     </Fact>
   </>
 );

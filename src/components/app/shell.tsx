@@ -114,9 +114,11 @@ export function Shell({ children }: { children: ReactNode }) {
     <DsShell sideNavShortcut persist>
       <DsShell.TopNav>
         <DsShell.TopNav.Start toggle={<DsShell.SideNav.ToggleButton />}>
-          <DsShell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
-            <Link to="/" aria-label="Equinox home" />
-          </DsShell.AppLogo>
+          <DsShell.AppLogo
+            name="Equinox"
+            secondaryName="Northwind Corp"
+            render={<Link to="/" aria-label="Equinox home" />}
+          />
         </DsShell.TopNav.Start>
         <DsShell.TopNav.Middle>
           <Button
@@ -156,7 +158,6 @@ export function Shell({ children }: { children: ReactNode }) {
                 return (
                   <DsShell.SideNav.Item
                     key={item.label}
-                    asChild
                     icon={item.icon}
                     isActive={active}
                     badge={
@@ -166,8 +167,9 @@ export function Shell({ children }: { children: ReactNode }) {
                           : undefined
                         : item.badge || undefined
                     }
+                    render={<Link to={item.to} />}
                   >
-                    <Link to={item.to}>{item.label}</Link>
+                    {item.label}
                   </DsShell.SideNav.Item>
                 );
               })}

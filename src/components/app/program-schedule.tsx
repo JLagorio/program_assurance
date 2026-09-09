@@ -750,23 +750,21 @@ function ScheduleDetail({
         Open POA&M
       </Button>
     ) : (
-      <TextLink>
-        <Link to="/programs/$programId" params={{ programId }} search={{ tab: "POA&M" }}>
-          Open program POA&Ms
-        </Link>
+      <TextLink
+        render={<Link to="/programs/$programId" params={{ programId }} search={{ tab: "POA&M" }} />}
+      >
+        Open program POA&Ms
       </TextLink>
     )
   ) : row.kind === "Workstream" ? (
-    <TextLink>
-      <Link to="/workstreams/$workstreamId" params={{ workstreamId: row.sourceId }}>
-        Open workstream
-      </Link>
+    <TextLink
+      render={<Link to="/workstreams/$workstreamId" params={{ workstreamId: row.sourceId }} />}
+    >
+      Open workstream
     </TextLink>
   ) : row.kind === "Task" ? (
-    <TextLink>
-      <Link to="/tasks/$taskId" params={{ taskId: row.sourceId }}>
-        Open task
-      </Link>
+    <TextLink render={<Link to="/tasks/$taskId" params={{ taskId: row.sourceId }} />}>
+      Open task
     </TextLink>
   ) : campaignId ? (
     onOpenAssessment ? (
@@ -780,10 +778,8 @@ function ScheduleDetail({
         Open assessment
       </Button>
     ) : (
-      <TextLink>
-        <Link to="/campaigns/$campaignId" params={{ campaignId }}>
-          Open assessment
-        </Link>
+      <TextLink render={<Link to="/campaigns/$campaignId" params={{ campaignId }} />}>
+        Open assessment
       </TextLink>
     )
   ) : null;
@@ -937,10 +933,12 @@ function ScheduleDetail({
                       {stream.members.map((member) => (
                         <Table.Row key={member.person}>
                           <Table.Cell>
-                            <TextLink>
-                              <Link to="/people/$personId" params={{ personId: member.person }}>
-                                {personById.get(member.person)?.name ?? member.person}
-                              </Link>
+                            <TextLink
+                              render={
+                                <Link to="/people/$personId" params={{ personId: member.person }} />
+                              }
+                            >
+                              {personById.get(member.person)?.name ?? member.person}
                             </TextLink>
                           </Table.Cell>
                           <Table.Cell>{member.role}</Table.Cell>

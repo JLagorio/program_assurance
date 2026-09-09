@@ -367,10 +367,12 @@ function ProgramTePhases() {
         <KeyValue label="Mission">{selectedScenario.missionFunction}</KeyValue>
         <KeyValue label="Event">
           {selectedScenario.event ? (
-            <TextLink>
-              <Link to="/campaigns/$campaignId" params={{ campaignId: selectedScenario.event }}>
-                <Id>{selectedScenario.event}</Id>
-              </Link>
+            <TextLink
+              render={
+                <Link to="/campaigns/$campaignId" params={{ campaignId: selectedScenario.event }} />
+              }
+            >
+              <Id>{selectedScenario.event}</Id>
             </TextLink>
           ) : (
             "—"
@@ -449,15 +451,24 @@ function ProgramTePhases() {
                       </Badge>
                     </>
                   )}
-                  <TextLink size="small">
-                    <Link to="/programs/$programId/composition" params={{ programId: program.id }}>
-                      Composition
-                    </Link>
+                  <TextLink
+                    size="small"
+                    render={
+                      <Link
+                        to="/programs/$programId/composition"
+                        params={{ programId: program.id }}
+                      />
+                    }
+                  >
+                    Composition
                   </TextLink>
-                  <TextLink size="small">
-                    <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
-                      Baseline
-                    </Link>
+                  <TextLink
+                    size="small"
+                    render={
+                      <Link to="/programs/$programId/baseline" params={{ programId: program.id }} />
+                    }
+                  >
+                    Baseline
                   </TextLink>
                 </>
               }
@@ -546,10 +557,15 @@ function ProgramTePhases() {
                                   </Table.Cell>
                                   <Table.Cell>{phase.kind}</Table.Cell>
                                   <Table.Cell>
-                                    <TextLink>
-                                      <Link to="/campaigns/$campaignId" params={{ campaignId: id }}>
-                                        <Id>{id}</Id>
-                                      </Link>
+                                    <TextLink
+                                      render={
+                                        <Link
+                                          to="/campaigns/$campaignId"
+                                          params={{ campaignId: id }}
+                                        />
+                                      }
+                                    >
+                                      <Id>{id}</Id>
                                     </TextLink>
                                   </Table.Cell>
                                   <Table.Cell className="truncate" title={campaign?.scope ?? ""}>
@@ -756,19 +772,22 @@ function ProgramTePhases() {
                   <Section
                     title="Chain and path"
                     action={
-                      <TextLink size="small">
-                        <Link
-                          to="/programs/$programId/composition"
-                          params={{ programId: program.id }}
-                          // The entry point is where the reader wants to land: the
-                          // composition tree opens on the assumed foothold rather
-                          // than on the system root.
-                          search={
-                            selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}
-                          }
-                        >
-                          Open in composition
-                        </Link>
+                      <TextLink
+                        size="small"
+                        render={
+                          <Link
+                            to="/programs/$programId/composition"
+                            params={{ programId: program.id }}
+                            // The entry point is where the reader wants to land: the
+                            // composition tree opens on the assumed foothold rather
+                            // than on the system root.
+                            search={
+                              selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}
+                            }
+                          />
+                        }
+                      >
+                        Open in composition
                       </TextLink>
                     }
                   >
@@ -978,10 +997,8 @@ function PhaseRail({
         ) : (
           phase.campaigns.map((id) => (
             <KeyValue key={id} label={id}>
-              <TextLink>
-                <Link to="/campaigns/$campaignId" params={{ campaignId: id }}>
-                  {campaignName(id)}
-                </Link>
+              <TextLink render={<Link to="/campaigns/$campaignId" params={{ campaignId: id }} />}>
+                {campaignName(id)}
               </TextLink>
             </KeyValue>
           ))

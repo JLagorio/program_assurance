@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-vi.mock("@ledger/design-system", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@ledger/design-system", () => ({ toast: { add: vi.fn() } }));
 
 import { registerPlatformData } from "./platform-ingestion";
 import { platformSeed } from "./platform-seed";

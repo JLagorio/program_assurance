@@ -247,13 +247,16 @@ function ProgramRisk() {
                     Nothing scored
                   </Badge>
                 )}
-                <TextLink size="small">
-                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
-                    Baseline
-                  </Link>
+                <TextLink
+                  size="small"
+                  render={
+                    <Link to="/programs/$programId/baseline" params={{ programId: program.id }} />
+                  }
+                >
+                  Baseline
                 </TextLink>
-                <TextLink size="small">
-                  <Link to="/register">Register</Link>
+                <TextLink size="small" render={<Link to="/register" />}>
+                  Register
                 </TextLink>
               </>
             }
@@ -375,10 +378,16 @@ function ProgramRisk() {
                 title={`${selected.score.subject} — ${selected.title}`}
                 description={selected.context}
                 action={
-                  <TextLink size="small">
-                    <Link to="/findings/$findingId" params={{ findingId: selected.score.subject }}>
-                      Open finding
-                    </Link>
+                  <TextLink
+                    size="small"
+                    render={
+                      <Link
+                        to="/findings/$findingId"
+                        params={{ findingId: selected.score.subject }}
+                      />
+                    }
+                  >
+                    Open finding
                   </TextLink>
                 }
               >
@@ -443,10 +452,16 @@ function ProgramRisk() {
                 title={`Worked example — ${worked.score.subject}`}
                 description={`${worked.title}. ${worked.context}. Nothing below is illustrative: this is the live calculation for a real finding in ${program.id}, read the same way it is read on the finding's own page.`}
                 action={
-                  <TextLink size="small">
-                    <Link to="/findings/$findingId" params={{ findingId: worked.score.subject }}>
-                      Open {worked.score.subject}
-                    </Link>
+                  <TextLink
+                    size="small"
+                    render={
+                      <Link
+                        to="/findings/$findingId"
+                        params={{ findingId: worked.score.subject }}
+                      />
+                    }
+                  >
+                    Open {worked.score.subject}
                   </TextLink>
                 }
               >

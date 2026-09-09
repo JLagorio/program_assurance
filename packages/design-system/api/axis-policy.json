@@ -1458,12 +1458,6 @@
         "packages/design-system/src/shell/storage.ts"
       ]
     },
-    "Shell.AppLogo": {
-      "domTarget": "Slotted child with asChild; otherwise button with onClick, otherwise span. className targets chosen root; no public ref/general DOM props.",
-      "controlledBehavior": "Caller owns navigation/onClick outcome; no local state. Slotted child receives forwarded onClick and accessible name.",
-      "defaultBehavior": "mark defaults brand Mark. asChild absent false; onClick absent produces plain span. secondaryName absent adds no subtitle. Names are visually hidden below large breakpoint but interactive root retains name.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
-    },
     "Shell.AppSwitcher": {
       "domTarget": "IconButton button; no general DOM/ref passthrough.",
       "controlledBehavior": "Caller owns onClick outcome.",
@@ -1584,18 +1578,6 @@
       "controlledBehavior": "Stateless fixed header content.",
       "defaultBehavior": "Required children only.",
       "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
-    },
-    "Shell.SideNav.Item": {
-      "domTarget": "a normally, native button if onClick without href, or Slot when asChild. Native anchor props spread to that root; no public ref.",
-      "controlledBehavior": "Caller owns isActive and navigation/action. DepthContext supplies indentation; no local selected state. Native onChange/onSelect/media events are forwarded DOM events, not navigation selection.",
-      "defaultBehavior": "asChild/isActive absent false; no icon/badge when absent. aria-current=page for active unless caller native prop overrides. style supplied by caller overrides computed indent; icon is constructor receiving className/strokeWidth.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"],
-      "props": {
-        "icon": {
-          "meaning": "Icon constructor instantiated by the row with size/tone/strokeWidth; not a ReactElement slot.",
-          "migration": "Preserve this family-specific contract; any replacement must retain payload, units and state ownership."
-        }
-      }
     },
     "Shell.SideNav.Section": {
       "domTarget": "div role=group, optional Eyebrow; no DOM/ref passthrough.",
@@ -1864,17 +1846,6 @@
       "props": {
         "size": {
           "meaning": "Composite body typography scale: large, medium, small or xsmall; omitted inherits, not a control height."
-        }
-      }
-    },
-    "TextLink": {
-      "domTarget": "Single Slot child by default, native anchor with asChild=false. Anchor props/events spread to that target; public type excludes ref.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "asChild=true requires one compatible child. Omitted size/weight inherit text; size only allows small/medium. No default href or navigation callback; caller supplies link behavior.",
-      "reviewSources": ["packages/design-system/src/components/text-link.tsx"],
-      "props": {
-        "size": {
-          "meaning": "Left unset, the link takes the surrounding size."
         }
       }
     },

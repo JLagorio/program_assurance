@@ -425,10 +425,12 @@ function RegisterPage() {
                   title={preview.item.title}
                   onClose={() => setPreview(null)}
                   openTo={
-                    <TextLink>
-                      <Link to="/register/poam/$poamId" params={{ poamId: preview.item.id }}>
-                        Open POA&M item
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link to="/register/poam/$poamId" params={{ poamId: preview.item.id }} />
+                      }
+                    >
+                      Open POA&M item
                     </TextLink>
                   }
                 >
@@ -458,10 +460,12 @@ function RegisterPage() {
                   title={preview.item.title}
                   onClose={() => setPreview(null)}
                   openTo={
-                    <TextLink>
-                      <Link to="/register/risks/$riskId" params={{ riskId: preview.item.id }}>
-                        Open risk
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link to="/register/risks/$riskId" params={{ riskId: preview.item.id }} />
+                      }
+                    >
+                      Open risk
                     </TextLink>
                   }
                 >

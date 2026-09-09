@@ -143,11 +143,7 @@ function Overview() {
           <Stack space="space.300">
             <Section
               title="Highest residual risk"
-              action={
-                <TextLink>
-                  <Link to="/risks">Risk register</Link>
-                </TextLink>
-              }
+              action={<TextLink render={<Link to="/risks" />}>Risk register</TextLink>}
             >
               <Table>
                 <thead>
@@ -169,10 +165,12 @@ function Overview() {
                         <Id>{risk.id}</Id>
                       </Table.Cell>
                       <Table.Cell>
-                        <TextLink weight="medium" className="text-default group-hover:text-brand">
-                          <Link to="/risks/$riskId" params={{ riskId: risk.id }}>
-                            {risk.title}
-                          </Link>
+                        <TextLink
+                          weight="medium"
+                          className="text-default group-hover:text-brand"
+                          render={<Link to="/risks/$riskId" params={{ riskId: risk.id }} />}
+                        >
+                          {risk.title}
                         </TextLink>
                       </Table.Cell>
                       <Table.Cell>{risk.framework}</Table.Cell>

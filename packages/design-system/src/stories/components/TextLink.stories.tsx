@@ -1,15 +1,16 @@
+import { useRef, useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button, TextLink } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Matrix as Grid, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/TextLink",
   component: TextLink,
   parameters: { layout: "padded" },
-  args: { asChild: false, href: "#record", children: "Open the full record" },
+  args: { href: "#record", children: "Open the full record" },
 } satisfies Meta<typeof TextLink>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -23,97 +24,97 @@ export const TextLinkMatrix: Story = {
         cols={["regular", "medium"] as const}
         rowLabel="size"
         render={(size, weight) => (
-          <TextLink
-            asChild={false}
-            href="#x"
-            size={size === "inherit" ? undefined : size}
-            weight={weight}
-          >
+          <TextLink href="#x" size={size === "inherit" ? undefined : size} weight={weight}>
             Open the full record
           </TextLink>
         )}
       />
       <Specimens title="TextLink beside Button link">
-        <TextLink asChild={false} href="#x">
-          Navigation: TextLink
-        </TextLink>
+        <TextLink href="#x">Navigation: TextLink</TextLink>
         <Button variant="link">Action: Button link</Button>
       </Specimens>
     </Stack>
   ),
 };
 
-/** Navigation that reads as text. The child (a router's Link; an anchor here) takes the classes; `asChild={false}` renders an anchor from `href`. */
+/** Navigation that reads as text. Native href and Base UI render both preserve anchor behavior. */
 export const InProse: Story = {
   render: () => (
     <Stack space="space.200">
       <Text>
         The finding was raised against{" "}
-        <TextLink className="underline">
-          <a href="#ctrl">AC-2(4)</a>
+        <TextLink className="underline" render={<a href="#ctrl" />}>
+          AC-2(4)
         </TextLink>{" "}
         and traces to{" "}
-        <TextLink className="underline">
-          <a href="#req">REQ-0118</a>
+        <TextLink className="underline" render={<a href="#req" />}>
+          REQ-0118
         </TextLink>
         .
       </Text>
       <Inline space="space.300" alignBlock="baseline">
-        <TextLink size="small">
-          <a href="#a">Small</a>
+        <TextLink size="small" render={<a href="#a" />}>
+          Small
         </TextLink>
-        <TextLink size="medium">
-          <a href="#b">Medium</a>
+        <TextLink size="medium" render={<a href="#b" />}>
+          Medium
         </TextLink>
-        <TextLink weight="medium">
-          <a href="#c">Medium weight</a>
+        <TextLink weight="medium" render={<a href="#c" />}>
+          Medium weight
         </TextLink>
-        <TextLink asChild={false} href="#d">
-          An anchor from href
-        </TextLink>
+        <TextLink href="#d">An anchor from href</TextLink>
       </Inline>
     </Stack>
   ),
 };
 
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Text>
-            Traces to{" "}
-            <TextLink asChild={false} href="#req" className="underline">
-              REQ-0118
-            </TextLink>
-            .
-          </Text>
-        }
-        doText="Navigation reads as text: TextLink around the router's Link."
-        dont={
-          <Text>
-            Traces to <Button variant="link">REQ-0118</Button>.
-          </Text>
-        }
-        dontText="A Button that looks like a link. It is not a link: no href, no open-in-new-tab, no visited state."
-      />
-      <Pair
-        do={
-          <TextLink asChild={false} href="#record" weight="medium">
-            Open the full record
-          </TextLink>
-        }
-        doText="Standing alone, the link says where it goes, at medium weight."
-        dont={
-          <TextLink asChild={false} href="#record" weight="medium">
-            Click here
-          </TextLink>
-        }
-        dontText="'Click here' says nothing out of context, and a screen reader lists links by their text."
-      />
-    </Stack>
-  ),
-};
-
 export const Playground: Story = {};
+
+/** Both refs and event handlers are composed onto the same native anchor. */
+export const RenderComposition: Story = {
+  render: function Example() {
+    const outer = useRef<HTMLAnchorElement>(null);
+    const inner = useRef<HTMLAnchorElement>(null);
+    const [calls, setCalls] = useState("");
+    return (
+      <Stack>
+        <TextLink
+          ref={outer}
+          onClick={() => setCalls((value) => value + " outer")}
+          render={
+            <a
+              ref={inner}
+              href="#record"
+              onClick={(event) => {
+                event.preventDefault();
+                setCalls((value) => value + " inner");
+              }}
+            />
+          }
+        >
+          Open record
+        </TextLink>
+        <Button
+          onClick={() => {
+            if (outer.current === inner.current) outer.current?.focus();
+          }}
+        >
+          Focus link
+        </Button>
+        <Text role="status">{calls || "Ready"}</Text>
+      </Stack>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const link = canvas.getByRole("link", { name: "Open record" });
+    await expect(link).toHaveAttribute("href", "#record");
+    await expect(link.querySelector("a")).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Focus link" }));
+    await expect(link).toHaveFocus();
+    await userEvent.keyboard(" ");
+    await expect(canvas.getByRole("status")).toHaveTextContent("Ready");
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByRole("status")).toHaveTextContent("inner outer");
+  },
+};

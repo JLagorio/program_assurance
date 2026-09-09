@@ -1,0 +1,1203 @@
+{
+  "_comment": "Hand-authored assessor observations for the 300 ASM-2026-002 assessment results, one entry per (requirement, outcome) pair. Read by scripts/gen-wsx90-campaign.mjs, which assembles the result record (id, dates, evidence citation, control and component references) around this text and appends the synthetic-content marker. Each note is written from that requirement description and its acceptance criteria, the control implementation narrative for the controls it maps to, the cited evidence artifact and the LRUs in scope: a pass note says what satisfied the requirement, a fail note what fell short, an inconclusive note what prevented a determination, and a not-assessed note why the assessor has not reached it and claims no observation. Nothing here is templated or slot-filled. method is carried as a binding assertion the generator checks against the requirement so the authored text and the record cannot drift apart. Controls are cited by id only; no NIST or DISA prose is reproduced.",
+  "REQ-121|fail": {
+    "method": "examine",
+    "note": "The LRU-020 revision index carries an issue number, an issue date and a designated acquisition security official on every row, and the dissemination acknowledgements from LRU-017 are complete for the roles the register lists. Currency is where it falls down: the current issue of the procedure set was published before the tailored profile grew past 74 controls, so it describes none of the acquisition actions the added SA, SR and CM enhancements now require."
+  },
+  "REQ-122|not-assessed": {
+    "method": "interview",
+    "note": "No determination: the security resourcing record exists only as a draft, the discrete line has not been established in the programming submission, and no subsystem allocation has been agreed, so there was no funded position for the Platform Lead to walk an assessor through."
+  },
+  "REQ-123|inconclusive": {
+    "method": "examine",
+    "note": "The release 4.2 waiver register shows eleven builds admitted, two held at the gate for a missing phase tag, and one admitted under a waiver that names an accountable role but carries no expiry date. From the export alone the assessor could not tell whether the payload interface firmware drops sit under that single waiver or under an arrangement kept outside the register, so no determination was reached."
+  },
+  "REQ-125|not-assessed": {
+    "method": "examine",
+    "note": "Approval for operational data on the preproduction bench is still granted informally and the handling rule that would raise the bench to storage-module protection is unwritten, so the bench provisioning record holds no approval objects and the ninety-day expiry check had nothing to run against."
+  },
+  "REQ-128|pass": {
+    "method": "examine",
+    "note": "Read from the inventory end, every LRU-013 entry marked accepted resolved to a first-article acceptance record filed against the matching LRU entry, and the four allocation rows with no acceptance reference are all still unaccepted. The three ground support items procured against the superseded 74-control set appear on the matrix with the engineering change that is retrofitting the shortfall named alongside them."
+  },
+  "REQ-129|pass": {
+    "method": "examine",
+    "note": "Revision D of the supplier functional properties description covers all eleven boot verification functions and all nine key service functions listed in the two interface registers, and every table states the externally observable behaviour on denial as well as on success, down to which measurements are extended before control passes. The boot and key-use assessment procedures cite that revision by number, so the description an assessor reads is the one the procedures were written from."
+  },
+  "REQ-130|pass": {
+    "method": "examine",
+    "note": "Every enforcement decision named in the three control narratives resolved to an entry in the interface and design register, and each entry stated the preconditions it applies and the behaviour a reviewer sees on denial rather than resting on a supplier assertion. The outstanding low-level design for the interlock authorization state machine is itself on the register with the contractual action opened against it, which is what the third criterion asks for while the negotiation runs."
+  },
+  "REQ-131|not-assessed": {
+    "method": "interview",
+    "note": "The contractual hook obliging the mission software supplier to demonstrate the life cycle it actually used does not yet exist and no qualification-gate walkthrough has been convened, so there was no supplier session for the assessor to sit in on this period."
+  },
+  "REQ-135|pass": {
+    "method": "examine",
+    "note": "The deployed gateway rule set and switch segment policy were byte-identical to the policy regenerated from the current declaration set, each rule annotated with the supplier declaration line it came from, and the sensor bus allow-list held to the three declared services with no management protocol among them. An undeclared service attempt was denied and appeared in the platform log with its service identifier attached."
+  },
+  "REQ-137|pass": {
+    "method": "examine",
+    "note": "Every privileged maintenance function in the gateway function register appears in the administrator set issued for baseline 4.2, every page of that set is stamped with the baseline number it was issued against, and the known-weakness section gives an avoidance action beside each weakness rather than naming it and stopping. The controller sections were reissued with the same baseline change, so the technician set on the unit and the configuration on the unit are the same vintage."
+  },
+  "REQ-138|pass": {
+    "method": "examine",
+    "note": "Each security function the mission software exposes to the crew appears in the operator set with the behaviour the crew will observe when the function denies the action, not merely the successful path. The payload health chapter names the indication displayed when telemetry integrity cannot be confirmed, which is the case the requirement singles out and the one an operator is least likely to have seen before."
+  },
+  "REQ-139|pass": {
+    "method": "examine",
+    "note": "Every principle claimed for the mission computing and cryptographic subsystems resolved through the revision C trace appendix to a named mechanism, landing the reviewer on the service manifest check, the boot measurement chain or the key release precondition rather than on a statement of intent. The interlock sections that still assert principles without a design decision are listed in the appendix with an owner and a target review date against each, which is the disclosure the third criterion requires while that work runs."
+  },
+  "REQ-140|not-assessed": {
+    "method": "examine",
+    "note": "Mission applications still reach payload command authority through the thin wrapper over the LRU-010 register map; the single named abstraction is specified but not built, so the interface register offers nothing to examine against the one-entry-point criterion."
+  },
+  "REQ-143|not-assessed": {
+    "method": "examine",
+    "note": "The initialisation dependency graph has been drawn on paper but the boot sequence itself is unchanged, and the cold-start wait in which a platform service consumed by LRU-006 depends on navigation data is still present, so there is no declared ordering to check for cycles."
+  },
+  "REQ-146|not-assessed": {
+    "method": "examine",
+    "note": "Neither the interlock authorization path nor the navigation integrity path has been through the review that would establish a complexity bound, and the interlock still allocates memory at initialisation, so no full-path review record exists against any release."
+  },
+  "REQ-148|fail": {
+    "method": "examine",
+    "note": "The dependency map resolves every security-decision edge in the mission computing path to a component with a recorded basis, and the boot controller and cryptographic module rows state what their bases rest on. The interlock is depended on for a payload authorization decision with its basis asserted rather than established, its supplier assurance case is undelivered, and the register carries no contractual action against that gap, so the rule about refusing a weaker upstream basis cannot be evaluated at all."
+  },
+  "REQ-150|not-assessed": {
+    "method": "examine",
+    "note": "Signing policy on WS-X90 recognises a single authority level, which means the boot controller and the storage module are changed on the same authority as a mission application; with no graded scheme designed there was no policy document and no release metadata field to examine."
+  },
+  "REQ-152|not-assessed": {
+    "method": "examine",
+    "note": "The architecture still records three elements in the payload authorization trusted set, the third being a residual check inherited by the interface controller from an earlier design, and its removal is held for the next payload firmware release, so examination was carried to the increment that follows it."
+  },
+  "REQ-153|pass": {
+    "method": "test",
+    "note": "Across twenty-two service starts and eight maintenance sessions no running service held a privilege absent from its approved manifest, and the three services that asked for one were refused a launch with the requested privilege written into the refusal line. A maintenance session was unable to acquire a privilege beyond its declared task scope, so the same manifest rule holds for a technician as for a service."
+  },
+  "REQ-156|not-assessed": {
+    "method": "examine",
+    "note": "Each side of the external boundary documents its own policy and no composed-policy statement has been written for any connected mission system, so the analysis this requirement asks for does not exist in any form the assessor could open."
+  },
+  "REQ-157|pass": {
+    "method": "test",
+    "note": "A peer offering an expired credential and a peer offering none at all were both refused on the wired boundary path and on the mission link, with the channel closing before any traffic was carried and no unauthenticated fallback opening behind it. Key use stayed inside the cryptographic module throughout the runs, and the configuration exposes no option that would permit an unauthenticated external channel."
+  },
+  "REQ-158|pass": {
+    "method": "test",
+    "note": "A second unit presented on the payload port with a copied address and no boot-established identity could not bring up the internal channel, and the switch forwarding counters show its payload traffic dropped at the unbound port. Each binding failure was logged with the port and the identity presented, printed alongside a baseline run with the correctly bound controller for comparison."
+  },
+  "REQ-162|pass": {
+    "method": "test",
+    "note": "All two hundred sampled telemetry records carried both an actor identity and an originating unit identity in the record body, and the collector resolved them from the record rather than from the source address. Fourteen records resolved only to subsystem level because the payload entries in the resolution table are not yet populated; those are counted and reported as such, and the storage module is holding them at full fidelity so the attribution can be completed once the table lands."
+  },
+  "REQ-163|inconclusive": {
+    "method": "test",
+    "note": "The intake check rejected both permissive options in the submitted baseline naming each one, and a recovery run left every configurable option in its restrictive state. The determination could not be closed because a ground support tooling baseline also passed intake, and the assessor could not establish from the export whether it passed because its options were restrictive or because the check does not run against that class of baseline at all."
+  },
+  "REQ-166|not-assessed": {
+    "method": "examine",
+    "note": "No adversary-cost analysis has been produced for any protection claimed on the mission computer or the platform management controller, so there was neither an analysis to read nor a set of accepted-risk entries recording protections that failed the comparison."
+  },
+  "REQ-168|not-assessed": {
+    "method": "interview",
+    "note": "Maintenance session flow and support tooling have had no human factors review, and error-prone steps are still surfacing only from incident reports after the fact; with no review record in existence the technician sessions were postponed rather than held against nothing."
+  },
+  "REQ-171|not-assessed": {
+    "method": "examine",
+    "note": "Ground support procedures still apply one level of ceremony to every task, and the grading of rigour against component trust has been drafted without entering the procedure set, so not one procedure yet states the execution rigour it requires or the trust level that rigour derives from."
+  },
+  "REQ-175|not-assessed": {
+    "method": "interview",
+    "note": "Both external services now in use were onboarded on engineering judgement, and neither the risk assessment template nor the connection approval gate has been built, so there was no gate to be described and no assessment record to corroborate a description against."
+  },
+  "REQ-176|pass": {
+    "method": "examine",
+    "note": "Every external flow the deployed gateway rule set permits appears in a current provider declaration, and the generated set reconciled against the deployed configuration at release 4.2 with an undeclared-flow count of zero and the default-deny terminator closing the list. The collector's external export destination is covered by the same declaration set, so the archive's required services are declared rather than discovered after the fact."
+  },
+  "REQ-179|not-assessed": {
+    "method": "examine",
+    "note": "Neither the external log archive nor the release signing service has been asked where WS-X90 information is processed and stored, and no service agreement carries a jurisdictional clause, leaving the assessor with no facility statement and no re-approval trail to read."
+  },
+  "REQ-180|pass": {
+    "method": "test",
+    "note": "Every component in the release 4.2 manifest carried a version, a digest and a detached signature that verified against the release key named in the signer summary. An image with an altered byte was refused at staging with the refusal logged against the image identifier, and no alternative staging path was found that reaches a target LRU without passing the verification."
+  },
+  "REQ-181|pass": {
+    "method": "test",
+    "note": "Twelve boots of the same staged image produced a measurement record for every firmware image in the chain, with the values stable across the run and retained after boot for later comparison. Altering a single byte between staging and execution produced a measurement mismatch, a halt before control was passed on, and a record identifying which image had failed."
+  },
+  "REQ-182|fail": {
+    "method": "test",
+    "note": "The power-on read matched an accepted-inventory entry for every LRU whose supplier fits the identity part, and the three seeded cases — absent identity, unreadable identity and an identity outside the accepted inventory — each raised a fault inside one power-on cycle anchored to the platform measurement. Six units are not covered: their suppliers were on contract before the requirement was placed, the comparison falls back to a serial number read from a maintenance record, and those units are not listed anywhere by id with the fallback declared, so a swap on one of them is detected only if somebody updates the record."
+  },
+  "REQ-184|pass": {
+    "method": "test",
+    "note": "The static analysis run recorded against the current release cites the same source revision hash as the built image, and a submission citing a mismatched hash was rejected by the pipeline, which is what stops a clean scan of an older tree being reused. No high-severity finding was open and undispositioned at release: each carried either a fix commit reference or an engineering disposition naming the reviewer and the reason."
+  },
+  "REQ-186|pass": {
+    "method": "examine",
+    "note": "A rebuild of the mission software from the recorded tool set reproduced the released image, and both toolchain changes raised since the previous release carry a controlled change record with its own impact statement. The build log shows a build refused for citing no pinned toolchain, and the payload interface firmware still built on an unpinned vendor toolchain is listed by LRU with the contractual action opened against it."
+  },
+  "REQ-188|not-assessed": {
+    "method": "test",
+    "note": "Release candidates are not scanned against their declared component inventory before approval and vulnerability information still reaches the program through flaw remediation after fielding, so there was no scan output to exercise in the rig and no identifier for a release approval record to cite."
+  },
+  "REQ-193|fail": {
+    "method": "examine",
+    "note": "The baseline object export shows a current issue date, a named owner and both superseded revisions retained, and a provisioning build referencing a stale baseline is blocked at LRU-017 with the block recorded against the release request, so artifact freshness is being enforced. The review itself is what is missing: the annual reissue is a calendar item rather than a workflow, and nothing in the object metadata records that a review took place, who performed it or what it decided."
+  },
+  "REQ-194|pass": {
+    "method": "test",
+    "note": "Every management endpoint on LRU-013 was called from each mission partition of the build 4.2.1 image; all were refused at the partition boundary well inside the fifty millisecond limit, no management-plane response was produced, and the partition-violation counter advanced exactly once per call. The partition table in the approved build confirmed the two partitions share no writable region."
+  },
+  "REQ-196|pass": {
+    "method": "test",
+    "note": "Buffers and storage blocks released and re-issued under load compared byte for byte against the approved fill pattern with no residue of the previous object anywhere in the extent. The early-read case behaved the same way, which follows from the clear happening on the release path: a consumer reading immediately after allocation still saw only fill, and the block pool refused a block its metadata did not mark cleared."
+  },
+  "REQ-197|pass": {
+    "method": "test",
+    "note": "Offered load at twice and at five times the profiled ingress rate was shed at the gateway policer ahead of the session table while the established mission session held its committed rate for the duration of each run, and per-port storm control engaged at the profiled threshold on the switch port under test with the drop counter advancing. The rate and threshold values in both running configurations matched the approved traffic profile line for line."
+  },
+  "REQ-199|not-assessed": {
+    "method": "examine",
+    "note": "Capacity figures for the switch segments and a link budget for the radio exist as design intent only; no reserve has been written into the approved configuration baseline, so the worst-case mission traffic profile had no provisioned headroom to be compared against."
+  },
+  "REQ-200|fail": {
+    "method": "test",
+    "note": "Counters arrived over the one-hour capture at the sixty second cadence with no sequence gap, and an injected excursion held for three intervals raised exactly one alert while a two-interval excursion raised none, so the threshold logic behaves as specified. Detection is still incomplete: session-table occupancy is absent from the gateway export, a low-rate state exhaustion run moved no exported counter at all, and the missing counter is not recorded anywhere as an open gap against the telemetry set."
+  },
+  "REQ-201|pass": {
+    "method": "examine",
+    "note": "The gateway running configuration enables the ground data link and the maintenance service port and nothing further, and the interface state table across all twenty LRUs shows every other external-capable port administratively down with its state measured at boot. The configuration verification run that compares the inventory against the baseline recorded no unapproved termination and no interface enabled without a change record."
+  },
+  "REQ-204|pass": {
+    "method": "test",
+    "note": "Traffic outside every approved flow was driven at each interface and direction on both devices; each packet was dropped and exactly one deny counter advanced, leaving the drop attributable to a specific interface and direction rather than to the device as a whole. Reading the full rule-set export afterwards turned up no permit-any rule on either the gateway or the switch, inbound or outbound."
+  },
+  "REQ-205|pass": {
+    "method": "test",
+    "note": "Wired, wireless and virtual second interfaces were each raised on the laptop during an open maintenance session; the gateway dropped the session inside the five second bound in every case and logged the endpoint identity, the session identifier and the reason it acted. The reliance on the endpoint posture report rather than on gateway-side verification is carried as an open item on the maintenance access backlog, which is what the third criterion asks for."
+  },
+  "REQ-207|fail": {
+    "method": "test",
+    "note": "Outbound traffic matching an egress threat rule was dropped at the gateway and counted, and the denial record reached the collector inside the sixty second bound naming the originating LRU and partition. Attribution breaks for maintenance-borne traffic: those records name the maintenance gateway with the operator field left null, and the shortfall appears nowhere on an open action list, so the requirement is met for platform-origin denials and unmet for the case that most needs an individual behind it."
+  },
+  "REQ-208|inconclusive": {
+    "method": "test",
+    "note": "An object of an unapproved type was blocked at the gateway and counted, and each permitted export carried a wrap naming the mission key identifier in force. The determination could not be closed because the requirement reaches beyond the one completed run: the maintenance service port has never been exercised, no repeating cadence is established, and the assessor had no basis to judge coverage from a single ground data link test."
+  },
+  "REQ-209|pass": {
+    "method": "test",
+    "note": "Traffic offered from an address outside the approved source list was dropped at the gateway and counted, and traffic from an approved source addressed to an LRU outside its permitted set was dropped again at the switch even when it was introduced directly onto the internal fabric. Both pair lists in the running configurations matched the approved baseline hash exactly."
+  },
+  "REQ-212|fail": {
+    "method": "examine",
+    "note": "The inventory extract records a keyed lock and a named key holder against both external terminations and a blank against every unused switch port, and the maintenance service connector is locked. The connector still carries no tamper-evident seal, so a cable seated and removed between inspections leaves no physical trace, and the seal action on the extract has neither an owner nor a target date against it, which leaves the shortfall recorded but not owned."
+  },
+  "REQ-213|pass": {
+    "method": "test",
+    "note": "Privileged sessions offered to the controller on every interface other than the maintenance gateway path were refused and counted, and the accepted session carried both the operator identity and the gateway session identifier into the controller record. The command record for a completed session listed every command in the order it was issued with its result, so the audit and the access decision sit at the same point rather than being reassembled from each target LRU."
+  },
+  "REQ-214|pass": {
+    "method": "test",
+    "note": "Inducing a policy-engine failure dropped the data plane in well under the two second bound measured at the external interface, and the boundary stayed closed through a power cycle because the closed state is written to non-volatile configuration rather than held in memory. Forwarding resumed only on an explicit operator restore, and the failure-mode analysis enumerates no detected path that lands in a permissive forwarding mode."
+  },
+  "REQ-215|pass": {
+    "method": "test",
+    "note": "Route traces run from all eighteen non-payload LRUs found no path onto the payload command segment, and command frames offered to the interface controller and the interlock on their telemetry and management interfaces were discarded and counted rather than accepted. The segment definition in the running switch configuration matched the approved baseline exactly, so the isolation is structural rather than a check that could be argued past."
+  },
+  "REQ-217|pass": {
+    "method": "examine",
+    "note": "The gateway route table carries no default route and no destination outside the approved external address set, so traffic for anywhere else is dropped rather than handed upward to whatever the next router would do with it. The workstation has no enabled interface to a routable network in the approved baseline, and the transfer procedure names enrolled removable media as its only ingress path."
+  },
+  "REQ-218|pass": {
+    "method": "test",
+    "note": "Arming frames injected on every internal subnet other than payload command were rejected at the interlock and counted, so the segmentation is enforced at the safety-critical end and not only in the switch fabric. The subnet map matches the approved segmentation design for the mission, payload command and combined management segments, and the outstanding split of management from log export appears as an open gap with a target configuration change against it."
+  },
+  "REQ-219|pass": {
+    "method": "test",
+    "note": "Captures taken on the ground data link and on the radio path contained no plaintext mission field, and a frame carrying a single flipped bit was rejected at the receiver and counted as an integrity failure before any parsing logic saw it. Neither external component would transmit a frame that had not been wrapped by the cryptographic module, and no degraded mode was available that would have carried one unprotected."
+  },
+  "REQ-221|pass": {
+    "method": "test",
+    "note": "A maintenance session left idle was torn down at the fifteen minute mark with the reason logged against the session identifier, and keepalive-only traffic did not hold the timer open — a client that is merely still connected does not count as an operator doing something. The gateway transport state for that session was gone afterwards, so the client could not resume into it and had to authenticate afresh."
+  },
+  "REQ-222|not-assessed": {
+    "method": "examine",
+    "note": "The program has not yet decided whether to disable the audio input hardware on the two ground support endpoints in the baseline or to tailor the control out on the grounds that no collaborative application is fielded, and until that decision is recorded there is no peripheral inventory and no claimed use-indication mechanism for an assessor to look at."
+  },
+  "REQ-227|not-assessed": {
+    "method": "test",
+    "note": "Attribute blocks still travel alongside the message body with no cryptographic tie, and the signing-rate analysis that gates the design remains outstanding, so the rig had no binding to attempt to defeat and no verification failure to observe."
+  },
+  "REQ-228|pass": {
+    "method": "examine",
+    "note": "The fielded trust store contents matched the approved anchor list exactly with no additional anchor present, and every fielded platform certificate chained to an approved anchor and named the programme certificate policy. Each anchor change in the repository history carried a signed approval with an owner, so adding an anchor is an attributable configuration event and the module itself will not add one at run time."
+  },
+  "REQ-229|fail": {
+    "method": "examine",
+    "note": "The technology list is dated and carries a named owner, and a load module built for the mission computer containing a listed unacceptable technology failed the build with the technology named in the failure. Provisioning tooling is not built under that gate at all: the same seeded technology passed straight through the workstation pipeline and was caught only when the software configuration control board came to read it, so on one of the two endpoints the requirement is met by a reviewer noticing rather than by a build failing."
+  },
+  "REQ-229|pass": {
+    "method": "examine",
+    "note": "Re-examined once the build scan had been extended over the provisioning pipeline. Tooling built for the workstation now fails on a listed unacceptable technology exactly as a mission computer load module does, which is the criterion the October examination could not satisfy, and the control board reading has become a record of the gate rather than the gate itself. The technology list and the mission computer build check were driven again and behaved as they did before."
+  },
+  "REQ-232|pass": {
+    "method": "test",
+    "note": "Attempts to load code over each mission computer interface at run time were refused and counted; there is no run-time loader reachable from any interface, so a downloaded module has nothing on the airborne side that would execute it. An unsigned package offered to the provisioning workstation was blocked by default with no operator involvement, and each use of the operator override is recorded with the operator and package identity, with removal of the override path carried in the plan."
+  },
+  "REQ-233|pass": {
+    "method": "test",
+    "note": "A test document carrying an auto-execute construct opened on both endpoints with the construct disabled, and enabling it took an explicit operator action that produced a record naming the file, the construct and the operator. The blocking policy sits in the approved baseline on both endpoints and could not be changed locally; on the provisioning workstation the enable action additionally raised a review item because the file was inside a package under assembly."
+  },
+  "REQ-235|pass": {
+    "method": "test",
+    "note": "The mission computer lists the gateway resolver as its only configured address with no fallback entry, so a resolution that fails simply fails instead of escaping to another path. The resolver runs with recursion disabled and one permitted upstream and discarded every response injected from another source, counting each; the absence of response signature verification is recorded as an open gap tied to the authoritative-signing work rather than left unstated."
+  },
+  "REQ-236|not-assessed": {
+    "method": "examine",
+    "note": "Name resolution still runs as one instance holding both the authoritative and the resolving role, and the split onto separate switch segments exists only as a plan, so there is no design record showing two instances or their segment placement to examine."
+  },
+  "REQ-237|pass": {
+    "method": "test",
+    "note": "Messages replayed with identifiers from sessions ended by operator logout, by inactivity timeout and by link loss were each rejected at the controller and counted rather than failing quietly. No terminated session's identifier remained in the gateway active table afterwards, and the link-loss path behaved like the other two, which matters because that is the path on which a client-side capture is most plausible."
+  },
+  "REQ-238|pass": {
+    "method": "test",
+    "note": "A client-supplied session identifier was rejected outright rather than adopted or echoed back, which removes session fixation as a class rather than mitigating it. Every identifier in the ten thousand session sample was at least 128 bits with no repeat, and the generator draws from the cryptographic module's hardware random source alone, so identifier entropy has the same provenance as key material."
+  },
+  "REQ-240|fail": {
+    "method": "test",
+    "note": "An induced boot integrity failure brought the mission computer to the defined secure state inside five seconds, with external interfaces down and no key material remaining resident in memory, and the platform held there rather than retrying. The requirement is not met for the failure class it also covers: a fault detected inside a running mission partition is left to that partition's own handler, other partitions keep running, and the shortfall is not recorded anywhere with a named owner."
+  },
+  "REQ-242|pass": {
+    "method": "test",
+    "note": "A raw media image taken from the storage module contained no plaintext configuration, audit or key object anywhere in the scan, including in the recovery images that would be the most useful objects to someone holding removed media. A modified stored block failed its integrity check on read and was refused rather than returned with a warning, and the object inventory shows no stored type exempt from the encryption path."
+  },
+  "REQ-243|pass": {
+    "method": "test",
+    "note": "Every key in the platform inventory resolved to a hardware key store slot, and no command in the fielded set returned plaintext key material — including the commands available under maintenance authority, which is where an export path is most often reintroduced. The interface trace shows other LRUs using keys by handle with no key bytes crossing the interface at any point in the capture."
+  },
+  "REQ-247|pass": {
+    "method": "test",
+    "note": "Sampled clock offsets on both timestamping LRUs stayed inside the fifty millisecond bound against the platform reference across the four-hour run, with no drift toward the boundary as the run progressed. Every LRU in the timestamping inventory resolved to a client of the distribution with no free-running local clock in use, and records collected from two different LRUs during the run ordered correctly against one another."
+  },
+  "REQ-248|pass": {
+    "method": "test",
+    "note": "Comparison records across the one-hour capture appeared at no more than sixty second spacing with no gap, and the injected offset of a second and a half was corrected with before and after reference values logged, so a correction is auditable rather than silent. The holdover marking that stays internal to the navigation processor and never reaches the output message is recorded as an open gap, which is what the third criterion asks for at this stage."
+  },
+  "REQ-250|not-assessed": {
+    "method": "examine",
+    "note": "Command and control runs over one bearer with no alternate configured on either the gateway or the radio, the decision on whether the mission profile needs a second path has not been taken, and the communications architecture record has not been updated to state the single-path position, so there was nothing to examine that would not simply restate the absence."
+  },
+  "REQ-251|fail": {
+    "method": "examine",
+    "note": "Edition 3 of the policy is signed inside the last twelve months, names an accountable official and enumerates the SI controls it implements, and the release manifest cites the same version identifier the repository holds. It falls short on the other half of the requirement: the procedures still define no event beyond the annual date that forces a reissue, and the SI-4 monitoring and SI-7 boot integrity procedures added by the control set expansion are carried in this edition as drafts, so the allocation change that created them has produced no issued procedure."
+  },
+  "REQ-252|pass": {
+    "method": "test",
+    "note": "The 2026-Q3 sweep output carries an installed version string and a comparison verdict for all twenty LRUs against manifest RM-4.2.1, and the three deliberately down-level components were flagged as deviations inside the same cycle they were seeded into. The deviation list came back from the platform inventory export with no maintenance endpoint connected, which is the part of the requirement that keeps the sweep useful between visits."
+  },
+  "REQ-254|inconclusive": {
+    "method": "test",
+    "note": "A bundle with one component omitted from its manifest was refused with a recorded reason, and a complete bundle installed across its targeted LRUs from one technician action. What could not be settled is the scope question the requirement turns on: the pipeline export covers mission computing and platform management only, and the assessor could not establish in the rig whether the navigation and payload firmware still applied individually fall inside the requirement or outside it, so the determination is held."
+  },
+  "REQ-255|pass": {
+    "method": "test",
+    "note": "After one mission-ready cycle on RM-4.2.1 the storage module inventory held exactly one prior recovery image per LRU, reads against every other superseded slot returned no recoverable content, and each erase carried the component id and the retired version string it disposed of. Rollback remains possible from the single retained image, which is the balance the moderate availability categorization asks for."
+  },
+  "REQ-259|pass": {
+    "method": "test",
+    "note": "Twenty-four out-of-policy flows were injected across the gateway, the radio and the switch, four of them correctly encrypted, and every one produced a security event naming source, destination and direction; the encrypted flows were reported on the same basis as the cleartext ones. None of the three interfaces offered a sampling interval or duty cycle setting, so the monitoring cannot be quietly turned down to a duty cycle by configuration."
+  },
+  "REQ-260|pass": {
+    "method": "test",
+    "note": "All three indicators on the approved list were injected and each raised a panel alert inside sixty seconds; the alerts survived a panel refresh and a controller restart still un-dismissed, and every acknowledgement carried the acknowledging account and the time it was given. Because the collector pushes the alert rather than waiting to be polled, an operator who never opens a view is still shown the indicator."
+  },
+  "REQ-261|fail": {
+    "method": "test",
+    "note": "Content from a terminated management session was matched by the monitoring rule set, session keys were not readable from gateway storage or from a memory capture, and no plaintext session content survived on persistent storage after close. The requirement is not met on coverage: mission data sessions carried over the tactical radio are not terminated at all, so their content never reaches the monitoring path inside the gateway boundary and the visibility the requirement asks for stops at the two session classes already inspected."
+  },
+  "REQ-263|pass": {
+    "method": "test",
+    "note": "Privileged account creation, a security configuration change made outside an approved maintenance window and a six-minute stall in audit forwarding each raised an alert on the controller with no operator opening a search first, and each alert carried the triggering account or component identifier. The configuration-change alert arrived correlated to the maintenance window record that should have covered it, which is what lets an operator judge it without a second lookup."
+  },
+  "REQ-264|not-assessed": {
+    "method": "examine",
+    "note": "The observation record format and the monitoring ingest route are specified in the design, but the radio firmware change that would emit an observation is unbuilt and no detection logic exists to separate an unexpected emitter from an expected one, so no reporting interface could be examined this period."
+  },
+  "REQ-266|pass": {
+    "method": "test",
+    "note": "Host events, network detections and maintenance-session records merged onto one ordered timeline stamped from the trusted time source, and each correlated entry recorded which source stamped it. The deliberately skewed source was flagged at 2.1 seconds rather than being quietly interleaved at the wrong point, which is the behaviour that keeps a mis-ordered timeline from reading as a sequence of events that did not happen in that order."
+  },
+  "REQ-269|pass": {
+    "method": "test",
+    "note": "The daily comparison output names the service baseline version it ran against, and an unauthorised listening service introduced on an otherwise authorised LRU was both written to audit and alerted, so the check is discriminating at service level rather than at host level. Removing an approved service produced no alert, which keeps the signal to unauthorised additions instead of to every baseline difference."
+  },
+  "REQ-270|pass": {
+    "method": "examine",
+    "note": "The signed baseline manifest lists the host sensor as an element on both components, and an attempt to stop the sensor service from an authenticated maintenance session was refused with the refusal recorded. The exported sample carried all three declared event classes — process start, privileged operation and configuration-file change — so the sensor is reporting what the baseline says it reports."
+  },
+  "REQ-271|not-assessed": {
+    "method": "examine",
+    "note": "No indicator source is under agreement, no indicator set has been ingested into the repository, and the distribution path into the collector detection rules is unbuilt, so the monitoring view shows no active set version and no indicator-driven detection is running to be examined."
+  },
+  "REQ-274|pass": {
+    "method": "test",
+    "note": "Power-on, the transition into mission-ready state and a privileged command each produced a complete self-test result set covering access decision, audit record generation and cryptographic service availability, taking the measured platform state as the precondition. Forcing the cryptographic service to fail alerted the system and security administrator and held the platform out of mission-ready state rather than allowing the transition with a degraded enforcement path."
+  },
+  "REQ-275|pass": {
+    "method": "test",
+    "note": "Each of the thirty arming sequences was preceded by a recorded interlock verification result carried out through the telemetry path, and the induced logic fault held the interlock in the safe state instead of restarting the payload interface. The failure alert reached the system and security administrator over the same telemetry route, which is the recipient the requirement names."
+  },
+  "REQ-277|pass": {
+    "method": "test",
+    "note": "Every startup in the run produced a complete measurement set across the loader, the kernel and the signed application set, each compared against the approved release manifest. A deliberately modified application binary blocked the mission-ready transition and the resulting record named the failing measurement slot, so the refusal points at what did not match rather than reporting a generic integrity error."
+  },
+  "REQ-278|pass": {
+    "method": "test",
+    "note": "Over the seventy-two hour soak both units produced a re-verification record at startup and then at intervals inside the twenty-four hour cadence, with no drift toward the boundary as the run went on. An altered reference image was reported to the monitoring path in forty-one seconds, and navigation output continued uninterrupted through every passing check, so the re-verification is not bought at the cost of the function it protects."
+  },
+  "REQ-279|pass": {
+    "method": "test",
+    "note": "Six induced measurement discrepancies each produced a discrete integrity-violation event naming the failing slot with its expected and observed values, and the on-call route received the notification inside the five minute target with nobody polling for it. Restarting the platform afterwards did not erase the notification held at the collector, so the fact of the violation outlives the state that produced it."
+  },
+  "REQ-280|fail": {
+    "method": "test",
+    "note": "An induced violation in the mission software set placed the platform in the restricted state with no operator action, mission functions stayed unavailable while it was held, and recovery from the last known-good image required an authenticated technician rather than happening on its own. The automatic response stops at that measurement domain: a violation induced in navigation, timing or payload firmware raised its alert but left the platform running normally, so the hold the requirement describes is not reached for three of the four domains that can report one."
+  },
+  "REQ-282|pass": {
+    "method": "test",
+    "note": "Each induced violation produced a record in the write-protected region naming the failing component, the expected and observed measurement identifiers and the action taken, and an attempt to modify one from a maintenance session was refused and itself recorded. The exported copy at the collector matched the on-platform record field for field, which is what makes a future divergence between the two worth investigating."
+  },
+  "REQ-283|pass": {
+    "method": "test",
+    "note": "Each boot stage extended a distinct measurement that remained readable after boot, and substituting a stage image changed the reported platform state rather than producing an identical attestation. An attempt to update the root of trust through the normal maintenance path was refused, which is what keeps the anchor of the chain out of reach of the process that services everything above it."
+  },
+  "REQ-284|pass": {
+    "method": "test",
+    "note": "All three controllers reported a boot verification status at every start rather than only on failure, and loading a corrupted boot image on each in turn left that unit present on the bus but with its external interfaces held down. Verification completed ahead of the first sensor or payload message being accepted, so nothing is processed on the strength of an image that has not yet been checked."
+  },
+  "REQ-285|pass": {
+    "method": "test",
+    "note": "Write attempts against boot firmware outside the authenticated sequence were blocked at the device and logged on every capable unit, and the write-protect state came back as part of the platform state report so an unprotected device would be visible rather than assumed protected. Protection re-asserted automatically at the end of a deliberately interrupted update, which is the case that would otherwise leave firmware writable after a failed session."
+  },
+  "REQ-286|pass": {
+    "method": "test",
+    "note": "An unsigned package and a package signed by a key outside the approved set were both refused installation with the reason recorded, and the refusal came from the controller rather than the pipeline, so it applied equally to a staged bundle and to a single-component recovery image. Verification keys were used inside the cryptographic module throughout and no export path was found that would place one on the controller."
+  },
+  "REQ-288|not-assessed": {
+    "method": "interview",
+    "note": "No screening engine is installed at either the external gateway or the maintenance gateway and nothing is being screened today, so the roles that would run the content policy and dispose of rejected content do not yet exist to be interviewed."
+  },
+  "REQ-290|pass": {
+    "method": "test",
+    "note": "Three consecutive runs of the defined invalid-input set produced identical outcomes on all three units with no reset, hang or undocumented mode transition, and the interlock held its safe state on every invalid input rather than acting on any of them. Several navigation sensor message types are documented as reject without stating the resulting output state; that shortfall in the documentation was recorded against an otherwise repeatable result."
+  },
+  "REQ-291|pass": {
+    "method": "test",
+    "note": "Messages from unlisted sensor identifiers, messages carrying an unexpected format version and over-length messages of an approved type were each discarded at the interface and counted, with no partial parsing of the malformed cases. Nothing that failed source or format screening reached the navigation processor, which has no independent external input path of its own to be reached by another route."
+  },
+  "REQ-292|pass": {
+    "method": "test",
+    "note": "A command injected on a channel other than the designated one was rejected at the interface controller, and a correctly formatted command carrying no valid authorisation token was rejected again at the interlock, which does not defer to the controller having already screened it. Both rejections were counted and reported to the platform monitoring path, so a probing sequence on the payload path is visible rather than merely unsuccessful."
+  },
+  "REQ-296|inconclusive": {
+    "method": "test",
+    "note": "Out-of-range fields injected upstream were suppressed and logged rather than transmitted, the active schema version was reported alongside the stream, and suppression counts reached the platform monitoring path. What could not be settled is the boundary the requirement draws: several in-range but implausible payload states were transmitted because semantic consistency checks are specified and not implemented, and the assessor could not determine whether those fall inside the expected content the requirement names."
+  },
+  "REQ-297|pass": {
+    "method": "test",
+    "note": "Across the ninety-six hour run the age of cached almanac, ephemeris and timing correction data never approached twenty-four hours, and both units cleared their cached navigation state at the recorded mission-end transition. A cold start after that transition built a fresh solution with no trace of the previous sortie's position, which is the property that keeps mission-associated position data from persisting between flights."
+  },
+  "REQ-298|fail": {
+    "method": "examine",
+    "note": "The repository manifest shows both the policy and the procedure set as signed revisions, and the digest staged to the provisioning workstation matches the current repository revision, so technicians are working from the controlled copy. The review obligation is not met: the organisation-level policy was last approved before the control set reached 546 entries, the procedure set has not completed its first review against that scope, and there is consequently no revision history entry for a review event and no escalation branch covering the insider-threat and spillage roles the expanded set introduced."
+  },
+  "REQ-300|not-assessed": {
+    "method": "test",
+    "note": "The scenario library and the scoring rubric are drafted and reviewed but no scenario has been run against a responder and the replay tooling is still scheduled work, so there was no scored run to reproduce and no way to confirm that a replay generates no command traffic toward an operational LRU."
+  },
+  "REQ-302|pass": {
+    "method": "test",
+    "note": "The 2026 test report is signed, dated inside the last twelve months and covers both injected cases — a controlled detection case at the collector and a privileged-account-abuse case at the controller. Elapsed time from event generation to responder acknowledgement and to first containment is recorded for each, and every deviation the test surfaced is carried into the programme corrective action list with an owner rather than closed with the report."
+  },
+  "REQ-304|pass": {
+    "method": "test",
+    "note": "Of forty injected events matching a detection rule, every one opened an incident record in the protected store inside the five minute bound with no operator input, and each record named the detection rule identifier, the originating LRU and a reference back to the raw event. The fifteen non-matching events opened no record and stayed in the raw stream, so the rule set is discriminating rather than opening a record on everything it sees."
+  },
+  "REQ-305|pass": {
+    "method": "test",
+    "note": "Across twelve directive executions the named non-essential mission service was suspended inside thirty seconds and the suspension was visible in the service state table, while the named external session was dropped inside the same bound and did not re-establish without a fresh authorisation. Both actions landed on the incident record as separate entries carrying their own timestamps rather than as one combined containment line."
+  },
+  "REQ-306|not-assessed": {
+    "method": "test",
+    "note": "The two mission-continuation incident classes and the latch semantics behind them are agreed and captured in the interface control documents, but the payload firmware changes are scheduled into the next load and no build carries them, so declaring a class in the rig would have exercised nothing."
+  },
+  "REQ-307|pass": {
+    "method": "test",
+    "note": "An incident timeline drawn over injected events from all six subsystems carried a contribution from every source that was reporting in the window, with payload health records joining the ordering directly rather than being reconciled afterwards. Suppressing the telemetry feed for twenty minutes produced a visible silence marker rather than a quiet gap, and two sources reporting the same platform timestamp ordered stably across repeated draws."
+  },
+  "REQ-310|not-assessed": {
+    "method": "examine",
+    "note": "The sanitisation profile and the release-review step are specified, but registration of the external reporting channel is outstanding and no summary has yet been assembled or shared, so the assessor had no released package to inspect for excluded mission payload and navigation content."
+  },
+  "REQ-312|not-assessed": {
+    "method": "interview",
+    "note": "The roster and the call-out procedure are drafted, but the deployment kit build has never been rehearsed and the incident-class-scoped credential profile does not exist on the provisioning workstation, so the assessor had no team standing behind the seventy-two hour commitment to interview about it."
+  },
+  "REQ-314|pass": {
+    "method": "test",
+    "note": "Forcing uncommanded holdover produced an anomaly record inside one reporting interval, and driving cross-sensor divergence past the configured integrity threshold produced a record naming the diverging sensors rather than a generic navigation warning. The behaviour-analysis stream queried independently of the routine telemetry store, so an analyst can look at the anomalies without sampling the full navigation volume."
+  },
+  "REQ-316|pass": {
+    "method": "test",
+    "note": "Across the eighteen tracked incidents in the sample every record held exactly one tracking identifier, no identifier appeared twice in the store, and each transition through open, contained, eradicated and closed carried the acting identity and its own timestamp. A transition submitted with a timestamp earlier than its predecessor was refused by the store, so the history cannot be tidied up after the fact."
+  },
+  "REQ-317|pass": {
+    "method": "test",
+    "note": "Ten declarations each produced a populated draft inside the fifteen minute window with nobody typing into it, carrying the reportable-incident category, the affected LRU list, the detection time and the containment time straight from the incident record. Fields with no value in the record rendered as absent rather than being blank-filled, which keeps a gap in the record visible to whoever performs the release review."
+  },
+  "REQ-318|pass": {
+    "method": "test",
+    "note": "A released report transited the gateway on the approved reporting path and its delivery acknowledgement was written back against the tracking identifier. With that path disabled the abbreviated form went over the tactical radio under the same release approval and acknowledged in its own right, and an unreleased draft could not be transmitted on either path, so the fallback does not become a way around release review."
+  },
+  "REQ-319|fail": {
+    "method": "examine",
+    "note": "Each incident closed as configuration-related names a baseline item identifier and revision, so the weakness is anchored to a specific fielded configuration rather than described in prose. Reporting is where it falls short: routing to the responsible design authority is a manual step, and two of the four cases worked since the scope expansion reached that recipient later than five working days after the recorded containment time, with one of them not reaching the design authority at all before the assessor asked."
+  },
+  "REQ-323|not-assessed": {
+    "method": "interview",
+    "note": "Contact records exist in draft on the program side only; the transport and network protection providers have not been formally engaged and no joint exercise has been held, so a cross-boundary event today would open with an introduction and there were no counterpart responders to interview."
+  },
+  "REQ-325|pass": {
+    "method": "test",
+    "note": "The declared spill blocked every external session for the affected enclave and isolated the contaminated port well inside the ten minute threshold, and the post-isolation frame count on that port was zero. The responder alert went out over the route that does not traverse the contaminated segment — the exercise was the first live use of that route, which had previously only been walked on paper."
+  },
+  "REQ-329|not-assessed": {
+    "method": "interview",
+    "note": "The spillage procedure that would suspend an exposed individual's sessions, quarantine and image the laptop used, and require a signed acknowledgement before access is restored remains an unapproved draft, and no quarantine holding process or imaging destination exists, so there is no practice for anyone to describe."
+  },
+  "REQ-330|fail": {
+    "method": "examine",
+    "note": "The repository manifest shows a signed policy revision with a designated managing official, and the dissemination record covers every individual holding a provisioning role on the workstation. The approval date is the problem: the current revision predates the national eligibility gating change made during the scope expansion and the at-least-annually review is overdue, so the workstation is enforcing a stricter rule than the published procedure describes and personnel are acknowledging a superseded text."
+  },
+  "REQ-332|pass": {
+    "method": "examine",
+    "note": "Every account on the controller resolved to an individual holding a completed screening record at the level the position risk designation requires, and the attestation covering the 2026-Q3 provisioning cycle was written from the same store the account-creation query reads. An account request raised for an individual with no screening record was refused with the reason recorded, and the most recent recertification cycle carried a re-verification entry against each renewed account rather than a blanket renewal."
+  },
+  "REQ-333|pass": {
+    "method": "examine",
+    "note": "Every individual on the privileged maintenance roster carried a verified national eligibility record, and a request without one was refused outright rather than issued with an advisory flag. The field is writable only by the program security function, so neither the requesting individual nor the technician processing the request can satisfy the gate from inside the provisioning transaction."
+  },
+  "REQ-334|pass": {
+    "method": "test",
+    "note": "All nine terminations in the September sample met their bound: the involuntary actions were disabled on the controller the same calendar day and the voluntary ones inside five working days, measured from the termination timestamp rather than from when the request was picked up. Each individual's provisioning record showed the closed state with the disable reference attached."
+  },
+  "REQ-337|pass": {
+    "method": "test",
+    "note": "Eight synthetic termination actions entered in the personnel feed disabled every mapped account inside the sixty minute bound with no technician touching the disable, and each raised a notification onto the security operations distribution carrying the individual identifier and the action time. The entry deliberately mapped to no platform account produced a recorded no-op, so a mapping error surfaces as an unmatched entry instead of as an account nobody disabled."
+  },
+  "REQ-338|inconclusive": {
+    "method": "test",
+    "note": "All seven transfers show an access change on the controller with the retained set recorded against the new position's operational need, and the provisioning record carries a confirmation entry and confirming role for each. Three initiations sit past the ten working day bound as measured from the dates in the export, but those three were worked in the monthly provisioning batch and the export does not carry the formal transfer action date, so whether the bound was breached or the start date is mis-recorded could not be settled."
+  },
+  "REQ-339|pass": {
+    "method": "examine",
+    "note": "The re-sign register shows a signed access agreement date inside the last twelve months for every current account holder, and publishing revision 4 raised a re-sign requirement against each holder of revision 3 rather than waiting for their individual anniversaries. An issue attempt made with no signed date on the record was refused at the workstation."
+  },
+  "REQ-340|not-assessed": {
+    "method": "interview",
+    "note": "The post-employment obligations clause is drafted and agreed but has not been published as an agreement revision, so no current holder has acknowledged it at grant and there is no practice at initial access to ask about."
+  },
+  "REQ-344|fail": {
+    "method": "examine",
+    "note": "The policy half of the record set is in good order: one approved revision, signed, re-approved inside the current annual cycle, with the dissemination list covering the platform role holders. The procedures are not: the approved procedure revision still describes the original 74-control audit scope, says nothing about the correlation and reviewer-queue behaviour now running on the collector, and its approval date sits outside the twelve month bound the requirement sets."
+  },
+  "REQ-345|pass": {
+    "method": "test",
+    "note": "All two hundred consecutive payload command records carried the opcode, the originating crew-station identifier, the commanded payload state and the interlock state sampled at command time, and where a value was unavailable it appeared as an explicit null marker rather than as an omitted field. The collector indexed the four additional fields as searchable columns without falling back to the base schema."
+  },
+  "REQ-346|pass": {
+    "method": "test",
+    "note": "Over the fourteen day run no segment sat untransferred for more than twenty-four hours after closure, and a segment driven past its size limit went early rather than waiting on the timer. Suppressing an acknowledgement left the local copy in place and produced a recorded retry, which is the case that decides whether a transfer scheme loses records or merely delays them."
+  },
+  "REQ-347|pass": {
+    "method": "test",
+    "note": "Filling the audit partition past 75 percent raised the operator warning inside sixty seconds of the crossing timestamp recorded on the storage module, and the series repeated at 80, 85, 90 and 95 percent without an acknowledgement silencing what followed. Each maintenance log entry named the partition, the percentage and the crossing time, so a warning raised while the crew station is unattended is still recoverable afterwards."
+  },
+  "REQ-348|pass": {
+    "method": "test",
+    "note": "The running configuration carries every rule in the approved correlation set with none disabled, and the job definition contains no scheduled operator step, so correlation runs on ingest rather than when someone remembers to start it. Four consecutive weekly queue manifests covered their seven-day windows end to end with no gap between them."
+  },
+  "REQ-349|fail": {
+    "method": "test",
+    "note": "A seeded configuration change and the audit records it produced returned as one correlated event naming both source repositories and the joining actor identity, and a change with no matching audit record came back marked unmatched rather than being dropped. Two of the seeded changes were made from inside a maintenance session, and those correlated only to the change record: the session transcripts sit outside the correlation key space, so the analysis view cannot say which session carried the change."
+  },
+  "REQ-349|pass": {
+    "method": "test",
+    "note": "Retested against the closed finding. Maintenance session transcripts have been brought into the correlation key space, and the two seeded changes made from inside a session now resolve to a single correlated event naming the change record, the audit records and the session that carried them. The two-repository join and the unmatched-change reporting were exercised again and behaved as they did in September."
+  },
+  "REQ-351|not-assessed": {
+    "method": "examine",
+    "note": "The collector holds audit records only: neither the scan feed nor the host monitoring stream is ingested, the extended view schema with its source-type column is scheduled work, and the two ingest adapters do not exist, so no design has reached the state where an assessor could check it against the running view."
+  },
+  "REQ-354|pass": {
+    "method": "test",
+    "note": "Searches on event type, actor identity, source LRU identifier, outcome and event timestamp each returned the correct set against the seeded population, and three consecutive seven-day queries over the full retained volume finished inside the thirty second budget. Sorting on timestamp held its order between runs where records shared a stamp, which matters because an unstable sort makes two readings of the same window disagree."
+  },
+  "REQ-355|pass": {
+    "method": "test",
+    "note": "Each of the six calendar weeks in the sample contained at least one acknowledged copy, the fielded daily cadence running well inside the weekly floor, and the chassis identifiers recorded on the manifest confirm the target sits in a different chassis from every audited LRU. Suppressing a copy raised the maintenance alert inside the same week, so the floor cannot be missed quietly."
+  },
+  "REQ-356|pass": {
+    "method": "test",
+    "note": "A segment with a single flipped byte failed verification at the collector and was quarantined rather than ingested, and an unsigned audit tool binary was refused execution. The trust anchor doing the verifying reconciled to the entry in the platform key inventory, so the tools that read the records are held to the same standard as the records themselves."
+  },
+  "REQ-357|pass": {
+    "method": "examine",
+    "note": "The audit-management group holds three named individuals and shares no member with the platform administration group on either component, and the collector enforces that group as the sole writer of its audit configuration objects. The controller's local audit configuration is the exception the export flags; the assessor judged the criteria met where the retained record set is governed and left the local objects on the remediation plan rather than reopening them here."
+  },
+  "REQ-360|fail": {
+    "method": "test",
+    "note": "Every arm and release command in the captured run carried a signature over the command, the operator identity and the interlock state, a replay with an altered operator identity failed verification, and the interlock state inside the signed structure matched what the interlock recorded independently. Verification is where it breaks: the retired-key identifier list has not been published to the collector, so commands signed under a rotated key verify as unknown-key and sit in the unverifiable bucket, which is indistinguishable at the collector from a command nobody can account for."
+  },
+  "REQ-362|not-assessed": {
+    "method": "interview",
+    "note": "Neither store is populated for historical epochs: the repository holds no reader tooling or schema entry for an older retention epoch and the storage module retains only the current key set, so a walkthrough of a segment written twenty-four months ago could not have reached readable content without an out-of-configuration tool."
+  },
+  "REQ-364|fail": {
+    "method": "test",
+    "note": "The compiled trail covers every LRU in the reporting-component register for the sampled window and carries the degraded-time marker through rather than interleaving a holdover source silently. Ordering is where it fails: records relayed by the internal switch carry no source time and are ordered on receipt at the collector, so during a congested interval the seeded sequence came back out of order and the system-wide trail no longer reproduces the order the events actually occurred in."
+  },
+  "REQ-364|pass": {
+    "method": "test",
+    "note": "Rerun after the switch change landed. The internal switch now stamps its own source time on the records it relays, and the seeded sequence came back in the order it occurred through a deliberately congested interval rather than ordered on arrival. Coverage against the reporting-component register and the degraded-time marking were checked again and are as they were."
+  },
+  "REQ-365|pass": {
+    "method": "test",
+    "note": "An event-criteria change requested by the audit-management group reached the collector within seconds of leaving the controller, comfortably inside the fifteen minute threshold, and the same change requested under another role was refused with the refusal audited. Each accepted change produced a record naming the requester, the target LRU and the criteria selected; propagation to the payload interlock waits on a mission-mode transition, which the programme carries as a known limitation of that path."
+  },
+  "REQ-367|pass": {
+    "method": "test",
+    "note": "Across ten consecutive cold boots the boot log shows session auditing enabled before the maintenance port transitions to up, in that order every time, with no operator step available between power-on and auditing becoming active. An induced enablement failure left the maintenance port down, so there is no window in which a session could be opened while auditing is off."
+  },
+  "REQ-369|not-assessed": {
+    "method": "examine",
+    "note": "The coordination method is drafted but unapproved, no egress policy is written on either external path, and the transfer register that would name a receiving organization, a record set and a releasing authority does not exist on the collector, so there was no design or configuration to examine."
+  },
+  "REQ-373|fail": {
+    "method": "test",
+    "note": "A maintenance action submitted without an open work order was refused by the recovery controller and the refusal recorded, and scheduling, dispatch and close-out each produced a workflow state change carrying an actor identity. The requirement is not met on the third point: payload telemetry maintenance records are still entered by hand after the fact, outside the workflow and outside the thirty-day stale-record flag, which is precisely the manual path the requirement says must not exist."
+  },
+  "REQ-376|pass": {
+    "method": "test",
+    "note": "Sampled scans carried a signature-set date within seven days of the scan and were recorded against the media serial number, and media presented at a platform interface without a current scan record was refused there rather than at issue. The seeded test file was detected and its media blocked from issue, which is the case that distinguishes an enforced scan from a recorded one."
+  },
+  "REQ-377|not-assessed": {
+    "method": "interview",
+    "note": "There is no release record store, no join to the maintenance session history and no check that stops equipment leaving with no disposition recorded, so the maintenance laptop still goes out on a manual sign-out and nobody could have produced a release record for a sampled unit."
+  },
+  "REQ-378|pass": {
+    "method": "test",
+    "note": "An identity removed from the authorized-maintainer list was refused a tool invocation within one session rather than at the next list refresh, so revocation bites while the technician is still at the bench. A tool launched on the laptop with an expired token failed before it reached any platform interface, which means a laptop separated from the gateway is not a usable tool platform on its own."
+  },
+  "REQ-379|fail": {
+    "method": "test",
+    "note": "Every privileged tool invocation in the sampled period reconciled one-to-one against the gateway invocation register, and each audit record named the tool, the technician identity and the privilege level. The detection half does not exist: a privileged invocation seeded deliberately outside any open work order produced its audit record and no alert, because the rule that would raise one has been specified and not built, so out-of-order privileged use is discoverable only by someone thinking to query for it."
+  },
+  "REQ-379|pass": {
+    "method": "test",
+    "note": "Reassessed after the alert rule was fielded. A privileged invocation seeded outside any open work order now raises an alert alongside its audit record, so out-of-order privileged use surfaces on its own instead of waiting for somebody to think of querying for it. The one-to-one reconciliation against the gateway invocation register and the tool, technician and privilege-level fields were re-read and stand unchanged."
+  },
+  "REQ-381|pass": {
+    "method": "test",
+    "note": "All five event classes — session start, authentication outcome, privileged commands, file transfers and session end — appear in the logs for the sampled nonlocal sessions, and the set logged matches the event set named in the audit policy revision in force rather than a locally maintained list. Each session reached the review queue within one working day of its close time, with the queue entry time recorded against the close."
+  },
+  "REQ-384|pass": {
+    "method": "test",
+    "note": "A captured authentication exchange replayed against the maintenance gateway was refused, and the maintenance frames sampled on the switch carried the maintenance VLAN tag alone with no mission tag present. The boundary policy applied to the maintenance session is a distinct entry in the configuration export rather than the mission policy with an exception, so the separation is visible in the configuration and not only on the wire."
+  },
+  "REQ-385|pass": {
+    "method": "test",
+    "note": "The negotiated suite on each sampled maintenance session resolved inside the approved algorithm set, and a client offering only algorithms outside it was refused rather than downgraded, so the session fails closed at both ends of the path. Every session key reconciled to an identifier issued by the cryptographic module and present in the platform key inventory."
+  },
+  "REQ-386|pass": {
+    "method": "test",
+    "note": "Every closed session in the sampled period carries a confirmed-terminated record, and a session context queried after close returned not found rather than an emptied structure. A connection deliberately left established on the boundary gateway did raise the unconfirmed-teardown alert, though on evidence up to sixty seconds old because the gateway returns no explicit acknowledgement and its state is read by poll."
+  },
+  "REQ-388|not-assessed": {
+    "method": "examine",
+    "note": "The support agreement carrying the thirty day response period is still in negotiation and the failure register that would record report and arrival dates is not in service, so no elapsed time has been recorded against any reported failure for the assessor to read."
+  },
+  "REQ-390|not-assessed": {
+    "method": "examine",
+    "note": "The procedure set is with programme security for its first review and nothing has been issued, so there is no controlled copy in circulation, no approval signature and no revision log — the annual review clock does not start until first issue."
+  },
+  "REQ-392|fail": {
+    "method": "examine",
+    "note": "The bay sits behind a second reader with its own list, refusals are written to the reader event log with the credential identifier and timestamp, and a credential valid at the outer door was refused at the bay during the sampled period. Reconciling the list against the current facility roster is where it comes apart: the bay list is maintained by hand rather than derived, and it still carries individuals the facility roster no longer holds, so it is not the strict subset the requirement asks for and a roster removal does not reach the bay."
+  },
+  "REQ-395|pass": {
+    "method": "test",
+    "note": "All six attachment attempts were refused: mass storage, a printer and an external display on each endpoint, each refusal producing a dated log entry naming the device class rather than failing silently. The viewing check from the corridor and from the adjacent bay found no readable provisioning output on either screen, and no printer exists in either controlled space to have been enabled."
+  },
+  "REQ-398|inconclusive": {
+    "method": "examine",
+    "note": "Four signed quarterly review sheets were produced with intervals of 88, 90, 97 and 84 days, so one cycle ran past the ninety day ceiling and the sheet gives no reason for it. Retention could not be tested at all: the visitor records live in the badge system with no export to the collector, so the assessor had no way to retrieve a record eleven months old and no way to correlate an anomaly report against provisioning session activity."
+  },
+  "REQ-399|not-assessed": {
+    "method": "test",
+    "note": "Visitor sign-in for the WS-X90 areas is still a paper book at the area desk; the nightly export job and the ninety day prompt rule are unbuilt, so a seeded visit had nowhere to appear and setting the last-review date back would have prompted nothing."
+  },
+  "REQ-402|pass": {
+    "method": "test",
+    "note": "Across ten activations the rail voltage at the interface controller and the interlock decayed between 0.6 and 1.1 seconds, comfortably inside the two second bound, while the controller monitoring rail stayed up through every trial and the pre-cut state was readable afterwards. The cutoff is within arm's reach of the operator position, mushroom-headed under a strike shroud and keyed to reset, so it cannot be re-armed casually."
+  },
+  "REQ-404|not-assessed": {
+    "method": "examine",
+    "note": "Emergency lighting on the egress route is a facility service the programme inherits, and no survey has been carried out against the workstation position and no coverage or test record has been obtained from the facility, so there was nothing at programme level to examine."
+  },
+  "REQ-406|not-assessed": {
+    "method": "examine",
+    "note": "Detection in the WS-X90 spaces already activates without human action and reaches the site fire response desk, but the notification group does not include the Platform Lead and nothing is emitted that the collector can consume, and both changes ride on facility interface work that has not started."
+  },
+  "REQ-408|pass": {
+    "method": "test",
+    "note": "Fourteen days of one-second temperature telemetry from the timing oven and the payload bay arrived at the controller with no gap approaching sixty seconds, and the injected out-of-band reading raised its alarm at three minutes forty-one seconds against a five minute bound. The approved bands are stated numerically in the bay environmental record; humidity is absent from the stream and is read on the walk-round, which the programme carries as a corrective action."
+  },
+  "REQ-411|not-assessed": {
+    "method": "interview",
+    "note": "Draft rules have been walked with two technicians, but the approved alternate site list is unsigned, no effectiveness assessment has been run at any site, and the reporting path from a field site is still the general corporate line rather than a programme contact, so there was no approved position to walk through."
+  },
+  "REQ-412|pass": {
+    "method": "examine",
+    "note": "All three protected mission units carry an etched nameplate marking that survived the solvent wipe and the scuff check, and each was readable racked with covers fitted — the radio marked on the chassis side because its face is obscured by the feed when installed. The impact level stated on each nameplate matched the level recorded for that unit in the system record, and the marking is on the issue-C drawing so it reappears at every build rather than being applied by hand."
+  },
+  "REQ-413|pass": {
+    "method": "examine",
+    "note": "Both ground support endpoints carry a legible impact-level label on an external surface, and the laptop label additionally states conditional use and names the authority that releases it from storage, which is what stops it being signed out for work outside its bounded role. The walk-round of the controlled storage inventory turned up no unmarked provisioning or maintenance endpoint."
+  },
+  "REQ-416|pass": {
+    "method": "examine",
+    "note": "The plan is held as a controlled item under a read rule limited to the named distribution list, and an account outside that list was refused read access during the walkthrough. Design, manufacture, delivery and integration carry named-source and testing content for both criticality-ranked units; sustainment and disposal are addressed by name but as forward-reference stubs, which revision 3 is scheduled to close and which the assessor recorded rather than treated as absent."
+  },
+  "REQ-417|not-assessed": {
+    "method": "interview",
+    "note": "Membership of the supply chain risk management team has been proposed and not appointed, and the two decision rights the requirement turns on — clearing a supplier into the signing chain and approving a first baseline from a newly qualified source — remain unwritten, so no interviewee could have named who holds them."
+  },
+  "REQ-419|not-assessed": {
+    "method": "examine",
+    "note": "The purchasing function has agreed blind-buy placement in principle but no order has been placed under it and the general receiving address has not been designated, so every sampled order would have been drawn from the old pattern and the requirement has nothing yet to be measured against."
+  },
+  "REQ-421|pass": {
+    "method": "test",
+    "note": "All forty-two staged releases resolved through the repository to a build record carrying the source revision, the build host identity and the signing key identifier, and every key identifier reconciled against the trusted key set the boot chain holds. Removing a build record caused the staging attempt to be refused outright, so a provenance gap surfaces before installation rather than as an archaeology exercise afterwards."
+  },
+  "REQ-424|pass": {
+    "method": "examine",
+    "note": "The navigation processor and payload interface controller supplier reviews are current, covering ownership, financial standing and sub-tier visibility, and the payload review was carried out alongside the sub-tier flow-down check. Two things sit against the pack rather than in it: the radio supplier's review is fourteen months old, and the procedure names change of ownership as an event trigger without naming a reported supplier compromise or a sector counterfeit finding, both of which were recorded for the remediation plan."
+  },
+  "REQ-426|not-assessed": {
+    "method": "examine",
+    "note": "The parts list still sits under a broader read rule than the signed release baselines it sits beside, no aggregation rule is applied to supplier names, lot quantities or delivery schedules, and no operations security analysis of the aggregate has been carried out, so there was no handling instruction to read."
+  },
+  "REQ-428|pass": {
+    "method": "examine",
+    "note": "The seal serial on each of the three units reconciled to its build record, and the depot induction record shows a serial re-read for every unit inducted in the sampled period rather than for a sample of them. Opening the sacrificial cryptographic module enclosure left no recoverable key material inside the protected boundary, which is the one destructive response on the platform and the reason its enclosure is treated differently from the other two."
+  },
+  "REQ-429|pass": {
+    "method": "test",
+    "note": "Ten open-and-repower trials on each of the three payload units set the tamper latch every time, and the latch was still readable at the maintenance interface after a full power cycle rather than clearing with the supply. Each authorised clear was itself recorded, which is what stops a field technician resetting an indication without leaving a trace."
+  },
+  "REQ-431|pass": {
+    "method": "examine",
+    "note": "All twenty-four units received in the period carry a signed receiving inspection record dated before their stock entry, each stating the seal serial read alongside the expected serial from the supplier list rather than a bare pass. The one mismatch found in the period produced a quarantine record; the unit was not reworked back into the stream, which is the disposition that decides whether an inspection means anything."
+  },
+  "REQ-432|pass": {
+    "method": "test",
+    "note": "Every induction in the sampled period carries a recorded seal serial for all three units read against the expected value, and no maintenance session in the period was opened without a preceding seal check record. The seeded mismatch stopped the induction and raised an incident before any session was opened, which is the difference between a seal check that gates work and one that documents it afterwards."
+  },
+  "REQ-434|pass": {
+    "method": "examine",
+    "note": "All thirty-one units in the repair loop held an open custody record naming a physical location and a configuration state, with none in the loop unrecorded. Every unit returned to service in the period had a reflash record to the approved baseline, and each closing check at the gateway is dated on or after its matching reflash, so a unit cannot re-enter service carrying whatever configuration a depot left on it."
+  },
+  "REQ-435|inconclusive": {
+    "method": "examine",
+    "note": "Two-person destruction certificates were produced for four units naming serial and method with the zeroisation and physical destruction steps stated separately. The set could not be reconciled to the retirement population: the certificate bundle is dated inside the window but does not say which unit types it covers, and the asset register shows retirements of all three types in the same period, so the assessor could not establish whether every retired unit is represented."
+  },
+  "REQ-436|fail": {
+    "method": "examine",
+    "note": "The policy itself is in order: one approved revision, signed inside the last twelve months, with an annual review record and an out-of-cycle review raised by the 2026-09-08 change to the effective control set. The baseline is not: seven of the fourteen access control procedures were written against the previous 74-control scope and carry no current owner signature, so the single signed baseline the requirement asks for is signed only in part, and a technician package assembled from it inherits that gap."
+  },
+  "REQ-437|pass": {
+    "method": "test",
+    "note": "Forty account lifecycle actions propagated from the controller to the collector inside the sixty second bound, and none of them required anyone to re-enter the action at the far end. A direct write aimed at the on-disk account store outside the account service raised the integrity alarm inside the same window and left the store unchanged, so the sealed store is a real boundary rather than a convention."
+  },
+  "REQ-438|pass": {
+    "method": "test",
+    "note": "No temporary or emergency account in the controller store carried an expiry more than seventy-two hours past its creation stamp, and the expired accounts were present and disabled rather than absent, which keeps their history available to an investigation. With the management link deliberately disconnected the maintenance gateway still refused an expired credential, reading the expiry carried inside the session credential rather than asking the controller."
+  },
+  "REQ-439|pass": {
+    "method": "test",
+    "note": "Every disable record in the sample carried exactly one of the three trigger codes — expiry, loss of programme association, or a recorded policy violation — and each interval from trigger to disable came in under the seventy-two hour bound. The per-trigger count query ran at the collector over a chosen thirty-day window and returned the same totals the disable records give, which is what makes the monthly account review checkable rather than assertive."
+  },
+  "REQ-440|pass": {
+    "method": "test",
+    "note": "Thirty consecutive daily sweep runs appear in the log with no gap, and no enabled ground support account carried a last-successful-authentication stamp older than ninety days. With the network detached the laptop refused a logon offered on a cached credential aged past the same ninety days, which closes the path where a unit kept off the network outlives the sweep that would have disabled its account."
+  },
+  "REQ-441|pass": {
+    "method": "test",
+    "note": "Every account action in the thirty-day sample paired to an audit record naming the actor, the target account, the action and the authorising role, each with its write receipt from the storage module attached. Withdrawing write access left the attempted change abandoned with the account untouched rather than completed unaudited, and the collector had received a notification for every action in the sample."
+  },
+  "REQ-446|not-assessed": {
+    "method": "examine",
+    "note": "The analytics design record defines the three pattern dimensions and their thresholds and the correlation rule set has a dated build item with a named owner, but no rule is fielded and no atypical-usage alert has ever been raised, so the examination would have compared a design against nothing running."
+  },
+  "REQ-449|fail": {
+    "method": "test",
+    "note": "All three approved tunnels were presented to the inspection path in cleartext before release, and an encrypted flow whose key the cryptographic module does not hold was blocked at the boundary rather than passed uninspected. Termination is where it fails: a UDP-bearing tunnel that fails inspection is dropped packet by packet while its session stays up well past the five second bound, so content that fails inspection keeps a live path for as long as the sender persists."
+  },
+  "REQ-450|pass": {
+    "method": "test",
+    "note": "The enumerated security function list on the mission computer matched the approved list item for item, and the cryptographic module refused a key operation presented with a role not named for that function even though the calling service had already authorised it. A role table change made at the controller took effect without a software reload, so the live table is genuinely the authority rather than a copy compiled in at build."
+  },
+  "REQ-451|pass": {
+    "method": "examine",
+    "note": "The design record shows privileged and non-privileged accounts issued in one transaction, so a privileged role cannot exist without the everyday account that keeps it out of nonsecurity work, and the mission computer refuses to open mission planning, telemetry review or documentation under a privileged role. The eleven legacy engineering accounts that still carry both uses are on a dated exception list with a closure date against them rather than sitting unremarked in the store."
+  },
+  "REQ-452|pass": {
+    "method": "test",
+    "note": "A privileged command was offered on every gateway interface in turn and dropped on all but the single approved maintenance path, with each drop logged; the approved privileged path list holds exactly one entry. Every privileged command in the gateway session log carried its operational need code, though the code is recorded rather than checked against the approved list, which the programme carries as outstanding work."
+  },
+  "REQ-453|pass": {
+    "method": "examine",
+    "note": "Every privileged role holder on both components reconciled to an entry on the current approved privileged-personnel list, with no holder carried over from a superseded list. An assignment attempted against an off-list identity was refused at the moment of binding and logged, so an off-list assignment never exists even briefly and the gateway cannot become a second assignment authority."
+  },
+  "REQ-454|fail": {
+    "method": "interview",
+    "note": "The worksheet is genuinely evidence-led — each holder's assignment sits beside their preceding 180 days of privileged activity drawn from the collector, and the reviewer signed reconfirmation decisions against that rather than against the role names. What the interview established is that the consequence is not enforced: reduction to non-privileged is a manual step the tooling only flags, and the reviewers described letting flagged assignments stand through a compressed cycle, which is the outcome the requirement rules out."
+  },
+  "REQ-456|pass": {
+    "method": "test",
+    "note": "Ten successful and ten denied privileged executions each produced a record at the collector naming the function, the role, the account and the outcome, with the denial path carrying the same four fields as the success path so a run of refused calls is as visible as a run of accepted ones. The reconciliation report shows every function on the enumerated list observed at least once, leaving no privileged function that is defined but never logged."
+  },
+  "REQ-457|pass": {
+    "method": "test",
+    "note": "Privileged calls attempted from a non-privileged session were refused on every path into the mission computer, including through the mission scripting interface, where the check happens at dispatch so a privileged call cannot be smuggled through a data argument. The payload interface controller rejected a configuration command carrying no privileged role assertion on its own account, so the payload side does not inherit its safety from upstream filtering having worked."
+  },
+  "REQ-458|pass": {
+    "method": "test",
+    "note": "A fourth concurrent session was refused on both terminators for every account type tested, privileged and service accounts included, and the refusal named the concurrent session limit as its reason rather than returning a generic error. No existing session was displaced to admit the new one, so a fresh session cannot be used to evict an operator mid-task, and no account type carried a limit other than three."
+  },
+  "REQ-459|pass": {
+    "method": "test",
+    "note": "Frame captures at lock showed an opaque surface with no mission data, no account name and no window title readable on either station, including on an external display attached to the laptop during maintenance. Nothing of the prior framebuffer appeared between successful reauthentication and unlock, which closes the brief flash that the previous ground software build exposed."
+  },
+  "REQ-460|pass": {
+    "method": "test",
+    "note": "The logout action was reachable from every authenticated screen on both stations, and taking it closed the downstream maintenance sessions the session had opened on three other LRUs, matched by session identifier rather than by timeout. Repository handles held by the session were released well inside the five second bound, so logout is a session-wide teardown rather than a return to the login screen."
+  },
+  "REQ-461|pass": {
+    "method": "test",
+    "note": "Each of the three termination causes produced its own on-screen message on both stations, so a technician returning to a station can tell an idle timeout from an administrator cutting the session rather than guessing from an empty screen. The message persisted until the next authentication attempt instead of clearing on a timer, including on the laptop when the disconnect arrived from the gateway rather than locally."
+  },
+  "REQ-464|not-assessed": {
+    "method": "examine",
+    "note": "Attribute carriage across the gateway and the internal transport is scheduled for the 4.4 build and neither the on-the-wire encoding nor the drop behaviour for an unmarked object exists outside the design intent, so no object crossing either component carries an attribute today."
+  },
+  "REQ-466|not-assessed": {
+    "method": "examine",
+    "note": "The dictionary format is approved and its distribution rides the existing signed configuration path, but nothing has been issued to any of the three LRUs, so there is no versioned artefact to examine and no fielded halt behaviour to compare a design record against."
+  },
+  "REQ-467|pass": {
+    "method": "test",
+    "note": "Session start appeared at the collector inside the ten second bound on all six sampled sessions, and commands issued during a session showed up while it was still open rather than after it closed, which is what makes the disconnect action usable. The file transfer channel that still ships only at session close is identified separately on a dated list tracked to closure."
+  },
+  "REQ-468|pass": {
+    "method": "test",
+    "note": "No remote maintenance traffic was observable in cleartext on the gateway external interface, and the post-session storage sweep found no residual session key material on the gateway itself, so recovering that unit yields nothing with which to replay a captured session. With the cryptographic module reporting a degraded key state the gateway refused to establish a session rather than falling back to a weaker protection profile."
+  },
+  "REQ-469|pass": {
+    "method": "examine",
+    "note": "The approved network baseline shows exactly one external remote access path — the boundary gateway forwarding to the maintenance gateway — and the release boundary scan found no externally reachable listening remote access service on any other LRU. A deviation from that path is raised as a configuration finding rather than absorbed as a gateway rule change, which keeps the single-path claim testable at each release."
+  },
+  "REQ-470|fail": {
+    "method": "test",
+    "note": "A command absent from the approved remote-privileged list was refused with its reason code, and a laptop failing device attestation could not open a privileged session at all; both refusals are present in the session log. The third check is not a check: an out-of-window privileged command was logged and then admitted, so the scheduled maintenance window bounds the record rather than the access, and two of the three admission conditions the requirement states are enforced."
+  },
+  "REQ-470|pass": {
+    "method": "test",
+    "note": "Revisited once the window check was made binding. A privileged command offered outside the scheduled maintenance window was refused with its reason code rather than logged and admitted, so all three admission conditions now gate the command instead of two gating it and one describing it. The approved-list and attestation refusals were driven again and appear in the session log as before."
+  },
+  "REQ-474|inconclusive": {
+    "method": "test",
+    "note": "Commands carrying invalid authentication tags were discarded at the radio and the payload command case was discarded again at the interface controller, and both discard counters were readable in the maintenance download. Attribution is what failed: a concurrent link test in the rig increments the same counters, and the assessor could not separate the injected discards from that activity well enough to say the second verification acted independently."
+  },
+  "REQ-477|pass": {
+    "method": "test",
+    "note": "Every enrolled laptop reported full-device encryption enabled with the key bound to platform hardware rather than to a user passphrase, and a non-compliant unit is refused at connection rather than merely flagged for follow-up. Storage lifted from a powered-off laptop and read on a second host yielded no readable programme data."
+  },
+  "REQ-480|not-assessed": {
+    "method": "examine",
+    "note": "Neither store applies a query rate ceiling, a per-role extraction volume limit or an alert on a sequential full-set read, and the technique set that would define those values is still a draft, so an authorised account can enumerate a whole store today and there is nothing fielded for an examination to measure."
+  },
+  "REQ-481|pass": {
+    "method": "examine",
+    "note": "The policy and every procedure artifact carried a valid signature and a review date inside twelve months, and aging one artifact past that boundary in test raised the repository's staleness flag as designed. A publication attempted from an endpoint other than the provisioning workstation was refused and written to the repository event log, and the distribution record for revision 3.1 names a recipient against every assigned contingency role."
+  },
+  "REQ-484|pass": {
+    "method": "examine",
+    "note": "Re-running the repository query reproduced the critical asset list byte for byte, which is the property that matters here: the list is generated from the designations rather than kept alongside them. Both the navigation processor and the timing receiver carry the mission-essential designation with a recorded rationale, and a baseline commit that changed an LRU designation showed the matching change in the generated list within the same commit."
+  },
+  "REQ-486|fail": {
+    "method": "test",
+    "note": "Two exercise records exist inside the seven month spacing and each carries a measured duration, and every partition that was restored passed its integrity check on read-out. The exercise did not do what the requirement asks: the most recent run restored the mission software partition alone because the flight-configuration article was not released for test, so the platform management and payload interface partitions have never been restored end to end and the elapsed time cannot be compared against a four-hour objective set for a full article."
+  },
+  "REQ-488|pass": {
+    "method": "examine",
+    "note": "The storage and retrieval agreement is signed and names a custodian, a release approver and a maximum retrieval time, and the rehearsal returned a usable backup set and a usable baseline set inside that time rather than merely proving the media were readable. The alternate facility's access approval and handling rules were produced and read alongside the primary's during the walkthrough; the formal line-by-line comparison remains an outstanding programme record and was noted as such."
+  },
+  "REQ-490|not-assessed": {
+    "method": "interview",
+    "note": "No obstacle list has been written for any access route to the alternate facility, the media release authorisation still names an organisation rather than a role, and no retrieval walkthrough has been rehearsed, so the sequence could not have been described without reading from an unpublished note."
+  },
+  "REQ-492|not-assessed": {
+    "method": "examine",
+    "note": "The candidate facility has been surveyed and draws power and network entry from different providers with its own badge system, but none of that is recorded in the contingency plan, the threat set the separation is meant to decorrelate is unstated, and the independent-entry confirmation is unsigned, so the alternate build remains nominated rather than assured."
+  },
+  "REQ-495|not-assessed": {
+    "method": "test",
+    "note": "The list of operations the contingency plan treats as essential has not been baselined, bearer-loss detection is a manual call today, and no failover has ever been timed, so there was no resumption measurement to take and nothing to observe about suppression of non-essential traffic."
+  },
+  "REQ-498|fail": {
+    "method": "test",
+    "note": "Both traces were built from live interface and routing state rather than from a drawing, and carrier-side disjointness holds — different transmission lines and different points of presence on the primary and alternate services. The trace fails by its own rule on the platform: the same internal switch port group appears on both paths, which is exactly the shared element the requirement forbids, and re-homing the radio path onto a separate group is still open."
+  },
+  "REQ-499|pass": {
+    "method": "test",
+    "note": "Three consecutive monthly cycles are recorded with no gap approaching thirty-one days, each naming the partition selected at random for the scratch restore and reporting its integrity result rather than a bare pass. An induced hash mismatch raised the maintenance alert and the alert was still present after a controller restart, and it could not be cleared without a subsequent passing verification."
+  },
+  "REQ-501|pass": {
+    "method": "test",
+    "note": "A raw read of the backup partition returned no plaintext configuration or audit string under inspection, and an attempt to seal a set with the integrity tag suppressed was refused and logged rather than completing with a missing tag. Altering a single byte of an already sealed set caused the tag check to fail at the next verification, so the seal is a property of the content and not a flag on the record."
+  },
+  "REQ-502|pass": {
+    "method": "test",
+    "note": "No interface on the module returned a backup key in cleartext under any of the export attempts made, and a wrap request presented under a maintenance role identity was rejected and logged with the requesting identity attached. Key generation events each carried the role identity that asked for them, so the storage role's exclusive use of the backup wrap path is demonstrable from the module's own record rather than from configuration alone."
+  },
+  "REQ-503|pass": {
+    "method": "test",
+    "note": "Cutting power during a staged update left the platform booting the previous known-good image with the partial transaction discarded in the journal rather than marked complete. The post-recovery attestation from the boot controller was recorded and compared against the intended image digest before the transaction was allowed to close, so completion follows what actually booted rather than what was staged."
+  },
+  "REQ-505|pass": {
+    "method": "examine",
+    "note": "Every artifact in the set carried a named approver and a review date inside twelve months, and an artifact whose review date was deliberately aged past that point in test was flagged by the repository without anyone raising it. Each published revision carried the publishing operator's identity and a diff against its predecessor, so a change to a procedure is attributable to a person and readable as a change rather than as a new document."
+  },
+  "REQ-506|pass": {
+    "method": "examine",
+    "note": "The assessor role definition grants read of configuration and health state and no write, clear or approve permission anywhere in the set, and no account was found holding an assessor role and an engineering role at the same time. An export of the correlated record set taken under that role succeeded and was itself written as an access event attributable to the assessor identity, so independence is enforced by the access model rather than asserted in a plan."
+  },
+  "REQ-507|not-assessed": {
+    "method": "test",
+    "note": "The assessment plan carries no specialised-assessment frequency, no determination has been made about which activity is announced, and no rules of engagement exist for the malicious-user exercise, so neither activity could have been run and neither result exists in any form."
+  },
+  "REQ-508|fail": {
+    "method": "examine",
+    "note": "Every exchange enabled in the gateway policy set reports an agreement identifier, and the tactical data link agreement is signed, current and records the impact level and control responsibilities on both sides. The ground-support telemetry exchange is the exception that matters: it is live today under a time-bounded interim approval with its agreement still in draft, so an exchange is carrying information across the boundary without the signed agreement the requirement makes a precondition of enabling it."
+  },
+  "REQ-509|pass": {
+    "method": "test",
+    "note": "A write offered from an identity with no recorded authorization was rejected at the boundary and logged with the identity and destination, and a write from an authorized identity aimed at a data set outside its authorization was rejected on the same basis. The outbound telemetry path still releases on link-layer identity rather than a recorded read authorization; that direction was noted beside the result as the open half of the control."
+  },
+  "REQ-513|not-assessed": {
+    "method": "examine",
+    "note": "The monitoring dataset carries a compliance result only: no effectiveness measure is defined for any control family and the change view is not joined to repository commits, so there is no three-view dataset in which a degradation could be told apart from a drift and nothing for the examination to open."
+  },
+  "REQ-515|pass": {
+    "method": "test",
+    "note": "Every presented monitoring result carried the time it was produced with a stale flag computed from it, so an old pass reads as old rather than as current. Suppressing the controller feed for twenty minutes raised the collection alarm inside the fifteen minute rule, and the assessor regenerated the presented dataset from the collector on demand, confirming nothing in it had been assembled by hand."
+  },
+  "REQ-516|pass": {
+    "method": "examine",
+    "note": "The test team roster contains no individual holding a build or operate role on either the boundary gateway or the maintenance gateway, and the rules of engagement are dated before the first test activity rather than written up alongside the report. The report lists every attempted technique with its outcome, including those that did not succeed, which is what makes the coverage of the test assessable and not just its findings."
+  },
+  "REQ-518|pass": {
+    "method": "test",
+    "note": "Connecting an unregistered endpoint left the switch port unforwarding and raised a register-mismatch event naming the port and the endpoint, and every register entry read carried both interface characteristics and the nature of the data the connection carries. The sensor connections aggregated on the navigation side are described in the register but not yet enforced against it, and the review record for the expanded register is outstanding; both were logged against the next cycle."
+  },
+  "REQ-520|not-assessed": {
+    "method": "examine",
+    "note": "WS-X90 has no system-level risk assessment policy of its own — the annual review parameter is met at enterprise level only — so the repository holds no signed set to examine, no revision names a designated risk-assessment official, and the staleness flag that would block promotion of a release package does not exist."
+  },
+  "REQ-521|pass": {
+    "method": "examine",
+    "note": "The categorization record states confidentiality high, integrity high and availability moderate with a separate impact rationale for each objective and a dated authorizing official approval on the current revision. An artifact exported by the mission computer carried a categorization label byte-identical to the record value, so a downstream consumer reads the categorization off the artifact instead of having to look it up or infer it."
+  },
+  "REQ-524|not-assessed": {
+    "method": "examine",
+    "note": "The platform holds no representation of the current threat environment: boundary policy is static between baselines, the state machine and the per-state policy set are unbuilt, and no bulletin ingest exists, so there was no threat state with a refresh timestamp to read and no second policy to compare against the first."
+  },
+  "REQ-525|fail": {
+    "method": "test",
+    "note": "Scans started on signature sets aged six and twenty-three hours ran as expected and the operator alert text is in place. The enforcement is not: the run started on a thirty-hour-old set completed normally instead of aborting, so the twenty-four hour window exists as a schedule rather than as a gate, and the signature set identifier appears in the scan log but not in the report header a reviewer actually reads."
+  },
+  "REQ-528|pass": {
+    "method": "test",
+    "note": "A credentialed scan of the mission computer baseline succeeded inside an authorized window and was refused to a laptop session that did not hold the privileged scan role, with the refusal written to the gateway audit stream against the requesting session identity. Repeating the scan on the same connection after session teardown failed, confirming the role is revoked as part of the teardown rather than left standing on the endpoint until it expires."
+  },
+  "REQ-530|not-assessed": {
+    "method": "interview",
+    "note": "Aurora operates no publicly reachable reporting address for WS-X90 components and no intake register has been specified, so reports arriving by other routes are still worked case by case with no receipt commitment and no recorded decision authority for a triage path to be walked through."
+  },
+  "REQ-531|inconclusive": {
+    "method": "examine",
+    "note": "Each finding carried from the completed assessment has a response decision in the register, with an accepting authority on every acceptance and a POA&M item on every mitigation, so the practice itself is visible. The determination could not be closed on the timing: the register extract stops at 20 October and the fifteen working day clock is kept in a separate spreadsheet that was not produced, so the assessor could not establish whether any decision was late."
+  },
+  "REQ-532|pass": {
+    "method": "examine",
+    "note": "The three functions the requirement names — the navigation integrity monitor, the interlock arm and inhibit path and the root-of-trust verification — are each classified mission-critical with a named protection allocation, and the analysis revision follows the most recent baseline change board. The ground support functions still carry no classification and one of the three supply chain measures columns is empty; both were recorded as observations against a baseline 4.2 analysis that otherwise does what the requirement asks."
+  },
+  "REQ-535|not-assessed": {
+    "method": "interview",
+    "note": "No WS-X90-specific literacy content exists and no account gate reads a completion date, so the population that would deliver and record the training is not yet stood up and there was nobody to interview about a course that has not been written."
+  },
+  "REQ-538|not-assessed": {
+    "method": "interview",
+    "note": "No anomalous-behaviour indicator set has been published, so operators are still trained on generic guidance that does not map to the plausibility rejects, out-of-envelope health values and alert classes this platform actually produces, and there was no published set against which a sampled operator could have been asked to classify anything."
+  },
+  "REQ-540|not-assessed": {
+    "method": "interview",
+    "note": "No threat bulletin has been issued in any quarter: threat information reaches the engineering team and stops there, and no revision of the operating instructions cross-references a bulletin, so an operator could not have been asked which threat theme is current."
+  },
+  "REQ-545|pass": {
+    "method": "examine",
+    "note": "Every WS-X90 account holder resolved to a training record carrying the course and completion date, and records for closed accounts were still retrievable across the three-year retention window rather than being purged at closure. Expiry is derived by hand from the course cadence instead of being held as a field, and the gates read a date at enablement rather than a published status; the assessor recorded both against an otherwise complete register."
+  },
+  "REQ-546|not-assessed": {
+    "method": "interview",
+    "note": "Training completion for WS-X90 personnel is recorded and read by nobody: no report has gone to a supervisor or to the cybersecurity official in the last twelve months, so there was no reporting practice to discuss and no filed report to test the individual-failure requirement against."
+  },
+  "REQ-550|not-assessed": {
+    "method": "examine",
+    "note": "Operating intent for WS-X90 is still spread across the security plan and the maintenance procedures with no concept of operations written, so there is no document naming a decision authority per mission phase and nothing stating the controlled abort and recover posture the platform actually implements."
+  },
+  "REQ-551|pass": {
+    "method": "examine",
+    "note": "Issue 5 is dated inside twelve months and no earlier than the last change to the external interface set, and for the subsystems it covers it separates functions carried from functions inherited rather than listing everything as provided. Two subsystems have no lists yet and no external dependency records an assumption or an owner for it; the assessor took the description as meeting the requirement for the scope it claims and carried the remainder forward as an observation."
+  },
+  "REQ-557|pass": {
+    "method": "examine",
+    "note": "One selected baseline is recorded for the system, naming SP 800-53B High as its starting point and tying that choice to the recorded high water mark of the categorization values rather than asserting it. Every control in the resulting set carries an entry in the selection trail, so the baseline reads as a derivation with an order to it and no control appears without a reason for being there."
+  },
+  "REQ-558|pass": {
+    "method": "examine",
+    "note": "Replaying the recorded tailoring events over SP 800-53B High reproduced the effective control set exactly, which is the property that makes the difference between the published baseline and what the platform carries reconstructible without anyone's recollection. Every event named a control, an action, a driver and an approving authority, and a control introduced without a matching event was rejected at baseline review with the rejection recorded."
+  },
+  "REQ-559|fail": {
+    "method": "examine",
+    "note": "The policy and the seven procedures that supported the original scope are signed, version-tagged and bound to the named configuration management official, the repository computes the review-overdue flag as designed, and the dissemination list for revision 4.0 covers each engineering and cybersecurity role in the policy. Four of the eleven procedures are not signed at all: those covering automated change prohibition, automated security response, information location and signed components are drafts, and the repository already reports them review-overdue, so the artifact set the requirement asks for is four procedures short of existing."
+  },
+  "REQ-560|pass": {
+    "method": "test",
+    "note": "A seeded firmware version change on a monitored LRU reached the baseline record in six minutes forty-one seconds with nobody typing it in, and the record carried the stale marker between the observed change and the completed reconciliation rather than jumping straight to the new value. The reconciliation entry recorded the prior value, the observed value and the source LRU, which is what lets an unexpected change be read as a change rather than as a correction."
+  },
+  "REQ-561|pass": {
+    "method": "test",
+    "note": "Every baseline in the repository holds at least two prior approved versions and each of their original approval signatures verified under the weekly sweep. The rollback exercise applied the second-most-recent retained version through the recovery controller using repository content alone, reaching for nothing outside it, and a deliberately tampered retained version came back as a retention integrity fault rather than disappearing from the set."
+  },
+  "REQ-562|not-assessed": {
+    "method": "examine",
+    "note": "The reduced travel image and the issue and return record schema are drafted but neither is in use, and the gate that would stop a returned laptop opening a maintenance session before re-image and re-enrolment does not exist, so the return step is still a procedural instruction and there were no travel records to sample."
+  },
+  "REQ-563|inconclusive": {
+    "method": "test",
+    "note": "An unapproved change artifact was refused for staging at the repository and rejected again at the controller for carrying no released change record identifier, so both enforcement points behave as described. The remaining behaviours could not be exercised: the aging highlight for records left undecided beyond ten working days is only surfaced in a weekly report that did not fall inside the test window, and no completion notification could be observed, so the determination is left open."
+  },
+  "REQ-564|pass": {
+    "method": "examine",
+    "note": "Every change record applied in the quarter carried a completed test result, a validation statement and the identity of the engineer who signed it, and the statements named the specific controls examined rather than asserting compliance in general. A package whose record was missing one of the three was held in the staging area and reported as an incomplete record instead of being applied and corrected later."
+  },
+  "REQ-567|pass": {
+    "method": "examine",
+    "note": "The repository register carries the algorithm suite, key strength, trust anchor set and module firmware version for both the cryptographic module and the radio as configuration items, and the cross-reference resolves every crypto-dependent control in the tailored set to at least one of them. An attempt to change an algorithm suite from an operational console was refused and logged, so a waveform crypto change is a board decision rather than an operator setting."
+  },
+  "REQ-568|fail": {
+    "method": "interview",
+    "note": "Three monthly reconciliation cycles are complete and the output separates applied-without-record from record-without-applied rather than merging them, and a post-incident review was run after the August integration incident. What the interviews established is that nobody owns the event-driven leg: the roles gave different accounts of who authorises a review once a planned change campaign completes, there is no trigger that opens one, and on that leg accountability is not established at all."
+  },
+  "REQ-569|not-assessed": {
+    "method": "test",
+    "note": "The platform state signal exists but neither refusal has been built: the controller will still apply a configuration change while the platform reports an exercise or operational state, and the interlock has no independent block of its own, so submitting a change in the rig would have demonstrated nothing about the control."
+  },
+  "REQ-572|pass": {
+    "method": "test",
+    "note": "A user outside the authorised change role list was denied both a repository write and a change action offered through a maintenance session, and each denial produced an audit record at the collector naming the actor, the object and the decision — as did the permitted action. Thirty days of enforcement records contain no path to a released artifact that reaches it without passing one of the two enforcement points."
+  },
+  "REQ-573|pass": {
+    "method": "interview",
+    "note": "The responsible role walked through the grant path from the maintainer list to the honoured privilege and produced the signed re-evaluation record, which re-justifies each retained holder by name and shows two dormant holders withdrawn at the last cycle. The three integration engineers holding both the development and the operational change role do so under a recorded exception, which the account acknowledged carries no expiry date and is re-argued each cycle rather than closed."
+  },
+  "REQ-574|pass": {
+    "method": "test",
+    "note": "An interactive administrative account was refused a write to the mission software library at the filesystem enforcement point, before the write reached library contents, and each refusal produced a privilege violation record naming the attempting identity. The release pipeline identity completed a signed library update in the same run and the write was attributable to that identity alone, which is the whole of the permitted writer set."
+  },
+  "REQ-575|pass": {
+    "method": "test",
+    "note": "The verification pass covered every component the system record marks security-relevant, reaching into the navigation and timing subsystem rather than stopping at mission compute. A deliberately loosened navigation integrity threshold and an altered timing holdover setting were each reported by name at the next pass instead of being absorbed into a deviation count, and verification ran at bring-up and again inside the twenty-four hour window during sustained operation."
+  },
+  "REQ-579|pass": {
+    "method": "test",
+    "note": "An unapproved binary placed on the platform was refused at load and never reached an executing state, with the refusal record naming the image path and the computed measurement rather than a generic denial. The same refusal occurred with the platform in maintenance mode, so a mode switch does not relax the policy — the specific weakness this design set out to avoid."
+  },
+  "REQ-581|pass": {
+    "method": "examine",
+    "note": "Every entry in the authorised software list names a program, its measurement and the mission function it supports, and the enforcement policy on both components is deny-all with that list as the only permit source. The most recent annual review removed four entries for having no current mission function, two of them development-era diagnostic utilities that had survived three baselines on the platform management side."
+  },
+  "REQ-583|fail": {
+    "method": "test",
+    "note": "An unlisted device was refused a maintenance session at the gateway and refused a data path on eight of the twelve switch ports, with each refusal reported inside thirty seconds naming the port and the presented device identity. Four ports fail it: they predate the enforcement firmware, so an unlisted device connecting there is detected and reported but still given a data path, which is a report rather than the admission control the requirement asks for."
+  },
+  "REQ-583|pass": {
+    "method": "test",
+    "note": "Returned to the twelve switch ports after remediation. The four that previously carried an advisory refusal now drop the data path on identity alone, and an unlisted device connected to each port in turn was refused and reported inside thirty seconds with the port and presented identity named. Behaviour on the maintenance port and the list review record were confirmed unchanged."
+  },
+  "REQ-584|pass": {
+    "method": "test",
+    "note": "The rehearsed replacement could not be closed until the inventory delta had been written and accepted, and the delta carried part number, serial number, firmware version and slot for both the removed and the installed unit rather than for the new one alone. An action closed without an accepted delta stayed open and was reported to the maintenance supervisor, which is what keeps the inventory from decaying quietly between formal audits."
+  },
+  "REQ-585|pass": {
+    "method": "examine",
+    "note": "Daily inventory currency figures are retrievable for each of the last thirty operating days, computed only from automated observations, so no record reaches confirmed status on a manual entry. Records outside the twenty-four hour window are listed individually with the age of their last confirmation rather than absorbed into the percentage, which is what lets a persistent blind spot be told apart from a bad day."
+  },
+  "REQ-586|pass": {
+    "method": "test",
+    "note": "An unauthorised firmware image introduced between maintenance windows was detected without waiting for a scan, the affected function was isolated from the mission network, and the notification reached the collector in three minutes twelve seconds naming the measured value, the expected baseline value and the observing LRU. The payload interface controllers are still measured at bring-up rather than continuously, which the programme tracks separately and the assessor left outside this result."
+  },
+  "REQ-591|pass": {
+    "method": "test",
+    "note": "An installation attempted from an unelevated maintenance session was refused outright, and the elevation granted for the successful case expired at the end of its bounded window with no operator step to close it. Each installation record names the requesting identity, the elevation window and the package identifier, so the action ties to a person and a time-boxed grant rather than to a standing privilege on the laptop."
+  },
+  "REQ-592|pass": {
+    "method": "examine",
+    "note": "Each protected information class resolves to a named set of components and a named set of roles able to reach it on each, and the rehearsed relocation produced a dated location-change record carrying a reason rather than a bare timestamp. No class is recorded as residing on a component absent from the system inventory, so the map and the inventory agree with one another."
+  },
+  "REQ-594|not-assessed": {
+    "method": "interview",
+    "note": "The protected information type definitions exist but the discovery capability that would scan the exported data sets is not built and the exception record has no schema, so there is no scheduled run to evidence and nothing that could name a component, an information type and a detection basis."
+  },
+  "REQ-595|pass": {
+    "method": "test",
+    "note": "A firmware image signed by a certificate outside the approved set halted the affected LRU in its recovery state rather than continuing, and the recovery record named both the failing component and the certificate that had presented the signature. The command and configuration surfaces on the boot controller expose no setting that turns the check off, so verification cannot be relaxed from the operational platform."
+  },
+  "REQ-596|pass": {
+    "method": "test",
+    "note": "A package containing a single unsigned component was rejected in full at staging rather than being partially staged with the verifiable remainder, which is the behaviour that stops an update arriving half-trusted. Each component of the accepted control package recorded the certificate identity that verified it, so the provenance of a staged update can be reconstructed later, and no staging path was found that accepts a component without a signature check."
+  },
+  "REQ-597|pass": {
+    "method": "examine",
+    "note": "Revision 2.4 came back with the System Security Engineer named as the designated official, a recorded review date against each artifact and no overdue flag standing anywhere in the set. Offering a revision from an endpoint outside the sole publication path produced a refusal in the repository event log rather than a second copy in circulation, and the recipient list bound to the published revision reaches every ground support and cybersecurity role holding an identification and authentication duty."
+  },
+  "REQ-598|pass": {
+    "method": "test",
+    "note": "A privileged login presenting only the PIN, and one presenting only the hardware credential, were each refused outright with no reduced-privilege session offered, and both refusals reached the security log inside five seconds carrying the credential serial and not the PIN. Key attestation shows the privileged authentication private key as non-exportable, and withdrawing the credential mid-session ended the session rather than letting queued commands run out."
+  },
+  "REQ-599|fail": {
+    "method": "test",
+    "note": "The provisioning workstation required a hardware credential and PIN on every path tested and offered no password-only method anywhere in its build configuration, and the laptop enforced the same pair whenever it was attached to the ground support network. Disconnected, it does not: a local password-only logon remains available on the flightline as an availability concession, so the endpoint that spends the most time away from the identity service is the one where the requirement is not met."
+  },
+  "REQ-601|pass": {
+    "method": "test",
+    "note": "The gateway required the separate hardware token on its local console, its network path and its remote support path for both account types, refused a pair of factors that both originated on the accessed endpoint, and dropped the session inside thirty seconds of the token being pulled. The laptop enforces the same on its network and remote paths; its local console still accepts two factors originating on the laptop, and the assessor recorded that residual path rather than treating the token mechanism as unimplemented."
+  },
+  "REQ-602|pass": {
+    "method": "test",
+    "note": "A captured privileged authentication exchange replayed against the gateway derived no session key and was refused under the replay-detected reason code, which appears as a distinct code in the exported security log rather than as a generic authentication failure. Each nonce in the radio's sortie session log appeared exactly once, and because the binding sits in the protocol rather than in an account policy the resistance covers every account type on both components."
+  },
+  "REQ-603|inconclusive": {
+    "method": "test",
+    "note": "A PIV credential that could not be chained to an accepted anchor was refused with no account binding, and a revoked credential was refused at the workstation with the revocation source named in the session record. The run stopped there: the harness lost telemetry from both endpoints before the indeterminate-status case could be driven against the laptop, which is the path where the disconnected revocation snapshot matters, so the determination waits on a rerun."
+  },
+  "REQ-604|fail": {
+    "method": "test",
+    "note": "A device presenting a valid certificate but a failed boot measurement was held in the quarantine VLAN, and mission traffic sourced from a port not in the authenticated state was dropped at the mission computer regardless of link status. The exchange is not mutual everywhere it claims to be: two attached devices completed the link without validating the certificate the switch presented, so on those ports the switch proves nothing to the device and only one direction of the authentication is real."
+  },
+  "REQ-607|pass": {
+    "method": "test",
+    "note": "A write to the attribute store offered from anything other than an authenticated controller channel was refused, and each accepted write appended an immutable revision record whose prior value matched what was read immediately before the change. The search for duplicate attribute copies after a provisioning cycle found none on the mission computer or the provisioning workstation, so the store really is single rather than nominally so."
+  },
+  "REQ-608|pass": {
+    "method": "test",
+    "note": "The compromised-password list held on the controller carries a September revision date, inside the three month window, and a refresh triggered by a compromise notification is recorded against that notification's reference. A password drawn from the list was rejected at the workstation with a generic message that names no entry, so the screening does not itself become a way to read the list."
+  },
+  "REQ-609|fail": {
+    "method": "test",
+    "note": "An eleven-character password and a twelve-character password missing a character class were both rejected, the credential path capture showed no plaintext on the wire, and a raw read of the credential region yielded only salt and derivation output. The change rule is not enforced everywhere: a change made through the controller's own reset path was accepted while leaving seven of twelve characters in position, so the at-least-half rule holds on the provisioning path and not on the other one."
+  },
+  "REQ-610|pass": {
+    "method": "test",
+    "note": "A certificate chaining to an unrecognised anchor was refused with a path-build failure recorded, and a certificate present in the cached revocation set was refused with no external link available at all. A cache aged past seven days was declared stale and the session refused rather than accepted on the assumption that nothing had changed, and an attempt to export the authentication private key returned a refusal and an audit record."
+  },
+  "REQ-611|pass": {
+    "method": "examine",
+    "note": "The access control export for the credential region names the identity service principal and nothing else, and the key inventory records every authentication key as hardware-resident and non-exportable. Memory and storage images taken from the mission computer and the provisioning workstation contained no authenticator material, so the two permitted locations are in fact the only two."
+  },
+  "REQ-615|pass": {
+    "method": "examine",
+    "note": "The manifest is signed and names every anchor with its purpose and expiry, and the radio's power-on digest matched the manifest digest of record; an anchor added outside the manifest raised a configuration deviation within a single power-on cycle. The telemetry unit reports its digest only during a maintenance download, so drift there surfaces a cycle late — carried as an observation rather than as a criterion failure, since the manifest itself governs both units."
+  },
+  "REQ-616|not-assessed": {
+    "method": "interview",
+    "note": "Privileged credentials are issued in person by local practice, but the sponsor authorisation is captured on a separate form and is not bound to the credential serial in the provisioning record, so the binding cannot be verified from the system and there is no documented issuance sequence for the registration authority to walk through."
+  },
+  "REQ-617|pass": {
+    "method": "test",
+    "note": "Credential entry was masked on every surface of both endpoints including the recovery console, and a diagnostic capture taken straight after a failed logon contained none of the entered characters because they are never copied out of the input buffer. A failure against a valid identifier and one against an invalid identifier returned the identical message within the fifty millisecond timing bound, closing the latency channel that a masked display on its own leaves open."
+  },
+  "REQ-618|pass": {
+    "method": "test",
+    "note": "A keyed operation requested before role authentication returned a module status refusal rather than proceeding on the session alone, and a transition from the user role to the crypto officer role without re-authentication was refused. The storage module declined a key-wrapping request carrying no module role binding, which closes the path that would otherwise let the storage side be used to work around the role check."
+  },
+  "REQ-622|pass": {
+    "method": "test",
+    "note": "A connection attempt carrying only a device certificate was refused by all three services, and a service certificate whose subject did not match the hosting LRU inventory entry was refused as well, so a compromised but authenticated device cannot impersonate a service it does not host. Every accepted session recorded the peer service name and its hosting LRU in the session log rather than the device identity alone."
+  },
+  "REQ-623|not-assessed": {
+    "method": "test",
+    "note": "No adaptive authentication exists to test: the collector raises no trigger for a session opening outside the support window or from an address off the approved list, the gateway has no supplemental factor prompt in its build, and the circumstance list that would drive one has not been written as configuration."
+  },
+  "REQ-624|pass": {
+    "method": "test",
+    "note": "An escalation request inside an already authenticated session prompted for the full factor set again before it was granted, and a session idle by a second past the thirty minute mark required re-authentication before the next command was accepted. The memory scan taken after each trigger found no recoverable session key on the laptop, so a resumed session starts from a fresh grant rather than inheriting the earlier one."
+  },
+  "REQ-625|pass": {
+    "method": "test",
+    "note": "An arming command presented a second past the five minute window was rejected and the interlock stayed safe, and an attempt to satisfy the two-person rule with the same identity twice was rejected as well. A second arming command with no renewed re-authentication left the interface controller in the safe state, so the freshness of the authorisation is what releases the arming state rather than the fact that one was once given."
+  },
+  "REQ-627|pass": {
+    "method": "examine",
+    "note": "No account in the controller table sits enabled without a sponsor authorisation record, and every record names a sponsor other than the applicant, so an account cannot be vouched for by the person who asked for it. Disabling an account left the authorisation record intact and retrievable, which is what lets a later review reconstruct who supported a privilege that has since been withdrawn."
+  },
+  "REQ-631|pass": {
+    "method": "examine",
+    "note": "The policy and three of the five procedures carry a valid signature, a named approver and a recorded review date, the review-overdue report lists what has aged past twelve months, and a publication attempted from another endpoint was refused and recorded in the repository event log. The transport and sanitization-verification procedures are unsigned drafts and the media protection official's delegation is uncountersigned; both sit on the media-protection remediation list and were treated as open actions rather than as missing evidence."
+  },
+  "REQ-632|pass": {
+    "method": "test",
+    "note": "Four of the twelve check-out attempts came from identities absent from the custodian list and each was refused with no media serial released, the refusal reaching the collector inside sixty seconds in every case. Every cartridge held outside the library at the time of the test resolved to an open check-out record naming a current custodian, which follows from the storage module writing a cartridge only against an open record."
+  },
+  "REQ-636|not-assessed": {
+    "method": "interview",
+    "note": "The review, approval, verification and disposal sequence runs today on a paper form with a wet signature; the record that would enforce the approver-not-operator rule and the presence of a verification result does not exist on the controller, so there was no system-held sequence for the custodian to walk through."
+  },
+  "REQ-639|pass": {
+    "method": "test",
+    "note": "A mass-storage device outside the signed allow-list did not enumerate as a storage volume on either maintenance port, while the port itself stayed electrically enabled for diagnostic use, and the refusal record naming the device serial and the port was retrievable inside sixty seconds. A write to an allow-listed device attempted from the mission computer in flight configuration failed and was recorded, so removable media on the platform is a read path only."
+  },
+  "REQ-640|pass": {
+    "method": "examine",
+    "note": "Every entry in the portable-storage registry names a current custodian, an issue date and a device category, with vacancy state carried per entry, and the mount policy exported to both ground endpoints matched the registry as of its last publication timestamp. No mount record exists on either endpoint for a serial absent from the registry or marked vacant, so the no-identifiable-owner rule is enforced at mount rather than asserted in the procedure."
+  }
+}

@@ -467,7 +467,23 @@ export {
   type TimelineSize,
   type TimelineTimePosition,
 } from "./timeline";
-export { Toaster, toast, type Toast, type ToastOptions, type ToasterProps } from "./toaster";
+export {
+  Toaster,
+  Toast,
+  ToastAction,
+  ToastClose,
+  ToastContent,
+  ToastDescription,
+  ToastPortal,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+  createToastManager,
+  toast,
+  useToastManager,
+  type ToastOptions,
+  type ToasterProps,
+} from "./toaster";
 export { Toggle, toggleVariants, type ToggleProps } from "./toggle";
 export {
   ToggleGroup,

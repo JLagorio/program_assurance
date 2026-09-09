@@ -345,10 +345,13 @@ function ProgramBaseline() {
                   >
                     {invalidatedRows.size} rows invalidated
                   </Badge>
-                  <TextLink size="small">
-                    <Link to="/programs/$programId/sctm" params={{ programId: program.id }}>
-                      SCTM
-                    </Link>
+                  <TextLink
+                    size="small"
+                    render={
+                      <Link to="/programs/$programId/sctm" params={{ programId: program.id }} />
+                    }
+                  >
+                    SCTM
                   </TextLink>
                 </>
               }

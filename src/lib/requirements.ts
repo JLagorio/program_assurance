@@ -1403,7 +1403,10 @@ export function useRequirementsVersion(): number {
     try {
       restoreRequirements();
     } catch (error) {
-      toast.error("Requirements could not be restored", {
+      toast.add({
+        title: "Requirements could not be restored",
+        type: "error",
+        timeout: 8000,
         description: error instanceof Error ? error.message : "Saved requirements are invalid.",
       });
     }

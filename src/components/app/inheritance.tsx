@@ -72,10 +72,11 @@ export function ConsumerTable({ component }: { component: SystemComponent }) {
             </Table.Cell>
             <Table.Cell className="truncate">
               {c.accessible ? (
-                <TextLink weight="medium">
-                  <Link to="/programs/$programId" params={{ programId: c.programId }}>
-                    {c.programName}
-                  </Link>
+                <TextLink
+                  weight="medium"
+                  render={<Link to="/programs/$programId" params={{ programId: c.programId }} />}
+                >
+                  {c.programName}
                 </TextLink>
               ) : (
                 <Inline

@@ -1,6 +1,6 @@
 import { createRef } from "react";
 import type { ComponentProps } from "react";
-import { Toaster as Sonner } from "sonner";
+import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 import {
   Card,
   CardHeader,
@@ -17,6 +17,19 @@ import {
   EmptyContent,
   Spinner,
   Toaster,
+  Toast,
+  ToastProvider,
+  ToastPortal,
+  ToastViewport,
+  ToastContent,
+  ToastTitle,
+  ToastDescription,
+  ToastAction,
+  ToastClose,
+  createToastManager,
+  toast,
+  TextLink,
+  Shell,
 } from "../src";
 
 <Card
@@ -66,24 +79,77 @@ import {
     void svg;
   }}
 />;
-<Toaster
-  ref={createRef<HTMLElement>()}
-  id="exports"
-  duration={6000}
-  visibleToasts={2}
-  theme="dark"
-  dir="rtl"
-  offset={{ top: 24 }}
-  mobileOffset={16}
-  hotkey={["altKey", "KeyN"]}
-  swipeDirections={["left"]}
-  toastOptions={{ closeButtonAriaLabel: "Dismiss", classNames: { title: "font-medium" } }}
-/>;
-
-function NativeSonnerProps(props: ComponentProps<typeof Sonner>) {
+const manager = createToastManager<{ recordId: string }>();
+const toastId: string = manager.add({ title: "Saved", timeout: 0, data: { recordId: "PRG-1041" } });
+manager.update(toastId, { description: "Ready" });
+manager.close(toastId);
+const promised: Promise<{ id: number }> = toast.promise(Promise.resolve({ id: 42 }), {
+  loading: "Saving",
+  success: (record) => ({ title: String(record.id) }),
+  error: "Failed",
+});
+void promised;
+<Toaster timeout={6000} limit={2} toastManager={manager} />;
+<ToastProvider toastManager={manager}>
+  <ToastPortal>
+    <ToastViewport
+      ref={createRef<HTMLDivElement>()}
+      dir="rtl"
+      aria-label="Exports"
+      style={{ maxWidth: 280 }}
+    >
+      <Toast
+        toast={{ id: "record", title: "Saved" }}
+        ref={createRef<HTMLDivElement>()}
+        swipeDirection="left"
+        className={(state) => (state.expanded ? "font-medium" : "font-regular")}
+      >
+        <ToastContent ref={createRef<HTMLDivElement>()}>
+          <ToastTitle ref={createRef<HTMLHeadingElement>()} />
+          <ToastDescription ref={createRef<HTMLParagraphElement>()} />
+          <ToastAction
+            ref={createRef<HTMLButtonElement>()}
+            onClick={(event) => event.currentTarget.focus()}
+          >
+            Undo
+          </ToastAction>
+          <ToastClose ref={createRef<HTMLButtonElement>()} aria-label="Dismiss" />
+        </ToastContent>
+      </Toast>
+    </ToastViewport>
+  </ToastPortal>
+</ToastProvider>;
+function NativeToastProps(props: ComponentProps<typeof ToastPrimitive.Provider>) {
   return <Toaster {...props} />;
 }
-void NativeSonnerProps;
+void NativeToastProps;
+<TextLink ref={createRef<HTMLAnchorElement>()} href="/records" target="_blank" rel="noopener">
+  Records
+</TextLink>;
+<TextLink render={<a ref={createRef<HTMLAnchorElement>()} href="/records" />}>Records</TextLink>;
+<Shell.AppLogo
+  name="Ledger"
+  ref={createRef<HTMLSpanElement>()}
+  render={<a href="/" ref={createRef<HTMLAnchorElement>()} />}
+/>;
+<Shell.SideNav.Item ref={createRef<HTMLAnchorElement>()} href="/records" isActive>
+  Records
+</Shell.SideNav.Item>;
+<Shell.SideNav.Item render={<button ref={createRef<HTMLButtonElement>()} type="button" disabled />}>
+  Add
+</Shell.SideNav.Item>;
+// @ts-expect-error Compose native viewport props on ToastViewport.
+<Toaster position="top-left" />;
+// @ts-expect-error Use native timeout instead of Sonner duration.
+toast.add({ title: "Saved", duration: 1000 });
+// @ts-expect-error The native manager exposes add with a type.
+toast.success("Saved");
+// @ts-expect-error Native render replaces Slot asChild.
+<TextLink asChild />;
+// @ts-expect-error Native render replaces Slot asChild.
+<Shell.AppLogo name="Ledger" asChild />;
+// @ts-expect-error Native render replaces Slot asChild.
+<Shell.SideNav.Item asChild>Records</Shell.SideNav.Item>;
 // @ts-expect-error Compose CardHeader parts instead of configured description props.
 <CardHeader description="Old configured header" />;
 // @ts-expect-error The old compound body is removed.

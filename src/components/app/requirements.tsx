@@ -59,14 +59,17 @@ export function TargetLink({
   if (target.kind === "node") {
     return (
       <ElementHover nodeId={target.id}>
-        <TextLink className="min-w-0">
-          <Link
-            to="/programs/$programId/components/$componentId"
-            params={{ programId, componentId: target.id }}
-            title={target.detail}
-          >
-            {target.name}
-          </Link>
+        <TextLink
+          className="min-w-0"
+          render={
+            <Link
+              to="/programs/$programId/components/$componentId"
+              params={{ programId, componentId: target.id }}
+              title={target.detail}
+            />
+          }
+        >
+          {target.name}
         </TextLink>
       </ElementHover>
     );
@@ -74,14 +77,17 @@ export function TargetLink({
 
   if (target.kind === "provider") {
     return (
-      <TextLink className="min-w-0">
-        <Link
-          to="/library/components/$componentKey"
-          params={{ componentKey: target.id }}
-          title={target.detail}
-        >
-          {target.name}
-        </Link>
+      <TextLink
+        className="min-w-0"
+        render={
+          <Link
+            to="/library/components/$componentKey"
+            params={{ componentKey: target.id }}
+            title={target.detail}
+          />
+        }
+      >
+        {target.name}
       </TextLink>
     );
   }
@@ -169,14 +175,16 @@ export function RequirementTable({
           active: (r) => r.isSelected,
           cell: (r) => (
             <RequirementHover requirementId={r.id}>
-              <TextLink>
-                <Link
-                  to="/programs/$programId/requirements/$requirementId"
-                  params={{ programId, requirementId: r.id }}
-                  search={{ element: elementId }}
-                >
-                  <Id>{r.id}</Id>
-                </Link>
+              <TextLink
+                render={
+                  <Link
+                    to="/programs/$programId/requirements/$requirementId"
+                    params={{ programId, requirementId: r.id }}
+                    search={{ element: elementId }}
+                  />
+                }
+              >
+                <Id>{r.id}</Id>
               </TextLink>
             </RequirementHover>
           ),
@@ -312,18 +320,20 @@ function SourceLink({
   if (sourceType === "Control statement" || sourceType === "Overlay") {
     return (
       <ControlHover controlId={sourceId} programId={programId}>
-        <TextLink>
-          <Link
-            to="/programs/$programId/controls/$controlId"
-            params={{ programId, controlId: sourceId }}
-            search={{
-              tab: undefined,
-              element: elementId,
-              scope: closestProgramScope(programId, elementId)?.id,
-            }}
-          >
-            <Id>{sourceId}</Id>
-          </Link>
+        <TextLink
+          render={
+            <Link
+              to="/programs/$programId/controls/$controlId"
+              params={{ programId, controlId: sourceId }}
+              search={{
+                tab: undefined,
+                element: elementId,
+                scope: closestProgramScope(programId, elementId)?.id,
+              }}
+            />
+          }
+        >
+          <Id>{sourceId}</Id>
         </TextLink>
       </ControlHover>
     );
@@ -331,14 +341,16 @@ function SourceLink({
 
   if (sourceType === "Threat") {
     return (
-      <TextLink>
-        <Link
-          to="/programs/$programId/te-phases"
-          params={{ programId }}
-          search={{ tab: "Threat scenarios", scenario: sourceId }}
-        >
-          <Id>{sourceId}</Id>
-        </Link>
+      <TextLink
+        render={
+          <Link
+            to="/programs/$programId/te-phases"
+            params={{ programId }}
+            search={{ tab: "Threat scenarios", scenario: sourceId }}
+          />
+        }
+      >
+        <Id>{sourceId}</Id>
       </TextLink>
     );
   }
@@ -351,10 +363,8 @@ function SourceLink({
       ? { componentKey: sourceId }
       : { workstreamId: sourceId };
     return (
-      <TextLink>
-        <Link to={to} params={params as never}>
-          <Id>{sourceId}</Id>
-        </Link>
+      <TextLink render={<Link to={to} params={params as never} />}>
+        <Id>{sourceId}</Id>
       </TextLink>
     );
   }
@@ -486,14 +496,16 @@ export function ElementAllocationTable({
             <Table.Row key={a.id} title={a.rationale}>
               <Table.Cell className="max-w-none">
                 <RequirementHover requirementId={a.requirement}>
-                  <TextLink>
-                    <Link
-                      to="/programs/$programId/requirements/$requirementId"
-                      params={{ programId, requirementId: a.requirement }}
-                      search={{ element: a.targetKind === "node" ? a.target : undefined }}
-                    >
-                      <Id>{a.requirement}</Id>
-                    </Link>
+                  <TextLink
+                    render={
+                      <Link
+                        to="/programs/$programId/requirements/$requirementId"
+                        params={{ programId, requirementId: a.requirement }}
+                        search={{ element: a.targetKind === "node" ? a.target : undefined }}
+                      />
+                    }
+                  >
+                    <Id>{a.requirement}</Id>
                   </TextLink>
                 </RequirementHover>
               </Table.Cell>
@@ -606,14 +618,17 @@ export function DerivedControlTrace({
                 space="space.100"
                 alignBlock="baseline"
               >
-                <TextLink className="shrink-0">
-                  <Link
-                    to="/programs/$programId/requirements/$requirementId"
-                    params={{ programId, requirementId: r.id }}
-                    search={{ element: trace.target }}
-                  >
-                    <Id>{r.id}</Id>
-                  </Link>
+                <TextLink
+                  className="shrink-0"
+                  render={
+                    <Link
+                      to="/programs/$programId/requirements/$requirementId"
+                      params={{ programId, requirementId: r.id }}
+                      search={{ element: trace.target }}
+                    />
+                  }
+                >
+                  <Id>{r.id}</Id>
                 </TextLink>
                 <span className="min-w-0 truncate font-body-small text-subtle">{r.text}</span>
               </Inline>
@@ -629,35 +644,39 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
   return (
     <Table.Row title={hop.rationale}>
       <Table.Cell>
-        <TextLink>
-          <Link
-            to="/programs/$programId/controls/$controlId"
-            params={{ programId, controlId: hop.control }}
-            search={{
-              tab: undefined,
-              scope: closestProgramScope(
-                programId,
-                hop.allocation.targetKind === "node" ? hop.allocation.target : undefined,
-              )?.id,
-              element: hop.allocation.targetKind === "node" ? hop.allocation.target : undefined,
-            }}
-          >
-            <Id>{hop.control}</Id>
-          </Link>
+        <TextLink
+          render={
+            <Link
+              to="/programs/$programId/controls/$controlId"
+              params={{ programId, controlId: hop.control }}
+              search={{
+                tab: undefined,
+                scope: closestProgramScope(
+                  programId,
+                  hop.allocation.targetKind === "node" ? hop.allocation.target : undefined,
+                )?.id,
+                element: hop.allocation.targetKind === "node" ? hop.allocation.target : undefined,
+              }}
+            />
+          }
+        >
+          <Id>{hop.control}</Id>
         </TextLink>
       </Table.Cell>
       <Table.Cell>
         <RequirementHover requirementId={hop.requirement}>
-          <TextLink>
-            <Link
-              to="/programs/$programId/requirements/$requirementId"
-              params={{ programId, requirementId: hop.requirement }}
-              search={{
-                element: hop.allocation.targetKind === "node" ? hop.allocation.target : undefined,
-              }}
-            >
-              <Id>{hop.requirement}</Id>
-            </Link>
+          <TextLink
+            render={
+              <Link
+                to="/programs/$programId/requirements/$requirementId"
+                params={{ programId, requirementId: hop.requirement }}
+                search={{
+                  element: hop.allocation.targetKind === "node" ? hop.allocation.target : undefined,
+                }}
+              />
+            }
+          >
+            <Id>{hop.requirement}</Id>
           </TextLink>
         </RequirementHover>
       </Table.Cell>
@@ -741,14 +760,16 @@ export function ControlRequirementTable({
             <Table.Row key={r.id} title={r.text}>
               <Table.Cell className="max-w-none">
                 <RequirementHover requirementId={r.id}>
-                  <TextLink>
-                    <Link
-                      to="/programs/$programId/requirements/$requirementId"
-                      params={{ programId, requirementId: r.id }}
-                      search={{ element: elementId }}
-                    >
-                      <Id>{r.id}</Id>
-                    </Link>
+                  <TextLink
+                    render={
+                      <Link
+                        to="/programs/$programId/requirements/$requirementId"
+                        params={{ programId, requirementId: r.id }}
+                        search={{ element: elementId }}
+                      />
+                    }
+                  >
+                    <Id>{r.id}</Id>
                   </TextLink>
                 </RequirementHover>
               </Table.Cell>

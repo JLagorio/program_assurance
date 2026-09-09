@@ -76,11 +76,8 @@ try {
     !css.includes(".drawer-overlay")
   )
     throw new Error("Consumer CSS is missing Base UI drawer swipe geometry");
-  if (
-    !/left:\s*var\(--mobile-offset-left\)\s*!important/.test(css) ||
-    !/right:\s*var\(--mobile-offset-right\)\s*!important/.test(css)
-  )
-    throw new Error("Consumer CSS is missing Toaster's bounded mobile offsets");
+  if (!css.includes(".toast-root") || !css.includes(".toast-viewport") || !css.includes("--toast-swipe-movement-y"))
+    throw new Error("Consumer CSS is missing Base UI toast stack and swipe geometry");
   console.log("Packed consumer declarations, Vite bundle and Tailwind CSS passed");
 } finally {
   if (process.argv.includes("--keep")) console.log(`Consumer fixture: ${dir}`);

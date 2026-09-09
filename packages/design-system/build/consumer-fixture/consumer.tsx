@@ -436,7 +436,7 @@ const disclosures = (
 );
 void disclosures;
 const options: ToastOptions = { description: "Saved" };
-const result = toast.promise(Promise.resolve({ id: 42 }), {
+const result: Promise<{ id: number }> = toast.promise(Promise.resolve({ id: 42 }), {
   loading: "Saving",
   success: (record) => String(record.id),
   error: "Failed",

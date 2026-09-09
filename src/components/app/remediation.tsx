@@ -31,10 +31,8 @@ const barTone: Record<string, string> = {
 
 function PoamLink({ id }: { id: string }) {
   return (
-    <TextLink>
-      <Link to="/register/poam/$poamId" params={{ poamId: id }}>
-        <Id>{id}</Id>
-      </Link>
+    <TextLink render={<Link to="/register/poam/$poamId" params={{ poamId: id }} />}>
+      <Id>{id}</Id>
     </TextLink>
   );
 }
@@ -113,13 +111,15 @@ export function RemediationPlanSection({
             </StackedFact>
             <StackedFact label="Workstream">
               {plan.workstream ? (
-                <TextLink>
-                  <Link
-                    to="/workstreams/$workstreamId"
-                    params={{ workstreamId: plan.workstream.id }}
-                  >
-                    <Id>{plan.workstream.id}</Id>
-                  </Link>
+                <TextLink
+                  render={
+                    <Link
+                      to="/workstreams/$workstreamId"
+                      params={{ workstreamId: plan.workstream.id }}
+                    />
+                  }
+                >
+                  <Id>{plan.workstream.id}</Id>
                 </TextLink>
               ) : (
                 <span className="text-subtle">Unassigned</span>
@@ -194,10 +194,12 @@ export function RemediationPlanSection({
                     {t.finding ? (
                       <>
                         {" · "}
-                        <TextLink>
-                          <Link to="/findings/$findingId" params={{ findingId: t.finding }}>
-                            {t.finding}
-                          </Link>
+                        <TextLink
+                          render={
+                            <Link to="/findings/$findingId" params={{ findingId: t.finding }} />
+                          }
+                        >
+                          {t.finding}
                         </TextLink>
                       </>
                     ) : null}
@@ -205,10 +207,10 @@ export function RemediationPlanSection({
                 </Table.Cell>
                 <Table.Cell className="truncate">
                   {t.ownerId ? (
-                    <TextLink>
-                      <Link to="/people/$personId" params={{ personId: t.ownerId }}>
-                        <Person name={t.owner} />
-                      </Link>
+                    <TextLink
+                      render={<Link to="/people/$personId" params={{ personId: t.ownerId }} />}
+                    >
+                      <Person name={t.owner} />
                     </TextLink>
                   ) : (
                     <Person name={t.owner} />
@@ -239,11 +241,13 @@ export function RemediationPlanSection({
         description={`${window} days from first task to the closure package.`}
         action={
           programId && plan.poam ? (
-            <TextLink size="small" className="inline-flex items-center gap-025">
-              <Link to="/register/poam/$poamId" params={{ poamId: plan.poam.id }}>
-                Open the POA&amp;M section
-                <ChevronRight className="size-icon-small" />
-              </Link>
+            <TextLink
+              size="small"
+              className="inline-flex items-center gap-025"
+              render={<Link to="/register/poam/$poamId" params={{ poamId: plan.poam.id }} />}
+            >
+              Open the POA&amp;M section
+              <ChevronRight className="size-icon-small" />
             </TextLink>
           ) : null
         }

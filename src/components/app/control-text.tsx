@@ -155,10 +155,8 @@ export function ReferenceList({ references }: { references: NistReference[] }) {
         <span key={r.title}>
           {i > 0 && " · "}
           {r.url ? (
-            <TextLink>
-              <a href={r.url} target="_blank" rel="noreferrer">
-                {r.title}
-              </a>
+            <TextLink render={<a href={r.url} target="_blank" rel="noreferrer" />}>
+              {r.title}
             </TextLink>
           ) : (
             r.title

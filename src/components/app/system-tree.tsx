@@ -288,26 +288,28 @@ export function SystemTree({
           align: "end",
           cell: (r) =>
             r.requirements ? (
-              <TextLink>
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId }}
-                  search={(prev) => ({
-                    ...prev,
-                    tab: "Requirements",
-                    element: r.node.id,
-                    peek: undefined,
-                  })}
-                  onClick={(event) => event.stopPropagation()}
-                  aria-label={`View ${r.requirements} allocated requirements for ${r.node.name}`}
-                  title={
-                    r.withoutControl
-                      ? `${r.withoutControl} requirements have no control mapping`
-                      : undefined
-                  }
-                >
-                  {r.requirements}
-                </Link>
+              <TextLink
+                render={
+                  <Link
+                    to="/programs/$programId"
+                    params={{ programId }}
+                    search={(prev) => ({
+                      ...prev,
+                      tab: "Requirements",
+                      element: r.node.id,
+                      peek: undefined,
+                    })}
+                    onClick={(event) => event.stopPropagation()}
+                    aria-label={`View ${r.requirements} allocated requirements for ${r.node.name}`}
+                    title={
+                      r.withoutControl
+                        ? `${r.withoutControl} requirements have no control mapping`
+                        : undefined
+                    }
+                  />
+                }
+              >
+                {r.requirements}
               </TextLink>
             ) : (
               <Absent />
@@ -319,21 +321,23 @@ export function SystemTree({
           align: "end",
           cell: (r) =>
             r.controls ? (
-              <TextLink>
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId }}
-                  search={(prev) => ({
-                    ...prev,
-                    tab: "Controls",
-                    element: r.node.id,
-                    peek: undefined,
-                  })}
-                  onClick={(event) => event.stopPropagation()}
-                  aria-label={`View ${r.controls} applicable controls for ${r.node.name}`}
-                >
-                  {r.controls}
-                </Link>
+              <TextLink
+                render={
+                  <Link
+                    to="/programs/$programId"
+                    params={{ programId }}
+                    search={(prev) => ({
+                      ...prev,
+                      tab: "Controls",
+                      element: r.node.id,
+                      peek: undefined,
+                    })}
+                    onClick={(event) => event.stopPropagation()}
+                    aria-label={`View ${r.controls} applicable controls for ${r.node.name}`}
+                  />
+                }
+              >
+                {r.controls}
               </TextLink>
             ) : (
               <Absent />
@@ -663,7 +667,7 @@ function EditNodeSheet({
             version: values.version.trim(),
             note: values.note.trim(),
           });
-          toast.success("Element updated", { description: values.name.trim() });
+          toast.add({ title: "Element updated", type: "success", description: values.name.trim() });
           onClose();
         } catch (cause) {
           setError(cause instanceof Error ? cause.message : "Could not update this element.");
@@ -809,7 +813,7 @@ function MoveNodeSheet({
         try {
           moveCompositionNode(node.id, values.parentId);
           onMoved(values.parentId);
-          toast.success("Element moved", { description: node.name });
+          toast.add({ title: "Element moved", type: "success", description: node.name });
           onClose();
         } catch (cause) {
           setError(cause instanceof Error ? cause.message : "Could not move this element.");
@@ -1009,7 +1013,9 @@ export function AddNodeSheet({
             },
           );
           if (!node) return;
-          toast.success(`${node.id} added`, {
+          toast.add({
+            title: `${node.id} added`,
+            type: "success",
             description: `${name.trim()} under ${selectedParent.name}`,
           });
           onCreated?.(node);

@@ -48,10 +48,12 @@ function FindingsCell({ programId, row }: { programId: string; row: ControlRow }
   if (row.findings.length === 1) {
     const only = row.findings[0]!;
     return (
-      <TextLink>
-        <Link to="/findings/$findingId" params={{ findingId: only.id }} title={only.title}>
-          <Id className={row.openFindings ? "text-danger" : "text-subtle"}>{only.id}</Id>
-        </Link>
+      <TextLink
+        render={
+          <Link to="/findings/$findingId" params={{ findingId: only.id }} title={only.title} />
+        }
+      >
+        <Id className={row.openFindings ? "text-danger" : "text-subtle"}>{only.id}</Id>
       </TextLink>
     );
   }
@@ -60,14 +62,15 @@ function FindingsCell({ programId, row }: { programId: string; row: ControlRow }
     <TextLink
       size="small"
       className={cn("tabular-nums", row.openFindings ? "text-danger" : "text-subtle")}
+      render={
+        <Link
+          to="/programs/$programId/controls/$controlId"
+          params={{ programId, controlId: row.id }}
+          search={{ tab: "Assessment" as const }}
+        />
+      }
     >
-      <Link
-        to="/programs/$programId/controls/$controlId"
-        params={{ programId, controlId: row.id }}
-        search={{ tab: "Assessment" as const }}
-      >
-        {label}
-      </Link>
+      {label}
     </TextLink>
   );
 }
@@ -244,23 +247,27 @@ export function ControlMatrixSection({
               {visible.map((r) => (
                 <Table.Row key={r.id}>
                   <Table.Cell>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/controls/$controlId"
-                        params={{ programId, controlId: r.id }}
-                      >
-                        <Id>{r.id}</Id>
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId, controlId: r.id }}
+                        />
+                      }
+                    >
+                      <Id>{r.id}</Id>
                     </TextLink>
                   </Table.Cell>
                   <Table.Cell className="truncate" title={r.title}>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/controls/$controlId"
-                        params={{ programId, controlId: r.id }}
-                      >
-                        {r.title}
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId, controlId: r.id }}
+                        />
+                      }
+                    >
+                      {r.title}
                     </TextLink>
                   </Table.Cell>
                   <Table.Cell className="overflow-visible">
@@ -285,10 +292,10 @@ export function ControlMatrixSection({
                   </Table.Cell>
                   <Table.Cell>
                     {r.poam ? (
-                      <TextLink>
-                        <Link to="/register/poam/$poamId" params={{ poamId: r.poam }}>
-                          <Id>{r.poam}</Id>
-                        </Link>
+                      <TextLink
+                        render={<Link to="/register/poam/$poamId" params={{ poamId: r.poam }} />}
+                      >
+                        <Id>{r.poam}</Id>
                       </TextLink>
                     ) : (
                       <span className="text-subtle">—</span>

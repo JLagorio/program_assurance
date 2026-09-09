@@ -199,14 +199,16 @@ export function RequirementCoverage({
           active: (r) => r.id === previewRef.current,
           cell: (r) => (
             <RequirementHover requirementId={r.id}>
-              <TextLink>
-                <Link
-                  to="/programs/$programId/requirements/$requirementId"
-                  params={{ programId, requirementId: r.id }}
-                  search={{ element: selectedElementId }}
-                >
-                  <Id>{r.id}</Id>
-                </Link>
+              <TextLink
+                render={
+                  <Link
+                    to="/programs/$programId/requirements/$requirementId"
+                    params={{ programId, requirementId: r.id }}
+                    search={{ element: selectedElementId }}
+                  />
+                }
+              >
+                <Id>{r.id}</Id>
               </TextLink>
             </RequirementHover>
           ),
@@ -250,17 +252,19 @@ export function RequirementCoverage({
               <Inline as="span" space="space.100" rowSpace="space.025" shouldWrap>
                 {r.controls.map((d) => (
                   <ControlHover key={d.sourceId} controlId={d.sourceId} programId={programId}>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/controls/$controlId"
-                        params={{ programId, controlId: d.sourceId }}
-                        search={{ tab: undefined }}
-                      >
-                        <span className="text-subtle">
-                          {d.relation === "mapped" ? "Mapped to " : "Derived from "}
-                        </span>
-                        <Id>{d.sourceId}</Id>
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId, controlId: d.sourceId }}
+                          search={{ tab: undefined }}
+                        />
+                      }
+                    >
+                      <span className="text-subtle">
+                        {d.relation === "mapped" ? "Mapped to " : "Derived from "}
+                      </span>
+                      <Id>{d.sourceId}</Id>
                     </TextLink>
                   </ControlHover>
                 ))}

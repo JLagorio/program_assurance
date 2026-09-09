@@ -162,7 +162,11 @@ function RiskDetail() {
           setTreating(false);
           setPlan("");
           setSaveError("");
-          toast.success("Treatment recorded", { description: "Saved in this browser." });
+          toast.add({
+            title: "Treatment recorded",
+            type: "success",
+            description: "Saved in this browser.",
+          });
         } catch (error) {
           setSaveError(error instanceof Error ? error.message : "Treatment could not be saved.");
         }
@@ -318,8 +322,12 @@ function RiskDetail() {
                 <p className="font-body-small text-subtle">
                   Maps to one failing control. Closing it requires two consecutive passing runs.
                 </p>
-                <TextLink size="small" className="pt-075 inline-block">
-                  <Link to="/controls">View {risk.control}</Link>
+                <TextLink
+                  size="small"
+                  className="pt-075 inline-block"
+                  render={<Link to="/controls" />}
+                >
+                  View {risk.control}
                 </TextLink>
               </Inspector.Group>
             </aside>

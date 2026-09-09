@@ -70,8 +70,8 @@ shell. A product keeps no copy of anything generic; the prototype is the test ve
 breaks the system is what gets fixed.
 
 The package has no router. `BreadcrumbLink` takes a router link through `render`.
-Navigation with button styling uses `buttonVariants` on a real router Link. TextLink uses
-`asChild`, while Item and RecordHeader accept a link element as a prop.
+Navigation with button styling uses `buttonVariants` on a real router Link. TextLink and Shell navigation use
+`render`, while Item and RecordHeader accept a link element as a prop.
 Custom rendered elements must accept the merged attributes, handlers and ref.
 
 ## Component contracts
@@ -186,7 +186,7 @@ every product. A product's own config adds nothing about the kit.
 | `ledger/no-dark-variant`        | `dark:`                                                                 | Nothing; every token flips by itself.                 |
 | `ledger/no-deprecated-token`    | A deprecated token's utility                                            | Its replacement, applied by `--fix`.                  |
 | `ledger/no-deprecated-name`     | A part's old name (`Shell.Sidebar`, `Shell.NavItem`)                    | Its replacement; `--fix` does the one-to-one renames. |
-| `ledger/prefer-text-link`       | A Link or anchor carrying `text-brand` or `hover:underline`             | TextLink around the link element.                     |
+| `ledger/prefer-text-link`       | A Link or anchor carrying `text-brand` or `hover:underline`             | TextLink render with the link element.                     |
 | `ledger/no-colgroup`            | `<colgroup>`                                                            | `width` on each Table.Header.                         |
 | `ledger/use-primitives`         | A `div` or `span` carrying layout classes (warning)                     | Box, Stack, Inline, Flex or Grid.                     |
 | `ledger/cell-plain`             | A Table.Cell carrying a neutral colour, weight or type token            | Nothing; only a status colour may differ.             |
@@ -267,10 +267,9 @@ Base UI powers Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkb
 Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog,
 Progress, ScrollArea, Avatar, Combobox and Separator. It also supplies Badge and BreadcrumbLink's
 composition helpers. The rest of Breadcrumb is native HTML. Command uses cmdk with a Base UI
-Dialog shell, matching shadcn's Base UI implementation. Drawer also uses Base UI, including native swipe and snap-point behavior. Radix Slot remains in
-parts that still expose asChild; these packages can also have transitive Radix dependencies.
+Dialog shell, matching shadcn's Base UI implementation. Drawer also uses Base UI, including native swipe and snap-point behavior. Toast uses Base UI, with native manager operations and composable parts. TextLink and Shell navigation use useRender/mergeProps. The package has no direct Radix, Sonner or Vaul dependencies; cmdk can retain transitive Radix dependencies.
 Calendar and DatePicker use react-day-picker;
-react-resizable-panels under ResizablePanelGroup/Panel/Handle; sonner under Toaster; recharts under Chart. Preserve the
+react-resizable-panels under ResizablePanelGroup/Panel/Handle; recharts under Chart. Preserve the
 dependency's focus, Escape, outside-click, keyboard and ARIA behavior through the public parts.
 Screens import the package's documented APIs.
 

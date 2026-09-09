@@ -166,10 +166,12 @@ function PersonDetail() {
                   return (
                     <Table.Row key={w.id}>
                       <Table.Cell>
-                        <TextLink>
-                          <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
-                            <Id>{w.id}</Id>
-                          </Link>
+                        <TextLink
+                          render={
+                            <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }} />
+                          }
+                        >
+                          <Id>{w.id}</Id>
                         </TextLink>
                       </Table.Cell>
                       <Table.Cell className="truncate">{w.title}</Table.Cell>
@@ -205,10 +207,10 @@ function PersonDetail() {
                 {collaborators.map((c) => (
                   <Table.Row key={c.id}>
                     <Table.Cell>
-                      <TextLink>
-                        <Link to="/people/$personId" params={{ personId: c.id }}>
-                          <Id>{c.id}</Id>
-                        </Link>
+                      <TextLink
+                        render={<Link to="/people/$personId" params={{ personId: c.id }} />}
+                      >
+                        <Id>{c.id}</Id>
                       </TextLink>
                     </Table.Cell>
                     <Table.Cell className="truncate">{c.name}</Table.Cell>

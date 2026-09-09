@@ -146,7 +146,9 @@ export function TailoringSection({
       "Sarah Chen (SSE)",
       "information",
     );
-    toast.success("Scope sent for PM approval", {
+    toast.add({
+      title: "Scope sent for PM approval",
+      type: "success",
       description: `${programId} · ${result.total} controls · ${result.overlays.length} overlays`,
     });
   }

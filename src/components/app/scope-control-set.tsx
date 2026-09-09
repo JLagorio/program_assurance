@@ -237,14 +237,16 @@ function ControlTable({
           <Table.Row key={row.control.id}>
             <Table.Cell className="max-w-none">
               <ControlHover controlId={row.control.id} programId={programId}>
-                <TextLink>
-                  <Link
-                    to="/programs/$programId/controls/$controlId"
-                    params={{ programId, controlId: row.control.id }}
-                    search={{ tab: undefined }}
-                  >
-                    <Id>{row.control.id}</Id>
-                  </Link>
+                <TextLink
+                  render={
+                    <Link
+                      to="/programs/$programId/controls/$controlId"
+                      params={{ programId, controlId: row.control.id }}
+                      search={{ tab: undefined }}
+                    />
+                  }
+                >
+                  <Id>{row.control.id}</Id>
                 </TextLink>
               </ControlHover>
             </Table.Cell>

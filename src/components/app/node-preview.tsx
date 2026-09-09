@@ -138,14 +138,16 @@ export function NodePreviewSheet({
       }
       links={
         scope && node ? (
-          <TextLink>
-            <Link
-              to="/programs/$programId/components/$componentId"
-              params={{ programId, componentId: node.id }}
-              search={{ tab: "Control set" }}
-            >
-              Control set and revisions
-            </Link>
+          <TextLink
+            render={
+              <Link
+                to="/programs/$programId/components/$componentId"
+                params={{ programId, componentId: node.id }}
+                search={{ tab: "Control set" }}
+              />
+            }
+          >
+            Control set and revisions
           </TextLink>
         ) : null
       }
@@ -189,33 +191,37 @@ export function NodePreviewSheet({
           </Block>
 
           <Inline space="space.200" alignBlock="center" shouldWrap className="py-100">
-            <TextLink>
-              <Link
-                to="/programs/$programId"
-                params={{ programId }}
-                search={(previous) => ({
-                  ...previous,
-                  tab: "Controls",
-                  element: node.id,
-                  peek: undefined,
-                })}
-              >
-                View applicable controls ({applicableControls})
-              </Link>
+            <TextLink
+              render={
+                <Link
+                  to="/programs/$programId"
+                  params={{ programId }}
+                  search={(previous) => ({
+                    ...previous,
+                    tab: "Controls",
+                    element: node.id,
+                    peek: undefined,
+                  })}
+                />
+              }
+            >
+              View applicable controls ({applicableControls})
             </TextLink>
-            <TextLink>
-              <Link
-                to="/programs/$programId"
-                params={{ programId }}
-                search={(previous) => ({
-                  ...previous,
-                  tab: "Requirements",
-                  element: node.id,
-                  peek: undefined,
-                })}
-              >
-                View allocated requirements ({allocatedRequirements.size})
-              </Link>
+            <TextLink
+              render={
+                <Link
+                  to="/programs/$programId"
+                  params={{ programId }}
+                  search={(previous) => ({
+                    ...previous,
+                    tab: "Requirements",
+                    element: node.id,
+                    peek: undefined,
+                  })}
+                />
+              }
+            >
+              View allocated requirements ({allocatedRequirements.size})
             </TextLink>
           </Inline>
 
@@ -281,13 +287,15 @@ export function NodePreviewSheet({
                       <Table.Row key={a.id}>
                         <Table.Cell className="max-w-none">
                           <RequirementHover requirementId={a.requirement}>
-                            <TextLink>
-                              <Link
-                                to="/programs/$programId/requirements/$requirementId"
-                                params={{ programId, requirementId: a.requirement }}
-                              >
-                                <Id>{a.requirement}</Id>
-                              </Link>
+                            <TextLink
+                              render={
+                                <Link
+                                  to="/programs/$programId/requirements/$requirementId"
+                                  params={{ programId, requirementId: a.requirement }}
+                                />
+                              }
+                            >
+                              <Id>{a.requirement}</Id>
                             </TextLink>
                           </RequirementHover>
                         </Table.Cell>
@@ -351,14 +359,16 @@ export function NodePreviewSheet({
                         <Table.Row key={control}>
                           <Table.Cell className="max-w-none">
                             <ControlHover controlId={control} programId={programId}>
-                              <TextLink>
-                                <Link
-                                  to="/programs/$programId/controls/$controlId"
-                                  params={{ programId, controlId: control }}
-                                  search={{ tab: undefined }}
-                                >
-                                  <Id>{control}</Id>
-                                </Link>
+                              <TextLink
+                                render={
+                                  <Link
+                                    to="/programs/$programId/controls/$controlId"
+                                    params={{ programId, controlId: control }}
+                                    search={{ tab: undefined }}
+                                  />
+                                }
+                              >
+                                <Id>{control}</Id>
                               </TextLink>
                             </ControlHover>
                           </Table.Cell>

@@ -264,14 +264,16 @@ function ImplementationRows({
         {rows.map((row) => (
           <Table.Row key={row.scopeId}>
             <Table.Cell className="whitespace-normal max-w-none">
-              <TextLink>
-                <button
-                  type="button"
-                  onClick={() => onOpen(row.scopeId)}
-                  aria-label={`Open ${controlId} implementation for ${row.name}`}
-                >
-                  {row.name}
-                </button>
+              <TextLink
+                render={
+                  <button
+                    type="button"
+                    onClick={() => onOpen(row.scopeId)}
+                    aria-label={`Open ${controlId} implementation for ${row.name}`}
+                  />
+                }
+              >
+                {row.name}
               </TextLink>
             </Table.Cell>
             <Table.Cell>

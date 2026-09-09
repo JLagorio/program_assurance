@@ -311,7 +311,9 @@ export function ProgramWizard() {
     setCreating(true);
     try {
       const { program } = createProgramFromDraft(draft);
-      toast.success(`${program.id} created`, {
+      toast.add({
+        title: `${program.id} created`,
+        type: "success",
         description: `${draft.scopes.length} scope${draft.scopes.length === 1 ? "" : "s"} · ${union} controls · revision 1 ${draft.submitOnCreate ? "pending approval" : "draft"}`,
       });
       void navigate({
@@ -320,7 +322,10 @@ export function ProgramWizard() {
         search: { tab: "System" },
       });
     } catch (error) {
-      toast.error("Program could not be created", {
+      toast.add({
+        title: "Program could not be created",
+        type: "error",
+        timeout: 8000,
         description:
           error instanceof Error ? error.message : "Check browser storage and try again.",
       });

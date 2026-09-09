@@ -581,14 +581,18 @@ function BoardDetail({
             {control.title}
           </Box>
         </div>
-        <TextLink size="small" className="shrink-0 pt-025">
-          <Link
-            to="/programs/$programId/controls/$controlId"
-            params={{ programId, controlId: control.id }}
-            search={{ tab: undefined }}
-          >
-            Open record
-          </Link>
+        <TextLink
+          size="small"
+          className="shrink-0 pt-025"
+          render={
+            <Link
+              to="/programs/$programId/controls/$controlId"
+              params={{ programId, controlId: control.id }}
+              search={{ tab: undefined }}
+            />
+          }
+        >
+          Open record
         </TextLink>
         <button
           type="button"
@@ -815,13 +819,15 @@ function BoardDetail({
                 <Stack className="font-body" as="ul" space="space.025">
                   {control.nodes.map((n) => (
                     <Inline key={n} as="li" space="space.100" alignBlock="baseline">
-                      <TextLink>
-                        <Link
-                          to="/programs/$programId/components/$componentId"
-                          params={{ programId, componentId: n }}
-                        >
-                          <Id>{n}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link
+                            to="/programs/$programId/components/$componentId"
+                            params={{ programId, componentId: n }}
+                          />
+                        }
+                      >
+                        <Id>{n}</Id>
                       </TextLink>
                       <span className="truncate text-subtle">{nodeName(n)}</span>
                     </Inline>
@@ -958,10 +964,11 @@ function BoardDetail({
               </p>
             )}
             <Box paddingBlockStart="space.100">
-              <TextLink size="small">
-                <Link to="/programs/$programId/baseline" params={{ programId }}>
-                  Open configuration baseline
-                </Link>
+              <TextLink
+                size="small"
+                render={<Link to="/programs/$programId/baseline" params={{ programId }} />}
+              >
+                Open configuration baseline
               </TextLink>
             </Box>
           </Block>

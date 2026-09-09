@@ -84,10 +84,11 @@ function MyWork() {
         <Section
           title="Your recent activity"
           action={
-            <TextLink size="small">
-              <Link to="/people/$personId" params={{ personId: "PPL-0101" }}>
-                Your record
-              </Link>
+            <TextLink
+              size="small"
+              render={<Link to="/people/$personId" params={{ personId: "PPL-0101" }} />}
+            >
+              Your record
             </TextLink>
           }
         >

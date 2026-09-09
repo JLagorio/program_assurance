@@ -42,7 +42,7 @@ export const Playground: Story = {
           <Button size="small" variant="link" onClick={() => setCleared(true)}>
             Clear filters
           </Button>
-          <TextLink asChild={false} href="#search-help" size="small">
+          <TextLink href="#search-help" size="small">
             Search help
           </TextLink>
         </EmptyContent>

@@ -96,12 +96,8 @@ export const GlanceStory: Story = {
     <Inline space="space.300" alignBlock="center">
       {(Object.keys(glances) as (keyof typeof glances)[]).map((k) => (
         <HoverCard key={k}>
-          <TextLink>
-            <HoverCardTrigger href={`#${k}`}>
-              <Id>
-                {k === "element" ? "CN-0300" : k === "requirement" ? "REQ-0042.4" : "SI-7(1)"}
-              </Id>
-            </HoverCardTrigger>
+          <TextLink render={<HoverCardTrigger href={`#${k}`} />}>
+            <Id>{k === "element" ? "CN-0300" : k === "requirement" ? "REQ-0042.4" : "SI-7(1)"}</Id>
           </TextLink>
           <HoverCardContent style={{ width: 300 }}>{glances[k]}</HoverCardContent>
         </HoverCard>

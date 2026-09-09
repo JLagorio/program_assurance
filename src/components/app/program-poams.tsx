@@ -280,7 +280,7 @@ export function NewPoamSheet({
                   scheduledCompletion: draft.due,
                   findingIds: members.length ? findingIds : draft.finding ? [draft.finding] : [],
                 });
-                toast.success("POA&M created");
+                toast.add({ title: "POA&M created", type: "success" });
                 onCreated(item);
               } catch (failure) {
                 setError(errorMessage(failure));
@@ -508,7 +508,7 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
     setError("");
     try {
       action();
-      toast.success(message);
+      toast.add({ title: message, type: "success" });
     } catch (failure) {
       setError(errorMessage(failure));
     }
@@ -725,23 +725,29 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
                   {item.controls?.length || item.requirements?.length ? (
                     <Inline space="space.100" shouldWrap>
                       {item.controls?.map((controlId) => (
-                        <TextLink key={controlId}>
-                          <Link
-                            to="/programs/$programId/controls/$controlId"
-                            params={{ programId: item.program, controlId }}
-                          >
-                            {controlId}
-                          </Link>
+                        <TextLink
+                          key={controlId}
+                          render={
+                            <Link
+                              to="/programs/$programId/controls/$controlId"
+                              params={{ programId: item.program, controlId }}
+                            />
+                          }
+                        >
+                          {controlId}
                         </TextLink>
                       ))}
                       {item.requirements?.map((requirementId) => (
-                        <TextLink key={requirementId}>
-                          <Link
-                            to="/programs/$programId/requirements/$requirementId"
-                            params={{ programId: item.program, requirementId }}
-                          >
-                            {requirementId}
-                          </Link>
+                        <TextLink
+                          key={requirementId}
+                          render={
+                            <Link
+                              to="/programs/$programId/requirements/$requirementId"
+                              params={{ programId: item.program, requirementId }}
+                            />
+                          }
+                        >
+                          {requirementId}
                         </TextLink>
                       ))}
                     </Inline>

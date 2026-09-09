@@ -202,14 +202,17 @@ function CampaignsPage() {
                               {cov.findings}
                             </Table.Cell>
                             <Table.Cell className="text-right">
-                              <TextLink size="small">
-                                <Link
-                                  to="/campaigns/$campaignId"
-                                  params={{ campaignId: c.id }}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  Open campaign
-                                </Link>
+                              <TextLink
+                                size="small"
+                                render={
+                                  <Link
+                                    to="/campaigns/$campaignId"
+                                    params={{ campaignId: c.id }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                }
+                              >
+                                Open campaign
                               </TextLink>
                             </Table.Cell>
                           </Table.Row>

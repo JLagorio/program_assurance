@@ -353,10 +353,12 @@ function FindingsPage() {
                   title={preview.item.title}
                   onClose={() => setPreview(null)}
                   openTo={
-                    <TextLink>
-                      <Link to="/findings/$findingId" params={{ findingId: preview.item.id }}>
-                        Open finding
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link to="/findings/$findingId" params={{ findingId: preview.item.id }} />
+                      }
+                    >
+                      Open finding
                     </TextLink>
                   }
                 >
@@ -404,10 +406,15 @@ function FindingsPage() {
                   title={preview.item.name}
                   onClose={() => setPreview(null)}
                   openTo={
-                    <TextLink>
-                      <Link to="/findings/assets/$assetId" params={{ assetId: preview.item.id }}>
-                        Open asset
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link
+                          to="/findings/assets/$assetId"
+                          params={{ assetId: preview.item.id }}
+                        />
+                      }
+                    >
+                      Open asset
                     </TextLink>
                   }
                 >

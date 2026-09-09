@@ -196,10 +196,11 @@ function ProgramConMon() {
         return jump("Scan cadence", "cadence");
       case "POA&M slipped":
         return /^POAM-\d+$/.test(alert.subject) ? (
-          <TextLink size="small">
-            <Link to="/register/poam/$poamId" params={{ poamId: alert.subject }}>
-              Open {alert.subject}
-            </Link>
+          <TextLink
+            size="small"
+            render={<Link to="/register/poam/$poamId" params={{ poamId: alert.subject }} />}
+          >
+            Open {alert.subject}
           </TextLink>
         ) : (
           jump("POA&M slippage", "slippage")
@@ -207,30 +208,35 @@ function ProgramConMon() {
       case "Unrecorded change":
       case "Determination invalidated":
         return (
-          <TextLink size="small">
-            <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
-              Open baseline
-            </Link>
+          <TextLink
+            size="small"
+            render={<Link to="/programs/$programId/baseline" params={{ programId: program.id }} />}
+          >
+            Open baseline
           </TextLink>
         );
       case "Inheritance drifted":
         return (
-          <TextLink size="small">
-            <Link
-              to="/programs/$programId/inheritance"
-              params={{ programId: program.id }}
-              search={{ tab: undefined, control: undefined }}
-            >
-              Open inheritance
-            </Link>
+          <TextLink
+            size="small"
+            render={
+              <Link
+                to="/programs/$programId/inheritance"
+                params={{ programId: program.id }}
+                search={{ tab: undefined, control: undefined }}
+              />
+            }
+          >
+            Open inheritance
           </TextLink>
         );
       case "Authorization expiring":
         return (
-          <TextLink size="small">
-            <Link to="/programs/$programId" params={{ programId: program.id }}>
-              Open program
-            </Link>
+          <TextLink
+            size="small"
+            render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+          >
+            Open program
           </TextLink>
         );
       default:
@@ -269,24 +275,33 @@ function ProgramConMon() {
                   Drift {drift.score}
                 </Badge>
                 <DriftBandChip band={drift.band} provisional={appliedWeight < 100} />
-                <TextLink size="small">
-                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
-                    Baseline
-                  </Link>
+                <TextLink
+                  size="small"
+                  render={
+                    <Link to="/programs/$programId/baseline" params={{ programId: program.id }} />
+                  }
+                >
+                  Baseline
                 </TextLink>
-                <TextLink size="small">
-                  <Link to="/programs/$programId/sctm" params={{ programId: program.id }}>
-                    SCTM
-                  </Link>
+                <TextLink
+                  size="small"
+                  render={
+                    <Link to="/programs/$programId/sctm" params={{ programId: program.id }} />
+                  }
+                >
+                  SCTM
                 </TextLink>
-                <TextLink size="small">
-                  <Link
-                    to="/programs/$programId/risk"
-                    params={{ programId: program.id }}
-                    search={{ tab: undefined }}
-                  >
-                    Risk
-                  </Link>
+                <TextLink
+                  size="small"
+                  render={
+                    <Link
+                      to="/programs/$programId/risk"
+                      params={{ programId: program.id }}
+                      search={{ tab: undefined }}
+                    />
+                  }
+                >
+                  Risk
                 </TextLink>
               </>
             }

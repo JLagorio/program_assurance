@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EvidenceArtifact } from "./evidence-catalog";
 
-vi.mock("@ledger/design-system", () => ({ toast: { error: vi.fn(), dismiss: vi.fn() } }));
+vi.mock("@ledger/design-system", () => ({ toast: { add: vi.fn(), close: vi.fn() } }));
 beforeEach(() => {
   vi.resetModules();
   const storage = new Map<string, string>();

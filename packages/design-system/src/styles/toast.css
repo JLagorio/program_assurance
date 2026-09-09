@@ -1,0 +1,75 @@
+/* shadcn's Base UI toast stack: native measurements and swipe state with Ledger tokens. */
+@utility toast-viewport {
+  inset-inline: var(--ds-space-200);
+  bottom: var(--ds-space-200);
+  z-index: 1000;
+  margin-inline: auto;
+  width: auto;
+  max-width: 24rem;
+  @media (min-width: 640px) {
+    inset-inline-start: auto;
+    width: calc(100% - var(--ds-space-400));
+  }
+}
+@utility toast-root {
+  --gap: var(--ds-space-100);
+  --height: var(--toast-frontmost-height, var(--toast-height));
+  --offset-y: calc(
+    var(--toast-offset-y) * -1 - var(--toast-index) * var(--gap) + var(--toast-swipe-movement-y)
+  );
+  --peek: var(--ds-space-100);
+  --scale: max(0, calc(1 - var(--toast-index) * 0.1));
+  --shrink: calc(1 - var(--scale));
+  z-index: calc(1000 - var(--toast-index));
+  height: var(--height);
+  transform: translateX(var(--toast-swipe-movement-x))
+    translateY(
+      calc(
+        var(--toast-swipe-movement-y) - var(--toast-index) * var(--peek) - var(--shrink) *
+          var(--height)
+      )
+    )
+    scale(var(--scale));
+  transition:
+    transform var(--ds-motion-duration-slow) var(--ds-motion-easing-standard),
+    opacity var(--ds-motion-duration-slow) var(--ds-motion-easing-standard),
+    height var(--ds-motion-duration-fast) var(--ds-motion-easing-standard);
+  will-change: transform;
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    height: calc(var(--gap) + 1px);
+    width: 100%;
+  }
+  &[data-expanded] {
+    height: var(--toast-height);
+    transform: translateX(var(--toast-swipe-movement-x)) translateY(var(--offset-y));
+  }
+  &[data-limited] {
+    opacity: 0;
+  }
+  &[data-starting-style],
+  &[data-ending-style]:not([data-limited]):not([data-swipe-direction]) {
+    transform: translateY(150%);
+  }
+  &[data-ending-style][data-swipe-direction="down"] {
+    transform: translateY(calc(var(--toast-swipe-movement-y) + 150%));
+  }
+  &[data-ending-style][data-swipe-direction="up"] {
+    transform: translateY(calc(var(--toast-swipe-movement-y) - 150%));
+  }
+  &[data-ending-style][data-swipe-direction="left"] {
+    transform: translateX(calc(var(--toast-swipe-movement-x) - 150%)) translateY(var(--offset-y));
+  }
+  &[data-ending-style][data-swipe-direction="right"] {
+    transform: translateX(calc(var(--toast-swipe-movement-x) + 150%)) translateY(var(--offset-y));
+  }
+  &[data-swiping] {
+    transition-duration: 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition-duration: 0s;
+  }
+}

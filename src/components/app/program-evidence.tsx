@@ -105,7 +105,7 @@ export function AddEvidenceDialog({
       const artifact = createEvidence(draft);
       onCreated?.(artifact);
       onClose();
-      toast.success("Evidence reference added");
+      toast.add({ title: "Evidence reference added", type: "success" });
     } catch (error) {
       setError(error instanceof Error ? error.message : "Evidence could not be saved.");
     }
@@ -782,7 +782,7 @@ function EvidenceRecordPreview({
                         });
                       }
                       closeEditor();
-                      toast.success("Supporting record linked");
+                      toast.add({ title: "Supporting record linked", type: "success" });
                     })
                   }
                 >
@@ -905,7 +905,7 @@ function EvidenceRecordPreview({
                     run(() => {
                       reviewEvidence(artifact.id, review, reviewer, note);
                       closeEditor();
-                      toast.success("Evidence review saved");
+                      toast.add({ title: "Evidence review saved", type: "success" });
                     })
                   }
                 >
@@ -942,58 +942,66 @@ function EvidenceTargetLink({
   const label = <span title={row.title}>{link.id}</span>;
   if (link.kind === "control")
     return (
-      <TextLink>
-        <Link
-          to="/programs/$programId/controls/$controlId"
-          params={{ programId, controlId: link.id }}
-          search={{
-            tab: "Implementation",
-            scope: link.scopeId,
-            element: elementId ?? row.elementId,
-          }}
-        >
-          {label}
-        </Link>
+      <TextLink
+        render={
+          <Link
+            to="/programs/$programId/controls/$controlId"
+            params={{ programId, controlId: link.id }}
+            search={{
+              tab: "Implementation",
+              scope: link.scopeId,
+              element: elementId ?? row.elementId,
+            }}
+          />
+        }
+      >
+        {label}
       </TextLink>
     );
   if (link.kind === "requirement")
     return (
-      <TextLink>
-        <Link
-          to="/programs/$programId/requirements/$requirementId"
-          params={{ programId, requirementId: link.id }}
-          search={{ element: elementId ?? row.elementId }}
-        >
-          {label}
-        </Link>
+      <TextLink
+        render={
+          <Link
+            to="/programs/$programId/requirements/$requirementId"
+            params={{ programId, requirementId: link.id }}
+            search={{ element: elementId ?? row.elementId }}
+          />
+        }
+      >
+        {label}
       </TextLink>
     );
   if (link.kind === "finding")
     return (
-      <TextLink>
-        <Link
-          to="/programs/$programId"
-          params={{ programId }}
-          search={{ tab: "Findings", findingId: link.id, element: elementId }}
-        >
-          {label}
-        </Link>
+      <TextLink
+        render={
+          <Link
+            to="/programs/$programId"
+            params={{ programId }}
+            search={{ tab: "Findings", findingId: link.id, element: elementId }}
+          />
+        }
+      >
+        {label}
       </TextLink>
     );
   return (
-    <TextLink>
-      <Link
-        to="/programs/$programId"
-        params={{ programId }}
-        search={{
-          tab: "Assessments",
-          assessmentId: row.campaignId,
-          assessmentRunId: row.runId,
-          element: elementId,
-        }}
-      >
-        {label}
-      </Link>
+    <TextLink
+      render={
+        <Link
+          to="/programs/$programId"
+          params={{ programId }}
+          search={{
+            tab: "Assessments",
+            assessmentId: row.campaignId,
+            assessmentRunId: row.runId,
+            element: elementId,
+          }}
+        />
+      }
+    >
+      {label}
     </TextLink>
   );
 }
@@ -1028,16 +1036,12 @@ export function RequirementEvidence({
     <Stack space="space.100">
       {linked.map((artifact) => (
         <Inline key={artifact.id} space="space.100">
-          <TextLink>
-            <button type="button" onClick={() => setPreviewId(artifact.id)}>
-              {artifact.id} · {artifact.label}
-            </button>
+          <TextLink render={<button type="button" onClick={() => setPreviewId(artifact.id)} />}>
+            {artifact.id} · {artifact.label}
           </TextLink>
           {artifact.url ? (
-            <TextLink>
-              <a href={artifact.url} target="_blank" rel="noreferrer">
-                Open artifact
-              </a>
+            <TextLink render={<a href={artifact.url} target="_blank" rel="noreferrer" />}>
+              Open artifact
             </TextLink>
           ) : null}
           <Badge size="small" tone={reviewTone(artifact.review)}>
@@ -1078,7 +1082,11 @@ export function RequirementEvidence({
               linkArtifact(selected, { kind: "requirement", id: requirementId });
               setSelected("");
             } catch (error) {
-              toast.error(error instanceof Error ? error.message : "Evidence could not be linked");
+              toast.add({
+                title: error instanceof Error ? error.message : "Evidence could not be linked",
+                type: "error",
+                timeout: 8000,
+              });
             }
           }}
         >

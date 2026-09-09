@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 
 import {
   Badge,
@@ -210,7 +210,7 @@ export function RecordActivity({
   me: string;
   limit?: number | undefined;
   /** A link to the full feed, shown when `limit` cuts it. */
-  seeAll?: ReactNode;
+  seeAll?: ReactElement;
   /** The program's whole log, every record, for its Activity tab. */
   wholeProgram?: boolean | undefined;
   /** A row of kind filters above the feed. */
@@ -252,7 +252,7 @@ export function RecordActivity({
       count={all.length || null}
       action={
         limit && filtered.length > limit && seeAll ? (
-          <TextLink size="small">{seeAll}</TextLink>
+          <TextLink size="small" render={seeAll} />
         ) : undefined
       }
     >

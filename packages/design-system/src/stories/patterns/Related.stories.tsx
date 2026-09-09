@@ -281,7 +281,7 @@ export const RelatedMatrix: Story = {
               title="Linked findings"
               count={14}
               footer={
-                <TextLink size="small" asChild={false} href="#all">
+                <TextLink size="small" href="#all">
                   See all 14
                 </TextLink>
               }
@@ -319,7 +319,7 @@ export const RelatedMatrix: Story = {
             layout="cards"
             action={addAction}
             footer={
-              <TextLink size="small" asChild={false} href="#team">
+              <TextLink size="small" href="#team">
                 See all 9
               </TextLink>
             }
@@ -473,7 +473,7 @@ export const Dont: Story = {
               title="Linked findings"
               count={14}
               footer={
-                <TextLink size="small" asChild={false} href="#all">
+                <TextLink size="small" href="#all">
                   See all 14
                 </TextLink>
               }

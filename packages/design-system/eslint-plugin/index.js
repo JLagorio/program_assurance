@@ -227,7 +227,7 @@ const structural = [
   /^divide-(x|y)-0$/,
   /^grid-cols-\(--ds-grid-(base|sm|md|lg|xl)\)$/, // Grid's responsive templateColumns, read from a CSS variable
   /^h-\(--accordion-panel-height\)$/, // Base UI's measured panel height, used for disclosure motion
-  /^(left|right)-\(--mobile-offset-(left|right)\)$/, // Sonner's caller-controlled viewport offsets
+  /^toast-(viewport|root)$/, // toast.css: Base UI stack and swipe geometry
 ];
 const spacing = new RegExp(
   `^-?(p|px|py|pt|pb|pl|pr|ps|pe|m|mx|my|mt|mb|ml|mr|ms|me|gap|gap-x|gap-y|space-x|space-y|w|h|size|min-w|min-h|max-w|max-h|inset|inset-x|inset-y|top|right|bottom|left|start|end|translate-x|translate-y|indent|scroll-m|scroll-mx|scroll-my|scroll-mt|scroll-mb|scroll-p|scroll-px|scroll-py|scroll-pt|scroll-pb)-(${spaceKeys})$`,
@@ -447,7 +447,7 @@ const rules = {
           if (/(^|\s)(hover:underline|text-brand)(\s|$)/.test(out.map((o) => o.text).join(" ")))
             context.report({
               node: attr,
-              message: `<${name}> carries the text-link classes. Wrap it in TextLink and drop text-brand and hover:underline.`,
+              message: `<${name}> carries the text-link classes. Compose it with TextLink render and drop text-brand and hover:underline.`,
             });
         } else if (name === "Button") {
           const variant = jsxAttr(node, "variant");
@@ -750,7 +750,7 @@ const portability = {
             "react-router*",
             "next/link",
           ],
-          message: "No router dependency. A link is a slot the consumer fills (asChild).",
+          message: "No router dependency. Consumers compose links with Base UI render.",
         },
       ],
     },

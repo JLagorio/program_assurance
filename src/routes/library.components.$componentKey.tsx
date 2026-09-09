@@ -55,8 +55,8 @@ function ComponentRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Provider not found</h1>
-          <TextLink size="medium">
-            <Link to="/library/components">Back to component library</Link>
+          <TextLink size="medium" render={<Link to="/library/components" />}>
+            Back to component library
           </TextLink>
         </Stack>
       </Shell>
@@ -94,13 +94,15 @@ function ComponentRecord() {
                 <KeyValue label="Program">
                   {component.sourceProgramId ? (
                     component.sourceAccessible ? (
-                      <TextLink>
-                        <Link
-                          to="/programs/$programId"
-                          params={{ programId: component.sourceProgramId }}
-                        >
-                          <Id>{component.sourceProgramId}</Id>
-                        </Link>
+                      <TextLink
+                        render={
+                          <Link
+                            to="/programs/$programId"
+                            params={{ programId: component.sourceProgramId }}
+                          />
+                        }
+                      >
+                        <Id>{component.sourceProgramId}</Id>
                       </TextLink>
                     ) : (
                       "Not in your enclave"

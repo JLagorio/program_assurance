@@ -120,7 +120,10 @@ export function useAssessmentsVersion() {
     try {
       restoreAssessments();
     } catch {
-      toast.error("Saved assessments could not be restored", {
+      toast.add({
+        title: "Saved assessments could not be restored",
+        type: "error",
+        timeout: 8000,
         description: "Check browser storage before changing assessments.",
       });
     }

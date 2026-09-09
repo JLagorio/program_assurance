@@ -142,7 +142,10 @@ export function useProgramsVersion(): number {
     try {
       restoreProgramCommands();
     } catch {
-      toast.error("Saved program actions could not be restored", {
+      toast.add({
+        title: "Saved program actions could not be restored",
+        type: "error",
+        timeout: 8000,
         description: "Browser storage is unavailable or saved data is invalid.",
       });
     }

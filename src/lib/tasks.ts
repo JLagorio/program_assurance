@@ -125,7 +125,10 @@ export function useTasksVersion(): number {
     try {
       restoreTasks();
     } catch {
-      toast.error("Saved tasks could not be restored", {
+      toast.add({
+        title: "Saved tasks could not be restored",
+        type: "error",
+        timeout: 8000,
         description: "Check browser storage before changing tasks.",
       });
     }

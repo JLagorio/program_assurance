@@ -69,7 +69,10 @@ export function useProgramScheduleVersion() {
     try {
       restoreProgramSchedule();
     } catch {
-      toast.error("Saved schedule could not be restored", {
+      toast.add({
+        title: "Saved schedule could not be restored",
+        type: "error",
+        timeout: 8000,
         description: "Check browser storage before changing this plan.",
       });
     }

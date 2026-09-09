@@ -122,16 +122,19 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
 
   const idCell =
     d.kind === "POA&M" ? (
-      <TextLink>
-        <Link to="/register/poam/$poamId" params={{ poamId: d.id }}>
-          <Id>{d.id}</Id>
-        </Link>
+      <TextLink render={<Link to="/register/poam/$poamId" params={{ poamId: d.id }} />}>
+        <Id>{d.id}</Id>
       </TextLink>
     ) : d.kind === "Control" ? (
-      <TextLink>
-        <Link to="/programs/$programId/controls/$controlId" params={{ programId, controlId: d.id }}>
-          <Id>{d.id}</Id>
-        </Link>
+      <TextLink
+        render={
+          <Link
+            to="/programs/$programId/controls/$controlId"
+            params={{ programId, controlId: d.id }}
+          />
+        }
+      >
+        <Id>{d.id}</Id>
       </TextLink>
     ) : (
       <Id>{d.id}</Id>
@@ -238,11 +241,13 @@ function ProgramDashboard() {
             title={`${program.name} — dashboard`}
             meta={`${program.baseline} · ${catalogVersion} · ${coverage.total} tailored controls`}
             actions={
-              <TextLink size="small" className="inline-flex items-center gap-025">
-                <Link to="/programs/$programId" params={{ programId: program.id }}>
-                  Program record
-                  <ChevronRight className="size-icon-small" />
-                </Link>
+              <TextLink
+                size="small"
+                className="inline-flex items-center gap-025"
+                render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+              >
+                Program record
+                <ChevronRight className="size-icon-small" />
               </TextLink>
             }
           />
@@ -326,10 +331,11 @@ function ProgramDashboard() {
           title="Remaining gates"
           description={`${outlook.completed} of ${outlook.total} closed. A gate cannot pass while the controls under it are other than satisfied.`}
           action={
-            <TextLink size="small">
-              <Link to="/programs/$programId" params={{ programId: program.id }}>
-                Full timeline
-              </Link>
+            <TextLink
+              size="small"
+              render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+            >
+              Full timeline
             </TextLink>
           }
         >

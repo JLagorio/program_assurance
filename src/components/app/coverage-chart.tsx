@@ -125,8 +125,8 @@ function FamilyCard({ selection }: { selection: ChartSelection }) {
           {`${String(d["pct"])}%`}
         </KeyValue>
       </div>
-      <TextLink size="small">
-        <a href="#control-matrix">Show in the matrix</a>
+      <TextLink size="small" render={<a href="#control-matrix" />}>
+        Show in the matrix
       </TextLink>
     </Stack>
   );

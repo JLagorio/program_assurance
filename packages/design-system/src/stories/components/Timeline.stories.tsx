@@ -363,9 +363,7 @@ function Feed() {
         marker={person("Nadia Flores")}
         title={
           <Did who="Nadia Flores" what="approved payout batch">
-            <TextLink asChild={false} href="#ach-4182">
-              ACH-4182
-            </TextLink>
+            <TextLink href="#ach-4182">ACH-4182</TextLink>
           </Did>
         }
         description="$142,800 routed to 38 merchant accounts."
@@ -388,9 +386,7 @@ function Feed() {
         marker={person("Theo Ramsey")}
         title={
           <Did who="Theo Ramsey" what="flagged review on transfer">
-            <TextLink asChild={false} href="#tx-9041">
-              TX-9041
-            </TextLink>
+            <TextLink href="#tx-9041">TX-9041</TextLink>
           </Did>
         }
         description="Velocity threshold exceeded for a new payee."
@@ -419,9 +415,7 @@ function Feed() {
         marker={person("Iris Chen")}
         title={
           <Did who="Iris Chen" what="reconciled ledger entry">
-            <TextLink asChild={false} href="#ldg-7749">
-              LDG-7749
-            </TextLink>
+            <TextLink href="#ldg-7749">LDG-7749</TextLink>
           </Did>
         }
         description="Subscription invoice matched to the bank settlement."
@@ -501,7 +495,7 @@ function Feed() {
       >
         <Text size="small" color="color.text.subtle">
           "@Alex, can you update the partner guidelines?"{" "}
-          <TextLink asChild={false} href="#thread" size="small">
+          <TextLink href="#thread" size="small">
             View
           </TextLink>
         </Text>

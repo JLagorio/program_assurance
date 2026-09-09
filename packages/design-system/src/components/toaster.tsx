@@ -1,119 +1,166 @@
+import { Toast as ToastPrimitive } from "@base-ui/react/toast";
+import type { ToastManager, ToastManagerAddOptions } from "@base-ui/react/toast";
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
-import type { ComponentProps } from "react";
-import { Toaster as Sonner, toast as sonnerToast, type ExternalToast } from "sonner";
 
-import { Spinner } from "./spinner";
-import { cn } from "../lib/cn";
+import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
+import { Button } from "./button";
+import { Spinner } from "./spinner";
 
-/* Feedback after an act: "Evidence linked", "Could not save". A toast is a card at the bottom
-   right that says what happened and goes; it is never a question and never a record's state. One
-   Toaster near the root, then `toast.success(...)` from anywhere. sonner underneath for the stack,
-   the timer, the swipe and the live region; the kit owns the look and the defaults. */
+export const createToastManager = ToastPrimitive.createToastManager;
+export const useToastManager = ToastPrimitive.useToastManager;
+export const toast: ToastManager = createToastManager();
+export type ToastOptions<Data extends object = Record<string, unknown>> =
+  ToastManagerAddOptions<Data>;
+export type ToasterProps = ToastPrimitive.Provider.Props;
 
-/** Default classes for Sonner's native parts. */
-const toastClasses = {
-  toast:
-    "relative flex w-full items-start gap-100 rounded-large border border-default bg-surface-overlay px-150 py-150 font-body text-default shadow-overlay outline-none focus-visible:outline-focused",
-  icon: "flex h-250 shrink-0 items-center",
-  content: "flex min-w-0 flex-1 flex-col gap-025",
-  title: "font-medium",
-  description: "font-body-small text-subtle",
-  actionButton:
-    "ms-100 h-control-xsmall shrink-0 self-center rounded-medium bg-brand-bold px-100 font-body-small font-medium text-inverse outline-none hover:bg-brand-bold-hovered focus-visible:outline-focused",
-  cancelButton:
-    "ms-100 h-control-xsmall shrink-0 self-center rounded-medium px-100 font-body-small font-medium text-subtle outline-none hover:bg-neutral-subtle-hovered hover:text-default focus-visible:outline-focused",
-  closeButton:
-    "order-last -me-050 -mt-050 flex size-300 shrink-0 items-center justify-center rounded-medium text-subtle outline-none hover:bg-neutral-subtle-hovered hover:text-default focus-visible:outline-focused",
-} as const;
+export function ToastProvider(props: ToastPrimitive.Provider.Props) {
+  return <ToastPrimitive.Provider {...props} />;
+}
 
-/** The mark for each kind, `dimension.icon.medium` in the tone's icon colour. */
-const toastIcons = {
-  success: <CircleCheck aria-hidden className="size-icon-medium icon-success" />,
-  error: <CircleAlert aria-hidden className="size-icon-medium icon-danger" />,
-  warning: <TriangleAlert aria-hidden className="size-icon-medium icon-warning" />,
-  info: <Info aria-hidden className="size-icon-medium icon-information" />,
-  loading: <Spinner size="medium" label="Working" />,
-  close: <X aria-hidden className="size-icon-small" />,
-} as const;
+export function ToastPortal(props: ToastPrimitive.Portal.Props) {
+  return <ToastPrimitive.Portal data-slot="toast-portal" {...props} />;
+}
 
-export type ToasterProps = ComponentProps<typeof Sonner>;
-
-/** The stack. Render one near the root; the toasts find it. */
-export function Toaster({
-  position = "bottom-right",
-  expand = false,
-  closeButton = false,
-  icons,
-  toastOptions,
-  className,
-  ...props
-}: ToasterProps) {
+/** Native viewport props and ref, including custom placement, direction and accessible name. */
+export function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props) {
   const { t, direction } = useLedgerLocale();
   return (
-    <Sonner
-      position={position}
+    <ToastPrimitive.Viewport
+      data-slot="toast-viewport"
+      aria-label={t("notifications")}
       dir={direction}
-      expand={expand}
-      closeButton={closeButton}
-      gap={8}
-      offset={16}
-      visibleToasts={4}
-      containerAriaLabel={t("notifications")}
-      // Sonner's mobile width:100% plus both offsets can overflow an RTL left stack.
-      // Use its native offsets to bound the stack; each toast fills the available width.
-      className={cn(
-        "max-sm:left-(--mobile-offset-left)! max-sm:right-(--mobile-offset-right)! max-sm:w-auto!",
-        className,
-      )}
-      icons={{ ...toastIcons, loading: <Spinner size="medium" label={t("loading")} />, ...icons }}
-      toastOptions={{
-        unstyled: true,
-        closeButtonAriaLabel: t("close"),
-        ...toastOptions,
-        style: {
-          width: "100%",
-          transitionDuration: "var(--ds-motion-duration-moderate)",
-          ...toastOptions?.style,
-        },
-        classNames: { ...toastClasses, ...toastOptions?.classNames },
-      }}
+      className={classes("toast-viewport pointer-events-none fixed outline-none", className)}
       {...props}
     />
   );
 }
 
-type Message = Parameters<typeof sonnerToast>[0];
+export function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
+  return (
+    <ToastPrimitive.Root
+      data-slot="toast"
+      className={classes(
+        "toast-root pointer-events-auto absolute bottom-0 right-0 w-full origin-bottom rounded-large border border-default bg-surface-overlay font-body text-default shadow-overlay outline-none select-none focus-visible:outline-focused",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
 
-/** Explicit public adapter: preserve Sonner's generic promise result without leaking inferred private names. */
-export type Toast = ((message: Message, data?: ExternalToast) => ReturnType<typeof sonnerToast>) &
-  Pick<
-    typeof sonnerToast,
-    | "success"
-    | "info"
-    | "warning"
-    | "error"
-    | "loading"
-    | "promise"
-    | "message"
-    | "custom"
-    | "dismiss"
-  >;
-export type ToastOptions = ExternalToast;
+export function ToastContent({ className, ...props }: ToastPrimitive.Content.Props) {
+  return (
+    <ToastPrimitive.Content
+      data-slot="toast-content"
+      className={classes(
+        "flex h-full items-center gap-100 overflow-hidden p-150 transition-opacity duration-moderate ease-standard data-behind:opacity-0 data-expanded:opacity-100 motion-reduce:transition-none",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
 
-/** Fires a toast. The kinds are sonner's with the kit's defaults: `error` stays eight seconds and carries a close; the rest go in four. `loading` and `promise` stay until they settle. */
-export const toast: Toast = Object.assign(
-  (message: Message, data?: ExternalToast) => sonnerToast(message, data),
-  {
-    success: sonnerToast.success,
-    info: sonnerToast.info,
-    warning: sonnerToast.warning,
-    error: (message: Message, data?: ExternalToast) =>
-      sonnerToast.error(message, { duration: 8000, closeButton: true, ...data }),
-    loading: sonnerToast.loading,
-    promise: sonnerToast.promise,
-    message: sonnerToast.message,
-    custom: sonnerToast.custom,
-    dismiss: sonnerToast.dismiss,
-  },
-);
+export function ToastTitle({ className, ...props }: ToastPrimitive.Title.Props) {
+  return (
+    <ToastPrimitive.Title
+      data-slot="toast-title"
+      className={classes("font-medium", className)}
+      {...props}
+    />
+  );
+}
+
+export function ToastDescription({ className, ...props }: ToastPrimitive.Description.Props) {
+  return (
+    <ToastPrimitive.Description
+      data-slot="toast-description"
+      className={classes("font-body-small text-subtle", className)}
+      {...props}
+    />
+  );
+}
+
+/** Native actionProps supply the label and handler. Close explicitly when the action should dismiss. */
+export function ToastAction({
+  className,
+  render = <Button variant="secondary" size="small" />,
+  ...props
+}: ToastPrimitive.Action.Props) {
+  return (
+    <ToastPrimitive.Action
+      data-slot="toast-action"
+      render={render}
+      className={classes("shrink-0", className)}
+      {...props}
+    />
+  );
+}
+
+export function ToastClose({
+  className,
+  children,
+  render = <Button variant="subtle" size="small" />,
+  ...props
+}: ToastPrimitive.Close.Props) {
+  const { t } = useLedgerLocale();
+  return (
+    <ToastPrimitive.Close
+      data-slot="toast-close"
+      aria-label={t("close")}
+      render={render}
+      className={classes("size-300 shrink-0 p-0", className)}
+      {...props}
+    >
+      {children ?? <X aria-hidden className="size-icon-small" />}
+    </ToastPrimitive.Close>
+  );
+}
+
+const icons = {
+  success: <CircleCheck aria-hidden className="size-icon-medium icon-success" />,
+  error: <CircleAlert aria-hidden className="size-icon-medium icon-danger" />,
+  warning: <TriangleAlert aria-hidden className="size-icon-medium icon-warning" />,
+  info: <Info aria-hidden className="size-icon-medium icon-information" />,
+  loading: <Spinner size="medium" isDecorative />,
+};
+
+function ToastList() {
+  const { toasts } = useToastManager();
+  return toasts.map((item) => (
+    <Toast key={item.id} toast={item}>
+      <ToastContent>
+        {item.type && item.type in icons ? (
+          <span className="shrink-0">{icons[item.type as keyof typeof icons]}</span>
+        ) : null}
+        <div className="flex min-w-0 flex-1 flex-col gap-025 break-words">
+          <ToastTitle />
+          <ToastDescription />
+        </div>
+        <ToastAction />
+        <ToastClose />
+      </ToastContent>
+    </Toast>
+  ));
+}
+
+/** Mount once near the root. Native manager API, with Ledger's four-second timeout and four visible toasts. */
+export function Toaster({
+  children,
+  toastManager = toast,
+  timeout = 4000,
+  limit = 4,
+  ...props
+}: ToasterProps) {
+  return (
+    <ToastProvider toastManager={toastManager} timeout={timeout} limit={limit} {...props}>
+      {children}
+      <ToastPortal>
+        <ToastViewport>
+          <ToastList />
+        </ToastViewport>
+      </ToastPortal>
+    </ToastProvider>
+  );
+}

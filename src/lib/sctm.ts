@@ -1286,7 +1286,7 @@ const catalogListeners = new Set<(index: ControlTextIndex) => void>();
 function loadControlText(): Promise<ControlTextIndex> {
   catalogPromise ??= import("@/lib/nist-control-text").then(({ controlText }) => {
     catalogIndex = buildControlTextIndex(controlText);
-    toast.dismiss("assessment-catalog-load");
+    toast.close("assessment-catalog-load");
     for (const listener of catalogListeners) listener(catalogIndex);
     return catalogIndex;
   });
@@ -1295,13 +1295,16 @@ function loadControlText(): Promise<ControlTextIndex> {
 
 function reportCatalogFailure() {
   catalogPromise = null;
-  toast.error("Assessment catalog could not load", {
+  toast.add({
+    title: "Assessment catalog could not load",
+    type: "error",
     id: "assessment-catalog-load",
     description: "Showing CCI rows only. Retry to include assessment objectives.",
-    duration: Infinity,
-    action: {
-      label: "Retry",
+    timeout: 0,
+    actionProps: {
+      children: "Retry",
       onClick: () => {
+        toast.close("assessment-catalog-load");
         void loadControlText().catch(reportCatalogFailure);
       },
     },

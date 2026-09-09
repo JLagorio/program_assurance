@@ -64,7 +64,9 @@ export function CreateRiskDialog({ open, onClose }: { open: boolean; onClose: ()
     try {
       if (asDraft) saveRiskDraft(draft);
       else createRisk(draft);
-      toast.success(asDraft ? "Risk draft saved" : "Risk created", {
+      toast.add({
+        title: asDraft ? "Risk draft saved" : "Risk created",
+        type: "success",
         description: "Saved in this browser.",
       });
       onClose();

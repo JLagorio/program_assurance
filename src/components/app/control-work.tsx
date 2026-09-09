@@ -387,14 +387,16 @@ export function Narrative({
               {contributions.map((item) => (
                 <Table.Row key={item.id}>
                   <Table.Cell>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/controls/$controlId"
-                        params={{ programId: work.program, controlId: work.control }}
-                        search={{ scope: item.scope, element: elementId }}
-                      >
-                        {nodeById.get(item.componentId!)?.name ?? item.componentId}
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId: work.program, controlId: work.control }}
+                          search={{ scope: item.scope, element: elementId }}
+                        />
+                      }
+                    >
+                      {nodeById.get(item.componentId!)?.name ?? item.componentId}
                     </TextLink>
                   </Table.Cell>
                   <Table.Cell>{item.requirementIds?.length ?? 0}</Table.Cell>
@@ -506,10 +508,10 @@ export function EvidenceBlock({
               return (
                 <Table.Row key={artifact.id}>
                   <Table.Cell className="max-w-none whitespace-normal">
-                    <TextLink>
-                      <button type="button" onClick={() => setSelectedId(artifact.id)}>
-                        {artifact.id} · {artifact.label}
-                      </button>
+                    <TextLink
+                      render={<button type="button" onClick={() => setSelectedId(artifact.id)} />}
+                    >
+                      {artifact.id} · {artifact.label}
                     </TextLink>
                     <span className="block font-body-xsmall text-subtle">
                       {artifact.kind} ·{" "}
@@ -529,14 +531,17 @@ export function EvidenceBlock({
                         support.kind === "control" ? (
                           <span key={`control:${support.id}`}>Implementation</span>
                         ) : (
-                          <TextLink key={`requirement:${support.id}:${support.scopeId ?? ""}`}>
-                            <Link
-                              to="/programs/$programId/requirements/$requirementId"
-                              params={{ programId: work.program, requirementId: support.id }}
-                              search={{ element: elementId }}
-                            >
-                              {support.id}
-                            </Link>
+                          <TextLink
+                            key={`requirement:${support.id}:${support.scopeId ?? ""}`}
+                            render={
+                              <Link
+                                to="/programs/$programId/requirements/$requirementId"
+                                params={{ programId: work.program, requirementId: support.id }}
+                                search={{ element: elementId }}
+                              />
+                            }
+                          >
+                            {support.id}
                           </TextLink>
                         ),
                       )}

@@ -159,14 +159,16 @@ function ScopeApprovals() {
                   <Table.Row key={r.id}>
                     <Table.Cell width={104}>
                       {program ? (
-                        <TextLink>
-                          <Link
-                            to="/programs/$programId"
-                            params={{ programId: r.program }}
-                            search={{ tab: "System" }}
-                          >
-                            <Id>{r.program}</Id>
-                          </Link>
+                        <TextLink
+                          render={
+                            <Link
+                              to="/programs/$programId"
+                              params={{ programId: r.program }}
+                              search={{ tab: "System" }}
+                            />
+                          }
+                        >
+                          <Id>{r.program}</Id>
                         </TextLink>
                       ) : (
                         <Id>{r.program}</Id>
@@ -174,14 +176,16 @@ function ScopeApprovals() {
                     </Table.Cell>
                     <Table.Cell className="truncate" width={200}>
                       {program && scope ? (
-                        <TextLink>
-                          <Link
-                            to="/programs/$programId/components/$componentId"
-                            params={{ programId: r.program, componentId: scope.element }}
-                            search={{ tab: "Control set" }}
-                          >
-                            {scope.name}
-                          </Link>
+                        <TextLink
+                          render={
+                            <Link
+                              to="/programs/$programId/components/$componentId"
+                              params={{ programId: r.program, componentId: scope.element }}
+                              search={{ tab: "Control set" }}
+                            />
+                          }
+                        >
+                          {scope.name}
                         </TextLink>
                       ) : (
                         (scope?.name ?? r.scope)
@@ -239,25 +243,29 @@ function ScopeApprovals() {
               {needing.map(({ requirement: r, needs }) => (
                 <Table.Row key={r.id}>
                   <Table.Cell width={104}>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId"
-                        params={{ programId: r.program }}
-                        search={{ tab: "Requirements" }}
-                      >
-                        <Id>{r.program}</Id>
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId: r.program }}
+                          search={{ tab: "Requirements" }}
+                        />
+                      }
+                    >
+                      <Id>{r.program}</Id>
                     </TextLink>
                   </Table.Cell>
                   <Table.Cell width={110}>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/requirements/$requirementId"
-                        params={{ programId: r.program, requirementId: r.id }}
-                        search={{ tab: undefined }}
-                      >
-                        <Id>{r.id}</Id>
-                      </Link>
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId/requirements/$requirementId"
+                          params={{ programId: r.program, requirementId: r.id }}
+                          search={{ tab: undefined }}
+                        />
+                      }
+                    >
+                      <Id>{r.id}</Id>
                     </TextLink>
                   </Table.Cell>
                   <Table.Cell className="truncate" title={r.text}>
@@ -336,14 +344,17 @@ function ScopeApprovals() {
                 spread="space-between"
               >
                 {reviewedScope ? (
-                  <TextLink size="small">
-                    <Link
-                      to="/programs/$programId/components/$componentId"
-                      params={{ programId: reviewed.program, componentId: reviewedScope.element }}
-                      search={{ tab: "Control set" }}
-                    >
-                      Open the record
-                    </Link>
+                  <TextLink
+                    size="small"
+                    render={
+                      <Link
+                        to="/programs/$programId/components/$componentId"
+                        params={{ programId: reviewed.program, componentId: reviewedScope.element }}
+                        search={{ tab: "Control set" }}
+                      />
+                    }
+                  >
+                    Open the record
                   </TextLink>
                 ) : (
                   <span />

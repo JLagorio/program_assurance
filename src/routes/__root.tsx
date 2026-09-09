@@ -130,7 +130,10 @@ function RootComponent() {
     let active = true;
     const errors = restoreWorkspaceRecords();
     if (errors.length)
-      toast.error("Some saved workspace records could not be restored", {
+      toast.add({
+        title: "Some saved workspace records could not be restored",
+        type: "error",
+        timeout: 8000,
         description: errors.join(" "),
       });
     // Server loaders cannot see browser-saved records. Re-resolve deep links

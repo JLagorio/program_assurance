@@ -1,6 +1,6 @@
 # Design-system migration handoff
 
-Continue migrating `@ledger/design-system` from shadcn's Base UI source, preserving Ledger tokens and useful product options. Completed families are Breadcrumb, Badge, Separator, Skeleton, Kbd, Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog, Command, Progress, ScrollArea, Avatar, Input, Textarea, InputGroup, Combobox, Field, Alert, ButtonGroup, Drawer, Calendar/DatePicker, Pagination, Resizable, Card, Empty and Spinner. Toaster’s Sonner wrapper cleanup is also complete.
+Continue migrating `@ledger/design-system` from shadcn's Base UI source, preserving Ledger tokens and useful product options. Completed families are Breadcrumb, Badge, Separator, Skeleton, Kbd, Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog, Command, Progress, ScrollArea, Avatar, Input, Textarea, InputGroup, Combobox, Field, Alert, ButtonGroup, Drawer, Calendar/DatePicker, Pagination, Resizable, Card, Empty, Spinner, TextLink, Shell navigation and Toast/Toaster.
 
 ## Direction and sources
 
@@ -28,7 +28,7 @@ Preserve native targets, refs, ARIA, keyboard/focus behavior and render composit
 - Combobox has one generic root with native selection/query/form behavior. ComboboxInput renders the shared InputGroup through Base UI InputGroup so the entire control anchors the popup; anchoring only its inner input produced a ResizeObserver loop inside animated dialogs. Use ComboboxChipsInput for multiple selection and useComboboxAnchor for the chips container. Form reset remains caller-owned. Both input shapes retain data-combobox-input for integration identification.
 - NativeSelect is removed from the package. Existing form/filter callers use Select/Trigger/Value/Content/Item, with Root items supplied for closed labels and nullable onValueChange callbacks. Trigger owns blur/ARIA/size/style. Refreshable reference catalogs remain separate.
 
-The package's direct Radix Dialog, AlertDialog, Collapsible, Progress and ScrollArea dependencies are removed. Radix Slot remains in parts that expose asChild; cmdk can retain transitive Radix dependencies. Vaul is removed from the package; the application reference catalog’s dependencies remain untouched.
+The package has no direct Radix, Sonner or Vaul dependencies. Command intentionally uses cmdk, which can retain transitive Radix dependencies. Application reference catalogs and their dependencies remain untouched.
 
 - Field uses shadcn's native Field/Label/Description/Error/Set/Legend/Group/Content/Title/Separator composition. The binding context, child cloning and useFieldControl are removed. Callers supply stable IDs, labels, descriptions, invalid and required announcements on the actual control. TanStack owns validation and submission. Custom controls forward native props; grouped choices keep their individual names.
 - Alert uses flat Title/Description/Action exports, native div props and shadcn default/destructive variants with Ledger tone. Existing callers explicitly retain their announcement roles and tone; new roots default to role=alert. Ledger actions stay in normal flow.
@@ -40,15 +40,14 @@ The package's direct Radix Dialog, AlertDialog, Collapsible, Progress and Scroll
 - ResizablePanelGroup/Panel/Handle forward react-resizable-panels props, element refs and imperative refs. Numeric sizes now mean pixels; former percentage numbers are migrated to explicit percent strings. Persistence uses upstream useDefaultLayout at the consuming composition, preserving stable IDs/storage keys. PreviewSplit retains 55% list minimum and 26% rail default bounded at 18–45%.
 
 - Card and Empty now live in components with flat native div parts/refs. CardTitle leaves heading level to callers; migrated headers retain h2 children. Preserve the raised-surface CSS variable for sticky tables. Empty retains its framed/default and compact layouts; top-level media spans the compact message/actions without cloning icons. Related and DataTable retain their own empty-message options and compose these parts.
-- Spinner forwards native SVG props/ref and explicit ARIA overrides while retaining size, appearance, localization, decorative behavior and its latched reveal delay. Toaster forwards Sonner props/ref; partial icons, toastOptions.style and per-part classNames preserve unspecified defaults. Stories use independent toaster IDs, with real live toasts rather than copied DOM or singleton bookkeeping.
+- Spinner forwards native SVG props/ref and explicit ARIA overrides while retaining size, appearance, localization, decorative behavior and its latched reveal delay.
 
-## Next candidates
+- TextLink and Shell navigation use Base UI useRender/mergeProps and native refs. AppLogo defaults to a span; SideNav.Item defaults to an anchor. Actions explicitly render buttons. Keep item labels outside the rendered Link so icons/badges remain. Shell layout, resizing, mobile behavior and persistence remain intact. Switcher chevrons are composed as children.
+- Toast follows shadcn's current Base UI source. Toaster accepts native Provider props; native parts expose DOM refs, ARIA, styles and render composition. Use add/update/close/promise, timeout (zero is persistent), and actionProps.children. Actions explicitly close when complete. Handle rejected promises; the returned promise carries the original value. Mount the provider before emitting notifications. F6 focuses the viewport; Shift+Tab returns to the previous element. Stories use separate managers and cover dialogs, undo, automatic dismissal and promise outcomes. App errors retain explicit eight-second timeouts and catalog Retry remains persistent.
 
-TextLink and Shell navigation are the two remaining direct Radix Slot import sites. Migrate their asChild composition to Base UI useRender/mergeProps while retaining native link behavior and Shell layout.
+## Remaining work
 
-Source correction: shadcn's current main Toast docs and toast.tsx use Base UI Toast; the separate sonner.tsx still exists. This batch implements the explicitly requested Sonner passthrough cleanup. A full Toast-manager migration remains a separate candidate and should update toast call sites, undo/promise behavior and popup/focus integration together.
-
-Review Item, Table, Chart and larger Shell compositions only for concrete duplication or contract problems. Their product behavior is intentional. Missing catalog families such as Slider, ContextMenu, Menubar and Carousel are optional additions driven by an application need, not migration debt.
+The identified shadcn/Base UI migration candidates are complete. Review Item, Table, Chart and larger Shell compositions only for concrete duplication or contract problems. Their product behavior is intentional. Missing catalog families such as Slider, ContextMenu, Menubar and Carousel are optional additions driven by an application need, not migration debt.
 
 ## Completion workflow
 
@@ -62,6 +61,8 @@ Run package/application typechecks, lint, API/coverage checks and relevant stori
 
 ## Latest validation
 
-Card, Empty, Spinner and Toaster passed all 26 focused story checks and the complete 1,062-check Storybook suite in both themes (218 files). Package/application typechecks, package lint, API/coverage checks, package/production/Storybook builds and the packed consumer passed. Package unit tests passed 15; application tests passed 165 with one skipped.
+TextLink, Shell navigation and Toast passed 34 focused Storybook checks and the full 1,064-check suite in both themes (218 files). Package/application typechecks, package lint, API/coverage checks, package/production/Storybook builds and the packed consumer passed. Package unit tests passed 15; application tests passed 165 with one skipped.
 
-Coverage reports 271 exports with stories, 102 family pages and 531 stories, with no gaps. After visual review fixed Sonner’s mobile RTL overflow, all eight final Toaster story checks passed. The four touched family pages each use five focused sections. Card/Empty are under Components. Visual review covered narrow Card/Empty layouts, dark mode, explicit RTL roots, native Toaster options and all four documentation pages. Packed-consumer fixtures cover the flat exports, native refs/props, SSR markup, raised surfaces, SVG naming and the production bundle.
+Coverage reports 280 story-covered exports, 102 family pages and 532 stories, with no gaps. Consumer fixtures cover the native Toast manager/parts, refs, promise result types, removed legacy props, navigation markup and production toast geometry. No package-owned Slot or Sonner adapter remains.
+
+Visual review covered Shell links/icons/badges, the narrow RTL toast viewport, dark expanded stacks, limit recovery and pointer swipe dismissal. Repository lint also exposed missing semicolons in the shared shadcn use-mobile/utils helpers; those received formatting-only corrections. Repository lint passes with 52 existing warnings.
