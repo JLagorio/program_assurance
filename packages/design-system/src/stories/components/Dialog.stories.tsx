@@ -1,349 +1,182 @@
+import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-
-import { useState } from "react";
-
+import { createRef, useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
-  Badge,
   Button,
   Dialog,
-  Field,
-  Id,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
   Input,
-  KeyValue,
-  Table,
-  Textarea,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "../../components";
-import { Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Dialog",
   component: Dialog,
   parameters: { layout: "padded" },
-  args: {
-    open: false,
-    onClose: () => {},
-    title: "Schedule assessment",
-    description: "The assessor and the program owner are notified.",
-    width: "medium",
-    children: <Text>Flip open in the controls; Escape closes it again.</Text>,
-  },
 } satisfies Meta<typeof Dialog>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-// Radix hides the rest of the page (aria-hidden) while the modal is open and traps focus inside it; axe cannot see the trap.
-const modalOpen = {
-  a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } },
-};
-
-type Kind = "medium" | "large" | "aside" | "scrolling" | "eyebrow" | "pending";
-const kinds: { kind: Kind; label: string }[] = [
-  { kind: "medium", label: "Medium" },
-  { kind: "large", label: "Large" },
-  { kind: "aside", label: "Large with an aside" },
-  { kind: "scrolling", label: "Scrolling body" },
-  { kind: "eyebrow", label: "With an eyebrow" },
-  { kind: "pending", label: "Pending" },
-];
-
-function Form() {
-  return (
-    <Stack space="space.200">
-      <Field label="Assessor" isRequired>
-        <Input placeholder="Choose an assessor" />
-      </Field>
-      <Field label="Window">
-        <Input placeholder="14–18 Sep 2026" />
-      </Field>
-      <Field label="Notes">
-        <Textarea rows={3} placeholder="Anything the assessor should know first." />
-      </Field>
-    </Stack>
-  );
-}
-
-const aside = (
-  <Stack space="space.050">
-    <KeyValue label="Control">
-      <Id>CTRL-0412</Id>
-    </KeyValue>
-    <KeyValue label="Owner">Dana Whitfield</KeyValue>
-    <KeyValue label="Status">
-      <Badge variant="secondary" tone="information">
-        In review
-      </Badge>
-    </KeyValue>
-    <KeyValue label="Last verified">12 Aug 2026</KeyValue>
-  </Stack>
-);
-
-const eyebrow = (
-  <>
-    <Id>CTRL-0412</Id>
-    <Badge variant="secondary" tone="information">
-      In review
-    </Badge>
-  </>
-);
-
-function DialogStates() {
-  const [open, setOpen] = useState<Kind | null>(null);
-  const [saving, setSaving] = useState(false);
-  const close = () => {
-    setOpen(null);
-    setSaving(false);
-  };
-  const large = open === "large" || open === "aside" || open === "scrolling";
-  const pending = open === "pending" && saving;
-  return (
-    <Stack space="space.200">
-      <Inline space="space.100" shouldWrap>
-        {kinds.map((k) => (
-          <Button key={k.kind} variant="secondary" onClick={() => setOpen(k.kind)}>
-            {k.label}
-          </Button>
-        ))}
-      </Inline>
-      <Dialog
-        open={open !== null}
-        onClose={close}
-        title="Schedule assessment"
-        description="The assessor and the program owner are notified."
-        width={large ? "large" : "medium"}
-        {...(open === "aside" ? { aside } : {})}
-        {...(open === "eyebrow" ? { eyebrow } : {})}
-        pending={pending}
-        footer={
-          <>
-            <Button variant="subtle" onClick={close} disabled={pending}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              isLoading={pending}
-              onClick={() => {
-                if (open === "pending") {
-                  setSaving(true);
-                  setTimeout(close, 1500);
-                } else close();
-              }}
-            >
-              Schedule
-            </Button>
-          </>
-        }
-      >
-        {open === "scrolling" ? (
-          <Stack space="space.200">
-            {Array.from({ length: 9 }, (_, i) => (
-              <Field key={i} label={`Field ${i + 1}`}>
-                <Input />
-              </Field>
-            ))}
-          </Stack>
-        ) : (
-          <Form />
-        )}
-      </Dialog>
-    </Stack>
-  );
-}
-
-/** Every state one click away, since an open dialog covers the page: medium, large, with an aside, a body that scrolls, an eyebrow, and pending while it saves. */
-export const DialogMatrix: Story = {
-  render: () => <DialogStates />,
-};
-
-/** Large, with an eyebrow, a description, an aside and a footer, held open. */
-export const OpenMatrix: Story = {
-  name: "Open",
-  parameters: modalOpen,
+const popupRef = createRef<HTMLDivElement>();
+const fieldRef = createRef<HTMLInputElement>();
+export const Form: Story = {
   render: () => (
-    <Dialog
-      open
-      onClose={() => {}}
-      width="large"
-      eyebrow={eyebrow}
-      title="Schedule assessment"
-      description="The assessor and the program owner are notified."
-      aside={aside}
-      footer={
-        <>
-          <Button variant="subtle">Cancel</Button>
+    <Dialog>
+      <DialogTrigger render={<Button />}>Schedule assessment</DialogTrigger>
+      <DialogContent ref={popupRef} initialFocus={fieldRef}>
+        <DialogHeader>
+          <DialogTitle>Schedule assessment</DialogTitle>
+          <DialogDescription>The assessor receives an invitation.</DialogDescription>
+        </DialogHeader>
+        <div className="p-250">
+          <Input ref={fieldRef} aria-label="Assessment name" defaultValue="Quarterly review" />
+        </div>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
           <Button variant="primary">Schedule</Button>
-        </>
-      }
-    >
-      <Form />
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("button", { name: "Schedule assessment" });
+    await userEvent.click(trigger);
+    const popup = await body.findByRole("dialog", { name: "Schedule assessment" });
+    await expect(popupRef.current).toBe(popup);
+    await expect(popup).toHaveAccessibleDescription("The assessor receives an invitation.");
+    await waitFor(() => expect(fieldRef.current).toHaveFocus());
+    await userEvent.tab({ shift: true });
+    await waitFor(() => expect(popup.contains(document.activeElement)).toBe(true));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+function PendingForm() {
+  const [open, setOpen] = useState(false),
+    [pending, setPending] = useState(false);
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next, details) => {
+        if (!next && pending) details.cancel();
+        else setOpen(next);
+      }}
+    >
+      <DialogTrigger render={<Button />}>Edit review</DialogTrigger>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Edit review</DialogTitle>
+        </DialogHeader>
+        <div className="p-250">
+          <Select defaultValue="draft" items={{ draft: "Draft", ready: "Ready" }}>
+            <SelectTrigger aria-label="Status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false}>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="ready">Ready</SelectItem>
+            </SelectContent>
+          </Select>
+          <p role="status">{pending ? "Saving" : "Ready to save"}</p>
+        </div>
+        <DialogFooter>
+          <DialogClose disabled={pending} render={<Button variant="subtle" />}>
+            Cancel
+          </DialogClose>
+          <Button onClick={() => setPending(!pending)}>{pending ? "Finish saving" : "Save"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+export const PendingAndNestedPopup: Story = {
+  render: () => <PendingForm />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Edit review" }));
+    const popup = within(await body.findByRole("dialog", { name: "Edit review" }));
+    await userEvent.click(popup.getByRole("combobox", { name: "Status" }));
+    await body.findByRole("option", { name: "Ready" });
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("listbox")).toBeNull());
+    await expect(body.getByRole("dialog", { name: "Edit review" })).toBeVisible();
+    await userEvent.click(popup.getByRole("button", { name: "Save" }));
+    await userEvent.keyboard("{Escape}");
+    await expect(popup.getByRole("status")).toHaveTextContent("Saving");
+    await expect(popup.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    await userEvent.click(popup.getByRole("button", { name: "Finish saving" }));
+    await userEvent.click(popup.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+  },
+};
+export const Scrollable: Story = {
+  render: () => (
+    <Dialog>
+      <DialogTrigger render={<Button />}>Review controls</DialogTrigger>
+      <DialogContent style={{ maxWidth: 860 }}>
+        <DialogHeader>
+          <DialogTitle>Review controls</DialogTitle>
+        </DialogHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto p-250">
+          {Array.from({ length: 60 }, (_, i) => (
+            <p key={i} className="py-100">
+              Control {i + 1}: Review implementation evidence.
+            </p>
+          ))}
+        </div>
+        <DialogFooter showCloseButton />
+      </DialogContent>
+    </Dialog>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Review controls" }));
+    const dialog = await body.findByRole("dialog", { name: "Review controls" });
+    await waitFor(() =>
+      expect(dialog.getBoundingClientRect().height).toBeLessThanOrEqual(window.innerHeight),
+    );
+    const scroller = within(dialog).getByText(
+      "Control 60: Review implementation evidence.",
+    ).parentElement!;
+    await expect(scroller.scrollHeight).toBeGreaterThan(scroller.clientHeight);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+  },
 };
 
-const rows = [
-  ["CTRL-0412", "Segregation of duties, payables"],
-  ["CTRL-0418", "Vendor master change approval"],
-  ["CTRL-0450", "Privileged access review"],
-] as const;
-
-function DontDemo() {
-  const [open, setOpen] = useState<"task" | "record" | "verb" | "ok" | null>(null);
-  const close = () => setOpen(null);
-  return (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Button variant="secondary" onClick={() => setOpen("task")}>
-            Open: one task
-          </Button>
-        }
-        doText="A short task with a verb at the end: two or three fields and Schedule."
-        dont={
-          <Button variant="secondary" onClick={() => setOpen("record")}>
-            Open: a record
-          </Button>
-        }
-        dontText="A record in a dialog: facts, a table, everything. It is a page, or a Sheet beside the list; the reader cannot keep it or link to it."
-      />
-      <Pair
-        do={
-          <Button variant="secondary" onClick={() => setOpen("verb")}>
-            Open: the verb
-          </Button>
-        }
-        doText="The primary says the act, as the button that opened the dialog did: Schedule."
-        dont={
-          <Button variant="secondary" onClick={() => setOpen("ok")}>
-            Open: OK
-          </Button>
-        }
-        dontText="OK and Done. Neither says what happens, and the reader confirms without knowing what."
-      />
-      <Dialog
-        open={open === "task" || open === "verb"}
-        onClose={close}
-        title="Schedule assessment"
-        footer={
-          <>
-            <Button variant="subtle" onClick={close}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={close}>
-              Schedule
-            </Button>
-          </>
-        }
-      >
-        <Form />
-      </Dialog>
-      <Dialog
-        open={open === "ok"}
-        onClose={close}
-        title="Schedule assessment"
-        footer={
-          <>
-            <Button variant="subtle" onClick={close}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={close}>
-              OK
-            </Button>
-          </>
-        }
-      >
-        <Form />
-      </Dialog>
-      <Dialog
-        open={open === "record"}
-        onClose={close}
-        width="large"
-        eyebrow={eyebrow}
-        title="Segregation of duties, payables"
-        description="Finance · Dana Whitfield · Quarterly"
-        aside={aside}
-        footer={
-          <Button variant="primary" onClick={close}>
-            Done
-          </Button>
-        }
-      >
-        <Stack space="space.200">
-          <Text>
-            Payables are entered and approved by different people; the approval list is reviewed
-            quarterly against the HR roster.
-          </Text>
-          <Table label="Findings">
-            <thead>
-              <tr>
-                <Table.Header width={120}>Id</Table.Header>
-                <Table.Header>Finding</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map(([id, name]) => (
-                <Table.Row key={id}>
-                  <Table.Id id={id} />
-                  <Table.Cell>{name}</Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-        </Stack>
-      </Dialog>
-    </Stack>
-  );
-}
-
-/** The mistakes the page is written to prevent, each beside the right way. Open each. */
-export const Dont: Story = { render: () => <DontDemo /> };
-
-export const Playground: Story = {};
-
-function ReturnFocusDemo() {
-  const [open, setOpen] = useState(false);
-  const [nested, setNested] = useState(false);
-  return (
-    <>
-      <Button onClick={() => setOpen(true)}>Edit project</Button>
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        title="Parent task"
-        footer={<Button onClick={() => setOpen(false)}>Save parent</Button>}
-      >
-        <Button onClick={() => setNested(true)}>Open nested dialog</Button>
-        <Dialog
-          open={nested}
-          onClose={() => setNested(false)}
-          title="Nested task"
-          footer={<Button onClick={() => setNested(false)}>Finish nested</Button>}
+/** Use the exposed portal and backdrop with a Base UI popup for a custom surface. */
+export const CustomPortal: Story = {
+  render: () => (
+    <Dialog>
+      <DialogTrigger render={<Button />}>Open custom surface</DialogTrigger>
+      <DialogPortal>
+        <DialogOverlay />
+        <BaseDialog.Popup
+          className="fixed inset-x-200 top-1000 z-50 mx-auto rounded-large bg-surface-overlay p-250 text-default shadow-overlay"
+          style={{ maxWidth: 440 }}
         >
-          <Field label="Nested name">
-            <Input />
-          </Field>
-        </Dialog>
-      </Dialog>
-    </>
-  );
-}
-
-export const ReturnFocus: Story = {
-  render: () => <ReturnFocusDemo />,
-  play: async ({ canvasElement }) => {
-    const { expect, userEvent, within, waitFor } = await import("storybook/test");
-    const canvas = within(canvasElement);
-    const page = within(document.body);
-    const opener = canvas.getByRole("button", { name: "Edit project" });
-    await userEvent.click(opener);
-    await userEvent.click(page.getByRole("button", { name: "Open nested dialog" }));
-    await userEvent.keyboard("{Escape}");
-    await waitFor(() =>
-      expect(page.getByRole("button", { name: "Open nested dialog" })).toHaveFocus(),
-    );
-    await userEvent.click(page.getByRole("button", { name: "Save parent" }));
-    await waitFor(() => expect(opener).toHaveFocus());
-    await userEvent.click(opener);
-    await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(opener).toHaveFocus());
-  },
+          <DialogTitle>Custom review surface</DialogTitle>
+          <p className="py-150">Portal and backdrop can frame a custom popup layout.</p>
+          <DialogClose render={<Button />}>Done</DialogClose>
+        </BaseDialog.Popup>
+      </DialogPortal>
+    </Dialog>
+  ),
 };

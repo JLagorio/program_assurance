@@ -2,13 +2,25 @@ import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 
+import { TextBlock } from "@/components/app/control-text";
+import { Shell } from "@/components/app/shell";
+import { assetById, bySeverity } from "@/lib/findings";
 import {
-  BreadcrumbItem,
-  BreadcrumbLink,
+  ccisForRisk,
+  findingsForRisk,
+  openCount,
+  poamsForRisk,
+  registerRisks,
+} from "@/lib/register";
+import { authoredComparison, bandTone, scoreRisk, type ScoreFactor } from "@/lib/risk-scoring";
+import { severityTone, statusTone } from "@/lib/spine";
+import {
   Badge,
   Box,
-  Button,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Empty,
+  Eyebrow,
   Grid,
   Id,
   Indicator,
@@ -22,20 +34,7 @@ import {
   Stack,
   Table,
   TextLink,
-  Eyebrow,
 } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
-import { TextBlock } from "@/components/app/control-text";
-import { assetById, bySeverity } from "@/lib/findings";
-import {
-  ccisForRisk,
-  findingsForRisk,
-  openCount,
-  poamsForRisk,
-  registerRisks,
-} from "@/lib/register";
-import { authoredComparison, bandTone, scoreRisk, type ScoreFactor } from "@/lib/risk-scoring";
-import { severityTone, statusTone } from "@/lib/spine";
 
 export const Route = createFileRoute("/register/risks/$riskId")({
   head: ({ params }) => {
@@ -121,7 +120,11 @@ function RiskRecord() {
                 <KeyValue label="Residual">
                   <Inline as="span" space="space.100" alignBlock="center">
                     {risk.residual !== null ? (
-                      <Progress value={risk.residual} tone={residualTone(risk.residual)} />
+                      <Progress
+                        value={risk.residual}
+                        tone={residualTone(risk.residual)}
+                        aria-hidden
+                      />
                     ) : null}
                     <span className="tabular-nums font-body-small font-medium">
                       {risk.residual ?? risk.sourceRating?.overall ?? "Unrecorded"}
@@ -237,6 +240,7 @@ function RiskRecord() {
                       <Progress
                         value={comparison.authored.residual}
                         tone={residualTone(comparison.authored.residual)}
+                        aria-hidden
                       />
                     </Box>
                     <dl className="pt-150 space-y-075 font-body-small">
@@ -278,7 +282,7 @@ function RiskRecord() {
                       </Badge>
                     </Inline>
                     <Box paddingBlockStart="space.150">
-                      <Progress value={computed.score} tone={bandTone[computed.band]} />
+                      <Progress value={computed.score} tone={bandTone[computed.band]} aria-hidden />
                     </Box>
                     <dl className="pt-150 space-y-075 font-body-small">
                       <Inline space="space.150" alignBlock="baseline" spread="space-between">

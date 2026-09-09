@@ -1,33 +1,26 @@
-/**
- * The remediation plan behind a control that is not satisfied: what has to
- * happen, who owns each step, when it is due, and the POA&M section that
- * carries the commitment.
- *
- * The table is the record; the timeline is the same tasks laid on the plan
- * window so slippage against the scheduled completion is visible at a glance.
- */
-
-import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
-
 import {
   Badge,
   Box,
+  Eyebrow,
   Grid,
   Id,
   Inline,
   Person,
   Progress,
+  ProgressValue,
   Section,
   Stack,
   Table,
   TextLink,
-  Eyebrow,
 } from "@ledger/design-system";
-import { cn } from "@ledger/design-system/cn";
+import { Link } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
+import type { ReactNode } from "react";
+
 import { planDay, spanDays, taskStatusTone, type RemediationPlan } from "@/lib/remediation";
 import { statusTone } from "@/lib/spine";
+
+import { cn } from "@ledger/design-system/cn";
 
 const barTone: Record<string, string> = {
   Complete: "bg-success-bold",
@@ -139,9 +132,12 @@ export function RemediationPlanSection({
               <Progress
                 value={plan.progress}
                 tone={plan.status === "Blocked" ? "danger" : "success"}
-                showValue
-                valueText={`${plan.progress}% complete`}
-              />
+                aria-hidden
+                aria-valuetext={`${plan.progress}% complete`}
+                className="flex-nowrap [&_[data-slot=progress-track]]:order-first [&_[data-slot=progress-track]]:min-w-0 [&_[data-slot=progress-track]]:flex-1"
+              >
+                <ProgressValue children={() => `${plan.progress}% complete`} />
+              </Progress>
             </span>
             {plan.slipped && plan.poam ? (
               <span className="tabular-nums font-body-small text-warning">

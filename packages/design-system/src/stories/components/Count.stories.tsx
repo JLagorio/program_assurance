@@ -1,9 +1,14 @@
 import { ChevronDown } from "lucide-react";
+import {
+  Badge,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Count,
+  Indicator,
+} from "../../components";
 
-import { Badge, Collapsible } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-
-import { Count, Indicator } from "../../components";
 
 import { Inline, Stack, Text } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
@@ -57,21 +62,22 @@ export const InContext: Story = {
       </Inline>
       <Collapsible className="border-t border-default" defaultOpen>
         <h3>
-          <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-            {"Evidence"} <Count value={7} />
+          <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+            Evidence
+            <Count value={7} />
             <ChevronDown
               aria-hidden="true"
               className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
             />
-          </Collapsible.Trigger>
+          </CollapsibleTrigger>
         </h3>
-        <Collapsible.Content>
+        <CollapsibleContent>
           <div className="pb-200">
             <Text size="small" color="color.text.subtle">
               Seven artifacts, the newest collected on 28 Aug.
             </Text>
           </div>
-        </Collapsible.Content>
+        </CollapsibleContent>
       </Collapsible>
     </Stack>
   ),

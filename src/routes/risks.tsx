@@ -1,41 +1,30 @@
-import { useMemo, useState } from "react";
 import { CreateRiskDialog } from "@/components/app/risk-create-dialog";
 import { UnavailableAction } from "@/components/app/unavailable-action";
 import { useRisksVersion } from "@/lib/risk-store";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Download, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 
+import { Shell } from "@/components/app/shell";
+import { type Risk, risks, riskStatusTone } from "@/lib/grc-data";
+import { useTableSearch, validateTableSearch } from "@/lib/table-state";
 import {
   Badge,
-  Box,
   Button,
-  Combobox,
   DataTable,
   defineColumns,
-  Dialog,
-  Eyebrow,
-  Field,
   Glance,
-  Grid,
-  Id,
   IndexPage,
   Inline,
-  Input,
-  NativeSelect,
   PageHeader,
   type Preset,
   Progress,
-  Stack,
-  Textarea,
   TextLink,
   toast,
   toCsv,
   type Tone,
   useDataTable,
 } from "@ledger/design-system";
-import { useTableSearch, validateTableSearch } from "@/lib/table-state";
-import { Shell } from "@/components/app/shell";
-import { riskStatusTone, risks, type Risk } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/risks")({
   // The URL owns the table's question: sort, page, search and filters.
@@ -127,7 +116,7 @@ const riskColumns = defineColumns<Risk>((c) => [
         <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
           {r.inherent}
         </span>
-        <Progress value={r.residual} tone={residualTone(r.residual)} />
+        <Progress value={r.residual} tone={residualTone(r.residual)} aria-hidden />
         <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
           {r.residual}
         </span>

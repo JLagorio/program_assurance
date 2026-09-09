@@ -1,11 +1,3 @@
-/**
- * The preview sheet for one element of the system: what a reader gets when
- * they click a row of the tree. Everything related, in one panel, with the
- * full record one click away. The peek-panel pattern (Jira issue peek, Linear
- * side peek, Salesforce record preview): the list keeps its place, the panel
- * carries the actions that make sense without leaving.
- */
-
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -27,10 +19,14 @@ import {
   TextLink,
 } from "@ledger/design-system";
 
-import { ProposeChange, RevisionActions, RevisionReview } from "./control-set-revisions";
-import { ControlHover, RequirementHover } from "./glances";
-import { AllocateRequirementsSheet } from "./allocate-picker";
-import { childrenOf, descendantsOf, nodeById, pathLabel } from "@/lib/composition";
+import {
+  childrenOf,
+  descendantsOf,
+  nodeById,
+  pathLabel,
+  useCompositionGraph,
+  type CompositionNode,
+} from "@/lib/composition";
 import { workIndex } from "@/lib/control-board";
 import {
   controlById,
@@ -40,6 +36,7 @@ import {
   useControlSetVersion,
 } from "@/lib/control-set";
 import { positionOf, useWorkVersion } from "@/lib/control-work";
+import { programControlRows } from "@/lib/program-controls";
 import {
   allocationStateTone,
   allocationsOn,
@@ -54,6 +51,9 @@ import {
   triadOf,
   useScopesVersion,
 } from "@/lib/scopes";
+import { AllocateRequirementsSheet } from "./allocate-picker";
+import { ProposeChange, RevisionActions, RevisionReview } from "./control-set-revisions";
+import { ControlHover, RequirementHover } from "./glances";
 
 const impactTone = { Low: "neutral", Moderate: "warning", High: "danger" } as const;
 
@@ -63,6 +63,8 @@ export function NodePreviewSheet({
   onClose,
   onSelect,
   onBack,
+  onEdit,
+  onMove,
 }: {
   programId: string;
   nodeId: string | null;
@@ -71,14 +73,17 @@ export function NodePreviewSheet({
   onSelect: (nodeId: string) => void;
   /** Back to the frame before, when there is one. */
   onBack?: (() => void) | undefined;
+  onEdit?: ((node: CompositionNode) => void) | undefined;
+  onMove?: ((node: CompositionNode) => void) | undefined;
 }) {
+  const nodes = useCompositionGraph(programId);
   useScopesVersion();
   useControlSetVersion();
   useRequirementsVersion();
   useWorkVersion();
   const [allocating, setAllocating] = useState(false);
 
-  const node = nodeId ? (nodeById.get(nodeId) ?? null) : null;
+  const node = nodes.find((item) => item.id === nodeId) ?? null;
   const scope = node
     ? (scopesForProgram(programId).find((s) => s.element === node.id) ?? null)
     : null;
@@ -89,6 +94,8 @@ export function NodePreviewSheet({
 
   const subtree = node ? [node, ...descendantsOf(node.id)] : [];
   const allocations = subtree.flatMap((n) => allocationsOn(n.id));
+  const allocatedRequirements = new Set(allocations.map((allocation) => allocation.requirement));
+  const applicableControls = node ? programControlRows(programId, node.id).length : 0;
   const reached = new Map<string, string>();
   for (const n of subtree) {
     for (const c of derivedControlTrace(n.id).controls) if (!reached.has(c)) reached.set(c, n.id);
@@ -142,7 +149,23 @@ export function NodePreviewSheet({
           </TextLink>
         ) : null
       }
-      actions={open ? <RevisionActions revision={open} /> : null}
+      actions={
+        node ? (
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            {onEdit ? (
+              <Button size="small" variant="secondary" onClick={() => onEdit(node)}>
+                Edit
+              </Button>
+            ) : null}
+            {onMove && node.parent ? (
+              <Button size="small" variant="secondary" onClick={() => onMove(node)}>
+                Move
+              </Button>
+            ) : null}
+            {open ? <RevisionActions revision={open} /> : null}
+          </Inline>
+        ) : null
+      }
     >
       {node ? (
         <Stack space="space.050">
@@ -164,6 +187,37 @@ export function NodePreviewSheet({
               </Text>
             ) : null}
           </Block>
+
+          <Inline space="space.200" alignBlock="center" shouldWrap className="py-100">
+            <TextLink>
+              <Link
+                to="/programs/$programId"
+                params={{ programId }}
+                search={(previous) => ({
+                  ...previous,
+                  tab: "Controls",
+                  element: node.id,
+                  peek: undefined,
+                })}
+              >
+                View applicable controls ({applicableControls})
+              </Link>
+            </TextLink>
+            <TextLink>
+              <Link
+                to="/programs/$programId"
+                params={{ programId }}
+                search={(previous) => ({
+                  ...previous,
+                  tab: "Requirements",
+                  element: node.id,
+                  peek: undefined,
+                })}
+              >
+                View allocated requirements ({allocatedRequirements.size})
+              </Link>
+            </TextLink>
+          </Inline>
 
           {scope && triad && set ? (
             <Block
@@ -200,7 +254,7 @@ export function NodePreviewSheet({
           {open ? <RevisionReview revision={open} programId={programId} compact /> : null}
 
           <Block
-            title="Requirements"
+            title="Allocated requirements"
             count={allocations.length}
             action={
               <Button size="small" variant="secondary" onClick={() => setAllocating(true)}>
@@ -278,7 +332,7 @@ export function NodePreviewSheet({
           </Block>
 
           {!scope ? (
-            <Block title="Controls reached" count={reached.size}>
+            <Block title="Controls linked through requirements" count={reached.size}>
               {reached.size ? (
                 <Table>
                   <thead>
@@ -353,10 +407,10 @@ export function NodePreviewSheet({
                     <Table.Header>Part</Table.Header>
                     <Table.Header width={150}>Kind</Table.Header>
                     <Table.Header width={110} className="text-right">
-                      Requirements
+                      Allocated requirements
                     </Table.Header>
                     <Table.Header width={96} className="text-right">
-                      Controls
+                      Linked controls
                     </Table.Header>
                   </Table.Row>
                 </thead>

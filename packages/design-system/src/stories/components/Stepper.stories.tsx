@@ -1,9 +1,15 @@
 import { ChevronDown } from "lucide-react";
+import {
+  Avatar,
+  Badge,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Person,
+  Stepper,
+} from "../../components";
 
-import { Badge, Collapsible } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-
-import { Avatar, Person, Stepper } from "../../components";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -135,35 +141,35 @@ export const Milestones: Story = {
         <Stepper.Item state="done" label="Contract signed" meta="12 Aug">
           <Collapsible className="border-t border-default border-t-0">
             <h3>
-              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                {<Person name="Maya Brooks" />}
+              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                <Person name="Maya Brooks" />
                 <ChevronDown
                   aria-hidden="true"
                   className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
                 />
-              </Collapsible.Trigger>
+              </CollapsibleTrigger>
             </h3>
-            <Collapsible.Content>
+            <CollapsibleContent>
               <div className="pb-200">
                 <Text size="small" color="color.text.subtle">
                   Revenue operations. Signed and countersigned; the workspace order is on file.
                 </Text>
               </div>
-            </Collapsible.Content>
+            </CollapsibleContent>
           </Collapsible>
         </Stepper.Item>
         <Stepper.Item state="current" label="Workspace provisioning" meta="Due 18 Sep">
           <Collapsible defaultOpen className="border-t border-default border-t-0">
             <h3>
-              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                {<Person name="Nina Patel" />}
+              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                <Person name="Nina Patel" />
                 <ChevronDown
                   aria-hidden="true"
                   className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
                 />
-              </Collapsible.Trigger>
+              </CollapsibleTrigger>
             </h3>
-            <Collapsible.Content>
+            <CollapsibleContent>
               <div className="pb-200">
                 <Stack space="space.100">
                   <Inline space="space.050">
@@ -198,27 +204,27 @@ export const Milestones: Story = {
                   </Inline>
                 </Stack>
               </div>
-            </Collapsible.Content>
+            </CollapsibleContent>
           </Collapsible>
         </Stepper.Item>
         <Stepper.Item state="upcoming" label="Launch readiness">
           <Collapsible className="border-t border-default border-t-0">
             <h3>
-              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                {<Person name="Leah Stone" />}
+              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                <Person name="Leah Stone" />
                 <ChevronDown
                   aria-hidden="true"
                   className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
                 />
-              </Collapsible.Trigger>
+              </CollapsibleTrigger>
             </h3>
-            <Collapsible.Content>
+            <CollapsibleContent>
               <div className="pb-200">
                 <Text size="small" color="color.text.subtle">
                   Account executive. Opens when provisioning closes.
                 </Text>
               </div>
-            </Collapsible.Content>
+            </CollapsibleContent>
           </Collapsible>
         </Stepper.Item>
       </Stepper>

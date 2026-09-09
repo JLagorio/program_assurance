@@ -1,74 +1,97 @@
-import * as ProgressPrimitive from "@radix-ui/react-progress";
-
+import { Progress as Primitive } from "@base-ui/react/progress";
+import { createContext, useContext } from "react";
+import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
 import { toneClasses, type Tone } from "./badge";
 
 export type ProgressSize = "small" | "medium" | "large";
-
-/** The bar's height: 4, 6 or 8px, on the space scale. */
 const sizes: Record<ProgressSize, string> = { small: "h-050", medium: "h-075", large: "h-100" };
-
-export type ProgressProps = {
-  /** 0 to 100. Anything outside is clamped. */
-  value: number;
-  /** The fill's colour, from the tone table. `information` is the default: a bar that is not a status is blue. */
+const ProgressContext = createContext<{ tone: Tone; size: ProgressSize }>({
+  tone: "information",
+  size: "medium",
+});
+export type ProgressProps = Primitive.Root.Props & {
   tone?: Tone | undefined;
-  /** The accessible name, what is being measured ("Assessment progress"). With it the bar is a progressbar; without it the bar is decorative and the number beside it carries the value. */
-  label?: string | undefined;
-  /** `small` is 4px, in a cell or beside a name; `medium` 6px, the default; `large` 8px, a band. */
   size?: ProgressSize | undefined;
-  /** The value after the bar, "64%", in small subtle text at a fixed minimum width so a column of bars lines up. */
-  showValue?: boolean | undefined;
-  /** What the read-out says instead of the percentage ("41 of 80", "64% complete"). It is also the bar's `aria-valuetext`. */
-  valueText?: string | undefined;
-  className?: string | undefined;
 };
-
-/**
- * One value out of 100 as a thin bar. Radix underneath for the role and aria-valuenow. With `label`
- * it is a named progressbar; without one it is decorative, hidden from assistive technology, and the
- * number beside it carries the value.
- */
-function ProgressRoot({
-  value,
-  tone = "information",
-  label,
-  size = "medium",
-  showValue,
-  valueText,
+export function Progress({
   className,
+  children,
+  tone = "information",
+  size = "medium",
+  locale,
+  ...props
 }: ProgressProps) {
-  const clamped = Math.max(0, Math.min(100, value));
-  const bar = (
-    <ProgressPrimitive.Root
-      value={clamped}
-      aria-label={label}
-      aria-valuetext={label ? valueText : undefined}
-      aria-hidden={label ? undefined : true}
-      className={cn(
-        "w-full overflow-hidden rounded-full bg-neutral",
-        sizes[size],
-        showValue && "min-w-0 flex-1",
+  const ledger = useLedgerLocale();
+  return (
+    <ProgressContext.Provider value={{ tone, size }}>
+      <Primitive.Root
+        data-slot="progress"
+        locale={locale ?? ledger.locale}
+        {...props}
+        className={classes("flex w-full flex-wrap items-center gap-100", className)}
+      >
+        {children}
+        <ProgressTrack>
+          <ProgressIndicator />
+        </ProgressTrack>
+      </Primitive.Root>
+    </ProgressContext.Provider>
+  );
+}
+export type ProgressTrackProps = Primitive.Track.Props;
+export function ProgressTrack({ className, ...props }: ProgressTrackProps) {
+  const { size } = useContext(ProgressContext);
+  return (
+    <Primitive.Track
+      data-slot="progress-track"
+      {...props}
+      className={classes(
+        cn(
+          "relative flex w-full items-center overflow-hidden rounded-full bg-neutral",
+          sizes[size],
+        ),
         className,
       )}
-    >
-      <ProgressPrimitive.Indicator
-        className={cn(
-          "h-full rounded-full transition-all duration-fast ease-standard",
-          toneClasses[tone].fill,
-        )}
-        style={{ width: `${clamped}%` }}
-      />
-    </ProgressPrimitive.Root>
+    />
   );
-  if (!showValue) return bar;
+}
+export type ProgressIndicatorProps = Primitive.Indicator.Props;
+export function ProgressIndicator({ className, ...props }: ProgressIndicatorProps) {
+  const { tone } = useContext(ProgressContext);
   return (
-    <span className="flex w-full items-center gap-100">
-      {bar}
-      <span className="min-w-500 shrink-0 text-end font-body-small tabular-nums text-subtle">
-        {valueText ?? `${Math.round(clamped)}%`}
-      </span>
-    </span>
+    <Primitive.Indicator
+      data-slot="progress-indicator"
+      {...props}
+      className={classes(
+        cn(
+          "h-full rounded-full transition-all duration-fast ease-standard motion-reduce:transition-none data-indeterminate:w-full data-indeterminate:animate-pulse motion-reduce:animate-none",
+          toneClasses[tone].fill,
+        ),
+        className,
+      )}
+    />
+  );
+}
+export type ProgressLabelProps = Primitive.Label.Props;
+export function ProgressLabel({ className, ...props }: ProgressLabelProps) {
+  return (
+    <Primitive.Label
+      data-slot="progress-label"
+      {...props}
+      className={classes("font-body-small font-medium", className)}
+    />
+  );
+}
+export type ProgressValueProps = Primitive.Value.Props;
+export function ProgressValue({ className, ...props }: ProgressValueProps) {
+  return (
+    <Primitive.Value
+      data-slot="progress-value"
+      {...props}
+      className={classes("ms-auto font-body-small tabular-nums text-subtle", className)}
+    />
   );
 }
 
@@ -155,5 +178,3 @@ export function ProgressStacked({
     </span>
   );
 }
-
-export const Progress = Object.assign(ProgressRoot, { Stacked: ProgressStacked });

@@ -1,42 +1,42 @@
-import { useEffect, useCallback, type SetStateAction, useMemo, useState } from "react";
-import { useRecordForm } from "@/lib/record-form";
 import { UnavailableAction } from "@/components/app/unavailable-action";
-import { Link } from "@tanstack/react-router";
-import { Check, Download, Plus, RefreshCw, X } from "lucide-react";
-
+import { useRecordForm } from "@/lib/record-form";
 import {
-  AlertDialog,
   Badge,
   Box,
   Button,
   buttonVariants,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Eyebrow,
   Field,
   Grid,
   Id,
   Indicator,
-  Inline,
   Input,
   KeyValue,
   NativeSelect,
-  Progress,
   Section,
   Stack,
   Table,
   Textarea,
-  toast,
 } from "@ledger/design-system";
+import { Link } from "@tanstack/react-router";
+import { Check, Plus, RefreshCw, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type SetStateAction } from "react";
+
 import {
   artifactShort,
   artifactTone,
   connectorSignals,
-  connectors as seedConnectors,
   evidenceStatusTone,
   healthTone,
-  mappingRules as seedRules,
-  sspSections,
+  connectors as seedConnectors,
   threadEvidence as seedEvidence,
+  mappingRules as seedRules,
   type ConnectorKind,
   type EvidenceStatus,
   type MappingRule,
@@ -418,217 +418,239 @@ function RuleModal({
 
   return (
     <Dialog
-      open
-      onClose={onClose}
-      width="large"
-      title={creating ? "New mapping rule" : `${rule.id} — ${rule.name}`}
-      description="Signals from engineering tools become NIST SP 800-53 evidence automatically."
-      aside={
-        <div>
-          <Eyebrow as="p">Rule as code</Eyebrow>
-          <pre className="pt-100 whitespace-pre-wrap font-code font-body-xsmall text-subtle">
-            {ruleAsCode({ ...draft, controls: parsed })}
-          </pre>
-        </div>
-      }
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            form={formId + "-1"}
-            disabled={form.state.isSubmitting}
-          >
-            {creating ? "Create rule" : "Save rule"}
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        id={formId + "-1"}
-        ref={formRef}
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit({
-            save: () => {
-              onSave({ ...draft, controls: parsed });
-            },
-          });
-        }}
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
       >
-        <Stack space="space.150">
-          <form.Field name="draft.name">
-            {(field) => (
-              <Field
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label="Rule name"
+        <DialogHeader>
+          <DialogTitle>{creating ? "New mapping rule" : `${rule.id} — ${rule.name}`}</DialogTitle>
+          <DialogDescription>
+            Signals from engineering tools become NIST SP 800-53 evidence automatically.
+          </DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none">
+          <Box className="grid grid-cols-1 md:grid-cols-3">
+            <Box className="px-250 py-200 md:col-span-2">
+              <form
+                id={formId + "-1"}
+                ref={formRef}
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void form.handleSubmit({
+                    save: () => {
+                      onSave({ ...draft, controls: parsed });
+                    },
+                  });
+                }}
               >
-                <Input
-                  value={field.state.value ?? ""}
-                  placeholder="Multifactor authentication"
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <Grid
-            gap="space.150"
-            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-          >
-            <form.Field name="draft.source">
-              {(field) => (
-                <Field
-                  label="Source tool"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={draft.source}
-                    onChange={(e) => {
-                      const source = e.target.value as ConnectorKind;
-                      setDraft({
-                        ...draft,
-                        source,
-                        signal: connectorSignals[source][0] ?? "Label",
-                      });
-                    }}
-                    name={field.name}
-                    onBlur={field.handleBlur}
+                <Stack space="space.150">
+                  <form.Field name="draft.name">
+                    {(field) => (
+                      <Field
+                        isRequired
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                        label="Rule name"
+                      >
+                        <Input
+                          value={field.state.value ?? ""}
+                          placeholder="Multifactor authentication"
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
-                    {(Object.keys(connectorSignals) as ConnectorKind[]).map((k) => (
-                      <option key={k} value={k}>
-                        {k}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="draft.signal">
-              {(field) => (
-                <Field
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                  label="Signal"
-                >
-                  <NativeSelect
-                    value={field.state.value ?? ""}
-                    onChange={(e) => field.handleChange(e.target.value as MappingRuleSignal)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
+                    <form.Field name="draft.source">
+                      {(field) => (
+                        <Field
+                          label="Source tool"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={draft.source}
+                            onChange={(e) => {
+                              const source = e.target.value as ConnectorKind;
+                              setDraft({
+                                ...draft,
+                                source,
+                                signal: connectorSignals[source][0] ?? "Label",
+                              });
+                            }}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {(Object.keys(connectorSignals) as ConnectorKind[]).map((k) => (
+                              <option key={k} value={k}>
+                                {k}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="draft.signal">
+                      {(field) => (
+                        <Field
+                          isRequired
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                          label="Signal"
+                        >
+                          <NativeSelect
+                            value={field.state.value ?? ""}
+                            onChange={(e) =>
+                              field.handleChange(e.target.value as MappingRuleSignal)
+                            }
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {connectorSignals[draft.source].map((s) => (
+                              <option key={s} value={s}>
+                                {s}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                  </Grid>
+                  <form.Field name="draft.match">
+                    {(field) => (
+                      <Field
+                        label="Match expression"
+                        hint="JQL fragment, path glob, commit trailer or stereotype."
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                      >
+                        <Input
+                          value={field.state.value ?? ""}
+                          placeholder="sec:mfa OR component = Identity"
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                  <form.Field name="controls">
+                    {(field) => (
+                      <Field
+                        isRequired
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                        label="Mapped controls"
+                        hint="Comma separated NIST SP 800-53 Rev. 5 control IDs."
+                      >
+                        <Input
+                          value={field.state.value ?? ""}
+                          placeholder="IA-2, IA-2(1)"
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
-                    {connectorSignals[draft.source].map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-          </Grid>
-          <form.Field name="draft.match">
-            {(field) => (
-              <Field
-                label="Match expression"
-                hint="JQL fragment, path glob, commit trailer or stereotype."
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-              >
-                <Input
-                  value={field.state.value ?? ""}
-                  placeholder="sec:mfa OR component = Identity"
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="controls">
-            {(field) => (
-              <Field
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label="Mapped controls"
-                hint="Comma separated NIST SP 800-53 Rev. 5 control IDs."
-              >
-                <Input
-                  value={field.state.value ?? ""}
-                  placeholder="IA-2, IA-2(1)"
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <Grid
-            gap="space.150"
-            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-          >
-            <form.Field name="draft.confidence">
-              {(field) => (
-                <Field
-                  label="Confidence"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value ?? ""}
-                    onChange={(e) =>
-                      field.handleChange(e.target.value as MappingRule["confidence"])
-                    }
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  >
-                    <option>High</option>
-                    <option>Medium</option>
-                    <option>Low</option>
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <Field label="State">
-              <NativeSelect
-                value={draft.enabled ? "Enabled" : "Disabled"}
-                onChange={(e) => setDraft({ ...draft, enabled: e.target.value === "Enabled" })}
-              >
-                <option>Enabled</option>
-                <option>Disabled</option>
-              </NativeSelect>
-            </Field>
-          </Grid>
-        </Stack>
-      </form>
+                    <form.Field name="draft.confidence">
+                      {(field) => (
+                        <Field
+                          label="Confidence"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={field.state.value ?? ""}
+                            onChange={(e) =>
+                              field.handleChange(e.target.value as MappingRule["confidence"])
+                            }
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            <option>High</option>
+                            <option>Medium</option>
+                            <option>Low</option>
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                    <Field label="State">
+                      <NativeSelect
+                        value={draft.enabled ? "Enabled" : "Disabled"}
+                        onChange={(e) =>
+                          setDraft({ ...draft, enabled: e.target.value === "Enabled" })
+                        }
+                      >
+                        <option>Enabled</option>
+                        <option>Disabled</option>
+                      </NativeSelect>
+                    </Field>
+                  </Grid>
+                </Stack>
+              </form>
+            </Box>
+            <Box className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+              <div>
+                <Eyebrow as="p">Rule as code</Eyebrow>
+                <pre className="pt-100 whitespace-pre-wrap font-code font-body-xsmall text-subtle">
+                  {ruleAsCode({ ...draft, controls: parsed })}
+                </pre>
+              </div>
+            </Box>
+          </Box>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="subtle" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId + "-1"}
+              disabled={form.state.isSubmitting}
+            >
+              {creating ? "Create rule" : "Save rule"}
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -661,112 +683,128 @@ function EvidenceModal({
 
   return (
     <Dialog
-      open
-      onClose={onClose}
-      width="large"
-      title={evidence.title}
-      description={`${evidence.ref} · ${programId} · rule ${evidence.rule}`}
-      aside={
-        <div>
-          <Eyebrow as="p">Thread detail</Eyebrow>
-          <Box paddingBlockStart="space.100">
-            <KeyValue label="Evidence">
-              <Id>{evidence.id}</Id>
-            </KeyValue>
-            <KeyValue label="Artifact">{evidence.kind}</KeyValue>
-            <KeyValue label="Controls">
-              <Id>{evidence.controls.join(", ")}</Id>
-            </KeyValue>
-            <KeyValue label="Engineer">{evidence.engineer}</KeyValue>
-            <KeyValue label="Reviewer">{evidence.reviewer ?? "—"}</KeyValue>
-            <KeyValue label="Closed">{evidence.closed}</KeyValue>
-          </Box>
-          <p className="pt-150 border-t border-default font-body-small text-subtle">
-            {evidence.narrative}
-          </p>
-        </div>
-      }
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Close
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => onStatus(evidence.id, "Rejected")}
-            iconBefore={<X />}
-          >
-            Reject
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            form={formId + "-2"}
-            iconBefore={<Check />}
-            disabled={form.state.isSubmitting}
-          >
-            Accept into SSP
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        id={formId + "-2"}
-        ref={formRef}
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit({
-            save: () => {
-              onStatus(evidence.id, "Accepted");
-            },
-          });
-        }}
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
       >
-        <Stack space="space.150">
-          <form.Field name="statement">
-            {(field) => (
-              <Field
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label="Generated implementation statement"
-                hint="Drafted from the artifact and edited by the product security engineer before it enters the SSP."
+        <DialogHeader>
+          <DialogTitle>{evidence.title}</DialogTitle>
+          <DialogDescription>{`${evidence.ref} · ${programId} · rule ${evidence.rule}`}</DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none">
+          <Box className="grid grid-cols-1 md:grid-cols-3">
+            <Box className="px-250 py-200 md:col-span-2">
+              <form
+                id={formId + "-2"}
+                ref={formRef}
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void form.handleSubmit({
+                    save: () => {
+                      onStatus(evidence.id, "Accepted");
+                    },
+                  });
+                }}
               >
-                <Textarea
-                  rows={5}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                  value={field.state.value ?? ""}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <Grid
-            gap="space.150"
-            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-          >
-            <Field label="Status">
-              <NativeSelect
-                value={evidence.status}
-                onChange={(e) => onStatus(evidence.id, e.target.value as EvidenceStatus)}
-              >
-                <option>Auto-mapped</option>
-                <option>Needs review</option>
-                <option>Accepted</option>
-                <option>Rejected</option>
-              </NativeSelect>
-            </Field>
-            <Field label="Reviewer">
-              <Input defaultValue={evidence.reviewer ?? "Sarah Chen"} />
-            </Field>
-          </Grid>
-        </Stack>
-      </form>
+                <Stack space="space.150">
+                  <form.Field name="statement">
+                    {(field) => (
+                      <Field
+                        isRequired
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                        label="Generated implementation statement"
+                        hint="Drafted from the artifact and edited by the product security engineer before it enters the SSP."
+                      >
+                        <Textarea
+                          rows={5}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                          value={field.state.value ?? ""}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+                  >
+                    <Field label="Status">
+                      <NativeSelect
+                        value={evidence.status}
+                        onChange={(e) => onStatus(evidence.id, e.target.value as EvidenceStatus)}
+                      >
+                        <option>Auto-mapped</option>
+                        <option>Needs review</option>
+                        <option>Accepted</option>
+                        <option>Rejected</option>
+                      </NativeSelect>
+                    </Field>
+                    <Field label="Reviewer">
+                      <Input defaultValue={evidence.reviewer ?? "Sarah Chen"} />
+                    </Field>
+                  </Grid>
+                </Stack>
+              </form>
+            </Box>
+            <Box className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+              <div>
+                <Eyebrow as="p">Thread detail</Eyebrow>
+                <Box paddingBlockStart="space.100">
+                  <KeyValue label="Evidence">
+                    <Id>{evidence.id}</Id>
+                  </KeyValue>
+                  <KeyValue label="Artifact">{evidence.kind}</KeyValue>
+                  <KeyValue label="Controls">
+                    <Id>{evidence.controls.join(", ")}</Id>
+                  </KeyValue>
+                  <KeyValue label="Engineer">{evidence.engineer}</KeyValue>
+                  <KeyValue label="Reviewer">{evidence.reviewer ?? "—"}</KeyValue>
+                  <KeyValue label="Closed">{evidence.closed}</KeyValue>
+                </Box>
+                <p className="pt-150 border-t border-default font-body-small text-subtle">
+                  {evidence.narrative}
+                </p>
+              </div>
+            </Box>
+          </Box>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="subtle" onClick={onClose}>
+              Close
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => onStatus(evidence.id, "Rejected")}
+              iconBefore={<X />}
+            >
+              Reject
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId + "-2"}
+              iconBefore={<Check />}
+              disabled={form.state.isSubmitting}
+            >
+              Accept into SSP
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -787,25 +825,35 @@ export function CdrPackageModal({
   return (
     <Dialog
       open={open}
-      onClose={onClose}
-      title="Prepare a CDR package"
-      description={`${programName} · ${programId}`}
-      footer={
-        <Link
-          to="/programs/$programId/export"
-          params={{ programId }}
-          search={{ tab: "Air-gap bundle" }}
-          className={buttonVariants({ variant: "primary" })}
-        >
-          Open package workspace
-        </Link>
-      }
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <p>
-        Review the generated artifacts, inspect their integrity digests, and download the actual
-        bundle files in the export workspace. This prototype does not hold a signing key or issue
-        government approvals.
-      </p>
+      <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+        <DialogHeader>
+          <DialogTitle>Prepare a CDR package</DialogTitle>
+          <DialogDescription>{`${programName} · ${programId}`}</DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <p>
+            Review the generated artifacts, inspect their integrity digests, and download the actual
+            bundle files in the export workspace. This prototype does not hold a signing key or
+            issue government approvals.
+          </p>
+        </Box>
+        <DialogFooter>
+          <Link
+            to="/programs/$programId/export"
+            params={{ programId }}
+            search={{ tab: "Air-gap bundle" }}
+            className={buttonVariants({ variant: "primary" })}
+          >
+            Open package workspace
+          </Link>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

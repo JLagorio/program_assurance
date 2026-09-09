@@ -1,33 +1,33 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
-import { ChevronRight } from "lucide-react";
-
 import {
+  Badge,
+  Box,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbSeparator,
-  Badge,
-  Box,
   Dot,
+  Eyebrow,
   Grid,
   Id,
   Inline,
   Person,
   Progress,
+  ProgressStacked,
   RecordHeader,
   Section,
   ShowPage,
   Table,
   TextLink,
-  Eyebrow,
 } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
+import { type ReactNode, useMemo, useState } from "react";
+
 import { ControlMatrixSection } from "@/components/app/control-matrix";
 import { FamilyCoverageChart } from "@/components/app/coverage-chart";
-import { cn } from "@ledger/design-system/cn";
+import { Shell } from "@/components/app/shell";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
-import { gatesForProgram, lifecyclePhases, programs, gateKindTone } from "@/lib/grc-data";
+import { isOpen } from "@/lib/findings";
+import { gateKindTone, gatesForProgram, lifecyclePhases, programs } from "@/lib/grc-data";
 import { catalogVersion } from "@/lib/nist-catalog";
 import { findingsForProgram, programPosture } from "@/lib/program-actions";
 import {
@@ -36,8 +36,9 @@ import {
   programDeadlines,
   type Deadline,
 } from "@/lib/program-coverage";
-import { isOpen } from "@/lib/findings";
 import { poamItems } from "@/lib/register";
+
+import { cn } from "@ledger/design-system/cn";
 
 export const Route = createFileRoute("/programs/$programId_/dashboard")({
   loader: ({ params }) => {
@@ -265,7 +266,7 @@ function ProgramDashboard() {
               hint={`${coverage.satisfied} of ${coverage.total} satisfied`}
               tone={coverage.pct >= 90 ? "success" : coverage.pct >= 75 ? "neutral" : "warning"}
             >
-              <Progress.Stacked
+              <ProgressStacked
                 size="small"
                 segments={coverage.segments.map((s) => ({
                   key: s.key,
@@ -273,7 +274,7 @@ function ProgramDashboard() {
                   tone: s.tone,
                   title: `${s.label} — ${s.value}`,
                 }))}
-              />
+              ></ProgressStacked>
             </DashboardStat>
             <DashboardStat
               label="Not satisfied"
@@ -306,6 +307,7 @@ function ProgramDashboard() {
               <Progress
                 value={outlook.total ? (outlook.completed / outlook.total) * 100 : 0}
                 tone={overdueGates > 0 ? "danger" : "success"}
+                aria-hidden
               />
             </DashboardStat>
           </Grid>
@@ -336,13 +338,13 @@ function ProgramDashboard() {
               <Box key={p.phase} as="span" style={{ minWidth: 136 }}>
                 <Inline as="span" space="space.100" alignBlock="center">
                   <span className="shrink-0 w-800">
-                    <Progress.Stacked
+                    <ProgressStacked
                       size="small"
                       segments={[
                         { key: "d", value: p.done, tone: "success" },
                         { key: "r", value: p.total - p.done, tone: "neutral" },
                       ]}
-                    />
+                    ></ProgressStacked>
                   </span>
                   <span className="truncate font-body-small text-subtle">{p.phase}</span>
                   <span className="tabular-nums font-body-small">

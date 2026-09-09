@@ -3,29 +3,32 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MoreHorizontal, Pencil } from "lucide-react";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
-
 import {
   Button,
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DropdownMenu,
-  DropdownMenuPortal,
-  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuLabel,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuLinkItem,
-  DropdownMenuCheckboxItem,
+  DropdownMenuPortal,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuSub,
-  DropdownMenuSubTrigger,
   DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
   IconButton,
   Kbd,
 } from "../../components";
+
 import { menuSurface } from "../../components/menu";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
@@ -326,26 +329,40 @@ function DialogDemo() {
           <DropdownMenuItem onClick={() => setOpen(true)}>Edit record</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Edit record">
-        <Stack space="space.200">
-          <Text>Choose an action for this record.</Text>
-          <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="secondary" />}>
-              More options
-            </DropdownMenuTrigger>
-            <DropdownMenuContent style={{ width: 200 }}>
-              <DropdownMenuItem>Copy record</DropdownMenuItem>
-              <DropdownMenuItem>Move record</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button onClick={() => setOpen(false)}>Done</Button>
-        </Stack>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpen(false);
+          }
+        }}
+      >
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Edit record</DialogTitle>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <Stack space="space.200">
+              <Text>Choose an action for this record.</Text>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button variant="secondary" />}>
+                  More options
+                </DropdownMenuTrigger>
+                <DropdownMenuContent style={{ width: 200 }}>
+                  <DropdownMenuItem>Copy record</DropdownMenuItem>
+                  <DropdownMenuItem>Move record</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button onClick={() => setOpen(false)}>Done</Button>
+            </Stack>
+          </div>
+        </DialogContent>
       </Dialog>
     </>
   );
 }
 
-/** A menu opens a dialog, and a second menu stays within its focus and portal boundary. */
+/** A menu opens a dialog; a nested menu uses Base UI portals and dismisses one layer at a time. */
 export const Dialogs: Story = {
   render: () => <DialogDemo />,
   play: async ({ canvasElement }) => {
@@ -364,7 +381,7 @@ export const Dialogs: Story = {
     const more = within(dialog).getByRole("button", { name: "More options" });
     await waitFor(() => expect(more).toHaveFocus());
     await user.keyboard("{ArrowDown}");
-    const menu = await within(dialog).findByRole("menu");
+    const menu = await page.findByRole("menu");
     await waitFor(() => expect(menu).toBeVisible());
     await waitFor(() => {
       const r = menu.getBoundingClientRect();

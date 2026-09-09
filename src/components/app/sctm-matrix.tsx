@@ -1,25 +1,9 @@
-/**
- * The program record's control surface.
- *
- * This replaced three stacked sections: a paragraph pointing at the SCTM route,
- * a coverage-by-family table, and a control matrix. They were one artifact cut
- * into three — the coverage table was a rollup of the matrix, and the matrix was
- * a coarser grain of the SCTM. So there is now one table: the SCTM, grouped by
- * control family, with the rollup on the group header.
- *
- * Collapsed, it reads as the coverage table it replaced. Expanded, it is the
- * traceability matrix. Nothing here is a link to the real thing.
- *
- * Filtering and expansion live here; the rows and the rollup arrive already
- * derived from `@/lib/sctm`.
- */
-
 import { useMemo, useState } from "react";
 
 import { SctmFamilyTable } from "@/components/app/sctm";
-import { Box, Button, Empty, NativeSelect, Section, Toolbar } from "@ledger/design-system";
 import { controlStatuses, type ControlStatus } from "@/lib/control-matrix";
 import { groupByFamily, useControlText, useSctm, type Determination } from "@/lib/sctm";
+import { Box, Button, Empty, NativeSelect, Section, Toolbar } from "@ledger/design-system";
 
 /**
  * The program's four-value control vocabulary against the SCTM's.

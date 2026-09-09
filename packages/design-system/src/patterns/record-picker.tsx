@@ -1,9 +1,18 @@
 import { Badge, type Tone } from "../components/badge";
-import { Command } from "../components/command";
+import {
+  Command,
+  CommandCount,
+  CommandDialog,
+  CommandEmpty,
+  CommandFooter,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../components/command";
 import { Id } from "../components/id";
 import { CommandKeys } from "../lib/command-keys";
 
-/* Finds one record by name and shows the key beside it, with its status, as a Command.Dialog: the id, the title with its meta under it, one badge at the end, the count of
+/* Finds one record by name and shows the key beside it, with its status, as a CommandDialog: the id, the title with its meta under it, one badge at the end, the count of
    matches in the field and a footer of keys. It picks one and closes; choosing many by attribute
    is the PickerSheet. */
 
@@ -49,38 +58,51 @@ export function RecordPicker({
   emptyHint,
 }: RecordPickerProps) {
   return (
-    <Command.Dialog open={open} onClose={onClose} label={title} width="large">
-      <Command.Input placeholder={placeholder} hint={<Command.Count />} autoFocus />
-      <Command.List style={{ maxHeight: "46vh" }}>
-        {records.map((r) => (
-          <Command.Item
-            key={r.id}
-            value={`${r.id} ${r.title} ${r.meta ?? ""} ${r.keywords ?? ""}`}
-            className="h-auto py-100"
-            onSelect={() => {
-              onPick(r);
-              onClose();
-            }}
-          >
-            <Id className="text-subtle">{r.id}</Id>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate">{r.title}</span>
-              {r.meta ? (
-                <span className="block truncate font-body-xsmall text-subtle">{r.meta}</span>
+    <CommandDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={title}
+      style={{ maxWidth: 640 }}
+    >
+      <Command label={title}>
+        <CommandInput
+          placeholder={placeholder}
+          hint={<CommandCount></CommandCount>}
+          autoFocus
+        ></CommandInput>
+        <CommandList style={{ maxHeight: "46vh" }}>
+          {records.map((r) => (
+            <CommandItem
+              key={r.id}
+              value={`${r.id} ${r.title} ${r.meta ?? ""} ${r.keywords ?? ""}`}
+              className="h-auto py-100"
+              onSelect={() => {
+                onPick(r);
+                onClose();
+              }}
+            >
+              <Id className="text-subtle">{r.id}</Id>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate">{r.title}</span>
+                {r.meta ? (
+                  <span className="block truncate font-body-xsmall text-subtle">{r.meta}</span>
+                ) : null}
+              </span>
+              {r.badge ? (
+                <Badge variant="secondary" size="xsmall" tone={r.badge.tone ?? "neutral"}>
+                  {r.badge.label}
+                </Badge>
               ) : null}
-            </span>
-            {r.badge ? (
-              <Badge variant="secondary" size="xsmall" tone={r.badge.tone ?? "neutral"}>
-                {r.badge.label}
-              </Badge>
-            ) : null}
-          </Command.Item>
-        ))}
-      </Command.List>
-      <Command.Empty>{emptyHint ?? "Nothing matches."}</Command.Empty>
-      <Command.Footer>
-        <CommandKeys />
-      </Command.Footer>
-    </Command.Dialog>
+            </CommandItem>
+          ))}
+        </CommandList>
+        <CommandEmpty>{emptyHint ?? "Nothing matches."}</CommandEmpty>
+        <CommandFooter>
+          <CommandKeys />
+        </CommandFooter>
+      </Command>
+    </CommandDialog>
   );
 }

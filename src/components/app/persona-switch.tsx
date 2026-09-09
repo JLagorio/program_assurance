@@ -1,17 +1,6 @@
-/**
- * Prototype-only: act as another role. The floating devtools toggle pattern
- * (React Query and TanStack Router devtools), placed bottom-left above the
- * sidebar's user chip: bottom-right is where wizard and sheet footers put
- * their primary action, and a switch there steals the click. Deleted in one
- * line before anything ships, so it stays out of the kit on purpose; what it
- * is made of (Button, Avatar, Popover, NativeSelect, Text) is all kit. Every
- * gated action reads `currentSession()`, so switching here is enough to see
- * separation of duty from each side.
- */
-
 import {
-  Box,
   Avatar,
+  Box,
   Button,
   NativeSelect,
   Popover,

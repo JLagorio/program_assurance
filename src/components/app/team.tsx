@@ -2,8 +2,20 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import {
+  allocationFor,
+  crossDisciplineEdges,
+  peopleForProgram,
+  personById,
+  workstreamStatusTone,
+  workstreamsForPerson,
+  workstreamsForProgram,
+  type Person,
+  type Workstream,
+} from "@/lib/people";
+import {
   Badge,
   Box,
+  Count,
   Id,
   Inline,
   Inspector,
@@ -15,23 +27,11 @@ import {
   Stack,
   Table,
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
-  TabsContent,
-  Count,
   TextLink,
 } from "@ledger/design-system";
-import {
-  allocationFor,
-  crossDisciplineEdges,
-  peopleForProgram,
-  personById,
-  workstreamStatusTone,
-  workstreamsForPerson,
-  workstreamsForProgram,
-  type Person,
-  type Workstream,
-} from "@/lib/people";
 
 const tabs = ["Workstreams", "People", "Coordination"] as const;
 type Tab = (typeof tabs)[number];
@@ -180,6 +180,7 @@ export function TeamSection({ programId }: { programId: string }) {
                                   tone={
                                     alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"
                                   }
+                                  aria-hidden
                                 />
                               </span>
                               <span

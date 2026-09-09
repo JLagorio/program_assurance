@@ -1,44 +1,25 @@
-/**
- * Inheritance resolution presentation — the "why this provider, and what do I
- * still owe" surface.
- *
- * An inherited control looks like a saving until an assessor asks two questions
- * the old matrix could not answer. *Why this provider?* — a control offered by
- * two components used to resolve on seed order, and the loser vanished. *What do
- * I still owe?* — a Shared control used to render as "Inherited", which told the
- * AO the program owed nothing on exactly the rows where it owes the most.
- *
- * So the conflict list and the obligation column are the load-bearing parts of
- * this file, not decoration. A row with shared responsibility and no stated
- * obligation is called out in red rather than shown as an em dash, because an
- * unstated obligation is the failure mode the product exists to surface: nobody
- * implements it, nobody assesses it, and the package ships with a hole in it.
- *
- * Presentation only. Every value arrives as a prop from `@/lib/inheritance`;
- * nothing here resolves, ranks or filters anything. Routes own the links.
- */
-
-import type { ReactNode } from "react";
-
 import {
   Absent,
   Badge,
   Box,
   Dot,
   Empty,
+  Eyebrow,
   Grid,
   Id,
+  Indicator,
   Inline,
   Inspector,
   KeyValue,
   Progress,
+  ProgressStacked,
   Stack,
   Stat,
   Table,
-  Indicator,
-  Eyebrow,
+  type Tone,
 } from "@ledger/design-system";
-import type { Tone } from "@ledger/design-system";
+import type { ReactNode } from "react";
+
 import {
   designationTone,
   inheritanceStateTone,
@@ -47,6 +28,7 @@ import {
   type inheritanceSummary,
   type ResolvedInheritance,
 } from "@/lib/inheritance";
+
 import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared reads ────────────────────────────────────────────────────────── */
@@ -530,7 +512,7 @@ function BreakdownRow({
         {label}
       </span>
       <span className="min-w-0 flex-1">
-        <Progress value={pct} tone={tone} />
+        <Progress value={pct} tone={tone} aria-hidden />
       </span>
       <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-800">
         {count} · {pct}%
@@ -594,14 +576,14 @@ export function InheritanceSummaryStats({
       </Stat.Grid>
 
       <div>
-        <Progress.Stacked
+        <ProgressStacked
           segments={legend.map((l) => ({
             key: l.key,
             value: l.value,
             tone: l.tone,
             title: `${l.label} — ${l.value}`,
           }))}
-        />
+        ></ProgressStacked>
         <Inline
           className="pt-100"
           space="space.200"

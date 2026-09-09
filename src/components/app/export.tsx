@@ -1,57 +1,6 @@
-/**
- * Interop and transfer presentation — the artifacts, not a summary of them.
- *
- * Everything on this surface is something a receiving assessor is expected to
- * check, so the guiding rule here is that the reader sees the real thing:
- *
- *  - **`OscalViewer` prints the actual JSON.** Not a field count, not a
- *    rendered abstraction of the document — the bytes `oscalJson` would write
- *    to the media, with line numbers, a UTF-8 byte count and a line count, in a
- *    block that scrolls in both directions inside its own frame. An SSP for a
- *    High baseline runs to tens of thousands of lines, so the block is a window
- *    over the document rather than the whole of it; the window says which lines
- *    it is showing out of how many, the outline jumps to a top-level member,
- *    and the download carries every byte. A viewer that showed a summary would
- *    be asking the reader to trust the summary, which is the one thing an
- *    interop artifact may not do.
- *  - **`BundleManifest` shows every digest in full.** Sixty-four hex characters
- *    per artifact, wrapped rather than elided, because a truncated hash cannot
- *    be compared against anything and a hash you cannot compare is decoration.
- *    The manifest text itself is on the page too, since that — not the table —
- *    is the string that was hashed.
- *  - **The signature block says what it is.** This build holds no key material,
- *    so the block carries a detached SHA-256 digest of the manifest and the
- *    component prints that in plain words beside it. Integrity, not
- *    authenticity. Dressing a digest up as a signature would be the single
- *    fastest way to discredit the whole page.
- *  - **`ReconcileTable` leads with the verdict and then shows its work.** The
- *    sentence a receiving ISSM acts on comes first; the per-path rows and the
- *    line-level detail behind that sentence come underneath, so the verdict can
- *    be argued with rather than merely believed.
- *
- * Presentation only. Every value arrives as a prop; nothing here hashes,
- * generates, reconciles or sorts anything. The one exception is
- * `downloadText`, which is a browser action rather than a derivation and is
- * guarded for SSR.
- */
-
-import { Fragment, useMemo, useState } from "react";
 import { Download } from "lucide-react";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode, useMemo, useState } from "react";
 
-import {
-  Absent,
-  Badge,
-  Box,
-  Button,
-  CodeBlock,
-  Empty,
-  Id,
-  Inline,
-  Stack,
-  Table,
-  Eyebrow,
-} from "@ledger/design-system";
 import {
   digestAlgorithm,
   reconcileStateTone,
@@ -67,6 +16,19 @@ import {
   type JsonValue,
   type OscalDocument,
 } from "@/lib/oscal";
+import {
+  Absent,
+  Badge,
+  Box,
+  Button,
+  CodeBlock,
+  Empty,
+  Eyebrow,
+  Id,
+  Inline,
+  Stack,
+  Table,
+} from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */

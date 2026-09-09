@@ -1,101 +1,136 @@
+import { AlertDialog as Primitive } from "@base-ui/react/alert-dialog";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
+import type { ComponentProps } from "react";
+import { classes } from "../lib/base-ui";
+import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { preserveNestedPopupEscape, useOverlayFocus } from "./_overlay-focus";
-import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
-import type { ReactNode, RefObject } from "react";
+import { Button, type ButtonProps } from "./button";
 
-import { Button } from "./button";
-
-export type AlertDialogProps = {
-  /** The caller's state. */
-  open: boolean;
-  /** Focus destination after closing; defaults to the opener, then a surviving dialog or main. */
-  returnFocusRef?: RefObject<HTMLElement | null> | undefined;
-  /** Called by Cancel and by Escape. Ignored while `pending`. */
-  onClose: () => void;
-  /** Called by the confirm button. The caller does the act and closes. */
-  onConfirm: () => void;
-  /** The question, with the object in it: "Archive this program?" */
-  title: ReactNode;
-  /** What happens, in one or two sentences: what is kept, what cannot be undone. */
-  description?: ReactNode;
-  /** The verb, as the button that started it: Archive, Submit, Delete. Never OK or Yes. */
-  confirmLabel?: string | undefined;
-  cancelLabel?: string | undefined;
-  /** `danger` when the act removes, closes or cannot be undone; the button turns red. */
-  tone?: "primary" | "danger" | undefined;
-  /** Holds the dialog open with the confirm button busy while the caller saves. */
-  pending?: boolean | undefined;
-  /** Under the description: one control the decision needs, a Checkbox or a Field. */
-  children?: ReactNode;
-};
-
-/** A decision that needs a word before it happens. No close button, no outside click: the two buttons are the only way out. */
-export function AlertDialog({
-  open,
-  returnFocusRef,
-  onClose,
-  onConfirm,
-  title,
-  description,
-  confirmLabel,
-  cancelLabel,
-  tone = "primary",
-  pending = false,
-  children,
-}: AlertDialogProps) {
-  const { t, direction } = useLedgerLocale();
-  const restoreFocus = useOverlayFocus(open, returnFocusRef);
+export type AlertDialogProps<Payload = unknown> = Primitive.Root.Props<Payload>;
+export function AlertDialog<Payload = unknown>(props: AlertDialogProps<Payload>) {
+  const { direction } = useLedgerLocale();
   return (
-    <AlertDialogPrimitive.Root
-      open={open}
-      onOpenChange={(next) => {
-        if (!next && !pending) onClose();
-      }}
-    >
-      <AlertDialogPrimitive.Portal>
-        <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-200 sm:pt-1000">
-          <AlertDialogPrimitive.Content
-            onEscapeKeyDown={preserveNestedPopupEscape}
-            onCloseAutoFocus={restoreFocus}
-            dir={direction}
-            {...(description ? {} : { "aria-describedby": undefined })}
-            style={{ maxWidth: 440 }}
-            className="relative w-full overflow-hidden rounded-xxlarge bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out"
-          >
-            <div className="flex flex-col gap-100 px-250 py-200">
-              <AlertDialogPrimitive.Title className="font-heading-xsmall text-default">
-                {title}
-              </AlertDialogPrimitive.Title>
-              {description ? (
-                <AlertDialogPrimitive.Description className="font-body text-subtle">
-                  {description}
-                </AlertDialogPrimitive.Description>
-              ) : null}
-              {children ? <div className="font-body text-default">{children}</div> : null}
-            </div>
-            <div className="flex items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150">
-              <AlertDialogPrimitive.Cancel asChild>
-                <Button variant="subtle" disabled={pending}>
-                  {cancelLabel ?? t("cancel")}
-                </Button>
-              </AlertDialogPrimitive.Cancel>
-              <AlertDialogPrimitive.Action asChild>
-                <Button
-                  variant={tone === "danger" ? "danger" : "primary"}
-                  isLoading={pending}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (!pending) onConfirm();
-                  }}
-                >
-                  {confirmLabel ?? t("confirm")}
-                </Button>
-              </AlertDialogPrimitive.Action>
-            </div>
-          </AlertDialogPrimitive.Content>
-        </div>
-      </AlertDialogPrimitive.Portal>
-    </AlertDialogPrimitive.Root>
+    <DirectionProvider direction={direction}>
+      <Primitive.Root {...props} />
+    </DirectionProvider>
+  );
+}
+export type AlertDialogTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;
+export function AlertDialogTrigger<Payload = unknown>(props: AlertDialogTriggerProps<Payload>) {
+  return <Primitive.Trigger data-slot="alert-dialog-trigger" {...props} />;
+}
+export type AlertDialogPortalProps = Primitive.Portal.Props;
+export function AlertDialogPortal(props: AlertDialogPortalProps) {
+  return <Primitive.Portal {...props} />;
+}
+export type AlertDialogOverlayProps = Primitive.Backdrop.Props;
+export function AlertDialogOverlay({ className, ...props }: AlertDialogOverlayProps) {
+  return (
+    <Primitive.Backdrop
+      data-slot="alert-dialog-overlay"
+      {...props}
+      className={classes(
+        "fixed inset-0 z-50 bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
+        className,
+      )}
+    />
+  );
+}
+export type AlertDialogContentProps = Primitive.Popup.Props & {
+  size?: "default" | "sm" | undefined;
+};
+export function AlertDialogContent({
+  className,
+  size = "default",
+  dir,
+  ...props
+}: AlertDialogContentProps) {
+  const { direction } = useLedgerLocale();
+  return (
+    <DirectionProvider direction={dir === "rtl" || dir === "ltr" ? dir : direction}>
+      <AlertDialogPortal>
+        <AlertDialogOverlay />
+        <Primitive.Popup
+          data-slot="alert-dialog-content"
+          data-size={size}
+          dir={dir ?? direction}
+          {...props}
+          className={classes(
+            "group/alert-dialog-content fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[440px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-xxlarge bg-surface-overlay text-default shadow-overlay outline-none data-[size=sm]:max-w-[320px] data-open:animate-dialog-in data-closed:animate-dialog-out",
+            className,
+          )}
+        />
+      </AlertDialogPortal>
+    </DirectionProvider>
+  );
+}
+export type AlertDialogActionProps = ButtonProps;
+export function AlertDialogAction(props: AlertDialogActionProps) {
+  return <Button data-slot="alert-dialog-action" variant="primary" {...props} />;
+}
+export type AlertDialogCancelProps = Primitive.Close.Props & Pick<ButtonProps, "variant" | "size">;
+export function AlertDialogCancel({ variant = "subtle", size, ...props }: AlertDialogCancelProps) {
+  return (
+    <Primitive.Close
+      data-slot="alert-dialog-cancel"
+      render={<Button variant={variant} size={size} />}
+      {...props}
+    />
+  );
+}
+export type AlertDialogMediaProps = ComponentProps<"div">;
+export function AlertDialogMedia({ className, ...props }: AlertDialogMediaProps) {
+  return (
+    <div
+      data-slot="alert-dialog-media"
+      className={cn(
+        "inline-flex size-500 items-center justify-center rounded-medium bg-neutral [&_svg]:size-icon-medium",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+export type AlertDialogHeaderProps = ComponentProps<"div">;
+export function AlertDialogHeader({ className, ...props }: AlertDialogHeaderProps) {
+  return (
+    <div
+      data-slot="alert-dialog-header"
+      className={cn("flex flex-col gap-100 px-250 py-200", className)}
+      {...props}
+    />
+  );
+}
+export type AlertDialogFooterProps = ComponentProps<"div">;
+export function AlertDialogFooter({ className, ...props }: AlertDialogFooterProps) {
+  return (
+    <div
+      data-slot="alert-dialog-footer"
+      className={cn(
+        "flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+export type AlertDialogTitleProps = Primitive.Title.Props;
+export function AlertDialogTitle({ className, ...props }: AlertDialogTitleProps) {
+  return (
+    <Primitive.Title
+      data-slot="alert-dialog-title"
+      {...props}
+      className={classes("font-heading-xsmall text-default", className)}
+    />
+  );
+}
+export type AlertDialogDescriptionProps = Primitive.Description.Props;
+export function AlertDialogDescription({ className, ...props }: AlertDialogDescriptionProps) {
+  return (
+    <Primitive.Description
+      data-slot="alert-dialog-description"
+      {...props}
+      className={classes("font-body text-subtle", className)}
+    />
   );
 }

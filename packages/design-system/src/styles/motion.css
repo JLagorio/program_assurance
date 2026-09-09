@@ -71,20 +71,20 @@
   }
 }
 /* Disclosure primitives expose their measured height as a custom property on the panel. Base UI
-   uses --accordion-panel-height; the remaining Radix Collapsible uses its Radix property. */
+   uses --accordion-panel-height; Collapsible uses --collapsible-panel-height. */
 @keyframes ds-collapse-open {
   from {
     height: 0;
     opacity: 0;
   }
   to {
-    height: var(--accordion-panel-height, var(--radix-collapsible-content-height));
+    height: var(--accordion-panel-height, var(--collapsible-panel-height));
     opacity: 1;
   }
 }
 @keyframes ds-collapse-close {
   from {
-    height: var(--accordion-panel-height, var(--radix-collapsible-content-height));
+    height: var(--accordion-panel-height, var(--collapsible-panel-height));
     opacity: 1;
   }
   to {
@@ -156,11 +156,11 @@
     animation-delay: 0ms;
   }
 }
-/* A sheet or a panel: arrives in moderate on the enter curve; leaves on the standard curve, because
-   a side panel stays nearby. */
+/* Logical panel edges follow dir through Tailwind's RTL variant. A bare :dir(rtl) is lowered
+   to language selectors by the production CSS build, which misses explicit dir overrides. */
 @utility animate-slide-in-end {
   animation: ds-slide-in-end var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
-  &:dir(rtl) {
+  @variant rtl {
     animation-name: ds-slide-in-start;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -170,7 +170,7 @@
 }
 @utility animate-slide-out-end {
   animation: ds-slide-out-end var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
-  &:dir(rtl) {
+  @variant rtl {
     animation-name: ds-slide-out-start;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -180,7 +180,7 @@
 }
 @utility animate-slide-in-start {
   animation: ds-slide-in-start var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
-  &:dir(rtl) {
+  @variant rtl {
     animation-name: ds-slide-in-end;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -191,7 +191,7 @@
 @utility animate-slide-out-start {
   animation: ds-slide-out-start var(--ds-motion-duration-medium) var(--ds-motion-easing-standard)
     both;
-  &:dir(rtl) {
+  @variant rtl {
     animation-name: ds-slide-out-end;
   }
   @media (prefers-reduced-motion: reduce) {

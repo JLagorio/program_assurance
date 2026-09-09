@@ -2,10 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Copy, Download, Pencil, Pin } from "lucide-react";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
-
 import {
   Button,
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   IconButton,
   Kbd,
   Tooltip,
@@ -13,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../../components";
+
 import { LedgerProvider } from "../../lib/locale";
 import { Grid, Inline, Stack, Text } from "../../primitives";
 
@@ -200,30 +203,44 @@ function UnavailableDemo() {
   return (
     <>
       <Button onClick={() => setOpen(true)}>Export options</Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Export options">
-        <Stack space="space.200">
-          <Text>Connect an export service to download a package.</Text>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <span
-                  tabIndex={0}
-                  role="group"
-                  aria-label="Export unavailable: connect an export service"
-                  className="inline-flex self-start focus-visible:outline-focused"
-                />
-              }
-            >
-              <Button disabled iconBefore={<Download />} title="Connect an export service">
-                Export package
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpen(false);
+          }
+        }}
+      >
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Export options</DialogTitle>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <Stack space="space.200">
+              <Text>Connect an export service to download a package.</Text>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span
+                      tabIndex={0}
+                      role="group"
+                      aria-label="Export unavailable: connect an export service"
+                      className="inline-flex self-start focus-visible:outline-focused"
+                    />
+                  }
+                >
+                  <Button disabled iconBefore={<Download />} title="Connect an export service">
+                    Export package
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Connect an export service</TooltipContent>
+              </Tooltip>
+              <Button variant="subtle" onClick={() => setOpen(false)}>
+                Cancel
               </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Connect an export service</TooltipContent>
-          </Tooltip>
-          <Button variant="subtle" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-        </Stack>
+            </Stack>
+          </div>
+        </DialogContent>
       </Dialog>
     </>
   );
@@ -246,7 +263,7 @@ export const Unavailable: Story = {
     await waitFor(() => expect(wrapper).toHaveFocus());
     await expect(within(dialog).getByRole("button", { name: "Export package" })).toBeDisabled();
     await waitFor(() => expect(popupIn(doc)).toBeVisible());
-    await expect(dialog).toContainElement(popupIn(doc));
+    await expect(doc.body).toContainElement(popupIn(doc));
     await waitFor(() => {
       const popup = popupIn(doc)!;
       const r = popup.getBoundingClientRect();

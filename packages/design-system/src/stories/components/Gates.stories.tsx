@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Button, Gates, Progress, ProgressValue, TextLink } from "../../components";
 
-import { Button, Gates, Progress, TextLink } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Matrix } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -178,13 +178,15 @@ export const Dont: Story = {
         dont={
           <Box style={{ width: 260 }}>
             <Stack space="space.075">
-            <Progress
-              value={50}
-              tone="warning"
-              label="Gates met"
-              showValue
-              valueText="2 of 4 met"
-            />
+              <Progress
+                value={50}
+                tone="warning"
+                aria-label="Gates met"
+                aria-valuetext="2 of 4 met"
+                className="flex-nowrap [&_[data-slot=progress-track]]:order-first [&_[data-slot=progress-track]]:min-w-0 [&_[data-slot=progress-track]]:flex-1"
+              >
+                <ProgressValue children={() => "2 of 4 met"} />
+              </Progress>
             </Stack>
           </Box>
         }

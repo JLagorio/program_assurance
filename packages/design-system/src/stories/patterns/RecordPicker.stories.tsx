@@ -1,8 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState, type ReactNode } from "react";
+import {
+  Badge,
+  Button,
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  Id,
+} from "../../components";
 
-import { Badge, Button, Command, Id } from "../../components";
-import { type PickerRecord, RecordPicker } from "../../patterns";
+import { RecordPicker, type PickerRecord } from "../../patterns";
 import { Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -72,8 +80,8 @@ function Rows({ placeholder, children }: { placeholder: string; children: ReactN
   return (
     <div className="rounded-large border border-default bg-surface-overlay shadow-raised">
       <Command label="Evidence">
-        <Command.Input placeholder={placeholder} />
-        <Command.List>{children}</Command.List>
+        <CommandInput placeholder={placeholder}></CommandInput>
+        <CommandList>{children}</CommandList>
       </Command>
     </div>
   );
@@ -87,7 +95,7 @@ export const Dont: Story = {
         do={
           <Rows placeholder="Search evidence…">
             {pickerRecords.slice(0, 2).map((r) => (
-              <Command.Item key={r.id} value={r.id} className="h-auto py-100">
+              <CommandItem key={r.id} value={r.id} className="h-auto py-100">
                 <Id className="text-subtle">{r.id}</Id>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{r.title}</span>
@@ -98,14 +106,14 @@ export const Dont: Story = {
                     {r.badge.label}
                   </Badge>
                 ) : null}
-              </Command.Item>
+              </CommandItem>
             ))}
           </Rows>
         }
         doText="The id first, the name, a line of meta under it, one badge at the end. A row the reader scans."
         dont={
           <Rows placeholder="Search…">
-            <Command.Item value="a" className="h-auto py-100">
+            <CommandItem value="a" className="h-auto py-100">
               <span className="min-w-0 flex-1">
                 <span className="block">Firewall ruleset export</span>
                 <span className="block font-body-xsmall text-subtle">
@@ -124,8 +132,8 @@ export const Dont: Story = {
                   Reviewed
                 </Badge>
               </Inline>
-            </Command.Item>
-            <Command.Item value="b" className="h-auto py-100">
+            </CommandItem>
+            <CommandItem value="b" className="h-auto py-100">
               <span className="min-w-0 flex-1">
                 <span className="block">Access review, Q2</span>
                 <span className="block font-body-xsmall text-subtle">
@@ -144,7 +152,7 @@ export const Dont: Story = {
                   Reviewed
                 </Badge>
               </Inline>
-            </Command.Item>
+            </CommandItem>
           </Rows>
         }
         dontText="No id, a paragraph and three badges per row, and Search… as the placeholder. The id is how a record is known, and the paragraph is the record's."

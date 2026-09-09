@@ -74,8 +74,96 @@
       "target": "\"src/components/alert-dialog\".AlertDialog",
       "kind": "value"
     },
+    ".#AlertDialogAction": {
+      "target": "\"src/components/alert-dialog\".AlertDialogAction",
+      "kind": "value"
+    },
+    ".#AlertDialogActionProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogActionProps",
+      "kind": "type"
+    },
+    ".#AlertDialogCancel": {
+      "target": "\"src/components/alert-dialog\".AlertDialogCancel",
+      "kind": "value"
+    },
+    ".#AlertDialogCancelProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogCancelProps",
+      "kind": "type"
+    },
+    ".#AlertDialogContent": {
+      "target": "\"src/components/alert-dialog\".AlertDialogContent",
+      "kind": "value"
+    },
+    ".#AlertDialogContentProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogContentProps",
+      "kind": "type"
+    },
+    ".#AlertDialogDescription": {
+      "target": "\"src/components/alert-dialog\".AlertDialogDescription",
+      "kind": "value"
+    },
+    ".#AlertDialogDescriptionProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogDescriptionProps",
+      "kind": "type"
+    },
+    ".#AlertDialogFooter": {
+      "target": "\"src/components/alert-dialog\".AlertDialogFooter",
+      "kind": "value"
+    },
+    ".#AlertDialogFooterProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogFooterProps",
+      "kind": "type"
+    },
+    ".#AlertDialogHeader": {
+      "target": "\"src/components/alert-dialog\".AlertDialogHeader",
+      "kind": "value"
+    },
+    ".#AlertDialogHeaderProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogHeaderProps",
+      "kind": "type"
+    },
+    ".#AlertDialogMedia": {
+      "target": "\"src/components/alert-dialog\".AlertDialogMedia",
+      "kind": "value"
+    },
+    ".#AlertDialogMediaProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogMediaProps",
+      "kind": "type"
+    },
+    ".#AlertDialogOverlay": {
+      "target": "\"src/components/alert-dialog\".AlertDialogOverlay",
+      "kind": "value"
+    },
+    ".#AlertDialogOverlayProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogOverlayProps",
+      "kind": "type"
+    },
+    ".#AlertDialogPortal": {
+      "target": "\"src/components/alert-dialog\".AlertDialogPortal",
+      "kind": "value"
+    },
+    ".#AlertDialogPortalProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogPortalProps",
+      "kind": "type"
+    },
     ".#AlertDialogProps": {
       "target": "\"src/components/alert-dialog\".AlertDialogProps",
+      "kind": "type"
+    },
+    ".#AlertDialogTitle": {
+      "target": "\"src/components/alert-dialog\".AlertDialogTitle",
+      "kind": "value"
+    },
+    ".#AlertDialogTitleProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogTitleProps",
+      "kind": "type"
+    },
+    ".#AlertDialogTrigger": {
+      "target": "\"src/components/alert-dialog\".AlertDialogTrigger",
+      "kind": "value"
+    },
+    ".#AlertDialogTriggerProps": {
+      "target": "\"src/components/alert-dialog\".AlertDialogTriggerProps",
       "kind": "type"
     },
     ".#AlertProps": {
@@ -470,6 +558,10 @@
       "target": "\"src/components/collapsible\".Collapsible",
       "kind": "value"
     },
+    ".#CollapsibleContent": {
+      "target": "\"src/components/collapsible\".CollapsibleContent",
+      "kind": "value"
+    },
     ".#CollapsibleContentProps": {
       "target": "\"src/components/collapsible\".CollapsibleContentProps",
       "kind": "type"
@@ -477,6 +569,10 @@
     ".#CollapsibleProps": {
       "target": "\"src/components/collapsible\".CollapsibleProps",
       "kind": "type"
+    },
+    ".#CollapsibleTrigger": {
+      "target": "\"src/components/collapsible\".CollapsibleTrigger",
+      "kind": "value"
     },
     ".#CollapsibleTriggerProps": {
       "target": "\"src/components/collapsible\".CollapsibleTriggerProps",
@@ -610,9 +706,45 @@
       "target": "\"src/components/command\".Command",
       "kind": "value"
     },
+    ".#CommandCount": {
+      "target": "\"src/components/command\".CommandCount",
+      "kind": "value"
+    },
+    ".#CommandDialog": {
+      "target": "\"src/components/command\".CommandDialog",
+      "kind": "value"
+    },
     ".#CommandDialogProps": {
       "target": "\"src/components/command\".CommandDialogProps",
       "kind": "type"
+    },
+    ".#CommandEmpty": {
+      "target": "\"src/components/command\".CommandEmpty",
+      "kind": "value"
+    },
+    ".#CommandFooter": {
+      "target": "\"src/components/command\".CommandFooter",
+      "kind": "value"
+    },
+    ".#CommandGroup": {
+      "target": "\"src/components/command\".CommandGroup",
+      "kind": "value"
+    },
+    ".#CommandInput": {
+      "target": "\"src/components/command\".CommandInput",
+      "kind": "value"
+    },
+    ".#CommandItem": {
+      "target": "\"src/components/command\".CommandItem",
+      "kind": "value"
+    },
+    ".#CommandList": {
+      "target": "\"src/components/command\".CommandList",
+      "kind": "value"
+    },
+    ".#CommandLoading": {
+      "target": "\"src/components/command\".CommandLoading",
+      "kind": "value"
     },
     ".#CommandPalette": {
       "target": "\"src/patterns/command-palette\".CommandPalette",
@@ -620,6 +752,18 @@
     },
     ".#CommandPaletteProps": {
       "target": "\"src/patterns/command-palette\".CommandPaletteProps",
+      "kind": "type"
+    },
+    ".#CommandSeparator": {
+      "target": "\"src/components/command\".CommandSeparator",
+      "kind": "value"
+    },
+    ".#CommandShortcut": {
+      "target": "\"src/components/command\".CommandShortcut",
+      "kind": "value"
+    },
+    ".#CommandShortcutProps": {
+      "target": "\"src/components/command\".CommandShortcutProps",
       "kind": "type"
     },
     ".#Composer": {
@@ -754,8 +898,80 @@
       "target": "\"src/components/dialog\".Dialog",
       "kind": "value"
     },
+    ".#DialogClose": {
+      "target": "\"src/components/dialog\".DialogClose",
+      "kind": "value"
+    },
+    ".#DialogCloseProps": {
+      "target": "\"src/components/dialog\".DialogCloseProps",
+      "kind": "type"
+    },
+    ".#DialogContent": {
+      "target": "\"src/components/dialog\".DialogContent",
+      "kind": "value"
+    },
+    ".#DialogContentProps": {
+      "target": "\"src/components/dialog\".DialogContentProps",
+      "kind": "type"
+    },
+    ".#DialogDescription": {
+      "target": "\"src/components/dialog\".DialogDescription",
+      "kind": "value"
+    },
+    ".#DialogDescriptionProps": {
+      "target": "\"src/components/dialog\".DialogDescriptionProps",
+      "kind": "type"
+    },
+    ".#DialogFooter": {
+      "target": "\"src/components/dialog\".DialogFooter",
+      "kind": "value"
+    },
+    ".#DialogFooterProps": {
+      "target": "\"src/components/dialog\".DialogFooterProps",
+      "kind": "type"
+    },
+    ".#DialogHeader": {
+      "target": "\"src/components/dialog\".DialogHeader",
+      "kind": "value"
+    },
+    ".#DialogHeaderProps": {
+      "target": "\"src/components/dialog\".DialogHeaderProps",
+      "kind": "type"
+    },
+    ".#DialogOverlay": {
+      "target": "\"src/components/dialog\".DialogOverlay",
+      "kind": "value"
+    },
+    ".#DialogOverlayProps": {
+      "target": "\"src/components/dialog\".DialogOverlayProps",
+      "kind": "type"
+    },
+    ".#DialogPortal": {
+      "target": "\"src/components/dialog\".DialogPortal",
+      "kind": "value"
+    },
+    ".#DialogPortalProps": {
+      "target": "\"src/components/dialog\".DialogPortalProps",
+      "kind": "type"
+    },
     ".#DialogProps": {
       "target": "\"src/components/dialog\".DialogProps",
+      "kind": "type"
+    },
+    ".#DialogTitle": {
+      "target": "\"src/components/dialog\".DialogTitle",
+      "kind": "value"
+    },
+    ".#DialogTitleProps": {
+      "target": "\"src/components/dialog\".DialogTitleProps",
+      "kind": "type"
+    },
+    ".#DialogTrigger": {
+      "target": "\"src/components/dialog\".DialogTrigger",
+      "kind": "value"
+    },
+    ".#DialogTriggerProps": {
+      "target": "\"src/components/dialog\".DialogTriggerProps",
       "kind": "type"
     },
     ".#DonutSelection": {
@@ -1226,30 +1442,6 @@
       "target": "\"src/lib/locale\".LedgerProviderProps",
       "kind": "type"
     },
-    ".#LegacyAccordion": {
-      "target": "\"src/components/_legacy-disclosure\".LegacyAccordion",
-      "kind": "value"
-    },
-    ".#LegacyAccordionItemProps": {
-      "target": "\"src/components/_legacy-disclosure\".LegacyAccordionItemProps",
-      "kind": "type"
-    },
-    ".#LegacyAccordionProps": {
-      "target": "\"src/components/_legacy-disclosure\".LegacyAccordionProps",
-      "kind": "type"
-    },
-    ".#LegacyCollapsible": {
-      "target": "\"src/components/_legacy-disclosure\".LegacyCollapsible",
-      "kind": "value"
-    },
-    ".#LegacyCollapsibleGroupProps": {
-      "target": "\"src/components/_legacy-disclosure\".LegacyCollapsibleGroupProps",
-      "kind": "type"
-    },
-    ".#LegacyCollapsibleProps": {
-      "target": "\"src/components/_legacy-disclosure\".LegacyCollapsibleProps",
-      "kind": "type"
-    },
     ".#mergeConfig": {
       "target": "\"src/generated/merge-config\".mergeConfig",
       "kind": "value"
@@ -1446,6 +1638,22 @@
       "target": "\"src/components/progress\".Progress",
       "kind": "value"
     },
+    ".#ProgressIndicator": {
+      "target": "\"src/components/progress\".ProgressIndicator",
+      "kind": "value"
+    },
+    ".#ProgressIndicatorProps": {
+      "target": "\"src/components/progress\".ProgressIndicatorProps",
+      "kind": "type"
+    },
+    ".#ProgressLabel": {
+      "target": "\"src/components/progress\".ProgressLabel",
+      "kind": "value"
+    },
+    ".#ProgressLabelProps": {
+      "target": "\"src/components/progress\".ProgressLabelProps",
+      "kind": "type"
+    },
     ".#ProgressProps": {
       "target": "\"src/components/progress\".ProgressProps",
       "kind": "type"
@@ -1454,8 +1662,28 @@
       "target": "\"src/components/progress\".ProgressSize",
       "kind": "type"
     },
+    ".#ProgressStacked": {
+      "target": "\"src/components/progress\".ProgressStacked",
+      "kind": "value"
+    },
     ".#ProgressStackedProps": {
       "target": "\"src/components/progress\".ProgressStackedProps",
+      "kind": "type"
+    },
+    ".#ProgressTrack": {
+      "target": "\"src/components/progress\".ProgressTrack",
+      "kind": "value"
+    },
+    ".#ProgressTrackProps": {
+      "target": "\"src/components/progress\".ProgressTrackProps",
+      "kind": "type"
+    },
+    ".#ProgressValue": {
+      "target": "\"src/components/progress\".ProgressValue",
+      "kind": "value"
+    },
+    ".#ProgressValueProps": {
+      "target": "\"src/components/progress\".ProgressValueProps",
       "kind": "type"
     },
     ".#Prose": {
@@ -1570,6 +1798,14 @@
       "target": "\"src/components/scroll-area\".ScrollAreaProps",
       "kind": "type"
     },
+    ".#ScrollBar": {
+      "target": "\"src/components/scroll-area\".ScrollBar",
+      "kind": "value"
+    },
+    ".#ScrollBarProps": {
+      "target": "\"src/components/scroll-area\".ScrollBarProps",
+      "kind": "type"
+    },
     ".#Section": {
       "target": "\"src/patterns/section\".Section",
       "kind": "value"
@@ -1670,8 +1906,64 @@
       "target": "\"src/components/sheet\".Sheet",
       "kind": "value"
     },
+    ".#SheetClose": {
+      "target": "\"src/components/sheet\".SheetClose",
+      "kind": "value"
+    },
+    ".#SheetCloseProps": {
+      "target": "\"src/components/sheet\".SheetCloseProps",
+      "kind": "type"
+    },
+    ".#SheetContent": {
+      "target": "\"src/components/sheet\".SheetContent",
+      "kind": "value"
+    },
+    ".#SheetContentProps": {
+      "target": "\"src/components/sheet\".SheetContentProps",
+      "kind": "type"
+    },
+    ".#SheetDescription": {
+      "target": "\"src/components/sheet\".SheetDescription",
+      "kind": "value"
+    },
+    ".#SheetDescriptionProps": {
+      "target": "\"src/components/sheet\".SheetDescriptionProps",
+      "kind": "type"
+    },
+    ".#SheetFooter": {
+      "target": "\"src/components/sheet\".SheetFooter",
+      "kind": "value"
+    },
+    ".#SheetFooterProps": {
+      "target": "\"src/components/sheet\".SheetFooterProps",
+      "kind": "type"
+    },
+    ".#SheetHeader": {
+      "target": "\"src/components/sheet\".SheetHeader",
+      "kind": "value"
+    },
+    ".#SheetHeaderProps": {
+      "target": "\"src/components/sheet\".SheetHeaderProps",
+      "kind": "type"
+    },
     ".#SheetProps": {
       "target": "\"src/components/sheet\".SheetProps",
+      "kind": "type"
+    },
+    ".#SheetTitle": {
+      "target": "\"src/components/sheet\".SheetTitle",
+      "kind": "value"
+    },
+    ".#SheetTitleProps": {
+      "target": "\"src/components/sheet\".SheetTitleProps",
+      "kind": "type"
+    },
+    ".#SheetTrigger": {
+      "target": "\"src/components/sheet\".SheetTrigger",
+      "kind": "value"
+    },
+    ".#SheetTriggerProps": {
+      "target": "\"src/components/sheet\".SheetTriggerProps",
       "kind": "type"
     },
     ".#Shell": {
@@ -2220,42 +2512,6 @@
     }
   },
   "declarations": {
-    "\"src/components/_legacy-disclosure\".LegacyAccordion": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "LegacyAccordion: typeof LegacyAccordionRoot & {\n    Item: typeof LegacyAccordionItem;\n}"
-      }
-    ],
-    "\"src/components/_legacy-disclosure\".LegacyAccordionItemProps": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "export type LegacyAccordionItemProps = Omit<LegacyCollapsibleProps, \"defaultOpen\" | \"open\" | \"onOpenChange\"> & {\n    value: string;\n};"
-      }
-    ],
-    "\"src/components/_legacy-disclosure\".LegacyAccordionProps": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "export type LegacyAccordionProps = LegacyCollapsibleGroupProps;"
-      }
-    ],
-    "\"src/components/_legacy-disclosure\".LegacyCollapsible": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "LegacyCollapsible: typeof LegacyCollapsibleRoot & {\n    Group: typeof LegacyCollapsibleGroup;\n}"
-      }
-    ],
-    "\"src/components/_legacy-disclosure\".LegacyCollapsibleGroupProps": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "export type LegacyCollapsibleGroupProps = {\n    type?: \"single\" | \"multiple\" | undefined;\n    defaultValue?: string | string[] | undefined;\n    value?: string | string[] | undefined;\n    onValueChange?: ((value: string | string[]) => void) | undefined;\n    headingLevel?: DisclosureHeading | undefined;\n    inset?: boolean | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/components/_legacy-disclosure\".LegacyCollapsibleProps": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "export type LegacyCollapsibleProps = {\n    title: ReactNode;\n    value?: string | undefined;\n    count?: number | string | null | undefined;\n    defaultOpen?: boolean | undefined;\n    open?: boolean | undefined;\n    onOpenChange?: ((open: boolean) => void) | undefined;\n    headingLevel?: DisclosureHeading | undefined;\n    disabled?: boolean | undefined;\n    inset?: boolean | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
     "\"src/components/accordion\".AccordionContentProps": [
       {
         "source": "src/components/accordion.d.ts",
@@ -2283,13 +2539,145 @@
     "\"src/components/alert-dialog\".AlertDialog": [
       {
         "source": "src/components/alert-dialog.d.ts",
-        "declaration": "export declare function AlertDialog({ open, returnFocusRef, onClose, onConfirm, title, description, confirmLabel, cancelLabel, tone, pending, children, }: AlertDialogProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function AlertDialog<Payload = unknown>(props: AlertDialogProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogAction": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogAction(props: AlertDialogActionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogActionProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogActionProps = ButtonProps;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogCancel": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogCancel({ variant, size, ...props }: AlertDialogCancelProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogCancelProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogCancelProps = Primitive.Close.Props & Pick<ButtonProps, \"variant\" | \"size\">;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogContent": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogContent({ className, size, dir, ...props }: AlertDialogContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogContentProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogContentProps = Primitive.Popup.Props & {\n    size?: \"default\" | \"sm\" | undefined;\n};"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogDescription": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogDescription({ className, ...props }: AlertDialogDescriptionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogDescriptionProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogDescriptionProps = Primitive.Description.Props;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogFooter": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogFooter({ className, ...props }: AlertDialogFooterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogFooterProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogFooterProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogHeader": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogHeader({ className, ...props }: AlertDialogHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogHeaderProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogHeaderProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogMedia": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogMedia({ className, ...props }: AlertDialogMediaProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogMediaProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogMediaProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogOverlay": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogOverlay({ className, ...props }: AlertDialogOverlayProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogOverlayProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogOverlayProps = Primitive.Backdrop.Props;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogPortal": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogPortal(props: AlertDialogPortalProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogPortalProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogPortalProps = Primitive.Portal.Props;"
       }
     ],
     "\"src/components/alert-dialog\".AlertDialogProps": [
       {
         "source": "src/components/alert-dialog.d.ts",
-        "declaration": "export type AlertDialogProps = {\n    open: boolean;\n    returnFocusRef?: RefObject<HTMLElement | null> | undefined;\n    onClose: () => void;\n    onConfirm: () => void;\n    title: ReactNode;\n    description?: ReactNode;\n    confirmLabel?: string | undefined;\n    cancelLabel?: string | undefined;\n    tone?: \"primary\" | \"danger\" | undefined;\n    pending?: boolean | undefined;\n    children?: ReactNode;\n};"
+        "declaration": "export type AlertDialogProps<Payload = unknown> = Primitive.Root.Props<Payload>;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogTitle": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogTitle({ className, ...props }: AlertDialogTitleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogTitleProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogTitleProps = Primitive.Title.Props;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogTrigger": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export declare function AlertDialogTrigger<Payload = unknown>(props: AlertDialogTriggerProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert-dialog\".AlertDialogTriggerProps": [
+      {
+        "source": "src/components/alert-dialog.d.ts",
+        "declaration": "export type AlertDialogTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;"
       }
     ],
     "\"src/components/alert\".Alert": [
@@ -2949,25 +3337,37 @@
     "\"src/components/collapsible\".Collapsible": [
       {
         "source": "src/components/collapsible.d.ts",
-        "declaration": "Collapsible: typeof CollapsibleRoot & {\n    Trigger: typeof CollapsibleTrigger;\n    Content: typeof CollapsibleContent;\n}"
+        "declaration": "export declare function Collapsible(props: CollapsibleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/collapsible\".CollapsibleContent": [
+      {
+        "source": "src/components/collapsible.d.ts",
+        "declaration": "export declare function CollapsibleContent({ className, ...props }: CollapsibleContentProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/collapsible\".CollapsibleContentProps": [
       {
         "source": "src/components/collapsible.d.ts",
-        "declaration": "export type CollapsibleContentProps = ComponentProps<typeof Primitive.Content>;"
+        "declaration": "export type CollapsibleContentProps = Primitive.Panel.Props;"
       }
     ],
     "\"src/components/collapsible\".CollapsibleProps": [
       {
         "source": "src/components/collapsible.d.ts",
-        "declaration": "export type CollapsibleProps = ComponentProps<typeof Primitive.Root>;"
+        "declaration": "export type CollapsibleProps = Primitive.Root.Props;"
+      }
+    ],
+    "\"src/components/collapsible\".CollapsibleTrigger": [
+      {
+        "source": "src/components/collapsible.d.ts",
+        "declaration": "export declare function CollapsibleTrigger({ className, ...props }: CollapsibleTriggerProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/collapsible\".CollapsibleTriggerProps": [
       {
         "source": "src/components/collapsible.d.ts",
-        "declaration": "export type CollapsibleTriggerProps = ComponentProps<typeof Primitive.Trigger>;"
+        "declaration": "export type CollapsibleTriggerProps = Primitive.Trigger.Props;"
       }
     ],
     "\"src/components/combobox\".Combobox": [
@@ -3099,13 +3499,85 @@
     "\"src/components/command\".Command": [
       {
         "source": "src/components/command.d.ts",
-        "declaration": "Command: typeof CommandRoot & {\n    Input: typeof CommandInput;\n    List: typeof CommandList;\n    Empty: typeof CommandEmpty;\n    Loading: typeof CommandLoading;\n    Group: typeof CommandGroup;\n    Item: typeof CommandItem;\n    Separator: typeof CommandSeparator;\n    Footer: typeof CommandFooter;\n    Count: typeof CommandCount;\n    Dialog: typeof CommandDialog;\n}"
+        "declaration": "export declare function Command({ className, ...props }: ComponentProps<typeof CommandPrimitive>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandCount": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandCount({ one, many, }: {\n    one?: string | undefined;\n    many?: string | undefined;\n}): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandDialog": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandDialog<Payload = unknown>({ title, description, className, showCloseButton, finalFocus, style, children, ...props }: CommandDialogProps<Payload>): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/command\".CommandDialogProps": [
       {
         "source": "src/components/command.d.ts",
-        "declaration": "export type CommandDialogProps = Omit<ComponentPropsWithoutRef<typeof CommandPrimitive>, \"label\"> & {\n    open: boolean;\n    returnFocusRef?: RefObject<HTMLElement | null> | undefined;\n    onClose: () => void;\n    label: string;\n    width?: keyof typeof dialogWidths | undefined;\n};"
+        "declaration": "export type CommandDialogProps<Payload = unknown> = Omit<DialogProps<Payload>, \"children\"> & {\n    title?: string | undefined;\n    description?: string | undefined;\n    className?: string | undefined;\n    showCloseButton?: boolean | undefined;\n    finalFocus?: DialogContentProps[\"finalFocus\"];\n    style?: DialogContentProps[\"style\"];\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/components/command\".CommandEmpty": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandEmpty({ className, ...props }: ComponentProps<typeof CommandPrimitive.Empty>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandFooter": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandFooter({ children }: {\n    children: ReactNode;\n}): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandGroup": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandGroup({ className, ...props }: ComponentProps<typeof CommandPrimitive.Group>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandInput": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandInput({ className, hint, ...props }: ComponentProps<typeof CommandPrimitive.Input> & {\n    hint?: ReactNode;\n}): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandItem": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandItem({ className, children, ...props }: ComponentProps<typeof CommandPrimitive.Item>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandList": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandList({ className, ...props }: ComponentProps<typeof CommandPrimitive.List>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandLoading": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandLoading({ label, className, children, ...props }: ComponentProps<typeof CommandPrimitive.Loading>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandSeparator": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandSeparator({ className, ...props }: ComponentProps<typeof CommandPrimitive.Separator>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandShortcut": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export declare function CommandShortcut({ className, ...props }: CommandShortcutProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/command\".CommandShortcutProps": [
+      {
+        "source": "src/components/command.d.ts",
+        "declaration": "export type CommandShortcutProps = ComponentProps<\"span\">;"
       }
     ],
     "\"src/components/controls\".controlBase": [
@@ -3189,13 +3661,121 @@
     "\"src/components/dialog\".Dialog": [
       {
         "source": "src/components/dialog.d.ts",
-        "declaration": "export declare function Dialog({ open, returnFocusRef, onClose, title, eyebrow, description, footer, aside, children, width, pending, }: DialogProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Dialog<Payload = unknown>(props: DialogProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogClose": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export declare function DialogClose(props: DialogCloseProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogCloseProps": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export type DialogCloseProps = Primitive.Close.Props;"
+      }
+    ],
+    "\"src/components/dialog\".DialogContent": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export declare function DialogContent({ className, children, dir, showCloseButton, ...props }: DialogContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogContentProps": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export type DialogContentProps = Primitive.Popup.Props & {\n    showCloseButton?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/dialog\".DialogDescription": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export declare function DialogDescription({ className, ...props }: DialogDescriptionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogDescriptionProps": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export type DialogDescriptionProps = Primitive.Description.Props;"
+      }
+    ],
+    "\"src/components/dialog\".DialogFooter": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export declare function DialogFooter({ className, children, showCloseButton, ...props }: DialogFooterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogFooterProps": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export type DialogFooterProps = ComponentProps<\"div\"> & {\n    showCloseButton?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/dialog\".DialogHeader": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export declare function DialogHeader({ className, ...props }: DialogHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogHeaderProps": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export type DialogHeaderProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/dialog\".DialogOverlay": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export declare function DialogOverlay({ className, ...props }: DialogOverlayProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogOverlayProps": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export type DialogOverlayProps = Primitive.Backdrop.Props;"
+      }
+    ],
+    "\"src/components/dialog\".DialogPortal": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export declare function DialogPortal(props: DialogPortalProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogPortalProps": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export type DialogPortalProps = Primitive.Portal.Props;"
       }
     ],
     "\"src/components/dialog\".DialogProps": [
       {
         "source": "src/components/dialog.d.ts",
-        "declaration": "export type DialogProps = {\n    open: boolean;\n    returnFocusRef?: RefObject<HTMLElement | null> | undefined;\n    onClose: () => void;\n    title: ReactNode;\n    eyebrow?: ReactNode;\n    description?: ReactNode;\n    footer?: ReactNode;\n    aside?: ReactNode;\n    children: ReactNode;\n    width?: \"medium\" | \"large\" | undefined;\n    pending?: boolean | undefined;\n};"
+        "declaration": "export type DialogProps<Payload = unknown> = Primitive.Root.Props<Payload>;"
+      }
+    ],
+    "\"src/components/dialog\".DialogTitle": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export declare function DialogTitle({ className, ...props }: DialogTitleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogTitleProps": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export type DialogTitleProps = Primitive.Title.Props;"
+      }
+    ],
+    "\"src/components/dialog\".DialogTrigger": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export declare function DialogTrigger<Payload = unknown>(props: DialogTriggerProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/dialog\".DialogTriggerProps": [
+      {
+        "source": "src/components/dialog.d.ts",
+        "declaration": "export type DialogTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;"
       }
     ],
     "\"src/components/drawer\".Drawer": [
@@ -3699,13 +4279,37 @@
     "\"src/components/progress\".Progress": [
       {
         "source": "src/components/progress.d.ts",
-        "declaration": "Progress: typeof ProgressRoot & {\n    Stacked: typeof ProgressStacked;\n}"
+        "declaration": "export declare function Progress({ className, children, tone, size, locale, ...props }: ProgressProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/progress\".ProgressIndicator": [
+      {
+        "source": "src/components/progress.d.ts",
+        "declaration": "export declare function ProgressIndicator({ className, ...props }: ProgressIndicatorProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/progress\".ProgressIndicatorProps": [
+      {
+        "source": "src/components/progress.d.ts",
+        "declaration": "export type ProgressIndicatorProps = Primitive.Indicator.Props;"
+      }
+    ],
+    "\"src/components/progress\".ProgressLabel": [
+      {
+        "source": "src/components/progress.d.ts",
+        "declaration": "export declare function ProgressLabel({ className, ...props }: ProgressLabelProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/progress\".ProgressLabelProps": [
+      {
+        "source": "src/components/progress.d.ts",
+        "declaration": "export type ProgressLabelProps = Primitive.Label.Props;"
       }
     ],
     "\"src/components/progress\".ProgressProps": [
       {
         "source": "src/components/progress.d.ts",
-        "declaration": "export type ProgressProps = {\n    value: number;\n    tone?: Tone | undefined;\n    label?: string | undefined;\n    size?: ProgressSize | undefined;\n    showValue?: boolean | undefined;\n    valueText?: string | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type ProgressProps = Primitive.Root.Props & {\n    tone?: Tone | undefined;\n    size?: ProgressSize | undefined;\n};"
       }
     ],
     "\"src/components/progress\".ProgressSize": [
@@ -3724,6 +4328,30 @@
       {
         "source": "src/components/progress.d.ts",
         "declaration": "export type ProgressStackedProps = {\n    segments: StackedSegment[];\n    size?: ProgressSize | undefined;\n    label?: string | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/components/progress\".ProgressTrack": [
+      {
+        "source": "src/components/progress.d.ts",
+        "declaration": "export declare function ProgressTrack({ className, ...props }: ProgressTrackProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/progress\".ProgressTrackProps": [
+      {
+        "source": "src/components/progress.d.ts",
+        "declaration": "export type ProgressTrackProps = Primitive.Track.Props;"
+      }
+    ],
+    "\"src/components/progress\".ProgressValue": [
+      {
+        "source": "src/components/progress.d.ts",
+        "declaration": "export declare function ProgressValue({ className, ...props }: ProgressValueProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/progress\".ProgressValueProps": [
+      {
+        "source": "src/components/progress.d.ts",
+        "declaration": "export type ProgressValueProps = Primitive.Value.Props;"
       }
     ],
     "\"src/components/progress\".StackedSegment": [
@@ -3783,13 +4411,25 @@
     "\"src/components/scroll-area\".ScrollArea": [
       {
         "source": "src/components/scroll-area.d.ts",
-        "declaration": "export declare function ScrollArea({ dir, orientation, bar, label, className, children, }: ScrollAreaProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function ScrollArea({ className, children, dir, viewportProps, ...props }: ScrollAreaProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/scroll-area\".ScrollAreaProps": [
       {
         "source": "src/components/scroll-area.d.ts",
-        "declaration": "export type ScrollAreaProps = {\n    dir?: \"ltr\" | \"rtl\" | undefined;\n    orientation?: \"vertical\" | \"horizontal\" | \"both\" | undefined;\n    bar?: \"hover\" | \"always\" | undefined;\n    label?: string | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
+        "declaration": "export type ScrollAreaProps = Primitive.Root.Props & {\n    viewportProps?: Primitive.Viewport.Props | undefined;\n};"
+      }
+    ],
+    "\"src/components/scroll-area\".ScrollBar": [
+      {
+        "source": "src/components/scroll-area.d.ts",
+        "declaration": "export declare function ScrollBar({ className, orientation, ...props }: ScrollBarProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/scroll-area\".ScrollBarProps": [
+      {
+        "source": "src/components/scroll-area.d.ts",
+        "declaration": "export type ScrollBarProps = Primitive.Scrollbar.Props;"
       }
     ],
     "\"src/components/select\".Select": [
@@ -3927,13 +4567,97 @@
     "\"src/components/sheet\".Sheet": [
       {
         "source": "src/components/sheet.d.ts",
-        "declaration": "export declare function Sheet({ open, returnFocusRef, onClose, title, subtitle, eyebrow, facts, onBack, toolbar, footer, side, width, children, }: SheetProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Sheet<Payload = unknown>(props: SheetProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/sheet\".SheetClose": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export declare function SheetClose(props: SheetCloseProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/sheet\".SheetCloseProps": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export type SheetCloseProps = Primitive.Close.Props;"
+      }
+    ],
+    "\"src/components/sheet\".SheetContent": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export declare function SheetContent({ className, children, dir, showCloseButton, side, style, ...props }: SheetContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/sheet\".SheetContentProps": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export type SheetContentProps = Primitive.Popup.Props & {\n    showCloseButton?: boolean | undefined;\n    side?: \"top\" | \"right\" | \"bottom\" | \"left\" | \"start\" | \"end\" | undefined;\n};"
+      }
+    ],
+    "\"src/components/sheet\".SheetDescription": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export declare function SheetDescription({ className, ...props }: SheetDescriptionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/sheet\".SheetDescriptionProps": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export type SheetDescriptionProps = Primitive.Description.Props;"
+      }
+    ],
+    "\"src/components/sheet\".SheetFooter": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export declare function SheetFooter({ className, ...props }: SheetFooterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/sheet\".SheetFooterProps": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export type SheetFooterProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/sheet\".SheetHeader": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export declare function SheetHeader({ className, ...props }: SheetHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/sheet\".SheetHeaderProps": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export type SheetHeaderProps = ComponentProps<\"div\">;"
       }
     ],
     "\"src/components/sheet\".SheetProps": [
       {
         "source": "src/components/sheet.d.ts",
-        "declaration": "export type SheetProps = {\n    open: boolean;\n    returnFocusRef?: RefObject<HTMLElement | null> | undefined;\n    onClose: () => void;\n    title: ReactNode;\n    subtitle?: ReactNode;\n    eyebrow?: ReactNode;\n    facts?: ReactNode;\n    onBack?: (() => void) | undefined;\n    toolbar?: ReactNode;\n    footer?: ReactNode;\n    side?: \"end\" | \"start\" | undefined;\n    width?: number | undefined;\n    children: ReactNode;\n};"
+        "declaration": "export type SheetProps<Payload = unknown> = Primitive.Root.Props<Payload>;"
+      }
+    ],
+    "\"src/components/sheet\".SheetTitle": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export declare function SheetTitle({ className, ...props }: SheetTitleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/sheet\".SheetTitleProps": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export type SheetTitleProps = Primitive.Title.Props;"
+      }
+    ],
+    "\"src/components/sheet\".SheetTrigger": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export declare function SheetTrigger<Payload = unknown>(props: SheetTriggerProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/sheet\".SheetTriggerProps": [
+      {
+        "source": "src/components/sheet.d.ts",
+        "declaration": "export type SheetTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;"
       }
     ],
     "\"src/components/skeleton\".Skeleton": [
@@ -5700,36 +6424,6 @@
         "declaration": "export type ShellStored = {\n    collapsed?: boolean | undefined;\n    sideNavWidth?: number | undefined;\n    panelWidth?: number | undefined;\n};"
       }
     ],
-    "src/components/_legacy-disclosure.d.ts#DisclosureHeading": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "type DisclosureHeading = 2 | 3 | 4 | 5 | 6;"
-      }
-    ],
-    "src/components/_legacy-disclosure.d.ts#LegacyAccordionItem": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "declare function LegacyAccordionItem(props: LegacyAccordionItemProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/_legacy-disclosure.d.ts#LegacyAccordionRoot": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "declare function LegacyAccordionRoot({ type, ...rest }: LegacyAccordionProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/_legacy-disclosure.d.ts#LegacyCollapsibleGroup": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "declare function LegacyCollapsibleGroup({ type, defaultValue, value, onValueChange, headingLevel, inset, className, children, }: LegacyCollapsibleGroupProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/_legacy-disclosure.d.ts#LegacyCollapsibleRoot": [
-      {
-        "source": "src/components/_legacy-disclosure.d.ts",
-        "declaration": "declare function LegacyCollapsibleRoot(props: LegacyCollapsibleProps): import(\"react\").JSX.Element;"
-      }
-    ],
     "src/components/accordion.d.ts#Accordion": [
       {
         "source": "src/components/accordion.d.ts",
@@ -5964,24 +6658,6 @@
         "declaration": "type ButtonStyleProps = {\n    variant?: ButtonVariant | undefined;\n    size?: ButtonSize | undefined;\n    isSelected?: boolean | undefined;\n    isFullWidth?: boolean | undefined;\n};"
       }
     ],
-    "src/components/collapsible.d.ts#CollapsibleContent": [
-      {
-        "source": "src/components/collapsible.d.ts",
-        "declaration": "declare function CollapsibleContent({ className, forceMount, ...props }: CollapsibleContentProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/collapsible.d.ts#CollapsibleRoot": [
-      {
-        "source": "src/components/collapsible.d.ts",
-        "declaration": "declare function CollapsibleRoot(props: CollapsibleProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/collapsible.d.ts#CollapsibleTrigger": [
-      {
-        "source": "src/components/collapsible.d.ts",
-        "declaration": "declare function CollapsibleTrigger({ className, ...props }: CollapsibleTriggerProps): import(\"react\").JSX.Element;"
-      }
-    ],
     "src/components/combobox.d.ts#ComboboxChip": [
       {
         "source": "src/components/combobox.d.ts",
@@ -6090,78 +6766,6 @@
         "declaration": "declare function ComboboxTrigger({ className, children, ...props }: ComboboxTriggerProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/components/command.d.ts#CommandCount": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandCount({ one, many, }: {\n    one?: string | undefined;\n    many?: string | undefined;\n}): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandDialog": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandDialog({ open, returnFocusRef, onClose, label, width, className, children, ...props }: CommandDialogProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandEmpty": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandEmpty({ className, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandFooter": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandFooter({ children }: {\n    children: ReactNode;\n}): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandGroup": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandGroup({ className, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive.Group>): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandInput": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandInput({ className, hint, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {\n    hint?: ReactNode;\n}): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandItem": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandItem({ className, trailing, children, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive.Item> & {\n    trailing?: ReactNode;\n}): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandList": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandList({ className, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive.List>): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandLoading": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandLoading({ label, className, children, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive.Loading>): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandRoot": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandRoot({ className, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive>): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#CommandSeparator": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "declare function CommandSeparator(): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/command.d.ts#dialogWidths": [
-      {
-        "source": "src/components/command.d.ts",
-        "declaration": "dialogWidths: {\n    readonly medium: 560;\n    readonly large: 640;\n}"
-      }
-    ],
     "src/components/date-picker.d.ts#DatePickerOwnProps": [
       {
         "source": "src/components/date-picker.d.ts",
@@ -6208,12 +6812,6 @@
       {
         "source": "src/components/kbd.d.ts",
         "declaration": "declare function KbdRoot({ label, className, ...props }: KbdProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/progress.d.ts#ProgressRoot": [
-      {
-        "source": "src/components/progress.d.ts",
-        "declaration": "declare function ProgressRoot({ value, tone, label, size, showValue, valueText, className, }: ProgressProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/resizable.d.ts#Orientation": [
@@ -6746,15 +7344,13 @@
     ]
   },
   "dependencyContracts": {
-    "@base-ui/react": "568423787e1a07f68cdfbee88d7bd7541af8030c974a77cb5ac21a75181d7585",
+    "@base-ui/react": "2f7068e7320c858c7dce2963ad21982ddcd24e3a04106cb6e6f24b63719bad45",
     "@base-ui/utils": "a71988b4234a15dd1dcecb2aaaac6ab8c6472d75cd26993efe45671a8247777a",
     "@floating-ui/core": "581cec84f04c06ef6908cd1af8471390d1d96893d63abdaf0391ef43ae0a1815",
     "@floating-ui/dom": "82afab4c16f6bedc49dfed4eec228766546f4e0a8aed010cab33ad05aeed4568",
     "@floating-ui/react-dom": "023a762c387806bf19f0c67764527cca1afc5ae1c288544112949a2bf9094ab7",
     "@floating-ui/utils": "34c80a6d180ad13d73b6b65a910527df0bac499721975343ae80380eea649211",
-    "@radix-ui/react-collapsible": "ca701be9348bda6a7fb90802c60d48fc17266f2db61ff5f600f6a8dd2e87101f",
     "@radix-ui/react-dialog": "82a48d5e74f33dc2aef6de95ede036bd198b55c6c3ae7a9549226e5bd7c16d9c",
-    "@radix-ui/react-primitive": "63d3234db546b015692a041ebca64565f13927070357207f513c50568fb47110",
     "@tanstack/react-table": "9b4c12523ac392ff0b5564e6dbe85ca1a9437d2a78a56f7895ae7b2982c3f208",
     "@tanstack/store": "e91da0d2d43c8449f2e3c13471cd4bf3491a9e1ba2466681d3d5ba155c09c25d",
     "@tanstack/table-core": "763db1ab26ffc8c2a682e1db6b52b4cb4ab950fa79b574d1c83ab9064ff95c1e",

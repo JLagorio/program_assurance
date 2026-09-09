@@ -1,15 +1,25 @@
-import { ChevronDown } from "lucide-react";
-import { Collapsible, Count } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-
 import {
   Button,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Count,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Popover,
-  PopoverTrigger,
   PopoverContent,
+  PopoverTrigger,
   Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
   Spinner,
   Stat,
 } from "../../components";
@@ -56,22 +66,23 @@ export const Specimens: Story = {
         <Box style={{ width: 360 }}>
           <Collapsible className="border-t border-default">
             <h3>
-              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                {"A section that opens and closes"} <Count value={3} />
+              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                A section that opens and closes
+                <Count value={3} />
                 <ChevronDown
                   aria-hidden="true"
                   className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
                 />
-              </Collapsible.Trigger>
+              </CollapsibleTrigger>
             </h3>
-            <Collapsible.Content>
+            <CollapsibleContent>
               <div className="pb-200">
                 <Text size="small" color="color.text.subtle">
                   Height and opacity together: medium on the enter curve opening, medium on the exit
                   curve closing.
                 </Text>
               </div>
-            </Collapsible.Content>
+            </CollapsibleContent>
           </Collapsible>
         </Box>
         <Stat.Grid key={round} cols={4}>
@@ -88,24 +99,55 @@ export const Specimens: Story = {
         </Text>
         <Dialog
           open={dialog}
-          onClose={() => setDialog(false)}
-          title="A dialog"
-          description="The blanket dims in slower while the dialog arrives in moderate on the enter curve. It leaves in medium on the exit curve."
-          footer={
-            <Button variant="primary" onClick={() => setDialog(false)}>
-              Close
-            </Button>
-          }
+          onOpenChange={(next) => {
+            if (!next) {
+              setDialog(false);
+            }
+          }}
         >
-          <Text size="small" color="color.text.subtle">
-            Nothing bounces, stretches or stops suddenly.
-          </Text>
+          <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+            <DialogHeader>
+              <DialogTitle>A dialog</DialogTitle>
+              <DialogDescription>
+                The blanket dims in slower while the dialog arrives in moderate on the enter curve.
+                It leaves in medium on the exit curve.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+              <Text size="small" color="color.text.subtle">
+                Nothing bounces, stretches or stops suddenly.
+              </Text>
+            </div>
+            <DialogFooter>
+              <Button variant="primary" onClick={() => setDialog(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
         </Dialog>
-        <Sheet open={sheet} onClose={() => setSheet(false)} title="A sheet">
-          <Text size="small" color="color.text.subtle">
-            Slides in from the end in moderate on the enter curve; slides out in medium on the
-            standard curve.
-          </Text>
+        <Sheet
+          open={sheet}
+          onOpenChange={(next) => {
+            if (!next) {
+              setSheet(false);
+            }
+          }}
+        >
+          <SheetContent side="end" style={{ maxWidth: 420 }}>
+            <SheetHeader>
+              <div className="flex items-start gap-100">
+                <div className="flex min-w-0 flex-1 flex-col gap-025">
+                  <SheetTitle>A sheet</SheetTitle>
+                </div>
+              </div>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+              <Text size="small" color="color.text.subtle">
+                Slides in from the end in moderate on the enter curve; slides out in medium on the
+                standard curve.
+              </Text>
+            </div>
+          </SheetContent>
         </Sheet>
       </Stack>
     );

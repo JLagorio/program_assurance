@@ -1,10 +1,3 @@
-/**
- * The peek for one requirement: what the eye on a coverage row opens. The compact
- * record header, then how far its verification has run, what carries it, and where
- * it came from. The full record is one link away; Allocate is the one action that
- * makes sense without leaving.
- */
-
 import { Link } from "@tanstack/react-router";
 
 import {
@@ -13,6 +6,7 @@ import {
   Button,
   Empty,
   Fact,
+  Inline,
   PreviewSheet,
   Stack,
   Text,
@@ -22,12 +16,13 @@ import {
 import { CoverageBar } from "@/components/app/coverage-bar";
 import { AllocationTable, ProvenanceTable } from "@/components/app/requirements";
 import { useLinkCurrencyVersion } from "@/lib/link-currency";
-import { allocationsForProgramElement } from "@/lib/requirement-context";
 import { coverageOf, coverageWord, useVerificationVersion } from "@/lib/requirement-verification";
 import {
+  allocationsFor,
+  childrenOfRequirement,
   getRequirement,
-  requirementStateTone,
   requirementMethodLabel,
+  requirementStateTone,
   useRequirementsVersion,
   type Requirement,
 } from "@/lib/requirements";
@@ -37,6 +32,7 @@ export function RequirementPreviewSheet({
   requirementId,
   onClose,
   onAllocate,
+  onLinkControls,
   elementId,
 }: {
   programId: string;
@@ -44,18 +40,25 @@ export function RequirementPreviewSheet({
   /** The requirement open in the sheet; null closes it. */
   requirementId: string | null;
   onClose: () => void;
-  /** Allocate from the peek: the one action that makes sense without leaving. */
+  /** Allocation and control relationships are separate actions. */
   onAllocate?: ((requirement: Requirement) => void) | undefined;
+  onLinkControls?: ((requirement: Requirement) => void) | undefined;
 }) {
   useRequirementsVersion();
   useVerificationVersion();
   useLinkCurrencyVersion();
   const record = requirementId ? getRequirement(requirementId) : undefined;
   const requirement = record?.program === programId ? record : null;
-  const allocations = requirement
-    ? allocationsForProgramElement(requirement.id, programId, elementId)
-    : [];
+  const allocations = requirement ? allocationsFor(requirement.id) : [];
   const coverage = requirement ? coverageOf(requirement) : null;
+  const controls =
+    requirement?.derivations.filter(
+      (source) => source.sourceType === "Control statement" || source.sourceType === "Overlay",
+    ) ?? [];
+  const otherSources =
+    requirement?.derivations.filter(
+      (source) => source.sourceType !== "Control statement" && source.sourceType !== "Overlay",
+    ) ?? [];
   const allocate =
     requirement && onAllocate ? (
       <Button size="small" variant="primary" onClick={() => onAllocate(requirement)}>
@@ -114,11 +117,27 @@ export function RequirementPreviewSheet({
           </TextLink>
         ) : undefined
       }
-      actions={allocate}
+      actions={
+        <Inline space="space.100">
+          {allocate}
+          {requirement && onLinkControls ? (
+            <Button size="small" onClick={() => onLinkControls(requirement)}>
+              Link controls
+            </Button>
+          ) : null}
+        </Inline>
+      }
     >
       {requirement && coverage ? (
         <Stack space="space.050">
-          <Block title="Assessment result" count={coverageWord(coverage)}>
+          <Block
+            title={
+              childrenOfRequirement(requirement.id).length
+                ? "Child assessment results"
+                : "Assessment result"
+            }
+            count={coverageWord(coverage)}
+          >
             <CoverageBar coverage={coverage} />
             {requirement.successCriteria ? (
               <Text as="p" size="small" color="color.text.subtle" className="pt-100">
@@ -137,14 +156,29 @@ export function RequirementPreviewSheet({
               />
             )}
           </Block>
-          <Block title="Provenance" count={requirement.derivations.length}>
-            <ProvenanceTable
-              derivations={requirement.derivations}
-              programId={programId}
-              requirementId={requirement.id}
-              elementId={elementId}
-            />
+          <Block title="Linked controls" count={controls.length}>
+            {controls.length ? (
+              <ProvenanceTable
+                derivations={controls}
+                programId={programId}
+                requirementId={requirement.id}
+              />
+            ) : (
+              <Text as="p" size="small" color="color.text.subtle">
+                Independent — no linked controls.
+              </Text>
+            )}
           </Block>
+          {otherSources.length ? (
+            <Block title="Other sources" count={otherSources.length}>
+              <ProvenanceTable
+                derivations={otherSources}
+                programId={programId}
+                requirementId={requirement.id}
+                elementId={elementId}
+              />
+            </Block>
+          ) : null}
         </Stack>
       ) : null}
     </PreviewSheet>

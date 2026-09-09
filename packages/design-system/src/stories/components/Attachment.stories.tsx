@@ -2,16 +2,20 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Check, FileText, RotateCcw, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { fn } from "storybook/test";
-
 import {
   Attachment,
   Button,
   buttonVariants,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
   Progress,
   Spinner,
   type AttachmentState,
 } from "../../components";
+
 import { Box, Stack, Text } from "../../primitives";
 import preview from "../_assets/attachment-preview.svg";
 import { Matrix } from "../_lib/matrix";
@@ -131,62 +135,78 @@ function PreviewExample() {
   const [removed, setRemoved] = useState(false);
   const focusRestoredFile = useRef(false);
   return (
-    <form onSubmit={event => { event.preventDefault(); onAttachmentSubmit(); }}>
-    <Stack space="space.200" className="w-layout-list max-w-full">
-      {!removed ? (
-        <Attachment className="w-full">
-          <Attachment.Media aria-hidden="true">
-            <FileText />
-          </Attachment.Media>
-          <Attachment.Content>
-            <Attachment.Title>quarterly-report.pdf</Attachment.Title>
-            <Attachment.Description>PDF · 2.4 MB</Attachment.Description>
-          </Attachment.Content>
-          <Attachment.Trigger
-            ref={(node) => {
-              if (node && focusRestoredFile.current) {
-                node.focus();
-                focusRestoredFile.current = false;
-              }
-            }}
-            aria-label="Preview quarterly-report.pdf"
-            onClick={() => setOpen(true)}
-          />
-          <Attachment.Actions>
-            <Attachment.Action
-              label="Remove quarterly-report.pdf"
-              icon={<X />}
-              onClick={() => setRemoved(true)}
-            />
-          </Attachment.Actions>
-        </Attachment>
-      ) : (
-        <Stack space="space.100">
-          <Text role="status">Attachment removed.</Text>
-          <Box>
-            <Button
-              autoFocus
-              onClick={() => {
-                focusRestoredFile.current = true;
-                setRemoved(false);
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onAttachmentSubmit();
+      }}
+    >
+      <Stack space="space.200" className="w-layout-list max-w-full">
+        {!removed ? (
+          <Attachment className="w-full">
+            <Attachment.Media aria-hidden="true">
+              <FileText />
+            </Attachment.Media>
+            <Attachment.Content>
+              <Attachment.Title>quarterly-report.pdf</Attachment.Title>
+              <Attachment.Description>PDF · 2.4 MB</Attachment.Description>
+            </Attachment.Content>
+            <Attachment.Trigger
+              ref={(node) => {
+                if (node && focusRestoredFile.current) {
+                  node.focus();
+                  focusRestoredFile.current = false;
+                }
               }}
-            >
-              Undo removal
-            </Button>
-          </Box>
-        </Stack>
-      )}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        title="quarterly-report.pdf"
-        description="Attachment preview"
-      >
-        <Text>
-          The quarterly report summarizes the evidence collected and the items awaiting review.
-        </Text>
-      </Dialog>
-    </Stack>
+              aria-label="Preview quarterly-report.pdf"
+              onClick={() => setOpen(true)}
+            />
+            <Attachment.Actions>
+              <Attachment.Action
+                label="Remove quarterly-report.pdf"
+                icon={<X />}
+                onClick={() => setRemoved(true)}
+              />
+            </Attachment.Actions>
+          </Attachment>
+        ) : (
+          <Stack space="space.100">
+            <Text role="status">Attachment removed.</Text>
+            <Box>
+              <Button
+                autoFocus
+                onClick={() => {
+                  focusRestoredFile.current = true;
+                  setRemoved(false);
+                }}
+              >
+                Undo removal
+              </Button>
+            </Box>
+          </Stack>
+        )}
+        <Dialog
+          open={open}
+          onOpenChange={(next) => {
+            if (!next) {
+              setOpen(false);
+            }
+          }}
+        >
+          <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+            <DialogHeader>
+              <DialogTitle>quarterly-report.pdf</DialogTitle>
+              <DialogDescription>Attachment preview</DialogDescription>
+            </DialogHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+              <Text>
+                The quarterly report summarizes the evidence collected and the items awaiting
+                review.
+              </Text>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </Stack>
     </form>
   );
 }
@@ -214,7 +234,14 @@ export const WithActions: Story = {
     const action = canvas.getByRole("button", { name: "Remove quarterly-report.pdf" });
     await waitFor(() => {
       const rect = action.getBoundingClientRect();
-      expect(action.contains(canvasElement.ownerDocument.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2))).toBe(true);
+      expect(
+        action.contains(
+          canvasElement.ownerDocument.elementFromPoint(
+            rect.x + rect.width / 2,
+            rect.y + rect.height / 2,
+          ),
+        ),
+      ).toBe(true);
     });
     await userEvent.keyboard(" ");
     await expect(onAttachmentSubmit).not.toHaveBeenCalled();
@@ -250,7 +277,7 @@ export const UploadStates: Story = {
         <Attachment.Content>
           <Attachment.Title>quarterly-report.pdf</Attachment.Title>
           <Attachment.Description>Uploading · 64%</Attachment.Description>
-          <Progress value={64} size="small" label="Uploading quarterly-report.pdf" />
+          <Progress value={64} size="small" aria-label="Uploading quarterly-report.pdf"></Progress>
         </Attachment.Content>
       </Attachment>
       <Attachment state="done" className="w-full">
@@ -266,7 +293,9 @@ export const UploadStates: Story = {
       <Attachment className="w-full">
         <Attachment.Content>
           <Attachment.Title>restricted-report.pdf</Attachment.Title>
-          <Attachment.Description>Preview available after access is approved.</Attachment.Description>
+          <Attachment.Description>
+            Preview available after access is approved.
+          </Attachment.Description>
         </Attachment.Content>
         <Attachment.Trigger
           disabled

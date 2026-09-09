@@ -1,11 +1,22 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
-import { expect, fn, userEvent, within, waitFor } from "storybook/test";
 import { useArgs } from "storybook/preview-api";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+import {
+  Button,
+  Combobox,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  Field,
+  NativeSelect,
+  type ComboboxOption,
+  useRequired,
+} from "../../components";
 
-import { Button, Combobox, Dialog, Field, NativeSelect, useRequired } from "../../components";
-import type { ComboboxOption } from "../../components";
 import { Inline, Stack } from "../../primitives";
 import { Matrix as Grid, Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -538,35 +549,45 @@ function DialogExample() {
       <Button onClick={() => setOpen(true)}>Choose a framework</Button>
       <Dialog
         open={open}
-        onClose={() => setOpen(false)}
-        title="Project settings"
-        description="Choose the framework used by this project."
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpen(false);
+          }
+        }}
       >
-        <Field label="Project framework">
-          <Combobox.Root items={frameworks}>
-            <Combobox.InputGroup>
-              <Combobox.Input placeholder="Choose a framework" />
-              <Combobox.Trigger aria-label="Show project frameworks" />
-            </Combobox.InputGroup>
-            <Combobox.Content>
-              <Combobox.Empty>No frameworks found.</Combobox.Empty>
-              <Combobox.List>
-                {(item: string) => (
-                  <Combobox.Item key={item} value={item}>
-                    {item}
-                  </Combobox.Item>
-                )}
-              </Combobox.List>
-            </Combobox.Content>
-          </Combobox.Root>
-        </Field>
-        <Field label="Deployment framework">
-          <Combobox.Root<string> items={["React"]} defaultValue="React" readOnly>
-            <Combobox.InputGroup>
-              <Combobox.Input />
-            </Combobox.InputGroup>
-          </Combobox.Root>
-        </Field>
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Project settings</DialogTitle>
+            <DialogDescription>Choose the framework used by this project.</DialogDescription>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <Field label="Project framework">
+              <Combobox.Root items={frameworks}>
+                <Combobox.InputGroup>
+                  <Combobox.Input placeholder="Choose a framework" />
+                  <Combobox.Trigger aria-label="Show project frameworks" />
+                </Combobox.InputGroup>
+                <Combobox.Content>
+                  <Combobox.Empty>No frameworks found.</Combobox.Empty>
+                  <Combobox.List>
+                    {(item: string) => (
+                      <Combobox.Item key={item} value={item}>
+                        {item}
+                      </Combobox.Item>
+                    )}
+                  </Combobox.List>
+                </Combobox.Content>
+              </Combobox.Root>
+            </Field>
+            <Field label="Deployment framework">
+              <Combobox.Root<string> items={["React"]} defaultValue="React" readOnly>
+                <Combobox.InputGroup>
+                  <Combobox.Input />
+                </Combobox.InputGroup>
+              </Combobox.Root>
+            </Field>
+          </div>
+        </DialogContent>
       </Dialog>
     </>
   );

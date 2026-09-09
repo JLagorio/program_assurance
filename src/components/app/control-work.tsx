@@ -1,9 +1,36 @@
-import { useCallback, type SetStateAction, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { descendantsOf, nodeById } from "@/lib/composition";
-import { scopeById } from "@/lib/scopes";
 import { AddEvidenceDialog, EvidencePreview } from "@/components/app/program-evidence";
+import { descendantsOf, nodeById } from "@/lib/composition";
 import { useRecordForm } from "@/lib/record-form";
+import { scopeById } from "@/lib/scopes";
+import {
+  ActionBar,
+  ActionBarAction,
+  Badge,
+  Block,
+  Box,
+  Button,
+  Combobox,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Field,
+  Grid,
+  IconButton,
+  Inline,
+  NativeSelect,
+  Stack,
+  Table,
+  Textarea,
+  TextLink,
+} from "@ledger/design-system";
+import { Link } from "@tanstack/react-router";
+import { useCallback, useState, type SetStateAction } from "react";
 /**
  * The control work surface.
  *
@@ -13,34 +40,7 @@ import { useRecordForm } from "@/lib/record-form";
  * Inspector, and nothing carries a description.
  */
 
-import { MoreHorizontal } from "lucide-react";
-import {
-  ActionBar,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  IconButton,
-  Badge,
-  Block,
-  Box,
-  Button,
-  Combobox,
-  Dialog,
-  Field,
-  Grid,
-  Inline,
-  NativeSelect,
-  Stack,
-  Table,
-  Textarea,
-  TextLink,
-} from "@ledger/design-system";
-import { ActionBarAction } from "@ledger/design-system";
-import { linkArtifact, useEvidenceVersion, type EvidenceLink } from "@/lib/evidence-catalog";
 import { availableControlEvidence, controlEvidence } from "@/lib/control-evidence";
-import { controlRequirementsInElement } from "@/lib/program-controls";
-import { cn } from "@ledger/design-system/cn";
 import {
   activityFor,
   addComment,
@@ -61,6 +61,11 @@ import {
   type ControlWork,
   type WorkContext,
 } from "@/lib/control-work";
+import { linkArtifact, useEvidenceVersion, type EvidenceLink } from "@/lib/evidence-catalog";
+import { controlRequirementsInElement } from "@/lib/program-controls";
+
+import { cn } from "@ledger/design-system/cn";
+import { MoreHorizontal } from "lucide-react";
 
 /* ------------------------------------------------------------- Action bar */
 
@@ -155,62 +160,72 @@ export function ControlActionBar({
 
       <Dialog
         open={pending !== null}
-        onClose={() => setPending(null)}
-        title={chosen?.def.label ?? "Confirm"}
-        footer={
-          <>
-            {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
-            <Button onClick={() => setPending(null)}>Cancel</Button>
-            <Button
-              variant="primary"
-              type="submit"
-              form={formId + "-1"}
-              disabled={form.state.isSubmitting}
-            >
-              {chosen?.def.label ?? "Confirm"}
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setPending(null);
+          }
+        }}
       >
-        <form
-          id={formId + "-1"}
-          ref={formRef}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            void fire();
-          }}
-        >
-          <Grid gap="space.150">
-            <Box
-              className="rounded-large border border-default bg-surface-sunken font-body-small"
-              paddingInline="space.150"
-              paddingBlock="space.100"
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>{chosen?.def.label ?? "Confirm"}</DialogTitle>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <form
+              id={formId + "-1"}
+              ref={formRef}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void fire();
+              }}
             >
-              {session.name} · {session.role}
-            </Box>
-            <form.Field name="note">
-              {(field) => (
-                <Field
-                  isRequired={chosen?.def.note === "required"}
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                  label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
+              <Grid gap="space.150">
+                <Box
+                  className="rounded-large border border-default bg-surface-sunken font-body-small"
+                  paddingInline="space.150"
+                  paddingBlock="space.100"
                 >
-                  <Textarea
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-          </Grid>
-        </form>
+                  {session.name} · {session.role}
+                </Box>
+                <form.Field name="note">
+                  {(field) => (
+                    <Field
+                      isRequired={chosen?.def.note === "required"}
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined
+                      }
+                      label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
+                    >
+                      <Textarea
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                </form.Field>
+              </Grid>
+            </form>
+          </Box>
+          <DialogFooter>
+            <>
+              {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
+              <Button onClick={() => setPending(null)}>Cancel</Button>
+              <Button
+                variant="primary"
+                type="submit"
+                form={formId + "-1"}
+                disabled={form.state.isSubmitting}
+              >
+                {chosen?.def.label ?? "Confirm"}
+              </Button>
+            </>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );
@@ -533,59 +548,72 @@ export function EvidenceBlock({
 
       <Dialog
         open={picking}
-        onClose={() => setPicking(false)}
-        title="Link evidence"
-        footer={
-          <>
-            <Button onClick={() => setPicking(false)}>Cancel</Button>
-            <Button variant="primary" disabled={!artifactId} onClick={link}>
-              Link evidence
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setPicking(false);
+          }
+        }}
       >
-        <Stack space="space.150">
-          <Field label="Supports">
-            <NativeSelect value={targetId} onChange={(event) => chooseTarget(event.target.value)}>
-              <option value="implementation">
-                {work.control} implementation · {scopeById.get(work.scope)?.name}
-              </option>
-              {requirements.map((requirement) => (
-                <option key={requirement.id} value={requirement.id}>
-                  {requirement.id} · {requirement.text}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Evidence">
-            <Combobox
-              value={artifactId}
-              onChange={setArtifactId}
-              placeholder="Find an existing artifact"
-              options={unlinked.map((artifact) => ({
-                value: artifact.id,
-                label: `${artifact.id} · ${artifact.label}`,
-                keywords: `${artifact.kind} ${artifact.provenance} ${artifact.owner}`,
-                meta: artifact.review,
-              }))}
-              empty="No matching evidence in this system scope."
-            />
-          </Field>
-          <Button
-            size="small"
-            onClick={() => {
-              setPicking(false);
-              setAdding(true);
-            }}
-          >
-            Add a new evidence reference
-          </Button>
-          {error ? (
-            <p role="alert" className="font-body-small text-danger">
-              {error}
-            </p>
-          ) : null}
-        </Stack>
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Link evidence</DialogTitle>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <Stack space="space.150">
+              <Field label="Supports">
+                <NativeSelect
+                  value={targetId}
+                  onChange={(event) => chooseTarget(event.target.value)}
+                >
+                  <option value="implementation">
+                    {work.control} implementation · {scopeById.get(work.scope)?.name}
+                  </option>
+                  {requirements.map((requirement) => (
+                    <option key={requirement.id} value={requirement.id}>
+                      {requirement.id} · {requirement.text}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field label="Evidence">
+                <Combobox
+                  value={artifactId}
+                  onChange={setArtifactId}
+                  placeholder="Find an existing artifact"
+                  options={unlinked.map((artifact) => ({
+                    value: artifact.id,
+                    label: `${artifact.id} · ${artifact.label}`,
+                    keywords: `${artifact.kind} ${artifact.provenance} ${artifact.owner}`,
+                    meta: artifact.review,
+                  }))}
+                  empty="No matching evidence in this system scope."
+                />
+              </Field>
+              <Button
+                size="small"
+                onClick={() => {
+                  setPicking(false);
+                  setAdding(true);
+                }}
+              >
+                Add a new evidence reference
+              </Button>
+              {error ? (
+                <p role="alert" className="font-body-small text-danger">
+                  {error}
+                </p>
+              ) : null}
+            </Stack>
+          </Box>
+          <DialogFooter>
+            <>
+              <Button onClick={() => setPicking(false)}>Cancel</Button>
+              <Button variant="primary" disabled={!artifactId} onClick={link}>
+                Link evidence
+              </Button>
+            </>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
       {selectedId ? (
         <EvidencePreview
@@ -863,62 +891,72 @@ export function ControlActions({
 
       <Dialog
         open={pending !== null}
-        onClose={() => setPending(null)}
-        title={chosen?.def.label ?? "Confirm"}
-        footer={
-          <>
-            {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
-            <Button onClick={() => setPending(null)}>Cancel</Button>
-            <Button
-              variant="primary"
-              type="submit"
-              form={formId + "-2"}
-              disabled={form.state.isSubmitting}
-            >
-              {chosen?.def.label ?? "Confirm"}
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setPending(null);
+          }
+        }}
       >
-        <form
-          id={formId + "-2"}
-          ref={formRef}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            void fire();
-          }}
-        >
-          <Grid gap="space.150">
-            <Box
-              className="rounded-large border border-default bg-surface-sunken font-body-small"
-              paddingInline="space.150"
-              paddingBlock="space.100"
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>{chosen?.def.label ?? "Confirm"}</DialogTitle>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <form
+              id={formId + "-2"}
+              ref={formRef}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void fire();
+              }}
             >
-              {session.name} · {session.role}
-            </Box>
-            <form.Field name="note">
-              {(field) => (
-                <Field
-                  isRequired={chosen?.def.note === "required"}
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                  label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
+              <Grid gap="space.150">
+                <Box
+                  className="rounded-large border border-default bg-surface-sunken font-body-small"
+                  paddingInline="space.150"
+                  paddingBlock="space.100"
                 >
-                  <Textarea
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-          </Grid>
-        </form>
+                  {session.name} · {session.role}
+                </Box>
+                <form.Field name="note">
+                  {(field) => (
+                    <Field
+                      isRequired={chosen?.def.note === "required"}
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined
+                      }
+                      label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
+                    >
+                      <Textarea
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                </form.Field>
+              </Grid>
+            </form>
+          </Box>
+          <DialogFooter>
+            <>
+              {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
+              <Button onClick={() => setPending(null)}>Cancel</Button>
+              <Button
+                variant="primary"
+                type="submit"
+                form={formId + "-2"}
+                disabled={form.state.isSubmitting}
+              >
+                {chosen?.def.label ?? "Confirm"}
+              </Button>
+            </>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );

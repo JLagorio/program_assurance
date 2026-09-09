@@ -94,13 +94,56 @@ export function controlFindingsInElement(
 
 const touched = (work: ControlWork) =>
   !!work.owner || work.narrativeRevision > 0 || work.assessment !== "Not assessed";
-function implementationOf(work: ControlWork[]): ProgramControlRow["implementation"] {
+
+export type ControlImplementationRow = {
+  scopeId: string;
+  elementId: string;
+  name: string;
+  implementation: ImplementationState | "Unrecorded";
+  assessment: AssessmentState;
+  owner: string;
+  requirements: number;
+  evidence: number;
+};
+
+/** Each row reports only the implementation recorded for that named element. */
+export function programControlImplementations(
+  programId: string,
+  controlId: string,
+  elementId?: string,
+): ControlImplementationRow[] {
+  const work = workForProgram(programId);
+  return programControlScopes(programId, elementId).flatMap((scope) => {
+    if (!controlSetFor(scope.id)?.controls.some((item) => item.control.id === controlId)) return [];
+    const recorded = work.find((item) => item.scope === scope.id && item.control === controlId);
+    return [
+      {
+        scopeId: scope.id,
+        elementId: scope.element,
+        name: resolveProgramElement(programId, scope.element)?.name ?? scope.name,
+        implementation:
+          recorded && touched(recorded) && recorded.implementationRecorded !== false
+            ? recorded.implementation
+            : "Unrecorded",
+        assessment: recorded?.assessment ?? "Not assessed",
+        owner: recorded?.owner || "Unassigned",
+        requirements: controlRequirementsInElement(programId, controlId, scope.element).length,
+        evidence: evidenceForTarget(programId, "control", controlId, scope.id).length,
+      },
+    ];
+  });
+}
+function implementationOf(
+  work: ControlWork[],
+  completeScopeCoverage: boolean,
+): ProgramControlRow["implementation"] {
   if (!work.length) return "Unrecorded";
   const states = new Set(
     work.map((item) =>
       item.implementationRecorded === false ? "Unrecorded" : item.implementation,
     ),
   );
+  if (!completeScopeCoverage) states.add("Unrecorded");
   return states.size === 1 ? [...states][0]! : "Mixed";
 }
 
@@ -130,16 +173,6 @@ export function programControlRows(programId: string, elementId?: string): Progr
           ids.has(scopeById.get(item.scope)?.element ?? "") ||
           (!!item.componentId && ids.has(item.componentId))),
     );
-    const aggregateScope =
-      closest &&
-      (element?.id === closest.element ||
-        (!element && nodeById.get(closest.element)?.parent === null))
-        ? closest
-        : undefined;
-    const direct = aggregateScope
-      ? scopedWork.find((item) => item.scope === aggregateScope.id)
-      : undefined;
-    const contributors = direct ? [direct] : scopedWork;
     const completeScopeCoverage = applicable.every((scope) =>
       scopedWork.some((item) => item.scope === scope.id),
     );
@@ -148,10 +181,9 @@ export function programControlRows(programId: string, elementId?: string): Progr
       findingRows.some(isDeficiency) ||
       scopedWork.some((item) => item.assessment === "Other than satisfied")
         ? "Other than satisfied"
-        : direct?.assessment === "Satisfied" ||
-            (completeScopeCoverage &&
-              scopedWork.length &&
-              scopedWork.every((item) => item.assessment === "Satisfied"))
+        : completeScopeCoverage &&
+            scopedWork.length > 0 &&
+            scopedWork.every((item) => item.assessment === "Satisfied")
           ? "Satisfied"
           : "Not assessed";
     const scopeId =
@@ -188,13 +220,10 @@ export function programControlRows(programId: string, elementId?: string): Progr
             : names.length > 1
               ? `${names[0]} +${names.length - 1}`
               : (names[0] ?? "Program"),
-        implementation:
-          !direct && !completeScopeCoverage && contributors.length
-            ? "Mixed"
-            : implementationOf(contributors),
+        implementation: implementationOf(scopedWork, completeScopeCoverage),
         assessment,
         owner:
-          [...new Set(contributors.flatMap((item) => item.owner ?? []))].join(", ") || "Unassigned",
+          [...new Set(scopedWork.flatMap((item) => item.owner ?? []))].join(", ") || "Unassigned",
         evidence: evidenceIds.size,
         findings: findingRows,
         record,

@@ -1,30 +1,40 @@
-import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import {
   Badge,
   Block,
+  Box,
   Button,
   DataTable,
+  defineColumns,
   Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Fact,
   Field,
-  Input,
   Inline,
+  Input,
   NativeSelect,
   PreviewSheet,
   Stack,
-  Text,
   Table,
+  Text,
   Textarea,
   TextLink,
-  defineColumns,
-  useDataTable,
   toast,
+  useDataTable,
 } from "@ledger/design-system";
 import {
+  currentSession,
+  linkEvidence,
+  unlinkEvidence,
+  useWorkVersion,
+  workFor,
+} from "@/lib/control-work";
+import {
   createEvidence,
-  evidenceForProgram,
   evidenceAvailableInScope,
+  evidenceForProgram,
   evidenceForTarget,
   linkArtifact,
   reviewEvidence,
@@ -36,22 +46,18 @@ import {
   type NewEvidence,
 } from "@/lib/evidence-catalog";
 import {
-  currentSession,
-  linkEvidence,
-  unlinkEvidence,
-  useWorkVersion,
-  workFor,
-} from "@/lib/control-work";
-import { requirementsForProgram } from "@/lib/requirements";
-import { scopesForProgram, controlSetFor, scopeById } from "@/lib/scopes";
-import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
-import { requirementsForProgramElement } from "@/lib/requirement-context";
-import {
   evidenceScopeNames,
   evidenceSupportRows,
   evidenceSupportSummary,
   type EvidenceSupportRow,
 } from "@/lib/evidence-presentation";
+import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
+import { requirementsForProgramElement } from "@/lib/requirement-context";
+import { requirementsForProgram } from "@/lib/requirements";
+import { controlSetFor, scopeById, scopesForProgram } from "@/lib/scopes";
+
+import { Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 
 const reviewTone = (review: EvidenceReview) =>
   review === "Accepted"
@@ -101,85 +107,100 @@ export function AddEvidenceDialog({
   return (
     <Dialog
       open={open}
-      onClose={onClose}
-      title="Add evidence"
-      footer={
-        <>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" onClick={save}>
-            Add reference
-          </Button>
-        </>
-      }
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <Stack space="space.150">
-        <Field label="Title" isRequired>
-          <Input value={draft.label} onChange={(event) => set("label", event.target.value)} />
-        </Field>
-        <Field label="Artifact URL" isRequired>
-          <Input
-            type="url"
-            placeholder="https://repository.example/artifacts/report.pdf"
-            value={draft.url}
-            onChange={(event) => set("url", event.target.value)}
-          />
-        </Field>
-        <Text as="p" size="small" color="color.text.subtle">
-          Link to the artifact in your document or evidence repository. Access remains controlled by
-          that repository.
-        </Text>
-        <Inline space="space.150" shouldWrap>
-          <Field label="Kind">
-            <NativeSelect
-              value={draft.kind}
-              onChange={(event) => set("kind", event.target.value as EvidenceArtifact["kind"])}
-            >
-              {["Document", "Configuration", "Test result", "Scan output"].map((kind) => (
-                <option key={kind}>{kind}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Version" isRequired>
-            <Input value={draft.version} onChange={(event) => set("version", event.target.value)} />
-          </Field>
-          <Field label="Collected on" isRequired>
-            <Input
-              type="date"
-              value={draft.collected}
-              onChange={(event) => set("collected", event.target.value)}
-            />
-          </Field>
-        </Inline>
-        <Field label="Owner" isRequired>
-          <Input value={draft.owner} onChange={(event) => set("owner", event.target.value)} />
-        </Field>
-        <Field label="System">
-          <NativeSelect
-            value={draft.scopeIds?.[0] ?? ""}
-            disabled={!!initialLink?.scopeId}
-            onChange={(event) => set("scopeIds", event.target.value ? [event.target.value] : [])}
-          >
-            <option value="">Program-wide</option>
-            {scopesForProgram(programId).map((scope) => (
-              <option key={scope.id} value={scope.id}>
-                {scope.name}
-              </option>
-            ))}
-          </NativeSelect>
-        </Field>
-        <Field label="Provenance" isRequired>
-          <Textarea
-            placeholder="Who produced this artifact, using which method and system/build?"
-            value={draft.provenance}
-            onChange={(event) => set("provenance", event.target.value)}
-          />
-        </Field>
-        {error ? (
-          <p role="alert" className="font-body-small text-danger">
-            {error}
-          </p>
-        ) : null}
-      </Stack>
+      <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+        <DialogHeader>
+          <DialogTitle>Add evidence</DialogTitle>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <Stack space="space.150">
+            <Field label="Title" isRequired>
+              <Input value={draft.label} onChange={(event) => set("label", event.target.value)} />
+            </Field>
+            <Field label="Artifact URL" isRequired>
+              <Input
+                type="url"
+                placeholder="https://repository.example/artifacts/report.pdf"
+                value={draft.url}
+                onChange={(event) => set("url", event.target.value)}
+              />
+            </Field>
+            <Text as="p" size="small" color="color.text.subtle">
+              Link to the artifact in your document or evidence repository. Access remains
+              controlled by that repository.
+            </Text>
+            <Inline space="space.150" shouldWrap>
+              <Field label="Kind">
+                <NativeSelect
+                  value={draft.kind}
+                  onChange={(event) => set("kind", event.target.value as EvidenceArtifact["kind"])}
+                >
+                  {["Document", "Configuration", "Test result", "Scan output"].map((kind) => (
+                    <option key={kind}>{kind}</option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field label="Version" isRequired>
+                <Input
+                  value={draft.version}
+                  onChange={(event) => set("version", event.target.value)}
+                />
+              </Field>
+              <Field label="Collected on" isRequired>
+                <Input
+                  type="date"
+                  value={draft.collected}
+                  onChange={(event) => set("collected", event.target.value)}
+                />
+              </Field>
+            </Inline>
+            <Field label="Owner" isRequired>
+              <Input value={draft.owner} onChange={(event) => set("owner", event.target.value)} />
+            </Field>
+            <Field label="System">
+              <NativeSelect
+                value={draft.scopeIds?.[0] ?? ""}
+                disabled={!!initialLink?.scopeId}
+                onChange={(event) =>
+                  set("scopeIds", event.target.value ? [event.target.value] : [])
+                }
+              >
+                <option value="">Program-wide</option>
+                {scopesForProgram(programId).map((scope) => (
+                  <option key={scope.id} value={scope.id}>
+                    {scope.name}
+                  </option>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field label="Provenance" isRequired>
+              <Textarea
+                placeholder="Who produced this artifact, using which method and system/build?"
+                value={draft.provenance}
+                onChange={(event) => set("provenance", event.target.value)}
+              />
+            </Field>
+            {error ? (
+              <p role="alert" className="font-body-small text-danger">
+                {error}
+              </p>
+            ) : null}
+          </Stack>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button variant="primary" onClick={save}>
+              Add reference
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

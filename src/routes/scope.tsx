@@ -1,10 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-
-import { RevisionActions, RevisionReview } from "@/components/app/control-set-revisions";
 import {
   Badge,
   Block,
+  Box,
   Button,
   Count,
   Id,
@@ -15,6 +12,11 @@ import {
   PageHeader,
   Section,
   Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
   Stack,
   Table,
   Text,
@@ -22,6 +24,11 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@ledger/design-system";
+
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+
+import { RevisionActions, RevisionReview } from "@/components/app/control-set-revisions";
 import { Shell } from "@/components/app/shell";
 import {
   decidedRevisions,
@@ -294,36 +301,58 @@ function ScopeApprovals() {
 
       <Sheet
         open={!!reviewed}
-        onClose={() => setReviewing(null)}
-        width={780}
-        title={reviewed ? `${reviewedScope?.name ?? reviewed.scope} · v${reviewed.number}` : ""}
-        subtitle={reviewed ? `${reviewed.program} · ${reviewed.state}` : undefined}
-        footer={
-          reviewed ? (
-            <Inline className="w-full" space="space.150" alignBlock="center" spread="space-between">
-              {reviewedScope ? (
-                <TextLink size="small">
-                  <Link
-                    to="/programs/$programId/components/$componentId"
-                    params={{ programId: reviewed.program, componentId: reviewedScope.element }}
-                    search={{ tab: "Control set" }}
-                  >
-                    Open the record
-                  </Link>
-                </TextLink>
-              ) : (
-                <span />
-              )}
-              <RevisionActions revision={reviewed} />
-            </Inline>
-          ) : null
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setReviewing(null);
+          }
+        }}
       >
-        {reviewed ? (
-          <Stack space="space.050">
-            <RevisionReview revision={reviewed} programId={reviewed.program} compact />
-          </Stack>
-        ) : null}
+        <SheetContent side="end" style={{ maxWidth: 780 }}>
+          <SheetHeader>
+            <Box className="flex items-start gap-100">
+              <Box className="flex min-w-0 flex-1 flex-col gap-025">
+                <SheetTitle>
+                  {reviewed ? `${reviewedScope?.name ?? reviewed.scope} · v${reviewed.number}` : ""}
+                </SheetTitle>
+                <SheetDescription>
+                  {reviewed ? `${reviewed.program} · ${reviewed.state}` : undefined}
+                </SheetDescription>
+              </Box>
+            </Box>
+          </SheetHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+            {reviewed ? (
+              <Stack space="space.050">
+                <RevisionReview revision={reviewed} programId={reviewed.program} compact />
+              </Stack>
+            ) : null}
+          </Box>
+          <SheetFooter>
+            {reviewed ? (
+              <Inline
+                className="w-full"
+                space="space.150"
+                alignBlock="center"
+                spread="space-between"
+              >
+                {reviewedScope ? (
+                  <TextLink size="small">
+                    <Link
+                      to="/programs/$programId/components/$componentId"
+                      params={{ programId: reviewed.program, componentId: reviewedScope.element }}
+                      search={{ tab: "Control set" }}
+                    >
+                      Open the record
+                    </Link>
+                  </TextLink>
+                ) : (
+                  <span />
+                )}
+                <RevisionActions revision={reviewed} />
+              </Inline>
+            ) : null}
+          </SheetFooter>
+        </SheetContent>
       </Sheet>
     </Shell>
   );

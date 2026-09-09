@@ -1,10 +1,10 @@
 import { useCallback, useLayoutEffect, useRef, useState, type RefObject } from "react";
 
-/** Keep Base UI portals inside an enclosing dialog's focus scope during the migration. */
+/** Keep Base UI portals inside a remaining Vaul drawer's Radix focus scope. Base UI dialogs manage their own nested portals. */
 export function useOverlayContainer() {
   const [container, setContainer] = useState<HTMLElement | null>(null);
   const ref = useCallback((node: HTMLSpanElement | null) => {
-    setContainer(node?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? null);
+    setContainer(node?.closest<HTMLElement>("[data-vaul-drawer]") ?? null);
   }, []);
   return { container: container ?? undefined, ref };
 }

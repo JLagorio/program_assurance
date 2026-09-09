@@ -1,3 +1,4 @@
+import { migrationExamples } from "./migration-examples.js";
 import assert from "node:assert/strict";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
@@ -22,6 +23,8 @@ import {
   AccordionTrigger,
   AccordionContent,
   Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
   Select,
   SelectTrigger,
   SelectValue,
@@ -323,8 +326,8 @@ const html = renderToString(
       createElement(
         Collapsible,
         { defaultOpen: true },
-        createElement(Collapsible.Trigger, null, "Packed disclosure"),
-        createElement(Collapsible.Content, null, "Packed detail"),
+        createElement(CollapsibleTrigger, null, "Packed disclosure"),
+        createElement(CollapsibleContent, null, "Packed detail"),
       ),
       createElement(Button, null, "Save"),
       createElement(Composer, { label: "Message", onSubmit: () => {} }),
@@ -1199,3 +1202,34 @@ assert.equal("Tab" in Tabs, false);
 console.log(
   "Packed Tabs orientation, numeric selection, composition, links and retained panels SSR passed",
 );
+
+const migrationHtml = renderToString(migrationExamples);
+for (const text of [
+  "Open packed dialog",
+  "Open packed sheet",
+  "Open packed confirmation",
+  "Retained packed details",
+  "Packed commands",
+  "Packed progress",
+  "Scrollable records",
+])
+  assert.ok(migrationHtml.includes(text), `Packed migration SSR is missing ${text}`);
+for (const attribute of [
+  'data-slot="dialog-trigger"',
+  'data-slot="sheet-trigger"',
+  'data-slot="alert-dialog-trigger"',
+  'data-slot="collapsible-content"',
+  'data-slot="command"',
+  'data-slot="progress-indicator"',
+  'aria-valuenow="20"',
+  'aria-valuemin="10"',
+  'aria-valuemax="30"',
+  'data-indeterminate=""',
+  'data-slot="scroll-area-viewport"',
+  'aria-label="Packed records"',
+  'dir="rtl"',
+])
+  assert.ok(migrationHtml.includes(attribute), `Packed migration SSR is missing ${attribute}`);
+assert.match(migrationHtml, /width:50%/);
+assert.doesNotMatch(migrationHtml, /data-slot="(?:dialog|sheet|alert-dialog)-content"/);
+console.log("Packed modal, command, disclosure, progress and scroll-area SSR passed");

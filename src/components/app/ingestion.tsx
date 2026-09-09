@@ -1,41 +1,6 @@
-/**
- * Ingestion presentation — what the scanner said, and what the pipeline made
- * of it.
- *
- * The load-bearing component is `NormalizationView`. A normalization pipeline
- * that only shows its output is indistinguishable from a lookup table, so this
- * one puts the native record the tool emitted beside the record the normalizer
- * produced and then prints, verbatim, the three sentences that explain the
- * difference: why that severity, why that component, and what could not be
- * resolved at all. An engineer signing the scan off can audit one row end to
- * end without leaving the page.
- *
- * Presentation only. Every value arrives as a prop from `@/lib/ingestion`;
- * nothing here normalizes, deduplicates, sorts or diffs.
- */
-
-import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
+import type { ReactNode } from "react";
 
-import {
-  Absent,
-  Badge,
-  Box,
-  Dot,
-  Empty,
-  Grid,
-  Id,
-  Indicator,
-  Inline,
-  Inspector,
-  KeyValue,
-  Stack,
-  Stat,
-  Table,
-  Eyebrow,
-} from "@ledger/design-system";
-import type { Tone } from "@ledger/design-system";
-import { cn } from "@ledger/design-system/cn";
 import {
   diffStateTone,
   formatTone,
@@ -49,6 +14,26 @@ import {
   type ScanFormat,
   type ScanRun,
 } from "@/lib/ingestion";
+import {
+  Absent,
+  Badge,
+  Box,
+  Dot,
+  Empty,
+  Eyebrow,
+  Grid,
+  Id,
+  Indicator,
+  Inline,
+  Inspector,
+  KeyValue,
+  Stack,
+  Stat,
+  Table,
+  type Tone,
+} from "@ledger/design-system";
+
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
 

@@ -1,14 +1,11 @@
 /** OSCAL projections of the existing program scope, requirement, evidence and control-work stores. */
 import { oscalControlId, sha256Hex, stableUuid, type JsonObject } from "@/lib/oscal";
 import { platformSeed, type PlatformEvidence, type PlatformSeed } from "@/lib/platform-seed";
-import {
-  platformProgramId,
-  platformRootScopeId,
-  platformNodeId,
-  platformScopeId,
-} from "@/lib/platform-ids";
+import { platformProgramId, platformRootScopeId } from "@/lib/platform-ids";
+import { ancestorsOf, nodesForProgram } from "@/lib/composition";
 import { workForProgram } from "@/lib/control-work";
-import { controlSetFor, rollupControlSet, scopeById } from "@/lib/scopes";
+import { controlSetFor, rollupControlSet, scopeById, scopesForProgram } from "@/lib/scopes";
+import { closestProgramScope } from "@/lib/program-scope";
 import { revisionsForProgram } from "@/lib/control-set";
 import { evidenceForProgram } from "@/lib/evidence-catalog";
 import {
@@ -27,9 +24,25 @@ type ImplementationContribution = {
   requirementIds: string[];
   evidenceIds: string[];
 };
+type ExportElement = {
+  id: string;
+  uuid: string;
+  nodeId: string;
+  parentNodeId: string | null;
+  name: string;
+  kind: string;
+  type: string;
+  description: string;
+  version: string;
+  supplier: string;
+  status: string;
+  subsystemId: string | null;
+  scopeId: string | null;
+};
 export type PlatformExportSnapshot = {
   programId: string;
   dataset: PlatformSeed;
+  composition: ExportElement[];
   contributions: ImplementationContribution[];
   selectedControlIds: string[];
   selections: Record<string, string[]>;
@@ -42,8 +55,63 @@ export function platformExportSnapshot(programId = platformProgramId): PlatformE
     throw new Error("This program does not use the imported platform profile.");
   const dataset = structuredClone(platformSeed);
   const work = workForProgram(programId);
+  const scopes = scopesForProgram(programId);
+  const composition: ExportElement[] = nodesForProgram(programId).map((node) => {
+    const original = platformSeed.components.find(
+      (component) => component.id === node.sourceRecord?.id,
+    );
+    const subsystem = ancestorsOf(node.id).find(
+      (ancestor) => ancestor.kind === "Subsystem" || ancestor.kind === "Enclave",
+    );
+    return {
+      id: node.sourceRecord?.id ?? node.id,
+      // Match the component identity used by assessment/inventory exports in oscal.ts.
+      uuid: node.sourceRecord?.uuid ?? stableUuid(`component|${node.id}`),
+      nodeId: node.id,
+      parentNodeId: node.parent,
+      name: node.name,
+      kind: node.kind,
+      type: original?.type ?? node.class.toLowerCase(),
+      description: node.note,
+      version: node.version,
+      supplier: node.supplier,
+      status: original?.status ?? "not-recorded",
+      subsystemId: subsystem ? (subsystem.sourceRecord?.id ?? subsystem.id) : null,
+      scopeId:
+        scopes.find((scope) => scope.element === node.id)?.id ??
+        closestProgramScope(programId, node.id)?.id ??
+        null,
+    };
+  });
+  const root = composition.find((element) => element.parentNodeId === null);
+  if (root) {
+    dataset.systems[0]!.name = root.name;
+    dataset.systems[0]!.description = root.description;
+  }
+  const isSubsystem = (element: ExportElement) =>
+    element.kind === "Subsystem" || element.kind === "Enclave";
+  dataset.subsystems = composition.filter(isSubsystem).map((element) => ({
+    ...platformSeed.subsystems.find((record) => record.id === element.id),
+    id: element.id,
+    name: element.name,
+    description: element.description,
+  }));
+  dataset.components = composition
+    .filter((element) => element.parentNodeId !== null && !isSubsystem(element))
+    .map((element) => ({
+      ...platformSeed.components.find((record) => record.id === element.id),
+      id: element.id,
+      uuid: element.uuid,
+      name: element.name,
+      type: element.type,
+      description: element.description,
+      status: element.status,
+      subsystem_id: element.subsystemId ?? "",
+    }));
   const componentsByNode = new Map(
-    dataset.components.map((component) => [platformNodeId(component.id), component]),
+    composition
+      .filter((element) => element.parentNodeId !== null)
+      .map((element) => [element.nodeId, element]),
   );
   for (const implementation of dataset.control_implementations) {
     const aggregate = work.find(
@@ -58,9 +126,12 @@ export function platformExportSnapshot(programId = platformProgramId): PlatformE
   }
   dataset.requirements = requirementsForProgram(programId).map((record) => {
     const original = platformSeed.requirements.find((item) => item.id === record.id);
-    const componentIds = allocationsFor(record.id).flatMap(
-      (allocation) => componentsByNode.get(allocation.target)?.id ?? [],
+    const allocated = allocationsFor(record.id).flatMap(
+      (allocation) => componentsByNode.get(allocation.target) ?? [],
     );
+    const componentIds = allocated
+      .filter((element) => !isSubsystem(element))
+      .map((element) => element.id);
     return {
       ...(original ?? {}),
       id: record.id,
@@ -84,7 +155,13 @@ export function platformExportSnapshot(programId = platformProgramId): PlatformE
       component_ids: componentIds,
       subsystem_ids: [
         ...new Set(
-          componentIds.map((id) => dataset.components.find((item) => item.id === id)!.subsystem_id),
+          allocated.flatMap((element) => {
+            return isSubsystem(element)
+              ? [element.id]
+              : element.subsystemId
+                ? [element.subsystemId]
+                : [];
+          }),
         ),
       ],
     };
@@ -114,18 +191,31 @@ export function platformExportSnapshot(programId = platformProgramId): PlatformE
       control_ids: [
         ...new Set(artifact.links.filter((link) => link.kind === "control").map((link) => link.id)),
       ],
-      component_ids: artifact.componentIds ?? [],
+      component_ids: [
+        ...new Set([
+          ...(artifact.componentIds ?? []),
+          ...[
+            ...artifact.scopeIds,
+            ...artifact.links.flatMap((link) => link.scopeId ?? []),
+          ].flatMap(
+            (scopeId) => componentsByNode.get(scopeById.get(scopeId)?.element ?? "")?.id ?? [],
+          ),
+        ]),
+      ],
       assessment_reuse: artifact.assessmentReuse ?? "",
     };
   });
   return {
     programId,
     dataset,
+    composition,
     selectedControlIds: rollupControlSet(programId).controls.map((row) => row.control.id),
     selections: Object.fromEntries(
-      dataset.components.map((component) => [
-        component.id,
-        controlSetFor(platformScopeId(component.id))!.controls.map((row) => row.control.id),
+      composition.map((element) => [
+        element.id,
+        element.scopeId
+          ? (controlSetFor(element.scopeId)?.controls.map((row) => row.control.id) ?? [])
+          : [],
       ]),
     ),
     revisions: structuredClone(revisionsForProgram(programId)),
@@ -151,7 +241,8 @@ export function platformExportSnapshot(programId = platformProgramId): PlatformE
             .filter(
               (requirement) =>
                 requirement.control_ids.includes(item.control) &&
-                requirement.component_ids.includes(component.id),
+                (requirement.component_ids.includes(component.id) ||
+                  requirement.subsystem_ids.includes(component.id)),
             )
             .map((requirement) => requirement.id),
           evidenceIds: [...item.evidence],
@@ -194,7 +285,7 @@ function metadata(value: PlatformExportSnapshot, title: string) {
     .at(-1)!;
   return {
     title,
-    "last-modified": modified,
+    "last-modified": new Date(modified).toISOString(),
     version: "1.0.0",
     "oscal-version": platformOscalVersion,
     props: [
@@ -221,12 +312,22 @@ function tailoringResource(value: PlatformExportSnapshot) {
       {
         source_profiles: value.dataset.profiles,
         current_scope_revisions: value.revisions,
+        current_element_control_ids: value.selections,
         export_control_ids: platformExportControlIds(value),
       },
       null,
       2,
     ),
     props: [prop("type", "tailoring-provenance")],
+  };
+}
+
+function compositionResource(value: PlatformExportSnapshot): JsonObject {
+  return {
+    uuid: identity(value, "system-composition"),
+    title: "Current system composition",
+    description: JSON.stringify(value.composition, null, 2),
+    props: [prop("type", "system-composition")],
   };
 }
 export function buildSnapshotProfile(value: PlatformExportSnapshot): JsonObject {
@@ -324,7 +425,8 @@ export function buildSnapshotSsp(value: PlatformExportSnapshot): JsonObject {
   const categorization = system.security_categorization;
   const selected = platformExportControlIds(value);
   if (!selected.length) throw new Error("Select at least one control before exporting the SSP.");
-  const components = new Map(dataset.components.map((component) => [component.id, component]));
+  const components = new Map(value.composition.map((element) => [element.id, element]));
+  const elementsByNode = new Map(value.composition.map((element) => [element.nodeId, element]));
   const implemented: JsonObject[] = selected.map((controlId) => {
     const aggregate = dataset.control_implementations.find((item) => item.control_id === controlId);
     const contributions = value.contributions.filter(
@@ -387,7 +489,7 @@ export function buildSnapshotSsp(value: PlatformExportSnapshot): JsonObject {
         ],
         "system-name": system.name,
         "system-name-short": system.short_name,
-        description: system.description,
+        description: system.description || "System description not recorded.",
         props: [prop("authorization-state", system.authorization_state)],
         "security-sensitivity-level": categorization.overall,
         "system-information": {
@@ -414,27 +516,47 @@ export function buildSnapshotSsp(value: PlatformExportSnapshot): JsonObject {
         },
         "authorization-boundary": {
           description: `Modeled boundary contains ${dataset.subsystems.length} subsystems and ${dataset.components.length} components. ${dataset.subsystems.map((subsystem) => `${subsystem.id}: ${subsystem.name}`).join("; ")}.`,
+          links: [{ href: `#${identity(value, "system-composition")}`, rel: "related" }],
         },
       },
       "system-implementation": {
-        components: dataset.components.map((component) => ({
-          uuid: component.uuid,
-          type: component.type,
-          title: component.name,
-          description: component.description || "Component description not recorded.",
-          status: {
-            state: ["operational", "under-development", "disposition", "other"].includes(
-              component.status,
-            )
-              ? component.status
-              : "other",
-          },
-          props: [
-            prop("component-id", component.id),
-            prop("subsystem-id", component.subsystem_id),
-            prop("source-status", component.status),
-          ],
-        })),
+        components: value.composition
+          .filter((component) => component.parentNodeId !== null)
+          .map((component) => ({
+            uuid: component.uuid,
+            type: component.type,
+            title: component.name,
+            description: component.description || "Component description not recorded.",
+            status: {
+              state: ["operational", "under-development", "disposition", "other"].includes(
+                component.status,
+              )
+                ? component.status
+                : "other",
+            },
+            props: [
+              prop("component-id", component.id),
+              prop("node-id", component.nodeId),
+              prop("node-kind", component.kind),
+              ...(component.parentNodeId ? [prop("parent-node-id", component.parentNodeId)] : []),
+              ...(component.subsystemId ? [prop("subsystem-id", component.subsystemId)] : []),
+              ...(component.scopeId ? [prop("scope-id", component.scopeId)] : []),
+              ...(component.version !== "—" && component.version
+                ? [prop("version", component.version)]
+                : []),
+              ...(component.supplier !== "—" && component.supplier
+                ? [prop("supplier", component.supplier)]
+                : []),
+              prop("source-status", component.status),
+            ],
+            ...(component.parentNodeId && elementsByNode.get(component.parentNodeId)?.parentNodeId
+              ? {
+                  links: [
+                    { href: `#${elementsByNode.get(component.parentNodeId)!.uuid}`, rel: "parent" },
+                  ],
+                }
+              : {}),
+          })),
       },
       "control-implementation": {
         description:
@@ -444,6 +566,7 @@ export function buildSnapshotSsp(value: PlatformExportSnapshot): JsonObject {
       "back-matter": {
         resources: [
           tailoringResource(value),
+          compositionResource(value),
           ...requirementResources(value),
           ...dataset.evidence.map(evidenceResource),
         ],

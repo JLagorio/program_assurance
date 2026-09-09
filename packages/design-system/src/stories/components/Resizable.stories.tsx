@@ -15,7 +15,7 @@ type Story = StoryObj;
 
 function List({ count = 24 }: { count?: number | undefined }) {
   return (
-    <ScrollArea className="h-full" label="Controls">
+    <ScrollArea className="h-full" viewportProps={{ role: "region", "aria-label": "Controls" }}>
       <Stack space="space.0">
         {Array.from({ length: count }, (_, i) => (
           <Box key={i} paddingInline="space.150" paddingBlock="space.075">

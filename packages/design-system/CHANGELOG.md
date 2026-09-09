@@ -6,6 +6,11 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ## Unreleased · audit implementation
 
+- **Breaking: Dialog, Sheet and AlertDialog adopt shadcn's Base UI parts.** Replace configured title/body/footer/action props with explicit Content, Header, Title, Description, Footer and Close/Cancel/Action composition. Root uses native `onOpenChange` with cancellation; Content owns `initialFocus`/`finalFocus`. Preserve application widths, scrolling, pending guards and focus targets. Sheet supports all four physical edges plus Ledger's logical start/end, with direction-aware slide motion preserved in production CSS. AlertDialogAction remains open until the caller finishes the action. Base UI owns nested popup dismissal; only the remaining Vaul Drawer keeps Radix interoperability helpers. See [Dialog](src/stories/components/Dialog.mdx), [Sheet](src/stories/components/Sheet.mdx) and [AlertDialog](src/stories/components/AlertDialog.mdx).
+- **Breaking: Command adopts shadcn's flat parts and Base UI modal shell.** Use CommandDialog with an explicit Command child and flat CommandInput/List/Group/Item/etc.; compose shortcuts as children. cmdk remains the search and keyboard engine, as in shadcn's Base UI source. Retain CommandLoading, CommandFooter and CommandCount; loading content belongs alongside the listbox. See [Command](src/stories/components/Command.mdx).
+- **Breaking: Progress and ScrollArea adopt shadcn's Base UI parts.** Progress uses native numeric/null values, ranges and ARIA with explicit ProgressLabel/ProgressValue; retain tone/size and rename Progress.Stacked to ProgressStacked. ScrollArea uses a native viewport and ScrollBar; set horizontal orientation on ScrollBar and viewport refs/events/ARIA through viewportProps. Remove the package's direct Radix Dialog, AlertDialog, Progress and ScrollArea dependencies. See [Progress](src/stories/components/Progress.mdx) and [ScrollArea](src/stories/components/ScrollArea.mdx).
+- **Breaking: Collapsible adopts shadcn's flat Base UI parts.** Use CollapsibleTrigger/CollapsibleContent with `render`, `keepMounted`, `hiddenUntilFound`, native state callbacks and `data-open`/`data-closed`. Migrate Item's internal disclosure and its Section/Stepper consumers; remove the package's Radix Collapsible dependency and unused LegacyAccordion/LegacyCollapsible adapters. The current Accordion API is AccordionItem/Trigger/Content, array selection in both modes and `multiple` for independent expansion. Replace the obsolete disclosure migration guide and repair the packed consumer's Accordion composition. See [Collapsible](src/stories/components/Collapsible.mdx) and [Accordion](src/stories/components/Accordion.mdx).
+
 - **Breaking: Tabs adopts shadcn's Base UI parts.** Use flat Tabs, TabsList, TabsTrigger and TabsContent exports with the tabsListVariants recipe. Replace count/trailing slots with children, label with aria-label and asChild with render; navigation triggers use nativeButton={false}. List owns activateOnFocus (manual by default) and loopFocus. Existing app strips explicitly retain line styling, counts and automatic activation; ShowPage preserves its route-controlled layout. Forward native props, refs, state callbacks, cancellation, orientation and locale direction. Remove the custom underline observers/measurement and package Radix Tabs dependency. Replace seven Tabs stories with four interaction examples. See [Tabs](src/stories/components/Tabs.mdx).
 
 - Let `DataTable.Filters` include caller-owned fields through `additionalFilters`, with their active count and reset callback. Controls moves Scope into this panel and removes its separate dropdown row. See [Data table / Group by](src/stories/patterns/DataTable.mdx#group-by).
@@ -532,6 +537,7 @@ Migration: custom controls inside Field must call `useFieldControl` or explicitl
   the section headings among them as headings. Components/Typography: Matrix, InRail.
 
 ### Chart
+
 - `Chart.Frame`: the legend highlights a series on visible focus only, so the Expand dialog does not open with every series but the first legend item's dimmed; the dialog shows the title and the description once, not again in the Frame inside it.
 - `Chart.Frame` takes `columns`: keys in the datum beyond the series, for the table twin and the CSV. A name beside the category (`place: "before"`), a total, a share, an owner after the series, each with its own `format`; numbers sit to the end. `ChartColumn` and `ChartValue` are exported.
 - `Chart.Frame`'s drill-down path names its landmark "Chart path", now that Breadcrumb takes `label`; a page's own Breadcrumb and a drilled chart no longer share a name.
@@ -600,7 +606,7 @@ Migration: custom controls inside Field must call `useFieldControl` or explicitl
   it is open; Escape or a click outside closes it and focus returns to the plot. `onSelect` now
   receives one selection object per part (`{ datum, series?, index }` on the cartesian parts,
   `{ slice, share, index }`, `{ datum, group, index }`, `{ name, value, group }`, `{ row, column,
-  value }`) in place of positional arguments. Components/Chart/Overview: Details, Filtering; each
+value }`) in place of positional arguments. Components/Chart/Overview: Details, Filtering; each
   part's Details.
 - The keyboard chooses too. A named plot's tab stop is recharts' svg; the arrow keys move the
   tooltip across the categories and Enter chooses the one under it, opening its card. The focus

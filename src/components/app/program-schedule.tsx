@@ -1,11 +1,15 @@
-import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Badge,
+  Box,
   Button,
   DataTable,
+  defineColumns,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Field,
   Grid,
   Id,
@@ -17,23 +21,26 @@ import {
   Stack,
   Table,
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
-  TabsContent,
   Textarea,
   TextLink,
-  defineColumns,
-  useDataTable,
   type Tone,
+  useDataTable,
 } from "@ledger/design-system";
 
+import { Link } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { ProgramTasks } from "@/components/app/tasks-section";
-import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import {
   updateAssessmentSchedule,
   updateEventSchedule,
   useAssessmentsVersion,
 } from "@/lib/assessment-store";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { events } from "@/lib/campaigns";
 import { currentSession } from "@/lib/control-work";
 import { gateStatusTone, type ProgramGate } from "@/lib/grc-data";
@@ -279,156 +286,168 @@ function MilestoneEditor({
   const formId = `milestone-${milestone.id}`;
   return (
     <Dialog
-      open
-      onClose={onClose}
-      width="large"
-      title={milestone.name ? "Edit milestone" : "New milestone"}
-      description={`${programId} · ${milestone.id}`}
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="submit" form={formId}>
-            Save milestone
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        id={formId}
-        onSubmit={(event) => {
-          event.preventDefault();
-          try {
-            saveProgramMilestone(programId, draft, actor);
-            onClose();
-          } catch (cause) {
-            setError(cause instanceof Error ? cause.message : "Milestone could not be saved.");
-          }
-        }}
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
       >
-        <Stack space="space.200">
-          {error ? (
-            <p role="alert" className="font-body-small text-danger">
-              {error}
-            </p>
-          ) : null}
-          <Field label="Milestone name" isRequired>
-            <Input
-              required
-              value={draft.name}
-              onChange={(event) => set("name", event.target.value)}
-            />
-          </Field>
-          <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap="space.150">
-            <Field label="Track / type">
-              <NativeSelect
-                value={draft.kind}
-                onChange={(event) => set("kind", event.target.value as ProgramGate["kind"])}
-              >
-                {["Milestone decision", "Engineering review", "RMF action", "Operational"].map(
-                  (kind) => (
-                    <option key={kind}>{kind}</option>
-                  ),
-                )}
-              </NativeSelect>
-            </Field>
-            <Field label="Phase">
-              <Input
-                placeholder="e.g. Engineering & manufacturing development"
-                value={draft.phase}
-                onChange={(event) => set("phase", event.target.value)}
-              />
-            </Field>
-            <Field label="Owner / team">
-              <Input
-                list={`owners-${programId}`}
-                value={draft.owner}
-                onChange={(event) => set("owner", event.target.value)}
-              />
-              <datalist id={`owners-${programId}`}>
-                {mentionablePeople(programId).map((person) => (
-                  <option key={person.name} value={person.name} />
-                ))}
-              </datalist>
-            </Field>
-            <Field label="Status">
-              <NativeSelect
-                value={draft.status}
-                onChange={(event) => set("status", event.target.value as ProgramGate["status"])}
-              >
-                {Object.keys(gateStatusTone).map((status) => (
-                  <option key={status}>{status}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Planned date">
-              <Input
-                type="date"
-                value={scheduleDate(draft.planned) ?? ""}
-                onChange={(event) => set("planned", event.target.value)}
-              />
-            </Field>
-            <Field label="Actual date" isRequired={draft.status === "Complete"}>
-              <Input
-                type="date"
-                required={draft.status === "Complete"}
-                value={scheduleDate(draft.actual) ?? ""}
-                onChange={(event) => set("actual", event.target.value)}
-              />
-            </Field>
-            <Field label="Workstream">
-              <NativeSelect
-                value={draft.workstreams?.[0] ?? ""}
-                onChange={(event) =>
-                  set("workstreams", event.target.value ? [event.target.value] : [])
-                }
-              >
-                <option value="">No workstream</option>
-                {workstreams.map((stream) => (
-                  <option key={stream.id} value={stream.id}>
-                    {stream.id} — {stream.title}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Depends on milestone">
-              <NativeSelect
-                value={draft.dependsOn?.[0] ?? ""}
-                onChange={(event) =>
-                  set("dependsOn", event.target.value ? [event.target.value] : [])
-                }
-              >
-                <option value="">No dependency</option>
-                {gates.map((gate) => (
-                  <option key={gate.id} value={gate.id}>
-                    {gate.id} — {gate.name}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-          </Grid>
-          <Field label="Required deliverable / readiness criterion">
-            <Textarea
-              value={draft.cyberGate}
-              onChange={(event) => set("cyberGate", event.target.value)}
-            />
-          </Field>
-          <Field label="Deliverable reference">
-            <Input
-              placeholder="Document or record reference"
-              value={draft.artifact === "—" ? "" : draft.artifact}
-              onChange={(event) => set("artifact", event.target.value)}
-            />
-          </Field>
-          <Field label="Notes">
-            <Textarea
-              value={draft.description}
-              onChange={(event) => set("description", event.target.value)}
-            />
-          </Field>
-        </Stack>
-      </form>
+        <DialogHeader>
+          <DialogTitle>{milestone.name ? "Edit milestone" : "New milestone"}</DialogTitle>
+          <DialogDescription>{`${programId} · ${milestone.id}`}</DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <form
+            id={formId}
+            onSubmit={(event) => {
+              event.preventDefault();
+              try {
+                saveProgramMilestone(programId, draft, actor);
+                onClose();
+              } catch (cause) {
+                setError(cause instanceof Error ? cause.message : "Milestone could not be saved.");
+              }
+            }}
+          >
+            <Stack space="space.200">
+              {error ? (
+                <p role="alert" className="font-body-small text-danger">
+                  {error}
+                </p>
+              ) : null}
+              <Field label="Milestone name" isRequired>
+                <Input
+                  required
+                  value={draft.name}
+                  onChange={(event) => set("name", event.target.value)}
+                />
+              </Field>
+              <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap="space.150">
+                <Field label="Track / type">
+                  <NativeSelect
+                    value={draft.kind}
+                    onChange={(event) => set("kind", event.target.value as ProgramGate["kind"])}
+                  >
+                    {["Milestone decision", "Engineering review", "RMF action", "Operational"].map(
+                      (kind) => (
+                        <option key={kind}>{kind}</option>
+                      ),
+                    )}
+                  </NativeSelect>
+                </Field>
+                <Field label="Phase">
+                  <Input
+                    placeholder="e.g. Engineering & manufacturing development"
+                    value={draft.phase}
+                    onChange={(event) => set("phase", event.target.value)}
+                  />
+                </Field>
+                <Field label="Owner / team">
+                  <Input
+                    list={`owners-${programId}`}
+                    value={draft.owner}
+                    onChange={(event) => set("owner", event.target.value)}
+                  />
+                  <datalist id={`owners-${programId}`}>
+                    {mentionablePeople(programId).map((person) => (
+                      <option key={person.name} value={person.name} />
+                    ))}
+                  </datalist>
+                </Field>
+                <Field label="Status">
+                  <NativeSelect
+                    value={draft.status}
+                    onChange={(event) => set("status", event.target.value as ProgramGate["status"])}
+                  >
+                    {Object.keys(gateStatusTone).map((status) => (
+                      <option key={status}>{status}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+                <Field label="Planned date">
+                  <Input
+                    type="date"
+                    value={scheduleDate(draft.planned) ?? ""}
+                    onChange={(event) => set("planned", event.target.value)}
+                  />
+                </Field>
+                <Field label="Actual date" isRequired={draft.status === "Complete"}>
+                  <Input
+                    type="date"
+                    required={draft.status === "Complete"}
+                    value={scheduleDate(draft.actual) ?? ""}
+                    onChange={(event) => set("actual", event.target.value)}
+                  />
+                </Field>
+                <Field label="Workstream">
+                  <NativeSelect
+                    value={draft.workstreams?.[0] ?? ""}
+                    onChange={(event) =>
+                      set("workstreams", event.target.value ? [event.target.value] : [])
+                    }
+                  >
+                    <option value="">No workstream</option>
+                    {workstreams.map((stream) => (
+                      <option key={stream.id} value={stream.id}>
+                        {stream.id} — {stream.title}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+                <Field label="Depends on milestone">
+                  <NativeSelect
+                    value={draft.dependsOn?.[0] ?? ""}
+                    onChange={(event) =>
+                      set("dependsOn", event.target.value ? [event.target.value] : [])
+                    }
+                  >
+                    <option value="">No dependency</option>
+                    {gates.map((gate) => (
+                      <option key={gate.id} value={gate.id}>
+                        {gate.id} — {gate.name}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              </Grid>
+              <Field label="Required deliverable / readiness criterion">
+                <Textarea
+                  value={draft.cyberGate}
+                  onChange={(event) => set("cyberGate", event.target.value)}
+                />
+              </Field>
+              <Field label="Deliverable reference">
+                <Input
+                  placeholder="Document or record reference"
+                  value={draft.artifact === "—" ? "" : draft.artifact}
+                  onChange={(event) => set("artifact", event.target.value)}
+                />
+              </Field>
+              <Field label="Notes">
+                <Textarea
+                  value={draft.description}
+                  onChange={(event) => set("description", event.target.value)}
+                />
+              </Field>
+            </Stack>
+          </form>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="subtle" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" form={formId}>
+              Save milestone
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -592,150 +611,164 @@ function ScheduleDetail({
   ) : null;
   return (
     <Dialog
-      open
-      onClose={onClose}
-      width="large"
-      title={row.title}
-      description={`${programId} · ${row.sourceId}`}
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Close
-          </Button>
-          {canEditSchedule ? (
-            editing ? (
-              <Button variant="primary" type="submit" form={formId}>
-                Save schedule
-              </Button>
-            ) : (
-              <Button variant="secondary" onClick={() => setEditing(true)}>
-                Edit dates and owner
-              </Button>
-            )
-          ) : null}
-          {source}
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <Stack space="space.200">
-        {editing ? (
-          <form
-            id={formId}
-            onSubmit={(event) => {
-              event.preventDefault();
-              try {
-                const save =
-                  row.kind === "Test event" ? updateEventSchedule : updateAssessmentSchedule;
-                save(row.sourceId, schedule, currentSession().name);
-                setEditing(false);
-                setError("");
-              } catch (cause) {
-                setError(cause instanceof Error ? cause.message : "Schedule could not be saved.");
-              }
-            }}
-          >
-            <Stack space="space.150">
-              {error ? (
-                <p role="alert" className="font-body-small text-danger">
-                  {error}
-                </p>
-              ) : null}
-              <Field label="Owner / team" isRequired>
-                <Input
-                  required
-                  value={schedule.owner}
-                  onChange={(event) =>
-                    setSchedule((old) => ({ ...old, owner: event.target.value }))
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
+      >
+        <DialogHeader>
+          <DialogTitle>{row.title}</DialogTitle>
+          <DialogDescription>{`${programId} · ${row.sourceId}`}</DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <Stack space="space.200">
+            {editing ? (
+              <form
+                id={formId}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  try {
+                    const save =
+                      row.kind === "Test event" ? updateEventSchedule : updateAssessmentSchedule;
+                    save(row.sourceId, schedule, currentSession().name);
+                    setEditing(false);
+                    setError("");
+                  } catch (cause) {
+                    setError(
+                      cause instanceof Error ? cause.message : "Schedule could not be saved.",
+                    );
                   }
-                />
-              </Field>
-              <Grid
-                gap="space.150"
-                templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+                }}
               >
-                <Field label="Start date" isRequired>
-                  <Input
-                    type="date"
-                    required
-                    value={schedule.start}
-                    onChange={(event) =>
-                      setSchedule((old) => ({ ...old, start: event.target.value }))
-                    }
-                  />
-                </Field>
-                <Field label="End date" isRequired>
-                  <Input
-                    type="date"
-                    required
-                    min={schedule.start || undefined}
-                    value={schedule.end}
-                    onChange={(event) =>
-                      setSchedule((old) => ({ ...old, end: event.target.value }))
-                    }
-                  />
-                </Field>
-              </Grid>
-            </Stack>
-          </form>
-        ) : null}
-        <div>
-          <KeyValue label="Track">{row.track}</KeyValue>
-          <KeyValue label="Status">
-            <Badge variant="secondary" tone={tone(row)}>
-              {row.status}
-            </Badge>
-          </KeyValue>
-          <KeyValue label="Owner / team">{row.owner || "Unassigned"}</KeyValue>
-          <KeyValue label="Planned / window">{row.dates || "Undated"}</KeyValue>
-          <KeyValue label="Phase">{row.phase || "—"}</KeyValue>
-          <KeyValue label="Dependencies / related work">
-            {row.dependency || "None recorded"}
-          </KeyValue>
-        </div>
-        {stream ? (
+                <Stack space="space.150">
+                  {error ? (
+                    <p role="alert" className="font-body-small text-danger">
+                      {error}
+                    </p>
+                  ) : null}
+                  <Field label="Owner / team" isRequired>
+                    <Input
+                      required
+                      value={schedule.owner}
+                      onChange={(event) =>
+                        setSchedule((old) => ({ ...old, owner: event.target.value }))
+                      }
+                    />
+                  </Field>
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+                  >
+                    <Field label="Start date" isRequired>
+                      <Input
+                        type="date"
+                        required
+                        value={schedule.start}
+                        onChange={(event) =>
+                          setSchedule((old) => ({ ...old, start: event.target.value }))
+                        }
+                      />
+                    </Field>
+                    <Field label="End date" isRequired>
+                      <Input
+                        type="date"
+                        required
+                        min={schedule.start || undefined}
+                        value={schedule.end}
+                        onChange={(event) =>
+                          setSchedule((old) => ({ ...old, end: event.target.value }))
+                        }
+                      />
+                    </Field>
+                  </Grid>
+                </Stack>
+              </form>
+            ) : null}
+            <div>
+              <KeyValue label="Track">{row.track}</KeyValue>
+              <KeyValue label="Status">
+                <Badge variant="secondary" tone={tone(row)}>
+                  {row.status}
+                </Badge>
+              </KeyValue>
+              <KeyValue label="Owner / team">{row.owner || "Unassigned"}</KeyValue>
+              <KeyValue label="Planned / window">{row.dates || "Undated"}</KeyValue>
+              <KeyValue label="Phase">{row.phase || "—"}</KeyValue>
+              <KeyValue label="Dependencies / related work">
+                {row.dependency || "None recorded"}
+              </KeyValue>
+            </div>
+            {stream ? (
+              <>
+                <p className="font-body-small">{stream.objective}</p>
+                <Section title="Assigned people">
+                  <Table>
+                    <thead>
+                      <tr>
+                        <Table.Header>Person</Table.Header>
+                        <Table.Header>Role</Table.Header>
+                        <Table.Header>Allocation</Table.Header>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stream.members.map((member) => (
+                        <Table.Row key={member.person}>
+                          <Table.Cell>
+                            <TextLink>
+                              <Link to="/people/$personId" params={{ personId: member.person }}>
+                                {personById.get(member.person)?.name ?? member.person}
+                              </Link>
+                            </TextLink>
+                          </Table.Cell>
+                          <Table.Cell>{member.role}</Table.Cell>
+                          <Table.Cell>{member.allocation}%</Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </tbody>
+                  </Table>
+                </Section>
+                <Section title="Controls">
+                  <Inline space="space.100" shouldWrap>
+                    {stream.controls.map((control) => (
+                      <Id key={control}>{control}</Id>
+                    ))}
+                  </Inline>
+                </Section>
+                <p className="font-body-small text-subtle">{stream.note}</p>
+              </>
+            ) : (
+              <p className="font-body-small text-subtle">
+                Open the source record to update its dates, assignments or completion state.
+              </p>
+            )}
+          </Stack>
+        </Box>
+        <DialogFooter>
           <>
-            <p className="font-body-small">{stream.objective}</p>
-            <Section title="Assigned people">
-              <Table>
-                <thead>
-                  <tr>
-                    <Table.Header>Person</Table.Header>
-                    <Table.Header>Role</Table.Header>
-                    <Table.Header>Allocation</Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stream.members.map((member) => (
-                    <Table.Row key={member.person}>
-                      <Table.Cell>
-                        <TextLink>
-                          <Link to="/people/$personId" params={{ personId: member.person }}>
-                            {personById.get(member.person)?.name ?? member.person}
-                          </Link>
-                        </TextLink>
-                      </Table.Cell>
-                      <Table.Cell>{member.role}</Table.Cell>
-                      <Table.Cell>{member.allocation}%</Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            </Section>
-            <Section title="Controls">
-              <Inline space="space.100" shouldWrap>
-                {stream.controls.map((control) => (
-                  <Id key={control}>{control}</Id>
-                ))}
-              </Inline>
-            </Section>
-            <p className="font-body-small text-subtle">{stream.note}</p>
+            <Button variant="subtle" onClick={onClose}>
+              Close
+            </Button>
+            {canEditSchedule ? (
+              editing ? (
+                <Button variant="primary" type="submit" form={formId}>
+                  Save schedule
+                </Button>
+              ) : (
+                <Button variant="secondary" onClick={() => setEditing(true)}>
+                  Edit dates and owner
+                </Button>
+              )
+            ) : null}
+            {source}
           </>
-        ) : (
-          <p className="font-body-small text-subtle">
-            Open the source record to update its dates, assignments or completion state.
-          </p>
-        )}
-      </Stack>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

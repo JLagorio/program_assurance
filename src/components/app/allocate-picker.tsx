@@ -1,30 +1,5 @@
-/**
- * Choosing many from hundreds, for the two mapping asks: requirements onto one
- * element, and elements onto one requirement. Frame one chooses by attribute;
- * frame two fills in what the model requires of every allocation (the
- * responsibility, the coverage, the bounded claim) as Editable cells with a
- * defaults row, never a form per row. "Does not apply" is a row action in
- * frame two, recorded with its reason, so the applicability walk is a mode of
- * this picker rather than a dialog of its own.
- */
-
 import { useMemo, useState } from "react";
 
-import {
-  Badge,
-  Box,
-  Button,
-  Editable,
-  FilterChip,
-  Id,
-  Inline,
-  Indicator,
-  NativeSelect,
-  PickerSheet,
-  Table,
-  Text,
-  toast,
-} from "@ledger/design-system";
 import { nodesForProgram, pathLabel, type CompositionNode } from "@/lib/composition";
 import { currentSession } from "@/lib/control-work";
 import { reviewLink } from "@/lib/link-currency";
@@ -44,6 +19,21 @@ import {
   type Responsibility,
 } from "@/lib/requirements";
 import { systemComponents } from "@/lib/reusable-components";
+import {
+  Badge,
+  Box,
+  Button,
+  Editable,
+  FilterChip,
+  Id,
+  Indicator,
+  Inline,
+  NativeSelect,
+  PickerSheet,
+  Table,
+  Text,
+  toast,
+} from "@ledger/design-system";
 
 type Fields = { responsibility: Responsibility; coverage: Coverage; claim: string };
 type Frame = "choose" | "details";

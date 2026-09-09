@@ -1,55 +1,5 @@
-/**
- * Continuous monitoring presentation — the morning queue and the drift trail.
- *
- * Two things have to survive contact with this file:
- *
- *  - **The alert list is the product.** A ConMon lead opens one page a day and
- *    the only question that page has to answer is "what diverged overnight and
- *    what do I do about it". So every alert prints, in this order: how bad it
- *    is, what kind of divergence it is, which object it is about, when it
- *    started, the sentence carrying the actual numbers, the sentence saying
- *    what to do next, and the ids the claim rests on. No alert is ever reduced
- *    to a coloured dot and a count — a dashboard tile that says "3 issues" is
- *    a thing you learn to stop clicking.
- *  - **`DriftFactorTable` reads exactly like `FactorTable` in
- *    `risk-scoring.tsx`**, on purpose. Residual risk and authorization drift
- *    are the same shape of argument applied to two different questions — a
- *    weighted sum over factors each of which names the input it read — and a
- *    reader who has learned one table should not have to learn a second one.
- *    Same columns, same footer that adds the column up, same treatment of a
- *    factor that could not be computed: a ROW that prints the absence and the
- *    weight that was never applied, never a silent omission that quietly moves
- *    the denominator.
- *
- * A row whose finding sentence is worth reading opens into it: the sentence is
- * the row's detail. On the schedule and freshness tables it starts open only
- * for rows in a state somebody has to act on: printing the sentence under all
- * 36 current controls would bury the eight overdue ones, and the sentence for a
- * healthy row says nothing the columns have not already said. Nothing is hidden
- * by that choice — the healthy row's sentence is one chevron away.
- *
- * Presentation only. Every value arrives as a prop from `@/lib/conmon`; nothing
- * here computes a date, a status, a band or an order, and routes own every
- * link. No clock is read anywhere in this file.
- */
-
 import { useMemo, type ReactNode } from "react";
 
-import {
-  Absent,
-  Badge,
-  Box,
-  DataTable,
-  Empty,
-  Grid,
-  Id,
-  Inline,
-  Stack,
-  Table,
-  defineColumns,
-  useDataTable,
-  Eyebrow,
-} from "@ledger/design-system";
 import {
   alertSeverityTone,
   assessmentStatusTone,
@@ -68,6 +18,21 @@ import {
   type SlippageRow,
 } from "@/lib/conmon";
 import { statusTone } from "@/lib/spine";
+import {
+  Absent,
+  Badge,
+  Box,
+  DataTable,
+  Empty,
+  Eyebrow,
+  Grid,
+  Id,
+  Inline,
+  Stack,
+  Table,
+  defineColumns,
+  useDataTable,
+} from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */

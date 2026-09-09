@@ -1,32 +1,39 @@
-import { useCallback, useMemo, useState, useEffect } from "react";
-import { useRecordForm } from "@/lib/record-form";
 import { saveProgramCommand, useProgramsVersion } from "@/lib/program-store";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, Lock } from "lucide-react";
-
-import { Task } from "@/components/app/task";
-import { CdrPackageModal } from "@/components/app/digital-thread";
+import { useRecordForm } from "@/lib/record-form";
 import {
-  BreadcrumbItem,
-  BreadcrumbLink,
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Badge,
   Box,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Button,
-  IconButton,
   ButtonGroup,
   Combobox,
   CommandPalette,
+  Count,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuGroup,
-  DropdownMenuLinkItem,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuLinkItem,
+  DropdownMenuTrigger,
   Editable,
   Field,
+  IconButton,
   Id,
   Inline,
   Inspector,
@@ -35,53 +42,57 @@ import {
   Person,
   RecordHeader,
   Section,
-  Select,
   ShowPage,
   Stack,
   TabsList,
   TabsTrigger,
-  Count,
   TextLink,
   toast,
   useCommandPalette,
 } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
-import { ProgramFindings } from "@/components/app/program-findings";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { ChevronDown, Lock } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { CoverageBand } from "@/components/app/coverage";
+import { CdrPackageModal } from "@/components/app/digital-thread";
+import { ProgramAssessments } from "@/components/app/program-assessments";
+import { ProgramControls } from "@/components/app/program-controls";
 import { ProgramEvidence } from "@/components/app/program-evidence";
+import { ProgramFindings } from "@/components/app/program-findings";
 import { ProgramPoams } from "@/components/app/program-poams";
 import { ProgramSchedule } from "@/components/app/program-schedule";
-import { ProgramAssessments } from "@/components/app/program-assessments";
-import { useAssuranceVersion } from "@/lib/assurance-record-store";
-import { evidenceForProgram, useEvidenceVersion } from "@/lib/evidence-catalog";
-import { useProgramScheduleVersion } from "@/lib/program-schedule";
-import { useAssessmentsVersion } from "@/lib/assessment-store";
-import { campaigns } from "@/lib/campaigns";
-import { CoverageBand } from "@/components/app/coverage";
-import { ProgramControls } from "@/components/app/program-controls";
 import { RecordActivity } from "@/components/app/record-activity";
+import { RequirementCoverage } from "@/components/app/requirement-coverage";
+import { ScopeTable } from "@/components/app/scopes";
+import { Shell } from "@/components/app/shell";
 import { StageStrip } from "@/components/app/stage-strip";
+import { Task } from "@/components/app/task";
 import { TaskRows } from "@/components/app/tasks-section";
+import { useAssessmentsVersion } from "@/lib/assessment-store";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
+import { campaigns } from "@/lib/campaigns";
+import { useCompositionGraph } from "@/lib/composition";
+import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { currentSession, useWorkVersion } from "@/lib/control-work";
+import { evidenceForProgram, useEvidenceVersion } from "@/lib/evidence-catalog";
+import { programs, programStatuses, programStatusTone } from "@/lib/grc-data";
+import { inheritanceForProgram } from "@/lib/inheritance";
+import { peopleForProgram, personById, workstreamsForProgram } from "@/lib/people";
+import { programPosture } from "@/lib/program-actions";
+import { programCommands } from "@/lib/program-commands";
+import { programControlImplementations, programControlRows } from "@/lib/program-controls";
+import { coverageFromRows } from "@/lib/program-coverage";
+import { saveProgramField } from "@/lib/program-save";
+import { useProgramScheduleVersion } from "@/lib/program-schedule";
+import { programElementIds, resolveProgramElement } from "@/lib/program-scope";
+import { programState, type Stage } from "@/lib/program-stage";
+import { poamItems as registerPoams } from "@/lib/register";
+import { requirementsForProgramElement } from "@/lib/requirement-context";
+import { useRequirementsVersion } from "@/lib/requirements";
+import { rollupControlSet, scopesForProgram, useScopesVersion } from "@/lib/scopes";
 import { stageOf } from "@/lib/stages";
 import { tasksForProgram, useTasksVersion } from "@/lib/tasks";
-import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
-import { saveProgramField } from "@/lib/program-save";
-import { programPosture } from "@/lib/program-actions";
-import { coverageFromRows } from "@/lib/program-coverage";
-import { programCommands } from "@/lib/program-commands";
-import { ScopeTable } from "@/components/app/scopes";
-import { RequirementCoverage } from "@/components/app/requirement-coverage";
-import { programStatuses, programStatusTone, programs } from "@/lib/grc-data";
-import { useRequirementsVersion } from "@/lib/requirements";
-import { requirementsForProgramElement } from "@/lib/requirement-context";
-import { programControlRows } from "@/lib/program-controls";
-import { ancestorsOf, useCompositionGraph } from "@/lib/composition";
-import { programElementIds, resolveProgramElement } from "@/lib/program-scope";
-import { rollupControlSet, scopesForProgram, useScopesVersion } from "@/lib/scopes";
-import { poamItems as registerPoams } from "@/lib/register";
-import { programState, type Stage } from "@/lib/program-stage";
-import { peopleForProgram, personById, workstreamsForProgram } from "@/lib/people";
-import { inheritanceForProgram } from "@/lib/inheritance";
 
 export const Route = createFileRoute("/programs/$programId")({
   // Program context and open records survive navigation and browser history.
@@ -265,6 +276,8 @@ const segmentStatus: Record<string, ControlStatus> = {
 };
 
 function ProgramDetail() {
+  const alertCancelRef = useRef<HTMLButtonElement>(null);
+
   const program = Route.useLoaderData();
   const search = Route.useSearch();
   const tab = search.tab ?? "Overview";
@@ -275,6 +288,7 @@ function ProgramDetail() {
         search: (prev) => ({
           ...prev,
           tab: next,
+          element: undefined,
           peek: undefined,
           findingId: undefined,
           poamId: undefined,
@@ -300,42 +314,57 @@ function ProgramDetail() {
   const elements = useCompositionGraph(program.id);
   const selectedElement = resolveProgramElement(program.id, search.element);
   const selectedElementIds = programElementIds(program.id, selectedElement?.id);
-  const scopedRequirementCount = requirementsForProgramElement(
-    program.id,
-    selectedElement?.id,
-  ).length;
-  const scopedControls = programControlRows(program.id, selectedElement?.id);
-  const changeElement = (element: string) => {
+  const requirementCount = requirementsForProgramElement(program.id).length;
+  const programControls = programControlRows(program.id);
+  const scopedControls =
+    selectedElement && tab === "Controls"
+      ? programControlRows(program.id, selectedElement.id)
+      : programControls;
+  const clearElement = () => {
     void navigate({
       search: (prev) => ({
         ...prev,
-        element: element === "__all__" ? undefined : element || undefined,
+        element: undefined,
         peek: undefined,
       }),
     });
   };
   useEffect(() => {
-    if (search.element && !selectedElement) {
+    if (search.element && (!selectedElement || tab === "System")) {
       void navigate({
         replace: true,
         search: (prev) => ({ ...prev, element: undefined, peek: undefined }),
       });
     }
-  }, [search.element, selectedElement, navigate]);
+  }, [search.element, selectedElement, navigate, tab]);
   useProgramsVersion();
   const [assessing, setAssessing] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const { form, values, setValue, formId, formRef } = useRecordForm(
     {
-      assessControl: "AC-6(9)",
+      assessControl: "",
+      assessScope: "",
     },
-    (value) => ({ assessControl: value.assessControl }),
+    (value) => ({ assessControl: value.assessControl, assessScope: value.assessScope }),
   );
-  const { assessControl } = values;
+  const { assessControl, assessScope } = values;
+  const assessmentSubjects = assessing
+    ? programControlImplementations(program.id, assessControl)
+    : [];
+  const assessmentSubjectAvailable = assessmentSubjects.some(
+    (subject) => subject.scopeId === assessScope,
+  );
   useEffect(() => {
-    if (assessing && !scopedControls.some((control) => control.id === assessControl))
-      setValue("assessControl", scopedControls[0]?.id ?? "");
+    if (
+      assessing &&
+      assessControl &&
+      !scopedControls.some((control) => control.id === assessControl)
+    )
+      setValue("assessControl", "");
   }, [assessing, assessControl, scopedControls, setValue]);
+  useEffect(() => {
+    if (assessing && assessScope && !assessmentSubjectAvailable) setValue("assessScope", "");
+  }, [assessing, assessScope, assessmentSubjectAvailable, setValue]);
 
   const [status, setStatus] = useState(program.status);
   const [owner, setOwner] = useState(program.owner);
@@ -656,9 +685,9 @@ function ProgramDetail() {
               {(
                 [
                   ["Overview", null],
-                  ["System", selectedElementIds.size || null],
-                  ["Requirements", scopedRequirementCount || null],
-                  ["Controls", scopedControls.length || null],
+                  ["System", elements.length || null],
+                  ["Requirements", requirementCount || null],
+                  ["Controls", programControls.length || null],
                   ["Assessments", assessmentCount || null],
                   ["Schedule", null],
                   ["Findings", posture.findingsOpen || null],
@@ -675,42 +704,17 @@ function ProgramDetail() {
             </TabsList>
           }
         >
-          {["System", "Requirements"].includes(tab) ? (
-            <Box paddingBlock="space.150">
-              <Inline space="space.100" alignBlock="center" shouldWrap>
-                <span className="font-body-small text-subtle">Scope</span>
-                <Combobox
-                  aria-label="System or component scope"
-                  size="small"
-                  width={360}
-                  className="max-w-full"
-                  value={selectedElement?.id ?? "__all__"}
-                  onChange={changeElement}
-                  placeholder="Find a system or component"
-                  options={[
-                    { value: "__all__", label: "Whole system" },
-                    ...elements.map((element) => ({
-                      value: element.id,
-                      label: element.name,
-                      meta: element.kind,
-                      keywords: ancestorsOf(element.id)
-                        .map((ancestor) => ancestor.name)
-                        .join(" "),
-                    })),
-                  ]}
-                />
-                {selectedElement ? (
-                  <>
-                    {selectedElementIds.size > 1 ? (
-                      <span className="font-body-small text-subtle">Includes parts</span>
-                    ) : null}
-                    <Button size="small" variant="subtle" onClick={() => changeElement("__all__")}>
-                      Clear scope
-                    </Button>
-                  </>
-                ) : null}
-              </Inline>
-            </Box>
+          {selectedElement && ["Requirements", "Controls"].includes(tab) ? (
+            <Inline space="space.100" alignBlock="center" shouldWrap className="pb-150">
+              <span className="font-body-small">
+                {tab === "Requirements" ? "Allocated to" : "Applicable to"}{" "}
+                <strong>{selectedElement.name}</strong>
+                {selectedElementIds.size > 1 ? " and its parts" : ""}
+              </span>
+              <Button size="small" variant="subtle" onClick={clearElement}>
+                {tab === "Requirements" ? "Show all requirements" : "Show all controls"}
+              </Button>
+            </Inline>
           ) : null}
           {tab === "Overview" ? (
             <>
@@ -775,38 +779,7 @@ function ProgramDetail() {
           ) : null}
 
           {tab === "Controls" ? (
-            <ProgramControls
-              programId={program.id}
-              elementId={selectedElement?.id}
-              onClearScope={() => changeElement("__all__")}
-              scopeFilter={
-                <Field
-                  label="Scope"
-                  hint={
-                    selectedElement && selectedElementIds.size > 1 ? "Includes parts" : undefined
-                  }
-                >
-                  <Combobox
-                    aria-label="System or component scope"
-                    size="small"
-                    value={selectedElement?.id ?? "__all__"}
-                    onChange={changeElement}
-                    placeholder="Find a system or component"
-                    options={[
-                      { value: "__all__", label: "Whole system" },
-                      ...elements.map((element) => ({
-                        value: element.id,
-                        label: element.name,
-                        meta: element.kind,
-                        keywords: ancestorsOf(element.id)
-                          .map((ancestor) => ancestor.name)
-                          .join(" "),
-                      })),
-                    ]}
-                  />
-                </Field>
-              }
-            />
+            <ProgramControls programId={program.id} elementId={selectedElement?.id} />
           ) : null}
 
           {tab === "Findings" ? (
@@ -896,12 +869,7 @@ function ProgramDetail() {
           ) : null}
 
           {tab === "System" ? (
-            <ScopeTable
-              scopes={scopeRows}
-              rollup={rollup}
-              programId={program.id}
-              elementId={selectedElement?.id}
-            />
+            <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
           ) : null}
 
           {tab === "Requirements" ? (
@@ -936,101 +904,161 @@ function ProgramDetail() {
 
       <AlertDialog
         open={archiving}
-        onClose={() => setArchiving(false)}
-        onConfirm={() => {
-          try {
-            saveProgramCommand(program.id, { archivedAt: new Date().toISOString() });
+        onOpenChange={(next) => {
+          if (!next) {
             setArchiving(false);
-            toast.success("Program archived", {
-              description: "Saved in this browser. Restore it from the Archived list.",
-            });
-            void navigate({ to: "/programs" });
-          } catch {
-            toast.error("Program could not be archived", {
-              description: "Browser storage is unavailable. Try again after freeing storage.",
-            });
           }
         }}
-        tone="danger"
-        title={`Archive ${program.name}?`}
-        description="Moves the program from the active program list to Archived in this browser. Its record and history remain readable."
-        confirmLabel="Archive program"
-      />
+      >
+        <AlertDialogContent
+          initialFocus={alertCancelRef}
+          className="top-200 translate-y-0 sm:top-1000"
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>{`Archive ${program.name}?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Moves the program from the active program list to Archived in this browser. Its record
+              and history remain readable.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={alertCancelRef}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="danger"
+
+              onClick={() => {
+                (() => {
+                  try {
+                    saveProgramCommand(program.id, { archivedAt: new Date().toISOString() });
+                    setArchiving(false);
+                    toast.success("Program archived", {
+                      description: "Saved in this browser. Restore it from the Archived list.",
+                    });
+                    void navigate({ to: "/programs" });
+                  } catch {
+                    toast.error("Program could not be archived", {
+                      description:
+                        "Browser storage is unavailable. Try again after freeing storage.",
+                    });
+                  }
+                })();
+              }}
+            >
+              Archive program
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog
         open={assessing}
-        onClose={() => setAssessing(false)}
-        title="Open a control assessment"
-        description={`${program.id} · ${program.baseline}`}
-        footer={
-          <>
-            <Button variant="subtle" onClick={() => setAssessing(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              form={formId + "-1"}
-              disabled={form.state.isSubmitting}
-            >
-              Open assessment workspace
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setAssessing(false);
+          }
+        }}
       >
-        <form
-          id={formId + "-1"}
-          ref={formRef}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            void form.handleSubmit({
-              save: () => {
-                setAssessing(false);
-                void navigate({
-                  to: "/programs/$programId/controls/$controlId",
-                  params: { programId: program.id, controlId: assessControl },
-                  search: {
-                    scope: scopedControls.find((control) => control.id === assessControl)?.scopeId,
-                    element: selectedElement?.id,
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Choose what to assess</DialogTitle>
+            <DialogDescription>{`${program.id} · ${program.baseline}`}</DialogDescription>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <form
+              id={formId + "-1"}
+              ref={formRef}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!assessControl || !assessmentSubjectAvailable) return;
+                void form.handleSubmit({
+                  save: () => {
+                    setAssessing(false);
+                    void navigate({
+                      to: "/programs/$programId/controls/$controlId",
+                      params: { programId: program.id, controlId: assessControl },
+                      search: {
+                        scope: assessScope,
+                        element: selectedElement?.id,
+                      },
+                    });
                   },
                 });
-              },
-            });
-          }}
-        >
-          <Stack space="space.150">
-            <form.Field name="assessControl">
-              {(field) => (
-                <Field
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? field.state.meta.errors.join(" ")
-                      : undefined
-                  }
-                  label="Control"
-                  hint="Review the evidence and record the determination in the control workspace. Your role and the control's readiness determine which actions are available."
-                >
-                  <Combobox
-                    value={field.state.value}
-                    onChange={field.handleChange}
-                    options={scopedControls.map((control) => ({
-                      value: control.id,
-                      label: control.id,
-                      meta: control.title,
-                    }))}
-                    placeholder="Choose a control"
-                    searchPlaceholder="Search controls…"
-                    className="w-full"
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-          </Stack>
-        </form>
+              }}
+            >
+              <Stack space="space.150">
+                <form.Field name="assessControl">
+                  {(field) => (
+                    <Field
+                      isRequired
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? field.state.meta.errors.join(" ")
+                          : undefined
+                      }
+                      label="Control"
+                    >
+                      <Combobox
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        options={scopedControls.map((control) => ({
+                          value: control.id,
+                          label: control.id,
+                          meta: control.title,
+                        }))}
+                        placeholder="Choose a control"
+                        searchPlaceholder="Search controls…"
+                        className="w-full"
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                </form.Field>
+                <form.Field name="assessScope">
+                  {(field) => (
+                    <Field
+                      label="System / component"
+                      isRequired
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? field.state.meta.errors.join(" ")
+                          : undefined
+                      }
+                    >
+                      <Combobox
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        options={assessmentSubjects.map((subject) => ({
+                          value: subject.scopeId,
+                          label: subject.name,
+                        }))}
+                        placeholder="Choose the system or component to assess"
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                </form.Field>
+              </Stack>
+            </form>
+          </Box>
+          <DialogFooter>
+            <>
+              <Button variant="subtle" onClick={() => setAssessing(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                form={formId + "-1"}
+                disabled={form.state.isSubmitting || !assessControl || !assessScope}
+              >
+                Open implementation
+              </Button>
+            </>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </Shell>
   );

@@ -1,7 +1,7 @@
 import { addRequirement } from "./requirements";
 import { bundleFiles } from "./airgap";
 import { readFileSync } from "node:fs";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
 import { platformSeed } from "./platform-seed";
@@ -31,6 +31,27 @@ const exportedRequirements = (value: PlatformExportSnapshot) =>
     ],
   );
 const schemaPath = process.env["OSCAL_SCHEMA_PATH"];
+
+function expectConnectedUuidReferences(documents: JsonValue[]) {
+  const ids = new Set<string>();
+  const references: string[] = [];
+  const visit = (value: JsonValue) => {
+    if (Array.isArray(value)) {
+      value.forEach(visit);
+      return;
+    }
+    if (!value || typeof value !== "object") return;
+    for (const [key, item] of Object.entries(value)) {
+      if (key === "uuid" && typeof item === "string") ids.add(item);
+      if (key.endsWith("-uuid") && typeof item === "string") references.push(item);
+      if (key.endsWith("-uuids") && Array.isArray(item))
+        references.push(...item.filter((entry): entry is string => typeof entry === "string"));
+      visit(item);
+    }
+  };
+  documents.forEach(visit);
+  expect([...new Set(references.filter((reference) => !ids.has(reference)))]).toEqual([]);
+}
 
 beforeAll(() => {
   registerPlatformStructure();
@@ -187,24 +208,7 @@ describe("native platform controls and SSP", () => {
       "PRG-1090",
       buildSctm("PRG-1090", controlMatrix("PRG-1090"), null).rows,
     ).map((document) => document.json);
-    const ids = new Set<string>();
-    const references: string[] = [];
-    const visit = (value: JsonValue) => {
-      if (Array.isArray(value)) {
-        value.forEach(visit);
-        return;
-      }
-      if (!value || typeof value !== "object") return;
-      for (const [key, item] of Object.entries(value)) {
-        if (key === "uuid" && typeof item === "string") ids.add(item);
-        if (key.endsWith("-uuid") && typeof item === "string") references.push(item);
-        if (key.endsWith("-uuids") && Array.isArray(item))
-          references.push(...item.filter((entry): entry is string => typeof entry === "string"));
-        visit(item);
-      }
-    };
-    documents.forEach(visit);
-    expect([...new Set(references.filter((reference) => !ids.has(reference)))]).toEqual([]);
+    expectConnectedUuidReferences(documents);
   });
   it.skipIf(!schemaPath)("validates the native Profile and SSP against the official schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
@@ -219,5 +223,167 @@ describe("native platform controls and SSP", () => {
       ),
     ])
       expect(validate(document), JSON.stringify(validate.errors)).toBe(true);
+  });
+
+  it("exports created, renamed and moved elements with their own implementation and evidence", async () => {
+    const entries = new Map<string, string>();
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem: (key: string) => entries.get(key) ?? null,
+        setItem: (key: string, value: string) => entries.set(key, value),
+      },
+    });
+    try {
+      const { createCompositionNode, updateCompositionNode, moveCompositionNode } =
+        await import("./composition-store");
+      const { nextNodeId } = await import("./composition");
+      const { scopesForProgram } = await import("./scopes");
+      const { addAllocation } = await import("./requirements");
+      const { workFor, linkEvidence } = await import("./control-work");
+      const { createEvidence } = await import("./evidence-catalog");
+      const before = platformExportSnapshot();
+      const sourceMission = platformSeed.components.find((item) => item.id === "LRU-001")!;
+      updateCompositionNode("CN-109000", {
+        name: "WS-X90 integration configuration",
+        note: "Current system boundary description.",
+      });
+      updateCompositionNode("CN-109001", { name: "Renamed mission subsystem" });
+      const subsystem = createCompositionNode({
+        id: nextNodeId(),
+        program: "PRG-1090",
+        parent: "CN-109000",
+        name: "Payload integration",
+        kind: "Subsystem",
+        class: "System",
+        note: "Payload integration boundary.",
+      });
+      const component = createCompositionNode({
+        id: nextNodeId(),
+        program: "PRG-1090",
+        parent: "CN-109001",
+        name: "Payload processor",
+        kind: "Chassis",
+        class: "Hardware",
+      });
+      updateCompositionNode(component.id, {
+        name: "Payload processor Block 2",
+        version: "2.1",
+        supplier: "Integration supplier",
+        note: "Records payload audit events.",
+      });
+      moveCompositionNode("CN-109101", subsystem.id);
+      moveCompositionNode(component.id, "CN-109101");
+      const scope = scopesForProgram("PRG-1090").find((item) => item.element === component.id)!;
+      addAllocation({
+        requirement: "REQ-015",
+        target: component.id,
+        targetKind: "node",
+        responsibility: "Primary",
+        coverage: "Full",
+        scope: "Payload audit logging",
+        owner: "Payload team",
+        rationale: "New processor records audit events.",
+      });
+      const implementation = workFor("PRG-1090", scope.id, "AU-6");
+      setNarrative(
+        implementation.id,
+        "Payload processor Block 2 reviews its recorded audit events.",
+      );
+      const evidence = createEvidence({
+        program: "PRG-1090",
+        label: "Payload audit review",
+        owner: "Payload team",
+        kind: "Test result",
+        version: "2.1",
+        provenance: "Processor audit test execution.",
+        collected: "2026-09-09",
+        url: "https://example.com/payload-audit-review",
+        scopeIds: [scope.id],
+      });
+      linkEvidence(implementation.id, evidence.id);
+
+      const value = platformExportSnapshot();
+      const document = buildSnapshotSsp(value);
+      const ssp = obj(document["system-security-plan"]);
+      const inventory = rows(obj(ssp["system-implementation"])["components"]);
+      const hasProp = (record: JsonObject, name: string, expected: string) =>
+        rows(record["props"]).some((item) => item["name"] === name && item["value"] === expected);
+      const exported = inventory.find((item) => hasProp(item, "node-id", component.id))!;
+      const exportedMission = inventory.find((item) => item["uuid"] === sourceMission.uuid)!;
+      const exportedSubsystem = inventory.find((item) => hasProp(item, "node-id", subsystem.id))!;
+      expect(obj(ssp["system-characteristics"])["system-name"]).toBe(
+        "WS-X90 integration configuration",
+      );
+      expect(value.dataset.subsystems.find((item) => item.id === "SUB-01")?.name).toBe(
+        "Renamed mission subsystem",
+      );
+      expect(exported["title"]).toBe("Payload processor Block 2");
+      expect(exported["description"]).toBe("Records payload audit events.");
+      expect(hasProp(exported, "version", "2.1")).toBe(true);
+      expect(hasProp(exported, "supplier", "Integration supplier")).toBe(true);
+      expect(hasProp(exported, "parent-node-id", "CN-109101")).toBe(true);
+      expect(hasProp(exported, "subsystem-id", subsystem.id)).toBe(true);
+      expect(exported["links"]).toContainEqual({ href: `#${sourceMission.uuid}`, rel: "parent" });
+      expect(exportedMission["links"]).toContainEqual({
+        href: `#${exportedSubsystem["uuid"]}`,
+        rel: "parent",
+      });
+      expect(value.dataset.components.find((item) => item.id === "LRU-001")).toMatchObject({
+        uuid: sourceMission.uuid,
+        subsystem_id: subsystem.id,
+      });
+      expect(
+        value.dataset.requirements.find((item) => item.id === "REQ-015")?.component_ids,
+      ).toContain(component.id);
+      expect(value.dataset.evidence.find((item) => item.id === evidence.id)?.component_ids).toEqual(
+        [component.id],
+      );
+      const au6 = exportedRequirements(value).find((item) => item["control-id"] === "au-6")!;
+      const contribution = rows(au6["by-components"]).find(
+        (item) => item["component-uuid"] === exported["uuid"],
+      )!;
+      expect(contribution["description"]).toBe(implementation.narrative);
+      expect(contribution["implementation-status"]).toBeUndefined();
+      expect(hasProp(contribution, "requirement-id", "REQ-015")).toBe(true);
+      expect(contribution["links"]).toContainEqual({
+        href: `#${value.dataset.evidence.find((item) => item.id === evidence.id)!.uuid}`,
+        rel: "evidence",
+      });
+      expect(
+        rows(au6["by-components"]).filter(
+          (item) => item["description"] === implementation.narrative,
+        ),
+      ).toHaveLength(1);
+      expect(ssp["uuid"]).not.toBe(obj(buildSnapshotSsp(before)["system-security-plan"])["uuid"]);
+      const repeated = platformExportSnapshot();
+      expect(buildSnapshotSsp(repeated)).toEqual(document);
+      const resources = rows(obj(ssp["back-matter"])["resources"]);
+      const hierarchy = resources.find((item) => hasProp(item, "type", "system-composition"))!;
+      expect(JSON.parse(String(hierarchy["description"]))).toContainEqual(
+        expect.objectContaining({
+          nodeId: component.id,
+          parentNodeId: "CN-109101",
+          scopeId: scope.id,
+        }),
+      );
+      expect(new Set(inventory.map((item) => item["uuid"])).size).toBe(inventory.length);
+      expect(platformSeed.components.find((item) => item.id === "LRU-001")?.subsystem_id).toBe(
+        "SUB-01",
+      );
+      const documents = oscalPackage(
+        "PRG-1090",
+        buildSctm("PRG-1090", controlMatrix("PRG-1090"), null).rows,
+      ).map((item) => item.json);
+      expectConnectedUuidReferences(documents);
+      if (schemaPath) {
+        const ajv = new Ajv({ strict: false, allErrors: true });
+        addFormats(ajv);
+        const validate = ajv.compile(JSON.parse(readFileSync(schemaPath, "utf8")));
+        for (const exportedDocument of [document, buildSnapshotProfile(value), ...documents])
+          expect(validate(exportedDocument), JSON.stringify(validate.errors)).toBe(true);
+      }
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

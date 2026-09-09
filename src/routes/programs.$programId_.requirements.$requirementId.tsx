@@ -1,24 +1,16 @@
-import { Box } from "@ledger/design-system";
-import { ChevronDown } from "lucide-react";
-import { Collapsible } from "@ledger/design-system";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
-
-import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components/app/requirements";
-import { AllocateElementsSheet } from "@/components/app/allocate-picker";
-import { RecordActivity } from "@/components/app/record-activity";
-import { TasksSection } from "@/components/app/tasks-section";
-import { RequirementEvidence } from "@/components/app/program-evidence";
-import { resolvedObjectiveResult } from "@/lib/test-execution";
 import {
+  Badge,
+  Block,
+  Box,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbSeparator,
-  Badge,
-  Block,
   Button,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
   Combobox,
+  Count,
   Editable,
   Fact,
   Gates,
@@ -34,20 +26,31 @@ import {
   Table,
   TabsList,
   TabsTrigger,
-  Count,
+  Text,
   TextLink,
 } from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import { AllocateElementsSheet } from "@/components/app/allocate-picker";
+import { LinkControlsSheet } from "@/components/app/link-controls";
+import { RequirementEvidence } from "@/components/app/program-evidence";
+import { RecordActivity } from "@/components/app/record-activity";
+import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components/app/requirements";
 import { Shell } from "@/components/app/shell";
+import { TasksSection } from "@/components/app/tasks-section";
 import { campaignById, eventById, objectiveTone } from "@/lib/campaigns";
+import { nodeById } from "@/lib/composition";
 import { currentSession } from "@/lib/control-work";
-import { useLinkCurrencyVersion } from "@/lib/link-currency";
 import { programs } from "@/lib/grc-data";
-import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
+import { useLinkCurrencyVersion } from "@/lib/link-currency";
+import { resolveProgramElement } from "@/lib/program-scope";
 import {
   linkVerification,
   needsWithVerification,
-  objectivesForRequirement,
   objectiveEvidence,
+  objectivesForRequirement,
   unlinkedObjectives,
   useVerificationVersion,
 } from "@/lib/requirement-verification";
@@ -58,14 +61,15 @@ import {
   derivationSourceTone,
   getRequirement,
   qualityGates,
-  requirementStateTone,
   requirementMethodLabel,
   requirementStates,
+  requirementStateTone,
   saveRequirementField,
   setRequirementField,
   useRequirementsVersion,
   verificationMethods,
 } from "@/lib/requirements";
+import { resolvedObjectiveResult, runById } from "@/lib/test-execution";
 
 /**
  * Two tabs, not four. Each pane holds one to four rows — a requirement carries
@@ -118,7 +122,6 @@ function RequirementRecord() {
   const { programId, requirementId } = Route.useParams();
   const tab = Route.useSearch().tab ?? "Overview";
   const elementId = resolveProgramElement(programId, Route.useSearch().element)?.id;
-  const controlScopeId = closestProgramScope(programId, elementId)?.id;
   const program = Route.useLoaderData();
   const navigate = useNavigate({ from: Route.fullPath });
 
@@ -130,6 +133,7 @@ function RequirementRecord() {
   const verificationVersion = useVerificationVersion();
   const currencyVersion = useLinkCurrencyVersion();
   const [allocating, setAllocating] = useState(false);
+  const [linking, setLinking] = useState(false);
   const requirement = useMemo(
     () => getRequirement(requirementId) ?? null,
     [requirementId, storeVersion],
@@ -232,7 +236,7 @@ function RequirementRecord() {
                     )}
                   </KeyValue>
                   <KeyValue label="Allocations">{allocations.length || "None"}</KeyValue>
-                  <KeyValue label="Controls" wrap>
+                  <KeyValue label="Linked controls" wrap>
                     {controlSources.length ? (
                       <Inline as="span" space="space.050" shouldWrap>
                         {controlSources.map((d) => (
@@ -240,7 +244,7 @@ function RequirementRecord() {
                             <Link
                               to="/programs/$programId/controls/$controlId"
                               params={{ programId, controlId: d.sourceId }}
-                              search={{ tab: undefined, scope: controlScopeId, element: elementId }}
+                              search={{ tab: undefined }}
                             >
                               <span className="text-subtle">
                                 {d.relation === "mapped" ? "Mapped to " : "Derived from "}
@@ -257,15 +261,16 @@ function RequirementRecord() {
                 </Inspector.Group>
                 <Collapsible defaultOpen className="border-t border-default first:border-t-0">
                   <h3>
-                    <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                      {"Gates"} {unmet.length > 0 ? <Count value={unmet.length} /> : null}
+                    <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                      Gates
+                      {unmet.length > 0 ? <Count value={unmet.length} /> : null}
                       <ChevronDown
                         aria-hidden="true"
                         className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
                       />
-                    </Collapsible.Trigger>
+                    </CollapsibleTrigger>
                   </h3>
-                  <Collapsible.Content>
+                  <CollapsibleContent>
                     <Box paddingBlockEnd="space.200">
                       <Gates>
                         {gates.map((g) => (
@@ -278,7 +283,7 @@ function RequirementRecord() {
                         ))}
                       </Gates>
                     </Box>
-                  </Collapsible.Content>
+                  </CollapsibleContent>
                 </Collapsible>
                 <Inspector.Group title="Sources">
                   {requirement.derivations.map((d) => (
@@ -378,23 +383,31 @@ function RequirementRecord() {
               id={requirement.id}
               title={requirement.text}
               actions={
-                <Editable.Select
-                  label="Lifecycle status"
-                  options={requirementStates}
-                  value={requirement.state}
-                  validate={(next) =>
-                    next === "Approved" && firstUnmet
-                      ? `${firstUnmet.label}: ${firstUnmet.reason}`
-                      : null
-                  }
-                  onChange={(next) => setRequirementField(requirement.id, { state: next })}
-                  save={(next) => saveRequirementField(`${requirement.id} state`, next)}
-                  render={(v) => (
-                    <Badge variant="secondary" tone={requirementStateTone[v]}>
-                      {v}
-                    </Badge>
-                  )}
-                />
+                <Inline space="space.100" alignBlock="center">
+                  <Button size="small" variant="primary" onClick={() => setAllocating(true)}>
+                    Allocate
+                  </Button>
+                  <Button size="small" onClick={() => setLinking(true)}>
+                    Link controls
+                  </Button>
+                  <Editable.Select
+                    label="Lifecycle status"
+                    options={requirementStates}
+                    value={requirement.state}
+                    validate={(next) =>
+                      next === "Approved" && firstUnmet
+                        ? `${firstUnmet.label}: ${firstUnmet.reason}`
+                        : null
+                    }
+                    onChange={(next) => setRequirementField(requirement.id, { state: next })}
+                    save={(next) => saveRequirementField(`${requirement.id} state`, next)}
+                    render={(v) => (
+                      <Badge variant="secondary" tone={requirementStateTone[v]}>
+                        {v}
+                      </Badge>
+                    )}
+                  />
+                </Inline>
               }
             />
           }
@@ -441,18 +454,33 @@ function RequirementRecord() {
                 title="Allocated to"
                 action={
                   <Button size="small" onClick={() => setAllocating(true)}>
-                    Allocate to…
+                    Allocate
                   </Button>
                 }
               >
                 <AllocationTable allocations={allocations} programId={programId} editable />
               </Section>
-              <AllocateElementsSheet
-                open={allocating}
-                onClose={() => setAllocating(false)}
-                programId={programId}
-                requirement={requirement}
-              />
+
+              <Section
+                title="Linked controls"
+                action={
+                  <Button size="small" onClick={() => setLinking(true)}>
+                    Link controls
+                  </Button>
+                }
+              >
+                {controlSources.length ? (
+                  <ProvenanceTable
+                    derivations={controlSources}
+                    programId={programId}
+                    requirementId={requirement.id}
+                  />
+                ) : (
+                  <Text as="p" size="small" color="color.text.subtle">
+                    Independent — no linked controls.
+                  </Text>
+                )}
+              </Section>
 
               {children.length > 0 ? (
                 <Section title="Decomposed into">
@@ -491,6 +519,7 @@ function RequirementRecord() {
                         <Table.Header width={80}>Objective</Table.Header>
                         <Table.Header>Statement</Table.Header>
                         <Table.Header width={220}>Event</Table.Header>
+                        <Table.Header width={220}>Assessed on</Table.Header>
                         <Table.Header width={120}>Result</Table.Header>
                         <Table.Header width={96}>Evidence</Table.Header>
                       </Table.Row>
@@ -499,6 +528,8 @@ function RequirementRecord() {
                       {objectives.map((o) => {
                         const event = o.event ? eventById.get(o.event) : undefined;
                         const campaign = event ? campaignById.get(event.campaign) : undefined;
+                        const result = resolvedObjectiveResult(o.id);
+                        const assessedNodes = result.run ? runById(result.run)?.nodes : o.nodes;
                         return (
                           <Table.Row key={o.id}>
                             <Table.Cell>
@@ -516,7 +547,6 @@ function RequirementRecord() {
                                     search={{
                                       tab: "Assessments",
                                       assessmentId: campaign.id,
-                                      element: elementId,
                                     }}
                                     title={event.window}
                                   >
@@ -528,8 +558,13 @@ function RequirementRecord() {
                               )}
                             </Table.Cell>
                             <Table.Cell>
-                              <Indicator tone={objectiveTone(resolvedObjectiveResult(o.id).result)}>
-                                {resolvedObjectiveResult(o.id).result}
+                              {assessedNodes?.length
+                                ? assessedNodes.map((id) => nodeById.get(id)?.name ?? id).join(", ")
+                                : "Not recorded"}
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Indicator tone={objectiveTone(result.result)}>
+                                {result.result}
                               </Indicator>
                             </Table.Cell>
                             <Table.Cell>
@@ -575,16 +610,35 @@ function RequirementRecord() {
           ) : null}
 
           {tab === "Provenance" ? (
-            <Section title="Provenance">
+            <Section
+              title="Provenance"
+              action={
+                <Button size="small" onClick={() => setLinking(true)}>
+                  Link controls
+                </Button>
+              }
+            >
               <ProvenanceTable
                 derivations={requirement.derivations}
                 programId={programId}
                 requirementId={requirement.id}
-                elementId={elementId}
               />
             </Section>
           ) : null}
         </ShowPage>
+        <AllocateElementsSheet
+          key={requirement.id}
+          open={allocating}
+          onClose={() => setAllocating(false)}
+          programId={programId}
+          requirement={requirement}
+        />
+        <LinkControlsSheet
+          key={`controls-${requirement.id}`}
+          open={linking}
+          onClose={() => setLinking(false)}
+          requirement={requirement}
+        />
       </>
     </Shell>
   );
@@ -594,7 +648,6 @@ function RequirementRecord() {
 function SourceRef({
   derivation,
   programId,
-  elementId,
 }: {
   derivation: { sourceType: string; sourceId: string };
   programId: string;
@@ -609,11 +662,7 @@ function SourceRef({
         <Link
           to="/programs/$programId/controls/$controlId"
           params={{ programId, controlId: sourceId }}
-          search={{
-            tab: undefined,
-            scope: closestProgramScope(programId, elementId)?.id,
-            element: elementId,
-          }}
+          search={{ tab: undefined }}
         >
           <Id>{sourceId}</Id>
         </Link>

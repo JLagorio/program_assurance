@@ -1,12 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
 import {
   Badge,
   Block,
+  Box,
   Button,
   DataTable,
+  defineColumns,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Empty,
   Fact,
   Field,
@@ -20,11 +24,18 @@ import {
   Text,
   Textarea,
   TextLink,
-  defineColumns,
   toast,
-  useDataTable,
   type Preset,
+  useDataTable,
 } from "@ledger/design-system";
+import { RunRecordView } from "@/components/app/test-execution";
+import {
+  assessmentState,
+  createAssessment,
+  useAssessmentsVersion,
+  type NewAssessment,
+} from "@/lib/assessment-store";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import {
   campaigns,
   eventsByCampaign,
@@ -32,22 +43,16 @@ import {
   objectivesForEvent,
   type Campaign,
 } from "@/lib/campaigns";
-import {
-  assessmentState,
-  createAssessment,
-  useAssessmentsVersion,
-  type NewAssessment,
-} from "@/lib/assessment-store";
-import { ZodError } from "zod";
 import { currentSession } from "@/lib/control-work";
-import { assets, findings, findingProgram } from "@/lib/findings";
-import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { evidenceForProgram, useEvidenceVersion } from "@/lib/evidence-catalog";
-import { requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
+import { assets, findingProgram, findings } from "@/lib/findings";
+import { useRecordForm } from "@/lib/record-form";
 import { requirementsForObjective, useVerificationVersion } from "@/lib/requirement-verification";
+import { requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
+import { statusTone } from "@/lib/spine";
 import {
-  campaignExecution,
   assessmentRunForProgram,
+  campaignExecution,
   completionBlockedBy,
   createTestRun,
   procedureById,
@@ -61,9 +66,11 @@ import {
   type StepResult,
   type TestRun,
 } from "@/lib/test-execution";
-import { RunRecordView } from "@/components/app/test-execution";
-import { useRecordForm } from "@/lib/record-form";
-import { statusTone } from "@/lib/spine";
+
+import { Link } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ZodError } from "zod";
 
 const presets: Preset[] = [
   { id: "all", label: "All assessments" },
@@ -475,113 +482,130 @@ function NewAssessmentDialog({
   ] as const;
   return (
     <Dialog
-      open
-      onClose={onClose}
-      title="New assessment"
-      description="Plan what will be assessed, how it will be checked, and what constitutes a passing result."
-      width="large"
-      footer={
-        <>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" type="submit" form={formId}>
-            Create assessment
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        id={formId}
-        ref={formRef}
-        onSubmit={(e) => {
-          e.preventDefault();
-          void form.handleSubmit({
-            save: () => {
-              try {
-                onCreated(createAssessment({ program: programId, ...values }));
-                toast.success("Assessment created");
-              } catch (error) {
-                toast.error(errorText(error));
-              }
-            },
-          });
-        }}
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
       >
-        <Stack space="space.150">
-          {specs.map(({ name, label }) => (
-            <form.Field key={name} name={name}>
-              {(field) => (
-                <Field
-                  label={label}
-                  isRequired
-                  error={
-                    field.state.meta.errors.length ? field.state.meta.errors.join(" ") : undefined
+        <DialogHeader>
+          <DialogTitle>New assessment</DialogTitle>
+          <DialogDescription>
+            Plan what will be assessed, how it will be checked, and what constitutes a passing
+            result.
+          </DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <form
+            id={formId}
+            ref={formRef}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void form.handleSubmit({
+                save: () => {
+                  try {
+                    onCreated(createAssessment({ program: programId, ...values }));
+                    toast.success("Assessment created");
+                  } catch (error) {
+                    toast.error(errorText(error));
+                  }
+                },
+              });
+            }}
+          >
+            <Stack space="space.150">
+              {specs.map(({ name, label }) => (
+                <form.Field key={name} name={name}>
+                  {(field) => (
+                    <Field
+                      label={label}
+                      isRequired
+                      error={
+                        field.state.meta.errors.length
+                          ? field.state.meta.errors.join(" ")
+                          : undefined
+                      }
+                    >
+                      {["scope", "objective", "action", "expected"].includes(name) ? (
+                        <Textarea
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          name={name}
+                          rows={2}
+                        />
+                      ) : (
+                        <Input
+                          type={name === "start" || name === "end" ? "date" : "text"}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          name={name}
+                        />
+                      )}
+                    </Field>
+                  )}
+                </form.Field>
+              ))}
+              <Grid templateColumns={{ sm: "1fr 1fr" }} gap="space.150">
+                <Field label="Requirement">
+                  <NativeSelect
+                    value={values.requirement}
+                    onChange={(e) => form.setFieldValue("requirement", e.target.value)}
+                  >
+                    <option value="">No linked requirement</option>
+                    {requirementsForProgram(programId).map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.id} · {r.text}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+                <Field label="Assessment subject">
+                  <NativeSelect
+                    value={values.asset}
+                    onChange={(e) => form.setFieldValue("asset", e.target.value)}
+                  >
+                    <option value="">Program scope</option>
+                    {assets
+                      .filter((a) => a.program === programId)
+                      .map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name}
+                        </option>
+                      ))}
+                  </NativeSelect>
+                </Field>
+              </Grid>
+              <Field label="Method">
+                <NativeSelect
+                  value={values.method}
+                  onChange={(e) =>
+                    form.setFieldValue("method", e.target.value as NewAssessment["method"])
                   }
                 >
-                  {["scope", "objective", "action", "expected"].includes(name) ? (
-                    <Textarea
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      name={name}
-                      rows={2}
-                    />
-                  ) : (
-                    <Input
-                      type={name === "start" || name === "end" ? "date" : "text"}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      name={name}
-                    />
-                  )}
-                </Field>
-              )}
-            </form.Field>
-          ))}
-          <Grid templateColumns={{ sm: "1fr 1fr" }} gap="space.150">
-            <Field label="Requirement">
-              <NativeSelect
-                value={values.requirement}
-                onChange={(e) => form.setFieldValue("requirement", e.target.value)}
-              >
-                <option value="">No linked requirement</option>
-                {requirementsForProgram(programId).map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.id} · {r.text}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Assessment subject">
-              <NativeSelect
-                value={values.asset}
-                onChange={(e) => form.setFieldValue("asset", e.target.value)}
-              >
-                <option value="">Program scope</option>
-                {assets
-                  .filter((a) => a.program === programId)
-                  .map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name}
-                    </option>
+                  {["Examine", "Interview", "Test"].map((m) => (
+                    <option key={m}>{m}</option>
                   ))}
-              </NativeSelect>
-            </Field>
-          </Grid>
-          <Field label="Method">
-            <NativeSelect
-              value={values.method}
-              onChange={(e) =>
-                form.setFieldValue("method", e.target.value as NewAssessment["method"])
-              }
-            >
-              {["Examine", "Interview", "Test"].map((m) => (
-                <option key={m}>{m}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-        </Stack>
-      </form>
+                </NativeSelect>
+              </Field>
+            </Stack>
+          </form>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button variant="primary" type="submit" form={formId}>
+              Create assessment
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -608,87 +632,104 @@ function StartRunDialog({
   );
   return (
     <Dialog
-      open
-      onClose={onClose}
-      title={previous?.state === "Complete" ? "Start retest" : "Start assessment run"}
-      description="Each run keeps its own tested build and evidence. Previous results remain in the run history."
-      footer={
-        <>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" form={formId} type="submit">
-            Start run
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        id={formId}
-        ref={formRef}
-        onSubmit={(e) => {
-          e.preventDefault();
-          void form.handleSubmit({
-            save: () => {
-              try {
-                const objective = objectiveById.get(
-                  procedureById.get(values.procedure)?.objective ?? "",
-                );
-                if (!objective?.event) throw new Error("The procedure needs an assessment event.");
-                onStarted(
-                  createTestRun({
-                    ...values,
-                    event: objective.event,
-                    ...(previous?.state === "Complete" && previous.procedure === values.procedure
-                      ? { retestOf: previous.id }
-                      : {}),
-                  }),
-                );
-              } catch (error) {
-                toast.error(errorText(error));
-              }
-            },
-          });
-        }}
-      >
-        <Stack space="space.150">
-          <form.Field name="procedure">
-            {(field) => (
-              <Field
-                label="Procedure"
-                isRequired
-                error={field.state.meta.errors.join(" ") || undefined}
-              >
-                <NativeSelect
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                >
-                  {procedures.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.id} · {p.title}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </Field>
-            )}
-          </form.Field>
-          {(["operator", "build"] as const).map((name) => (
-            <form.Field key={name} name={name}>
-              {(field) => (
-                <Field
-                  label={name === "operator" ? "Operator" : "Tested build or configuration"}
-                  isRequired
-                  error={field.state.meta.errors.join(" ") || undefined}
-                >
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-          ))}
-        </Stack>
-      </form>
+      <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+        <DialogHeader>
+          <DialogTitle>
+            {previous?.state === "Complete" ? "Start retest" : "Start assessment run"}
+          </DialogTitle>
+          <DialogDescription>
+            Each run keeps its own tested build and evidence. Previous results remain in the run
+            history.
+          </DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <form
+            id={formId}
+            ref={formRef}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void form.handleSubmit({
+                save: () => {
+                  try {
+                    const objective = objectiveById.get(
+                      procedureById.get(values.procedure)?.objective ?? "",
+                    );
+                    if (!objective?.event)
+                      throw new Error("The procedure needs an assessment event.");
+                    onStarted(
+                      createTestRun({
+                        ...values,
+                        event: objective.event,
+                        ...(previous?.state === "Complete" &&
+                        previous.procedure === values.procedure
+                          ? { retestOf: previous.id }
+                          : {}),
+                      }),
+                    );
+                  } catch (error) {
+                    toast.error(errorText(error));
+                  }
+                },
+              });
+            }}
+          >
+            <Stack space="space.150">
+              <form.Field name="procedure">
+                {(field) => (
+                  <Field
+                    label="Procedure"
+                    isRequired
+                    error={field.state.meta.errors.join(" ") || undefined}
+                  >
+                    <NativeSelect
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    >
+                      {procedures.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.id} · {p.title}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Field>
+                )}
+              </form.Field>
+              {(["operator", "build"] as const).map((name) => (
+                <form.Field key={name} name={name}>
+                  {(field) => (
+                    <Field
+                      label={name === "operator" ? "Operator" : "Tested build or configuration"}
+                      isRequired
+                      error={field.state.meta.errors.join(" ") || undefined}
+                    >
+                      <Input
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                </form.Field>
+              ))}
+            </Stack>
+          </form>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button variant="primary" form={formId} type="submit">
+              Start run
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -717,99 +758,113 @@ function RecordStepDialog({
   const available = evidenceForProgram(programId);
   return (
     <Dialog
-      open
-      onClose={onClose}
-      title={`Record ${stepId}`}
-      description={procedureById.get(run.procedure)?.steps.find((s) => s.id === stepId)?.action}
-      footer={
-        <>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" type="submit" form={formId}>
-            Save observation
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        id={formId}
-        ref={formRef}
-        onSubmit={(e) => {
-          e.preventDefault();
-          void form.handleSubmit({
-            save: () => {
-              try {
-                if (!available.some((a) => a.id === values.evidence))
-                  throw new Error("Select supporting evidence from this program.");
-                recordStep(run.id, stepId, {
-                  result: values.result,
-                  observed: values.observed.trim(),
-                  evidence: [...new Set([values.evidence, ...(existing?.evidence.slice(1) ?? [])])],
-                  at: new Date().toISOString(),
-                });
-                onClose();
-                toast.success("Observation recorded");
-              } catch (error) {
-                toast.error(errorText(error));
-              }
-            },
-          });
-        }}
-      >
-        <Stack space="space.150">
-          <Field label="Result">
-            <NativeSelect
-              value={values.result}
-              onChange={(e) => form.setFieldValue("result", e.target.value as StepResult)}
-            >
-              {["Pass", "Fail", "Inconclusive"].map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <form.Field name="observed">
-            {(field) => (
-              <Field
-                label="What was observed"
-                isRequired
-                error={field.state.meta.errors.join(" ") || undefined}
-              >
-                <Textarea
-                  rows={4}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="evidence">
-            {(field) => (
-              <Field
-                label="Supporting evidence"
-                isRequired
-                hint={
-                  available.length
-                    ? undefined
-                    : "Add an artifact in the program's Evidence tab first."
-                }
-                error={field.state.meta.errors.join(" ") || undefined}
-              >
+      <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+        <DialogHeader>
+          <DialogTitle>{`Record ${stepId}`}</DialogTitle>
+          <DialogDescription>
+            {procedureById.get(run.procedure)?.steps.find((s) => s.id === stepId)?.action}
+          </DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <form
+            id={formId}
+            ref={formRef}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void form.handleSubmit({
+                save: () => {
+                  try {
+                    if (!available.some((a) => a.id === values.evidence))
+                      throw new Error("Select supporting evidence from this program.");
+                    recordStep(run.id, stepId, {
+                      result: values.result,
+                      observed: values.observed.trim(),
+                      evidence: [
+                        ...new Set([values.evidence, ...(existing?.evidence.slice(1) ?? [])]),
+                      ],
+                      at: new Date().toISOString(),
+                    });
+                    onClose();
+                    toast.success("Observation recorded");
+                  } catch (error) {
+                    toast.error(errorText(error));
+                  }
+                },
+              });
+            }}
+          >
+            <Stack space="space.150">
+              <Field label="Result">
                 <NativeSelect
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  value={values.result}
+                  onChange={(e) => form.setFieldValue("result", e.target.value as StepResult)}
                 >
-                  <option value="">Choose evidence</option>
-                  {available.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.id} · {a.label}
-                    </option>
+                  {["Pass", "Fail", "Inconclusive"].map((v) => (
+                    <option key={v}>{v}</option>
                   ))}
                 </NativeSelect>
               </Field>
-            )}
-          </form.Field>
-        </Stack>
-      </form>
+              <form.Field name="observed">
+                {(field) => (
+                  <Field
+                    label="What was observed"
+                    isRequired
+                    error={field.state.meta.errors.join(" ") || undefined}
+                  >
+                    <Textarea
+                      rows={4}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+              <form.Field name="evidence">
+                {(field) => (
+                  <Field
+                    label="Supporting evidence"
+                    isRequired
+                    hint={
+                      available.length
+                        ? undefined
+                        : "Add an artifact in the program's Evidence tab first."
+                    }
+                    error={field.state.meta.errors.join(" ") || undefined}
+                  >
+                    <NativeSelect
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    >
+                      <option value="">Choose evidence</option>
+                      {available.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.id} · {a.label}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Field>
+                )}
+              </form.Field>
+            </Stack>
+          </form>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button variant="primary" type="submit" form={formId}>
+              Save observation
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

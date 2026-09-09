@@ -1,4 +1,3 @@
-import { useLedgerLocale } from "../../lib/locale";
 import { Download, Maximize2, Table2 } from "lucide-react";
 import {
   Fragment,
@@ -11,6 +10,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useLedgerLocale } from "../../lib/locale";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../dialog";
 
 import { cn } from "../../lib/cn";
 import {
@@ -22,12 +23,12 @@ import {
   BreadcrumbSeparator,
 } from "../breadcrumb";
 import { IconButton } from "../button";
-import { Dialog } from "../dialog";
+
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../dropdown-menu";
 import { Skeleton } from "../skeleton";
 import { Spinner } from "../spinner";
@@ -38,25 +39,25 @@ import {
   Swatch,
   categoricalTone,
   chartColor,
+  columnText,
   download,
   fileName,
-  useChartFormat,
   formatValue,
   heights,
   none,
+  splitColumns,
   svgToPng,
   textureOf,
   toCsv,
+  useChartFormat,
   type CategoryFormatter,
+  type ChartColumn,
   type ChartDatum,
   type ChartSeries,
   type ChartSize,
   type Formatter,
   type FrameState,
   type SwatchShape,
-  columnText,
-  splitColumns,
-  type ChartColumn,
 } from "./_shared";
 
 /* ---------- legend ---------- */
@@ -475,22 +476,34 @@ export function ChartFrame(props: ChartFrameProps) {
       {expandable ? (
         <Dialog
           open={expanded}
-          onClose={() => setExpanded(false)}
-          title={title}
-          description={description}
-          width="large"
+          onOpenChange={(next) => {
+            if (!next) {
+              setExpanded(false);
+            }
+          }}
         >
-          {expanded ? (
-            <ExpandedContext.Provider value>
-              <ChartFrame
-                {...props}
-                expandable={false}
-                size="large"
-                height={undefined}
-                className={undefined}
-              />
-            </ExpandedContext.Provider>
-          ) : null}
+          <DialogContent
+            style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+            className="top-200 translate-y-0 sm:top-600"
+          >
+            <DialogHeader>
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>{description}</DialogDescription>
+            </DialogHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+              {expanded ? (
+                <ExpandedContext.Provider value>
+                  <ChartFrame
+                    {...props}
+                    expandable={false}
+                    size="large"
+                    height={undefined}
+                    className={undefined}
+                  />
+                </ExpandedContext.Provider>
+              ) : null}
+            </div>
+          </DialogContent>
         </Dialog>
       ) : null}
     </FrameContext.Provider>

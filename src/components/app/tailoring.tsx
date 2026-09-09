@@ -1,15 +1,25 @@
-import { useCallback, type SetStateAction, useMemo, useState } from "react";
 import { useRecordForm } from "@/lib/record-form";
-import { Check, Pencil, Send, X } from "lucide-react";
-
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Badge,
   Box,
   Button,
   Checkbox,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Dot,
+  Eyebrow,
   Field,
   Grid,
   Id,
@@ -22,8 +32,11 @@ import {
   Textarea,
   Timeline,
   toast,
-  Eyebrow,
 } from "@ledger/design-system";
+import { Check, Pencil, Send, X } from "lucide-react";
+import { useCallback, useMemo, useRef, useState, type SetStateAction } from "react";
+
+import type { ImpactLevel } from "@/lib/grc-data";
 import {
   approvalTone,
   classifications,
@@ -43,7 +56,6 @@ import {
   type SystemClass,
   type SystemParameters,
 } from "@/lib/tailoring";
-import type { ImpactLevel } from "@/lib/grc-data";
 
 const actionTone = {
   Added: "success",
@@ -68,6 +80,8 @@ export function TailoringSection({
   programId: string;
   programOwner: string;
 }) {
+  const alertCancelRef = useRef<HTMLButtonElement>(null);
+
   const [params, setParams] = useState<SystemParameters>(defaultParameters);
   const [editing, setEditing] = useState(false);
   const { form, values, setValue, formId, formRef } = useRecordForm(
@@ -342,287 +356,351 @@ export function TailoringSection({
       {/* ------------------------------------------------ parameters modal */}
       <Dialog
         open={editing}
-        onClose={() => setEditing(false)}
-        width="large"
-        title="System parameters"
-        description="The engine recomputes the baseline and overlays as you type."
-        aside={<ScopePreview params={draft} />}
-        footer={
-          <>
-            <Button variant="subtle" onClick={() => setEditing(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={saveParams}>
-              Save and recompute
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setEditing(false);
+          }
+        }}
       >
-        <Stack space="space.150">
-          <Grid
-            gap="space.150"
-            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
-          >
-            {(["confidentiality", "integrity", "availability"] as const).map((k) => (
-              <Field key={k} label={k.charAt(0).toUpperCase() + k.slice(1)}>
-                <NativeSelect
-                  value={draft[k]}
-                  onChange={(e) => setDraft({ ...draft, [k]: e.target.value as ImpactLevel })}
-                >
-                  {impactLevels.map((l) => (
-                    <option key={l}>{l}</option>
-                  ))}
-                </NativeSelect>
-              </Field>
-            ))}
-          </Grid>
-          <Grid
-            gap="space.150"
-            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-          >
-            <form.Field name="draft.systemClass">
-              {(field) => (
-                <Field
-                  label="System class"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value as SystemClass)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
+        <DialogContent
+          style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+          className="top-200 translate-y-0 sm:top-600"
+        >
+          <DialogHeader>
+            <DialogTitle>System parameters</DialogTitle>
+            <DialogDescription>
+              The engine recomputes the baseline and overlays as you type.
+            </DialogDescription>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none">
+            <Box className="grid grid-cols-1 md:grid-cols-3">
+              <Box className="px-250 py-200 md:col-span-2">
+                <Stack space="space.150">
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
                   >
-                    {systemClasses.map((s) => (
-                      <option key={s}>{s}</option>
+                    {(["confidentiality", "integrity", "availability"] as const).map((k) => (
+                      <Field key={k} label={k.charAt(0).toUpperCase() + k.slice(1)}>
+                        <NativeSelect
+                          value={draft[k]}
+                          onChange={(e) =>
+                            setDraft({ ...draft, [k]: e.target.value as ImpactLevel })
+                          }
+                        >
+                          {impactLevels.map((l) => (
+                            <option key={l}>{l}</option>
+                          ))}
+                        </NativeSelect>
+                      </Field>
                     ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="draft.hosting">
-              {(field) => (
-                <Field
-                  label="Hosting"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value as Hosting)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
+                  </Grid>
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
-                    {hostingOptions.map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-          </Grid>
-          <Grid
-            gap="space.150"
-            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-          >
-            <form.Field name="draft.classification">
-              {(field) => (
-                <Field
-                  label="Classification"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value as Classification)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
+                    <form.Field name="draft.systemClass">
+                      {(field) => (
+                        <Field
+                          label="System class"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value as SystemClass)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {systemClasses.map((s) => (
+                              <option key={s}>{s}</option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="draft.hosting">
+                      {(field) => (
+                        <Field
+                          label="Hosting"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value as Hosting)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {hostingOptions.map((s) => (
+                              <option key={s}>{s}</option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                  </Grid>
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
-                    {classifications.map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="draft.connectivity">
-              {(field) => (
-                <Field
-                  label="Connectivity"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value as Connectivity)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
+                    <form.Field name="draft.classification">
+                      {(field) => (
+                        <Field
+                          label="Classification"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value as Classification)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {classifications.map((s) => (
+                              <option key={s}>{s}</option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="draft.connectivity">
+                      {(field) => (
+                        <Field
+                          label="Connectivity"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value as Connectivity)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {connectivityOptions.map((s) => (
+                              <option key={s}>{s}</option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                  </Grid>
+                  <Inline
+                    className="border-t border-default pt-150"
+                    space="space.250"
+                    alignBlock="center"
+                    shouldWrap
                   >
-                    {connectivityOptions.map((s) => (
-                      <option key={s}>{s}</option>
+                    {(
+                      [
+                        ["handlesPii", "Stores or processes PII"],
+                        ["crossDomain", "Crosses security domains"],
+                        ["safetyCritical", "Safety-critical function"],
+                      ] as const
+                    ).map(([key, label]) => (
+                      <label
+                        key={key}
+                        className="inline-flex items-center gap-100 font-body text-default"
+                      >
+                        <Checkbox
+                          checked={draft[key]}
+                          onCheckedChange={(checked) => setDraft({ ...draft, [key]: checked })}
+                        />
+                        <span className="select-none">{label}</span>
+                      </label>
                     ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-          </Grid>
-          <Inline
-            className="border-t border-default pt-150"
-            space="space.250"
-            alignBlock="center"
-            shouldWrap
-          >
-            {(
-              [
-                ["handlesPii", "Stores or processes PII"],
-                ["crossDomain", "Crosses security domains"],
-                ["safetyCritical", "Safety-critical function"],
-              ] as const
-            ).map(([key, label]) => (
-              <label key={key} className="inline-flex items-center gap-100 font-body text-default">
-                <Checkbox
-                  checked={draft[key]}
-                  onCheckedChange={(checked) => setDraft({ ...draft, [key]: checked })}
-                />
-                <span className="select-none">{label}</span>
-              </label>
-            ))}
-          </Inline>
-        </Stack>
+                  </Inline>
+                </Stack>
+              </Box>
+              <Box className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+                <ScopePreview params={draft} />
+              </Box>
+            </Box>
+          </Box>
+          <DialogFooter>
+            <>
+              <Button variant="subtle" onClick={() => setEditing(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={saveParams}>
+                Save and recompute
+              </Button>
+            </>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
       {/* --------------------------------------------------- submit modal */}
       <AlertDialog
         open={submitting}
-        onClose={() => setSubmitting(false)}
-        onConfirm={() => {
-          return form.handleSubmit({
-            save: () => {
-              submit();
-            },
-          });
+        onOpenChange={(next, details) => {
+          if (!next) {
+            if (form.state.isSubmitting) {
+              details.cancel();
+              return;
+            }
+            setSubmitting(false);
+          }
         }}
-        title="Submit scope for PM approval"
-        description={`${programId} · ${result.total} controls · ${result.overlays.length} overlays. The PM sees the tailored scope on the approvals dashboard and every stage below Categorize locks until they decide.`}
-        confirmLabel="Send for approval"
-        pending={form.state.isSubmitting}
       >
-        <form
-          id={formId + "-1"}
-          ref={formRef}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            void form.handleSubmit({
-              save: () => {
-                submit();
-              },
-            });
-          }}
+        <AlertDialogContent
+          initialFocus={alertCancelRef}
+          className="top-200 translate-y-0 sm:top-1000"
         >
-          <Stack space="space.150">
-            <Field label="Approver">
-              <Input defaultValue={`${programOwner} (PM)`} readOnly />
-            </Field>
-            <form.Field name="message">
-              {(field) => (
-                <Field
-                  label="Message"
-                  hint="Shown on the shared scope approvals dashboard."
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <Textarea
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group."
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit scope for PM approval</AlertDialogTitle>
+            <AlertDialogDescription>{`${programId} · ${result.total} controls · ${result.overlays.length} overlays. The PM sees the tailored scope on the approvals dashboard and every stage below Categorize locks until they decide.`}</AlertDialogDescription>
+            <form
+              id={formId + "-1"}
+              ref={formRef}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void form.handleSubmit({
+                  save: () => {
+                    submit();
+                  },
+                });
+              }}
+            >
+              <Stack space="space.150">
+                <Field label="Approver">
+                  <Input defaultValue={`${programOwner} (PM)`} readOnly />
                 </Field>
-              )}
-            </form.Field>
-          </Stack>
-        </form>
+                <form.Field name="message">
+                  {(field) => (
+                    <Field
+                      label="Message"
+                      hint="Shown on the shared scope approvals dashboard."
+                      isRequired
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined
+                      }
+                    >
+                      <Textarea
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group."
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                </form.Field>
+              </Stack>
+            </form>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={alertCancelRef} disabled={form.state.isSubmitting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="primary"
+              isLoading={form.state.isSubmitting}
+              onClick={() => {
+                if (form.state.isSubmitting) return;
+                (() => {
+                  return form.handleSubmit({
+                    save: () => {
+                      submit();
+                    },
+                  });
+                })();
+              }}
+            >
+              Send for approval
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
 
       {/* -------------------------------------------------- decision modal */}
       <Dialog
         open={deciding !== null}
-        onClose={() => setDeciding(null)}
-        title={deciding === "approve" ? "Approve compliance scope" : "Request changes"}
-        description={`${programId} · ${result.total} controls · ${result.overlays.length} overlays`}
-        footer={
-          <>
-            <Button variant="subtle" onClick={() => setDeciding(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant={deciding === "approve" ? "primary" : "danger"}
-              type="submit"
-              form={formId + "-2"}
-              disabled={form.state.isSubmitting}
-            >
-              {deciding === "approve" ? "Approve scope" : "Request changes"}
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setDeciding(null);
+          }
+        }}
       >
-        <form
-          id={formId + "-2"}
-          ref={formRef}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            void form.handleSubmit({
-              save: () => {
-                decide(deciding ?? "approve");
-              },
-            });
-          }}
-        >
-          <form.Field name="note">
-            {(field) => (
-              <Field
-                isRequired={deciding === "changes"}
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label={deciding === "approve" ? "Approval note" : "What needs to change?"}
-                hint={
-                  deciding === "approve"
-                    ? "Recorded against the authorization package."
-                    : "Returned to the systems security engineer."
-                }
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>
+              {deciding === "approve" ? "Approve compliance scope" : "Request changes"}
+            </DialogTitle>
+            <DialogDescription>{`${programId} · ${result.total} controls · ${result.overlays.length} overlays`}</DialogDescription>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <form
+              id={formId + "-2"}
+              ref={formRef}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void form.handleSubmit({
+                  save: () => {
+                    decide(deciding ?? "approve");
+                  },
+                });
+              }}
+            >
+              <form.Field name="note">
+                {(field) => (
+                  <Field
+                    isRequired={deciding === "changes"}
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined
+                    }
+                    label={deciding === "approve" ? "Approval note" : "What needs to change?"}
+                    hint={
+                      deciding === "approve"
+                        ? "Recorded against the authorization package."
+                        : "Returned to the systems security engineer."
+                    }
+                  >
+                    <Textarea
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+            </form>
+          </Box>
+          <DialogFooter>
+            <>
+              <Button variant="subtle" onClick={() => setDeciding(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant={deciding === "approve" ? "primary" : "danger"}
+                type="submit"
+                form={formId + "-2"}
+                disabled={form.state.isSubmitting}
               >
-                <Textarea
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-        </form>
+                {deciding === "approve" ? "Approve scope" : "Request changes"}
+              </Button>
+            </>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );

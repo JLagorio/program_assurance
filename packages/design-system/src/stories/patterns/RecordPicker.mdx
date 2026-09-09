@@ -13,12 +13,12 @@ Pick one record from a list: evidence to link, a requirement to derive from, a p
 
 ## Anatomy
 
-| Part   | What it is                                                                     |
-| ------ | ------------------------------------------------------------------------------ |
-| Field  | The search, focused on open, with the count of matches at its end.             |
-| Row    | The id in `color.text.subtle`; the name, the meta line under it; one badge.    |
-| Empty  | "Nothing matches." when the query finds none.                                  |
-| Footer | The keys: the arrows to move, Enter to choose, Escape to close.                |
+| Part   | What it is                                                                  |
+| ------ | --------------------------------------------------------------------------- |
+| Field  | The search, focused on open, with the count of matches at its end.          |
+| Row    | The id in `color.text.subtle`; the name, the meta line under it; one badge. |
+| Empty  | "Nothing matches." when the query finds none.                               |
+| Footer | The keys: the arrows to move, Enter to choose, Escape to close.             |
 
 <Canvas of={Stories.RecordPickerMatrix} story={{ inline: false, height: "480px" }} />
 
@@ -34,13 +34,13 @@ One: the Command dialog at its large width, 640px, the list at most 46% of the v
 
 ## States
 
-| State    | What changes                                                              |
-| -------- | ------------------------------------------------------------------------- |
-| Closed   | Not rendered.                                                             |
-| Open     | Over the page at the top, the field focused, every record listed.         |
-| Filtered | The rows that match, the count in the field.                              |
-| None     | The empty sentence.                                                       |
-| Chosen   | The picker closes and the caller has the record.                          |
+| State    | What changes                                                      |
+| -------- | ----------------------------------------------------------------- |
+| Closed   | Not rendered.                                                     |
+| Open     | Over the page at the top, the field focused, every record listed. |
+| Filtered | The rows that match, the count in the field.                      |
+| None     | The empty sentence.                                               |
+| Chosen   | The picker closes and the caller has the record.                  |
 
 ## Modifiers
 
@@ -57,14 +57,14 @@ One: the Command dialog at its large width, 640px, the list at most 46% of the v
 
 ## Style
 
-| Element | Token                                                                                                     |
-| ------- | --------------------------------------------------------------------------------------------------------- |
-| Dialog  | Command.Dialog: `radius.xxlarge` · `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` |
-| Row     | Command.Item, as tall as two lines · `space.100` block · `color.background.selected` when selected         |
-| Id      | Id · `color.text.subtle`                                                                                  |
-| Meta    | `font.body.xsmall` · `color.text.subtle`                                                                  |
-| Badge   | Badge, xsmall                                                                                             |
-| Footer  | Command.Footer: `elevation.surface.sunken` · `font.body.xsmall` · Kbd for each key                        |
+| Element | Token                                                                                                        |
+| ------- | ------------------------------------------------------------------------------------------------------------ |
+| Dialog  | CommandDialog: `radius.xxlarge` · `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` |
+| Row     | CommandItem, as tall as two lines · `space.100` block · `color.background.selected` when selected            |
+| Id      | Id · `color.text.subtle`                                                                                     |
+| Meta    | `font.body.xsmall` · `color.text.subtle`                                                                     |
+| Badge   | Badge, xsmall                                                                                                |
+| Footer  | CommandFooter: `elevation.surface.sunken` · `font.body.xsmall` · Kbd for each key                            |
 
 ## Accessibility
 
@@ -81,7 +81,7 @@ One: the Command dialog at its large width, 640px, the list at most 46% of the v
 
 - [Command](?path=/docs/components-command--docs): the dialog and the list.
 - [PickerSheet](?path=/docs/patterns-pickersheet--docs): choosing many by attribute.
-- [CommandPalette](?path=/docs/patterns-commandpalette--docs): the same Command.Dialog, running a command instead of picking a record.
+- [CommandPalette](?path=/docs/patterns-commandpalette--docs): the same CommandDialog, running a command instead of picking a record.
 - [Combobox](?path=/docs/components-combobox--docs): one by name, inside a form.
 
 ## Don't

@@ -1,59 +1,6 @@
-/**
- * Baseline and change-invalidation presentation.
- *
- * The load-bearing component is `ImpactView`, and what it has to make legible
- * is a doctrine, not a number:
- *
- *  - **A contained change is a result, not an absence.** When CM-3(2) says a
- *    change has no security impact, this view does not render an empty page. It
- *    renders the verdict, the ISSE's written analysis in full, and a row of
- *    zeros that are the *finding* — the cascade did not run because the analysis
- *    said it must not, and that reasoning is the auditable part.
- *  - **Invalidated and Suspect are different states and must never look alike.**
- *    They are separated into two blocks with their own accent, their own count
- *    and their own one-sentence rule, and every touched node prints the actual
- *    descend/ascend reason string rather than a tidied summary of it.
- *  - **An invalidated row shows what the matrix actually did to it.** A positive
- *    claim is withdrawn, and renders struck through beside the "Not assessed" it
- *    became, because a value that is silently replaced cannot be audited. A
- *    deficiency is *not* withdrawn: it is re-tested, not re-scored, and renders
- *    un-struck with the re-test owed — re-scoring an open deficiency to "Not
- *    assessed" would sever the POA&M obligation. The view never re-derives that
- *    branch; `impactOf` carries the post-overlay determination and the outcome
- *    as data, so this file can only ever print what `buildSctm` holds.
- *  - **An unrecorded pin movement is a CM-3 finding.** `UnrecordedChangeNotice`
- *    states it as one, in the language of the control, above the diff table that
- *    found it — never as one more grey row among the recorded ones.
- *
- * Presentation only. Every value arrives as a prop from `@/lib/baselines`;
- * nothing here diffs, cascades or gates.
- */
-
-import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
+import { type ReactNode, useMemo, useState } from "react";
 
-import {
-  Absent,
-  Badge,
-  Box,
-  Button,
-  Empty,
-  Grid,
-  Id,
-  Inline,
-  Inspector,
-  KeyValue,
-  Section,
-  Stack,
-  Stat,
-  Table,
-  Toolbar,
-  Alert,
-  Indicator,
-  Eyebrow,
-} from "@ledger/design-system";
-import type { Tone } from "@ledger/design-system";
 import {
   buildStateTone,
   changeKindTone,
@@ -71,6 +18,28 @@ import {
   type SecurityImpact,
   type TouchedNode,
 } from "@/lib/baselines";
+import {
+  Absent,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  Empty,
+  Eyebrow,
+  Grid,
+  Id,
+  Indicator,
+  Inline,
+  Inspector,
+  KeyValue,
+  Section,
+  Stack,
+  Stat,
+  Table,
+  Toolbar,
+  type Tone,
+} from "@ledger/design-system";
+
 import { cn } from "@ledger/design-system/cn";
 
 type NodeNamer = (nodeId: string) => string;

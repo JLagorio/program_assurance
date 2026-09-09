@@ -1,56 +1,23 @@
-/**
- * Residual risk scoring presentation — the auditable calculation trail.
- *
- * The load-bearing component in this file is `FactorTable`, and what it has to
- * make legible is an argument, not a number:
- *
- *  - **A score with no trail launders judgement as arithmetic.** So the table
- *    prints, per factor, the raw input that was read, the normalised value, the
- *    weight, the points that value bought at that weight, the rationale
- *    sentence, and the ids the rationale rests on. An AO who disagrees can name
- *    the line they disagree with. There is no sparkline and no gauge here on
- *    purpose: a gauge is a claim you cannot argue with.
- *  - **The contributions sum to the score, visibly.** The footer adds the same
- *    column the reader just read and states the total beside the published
- *    score. If a clamp ever bit, it says so rather than absorbing the
- *    difference — an unexplained gap between the column and the headline would
- *    destroy the only thing this table is for.
- *  - **A factor that could not be computed gets a ROW, not a silent absence.**
- *    It prints "not computed", says its weight was never applied, and carries
- *    the caveat sentence explaining why. Scoring a missing input as zero would
- *    quietly assert "not exposed", which is a much stronger claim than "not
- *    known"; hiding the row entirely would let the reader assume the denominator
- *    was 100 when it was 85.
- *  - **The mitigation credit is a negative line, never a silent adjustment.**
- *    It reads as points taken off, next to the inherent number it was taken off
- *    of, so the compensating control can be argued about on its own terms.
- *  - **Authored and computed sit side by side and neither is overwritten.**
- *    `ScoreCard` shows the assessor's register numbers beside the derived ones
- *    and prints the disagreement as prose. Collapsing one into the other erases
- *    the question, and the question is the product.
- *
- * Presentation only. Every value arrives as a prop from `@/lib/risk-scoring`;
- * nothing here scores, weights, bands or sorts anything, and routes own links.
- */
-
-import { useMemo, type ReactNode } from "react";
-
 import {
   Absent,
   Badge,
   Box,
   DataTable,
+  defineColumns,
   Empty,
+  Eyebrow,
   Grid,
   Id,
   Inline,
   Progress,
+  ProgressStacked,
+  ProgressValue,
   Stack,
   Table,
-  defineColumns,
   useDataTable,
-  Eyebrow,
 } from "@ledger/design-system";
+import { useMemo, type ReactNode } from "react";
+
 import {
   bandTone,
   factorOrder,
@@ -62,6 +29,7 @@ import {
   type RiskMover,
   type ScoreFactor,
 } from "@/lib/risk-scoring";
+
 import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
@@ -440,7 +408,7 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
   }
   return (
     <Stack className="pt-200" space="space.150">
-      <Progress.Stacked
+      <ProgressStacked
         segments={byBand
           .filter((b) => b.count > 0)
           .map((b) => ({
@@ -450,13 +418,20 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
             title: `${b.band}: ${b.count} of ${total}`,
           }))}
         size="large"
-      />
+      ></ProgressStacked>
       <Stack space="space.075">
         {byBand.map((b) => (
           <Grid key={b.band} gap="space.150" templateColumns="120px 44px 1fr" alignItems="center">
             <BandChip band={b.band} size="xsmall" />
             <span className="tabular-nums text-right font-body-small font-medium">{b.count}</span>
-            <Progress value={(b.count / total) * 100} tone={bandTone[b.band]} showValue />
+            <Progress
+              value={(b.count / total) * 100}
+              tone={bandTone[b.band]}
+              aria-hidden
+              className="flex-nowrap [&_[data-slot=progress-track]]:order-first [&_[data-slot=progress-track]]:min-w-0 [&_[data-slot=progress-track]]:flex-1"
+            >
+              <ProgressValue />
+            </Progress>
           </Grid>
         ))}
       </Stack>

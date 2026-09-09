@@ -27,7 +27,6 @@
 
 import { useSyncExternalStore } from "react";
 
-import type { Tone } from "@ledger/design-system";
 import { currentSession, workForScope, type ControlWork, type Role } from "@/lib/control-work";
 import { datasetToday } from "@/lib/dataset-clock";
 import { defaultFramework, type FrameworkId } from "@/lib/frameworks";
@@ -35,21 +34,24 @@ import type { ImpactLevel } from "@/lib/grc-data";
 import { nistControlById, type NistControl } from "@/lib/nist-catalog";
 import {
   assessmentScopes,
+  controlSetFor,
+  liveScopeSelectionSource,
   objectives,
   recordTailoring,
   resolveSelection,
   scopeById,
   scopesForProgram,
   setScopeParameter,
+  synchronizeCompositionScopes,
   tailoringDeltas,
+  type ControlSelectionSource,
   type Objective,
   type ScopeControl,
   type Selection,
   type Triad,
-  type ControlSelectionSource,
-  controlSetFor,
 } from "@/lib/scopes";
 import { overlayById, overlayOptions, type Overlay, type SystemParameters } from "@/lib/tailoring";
+import type { Tone } from "@ledger/design-system";
 
 /* ------------------------------------------------------------- Decisions */
 
@@ -781,6 +783,7 @@ function applyRevision(rev: ControlSetRevision) {
   if (scope) {
     scope.separationBasis = rev.separationBasis;
     if (rev.selectionSource) scope.selectionSource = structuredClone(rev.selectionSource);
+    synchronizeCompositionScopes(scope.program);
   }
   // Bumps the scopes store once; every surface reading the scope re-renders.
   setScopeParameter(rev.scope, { ...rev.parameters });
@@ -885,8 +888,12 @@ export function proposeRevision(scopeId: string, reason: string): ControlSetRevi
           ? { selectionSource: structuredClone(scope.selectionSource) }
           : {}),
       };
-  if (draft.selectionSource?.parentScope) {
-    const parent = controlSetFor(draft.selectionSource.parentScope);
+  if (draft.selectionSource?.parentScope || draft.selectionSource?.inheritance === "containment") {
+    const selection = liveScopeSelectionSource(scope);
+    if (selection) draft.selectionSource = structuredClone(selection);
+    const parent = draft.selectionSource?.parentScope
+      ? controlSetFor(draft.selectionSource.parentScope)
+      : null;
     if (parent)
       draft.selectionSource.startingControlIds = parent.controls.map((row) => row.control.id);
   }
@@ -961,6 +968,50 @@ export function createInitialRevision(input: Omit<NewRevision, "seed">): Control
   const rev = createRevision(input);
   applyRevision(rev);
   return rev;
+}
+
+/** Prepare a first draft for an atomic composition save before registering its scope. */
+export function prepareInitialControlSetRevision(input: Omit<NewRevision, "seed" | "submit">): {
+  revision: ControlSetRevision;
+  history: RevisionEvent[];
+} {
+  const session = currentSession();
+  const revision: ControlSetRevision = {
+    id: `SCS-${String(revSeq + 1).padStart(4, "0")}`,
+    program: input.program,
+    scope: input.scope,
+    number: 1,
+    state: "Draft",
+    framework: input.framework ?? defaultFramework,
+    parameters: { ...input.parameters },
+    overlays: input.overlays.map((decision) => ({ ...decision })),
+    tailoring: input.tailoring.map((decision) => ({ ...decision })),
+    separationBasis: input.separationBasis,
+    reason: input.reason,
+    supersedes: null,
+    author: session.name,
+    created: datasetToday,
+    submitted: null,
+    decidedBy: null,
+    decided: null,
+    note: "",
+    ...(input.selectionSource ? { selectionSource: structuredClone(input.selectionSource) } : {}),
+  };
+  return {
+    revision,
+    history: [
+      {
+        id: `SCE-${String(eventSeq + 1).padStart(4, "0")}`,
+        revision: revision.id,
+        scope: revision.scope,
+        at: revision.created,
+        actor: session.name,
+        role: session.role,
+        kind: "created",
+        summary: `v1 created — ${revision.reason}`,
+      },
+    ],
+  };
 }
 
 /** Restore a wizard's first revision with its original IDs and history. */

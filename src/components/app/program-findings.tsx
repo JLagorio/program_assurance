@@ -1,30 +1,5 @@
-import { useCallback, useId, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
-import {
-  Badge,
-  Block,
-  Box,
-  Button,
-  DataTable,
-  Fact,
-  Field,
-  Grid,
-  Id,
-  Inline,
-  Input,
-  NativeSelect,
-  Sheet,
-  Stack,
-  Text,
-  Textarea,
-  TextLink,
-  defineColumns,
-  useDataTable,
-  toast,
-  type Preset,
-} from "@ledger/design-system";
-import { assetById, assets, programFindings, type Finding } from "@/lib/findings";
+import { EvidencePreview } from "@/components/app/program-evidence";
+import { NewPoamSheet, PoamRecordSheet } from "@/components/app/program-poams";
 import {
   createFinding,
   linkFindingEvidence,
@@ -33,22 +8,52 @@ import {
   useAssuranceVersion,
   type NewFinding,
 } from "@/lib/assurance-record-store";
+import { campaignById, eventsByCampaign, objectivesForEvent } from "@/lib/campaigns";
+import { currentSession } from "@/lib/control-work";
 import { evidenceById, evidenceForProgram, useEvidenceVersion } from "@/lib/evidence-catalog";
-import { scopesForProgram, scopeById } from "@/lib/scopes";
+import { assetById, assets, programFindings, type Finding } from "@/lib/findings";
+import { poamById } from "@/lib/register";
+import { objectiveEvidence, requirementsForObjective } from "@/lib/requirement-verification";
 import {
   controlDerivationsForRequirement,
+  getRequirement,
   requirementsForProgram,
   useRequirementsVersion,
 } from "@/lib/requirements";
-import { currentSession } from "@/lib/control-work";
+import { scopeById, scopesForProgram } from "@/lib/scopes";
 import { severityTone, statusTone, type FindingSeverity } from "@/lib/spine";
-import { poamById } from "@/lib/register";
-import { NewPoamSheet, PoamRecordSheet } from "@/components/app/program-poams";
-import { campaignById, eventsByCampaign, objectivesForEvent } from "@/lib/campaigns";
-import { objectiveEvidence, requirementsForObjective } from "@/lib/requirement-verification";
 import { resolvedObjectiveResult, runById } from "@/lib/test-execution";
-import { getRequirement } from "@/lib/requirements";
-import { EvidencePreview } from "@/components/app/program-evidence";
+import {
+  Badge,
+  Block,
+  Box,
+  Button,
+  DataTable,
+  defineColumns,
+  Fact,
+  Field,
+  Grid,
+  Id,
+  Inline,
+  Input,
+  NativeSelect,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  Stack,
+  Text,
+  Textarea,
+  TextLink,
+  toast,
+  useDataTable,
+  type Preset,
+} from "@ledger/design-system";
+import { Link } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+import { useCallback, useId, useMemo, useState } from "react";
 
 function report(error: unknown, setError: (message: string) => void) {
   setError(error instanceof Error ? error.message : "The record could not be saved.");
@@ -286,193 +291,215 @@ function NewFindingSheet({
   const evidence = evidenceForProgram(programId);
   return (
     <Sheet
-      open
-      onClose={onClose}
-      title="New finding"
-      subtitle="Record the condition, affected system and evidence."
-      width={640}
-      footer={
-        <>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" form={formId} type="submit">
-            Create finding
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        noValidate
-        id={formId}
-        onSubmit={(event) => {
-          event.preventDefault();
-          setError("");
-          try {
-            const input: NewFinding = {
-              ...draft,
-              program: programId,
-              assessmentId,
-              scope: draft.scope || undefined,
-              asset: draft.asset || undefined,
-              requirements: draft.requirement ? [draft.requirement] : [],
-              evidence: draft.evidence ? [draft.evidence] : [],
-              assessor: currentSession().name,
-            };
-            const finding = createFinding(input);
-            toast.success("Finding created");
-            onCreated(finding);
-          } catch (failure) {
-            report(failure, setError);
-          }
-        }}
-      >
-        <Stack space="space.150">
-          {error ? (
-            <p role="alert" className="font-body text-danger">
-              {error}
-            </p>
-          ) : null}
-          {assessment ? <Text size="small">Assessment: {assessment.name}</Text> : null}
-          <Field label="Finding title" isRequired>
-            <Input value={draft.title} onChange={(event) => set("title", event.target.value)} />
-          </Field>
-          <Field
-            label="Observed condition"
-            isRequired
-            hint="Describe what failed and the requirement it fails to meet."
-          >
-            <Textarea
-              rows={4}
-              value={draft.detail}
-              onChange={(event) => set("detail", event.target.value)}
-            />
-          </Field>
-          <Grid templateColumns="1fr 1fr" gap="space.150">
-            <Field label="Control" isRequired>
-              <Input
-                placeholder="AC-2"
-                value={draft.control}
-                onChange={(event) => set("control", event.target.value)}
-              />
-            </Field>
-            <Field label="CCI (optional)">
-              <Input
-                placeholder="CCI-000016"
-                value={draft.cci}
-                onChange={(event) => set("cci", event.target.value)}
-              />
-            </Field>
-            <Field label="Severity">
-              <NativeSelect
-                value={draft.severity}
-                onChange={(event) => set("severity", event.target.value as FindingSeverity)}
-              >
-                {["CAT I", "CAT II", "CAT III"].map((value) => (
-                  <option key={value}>{value}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Owner" isRequired>
-              <Input value={draft.owner} onChange={(event) => set("owner", event.target.value)} />
-            </Field>
-            <Field label="Assessment scope">
-              <NativeSelect
-                value={draft.scope}
-                onChange={(event) => set("scope", event.target.value)}
-              >
-                <option value="">Program-wide</option>
-                {scopesForProgram(programId).map((scope) => (
-                  <option key={scope.id} value={scope.id}>
-                    {scope.name}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Affected asset">
-              <NativeSelect
-                value={draft.asset}
-                onChange={(event) => set("asset", event.target.value)}
-              >
-                <option value="">No individual asset</option>
-                {programAssets.map((asset) => (
-                  <option key={asset.id} value={asset.id}>
-                    {asset.name}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-          </Grid>
-          <Field label="Related requirement">
-            <NativeSelect
-              value={draft.requirement}
-              onChange={(event) => {
-                const requirementId = event.target.value;
-                setDraft((previous) => ({
-                  ...previous,
-                  requirement: requirementId,
-                  control:
-                    previous.control ||
-                    controlDerivationsForRequirement(requirementId)[0]?.sourceId ||
-                    "",
-                }));
-              }}
-            >
-              <option value="">No engineering requirement linked</option>
-              {requirementsForProgram(programId).map((requirement) => (
-                <option key={requirement.id} value={requirement.id}>
-                  {requirement.id} · {requirement.text}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Source">
-            <NativeSelect
-              value={draft.source}
-              onChange={(event) => set("source", event.target.value as Finding["source"])}
-            >
-              {["Manual procedure", "Test event", "STIG checklist", "ACAS scan", "Code scan"].map(
-                (value) => (
-                  <option key={value}>{value}</option>
-                ),
-              )}
-            </NativeSelect>
-          </Field>
-          <Field label="Assessment method">
-            <NativeSelect
-              value={draft.method}
-              onChange={(event) =>
-                set("method", event.target.value as Finding["assessment"]["method"])
+      <SheetContent side="end" style={{ maxWidth: 640 }}>
+        <SheetHeader>
+          <Box className="flex items-start gap-100">
+            <Box className="flex min-w-0 flex-1 flex-col gap-025">
+              <SheetTitle>New finding</SheetTitle>
+              <SheetDescription>
+                Record the condition, affected system and evidence.
+              </SheetDescription>
+            </Box>
+          </Box>
+        </SheetHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          <form
+            noValidate
+            id={formId}
+            onSubmit={(event) => {
+              event.preventDefault();
+              setError("");
+              try {
+                const input: NewFinding = {
+                  ...draft,
+                  program: programId,
+                  assessmentId,
+                  scope: draft.scope || undefined,
+                  asset: draft.asset || undefined,
+                  requirements: draft.requirement ? [draft.requirement] : [],
+                  evidence: draft.evidence ? [draft.evidence] : [],
+                  assessor: currentSession().name,
+                };
+                const finding = createFinding(input);
+                toast.success("Finding created");
+                onCreated(finding);
+              } catch (failure) {
+                report(failure, setError);
               }
-            >
-              <option>Examine</option>
-              <option>Interview</option>
-              <option>Test</option>
-            </NativeSelect>
-          </Field>
-          <Field
-            label="Supporting evidence"
-            hint="Add artifacts in the Evidence tab, then link them here."
+            }}
           >
-            <NativeSelect
-              value={draft.evidence}
-              onChange={(event) => set("evidence", event.target.value)}
-            >
-              <option value="">Evidence not yet attached</option>
-              {evidence.map((artifact) => (
-                <option key={artifact.id} value={artifact.id}>
-                  {artifact.id} · {artifact.label}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Recommended remediation">
-            <Textarea
-              rows={3}
-              value={draft.recommendation}
-              onChange={(event) => set("recommendation", event.target.value)}
-            />
-          </Field>
-        </Stack>
-      </form>
+            <Stack space="space.150">
+              {error ? (
+                <p role="alert" className="font-body text-danger">
+                  {error}
+                </p>
+              ) : null}
+              {assessment ? <Text size="small">Assessment: {assessment.name}</Text> : null}
+              <Field label="Finding title" isRequired>
+                <Input value={draft.title} onChange={(event) => set("title", event.target.value)} />
+              </Field>
+              <Field
+                label="Observed condition"
+                isRequired
+                hint="Describe what failed and the requirement it fails to meet."
+              >
+                <Textarea
+                  rows={4}
+                  value={draft.detail}
+                  onChange={(event) => set("detail", event.target.value)}
+                />
+              </Field>
+              <Grid templateColumns="1fr 1fr" gap="space.150">
+                <Field label="Control" isRequired>
+                  <Input
+                    placeholder="AC-2"
+                    value={draft.control}
+                    onChange={(event) => set("control", event.target.value)}
+                  />
+                </Field>
+                <Field label="CCI (optional)">
+                  <Input
+                    placeholder="CCI-000016"
+                    value={draft.cci}
+                    onChange={(event) => set("cci", event.target.value)}
+                  />
+                </Field>
+                <Field label="Severity">
+                  <NativeSelect
+                    value={draft.severity}
+                    onChange={(event) => set("severity", event.target.value as FindingSeverity)}
+                  >
+                    {["CAT I", "CAT II", "CAT III"].map((value) => (
+                      <option key={value}>{value}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+                <Field label="Owner" isRequired>
+                  <Input
+                    value={draft.owner}
+                    onChange={(event) => set("owner", event.target.value)}
+                  />
+                </Field>
+                <Field label="Assessment scope">
+                  <NativeSelect
+                    value={draft.scope}
+                    onChange={(event) => set("scope", event.target.value)}
+                  >
+                    <option value="">Program-wide</option>
+                    {scopesForProgram(programId).map((scope) => (
+                      <option key={scope.id} value={scope.id}>
+                        {scope.name}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+                <Field label="Affected asset">
+                  <NativeSelect
+                    value={draft.asset}
+                    onChange={(event) => set("asset", event.target.value)}
+                  >
+                    <option value="">No individual asset</option>
+                    {programAssets.map((asset) => (
+                      <option key={asset.id} value={asset.id}>
+                        {asset.name}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              </Grid>
+              <Field label="Related requirement">
+                <NativeSelect
+                  value={draft.requirement}
+                  onChange={(event) => {
+                    const requirementId = event.target.value;
+                    setDraft((previous) => ({
+                      ...previous,
+                      requirement: requirementId,
+                      control:
+                        previous.control ||
+                        controlDerivationsForRequirement(requirementId)[0]?.sourceId ||
+                        "",
+                    }));
+                  }}
+                >
+                  <option value="">No engineering requirement linked</option>
+                  {requirementsForProgram(programId).map((requirement) => (
+                    <option key={requirement.id} value={requirement.id}>
+                      {requirement.id} · {requirement.text}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field label="Source">
+                <NativeSelect
+                  value={draft.source}
+                  onChange={(event) => set("source", event.target.value as Finding["source"])}
+                >
+                  {[
+                    "Manual procedure",
+                    "Test event",
+                    "STIG checklist",
+                    "ACAS scan",
+                    "Code scan",
+                  ].map((value) => (
+                    <option key={value}>{value}</option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field label="Assessment method">
+                <NativeSelect
+                  value={draft.method}
+                  onChange={(event) =>
+                    set("method", event.target.value as Finding["assessment"]["method"])
+                  }
+                >
+                  <option>Examine</option>
+                  <option>Interview</option>
+                  <option>Test</option>
+                </NativeSelect>
+              </Field>
+              <Field
+                label="Supporting evidence"
+                hint="Add artifacts in the Evidence tab, then link them here."
+              >
+                <NativeSelect
+                  value={draft.evidence}
+                  onChange={(event) => set("evidence", event.target.value)}
+                >
+                  <option value="">Evidence not yet attached</option>
+                  {evidence.map((artifact) => (
+                    <option key={artifact.id} value={artifact.id}>
+                      {artifact.id} · {artifact.label}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field label="Recommended remediation">
+                <Textarea
+                  rows={3}
+                  value={draft.recommendation}
+                  onChange={(event) => set("recommendation", event.target.value)}
+                />
+              </Field>
+            </Stack>
+          </form>
+        </Box>
+        <SheetFooter>
+          <>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button variant="primary" form={formId} type="submit">
+              Create finding
+            </Button>
+          </>
+        </SheetFooter>
+      </SheetContent>
     </Sheet>
   );
 }
@@ -492,8 +519,26 @@ export function FindingRecordSheet({
   return finding ? (
     <FindingEditor key={finding.id} finding={finding} programId={programId} onClose={onClose} />
   ) : (
-    <Sheet open onClose={onClose} title="Finding unavailable">
-      <Text>This finding is not in this program.</Text>
+    <Sheet
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
+    >
+      <SheetContent side="end" style={{ maxWidth: 420 }}>
+        <SheetHeader>
+          <Box className="flex items-start gap-100">
+            <Box className="flex min-w-0 flex-1 flex-col gap-025">
+              <SheetTitle>Finding unavailable</SheetTitle>
+            </Box>
+          </Box>
+        </SheetHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          <Text>This finding is not in this program.</Text>
+        </Box>
+      </SheetContent>
     </Sheet>
   );
 }
@@ -551,306 +596,333 @@ function FindingEditor({
   return (
     <>
       <Sheet
-        open
-        onClose={onClose}
-        title={finding.title}
-        subtitle={finding.id}
-        width={720}
-        eyebrow={
-          <>
-            <Badge variant="secondary" tone={severityTone(finding.mitigatedSeverity)}>
-              {finding.mitigatedSeverity}
-            </Badge>
-            <Badge variant="secondary" tone={statusTone(finding.lifecycle)}>
-              {finding.lifecycle}
-            </Badge>
-          </>
-        }
-        facts={
-          <>
-            <Fact label="Controls">{(finding.controls ?? [finding.control]).join(", ")}</Fact>
-            <Fact label="Affected">
-              {finding.assets?.map((id) => assetById.get(id)?.name ?? id).join(", ") ||
-                (assetById.get(finding.asset)?.name ??
-                  scopeById.get(finding.scope ?? "")?.name ??
-                  "Program")}
-            </Fact>
-            <Fact label="Source">{finding.source}</Fact>
-          </>
-        }
-        footer={
-          <>
-            <Button onClick={onClose}>Done</Button>
-            <Button variant="primary" type="submit" form={formId}>
-              Save changes
-            </Button>
-          </>
-        }
+        open={true}
+        onOpenChange={(next) => {
+          if (!next) {
+            onClose();
+          }
+        }}
       >
-        <form
-          noValidate
-          id={formId}
-          onSubmit={(event) => {
-            event.preventDefault();
-            save();
-          }}
-        >
-          <Stack space="space.200">
-            {error ? (
-              <p role="alert" className="font-body text-danger">
-                {error}
-              </p>
-            ) : null}
-            <Field label="Finding title" isRequired>
-              <Input value={title} onChange={(event) => setTitle(event.target.value)} />
-            </Field>
-            <Block title="Observed condition">
-              <Field label="Observed condition" isRequired>
-                <Textarea
-                  rows={4}
-                  value={detail}
-                  onChange={(event) => setDetail(event.target.value)}
-                />
-              </Field>
-              <Inline space="space.150" shouldWrap className="pt-100">
-                {(finding.controls ?? [finding.control]).filter(Boolean).map((control) => (
-                  <TextLink key={control}>
-                    <Link
-                      to="/programs/$programId/controls/$controlId"
-                      params={{ programId, controlId: control }}
-                    >
-                      Control {control}
-                    </Link>
-                  </TextLink>
-                ))}
-                {finding.requirements?.map((id) => (
-                  <TextLink key={id}>
-                    <Link
-                      to="/programs/$programId/requirements/$requirementId"
-                      params={{ programId, requirementId: id }}
-                    >
-                      {id}
-                    </Link>
-                  </TextLink>
-                ))}
-              </Inline>
-            </Block>
-            <Grid templateColumns="1fr 1fr" gap="space.150">
-              <Field label="Owner" isRequired>
-                <Input value={owner} onChange={(event) => setOwner(event.target.value)} />
-              </Field>
-              <Field label="Status">
-                <NativeSelect
-                  value={lifecycleEdited ? lifecycle : finding.lifecycle}
-                  onChange={(event) => {
-                    setLifecycle(event.target.value as Finding["lifecycle"]);
-                    setLifecycleEdited(true);
-                  }}
-                >
-                  {[
-                    "Open",
-                    "Triaged",
-                    "Remediating",
-                    "Retest pending",
-                    "Risk accepted",
-                    "False positive",
-                    ...(finding.lifecycle === "Closed" ? ["Closed"] : []),
-                  ].map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </NativeSelect>
-              </Field>
-            </Grid>
-            <Field label="Remediation recommendation">
-              <Textarea
-                rows={3}
-                value={recommendation}
-                onChange={(event) => setRecommendation(event.target.value)}
-              />
-            </Field>
-            <Field label="Mitigation / disposition rationale">
-              <Textarea
-                rows={3}
-                value={mitigation}
-                onChange={(event) => setMitigation(event.target.value)}
-              />
-            </Field>
-            <Block title="Supporting evidence" count={evidenceIds.length}>
-              {evidenceIds.length ? (
-                <Stack space="space.100">
-                  {evidenceIds.map((id) => (
-                    <Button key={id} type="button" variant="link" onClick={() => setEvidenceId(id)}>
-                      <Id>{id}</Id> · {evidenceById(id)?.label ?? "Artifact metadata unavailable"}
-                    </Button>
-                  ))}
-                </Stack>
-              ) : (
-                <Text size="small" color="color.text.subtle">
-                  No evidence attached.
-                </Text>
-              )}
-              <Inline space="space.100" alignBlock="end" className="pt-150">
-                <Field label="Attach supporting evidence" className="min-w-0 flex-1">
-                  <NativeSelect
-                    value={attachEvidence}
-                    onChange={(event) => setAttachEvidence(event.target.value)}
-                  >
-                    <option value="">Select an artifact</option>
-                    {artifacts
-                      .filter((artifact) => !evidenceIds.includes(artifact.id))
-                      .map((artifact) => (
-                        <option key={artifact.id} value={artifact.id}>
-                          {artifact.id} · {artifact.label}
-                        </option>
-                      ))}
-                  </NativeSelect>
-                </Field>
-                <Button
-                  type="button"
-                  disabled={!attachEvidence}
-                  onClick={() => {
-                    setError("");
-                    try {
-                      linkFindingEvidence(finding.id, attachEvidence);
-                      setAttachEvidence("");
-                      toast.success("Evidence attached");
-                    } catch (failure) {
-                      report(failure, setError);
-                    }
-                  }}
-                >
-                  Attach
-                </Button>
-              </Inline>
-              <p className="pt-100 font-body-small text-subtle">
-                Assessed by {finding.assessment.assessedBy} ·{" "}
-                {findingDate(finding.assessment.assessedOn)}
-              </p>
-            </Block>
-            <Block title="Remediation commitment">
-              {finding.poam ? (
-                <Button
-                  type="button"
-                  size="small"
-                  variant="link"
-                  onClick={() => setPoamId(finding.poam!)}
-                >
-                  {finding.poam} · {poamById.get(finding.poam)?.title}
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  size="small"
-                  onClick={() => {
-                    if (save()) setCreatingPoam(true);
-                  }}
-                >
-                  Create POA&M from finding
-                </Button>
-              )}
-            </Block>
-            <Block title="Retest and closure" count={finding.retests?.length ?? 0}>
-              {finding.sourceStatus === "closed" && !finding.retests?.length ? (
-                <Badge tone="warning">Imported closure · passing retest not recorded</Badge>
-              ) : null}
-              {finding.retests?.map((retest) => (
-                <Box key={retest.id} className="border-b border-default" paddingBlock="space.100">
-                  <Inline space="space.100">
-                    <Badge
-                      variant="secondary"
-                      tone={retest.result === "Passed" ? "success" : "danger"}
-                    >
-                      {retest.result}
+        <SheetContent side="end" style={{ maxWidth: 720 }}>
+          <SheetHeader>
+            <Box className="flex items-start gap-100">
+              <Box className="flex min-w-0 flex-1 flex-col gap-025">
+                <Box className="flex items-center gap-100 pb-025">
+                  <>
+                    <Badge variant="secondary" tone={severityTone(finding.mitigatedSeverity)}>
+                      {finding.mitigatedSeverity}
                     </Badge>
-                    <Text size="small">
-                      {retest.assessor} · {findingDate(retest.assessedOn)}
-                    </Text>
-                  </Inline>
-                  <p className="pt-100 font-body whitespace-pre-wrap">{retest.note}</p>
-                  <Text size="small" color="color.text.subtle">
-                    {retest.evidence.join(", ")}
-                  </Text>
+                    <Badge variant="secondary" tone={statusTone(finding.lifecycle)}>
+                      {finding.lifecycle}
+                    </Badge>
+                  </>
                 </Box>
-              ))}
-              {finding.lifecycle !== "Closed" ? (
-                <Button type="button" size="small" onClick={() => setRetesting(!retesting)}>
-                  {retesting ? "Cancel retest entry" : "Record retest"}
-                </Button>
-              ) : null}
-              {retesting ? (
-                <Stack space="space.150" className="pt-150">
-                  <Grid templateColumns="1fr 1fr" gap="space.150">
-                    <Field label="Retest result">
-                      <NativeSelect
-                        value={result}
-                        onChange={(event) => setResult(event.target.value as "Passed" | "Failed")}
-                      >
-                        <option>Passed</option>
-                        <option>Failed</option>
-                      </NativeSelect>
-                    </Field>
-                    <Field label="Assessor" isRequired>
-                      <Input
-                        value={assessor}
-                        onChange={(event) => setAssessor(event.target.value)}
-                      />
-                    </Field>
-                  </Grid>
-                  <Field label="Retest evidence" isRequired>
+                <SheetTitle>{finding.title}</SheetTitle>
+                <SheetDescription>{finding.id}</SheetDescription>
+                <Fact.Group className="pt-075">
+                  <>
+                    <Fact label="Controls">
+                      {(finding.controls ?? [finding.control]).join(", ")}
+                    </Fact>
+                    <Fact label="Affected">
+                      {finding.assets?.map((id) => assetById.get(id)?.name ?? id).join(", ") ||
+                        (assetById.get(finding.asset)?.name ??
+                          scopeById.get(finding.scope ?? "")?.name ??
+                          "Program")}
+                    </Fact>
+                    <Fact label="Source">{finding.source}</Fact>
+                  </>
+                </Fact.Group>
+              </Box>
+            </Box>
+          </SheetHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+            <form
+              noValidate
+              id={formId}
+              onSubmit={(event) => {
+                event.preventDefault();
+                save();
+              }}
+            >
+              <Stack space="space.200">
+                {error ? (
+                  <p role="alert" className="font-body text-danger">
+                    {error}
+                  </p>
+                ) : null}
+                <Field label="Finding title" isRequired>
+                  <Input value={title} onChange={(event) => setTitle(event.target.value)} />
+                </Field>
+                <Block title="Observed condition">
+                  <Field label="Observed condition" isRequired>
+                    <Textarea
+                      rows={4}
+                      value={detail}
+                      onChange={(event) => setDetail(event.target.value)}
+                    />
+                  </Field>
+                  <Inline space="space.150" shouldWrap className="pt-100">
+                    {(finding.controls ?? [finding.control]).filter(Boolean).map((control) => (
+                      <TextLink key={control}>
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId, controlId: control }}
+                        >
+                          Control {control}
+                        </Link>
+                      </TextLink>
+                    ))}
+                    {finding.requirements?.map((id) => (
+                      <TextLink key={id}>
+                        <Link
+                          to="/programs/$programId/requirements/$requirementId"
+                          params={{ programId, requirementId: id }}
+                        >
+                          {id}
+                        </Link>
+                      </TextLink>
+                    ))}
+                  </Inline>
+                </Block>
+                <Grid templateColumns="1fr 1fr" gap="space.150">
+                  <Field label="Owner" isRequired>
+                    <Input value={owner} onChange={(event) => setOwner(event.target.value)} />
+                  </Field>
+                  <Field label="Status">
                     <NativeSelect
-                      value={retestEvidence}
-                      onChange={(event) => setRetestEvidence(event.target.value)}
+                      value={lifecycleEdited ? lifecycle : finding.lifecycle}
+                      onChange={(event) => {
+                        setLifecycle(event.target.value as Finding["lifecycle"]);
+                        setLifecycleEdited(true);
+                      }}
                     >
-                      <option value="">Select a supporting artifact</option>
-                      {artifacts.map((artifact) => (
-                        <option value={artifact.id} key={artifact.id}>
-                          {artifact.id} · {artifact.label}
-                        </option>
+                      {[
+                        "Open",
+                        "Triaged",
+                        "Remediating",
+                        "Retest pending",
+                        "Risk accepted",
+                        "False positive",
+                        ...(finding.lifecycle === "Closed" ? ["Closed"] : []),
+                      ].map((value) => (
+                        <option key={value}>{value}</option>
                       ))}
                     </NativeSelect>
                   </Field>
-                  <Field label="Retest determination" isRequired>
-                    <Textarea
-                      rows={3}
-                      value={retestNote}
-                      onChange={(event) => setRetestNote(event.target.value)}
-                    />
-                  </Field>
-                  <Button
-                    type="button"
-                    size="small"
-                    variant="primary"
-                    onClick={() => {
-                      setError("");
-                      try {
-                        recordFindingRetest(finding.id, {
-                          result,
-                          evidence: retestEvidence ? [retestEvidence] : [],
-                          note: retestNote,
-                          assessor,
-                        });
-                        setLifecycle(result === "Passed" ? "Closed" : "Remediating");
-                        setLifecycleEdited(false);
-                        setRetesting(false);
-                        toast.success(
-                          result === "Passed"
-                            ? "Finding closed with retest evidence"
-                            : "Retest recorded; remediation remains open",
-                        );
-                      } catch (failure) {
-                        report(failure, setError);
-                      }
-                    }}
-                  >
-                    {result === "Passed"
-                      ? "Record passing retest and close"
-                      : "Record failed retest"}
-                  </Button>
-                </Stack>
-              ) : null}
-            </Block>
-          </Stack>
-        </form>
+                </Grid>
+                <Field label="Remediation recommendation">
+                  <Textarea
+                    rows={3}
+                    value={recommendation}
+                    onChange={(event) => setRecommendation(event.target.value)}
+                  />
+                </Field>
+                <Field label="Mitigation / disposition rationale">
+                  <Textarea
+                    rows={3}
+                    value={mitigation}
+                    onChange={(event) => setMitigation(event.target.value)}
+                  />
+                </Field>
+                <Block title="Supporting evidence" count={evidenceIds.length}>
+                  {evidenceIds.length ? (
+                    <Stack space="space.100">
+                      {evidenceIds.map((id) => (
+                        <Button
+                          key={id}
+                          type="button"
+                          variant="link"
+                          onClick={() => setEvidenceId(id)}
+                        >
+                          <Id>{id}</Id> ·{" "}
+                          {evidenceById(id)?.label ?? "Artifact metadata unavailable"}
+                        </Button>
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Text size="small" color="color.text.subtle">
+                      No evidence attached.
+                    </Text>
+                  )}
+                  <Inline space="space.100" alignBlock="end" className="pt-150">
+                    <Field label="Attach supporting evidence" className="min-w-0 flex-1">
+                      <NativeSelect
+                        value={attachEvidence}
+                        onChange={(event) => setAttachEvidence(event.target.value)}
+                      >
+                        <option value="">Select an artifact</option>
+                        {artifacts
+                          .filter((artifact) => !evidenceIds.includes(artifact.id))
+                          .map((artifact) => (
+                            <option key={artifact.id} value={artifact.id}>
+                              {artifact.id} · {artifact.label}
+                            </option>
+                          ))}
+                      </NativeSelect>
+                    </Field>
+                    <Button
+                      type="button"
+                      disabled={!attachEvidence}
+                      onClick={() => {
+                        setError("");
+                        try {
+                          linkFindingEvidence(finding.id, attachEvidence);
+                          setAttachEvidence("");
+                          toast.success("Evidence attached");
+                        } catch (failure) {
+                          report(failure, setError);
+                        }
+                      }}
+                    >
+                      Attach
+                    </Button>
+                  </Inline>
+                  <p className="pt-100 font-body-small text-subtle">
+                    Assessed by {finding.assessment.assessedBy} ·{" "}
+                    {findingDate(finding.assessment.assessedOn)}
+                  </p>
+                </Block>
+                <Block title="Remediation commitment">
+                  {finding.poam ? (
+                    <Button
+                      type="button"
+                      size="small"
+                      variant="link"
+                      onClick={() => setPoamId(finding.poam!)}
+                    >
+                      {finding.poam} · {poamById.get(finding.poam)?.title}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      size="small"
+                      onClick={() => {
+                        if (save()) setCreatingPoam(true);
+                      }}
+                    >
+                      Create POA&M from finding
+                    </Button>
+                  )}
+                </Block>
+                <Block title="Retest and closure" count={finding.retests?.length ?? 0}>
+                  {finding.sourceStatus === "closed" && !finding.retests?.length ? (
+                    <Badge tone="warning">Imported closure · passing retest not recorded</Badge>
+                  ) : null}
+                  {finding.retests?.map((retest) => (
+                    <Box
+                      key={retest.id}
+                      className="border-b border-default"
+                      paddingBlock="space.100"
+                    >
+                      <Inline space="space.100">
+                        <Badge
+                          variant="secondary"
+                          tone={retest.result === "Passed" ? "success" : "danger"}
+                        >
+                          {retest.result}
+                        </Badge>
+                        <Text size="small">
+                          {retest.assessor} · {findingDate(retest.assessedOn)}
+                        </Text>
+                      </Inline>
+                      <p className="pt-100 font-body whitespace-pre-wrap">{retest.note}</p>
+                      <Text size="small" color="color.text.subtle">
+                        {retest.evidence.join(", ")}
+                      </Text>
+                    </Box>
+                  ))}
+                  {finding.lifecycle !== "Closed" ? (
+                    <Button type="button" size="small" onClick={() => setRetesting(!retesting)}>
+                      {retesting ? "Cancel retest entry" : "Record retest"}
+                    </Button>
+                  ) : null}
+                  {retesting ? (
+                    <Stack space="space.150" className="pt-150">
+                      <Grid templateColumns="1fr 1fr" gap="space.150">
+                        <Field label="Retest result">
+                          <NativeSelect
+                            value={result}
+                            onChange={(event) =>
+                              setResult(event.target.value as "Passed" | "Failed")
+                            }
+                          >
+                            <option>Passed</option>
+                            <option>Failed</option>
+                          </NativeSelect>
+                        </Field>
+                        <Field label="Assessor" isRequired>
+                          <Input
+                            value={assessor}
+                            onChange={(event) => setAssessor(event.target.value)}
+                          />
+                        </Field>
+                      </Grid>
+                      <Field label="Retest evidence" isRequired>
+                        <NativeSelect
+                          value={retestEvidence}
+                          onChange={(event) => setRetestEvidence(event.target.value)}
+                        >
+                          <option value="">Select a supporting artifact</option>
+                          {artifacts.map((artifact) => (
+                            <option value={artifact.id} key={artifact.id}>
+                              {artifact.id} · {artifact.label}
+                            </option>
+                          ))}
+                        </NativeSelect>
+                      </Field>
+                      <Field label="Retest determination" isRequired>
+                        <Textarea
+                          rows={3}
+                          value={retestNote}
+                          onChange={(event) => setRetestNote(event.target.value)}
+                        />
+                      </Field>
+                      <Button
+                        type="button"
+                        size="small"
+                        variant="primary"
+                        onClick={() => {
+                          setError("");
+                          try {
+                            recordFindingRetest(finding.id, {
+                              result,
+                              evidence: retestEvidence ? [retestEvidence] : [],
+                              note: retestNote,
+                              assessor,
+                            });
+                            setLifecycle(result === "Passed" ? "Closed" : "Remediating");
+                            setLifecycleEdited(false);
+                            setRetesting(false);
+                            toast.success(
+                              result === "Passed"
+                                ? "Finding closed with retest evidence"
+                                : "Retest recorded; remediation remains open",
+                            );
+                          } catch (failure) {
+                            report(failure, setError);
+                          }
+                        }}
+                      >
+                        {result === "Passed"
+                          ? "Record passing retest and close"
+                          : "Record failed retest"}
+                      </Button>
+                    </Stack>
+                  ) : null}
+                </Block>
+              </Stack>
+            </form>
+          </Box>
+          <SheetFooter>
+            <>
+              <Button onClick={onClose}>Done</Button>
+              <Button variant="primary" type="submit" form={formId}>
+                Save changes
+              </Button>
+            </>
+          </SheetFooter>
+        </SheetContent>
       </Sheet>
       {creatingPoam ? (
         <NewPoamSheet

@@ -1,11 +1,10 @@
-import { useCallback, useId, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
 import {
   Badge,
   Block,
+  Box,
   Button,
   DataTable,
+  defineColumns,
   Fact,
   Field,
   Grid,
@@ -14,18 +13,21 @@ import {
   Input,
   NativeSelect,
   Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
   Stack,
   Table,
   Text,
   Textarea,
   TextLink,
-  defineColumns,
-  useDataTable,
   toast,
   type Preset,
+  useDataTable,
 } from "@ledger/design-system";
-import { findingsForPoam, poamsForProgram, type PoamItem } from "@/lib/register";
-import { programFindings, isDeficiency } from "@/lib/findings";
+import { FindingRecordSheet } from "@/components/app/program-findings";
 import {
   addPoamMilestone,
   createPoam,
@@ -34,10 +36,15 @@ import {
   updatePoamMilestone,
   useAssuranceVersion,
 } from "@/lib/assurance-record-store";
-import { currentSession } from "@/lib/control-work";
-import { statusTone } from "@/lib/spine";
-import { FindingRecordSheet } from "@/components/app/program-findings";
 import { nodeById } from "@/lib/composition";
+import { currentSession } from "@/lib/control-work";
+import { isDeficiency, programFindings } from "@/lib/findings";
+import { findingsForPoam, poamsForProgram, type PoamItem } from "@/lib/register";
+import { statusTone } from "@/lib/spine";
+
+import { Link } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+import { useCallback, useId, useMemo, useState } from "react";
 
 function dateInput(value: string) {
   if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
@@ -219,106 +226,122 @@ export function NewPoamSheet({
   );
   return (
     <Sheet
-      open
-      onClose={onClose}
-      title="New POA&M"
-      subtitle={
-        members.length
-          ? `Remediation for ${members.map((finding) => finding.id).join(", ")}`
-          : "Assign an owner, remediation plan and completion date."
-      }
-      width={640}
-      footer={
-        <>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" form={formId} type="submit">
-            Create POA&M
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        noValidate
-        id={formId}
-        onSubmit={(event) => {
-          event.preventDefault();
-          setError("");
-          try {
-            const item = createPoam({
-              program: programId,
-              title: draft.title,
-              owner: draft.owner,
-              remediation: draft.remediation,
-              resources: draft.resources,
-              scheduledCompletion: draft.due,
-              findingIds: members.length ? findingIds : draft.finding ? [draft.finding] : [],
-            });
-            toast.success("POA&M created");
-            onCreated(item);
-          } catch (failure) {
-            setError(errorMessage(failure));
-          }
-        }}
-      >
-        <Stack space="space.150">
-          {error ? (
-            <p role="alert" className="font-body text-danger">
-              {error}
-            </p>
-          ) : null}
-          <Field label="Remediation title" isRequired>
-            <Input value={draft.title} onChange={(event) => set("title", event.target.value)} />
-          </Field>
-          <Field label="Remediation plan" isRequired>
-            <Textarea
-              rows={5}
-              value={draft.remediation}
-              onChange={(event) => set("remediation", event.target.value)}
-            />
-          </Field>
-          <Grid templateColumns="1fr 1fr" gap="space.150">
-            <Field label="Owner" isRequired>
-              <Input value={draft.owner} onChange={(event) => set("owner", event.target.value)} />
-            </Field>
-            <Field label="Completion date" isRequired>
-              <Input
-                type="date"
-                value={draft.due}
-                onChange={(event) => set("due", event.target.value)}
-              />
-            </Field>
-          </Grid>
-          <Field label="Resources required">
-            <Input
-              value={draft.resources}
-              onChange={(event) => set("resources", event.target.value)}
-            />
-          </Field>
-          {members.length ? (
-            <Block title="Linked findings">
-              {members.map((finding) => (
-                <p key={finding.id} className="font-body">
-                  <Id>{finding.id}</Id> · {finding.title}
+      <SheetContent side="end" style={{ maxWidth: 640 }}>
+        <SheetHeader>
+          <Box className="flex items-start gap-100">
+            <Box className="flex min-w-0 flex-1 flex-col gap-025">
+              <SheetTitle>{"New POA&M"}</SheetTitle>
+              <SheetDescription>
+                {members.length
+                  ? `Remediation for ${members.map((finding) => finding.id).join(", ")}`
+                  : "Assign an owner, remediation plan and completion date."}
+              </SheetDescription>
+            </Box>
+          </Box>
+        </SheetHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          <form
+            noValidate
+            id={formId}
+            onSubmit={(event) => {
+              event.preventDefault();
+              setError("");
+              try {
+                const item = createPoam({
+                  program: programId,
+                  title: draft.title,
+                  owner: draft.owner,
+                  remediation: draft.remediation,
+                  resources: draft.resources,
+                  scheduledCompletion: draft.due,
+                  findingIds: members.length ? findingIds : draft.finding ? [draft.finding] : [],
+                });
+                toast.success("POA&M created");
+                onCreated(item);
+              } catch (failure) {
+                setError(errorMessage(failure));
+              }
+            }}
+          >
+            <Stack space="space.150">
+              {error ? (
+                <p role="alert" className="font-body text-danger">
+                  {error}
                 </p>
-              ))}
-            </Block>
-          ) : (
-            <Field label="Finding to remediate">
-              <NativeSelect
-                value={draft.finding}
-                onChange={(event) => set("finding", event.target.value)}
-              >
-                <option value="">Link a finding after creating the plan</option>
-                {eligible.map((finding) => (
-                  <option key={finding.id} value={finding.id}>
-                    {finding.id} · {finding.title}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-          )}
-        </Stack>
-      </form>
+              ) : null}
+              <Field label="Remediation title" isRequired>
+                <Input value={draft.title} onChange={(event) => set("title", event.target.value)} />
+              </Field>
+              <Field label="Remediation plan" isRequired>
+                <Textarea
+                  rows={5}
+                  value={draft.remediation}
+                  onChange={(event) => set("remediation", event.target.value)}
+                />
+              </Field>
+              <Grid templateColumns="1fr 1fr" gap="space.150">
+                <Field label="Owner" isRequired>
+                  <Input
+                    value={draft.owner}
+                    onChange={(event) => set("owner", event.target.value)}
+                  />
+                </Field>
+                <Field label="Completion date" isRequired>
+                  <Input
+                    type="date"
+                    value={draft.due}
+                    onChange={(event) => set("due", event.target.value)}
+                  />
+                </Field>
+              </Grid>
+              <Field label="Resources required">
+                <Input
+                  value={draft.resources}
+                  onChange={(event) => set("resources", event.target.value)}
+                />
+              </Field>
+              {members.length ? (
+                <Block title="Linked findings">
+                  {members.map((finding) => (
+                    <p key={finding.id} className="font-body">
+                      <Id>{finding.id}</Id> · {finding.title}
+                    </p>
+                  ))}
+                </Block>
+              ) : (
+                <Field label="Finding to remediate">
+                  <NativeSelect
+                    value={draft.finding}
+                    onChange={(event) => set("finding", event.target.value)}
+                  >
+                    <option value="">Link a finding after creating the plan</option>
+                    {eligible.map((finding) => (
+                      <option key={finding.id} value={finding.id}>
+                        {finding.id} · {finding.title}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </Stack>
+          </form>
+        </Box>
+        <SheetFooter>
+          <>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button variant="primary" form={formId} type="submit">
+              Create POA&M
+            </Button>
+          </>
+        </SheetFooter>
+      </SheetContent>
     </Sheet>
   );
 }
@@ -337,8 +360,26 @@ export function PoamRecordSheet({
   return item ? (
     <PoamEditor key={item.id} item={item} onClose={onClose} />
   ) : (
-    <Sheet open onClose={onClose} title="POA&M unavailable">
-      <Text>This POA&M is not in this program.</Text>
+    <Sheet
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
+    >
+      <SheetContent side="end" style={{ maxWidth: 420 }}>
+        <SheetHeader>
+          <Box className="flex items-start gap-100">
+            <Box className="flex min-w-0 flex-1 flex-col gap-025">
+              <SheetTitle>{"POA&M unavailable"}</SheetTitle>
+            </Box>
+          </Box>
+        </SheetHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          <Text>This POA&M is not in this program.</Text>
+        </Box>
+      </SheetContent>
     </Sheet>
   );
 }
@@ -378,289 +419,313 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
   return (
     <>
       <Sheet
-        open
-        onClose={onClose}
-        title={item.title}
-        subtitle={item.id}
-        width={760}
-        eyebrow={
-          <Badge variant="secondary" tone={statusTone(item.status)}>
-            {item.status}
-          </Badge>
-        }
-        facts={
-          <>
-            <Fact label="Owner">{item.owner}</Fact>
-            <Fact label="Due">{dueLabel(item.scheduledCompletion)}</Fact>
-            <Fact label="Unresolved findings">{members.filter(isDeficiency).length}</Fact>
-          </>
-        }
-        footer={
-          <>
-            <Button onClick={onClose}>Done</Button>
-            <Button variant="primary" type="submit" form={formId}>
-              Save changes
-            </Button>
-          </>
-        }
+        open={true}
+        onOpenChange={(next) => {
+          if (!next) {
+            onClose();
+          }
+        }}
       >
-        <form
-          noValidate
-          id={formId}
-          onSubmit={(event) => {
-            event.preventDefault();
-            act(() => {
-              updatePoam(item.id, { ...draft, status: statusEdited ? draft.status : item.status });
-              setStatusEdited(false);
-            }, "POA&M updated");
-          }}
-        >
-          <Stack space="space.200">
-            {error ? (
-              <p role="alert" className="font-body text-danger">
-                {error}
-              </p>
-            ) : null}
-            <Field label="Remediation title" isRequired>
-              <Input value={draft.title} onChange={(event) => set("title", event.target.value)} />
-            </Field>
-            <Field label="Remediation plan" isRequired>
-              <Textarea
-                rows={4}
-                value={draft.remediation}
-                onChange={(event) => set("remediation", event.target.value)}
-              />
-            </Field>
-            <Grid templateColumns="1fr 1fr" gap="space.150">
-              <Field label="Owner" isRequired>
-                <Input value={draft.owner} onChange={(event) => set("owner", event.target.value)} />
-              </Field>
-              <Field label="Completion date" isRequired>
-                <Input
-                  type="date"
-                  value={draft.scheduledCompletion}
-                  onChange={(event) => set("scheduledCompletion", event.target.value)}
-                />
-              </Field>
-              <Field label="Status">
-                <NativeSelect
-                  value={statusEdited ? draft.status : item.status}
-                  onChange={(event) => {
-                    set("status", event.target.value as PoamItem["status"]);
-                    setStatusEdited(true);
-                  }}
-                >
-                  {["Ongoing", "Overdue", "Completed", "Risk accepted"].map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </NativeSelect>
-              </Field>
-              <Field label="Resources required">
-                <Input
-                  value={draft.resources}
-                  onChange={(event) => set("resources", event.target.value)}
-                />
-              </Field>
-            </Grid>
-            <Field label="Progress note">
-              <Textarea
-                rows={3}
-                value={draft.milestoneNote}
-                onChange={(event) => set("milestoneNote", event.target.value)}
-              />
-            </Field>
-            <Block title="Linked findings" count={members.length}>
-              {item.sourceStatus === "completed" &&
-              members.some(
-                (finding) => finding.sourceStatus === "closed" && !finding.retests?.length,
-              ) ? (
-                <Badge tone="warning">Imported completion · passing retest not recorded</Badge>
-              ) : null}
-              {item.controls?.length || item.requirements?.length ? (
-                <Inline space="space.100" shouldWrap>
-                  {item.controls?.map((controlId) => (
-                    <TextLink key={controlId}>
-                      <Link
-                        to="/programs/$programId/controls/$controlId"
-                        params={{ programId: item.program, controlId }}
-                      >
-                        {controlId}
-                      </Link>
-                    </TextLink>
-                  ))}
-                  {item.requirements?.map((requirementId) => (
-                    <TextLink key={requirementId}>
-                      <Link
-                        to="/programs/$programId/requirements/$requirementId"
-                        params={{ programId: item.program, requirementId }}
-                      >
-                        {requirementId}
-                      </Link>
-                    </TextLink>
-                  ))}
-                </Inline>
-              ) : null}
-              {item.nodes?.length ? (
-                <Text as="p" size="small" color="color.text.subtle">
-                  {item.nodes.map((id) => nodeById.get(id)?.name ?? id).join(", ")}
-                </Text>
-              ) : null}
-              {members.length ? (
-                <Table>
-                  <thead>
-                    <Table.Row>
-                      <Table.Header>Finding</Table.Header>
-                      <Table.Header>Observed condition</Table.Header>
-                      <Table.Header>Status</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {members.map((finding) => (
-                      <Table.Row key={finding.id}>
-                        <Table.Cell>
-                          <Button
-                            type="button"
-                            size="small"
-                            variant="link"
-                            onClick={() => setFindingId(finding.id)}
-                          >
-                            <Id>{finding.id}</Id>
-                          </Button>
-                        </Table.Cell>
-                        <Table.Cell className="whitespace-normal">{finding.title}</Table.Cell>
-                        <Table.Cell>
-                          <Badge variant="secondary" tone={statusTone(finding.lifecycle)}>
-                            {finding.lifecycle}
-                          </Badge>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : (
-                <Text size="small" color="color.text.subtle">
-                  Link the findings this remediation plan resolves.
-                </Text>
-              )}
-              {item.status !== "Completed" ? (
-                <Inline space="space.100" alignBlock="end" className="pt-150">
-                  <Field label="Attach finding" className="min-w-0 flex-1">
+        <SheetContent side="end" style={{ maxWidth: 760 }}>
+          <SheetHeader>
+            <Box className="flex items-start gap-100">
+              <Box className="flex min-w-0 flex-1 flex-col gap-025">
+                <Box className="flex items-center gap-100 pb-025">
+                  <Badge variant="secondary" tone={statusTone(item.status)}>
+                    {item.status}
+                  </Badge>
+                </Box>
+                <SheetTitle>{item.title}</SheetTitle>
+                <SheetDescription>{item.id}</SheetDescription>
+                <Fact.Group className="pt-075">
+                  <>
+                    <Fact label="Owner">{item.owner}</Fact>
+                    <Fact label="Due">{dueLabel(item.scheduledCompletion)}</Fact>
+                    <Fact label="Unresolved findings">{members.filter(isDeficiency).length}</Fact>
+                  </>
+                </Fact.Group>
+              </Box>
+            </Box>
+          </SheetHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+            <form
+              noValidate
+              id={formId}
+              onSubmit={(event) => {
+                event.preventDefault();
+                act(() => {
+                  updatePoam(item.id, {
+                    ...draft,
+                    status: statusEdited ? draft.status : item.status,
+                  });
+                  setStatusEdited(false);
+                }, "POA&M updated");
+              }}
+            >
+              <Stack space="space.200">
+                {error ? (
+                  <p role="alert" className="font-body text-danger">
+                    {error}
+                  </p>
+                ) : null}
+                <Field label="Remediation title" isRequired>
+                  <Input
+                    value={draft.title}
+                    onChange={(event) => set("title", event.target.value)}
+                  />
+                </Field>
+                <Field label="Remediation plan" isRequired>
+                  <Textarea
+                    rows={4}
+                    value={draft.remediation}
+                    onChange={(event) => set("remediation", event.target.value)}
+                  />
+                </Field>
+                <Grid templateColumns="1fr 1fr" gap="space.150">
+                  <Field label="Owner" isRequired>
+                    <Input
+                      value={draft.owner}
+                      onChange={(event) => set("owner", event.target.value)}
+                    />
+                  </Field>
+                  <Field label="Completion date" isRequired>
+                    <Input
+                      type="date"
+                      value={draft.scheduledCompletion}
+                      onChange={(event) => set("scheduledCompletion", event.target.value)}
+                    />
+                  </Field>
+                  <Field label="Status">
                     <NativeSelect
-                      value={linkId}
-                      onChange={(event) => setLinkId(event.target.value)}
+                      value={statusEdited ? draft.status : item.status}
+                      onChange={(event) => {
+                        set("status", event.target.value as PoamItem["status"]);
+                        setStatusEdited(true);
+                      }}
                     >
-                      <option value="">Select an unassigned finding</option>
-                      {eligible.map((finding) => (
-                        <option key={finding.id} value={finding.id}>
-                          {finding.id} · {finding.title}
-                        </option>
+                      {["Ongoing", "Overdue", "Completed", "Risk accepted"].map((value) => (
+                        <option key={value}>{value}</option>
                       ))}
                     </NativeSelect>
                   </Field>
-                  <Button
-                    type="button"
-                    disabled={!linkId}
-                    onClick={() =>
-                      act(() => {
-                        linkFindingToPoam(linkId, item.id);
-                        setLinkId("");
-                      }, "Finding attached")
-                    }
-                  >
-                    Attach
-                  </Button>
-                </Inline>
-              ) : null}
-            </Block>
-            <Block title="Milestones" count={item.milestones?.length ?? 0}>
-              {item.milestones?.length ? (
-                <Table>
-                  <thead>
-                    <Table.Row>
-                      <Table.Header>Milestone</Table.Header>
-                      <Table.Header>Target date</Table.Header>
-                      <Table.Header>Status</Table.Header>
-                      <Table.Header>Action</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {item.milestones.map((milestone) => (
-                      <Table.Row key={milestone.id}>
-                        <Table.Cell className="whitespace-normal">{milestone.title}</Table.Cell>
-                        <Table.Cell>{dueLabel(milestone.targetDate)}</Table.Cell>
-                        <Table.Cell>
-                          <Badge
-                            variant="secondary"
-                            tone={milestone.status === "Completed" ? "success" : "neutral"}
-                          >
-                            {milestone.status}
-                          </Badge>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Button
-                            type="button"
-                            size="xsmall"
-                            onClick={() =>
-                              act(() => {
-                                updatePoamMilestone(item.id, milestone.id, {
-                                  status:
-                                    milestone.status === "Completed" ? "In progress" : "Completed",
-                                });
-                              }, "Milestone updated")
-                            }
-                          >
-                            {milestone.status === "Completed" ? "Reopen" : "Complete"}
-                          </Button>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : (
-                <Text size="small" color="color.text.subtle">
-                  Break the remediation into dated, verifiable milestones.
-                </Text>
-              )}
-              <Stack space="space.100" className="pt-150">
-                <Grid templateColumns="2fr 1fr" gap="space.100">
-                  <Field label="New milestone">
+                  <Field label="Resources required">
                     <Input
-                      value={milestoneTitle}
-                      onChange={(event) => setMilestoneTitle(event.target.value)}
-                    />
-                  </Field>
-                  <Field label="Target date">
-                    <Input
-                      type="date"
-                      value={milestoneDate}
-                      onChange={(event) => setMilestoneDate(event.target.value)}
+                      value={draft.resources}
+                      onChange={(event) => set("resources", event.target.value)}
                     />
                   </Field>
                 </Grid>
-                <Button
-                  type="button"
-                  size="small"
-                  onClick={() =>
-                    act(() => {
-                      addPoamMilestone(item.id, {
-                        title: milestoneTitle,
-                        targetDate: milestoneDate,
-                      });
-                      setMilestoneTitle("");
-                      setMilestoneDate("");
-                    }, "Milestone added")
-                  }
-                >
-                  Add milestone
-                </Button>
+                <Field label="Progress note">
+                  <Textarea
+                    rows={3}
+                    value={draft.milestoneNote}
+                    onChange={(event) => set("milestoneNote", event.target.value)}
+                  />
+                </Field>
+                <Block title="Linked findings" count={members.length}>
+                  {item.sourceStatus === "completed" &&
+                  members.some(
+                    (finding) => finding.sourceStatus === "closed" && !finding.retests?.length,
+                  ) ? (
+                    <Badge tone="warning">Imported completion · passing retest not recorded</Badge>
+                  ) : null}
+                  {item.controls?.length || item.requirements?.length ? (
+                    <Inline space="space.100" shouldWrap>
+                      {item.controls?.map((controlId) => (
+                        <TextLink key={controlId}>
+                          <Link
+                            to="/programs/$programId/controls/$controlId"
+                            params={{ programId: item.program, controlId }}
+                          >
+                            {controlId}
+                          </Link>
+                        </TextLink>
+                      ))}
+                      {item.requirements?.map((requirementId) => (
+                        <TextLink key={requirementId}>
+                          <Link
+                            to="/programs/$programId/requirements/$requirementId"
+                            params={{ programId: item.program, requirementId }}
+                          >
+                            {requirementId}
+                          </Link>
+                        </TextLink>
+                      ))}
+                    </Inline>
+                  ) : null}
+                  {item.nodes?.length ? (
+                    <Text as="p" size="small" color="color.text.subtle">
+                      {item.nodes.map((id) => nodeById.get(id)?.name ?? id).join(", ")}
+                    </Text>
+                  ) : null}
+                  {members.length ? (
+                    <Table>
+                      <thead>
+                        <Table.Row>
+                          <Table.Header>Finding</Table.Header>
+                          <Table.Header>Observed condition</Table.Header>
+                          <Table.Header>Status</Table.Header>
+                        </Table.Row>
+                      </thead>
+                      <tbody>
+                        {members.map((finding) => (
+                          <Table.Row key={finding.id}>
+                            <Table.Cell>
+                              <Button
+                                type="button"
+                                size="small"
+                                variant="link"
+                                onClick={() => setFindingId(finding.id)}
+                              >
+                                <Id>{finding.id}</Id>
+                              </Button>
+                            </Table.Cell>
+                            <Table.Cell className="whitespace-normal">{finding.title}</Table.Cell>
+                            <Table.Cell>
+                              <Badge variant="secondary" tone={statusTone(finding.lifecycle)}>
+                                {finding.lifecycle}
+                              </Badge>
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </tbody>
+                    </Table>
+                  ) : (
+                    <Text size="small" color="color.text.subtle">
+                      Link the findings this remediation plan resolves.
+                    </Text>
+                  )}
+                  {item.status !== "Completed" ? (
+                    <Inline space="space.100" alignBlock="end" className="pt-150">
+                      <Field label="Attach finding" className="min-w-0 flex-1">
+                        <NativeSelect
+                          value={linkId}
+                          onChange={(event) => setLinkId(event.target.value)}
+                        >
+                          <option value="">Select an unassigned finding</option>
+                          {eligible.map((finding) => (
+                            <option key={finding.id} value={finding.id}>
+                              {finding.id} · {finding.title}
+                            </option>
+                          ))}
+                        </NativeSelect>
+                      </Field>
+                      <Button
+                        type="button"
+                        disabled={!linkId}
+                        onClick={() =>
+                          act(() => {
+                            linkFindingToPoam(linkId, item.id);
+                            setLinkId("");
+                          }, "Finding attached")
+                        }
+                      >
+                        Attach
+                      </Button>
+                    </Inline>
+                  ) : null}
+                </Block>
+                <Block title="Milestones" count={item.milestones?.length ?? 0}>
+                  {item.milestones?.length ? (
+                    <Table>
+                      <thead>
+                        <Table.Row>
+                          <Table.Header>Milestone</Table.Header>
+                          <Table.Header>Target date</Table.Header>
+                          <Table.Header>Status</Table.Header>
+                          <Table.Header>Action</Table.Header>
+                        </Table.Row>
+                      </thead>
+                      <tbody>
+                        {item.milestones.map((milestone) => (
+                          <Table.Row key={milestone.id}>
+                            <Table.Cell className="whitespace-normal">{milestone.title}</Table.Cell>
+                            <Table.Cell>{dueLabel(milestone.targetDate)}</Table.Cell>
+                            <Table.Cell>
+                              <Badge
+                                variant="secondary"
+                                tone={milestone.status === "Completed" ? "success" : "neutral"}
+                              >
+                                {milestone.status}
+                              </Badge>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Button
+                                type="button"
+                                size="xsmall"
+                                onClick={() =>
+                                  act(() => {
+                                    updatePoamMilestone(item.id, milestone.id, {
+                                      status:
+                                        milestone.status === "Completed"
+                                          ? "In progress"
+                                          : "Completed",
+                                    });
+                                  }, "Milestone updated")
+                                }
+                              >
+                                {milestone.status === "Completed" ? "Reopen" : "Complete"}
+                              </Button>
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </tbody>
+                    </Table>
+                  ) : (
+                    <Text size="small" color="color.text.subtle">
+                      Break the remediation into dated, verifiable milestones.
+                    </Text>
+                  )}
+                  <Stack space="space.100" className="pt-150">
+                    <Grid templateColumns="2fr 1fr" gap="space.100">
+                      <Field label="New milestone">
+                        <Input
+                          value={milestoneTitle}
+                          onChange={(event) => setMilestoneTitle(event.target.value)}
+                        />
+                      </Field>
+                      <Field label="Target date">
+                        <Input
+                          type="date"
+                          value={milestoneDate}
+                          onChange={(event) => setMilestoneDate(event.target.value)}
+                        />
+                      </Field>
+                    </Grid>
+                    <Button
+                      type="button"
+                      size="small"
+                      onClick={() =>
+                        act(() => {
+                          addPoamMilestone(item.id, {
+                            title: milestoneTitle,
+                            targetDate: milestoneDate,
+                          });
+                          setMilestoneTitle("");
+                          setMilestoneDate("");
+                        }, "Milestone added")
+                      }
+                    >
+                      Add milestone
+                    </Button>
+                  </Stack>
+                </Block>
+                <Text size="small" color="color.text.subtle">
+                  Completion requires resolved findings and completed milestones. Passing retests
+                  and supporting evidence are recorded on each finding.
+                </Text>
               </Stack>
-            </Block>
-            <Text size="small" color="color.text.subtle">
-              Completion requires resolved findings and completed milestones. Passing retests and
-              supporting evidence are recorded on each finding.
-            </Text>
-          </Stack>
-        </form>
+            </form>
+          </Box>
+          <SheetFooter>
+            <>
+              <Button onClick={onClose}>Done</Button>
+              <Button variant="primary" type="submit" form={formId}>
+                Save changes
+              </Button>
+            </>
+          </SheetFooter>
+        </SheetContent>
       </Sheet>
       {findingId ? (
         <FindingRecordSheet

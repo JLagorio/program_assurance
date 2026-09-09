@@ -1,13 +1,3 @@
-/**
- * The program control matrix — one row per tailored control, with the
- * assessment status, POA&M section, next action and due date the program
- * manages day to day. Status, next action and due date are inline-editable and
- * write back to the matrix store, so the Overview coverage band moves with them.
- */
-
-import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
-
 import {
   Badge,
   Box,
@@ -17,14 +7,15 @@ import {
   Id,
   Inline,
   NativeSelect,
-  Progress,
+  ProgressStacked,
   Section,
   Table,
   TextLink,
   Toolbar,
 } from "@ledger/design-system";
-import { cn } from "@ledger/design-system/cn";
-import { saveProgramField } from "@/lib/program-save";
+import { Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+
 import {
   controlStatuses,
   controlStatusTone,
@@ -32,7 +23,10 @@ import {
   type ControlRow,
   type ControlStatus,
 } from "@/lib/control-matrix";
-import { coverageFromRows, type Coverage } from "@/lib/program-coverage";
+import { coverageFromRows } from "@/lib/program-coverage";
+import { saveProgramField } from "@/lib/program-save";
+
+import { cn } from "@ledger/design-system/cn";
 
 const PAGE = 40;
 
@@ -124,14 +118,14 @@ export function ControlMatrixSection({
         actions={
           <Box as="span" style={{ width: 220, maxWidth: "100%" }}>
             <Inline as="span" space="space.100" alignBlock="center">
-              <Progress.Stacked
+              <ProgressStacked
                 size="small"
                 segments={scoped.segments.map((s) => ({
                   key: s.key,
                   value: s.value,
                   tone: s.tone,
                 }))}
-              />
+              ></ProgressStacked>
               <span className="tabular-nums shrink-0 font-body-small text-subtle">
                 {scoped.pct}%
               </span>

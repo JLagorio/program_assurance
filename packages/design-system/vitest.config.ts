@@ -1,7 +1,7 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import { playwright } from "@vitest/browser-playwright";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig, mergeConfig } from "vitest/config";
 
 import viteConfig from "./.storybook/vite.config";
@@ -19,6 +19,11 @@ export default mergeConfig(
         "@base-ui/react/menu",
         "@base-ui/react/select",
         "@base-ui/react/tabs",
+        "@base-ui/react/dialog",
+        "@base-ui/react/alert-dialog",
+        "@base-ui/react/collapsible",
+        "@base-ui/react/progress",
+        "@base-ui/react/scroll-area",
       ],
     },
     test: {

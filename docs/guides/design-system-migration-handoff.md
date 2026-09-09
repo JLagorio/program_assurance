@@ -1,208 +1,46 @@
 # Design-system migration handoff
 
-Continue migrating `@ledger/design-system` from the local shadcn Base UI references,
-one complete family at a time. **Breadcrumb, Badge, Separator, Skeleton, Kbd,
-Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select and Tabs are complete.**
+Continue migrating `@ledger/design-system` from shadcn's Base UI source, preserving Ledger tokens and useful product options. Completed families are Breadcrumb, Badge, Separator, Skeleton, Kbd, Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog, Command, Progress and ScrollArea.
 
 ## Direction and sources
 
-Follow [Component contracts](component-library.md#component-contracts) and the
-[package README](../../packages/design-system/README.md). Shadcn is the foundation;
-use its Base UI components and public API, then adapt the styling to Ledger tokens.
-Useful product options belong on the same component. Keep one component per job and
-use existing tokens. Patterns assemble components into workflows or larger regions.
+Follow [Component contracts](component-library.md#component-contracts) and the [package README](../../packages/design-system/README.md). Check the current official shadcn Base UI docs **and implementation source**, then verify the API against the installed Base UI version. This batch used shadcn's base-nova registry and Base UI 1.7.0. Match public parts and native composition; adapt styling to existing Ledger tokens. Patterns assemble components into workflows.
 
-Reference catalogs stay in `src/components/ui/`, `src/components/reui/` and
-`src/components/examples/` so they can be refreshed in place. Port source into the
-package with relative imports and package `cn`; never import application source.
-Product screens consume the package root. Do not refresh the whole reference catalog
-as part of a family migration.
+Reference catalogs remain in `src/components/ui/`, `src/components/reui/` and `src/components/examples/` so they can be refreshed in place. Port source with relative imports and package `cn`; never import application source into the package. Product code imports the package root. Reference-catalog Radix dependencies remain separate from package implementation dependencies.
 
-Preserve native targets, refs, keyboard/focus behavior, ARIA and render composition.
-Document defaults, option interactions and intentional visual differences on the
-family page. Inspect consumers before editing and preserve unrelated user changes.
-[Repository instructions](../../AGENTS.md) prohibit rewriting published Lovable history.
-
-Completed contracts and migration examples live on their family pages:
-[Breadcrumb](../../packages/design-system/src/stories/components/Breadcrumb.mdx),
-[Badge](../../packages/design-system/src/stories/components/Badge.mdx),
-[Separator](../../packages/design-system/src/stories/components/Separator.mdx),
-[Skeleton](../../packages/design-system/src/stories/components/Skeleton.mdx),
-[Kbd](../../packages/design-system/src/stories/components/Kbd.mdx),
-[Button/IconButton](../../packages/design-system/src/stories/components/Button.mdx),
-[Toggle/ToggleGroup](../../packages/design-system/src/stories/components/ToggleGroup.mdx),
-[Switch](../../packages/design-system/src/stories/components/Switch.mdx),
-[RadioGroup](../../packages/design-system/src/stories/components/RadioGroup.mdx),
-[Checkbox](../../packages/design-system/src/stories/components/Checkbox.mdx),
-[HoverCard](../../packages/design-system/src/stories/components/HoverCard.mdx),
-[Popover](../../packages/design-system/src/stories/components/Popover.mdx),
-[Tooltip](../../packages/design-system/src/stories/components/Tooltip.mdx),
-[DropdownMenu](../../packages/design-system/src/stories/components/DropdownMenu.mdx),
-[Select](../../packages/design-system/src/stories/components/Select.mdx), and
-[Tabs](../../packages/design-system/src/stories/components/Tabs.mdx).
-
-Keep RecordHeader's tested separator behavior for empty breadcrumb fragments/arrays.
-Badge retains shared Tone and separate Count/Dot/Indicator contracts. The native
-Separator, Skeleton and Kbd migrations require no existing consumer edits.
+Preserve native targets, refs, ARIA, keyboard/focus behavior and render composition. Inspect consumers before editing and preserve unrelated changes. [Repository instructions](../../AGENTS.md) prohibit rewriting published Lovable history. Family pages own detailed usage and migration examples; do not duplicate their prop tables here.
 
 ## Integration constraints
 
-Button owns Base UI action behavior and IconButton delegates to it. Keep the small
-capture guard: render-child handlers otherwise run before Base UI's disabled guard.
-Loading uses the primitive's focusable disabled state. Ledger variants and sizes remain.
-Navigation uses `buttonVariants` on real anchors/router Links; Base UI Button gives
-rendered targets button semantics, including Space activation. Attachment.Trigger is
-an action; attachment navigation uses a styled anchor.
+- Button keeps its disabled capture guard and focusable loading behavior. Navigation uses `buttonVariants` on real anchors/router Links. Attachment.Trigger is an action; attachment navigation remains a styled anchor.
+- ToggleGroup uses array values; required selection belongs in caller callbacks. Checkbox uses boolean checked plus separate indeterminate. Field binding, native input targets and caller-owned reset behavior remain part of the existing control contracts.
+- Tabs uses flat parts; List owns manual/automatic activation and default/line styling. Existing application strips explicitly retain line styling and automatic activation. ShowPage keeps its route-controlled layout.
+- Accordion uses flat Item/Trigger/Content and array selection in both modes. Collapsible is independent boolean state. Use native render, keepMounted, hiddenUntilFound and data-open/data-closed. The unused legacy disclosure adapters are removed. Item's internal disclosure also uses Base UI, so Section and Stepper share that behavior.
+- Dialog, Sheet and AlertDialog now use Base UI. Root owns native open state and cancellable onOpenChange; Content owns native initialFocus/finalFocus, refs and layout. Application bodies, headers, footers, pending guards and widths are explicit compositions. Use a surviving finalFocus target when the opener is removed.
+- Sheet defaults to the physical right edge and supports top/right/bottom/left. Ledger additionally accepts logical start/end for existing RTL-aware callers. Existing sheets explicitly retain end placement and their widths. Shared slide utilities use Tailwind's RTL variant: a bare :dir selector was lowered to language-based selectors in production and missed explicit direction overrides.
+- AlertDialogAction is a Button, matching shadcn. Successful work closes the caller's controlled root; the Action itself does not close automatically. Cancel is a native Close. Existing confirmations use a Cancel ref for initial focus and cancel dismissal while pending.
+- Base UI handles nested popup portals and Escape within its own dialog tree. Do not force these popups inside a dialog DOM node. The shared portal lookup and Radix Escape/focus helpers remain only for Vaul Drawer. Menu-to-dialog and Select/Tooltip/Combobox/DatePicker integrations retain focus and hit-target checks.
+- Command intentionally remains cmdk, as in shadcn's Base UI source. CommandDialog uses Base UI Dialog and an explicit Command child. Flat parts retain CommandLoading/Footer/Count. Put loading content alongside the listbox. Supply a Close control when showCloseButton is false; CommandPalette/RecordPicker use their Escape hint as a button.
+- Progress uses native numeric/null values, ranges, labeling and value formatting. Ledger retains tone/size and the separate ProgressStacked coverage bar. The standard Progress composes its own Track/Indicator. ScrollArea composes its native viewport/default vertical bar; add ScrollBar for horizontal scrolling and use viewportProps for scrolling-element refs/events/ARIA.
 
-ToggleGroup uses explicit ToggleGroupItem children and Base UI's array selection API.
-Keep required single-selection rules in consumer callbacks. DataTable.Presets may have
-no selected item when filters match no preset; ModeSwitch with an explicit value and no
-callback stays read-only. Groups forward orientation and provide Base UI direction
-context from Ledger locale or an explicit dir. Their two package Radix dependencies are
-removed; reference catalogs and their dependencies remain refreshable in place.
+The package's direct Radix Dialog, AlertDialog, Collapsible, Progress and ScrollArea dependencies are removed. Radix Slot remains in parts that expose asChild; cmdk and Vaul can retain transitive Radix dependencies.
 
-Switch uses external labels/descriptions and shadcn's `default`/`sm` size names.
-Its default span owns the root ref; `id` and `inputRef` target the hidden checkbox.
-`nativeButton` moves the ID to a rendered button. Keep Field ARIA binding without
-overriding native `required` announcements with undefined values. Native form reset
-is caller-owned with the installed Base UI version; the settings story shows controlled
-state and an explicit `onReset`. Its package Radix dependency is removed.
+## Next candidates
 
-RadioGroup uses flat RadioGroupItem exports and external labels/descriptions, including
-the program wizard's typed framework selection. Layout uses classes; the installed
-Base UI API has no orientation or loopFocus prop. Both arrow axes select and wrap,
-with direction supplied through Ledger locale or explicit dir. Item IDs/input refs
-target hidden inputs unless nativeButton renders a button. Keep Field binding on the
-group and controlled form reset in the caller. Its package Radix dependency is removed.
-
-Checkbox uses external labels/descriptions, boolean checked and separate indeterminate,
-including Table.Selection. Mixed select-all controls keep checked=false so activation
-selects all. The Indicator reads Base UI state to show a dash even when CheckboxGroup
-derives mixed state. Table.Selection stops the visible click; Base UI stops the generated
-input click. TaskRow's completion control sits above Item's stretched title target.
-Space toggles; Enter can submit the form without toggling. Field binding and caller-owned
-form reset remain. The package's Radix Checkbox dependency and old choice-label helpers
-are removed.
-
-HoverCard composes flat HoverCardTrigger and HoverCardContent over PreviewCard. Native
-links retain their default action; render can also compose the existing table buttons
-and focusable spans. Trigger timing is 600/300ms; Content defaults to bottom/center with
-4px offsets and 256px width. Existing glances explicitly keep 300px and start alignment.
-Root supports generic payloads and cancellable state changes. Content dir overrides
-positioning direction as well as popup text. Table.List closes its controlled card when
-its action runs. The package's Radix HoverCard dependency is removed.
-
-Popover uses shadcn's flat parts plus Base UI Close. Trigger and Close default to native
-buttons and accept render composition. Content has 288px width, bottom/center placement
-and 4px side offset; existing picker widths and start/end alignments remain explicit.
-Root defaults to nonmodal. With installed Base UI 1.7, focus trapping requires a Close
-part inside the popup. Title/Description provide dialog associations; Content owns
-initialFocus/finalFocus. Chart cards use Base UI positioners with their own anchors and
-retain plot/cell focus return. The package's Radix Popover dependency is removed.
-Combobox and Popover share the enclosing-dialog portal lookup while modal wrappers
-remain on Radix. Keep fixed positioning for those enclosed popups and the shared
-Escape guard so dismissing a nested popup does not also close its parent surface.
-Dialog entry animation releases its transform when complete so fixed popups are not
-clipped by the rounded frame. DatePicker explicitly restores its trigger after Clear;
-its nested-dialog story checks real pointer hit targets as well as focus and dismissal.
-
-Tooltip uses flat Trigger, Content and Provider parts. Provider defaults to zero delay;
-Shell and Storybook explicitly preserve 300ms delay/timeout. Without a provider, the
-upstream trigger default is 600ms; there is no private fallback provider. IconButton
-supplies its own tooltip, so duplicate app-header and Shell-story wrappers are removed.
-Trigger render preserves native links/spans without adding button semantics. Its disabled
-prop disables the tooltip, so native disabled state belongs on the rendered button.
-Base UI 1.7 supplies no automatic tooltip role or described-by association; accessible
-names and essential instructions stay independent. Content has a 320px maximum, 4px
-offset and decorative arrow. It shares the enclosing-dialog portal and Escape guard.
-The package's Radix Tooltip dependency is removed; Recharts tooltips remain unchanged.
-
-DropdownMenu uses shadcn's flat Base UI Menu parts, plus native LinkItem for navigation.
-Content defaults to trigger width with a 128px minimum, bottom/start and 4px side offset;
-existing callers retain explicit widths. Checkbox/radio items stay open by default;
-exclusive saved views, sorting and Editable.Select explicitly close. Group labels belong
-inside Group or RadioGroup. Disabled items remain keyboard-focusable but cannot activate.
-Submenus use logical inline-end placement. Native props, state callbacks, refs, generic
-root payloads and cancellable change events remain upstream contracts. Columns/Settings
-custom triggers are ReactElements, matching render composition. The shared menu recipes
-remain compatible with Select and Command. The package's Radix DropdownMenu dependency
-is removed; reference dependencies remain.
-
-Modal focus restoration resolves disappearing menu items to their stable trigger, including
-submenus. Keep the shared enclosed-popup Escape guard and portal lookup until the modal
-families migrate. DataTable row actions use opacity so concealed triggers remain tabbable.
-
-Select uses shadcn's ten flat parts over Base UI Select. Root owns generic single/multiple
-values and native form props; Trigger binds Ledger Field ARIA without clearing upstream
-announcements. Content names its listbox from Field or explicit Content ARIA; decorated
-items supply a plain-text label for typeahead. Trigger sizes are default/sm and native style replaces width. Value needs
-Root items, a formatter or object conversion for readable labels. Existing app and Forms
-callers preserve labels, nullable selection handling and below-trigger positioning.
-Content makes List the bounded scroller in either positioning mode. It defaults to
-selected-item alignment, trigger width with a 144px minimum and
-bottom/center with 4px side offset. It shares the enclosed-dialog portal and Escape guard.
-Form reset stays caller-owned. The package Radix Select dependency and now-unused
-Radix menuMotion recipe are removed; reference catalogs and dependencies remain.
-
-Tabs now uses shadcn's four flat parts and tabsListVariants over Base UI Tabs. List
-owns default/line styling, activateOnFocus (manual by default) and loopFocus. App strips
-explicitly retain line styling, full width and automatic activation. Counts and status
-badges are ordinary children. ShowPage composes its page root and selected body through
-render, preserving the route-controlled value and layout. Root forwards orientation and
-locale direction; inactive retained panels remain hidden even with display classes.
-The custom underline measurement/observers and package Radix Tabs dependency are removed.
-
-Next candidate: Accordion. Check shadcn's Base UI Accordion source and the installed
-contract. Trace Inspector and other consumers before changing compound composition,
-single/multiple selection, disabled items, controlled values and panel mounting.
+Avatar already uses Base UI but still exposes the earlier Ledger shorthand/compound contract. Check shadcn's Avatar parts and migrate that family next. Combobox also already uses Base UI but has a larger configured API and experimental composition surface; reconcile it with shadcn in its own bounded batch. Drawer should follow shadcn's actual implementation, which currently uses Vaul; do not replace a dependency merely to remove the word Radix from the lockfile.
 
 ## Completion workflow
 
-Follow [Adding to the kit](component-library.md#adding-to-the-kit): implementation and
-affected consumers, representative stories, one accurate family page, changelog and
-relevant checks. Keep assertions on useful stories; remove redundant demonstrations
-and filler prose as the family is touched. Update this handoff's next selection.
+Follow [Adding to the kit](component-library.md#adding-to-the-kit): implementation and affected consumers, representative stories, one accurate family page, changelog and relevant checks. Keep assertions on useful examples and remove duplicate stories/filler as a family is touched.
 
-Extend [packed-consumer fixtures](../../packages/design-system/build/consumer-fixture/)
-when exports or consumer integration change. These are ordinary files copied into the
-temporary installed consumer by [consumer-smoke.mjs](../../packages/design-system/build/consumer-smoke.mjs).
-Build the package before running the consumer check.
+Extend the [packed-consumer fixtures](../../packages/design-system/build/consumer-fixture/) when exports or consumer integration change. Build the package before `npm run test:consumer -w packages/design-system`; packing deliberately skips lifecycle scripts. The fixtures check installed declarations, SSR, the Vite production bundle and consumer CSS without workspace aliases.
 
-Only intentional public contract changes need `npm run ds:api:update`; review its diff.
-Audit policy notes are optional and `npm run ds:api:matrix` produces ignored reports on
-demand. Neither matrix generation nor exhaustive prop prose is routine migration work.
+Only intentional public contract changes need `npm run ds:api:update`; review its diff. Policy notes are optional. Matrix reports remain ignored and generated on demand.
 
-From the repository root, run package/application typechecks, package lint, API/coverage
-checks and affected story tests in both modes. Use `npm run test:a11y -w packages/design-system --`
-with the relevant story paths. Run package tests and packed-consumer validation for
-shared implementation or integration changes; build Storybook and visually review changed
-pages. Broaden checks when shared behavior warrants it, and inspect `git diff --check`.
-Do not repeat passing checks without later edits or an unresolved concern.
+Run package/application typechecks, lint, API/coverage checks and relevant stories in both modes. Shared behavior can justify the full Storybook suite. Run package tests, the packed consumer, production/Storybook builds and visual review. Inspect `git diff --check`; preserve concurrent application work and report any unrelated validation failures separately.
 
 ## Latest validation
 
-Tabs package/application typechecks, package lint, API/coverage checks, 15 package tests,
-package/production/Storybook builds and packed-consumer checks passed. The application
-suite run passed 93 tests with one skipped. Scoped lint on migrated application callers
-had no errors and 18 existing hook-dependency warnings. Concurrent application and
-DataTable changes were preserved, including their API snapshot entries.
+The batch passed package/application typechecks, package lint, API/coverage checks, package and production builds, Storybook build and the installed-tarball consumer check. Package tests passed 15 tests; the final application run passed 106 with one skipped. The full Storybook run passed 1,104 checks across 220 light/dark files; the final sheet/confirmation and picker rerun passed another 24 checks. Coverage reports 201 exports with stories, 103 family pages and 552 stories, with no gaps. Scoped application lint has no errors and 24 warnings for existing layout/hook patterns.
 
-All 56 affected Storybook checks pass in light and dark modes: Tabs, Pages, PreviewSplit,
-PreviewRail, RecordHeader and Shell. The four Tabs stories cover manual/automatic
-activation, disabled focus, numeric and null selection, cancellation, retained form
-state, unmounted panels, refs/render/state callbacks, native links and modified clicks,
-orientation, locale direction and narrow-strip scrolling. ShowPage's existing Show story
-checks panel association, selection and details-rail restoration after its entrance
-animation. A positioned List keeps Base UI 1.7's scroll offsets relative to the strip;
-Home/End checks ensure selected tabs remain fully visible in LTR and RTL.
-
-Packed fixtures cover all five value exports and four prop types, native refs, render
-composition, numeric selection, RTL/vertical semantics, anchor hrefs, hidden retained
-panels and unmounted content. The package Radix Tabs dependency is removed. Coverage
-reports 152 exports with stories, 103 family pages and 565 stories, with no gaps.
-
-Built docs, default/line variants, dark RTL/vertical tabs and ShowPage were visually
-reviewed. ShowPage retains its 12px root gap, grid/rail structure and exactly one selected
-panel. Final built variant and orientation playback finished without component console
-errors; the temporary static server initially returned a favicon 404. Review artifacts
-were moved outside the repo.
+Built dialogs and confirmations were reviewed at 375px, alongside dark RTL sheets, Progress ranges/indeterminate state, native PageDown scrolling and RecordPicker filtering/dismissal. All seven built family pages rendered without console errors. Visual review caught and fixed production RTL motion and asynchronous focus/visibility assertions. Temporary browser artifacts were moved outside the repository. Concurrent application work was preserved; these edits do not imply a commit or release.

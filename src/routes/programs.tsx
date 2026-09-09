@@ -1,42 +1,46 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
 import { downloadText } from "@/components/app/export";
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Download, Plus } from "lucide-react";
-
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import {
   Badge,
   Box,
   Button,
   Calendar,
+  Count,
   DataTable,
+  defineColumns,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Glance,
   IndexPage,
   Inline,
   PageHeader,
   Progress,
-  Stack,
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
-  TabsContent,
-  Count,
   TextLink,
-  defineColumns,
   toast,
-  useDataTable,
   type ColumnFiltersState,
+  useDataTable,
 } from "@ledger/design-system";
+import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Download, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
+
 import { Shell } from "@/components/app/shell";
-import { programStatusTone, programs, type Program } from "@/lib/grc-data";
-import { saveProgramCommands, useProgramsVersion } from "@/lib/program-store";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { controlMatrix } from "@/lib/control-matrix";
-import { scopesForProgram, useScopesVersion } from "@/lib/scopes";
 import { useControlSetVersion } from "@/lib/control-set";
 import { useWorkVersion } from "@/lib/control-work";
-import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { useEvidenceVersion } from "@/lib/evidence-catalog";
+import { programStatusTone, programs, type Program } from "@/lib/grc-data";
+import { saveProgramCommands, useProgramsVersion } from "@/lib/program-store";
+import { scopesForProgram, useScopesVersion } from "@/lib/scopes";
 
 export const Route = createFileRoute("/programs")({
   head: () => ({
@@ -154,7 +158,7 @@ const programColumns = defineColumns<Program>((c) => [
       return (
         <Inline as="span" space="space.100" alignBlock="center">
           <span className="w-800">
-            <Progress value={pct} tone={pct === 100 ? "success" : "information"} />
+            <Progress value={pct} tone={pct === 100 ? "success" : "information"} aria-hidden />
           </span>
           <span className="tabular-nums text-subtle">
             {p.controlsAssessed}/{p.controlsTotal}
@@ -356,43 +360,53 @@ function ProgramList() {
 
           <Dialog
             open={scheduling}
-            onClose={() => setScheduling(false)}
-            title="Schedule assessment"
-            description={`${selected.length} ${selected.length === 1 ? "program" : "programs"} · schedule saved in this browser`}
-            footer={
-              <>
-                <Button variant="subtle" onClick={() => setScheduling(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  disabled={!scheduleDate}
-                  onClick={() => {
-                    const d = scheduleDate;
-                    if (!d) return;
-                    try {
-                      saveProgramCommands(selected, {
-                        assessmentScheduled: d.toISOString().slice(0, 10),
-                      });
-                    } catch {
-                      toast.error("Schedule could not be saved");
-                      return;
-                    }
-                    setScheduling(false);
-                    toast.success(
-                      `Assessment scheduled for ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
-                      { description: selected.join(", ") },
-                    );
-                  }}
-                >
-                  Schedule
-                </Button>
-              </>
-            }
+            onOpenChange={(next) => {
+              if (!next) {
+                setScheduling(false);
+              }
+            }}
           >
-            <Inline alignInline="center">
-              <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} />
-            </Inline>
+            <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+              <DialogHeader>
+                <DialogTitle>Schedule assessment</DialogTitle>
+                <DialogDescription>{`${selected.length} ${selected.length === 1 ? "program" : "programs"} · schedule saved in this browser`}</DialogDescription>
+              </DialogHeader>
+              <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+                <Inline alignInline="center">
+                  <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} />
+                </Inline>
+              </Box>
+              <DialogFooter>
+                <>
+                  <Button variant="subtle" onClick={() => setScheduling(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    disabled={!scheduleDate}
+                    onClick={() => {
+                      const d = scheduleDate;
+                      if (!d) return;
+                      try {
+                        saveProgramCommands(selected, {
+                          assessmentScheduled: d.toISOString().slice(0, 10),
+                        });
+                      } catch {
+                        toast.error("Schedule could not be saved");
+                        return;
+                      }
+                      setScheduling(false);
+                      toast.success(
+                        `Assessment scheduled for ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
+                        { description: selected.join(", ") },
+                      );
+                    }}
+                  >
+                    Schedule
+                  </Button>
+                </>
+              </DialogFooter>
+            </DialogContent>
           </Dialog>
         </TabsContent>
       </Tabs>

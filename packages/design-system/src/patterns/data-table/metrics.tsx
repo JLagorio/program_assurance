@@ -1,12 +1,15 @@
 import { BarChart3 } from "lucide-react";
 import type { ComponentPropsWithRef } from "react";
-
-import { Button, type ButtonProps } from "../../components/button";
 import {
   Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
   type CollapsibleContentProps,
   type CollapsibleProps,
 } from "../../components/collapsible";
+
+import { Button, type ButtonProps } from "../../components/button";
+
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 
@@ -27,21 +30,23 @@ export function MetricsTrigger({
 }: MetricsTriggerProps) {
   const { t } = useLedgerLocale();
   return (
-    <Collapsible.Trigger asChild>
-      <Button
-        data-slot="data-table-metrics-trigger"
-        size={size}
-        variant={variant}
-        iconBefore={<BarChart3 />}
-        className={cn(
-          "data-[state=open]:bg-selected data-[state=open]:text-selected data-[state=open]:shadow-none data-[state=open]:hover:bg-selected-hovered data-[state=open]:active:bg-selected-pressed",
-          className,
-        )}
-        {...props}
-      >
-        {children ?? t("metrics")}
-      </Button>
-    </Collapsible.Trigger>
+    <CollapsibleTrigger
+      render={
+        <Button
+          data-slot="data-table-metrics-trigger"
+          size={size}
+          variant={variant}
+          iconBefore={<BarChart3 />}
+          className={cn(
+            "data-open:bg-selected data-open:text-selected data-open:shadow-none data-open:hover:bg-selected-hovered data-open:active:bg-selected-pressed",
+            className,
+          )}
+          {...props}
+        >
+          {children ?? t("metrics")}
+        </Button>
+      }
+    ></CollapsibleTrigger>
   );
 }
 
@@ -49,12 +54,12 @@ export function MetricsTrigger({
 export function MetricsContent({ className, ...props }: CollapsibleContentProps) {
   const { t } = useLedgerLocale();
   return (
-    <Collapsible.Content
+    <CollapsibleContent
       data-slot="data-table-metrics-content"
       role="region"
       aria-label={t("metrics")}
       className={cn("border-b border-default bg-surface-sunken", className)}
       {...props}
-    />
+    ></CollapsibleContent>
   );
 }

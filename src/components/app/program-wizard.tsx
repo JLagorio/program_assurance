@@ -1,19 +1,12 @@
-/**
- * New program, end to end: name it, pick the framework edition, draw its
- * systems and subsystems, categorize and tailor each scope, review, create.
- *
- * `§16.1` steps 1–5 as one path. The simple case — one system, one scope,
- * M-M-M, an overlay or two — never touches the Systems step; the granular
- * case draws a tree and tailors each leaf on its own. Both end the same way:
- * every leaf becomes an assessment scope with its first control-set revision.
- */
-
-import { useNavigate } from "@tanstack/react-router";
-import { Plus, Trash2 } from "lucide-react";
-import { useId, useMemo, useReducer, useState } from "react";
-
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Badge,
   Block,
   Box,
@@ -32,6 +25,11 @@ import {
   RadioGroup,
   RadioGroupItem,
   Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
   Stack,
   Stepper,
   Table,
@@ -40,6 +38,10 @@ import {
   Tree,
   WorkPane,
 } from "@ledger/design-system";
+import { useNavigate } from "@tanstack/react-router";
+import { Plus, Trash2 } from "lucide-react";
+import { useId, useMemo, useReducer, useRef, useState } from "react";
+
 import {
   contestedOverlays,
   gatesFor,
@@ -268,6 +270,8 @@ function stepBlocked(draft: ProgramDraft, step: Step): string | null {
 /* ---------------------------------------------------------------- Wizard */
 
 export function ProgramWizard() {
+  const alertCancelRef = useRef<HTMLButtonElement>(null);
+
   const navigate = useNavigate();
   const [draft, dispatch] = useReducer(reduce, undefined, emptyDraft);
   const [step, setStep] = useState<Step>("Program");
@@ -415,13 +419,41 @@ export function ProgramWizard() {
 
       <AlertDialog
         open={confirming}
-        onClose={() => setConfirming(false)}
-        onConfirm={create}
-        pending={creating}
-        title={`Create ${draft.name.trim() || "this program"}?`}
-        confirmLabel="Create program"
-        description={`Creates ${draft.name.trim()} with ${draft.scopes.length} scope${draft.scopes.length === 1 ? "" : "s"} and ${union} controls in the union. Each control set is frozen as revision 1 (${draft.submitOnCreate ? "pending approval" : "draft"}); later changes are proposed as a new revision and approved before they take effect.`}
-      />
+        onOpenChange={(next, details) => {
+          if (!next) {
+            if (creating) {
+              details.cancel();
+              return;
+            }
+            setConfirming(false);
+          }
+        }}
+      >
+        <AlertDialogContent
+          initialFocus={alertCancelRef}
+          className="top-200 translate-y-0 sm:top-1000"
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>{`Create ${draft.name.trim() || "this program"}?`}</AlertDialogTitle>
+            <AlertDialogDescription>{`Creates ${draft.name.trim()} with ${draft.scopes.length} scope${draft.scopes.length === 1 ? "" : "s"} and ${union} controls in the union. Each control set is frozen as revision 1 (${draft.submitOnCreate ? "pending approval" : "draft"}); later changes are proposed as a new revision and approved before they take effect.`}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={alertCancelRef} disabled={creating}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="primary"
+              isLoading={creating}
+              onClick={() => {
+                if (creating) return;
+                create();
+              }}
+            >
+              Create program
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Stack>
   );
 }
@@ -750,50 +782,66 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
 
       <Sheet
         open={target !== null}
-        onClose={() => setEditing(null)}
-        title={target ? `${target.label} · ${target.record.name.trim() || "Unnamed"}` : ""}
-        subtitle={
-          target && editing?.kind === "subsystem"
-            ? `Under ${target.system.name.trim() || draft.name.trim() || "the system"}`
-            : "Becomes a node in the composition tree"
-        }
-        footer={
-          <Button variant="primary" onClick={() => setEditing(null)}>
-            Done
-          </Button>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setEditing(null);
+          }
+        }}
       >
-        {target ? (
-          <Stack space="space.150">
-            <Field isRequired label="Name">
-              <Input
-                autoFocus
-                value={target.record.name}
-                onChange={(e) => patchTarget({ name: e.target.value })}
-                placeholder={
-                  editing?.kind === "system" ? draft.name.trim() || "Ground segment" : "Radar"
-                }
-              />
-            </Field>
-            <Field label="Function" hint="What it does for the mission.">
-              <Textarea
-                value={target.record.function}
-                onChange={(e) => patchTarget({ function: e.target.value })}
-                placeholder="Terrain-following radar and collision avoidance."
-              />
-            </Field>
-            <Field label="Owner">
-              <Combobox
-                value={target.record.owner}
-                onChange={(v) => patchTarget({ owner: v })}
-                options={people.map((p) => ({ value: p, label: p }))}
-                placeholder={`Inherits ${draft.owner}`}
-                searchPlaceholder="Search people…"
-                className="w-full"
-              />
-            </Field>
-          </Stack>
-        ) : null}
+        <SheetContent side="end" style={{ maxWidth: 420 }}>
+          <SheetHeader>
+            <Box className="flex items-start gap-100">
+              <Box className="flex min-w-0 flex-1 flex-col gap-025">
+                <SheetTitle>
+                  {target ? `${target.label} · ${target.record.name.trim() || "Unnamed"}` : ""}
+                </SheetTitle>
+                <SheetDescription>
+                  {target && editing?.kind === "subsystem"
+                    ? `Under ${target.system.name.trim() || draft.name.trim() || "the system"}`
+                    : "Becomes a node in the composition tree"}
+                </SheetDescription>
+              </Box>
+            </Box>
+          </SheetHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+            {target ? (
+              <Stack space="space.150">
+                <Field isRequired label="Name">
+                  <Input
+                    autoFocus
+                    value={target.record.name}
+                    onChange={(e) => patchTarget({ name: e.target.value })}
+                    placeholder={
+                      editing?.kind === "system" ? draft.name.trim() || "Ground segment" : "Radar"
+                    }
+                  />
+                </Field>
+                <Field label="Function" hint="What it does for the mission.">
+                  <Textarea
+                    value={target.record.function}
+                    onChange={(e) => patchTarget({ function: e.target.value })}
+                    placeholder="Terrain-following radar and collision avoidance."
+                  />
+                </Field>
+                <Field label="Owner">
+                  <Combobox
+                    value={target.record.owner}
+                    onChange={(v) => patchTarget({ owner: v })}
+                    options={people.map((p) => ({ value: p, label: p }))}
+                    placeholder={`Inherits ${draft.owner}`}
+                    searchPlaceholder="Search people…"
+                    className="w-full"
+                  />
+                </Field>
+              </Stack>
+            ) : null}
+          </Box>
+          <SheetFooter>
+            <Button variant="primary" onClick={() => setEditing(null)}>
+              Done
+            </Button>
+          </SheetFooter>
+        </SheetContent>
       </Sheet>
     </Block>
   );

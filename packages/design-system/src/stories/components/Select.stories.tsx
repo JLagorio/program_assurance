@@ -1,24 +1,27 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef, useState } from "react";
 import { expect, fireEvent, fn, userEvent, waitFor, within } from "storybook/test";
-
 import {
   Button,
   Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   Dot,
   Field,
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectGroup,
-  SelectLabel,
   SelectItem,
-  SelectSeparator,
-  SelectScrollUpButton,
+  SelectLabel,
   SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
 } from "../../components";
+
 import { menuSurface } from "../../components/menu";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack } from "../../primitives";
@@ -435,22 +438,36 @@ function DialogDemo() {
   return (
     <>
       <Button onClick={() => setOpen(true)}>Edit record</Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Record status">
-        <Field label="Status" hint="Choose the next workflow status.">
-          <Select items={statuses} defaultValue="review">
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="start" alignItemWithTrigger={false}>
-              <StatusItems />
-            </SelectContent>
-          </Select>
-        </Field>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpen(false);
+          }
+        }}
+      >
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Record status</DialogTitle>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <Field label="Status" hint="Choose the next workflow status.">
+              <Select items={statuses} defaultValue="review">
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="start" alignItemWithTrigger={false}>
+                  <StatusItems />
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+        </DialogContent>
       </Dialog>
     </>
   );
 }
-/** A select shares the current modal's portal boundary; Escape closes one layer at a time. */
+/** A select stays interactive above its dialog; Escape closes one layer at a time. */
 export const Dialogs: Story = {
   render: () => <DialogDemo />,
   play: async ({ canvasElement }) => {
@@ -464,7 +481,7 @@ export const Dialogs: Story = {
     const trigger = within(dialog).getByRole("combobox", { name: "Status" });
     await waitFor(() => expect(trigger).toHaveFocus());
     await user.keyboard("{ArrowDown}");
-    const list = await within(dialog).findByRole("listbox", { name: "Status" });
+    const list = await body.findByRole("listbox", { name: "Status" });
     await waitFor(() =>
       expect(within(list).getByRole("option", { name: "In review" })).toHaveFocus(),
     );

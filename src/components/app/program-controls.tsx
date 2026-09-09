@@ -1,5 +1,33 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Funnel } from "@/components/app/control-board";
+import {
+  ControlActions,
+  Determination,
+  EvidenceBlock,
+  Narrative,
+} from "@/components/app/control-work";
+import { NewRequirementModal } from "@/components/app/requirement-forms";
+import { ControlRequirementTable } from "@/components/app/requirements";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
+import { buildBoard, stageKeys, stageLabels } from "@/lib/control-board";
+import { controlEvidence } from "@/lib/control-evidence";
+import {
+  assessmentTone,
+  implementationTone,
+  useWorkVersion,
+  workFor,
+  type WorkContext,
+} from "@/lib/control-work";
+import {
+  controlAllocationCount,
+  controlRequirementsInElement,
+  programControlImplementations,
+  programControlRows,
+  type ProgramControlRow,
+} from "@/lib/program-controls";
+import { closestProgramScope, programElementIds } from "@/lib/program-scope";
+import { useRequirementsVersion } from "@/lib/requirements";
+import { scopeById, useScopesVersion } from "@/lib/scopes";
+import { useControlText, useSctm } from "@/lib/sctm";
 import {
   Badge,
   Block,
@@ -10,38 +38,13 @@ import {
   NativeSelect,
   PreviewSheet,
   Stack,
+  Table,
+  TextLink,
   defineColumns,
   useDataTable,
 } from "@ledger/design-system";
-import {
-  ControlActions,
-  Determination,
-  EvidenceBlock,
-  Narrative,
-} from "@/components/app/control-work";
-import { NewRequirementModal } from "@/components/app/requirement-forms";
-import { ControlRequirementTable } from "@/components/app/requirements";
-import { Funnel } from "@/components/app/control-board";
-import { buildBoard, stageKeys, stageLabels } from "@/lib/control-board";
-import { useAssuranceVersion } from "@/lib/assurance-record-store";
-import { controlEvidence } from "@/lib/control-evidence";
-import {
-  assessmentTone,
-  implementationTone,
-  useWorkVersion,
-  workFor,
-  type WorkContext,
-} from "@/lib/control-work";
-import { closestProgramScope, programElementIds } from "@/lib/program-scope";
-import {
-  controlAllocationCount,
-  controlRequirementsInElement,
-  programControlRows,
-  type ProgramControlRow,
-} from "@/lib/program-controls";
-import { useRequirementsVersion } from "@/lib/requirements";
-import { scopeById, useScopesVersion } from "@/lib/scopes";
-import { useControlText, useSctm } from "@/lib/sctm";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type ControlTableRow = ProgramControlRow & { progressStage: string };
 
@@ -61,13 +64,9 @@ const controlGroupOptions = [
 export function ProgramControls({
   programId,
   elementId,
-  scopeFilter,
-  onClearScope,
 }: {
   programId: string;
   elementId?: string | undefined;
-  scopeFilter: ReactNode;
-  onClearScope: () => void;
 }) {
   const workVersion = useWorkVersion();
   const scopesVersion = useScopesVersion();
@@ -75,13 +74,15 @@ export function ProgramControls({
   const requirementsVersion = useRequirementsVersion();
   const text = useControlText();
   const sctm = useSctm(programId, text);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<{ controlId: string; scopeId: string } | null>(null);
   const [groupBy, setGroupBy] = useState<"" | (typeof controlGroupOptions)[number]["value"]>("");
   const rows = useMemo(
     () => programControlRows(programId, elementId),
     [programId, elementId, workVersion, scopesVersion, assuranceVersion, requirementsVersion],
   );
-  const selected = rows.find((row) => row.id === selectedId);
+  const selectedControl = rows.find((row) => row.id === selected?.controlId);
+  const selectedScope =
+    selected && selectedControl?.scopeIds.includes(selected.scopeId) ? selected.scopeId : undefined;
   const progress = useMemo(() => {
     const controlIds = new Set(rows.map((row) => row.id));
     return buildBoard(programId, {
@@ -103,7 +104,13 @@ export function ProgramControls({
         column.id("id", { header: "Control", width: 100, hideable: false }),
         column.text("title", { header: "Title", minWidth: 250, hideable: false }),
         column.text("family", { header: "Family", width: 100 }),
-        column.text("appliesTo", { header: "Applies to", width: 220 }),
+        column.custom("appliesTo", {
+          header: "Applies to",
+          width: 175,
+          cell: (row) =>
+            `${row.scopeIds.length} ${row.scopeIds.length === 1 ? "element" : "elements"}`,
+          text: (row) => row.appliesTo,
+        }),
         column.status("implementation", {
           header: "Implementation",
           width: 176,
@@ -128,12 +135,23 @@ export function ProgramControls({
     resizable: true,
     reorderable: true,
     groupBy: groupBy || undefined,
+    detail: (row) => (
+      <ImplementationRows
+        programId={programId}
+        controlId={row.id}
+        elementId={elementId}
+        onOpen={(scopeId) => setSelected({ controlId: row.id, scopeId })}
+      />
+    ),
     state: { grouping: groupBy ? [groupBy] : [] },
     initialState: { expanded: true, columnVisibility: { family: false, progressStage: false } },
   });
   // This field connects metric clicks to the Filters menu; it is not a displayed column.
   // Apply it after restoring older saved views that predate the field.
+  const hiddenMetricFor = useRef<string | null>(null);
   useEffect(() => {
+    if (hiddenMetricFor.current === programId) return;
+    hiddenMetricFor.current = programId;
     table.setColumnVisibility((visibility) => ({ ...visibility, progressStage: false }));
   }, [programId, table]);
   const stageFilter = table.getColumn("progressStage")?.getFilterValue();
@@ -145,7 +163,7 @@ export function ProgramControls({
     <DataTable.Metrics>
       <DataTable
         table={table}
-        onRowClick={(row) => setSelectedId(row.id)}
+        onRowClick={(row) => table.options.meta?.toggleDetail?.(row.id)}
         empty={{ title: "No controls found", description: "No controls apply to this selection." }}
         toolbar={
           <Stack space="space.100">
@@ -160,11 +178,6 @@ export function ProgramControls({
                 <DataTable.Filters
                   table={table}
                   columns={["implementation", "assessment", "owner", "progressStage"]}
-                  additionalFilters={{
-                    content: scopeFilter,
-                    count: elementId ? 1 : 0,
-                    onClear: onClearScope,
-                  }}
                 />
                 <DataTable.MetricsTrigger />
                 <DataTable.Columns table={table} />
@@ -206,16 +219,81 @@ export function ProgramControls({
           </Stack>
         }
       />
-      {selected ? (
+      {selectedControl && selectedScope ? (
         <ControlPreview
-          key={`${selected.id}|${elementId ?? "program"}`}
-          row={selected}
+          key={`${selectedControl.id}|${selectedScope}|${elementId ?? "program"}`}
+          row={{ ...selectedControl, scopeId: selectedScope, scopeIds: [selectedScope] }}
           programId={programId}
           {...(elementId ? { elementId } : {})}
-          onClose={() => setSelectedId(null)}
+          onClose={() => setSelected(null)}
         />
       ) : null}
     </DataTable.Metrics>
+  );
+}
+
+function ImplementationRows({
+  programId,
+  controlId,
+  elementId,
+  onOpen,
+}: {
+  programId: string;
+  controlId: string;
+  elementId?: string | undefined;
+  onOpen: (scopeId: string) => void;
+}) {
+  const rows = programControlImplementations(programId, controlId, elementId);
+  return (
+    <Table label={`${controlId} implementations`} style={{ minWidth: 960 }}>
+      <thead>
+        <Table.Row>
+          <Table.Header>System / component</Table.Header>
+          <Table.Header width={160}>Implementation</Table.Header>
+          <Table.Header width={170}>Assessment</Table.Header>
+          <Table.Header width={170}>Owner</Table.Header>
+          <Table.Header width={100}>Requirements</Table.Header>
+          <Table.Header width={80}>Evidence</Table.Header>
+        </Table.Row>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <Table.Row key={row.scopeId}>
+            <Table.Cell className="whitespace-normal max-w-none">
+              <TextLink>
+                <button
+                  type="button"
+                  onClick={() => onOpen(row.scopeId)}
+                  aria-label={`Open ${controlId} implementation for ${row.name}`}
+                >
+                  {row.name}
+                </button>
+              </TextLink>
+            </Table.Cell>
+            <Table.Cell>
+              <Badge
+                size="xsmall"
+                tone={
+                  row.implementation === "Unrecorded"
+                    ? "neutral"
+                    : implementationTone[row.implementation]
+                }
+              >
+                {row.implementation}
+              </Badge>
+            </Table.Cell>
+            <Table.Cell>
+              <Badge size="xsmall" tone={assessmentTone[row.assessment]}>
+                {row.assessment}
+              </Badge>
+            </Table.Cell>
+            <Table.Cell>{row.owner}</Table.Cell>
+            <Table.Cell>{row.requirements}</Table.Cell>
+            <Table.Cell>{row.evidence}</Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
   );
 }
 
@@ -302,7 +380,7 @@ function ControlPreview({
                   : work.implementation
                 : row.implementation}
             </Fact>
-            <Fact label="Owner">{work?.owner ?? row.owner}</Fact>
+            <Fact label="Owner">{work ? (work.owner ?? "Unassigned") : row.owner}</Fact>
           </>
         }
         actions={

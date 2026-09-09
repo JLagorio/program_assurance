@@ -1,3 +1,4 @@
+import { migrationExamples } from "./migration-examples.js";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -49,6 +50,7 @@ createRoot(document.getElementById("root")).render(
   createElement(
     "div",
     null,
+    migrationExamples,
     createElement(
       TooltipProvider,
       { delay: 300, timeout: 300 },

@@ -1,12 +1,16 @@
-import { expect, within } from "storybook/test";
+import { Progress as BaseProgress } from "@base-ui/react/progress";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
-
-import { Progress, tones } from "../../components";
-import { Box, Inline, Stack, Text } from "../../primitives";
-import { Matrix, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
-
+import { createRef, useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
+import {
+  Progress,
+  ProgressIndicator,
+  ProgressLabel,
+  ProgressStacked,
+  ProgressTrack,
+  ProgressValue,
+} from "../../components";
+import { Stack } from "../../primitives";
 const meta = {
   title: "Components/Progress",
   component: Progress,
@@ -15,217 +19,113 @@ const meta = {
 } satisfies Meta<typeof Progress>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-const coverage = [
-  { key: "s", value: 298, tone: "success", title: "298 satisfied" },
-  { key: "p", value: 40, tone: "warning", title: "40 partial" },
-  { key: "o", value: 26, tone: "danger", title: "26 other than satisfied" },
-  { key: "n", value: 8, tone: "neutral", title: "8 not assessed" },
-] as const;
-
-/** Every tone at three values; the three sizes; the read-out; the stacked bar. */
-export const ProgressMatrix: Story = {
+const progressRef = createRef<HTMLDivElement>();
+export const ValuesAndRanges: Story = {
   render: () => (
     <Stack space="space.300">
-      <Matrix
-        rows={tones}
-        cols={["0", "40", "100"] as const}
-        rowLabel="tone"
-        render={(tone, v) => (
-          <Box style={{ width: 160 }}>
-            <Progress value={Number(v)} tone={tone} />
-          </Box>
-        )}
-      />
-      <Specimens title="Sizes · small 4px, medium 6px, large 8px">
-        {(["small", "medium", "large"] as const).map((size) => (
-          <Box key={size} style={{ width: 240 }}>
-            <Progress value={64} size={size} />
-          </Box>
-        ))}
-      </Specimens>
-      <Specimens title="With the value">
-        <Box style={{ width: 240 }}>
-          <Progress value={64} showValue />
-        </Box>
-        <Box style={{ width: 240 }}>
-          <Progress value={51} tone="success" showValue valueText="41 of 80" />
-        </Box>
-        <Box style={{ width: 240 }}>
-          <Progress value={64} label="Assessment progress" showValue valueText="64% complete" />
-        </Box>
-      </Specimens>
-      <Specimens title="Stacked · large, medium, small, hatched">
-        <Box style={{ width: 320 }}>
-          <Progress.Stacked label="Control coverage" segments={[...coverage]} />
-        </Box>
-        <Box style={{ width: 320 }}>
-          <Progress.Stacked size="medium" segments={[...coverage]} />
-        </Box>
-        <Box style={{ width: 320 }}>
-          <Progress.Stacked
-            size="small"
-            segments={[
-              { key: "s", value: 3, tone: "success" },
-              { key: "o", value: 1, tone: "danger" },
-            ]}
-          />
-        </Box>
-        <Box style={{ width: 320 }}>
-          <Progress.Stacked
-            label="Requirement coverage"
-            segments={[
-              { key: "m", value: 12, tone: "success", title: "12 met" },
-              { key: "x", value: 3, tone: "danger", title: "3 not met" },
-              { key: "r", value: 5, tone: "information", title: "5 not run" },
-              {
-                key: "u",
-                value: 9,
-                tone: "neutral",
-                appearance: "hatched",
-                title: "9 not covered",
-              },
-            ]}
-          />
-        </Box>
-      </Specimens>
+      <Progress ref={progressRef} value={64} aria-label="Assessment progress">
+        <ProgressValue />
+      </Progress>
+      <Progress
+        value={20}
+        min={10}
+        max={30}
+        aria-label="Evidence gathered"
+        size="large"
+        tone="success"
+      >
+        <ProgressValue />
+      </Progress>
+      <Progress value={150} aria-label="Complete review" />
+      <Progress value={null} aria-label="Loading evidence" />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      progress = canvas.getByRole("progressbar", { name: "Assessment progress" });
+    await expect(progressRef.current).toBe(progress);
+    await expect(progress).toHaveAttribute("aria-valuenow", "64");
+    const range = canvas.getByRole("progressbar", { name: "Evidence gathered" });
+    await expect(range).toHaveAttribute("aria-valuemin", "10");
+    await expect(range).toHaveAttribute("aria-valuemax", "30");
+    await expect(
+      range.querySelector<HTMLElement>('[data-slot="progress-indicator"]')?.style.width,
+    ).toBe("50%");
+    await expect(canvas.getByRole("progressbar", { name: "Complete review" })).toHaveAttribute(
+      "aria-valuenow",
+      "100",
+    );
+    await expect(canvas.getByRole("progressbar", { name: "Loading evidence" })).not.toHaveAttribute(
+      "aria-valuenow",
+    );
+  },
 };
-
-/** The bar and the number beside it: `showValue` prints the percentage at a fixed minimum width, so a column of bars lines up; `valueText` says something else. */
-export const WithValue: Story = {
+export const LabelAndValue: Story = {
   render: () => (
-    <Stack space="space.150" className="max-w-[360px]">
-      {[
-        ["Access control", 100, "success"],
-        ["Audit and accountability", 72, "information"],
-        ["Configuration management", 9, "danger"],
-        ["Incident response", 40, "warning"],
-      ].map(([name, value, tone]) => (
-        <Inline key={String(name)} space="space.150" alignBlock="center">
-          <Box style={{ width: 160 }} className="shrink-0">
-            <Text size="small" color="color.text.subtle" maxLines={1} className="block">
-              {name}
-            </Text>
-          </Box>
-          <Progress
-            value={Number(value)}
-            tone={tone as (typeof tones)[number]}
-            label={`${String(name)} coverage`}
-            showValue
-          />
-        </Inline>
-      ))}
-      <Inline space="space.150" alignBlock="center">
-        <Box style={{ width: 160 }} className="shrink-0">
-          <Text size="small" color="color.text.subtle" maxLines={1} className="block">
-            Remediation
-          </Text>
-        </Box>
-        <Progress value={64} tone="success" showValue valueText="64% complete" />
-      </Inline>
-    </Stack>
-  ),
-};
-
-function Filtering() {
-  const [chosen, setChosen] = useState<string | null>(null);
-  return (
-    <Stack space="space.100" className="max-w-[420px]">
-      <Progress.Stacked
-        label="Control coverage"
-        segments={coverage.map((s) => ({ ...s, onClick: () => setChosen(s.key) }))}
-      />
-      <Text size="small" color="color.text.subtle">
-        {chosen
-          ? `Showing ${coverage.find((s) => s.key === chosen)?.title ?? chosen}.`
-          : "Click a segment to filter the rows under the bar."}
-      </Text>
-    </Stack>
-  );
-}
-
-/** A stacked bar whose segments are buttons: each filters the register under it. */
-export const Stacked: Story = { render: () => <Filtering /> };
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Box style={{ width: 280 }}>
-            <Progress value={64} label="Assessment progress" showValue />
-          </Box>
-        }
-        doText="The number beside the bar, or a label: something says what the bar measures and how much."
-        dont={
-          <Box style={{ width: 280 }}>
-            <Progress value={64} />
-          </Box>
-        }
-        dontText="A bar alone. Sixty-four percent of what, and how much is that? Hidden from a screen reader, too."
-      />
-      <Pair
-        do={
-          <Box style={{ width: 280 }}>
-            <Stack space="space.100">
-              <Progress value={100} tone="success" showValue />
-              <Progress value={72} showValue />
-              <Progress value={9} tone="danger" showValue />
-            </Stack>
-          </Box>
-        }
-        doText="A tone is a status: complete in success, failing in danger, the rest blue."
-        dont={
-          <Box style={{ width: 280 }}>
-            <Stack space="space.100">
-              <Progress value={100} tone="warning" showValue />
-              <Progress value={72} tone="success" showValue />
-              <Progress value={9} tone="information" showValue />
-            </Stack>
-          </Box>
-        }
-        dontText="Tones as decoration. The reader looks for the meaning of the colours and there is none."
-      />
-      <Pair
-        do={
-          <Box style={{ width: 280 }}>
-            <Progress.Stacked label="Control coverage" segments={[...coverage]} />
-          </Box>
-        }
-        doText="Parts of one whole are one stacked bar."
-        dont={
-          <Box style={{ width: 280 }}>
-            <Stack space="space.100">
-              <Progress value={80} tone="success" showValue valueText="298 satisfied" />
-              <Progress value={11} tone="warning" showValue valueText="40 partial" />
-              <Progress value={7} tone="danger" showValue valueText="26 other" />
-            </Stack>
-          </Box>
-        }
-        dontText="One bar per part. The reader adds them up; the bar was supposed to."
-      />
-    </Stack>
-  ),
-};
-
-export const Playground: Story = {};
-
-export const InteractiveSegmentName: Story = {
-  render: () => (
-    <Progress.Stacked
-      label="Coverage"
-      segments={[
-        { key: "Reviewed", value: 4, tone: "success", onClick: () => {} },
-        { key: "pending", value: 2, tone: "warning", title: "2 pending review", onClick: () => {} },
-      ]}
-    />
+    <Progress value={41} max={80} tone="success">
+      <ProgressLabel>Controls verified</ProgressLabel>
+      <ProgressValue>{(_, value) => `${value} of 80`}</ProgressValue>
+    </Progress>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("button", { name: "Reviewed" })).toBeVisible();
-    await expect(canvas.getByRole("button", { name: "2 pending review" })).toBeVisible();
+    await expect(canvas.getByRole("progressbar", { name: "Controls verified" })).toHaveAttribute(
+      "aria-valuenow",
+      "41",
+    );
+    await expect(canvas.getByText("41 of 80")).toBeVisible();
   },
+};
+function Coverage() {
+  const [filter, setFilter] = useState("All controls");
+  return (
+    <Stack space="space.200">
+      <ProgressStacked
+        label="Control coverage"
+        segments={[
+          {
+            key: "met",
+            value: 12,
+            tone: "success",
+            title: "12 met",
+            onClick: () => setFilter("Met controls"),
+          },
+          {
+            key: "gap",
+            value: 3,
+            tone: "danger",
+            title: "3 gaps",
+            onClick: () => setFilter("Control gaps"),
+          },
+          {
+            key: "unknown",
+            value: 4,
+            tone: "neutral",
+            appearance: "hatched",
+            title: "4 unassessed",
+          },
+        ]}
+      />
+      <p role="status">{filter}</p>
+    </Stack>
+  );
+}
+export const StackedCoverage: Story = {
+  render: () => <Coverage />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "3 gaps" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("Control gaps");
+  },
+};
+
+/** The styled track and indicator also compose with a native Base UI root. */
+export const CustomTrack: Story = {
+  render: () => (
+    <BaseProgress.Root value={30} aria-label="Upload progress">
+      <ProgressTrack className="h-100">
+        <ProgressIndicator />
+      </ProgressTrack>
+    </BaseProgress.Root>
+  ),
 };

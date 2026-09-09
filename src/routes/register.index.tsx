@@ -1,34 +1,10 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
 import { downloadText } from "@/components/app/export";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Download, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
-import {
-  Badge,
-  Button,
-  Empty,
-  Id,
-  IndexPage,
-  Indicator,
-  Inline,
-  Input,
-  InputGroup,
-  Inspector,
-  KeyValue,
-  PageHeader,
-  PreviewRail,
-  PreviewSplit,
-  Progress,
-  Table,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-  Count,
-  TextLink,
-} from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { assetById } from "@/lib/findings";
 import {
@@ -45,6 +21,30 @@ import {
   type RegisterRisk,
 } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
+import {
+  Badge,
+  Button,
+  Count,
+  Empty,
+  Id,
+  IndexPage,
+  Indicator,
+  Inline,
+  Input,
+  InputGroup,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  PreviewRail,
+  PreviewSplit,
+  Progress,
+  Table,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+} from "@ledger/design-system";
 
 export const Route = createFileRoute("/register/")({
   head: () => ({
@@ -311,6 +311,7 @@ function RegisterPage() {
                                   <Progress
                                     value={r.residual ?? r.sourceRating?.overall ?? "Unrecorded"}
                                     tone={residualTone(r.residual)}
+                                    aria-hidden
                                   />
                                 ) : null}
                                 <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">

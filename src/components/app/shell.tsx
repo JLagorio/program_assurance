@@ -1,3 +1,20 @@
+import {
+  Avatar,
+  Box,
+  Button,
+  buttonVariants,
+  CommandPalette,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  IconButton,
+  ModeSwitch,
+  Shell as DsShell,
+  Stack,
+} from "@ledger/design-system";
+
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Archive,
@@ -6,7 +23,6 @@ import {
   Bug,
   CircleHelp,
   ClipboardList,
-  Command as CommandIcon,
   FileCheck2,
   FlaskConical,
   Gauge,
@@ -22,28 +38,12 @@ import {
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import { programs, risks } from "@/lib/grc-data";
-import { findings } from "@/lib/findings";
-import { useRisksVersion } from "@/lib/risk-store";
-import { useProgramsVersion } from "@/lib/program-store";
 import { currentSession, useWorkVersion } from "@/lib/control-work";
+import { findings } from "@/lib/findings";
+import { programs, risks } from "@/lib/grc-data";
+import { useProgramsVersion } from "@/lib/program-store";
+import { useRisksVersion } from "@/lib/risk-store";
 import { openTasks, tasksAssignedTo, useTasksVersion } from "@/lib/tasks";
-
-import {
-  Avatar,
-  Button,
-  buttonVariants,
-  CommandPalette,
-  Dialog,
-  Stack,
-  TextLink,
-  IconButton,
-  Inline,
-  Input,
-  InputGroup,
-  ModeSwitch,
-  Shell as DsShell,
-} from "@ledger/design-system";
 
 /**
  * The product's frame on the package's navigation system. The side nav holds objects and queues;
@@ -217,34 +217,58 @@ export function Shell({ children }: { children: ReactNode }) {
       />
       <Dialog
         open={helpOpen}
-        onClose={() => setHelpOpen(false)}
-        title="Help and shortcuts"
-        description="Find records with the search button. My work shows requests, tasks, and mentions assigned to you."
+        onOpenChange={(next) => {
+          if (!next) {
+            setHelpOpen(false);
+          }
+        }}
       >
-        <Stack space="space.150">
-          <p>
-            Use Tab to move between controls and Enter or Space to activate buttons. Press Escape to
-            close a dialog.
-          </p>
-          <p>On a program record, ⌘K or Ctrl+K opens its command palette.</p>
-          <Link to="/work" className={buttonVariants({ variant: "secondary" })}>
-            Open my work
-          </Link>
-        </Stack>
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Help and shortcuts</DialogTitle>
+            <DialogDescription>
+              Find records with the search button. My work shows requests, tasks, and mentions
+              assigned to you.
+            </DialogDescription>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <Stack space="space.150">
+              <p>
+                Use Tab to move between controls and Enter or Space to activate buttons. Press
+                Escape to close a dialog.
+              </p>
+              <p>On a program record, ⌘K or Ctrl+K opens its command palette.</p>
+              <Link to="/work" className={buttonVariants({ variant: "secondary" })}>
+                Open my work
+              </Link>
+            </Stack>
+          </Box>
+        </DialogContent>
       </Dialog>
       <Dialog
         open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        title="Profile and appearance"
-        description={`Acting as ${session.name} · ${session.role}`}
+        onOpenChange={(next) => {
+          if (!next) {
+            setSettingsOpen(false);
+          }
+        }}
       >
-        <Stack space="space.150">
-          <p>Choose the appearance for this browser.</p>
-          <ModeSwitch />
-          <p>
-            The role switch in the lower corner lets you review the prototype with a different role.
-          </p>
-        </Stack>
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Profile and appearance</DialogTitle>
+            <DialogDescription>{`Acting as ${session.name} · ${session.role}`}</DialogDescription>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <Stack space="space.150">
+              <p>Choose the appearance for this browser.</p>
+              <ModeSwitch />
+              <p>
+                The role switch in the lower corner lets you review the prototype with a different
+                role.
+              </p>
+            </Stack>
+          </Box>
+        </DialogContent>
       </Dialog>
     </DsShell>
   );

@@ -1,28 +1,38 @@
-/**
- * The Requirements tab as a coverage view: every requirement in the program,
- * which elements carry it (the union across allocations), which controls it
- * traces to, and how far its verification has run. The filters are the
- * questions a reader asks of the list; the bar is the one status per row.
- *
- * A DataTable in the same shape as the program's task table (task-table.tsx):
- * one toolbar row with search, the saved views as a menu, the filter chips,
- * then Columns, Settings and the primary action at the end; the id pinned,
- * every column resizable and reorderable, the layout kept under a view name.
- * The rows nest as the decomposition does, and the leading chevron is the only
- * one: a parent opens into its parts. Carried by reads on one line, rests into
- * a hover card, and clicking it opens the row into the table of what carries
- * it. The eye on the id opens the requirement beside the list.
- */
-
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
-import { ControlHover, RequirementHover } from "@/components/app/glances";
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
 import { CoverageBar } from "@/components/app/coverage-bar";
+import { ControlHover, RequirementHover } from "@/components/app/glances";
+import { LinkControlsSheet } from "@/components/app/link-controls";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
 import { RequirementPreviewSheet } from "@/components/app/requirement-preview";
+import { AllocationTable } from "@/components/app/requirements";
+import { useCompositionGraph } from "@/lib/composition";
+import { suspectLinksFor, useLinkCurrencyVersion } from "@/lib/link-currency";
+import { resolveProgramElement } from "@/lib/program-scope";
+import { requirementsForProgramElement } from "@/lib/requirement-context";
+import {
+  coverageOf,
+  notCoveredRequirements,
+  useVerificationVersion,
+  type RequirementCoverage,
+} from "@/lib/requirement-verification";
+import {
+  allocationsFor,
+  nestRequirements,
+  requirementControlOrigin,
+  requirementStateTone,
+  resolveTarget,
+  unallocatedRequirements,
+  useRequirementsVersion,
+  type Allocation,
+  type Derivation,
+  type Nested,
+  type Requirement,
+  type RequirementState,
+} from "@/lib/requirements";
 import {
   Button,
   DataTable,
@@ -36,33 +46,6 @@ import {
   useDataTable,
   type Preset,
 } from "@ledger/design-system";
-import { AllocationTable } from "@/components/app/requirements";
-import { useCompositionGraph } from "@/lib/composition";
-import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
-import {
-  requirementsForProgramElement,
-  allocationsForProgramElement,
-} from "@/lib/requirement-context";
-import { suspectLinksFor, useLinkCurrencyVersion } from "@/lib/link-currency";
-import {
-  coverageOf,
-  notCoveredRequirements,
-  useVerificationVersion,
-  type RequirementCoverage,
-} from "@/lib/requirement-verification";
-import {
-  nestRequirements,
-  requirementStateTone,
-  requirementControlOrigin,
-  resolveTarget,
-  unallocatedRequirements,
-  useRequirementsVersion,
-  type Allocation,
-  type Derivation,
-  type Nested,
-  type Requirement,
-  type RequirementState,
-} from "@/lib/requirements";
 
 /** Who carries a requirement, as one value a preset can ask for. */
 type CarriedBy = "Allocated" | "Nobody responsible" | "Not yet allocatable";
@@ -144,10 +127,10 @@ export function RequirementCoverage({
   const version = useRequirementsVersion();
   const graph = useCompositionGraph(programId);
   const selectedElementId = resolveProgramElement(programId, elementId)?.id;
-  const controlScopeId = closestProgramScope(programId, selectedElementId)?.id;
   const verificationVersion = useVerificationVersion();
   const currencyVersion = useLinkCurrencyVersion();
   const [allocating, setAllocating] = useState<Requirement | null>(null);
+  const [linking, setLinking] = useState<Requirement | null>(null);
   const [adding, setAdding] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
   // The columns read the open preview through a ref, so opening one redraws the rows without rebuilding them.
@@ -164,7 +147,7 @@ export function RequirementCoverage({
     const unallocated = new Set(unallocatedRequirements(programId).map((r) => r.id));
     const notCovered = new Set(notCoveredRequirements(programId).map((r) => r.id));
     const flat: CoverageBase[] = all.map((r) => {
-      const allocations = allocationsForProgramElement(r.id, programId, selectedElementId);
+      const allocations = allocationsFor(r.id);
       const links = suspectLinksFor(r);
       return {
         id: r.id,
@@ -256,7 +239,7 @@ export function RequirementCoverage({
         // Hidden until asked for: the Unallocated question reads it, the Carried by cell shows it.
         c.text("allocation", { header: "Allocation", width: 150 }),
         c.text("origin", {
-          header: "Controls",
+          header: "Linked controls",
           width: 170,
           cell: (r) =>
             r.controls.length || r.overlays.length ? (
@@ -267,11 +250,7 @@ export function RequirementCoverage({
                       <Link
                         to="/programs/$programId/controls/$controlId"
                         params={{ programId, controlId: d.sourceId }}
-                        search={{
-                          tab: undefined,
-                          scope: controlScopeId,
-                          element: selectedElementId,
-                        }}
+                        search={{ tab: undefined }}
                       >
                         <span className="text-subtle">
                           {d.relation === "mapped" ? "Mapped to " : "Derived from "}
@@ -297,7 +276,16 @@ export function RequirementCoverage({
         c.text("verification", {
           header: "Assessment result",
           width: 168,
-          cell: (r) => <CoverageBar coverage={r.coverage} />,
+          cell: (r) => (
+            <Inline space="space.050" shouldWrap>
+              <CoverageBar coverage={r.coverage} />
+              {r.parts.length ? (
+                <Text size="xsmall" color="color.text.subtle">
+                  Children
+                </Text>
+              ) : null}
+            </Inline>
+          ),
           // the met share; a requirement no test names sorts below everything
           sortBy: (r) => metShare(r.coverage),
         }),
@@ -308,16 +296,19 @@ export function RequirementCoverage({
           width: 130,
           tone: (r) => requirementStateTone[r.state],
         }),
-        c.actions((r) => [{ label: "Allocate", onSelect: () => setAllocating(r.requirement) }]),
+        c.actions((r) => [
+          { label: "Allocate", onSelect: () => setAllocating(r.requirement) },
+          { label: "Link controls", onSelect: () => setLinking(r.requirement) },
+        ]),
       ]),
-    [programId, selectedElementId, controlScopeId],
+    [programId, selectedElementId],
   );
 
   const table = useDataTable({
     columns,
     data: rows,
     getRowId: (r) => r.id,
-    label: "Requirement coverage",
+    label: "Requirements",
     view: "requirement-coverage",
     resizable: true,
     reorderable: true,
@@ -402,6 +393,7 @@ export function RequirementCoverage({
         requirementId={previewId}
         onClose={() => setPreviewId(null)}
         onAllocate={(r) => setAllocating(r)}
+        onLinkControls={(r) => setLinking(r)}
       />
 
       <NewRequirementModal
@@ -412,7 +404,7 @@ export function RequirementCoverage({
           void navigate({
             to: "/programs/$programId/requirements/$requirementId",
             params: { programId, requirementId: requirement.id },
-            search: { element: selectedElementId },
+            search: { tab: undefined },
           });
         }}
       />
@@ -423,6 +415,14 @@ export function RequirementCoverage({
           onClose={() => setAllocating(null)}
           programId={programId}
           requirement={allocating}
+        />
+      ) : null}
+      {linking ? (
+        <LinkControlsSheet
+          key={linking.id}
+          requirement={linking}
+          open
+          onClose={() => setLinking(null)}
         />
       ) : null}
     </>

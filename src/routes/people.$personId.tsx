@@ -1,10 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
+import { Shell } from "@/components/app/shell";
 import {
+  allocationFor,
+  personById,
+  workstreamsForPerson,
+  workstreamStatusTone,
+} from "@/lib/people";
+import {
+  Badge,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbSeparator,
-  Badge,
   Id,
   Inline,
   Inspector,
@@ -16,13 +23,6 @@ import {
   Table,
   TextLink,
 } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
-import {
-  allocationFor,
-  personById,
-  workstreamStatusTone,
-  workstreamsForPerson,
-} from "@/lib/people";
 
 export const Route = createFileRoute("/people/$personId")({
   loader: ({ params }) => {
@@ -89,6 +89,7 @@ function PersonDetail() {
                       <Progress
                         value={Math.min(alloc, 100)}
                         tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"}
+                        aria-hidden
                       />
                     </span>
                     <span className={alloc > 100 ? "tabular-nums text-danger" : "tabular-nums"}>

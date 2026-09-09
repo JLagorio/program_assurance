@@ -1,14 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
-import { useRecordForm } from "@/lib/record-form";
 import { UnavailableAction } from "@/components/app/unavailable-action";
-import { Check, FileSignature, Lock, Plus, ShieldCheck, UserPlus } from "lucide-react";
-
+import { useRecordForm } from "@/lib/record-form";
 import {
   Badge,
   Box,
   Button,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Dot,
+  Eyebrow,
   Field,
   FilterChip,
   Grid,
@@ -19,12 +22,15 @@ import {
   KeyValue,
   NativeSelect,
   Progress,
+  ProgressValue,
   Section,
   Stack,
   Table,
   Textarea,
-  Eyebrow,
 } from "@ledger/design-system";
+import { Check, FileSignature, Lock, Plus, ShieldCheck, UserPlus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
 import {
   authorization,
   decisionTone,
@@ -35,9 +41,9 @@ import {
   observationTone,
   packageArtifacts,
   packageStatusTone,
-  residualRisks as seedRisks,
   residualTone,
   scaObservations as seedObservations,
+  residualRisks as seedRisks,
   type ResidualRisk,
   type ScaObservation,
   type ScaObservationStatus,
@@ -139,8 +145,11 @@ export function AuthorizationSection({
                 <Progress
                   value={readiness}
                   tone={readiness >= 80 ? "success" : "information"}
-                  showValue
-                />
+                  aria-hidden
+                  className="flex-nowrap [&_[data-slot=progress-track]]:order-first [&_[data-slot=progress-track]]:min-w-0 [&_[data-slot=progress-track]]:flex-1"
+                >
+                  <ProgressValue />
+                </Progress>
               </Box>
             </Inline>
           </Box>
@@ -347,16 +356,173 @@ function ObservationModal({
 
   return (
     <Dialog
-      open
-      onClose={onClose}
-      width="large"
-      title="Log assessor observation"
-      description="Logged directly by the SCA in the enclave — no spreadsheets, no email."
-      aside={
-        <Stack space="space.100">
-          <Eyebrow as="p">Downstream effect</Eyebrow>
-          <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
-            {`program: ${programId}
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
+      >
+        <DialogHeader>
+          <DialogTitle>Log assessor observation</DialogTitle>
+          <DialogDescription>
+            Logged directly by the SCA in the enclave — no spreadsheets, no email.
+          </DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none">
+          <Box className="grid grid-cols-1 md:grid-cols-3">
+            <Box className="px-250 py-200 md:col-span-2">
+              <form
+                id={formId + "-1"}
+                ref={formRef}
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void form.handleSubmit({
+                    save: () => {
+                      onLog({
+                        id: `OBS-${119 + Math.floor(Date.now() % 40)}`,
+                        title: title || "Untitled observation",
+                        severity,
+                        control: control || "CA-2",
+                        loggedBy: "D. Okafor (SCA)",
+                        logged: "Just now",
+                        status: "Logged",
+                        jira: null,
+                        assignee: "—",
+                        due,
+                        detail,
+                        response: "",
+                      });
+                    },
+                  });
+                }}
+              >
+                <Stack space="space.150">
+                  <form.Field name="title">
+                    {(field) => (
+                      <Field
+                        isRequired
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                        label="Observation"
+                      >
+                        <Input
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="e.g. Session termination not enforced on maintenance console"
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
+                  >
+                    <form.Field name="severity">
+                      {(field) => (
+                        <Field
+                          label="Severity"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={field.state.value}
+                            onChange={(e) =>
+                              field.handleChange(e.target.value as ScaObservation["severity"])
+                            }
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            <option>CAT I</option>
+                            <option>CAT II</option>
+                            <option>CAT III</option>
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="control">
+                      {(field) => (
+                        <Field
+                          isRequired
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                          label="Control"
+                        >
+                          <Input
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="AC-12"
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="due">
+                      {(field) => (
+                        <Field
+                          label="Response due"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <Input
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                  </Grid>
+                  <form.Field name="detail">
+                    {(field) => (
+                      <Field
+                        label="Assessor detail"
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                      >
+                        <Textarea
+                          rows={4}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="What was observed, where, and under what test conditions…"
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                </Stack>
+              </form>
+            </Box>
+            <Box className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+              <Stack space="space.100">
+                <Eyebrow as="p">Downstream effect</Eyebrow>
+                <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
+                  {`program: ${programId}
 severity: ${severity}
 control: ${control || "<unmapped>"}
 creates:
@@ -364,167 +530,28 @@ creates:
   - poam_item (draft)
   - notify: product security
 next: triage -> jira issue`}
-          </pre>
-        </Stack>
-      }
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            form={formId + "-1"}
-            iconBefore={<Check />}
-            disabled={form.state.isSubmitting}
-          >
-            Log observation
-          </Button>
-        </>
-      }
-    >
-      <form
-        id={formId + "-1"}
-        ref={formRef}
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit({
-            save: () => {
-              onLog({
-                id: `OBS-${119 + Math.floor(Date.now() % 40)}`,
-                title: title || "Untitled observation",
-                severity,
-                control: control || "CA-2",
-                loggedBy: "D. Okafor (SCA)",
-                logged: "Just now",
-                status: "Logged",
-                jira: null,
-                assignee: "—",
-                due,
-                detail,
-                response: "",
-              });
-            },
-          });
-        }}
-      >
-        <Stack space="space.150">
-          <form.Field name="title">
-            {(field) => (
-              <Field
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label="Observation"
-              >
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="e.g. Session termination not enforced on maintenance console"
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <Grid
-            gap="space.150"
-            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
-          >
-            <form.Field name="severity">
-              {(field) => (
-                <Field
-                  label="Severity"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value}
-                    onChange={(e) =>
-                      field.handleChange(e.target.value as ScaObservation["severity"])
-                    }
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  >
-                    <option>CAT I</option>
-                    <option>CAT II</option>
-                    <option>CAT III</option>
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="control">
-              {(field) => (
-                <Field
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                  label="Control"
-                >
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="AC-12"
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="due">
-              {(field) => (
-                <Field
-                  label="Response due"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-          </Grid>
-          <form.Field name="detail">
-            {(field) => (
-              <Field
-                label="Assessor detail"
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-              >
-                <Textarea
-                  rows={4}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="What was observed, where, and under what test conditions…"
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-        </Stack>
-      </form>
+                </pre>
+              </Stack>
+            </Box>
+          </Box>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId + "-1"}
+              iconBefore={<Check />}
+              disabled={form.state.isSubmitting}
+            >
+              Log observation
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -570,16 +597,172 @@ function RemediationModal({
 
   return (
     <Dialog
-      open
-      onClose={onClose}
-      width="large"
-      title={observation.title}
-      description={`${observation.id} · ${observation.control} · logged ${observation.logged} by ${observation.loggedBy}`}
-      aside={
-        <Stack space="space.150">
-          <Eyebrow as="p">Jira issue</Eyebrow>
-          <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
-            {`key: ${jira}
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
+      >
+        <DialogHeader>
+          <DialogTitle>{observation.title}</DialogTitle>
+          <DialogDescription>{`${observation.id} · ${observation.control} · logged ${observation.logged} by ${observation.loggedBy}`}</DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none">
+          <Box className="grid grid-cols-1 md:grid-cols-3">
+            <Box className="px-250 py-200 md:col-span-2">
+              <form
+                id={formId + "-2"}
+                ref={formRef}
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void form.handleSubmit({
+                    save: () => {
+                      onSave({
+                        ...observation,
+                        status,
+                        jira: status === "Triaged" ? observation.jira : jira,
+                        assignee,
+                        due,
+                        response,
+                      });
+                    },
+                  });
+                }}
+              >
+                <Stack space="space.150">
+                  <p className="font-body text-subtle">{observation.detail}</p>
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(4, minmax(0, 1fr))" }}
+                  >
+                    <form.Field name="status">
+                      {(field) => (
+                        <Field
+                          label="Status"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={field.state.value}
+                            onChange={(e) =>
+                              field.handleChange(e.target.value as ScaObservationStatus)
+                            }
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {observationStatuses.map((s) => (
+                              <option key={s}>{s}</option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="project">
+                      {(field) => (
+                        <Field
+                          label="Jira project"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {jiraProjects.map((p) => (
+                              <option key={p}>{p}</option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="assignee">
+                      {(field) => (
+                        <Field
+                          isRequired
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                          label="Assignee"
+                        >
+                          <NativeSelect
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {jiraAssignees.map((a) => (
+                              <option key={a}>{a}</option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="due">
+                      {(field) => (
+                        <Field
+                          isRequired
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                          label="Due"
+                        >
+                          <Input
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                  </Grid>
+                  <form.Field name="response">
+                    {(field) => (
+                      <Field
+                        isRequired
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                        label="Program response to the assessor"
+                      >
+                        <Textarea
+                          rows={4}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                </Stack>
+              </form>
+            </Box>
+            <Box className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+              <Stack space="space.150">
+                <Eyebrow as="p">Jira issue</Eyebrow>
+                <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
+                  {`key: ${jira}
 type: Security remediation
 assignee: ${assignee}
 due: ${due}
@@ -587,178 +770,40 @@ labels: [rmf, ${observation.control.toLowerCase()}, ${observation.severity.repla
 links:
   - observation: ${observation.id}
   - poam: live sync`}
-          </pre>
-          <Stack className="border-t border-default pt-150" space="space.075">
-            <KeyValue label="Severity">
-              <Indicator tone={severityTone[observation.severity]}>
-                {observation.severity}
-              </Indicator>
-            </KeyValue>
-            <KeyValue label="Current">
-              <Badge variant="secondary" tone={observationTone[observation.status]}>
-                {observation.status}
-              </Badge>
-            </KeyValue>
-          </Stack>
-        </Stack>
-      }
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            form={formId + "-2"}
-            iconBefore={<Check />}
-            disabled={form.state.isSubmitting}
-          >
-            Save & sync
-          </Button>
-        </>
-      }
-    >
-      <form
-        id={formId + "-2"}
-        ref={formRef}
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit({
-            save: () => {
-              onSave({
-                ...observation,
-                status,
-                jira: status === "Triaged" ? observation.jira : jira,
-                assignee,
-                due,
-                response,
-              });
-            },
-          });
-        }}
-      >
-        <Stack space="space.150">
-          <p className="font-body text-subtle">{observation.detail}</p>
-          <Grid
-            gap="space.150"
-            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(4, minmax(0, 1fr))" }}
-          >
-            <form.Field name="status">
-              {(field) => (
-                <Field
-                  label="Status"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value as ScaObservationStatus)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  >
-                    {observationStatuses.map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="project">
-              {(field) => (
-                <Field
-                  label="Jira project"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  >
-                    {jiraProjects.map((p) => (
-                      <option key={p}>{p}</option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="assignee">
-              {(field) => (
-                <Field
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                  label="Assignee"
-                >
-                  <NativeSelect
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  >
-                    {jiraAssignees.map((a) => (
-                      <option key={a}>{a}</option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="due">
-              {(field) => (
-                <Field
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                  label="Due"
-                >
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-          </Grid>
-          <form.Field name="response">
-            {(field) => (
-              <Field
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label="Program response to the assessor"
-              >
-                <Textarea
-                  rows={4}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-        </Stack>
-      </form>
+                </pre>
+                <Stack className="border-t border-default pt-150" space="space.075">
+                  <KeyValue label="Severity">
+                    <Indicator tone={severityTone[observation.severity]}>
+                      {observation.severity}
+                    </Indicator>
+                  </KeyValue>
+                  <KeyValue label="Current">
+                    <Badge variant="secondary" tone={observationTone[observation.status]}>
+                      {observation.status}
+                    </Badge>
+                  </KeyValue>
+                </Stack>
+              </Stack>
+            </Box>
+          </Box>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId + "-2"}
+              iconBefore={<Check />}
+              disabled={form.state.isSubmitting}
+            >
+              Save & sync
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -779,101 +824,113 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   if (!open) return null;
   return (
     <Dialog
-      open
-      onClose={onClose}
-      title="Grant enclave access"
-      description="Scoped, expiring, read-only access to this authorization package."
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <UnavailableAction
-            reason="Signing and access administration require connected services. This workspace cannot issue approvals or grant access."
-            variant="primary"
-            iconBefore={<Check />}
-          >
-            Send invite
-          </UnavailableAction>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <Stack space="space.150">
-        <form.Field name="email">
-          {(field) => (
-            <Field
-              isRequired
-              error={
-                field.state.meta.isTouched && !field.state.meta.isValid
-                  ? [...new Set(field.state.meta.errors)].join(" ")
-                  : undefined
-              }
-              label="Government email"
-              hint=".mil or .gov only"
+      <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+        <DialogHeader>
+          <DialogTitle>Grant enclave access</DialogTitle>
+          <DialogDescription>
+            Scoped, expiring, read-only access to this authorization package.
+          </DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <Stack space="space.150">
+            <form.Field name="email">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label="Government email"
+                  hint=".mil or .gov only"
+                >
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="first.last@us.navy.mil"
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <Grid
+              gap="space.150"
+              templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
             >
-              <Input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="first.last@us.navy.mil"
-                name={field.name}
-                onBlur={field.handleBlur}
-              />
-            </Field>
-          )}
-        </form.Field>
-        <Grid
-          gap="space.150"
-          templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-        >
-          <form.Field name="role">
-            {(field) => (
-              <Field
-                label="Role"
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-              >
-                <NativeSelect
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                >
-                  <option>SCA</option>
-                  <option>SCA team</option>
-                  <option>AO</option>
-                  <option>AODR</option>
-                </NativeSelect>
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="access">
-            {(field) => (
-              <Field
-                label="Access"
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-              >
-                <NativeSelect
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                >
-                  <option>Read only</option>
-                  <option>Read + comment</option>
-                  <option>Sign authority</option>
-                </NativeSelect>
-              </Field>
-            )}
-          </form.Field>
-        </Grid>
-      </Stack>
+              <form.Field name="role">
+                {(field) => (
+                  <Field
+                    label="Role"
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined
+                    }
+                  >
+                    <NativeSelect
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    >
+                      <option>SCA</option>
+                      <option>SCA team</option>
+                      <option>AO</option>
+                      <option>AODR</option>
+                    </NativeSelect>
+                  </Field>
+                )}
+              </form.Field>
+              <form.Field name="access">
+                {(field) => (
+                  <Field
+                    label="Access"
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined
+                    }
+                  >
+                    <NativeSelect
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    >
+                      <option>Read only</option>
+                      <option>Read + comment</option>
+                      <option>Sign authority</option>
+                    </NativeSelect>
+                  </Field>
+                )}
+              </form.Field>
+            </Grid>
+          </Stack>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <UnavailableAction
+              reason="Signing and access administration require connected services. This workspace cannot issue approvals or grant access."
+              variant="primary"
+              iconBefore={<Check />}
+            >
+              Send invite
+            </UnavailableAction>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -935,8 +992,11 @@ export function BriefingRoom() {
                 <Progress
                   value={progress}
                   tone={pending.length > 0 ? "warning" : "success"}
-                  showValue
-                />
+                  aria-hidden
+                  className="flex-nowrap [&_[data-slot=progress-track]]:order-first [&_[data-slot=progress-track]]:min-w-0 [&_[data-slot=progress-track]]:flex-1"
+                >
+                  <ProgressValue />
+                </Progress>
               </Box>
             </Inline>
           </Box>
@@ -1093,112 +1153,130 @@ function RiskDecisionModal({
 
   return (
     <Dialog
-      open
-      onClose={onClose}
-      width="large"
-      title={risk.title}
-      description={`${risk.id} · ${risk.control} · ${risk.poam}`}
-      aside={
-        <Stack space="space.150">
-          <Eyebrow as="p">Risk profile</Eyebrow>
-          <Stack space="space.075">
-            <KeyValue label="Likelihood">{risk.likelihood}</KeyValue>
-            <KeyValue label="Impact">{risk.impact}</KeyValue>
-            <KeyValue label="Residual">
-              <Badge variant="secondary" tone={residualTone[risk.residual]}>
-                {risk.residual}
-              </Badge>
-            </KeyValue>
-            <KeyValue label="POA&M">
-              <Id>{risk.poam}</Id>
-            </KeyValue>
-          </Stack>
-          <p className="border-t border-default pt-150 font-body-small text-subtle">
-            Signed as {authorization.ao}. The decision and rationale are written to the
-            authorization record and the OSCAL POA&M.
-          </p>
-        </Stack>
-      }
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            form={formId + "-3"}
-            iconBefore={<ShieldCheck />}
-            disabled={form.state.isSubmitting}
-          >
-            Record decision
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        id={formId + "-3"}
-        ref={formRef}
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit({
-            save: () => {
-              onSave({ ...risk, decision, rationale });
-            },
-          });
-        }}
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
       >
-        <Stack space="space.150">
-          <p className="font-body text-subtle">Mitigation in place: {risk.mitigation}</p>
-          <form.Field name="decision">
-            {(field) => (
-              <Field
-                label="AO decision"
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
+        <DialogHeader>
+          <DialogTitle>{risk.title}</DialogTitle>
+          <DialogDescription>{`${risk.id} · ${risk.control} · ${risk.poam}`}</DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none">
+          <Box className="grid grid-cols-1 md:grid-cols-3">
+            <Box className="px-250 py-200 md:col-span-2">
+              <form
+                id={formId + "-3"}
+                ref={formRef}
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void form.handleSubmit({
+                    save: () => {
+                      onSave({ ...risk, decision, rationale });
+                    },
+                  });
+                }}
               >
-                <NativeSelect
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value as ResidualRisk["decision"])}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                >
-                  <option>Accepted</option>
-                  <option>Rejected</option>
-                  <option>Deferred</option>
-                  <option>Pending AO</option>
-                </NativeSelect>
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="rationale">
-            {(field) => (
-              <Field
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label="Rationale for the record"
-              >
-                <Textarea
-                  rows={4}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Basis for acceptance, conditions, and review point…"
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-        </Stack>
-      </form>
+                <Stack space="space.150">
+                  <p className="font-body text-subtle">Mitigation in place: {risk.mitigation}</p>
+                  <form.Field name="decision">
+                    {(field) => (
+                      <Field
+                        label="AO decision"
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                      >
+                        <NativeSelect
+                          value={field.state.value}
+                          onChange={(e) =>
+                            field.handleChange(e.target.value as ResidualRisk["decision"])
+                          }
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        >
+                          <option>Accepted</option>
+                          <option>Rejected</option>
+                          <option>Deferred</option>
+                          <option>Pending AO</option>
+                        </NativeSelect>
+                      </Field>
+                    )}
+                  </form.Field>
+                  <form.Field name="rationale">
+                    {(field) => (
+                      <Field
+                        isRequired
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                        label="Rationale for the record"
+                      >
+                        <Textarea
+                          rows={4}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="Basis for acceptance, conditions, and review point…"
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                </Stack>
+              </form>
+            </Box>
+            <Box className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+              <Stack space="space.150">
+                <Eyebrow as="p">Risk profile</Eyebrow>
+                <Stack space="space.075">
+                  <KeyValue label="Likelihood">{risk.likelihood}</KeyValue>
+                  <KeyValue label="Impact">{risk.impact}</KeyValue>
+                  <KeyValue label="Residual">
+                    <Badge variant="secondary" tone={residualTone[risk.residual]}>
+                      {risk.residual}
+                    </Badge>
+                  </KeyValue>
+                  <KeyValue label="POA&M">
+                    <Id>{risk.poam}</Id>
+                  </KeyValue>
+                </Stack>
+                <p className="border-t border-default pt-150 font-body-small text-subtle">
+                  Signed as {authorization.ao}. The decision and rationale are written to the
+                  authorization record and the OSCAL POA&M.
+                </p>
+              </Stack>
+            </Box>
+          </Box>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId + "-3"}
+              iconBefore={<ShieldCheck />}
+              disabled={form.state.isSubmitting}
+            >
+              Record decision
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -1218,16 +1296,104 @@ function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   if (!open) return null;
   return (
     <Dialog
-      open
-      onClose={onClose}
-      width="large"
-      title="Issue authorization memo"
-      description="Signed by the Authorizing Official and distributed to the program and the SCA."
-      aside={
-        <Stack space="space.100">
-          <Eyebrow as="p">Memo preview</Eyebrow>
-          <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
-            {`AUTHORIZATION DECISION
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
+      >
+        <DialogHeader>
+          <DialogTitle>Issue authorization memo</DialogTitle>
+          <DialogDescription>
+            Signed by the Authorizing Official and distributed to the program and the SCA.
+          </DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none">
+          <Box className="grid grid-cols-1 md:grid-cols-3">
+            <Box className="px-250 py-200 md:col-span-2">
+              <Stack space="space.150">
+                <Grid
+                  gap="space.150"
+                  templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+                >
+                  <form.Field name="type">
+                    {(field) => (
+                      <Field
+                        label="Authorization type"
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                      >
+                        <NativeSelect
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        >
+                          <option>ATO with conditions (36 months)</option>
+                          <option>ATO (36 months)</option>
+                          <option>Continuous ATO (cATO)</option>
+                          <option>IATT (90 days)</option>
+                          <option>Denial of authorization</option>
+                        </NativeSelect>
+                      </Field>
+                    )}
+                  </form.Field>
+                  <form.Field name="expires">
+                    {(field) => (
+                      <Field
+                        isRequired
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                        label="Expires"
+                      >
+                        <Input
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                </Grid>
+                <form.Field name="conditions">
+                  {(field) => (
+                    <Field
+                      label="Conditions of authorization"
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined
+                      }
+                    >
+                      <Textarea
+                        rows={4}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                </form.Field>
+              </Stack>
+            </Box>
+            <Box className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+              <Stack space="space.100">
+                <Eyebrow as="p">Memo preview</Eyebrow>
+                <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
+                  {`AUTHORIZATION DECISION
 system: Trident UUV C2
 decision: ${type}
 expires: ${expires}
@@ -1239,96 +1405,26 @@ basis:
   - POA&M v11 (OSCAL)
 conditions: |
   ${conditions}`}
-          </pre>
-        </Stack>
-      }
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <UnavailableAction
-            reason="Signing and access administration require connected services. This workspace cannot issue approvals or grant access."
-            variant="primary"
-            iconBefore={<FileSignature />}
-          >
-            Sign & issue
-          </UnavailableAction>
-        </>
-      }
-    >
-      <Stack space="space.150">
-        <Grid
-          gap="space.150"
-          templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-        >
-          <form.Field name="type">
-            {(field) => (
-              <Field
-                label="Authorization type"
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-              >
-                <NativeSelect
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                >
-                  <option>ATO with conditions (36 months)</option>
-                  <option>ATO (36 months)</option>
-                  <option>Continuous ATO (cATO)</option>
-                  <option>IATT (90 days)</option>
-                  <option>Denial of authorization</option>
-                </NativeSelect>
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="expires">
-            {(field) => (
-              <Field
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label="Expires"
-              >
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-        </Grid>
-        <form.Field name="conditions">
-          {(field) => (
-            <Field
-              label="Conditions of authorization"
-              error={
-                field.state.meta.isTouched && !field.state.meta.isValid
-                  ? [...new Set(field.state.meta.errors)].join(" ")
-                  : undefined
-              }
+                </pre>
+              </Stack>
+            </Box>
+          </Box>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <UnavailableAction
+              reason="Signing and access administration require connected services. This workspace cannot issue approvals or grant access."
+              variant="primary"
+              iconBefore={<FileSignature />}
             >
-              <Textarea
-                rows={4}
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                name={field.name}
-                onBlur={field.handleBlur}
-              />
-            </Field>
-          )}
-        </form.Field>
-      </Stack>
+              Sign & issue
+            </UnavailableAction>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

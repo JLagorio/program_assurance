@@ -2,9 +2,9 @@ import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
+import { Shell } from "@/components/app/shell";
 import {
   Badge,
-  Button,
   Card,
   Id,
   IndexPage,
@@ -13,7 +13,6 @@ import {
   Progress,
   Table,
 } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 
 export const Route = createFileRoute("/vendors")({
   head: () => ({
@@ -172,6 +171,7 @@ function Vendors() {
                         tone={
                           vendor.score > 60 ? "danger" : vendor.score > 30 ? "warning" : "success"
                         }
+                        aria-hidden
                       />
                       <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
                         {vendor.score}

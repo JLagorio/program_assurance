@@ -1,12 +1,9 @@
-import { useCallback, useEffect, type SetStateAction, useMemo, useRef, useState } from "react";
 import { useRecordForm } from "@/lib/record-form";
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-
 import {
   Absent,
   Badge,
+  Box,
   Button,
-  Combobox,
   DataTable,
   defineColumns,
   Field,
@@ -14,13 +11,13 @@ import {
   Inline,
   Input,
   NativeSelect,
-  Progress,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
+  ProgressStacked,
   Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
   Stack,
   Text,
   Textarea,
@@ -28,8 +25,10 @@ import {
   toast,
   useDataTable,
 } from "@ledger/design-system";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from "react";
+
 import {
-  addCompositionNodes,
   childrenOf,
   descendantsOf,
   nextNodeId,
@@ -39,24 +38,24 @@ import {
   type NodeKind,
 } from "@/lib/composition";
 import {
-  createInitialRevision,
+  createCompositionNode,
+  moveCompositionNode,
+  updateCompositionNode,
+  validCompositionParents,
+} from "@/lib/composition-store";
+import {
   inForceRevision,
-  initialOverlayDecisions,
   openRevision,
   revisionTone,
   useControlSetVersion,
 } from "@/lib/control-set";
 import { useWorkVersion, workForScope } from "@/lib/control-work";
-import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
 import { programControlRows, programControlScopes } from "@/lib/program-controls";
+import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
 
-import { AllocateRequirementsSheet } from "./allocate-picker";
-import { ElementHover } from "./glances";
-import { NodePreviewSheet } from "./node-preview";
 import { suspectAllocationsUnder, useLinkCurrencyVersion } from "@/lib/link-currency";
 import { allocationsOn, derivedControlTrace, useRequirementsVersion } from "@/lib/requirements";
 import {
-  addScopes,
   controlSetFor,
   objectives,
   scopesForProgram,
@@ -64,10 +63,11 @@ import {
   useScopesVersion,
   type AssessmentScope,
 } from "@/lib/scopes";
+import { AllocateRequirementsSheet } from "./allocate-picker";
+import { ElementHover } from "./glances";
+import { NodePreviewSheet } from "./node-preview";
 
 const impactTone = { Low: "neutral", Moderate: "warning", High: "danger" } as const;
-
-const people = ["Grace Hoppel", "Marcus Ryde", "Dana Whitlock", "Priya Raghavan", "Sarah Chen"];
 
 /** Kinds a user can add by hand, with the class each implies. */
 const addableKinds: { kind: NodeKind; class: NodeClass }[] = [
@@ -122,7 +122,12 @@ export function SystemTree({
   const linkCurrencyVersion = useLinkCurrencyVersion();
   const workVersion = useWorkVersion();
 
-  const [adding, setAdding] = useState<CompositionNode | null>(null);
+  const [adding, setAdding] = useState<{
+    parent: CompositionNode;
+    kind: NodeKind;
+  } | null>(null);
+  const [editing, setEditing] = useState<CompositionNode | null>(null);
+  const [moving, setMoving] = useState<CompositionNode | null>(null);
   const [allocating, setAllocating] = useState<CompositionNode | null>(null);
   const navigate = useNavigate({ from: "/programs/$programId" });
   // The peek stack lives in the URL: the sheet's back chevron and the browser's back agree.
@@ -332,6 +337,39 @@ export function SystemTree({
               </Link>
             ) : null,
         }),
+        c.custom("edit", {
+          header: "",
+          width: 136,
+          hideable: false,
+          cell: (r) => (
+            <Inline space="space.050" alignBlock="center">
+              <Button
+                size="small"
+                variant="subtle"
+                aria-label={`Edit ${r.node.name}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setEditing(r.node);
+                }}
+              >
+                Edit
+              </Button>
+              {r.node.parent ? (
+                <Button
+                  size="small"
+                  variant="subtle"
+                  aria-label={`Move ${r.node.name}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setMoving(r.node);
+                  }}
+                >
+                  Move
+                </Button>
+              ) : null}
+            </Inline>
+          ),
+        }),
         c.actions((r) => [
           {
             label: "View controls",
@@ -371,7 +409,10 @@ export function SystemTree({
               ]
             : []),
           { label: "Allocate a requirement", onSelect: () => setAllocating(r.node) },
-          { label: "Add a part", onSelect: () => setAdding(r.node) },
+          {
+            label: "Add component",
+            onSelect: () => setAdding({ parent: r.node, kind: "Chassis" }),
+          },
           {
             label: "Open the full record",
             onSelect: () =>
@@ -397,6 +438,7 @@ export function SystemTree({
         Integrity: false,
         Availability: false,
         work: false,
+        controlSet: false,
       },
     },
     tree: {
@@ -426,20 +468,69 @@ export function SystemTree({
         table={table}
         onRowClick={(r) => setStack([r.node.id])}
         toolbar={
-          <Inline space="space.100" alignBlock="center" className="ml-auto">
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
+          <Inline space="space.100" alignBlock="center" shouldWrap className="w-full">
+            <Button
+              size="small"
+              variant="primary"
+              disabled={!nodes.some((node) => node.parent === null)}
+              onClick={() => {
+                const parent = nodes.find((node) => node.parent === null);
+                if (parent) setAdding({ parent, kind: "Subsystem" });
+              }}
+            >
+              Add subsystem
+            </Button>
+            <Button
+              size="small"
+              variant="secondary"
+              disabled={!nodes.length}
+              onClick={() => {
+                const parent =
+                  nodes.find((node) => node.kind === "Subsystem") ??
+                  nodes.find((node) => node.parent === null);
+                if (parent) setAdding({ parent, kind: "Chassis" });
+              }}
+            >
+              Add component
+            </Button>
+            <Inline className="ml-auto" space="space.100" alignBlock="center">
+              <DataTable.Columns table={table} />
+              <DataTable.Settings table={table} />
+            </Inline>
           </Inline>
         }
       />
 
-      <AddNodeSheet
-        open={adding !== null}
-        onClose={() => setAdding(null)}
-        programId={programId}
-        parent={adding}
-        scopes={scopes}
-      />
+      {adding ? (
+        <AddNodeSheet
+          open
+          onClose={() => setAdding(null)}
+          programId={programId}
+          parent={adding.parent}
+          initialKind={adding.kind}
+          onCreated={(node) => {
+            if (node.parent)
+              table.setExpanded((current) =>
+                current === true ? true : { ...current, [node.parent!]: true },
+              );
+          }}
+        />
+      ) : null}
+      {editing ? (
+        <EditNodeSheet node={editing} programId={programId} onClose={() => setEditing(null)} />
+      ) : null}
+      {moving ? (
+        <MoveNodeSheet
+          node={moving}
+          programId={programId}
+          onClose={() => setMoving(null)}
+          onMoved={(parentId) =>
+            table.setExpanded((current) =>
+              current === true ? true : { ...current, [parentId]: true },
+            )
+          }
+        />
+      ) : null}
       {allocating ? (
         <AllocateRequirementsSheet
           open
@@ -450,10 +541,12 @@ export function SystemTree({
       ) : null}
       <NodePreviewSheet
         programId={programId}
-        nodeId={preview}
+        nodeId={editing || moving ? null : preview}
         onClose={() => setStack([])}
         onSelect={(id) => setStack([...stack, id])}
         onBack={stack.length > 1 ? () => setStack(stack.slice(0, -1)) : undefined}
+        onEdit={setEditing}
+        onMove={setMoving}
       />
     </Stack>
   );
@@ -484,7 +577,7 @@ function WorkBar({ work }: { work: WorkSummary }) {
       alignBlock="center"
     >
       <span className="shrink-0" style={{ width: 64 }}>
-        <Progress.Stacked
+        <ProgressStacked
           size="medium"
           segments={[
             {
@@ -506,7 +599,7 @@ function WorkBar({ work }: { work: WorkSummary }) {
               title: `${work.unassigned} unassigned`,
             },
           ]}
-        />
+        ></ProgressStacked>
       </span>
       <Text size="xsmall" color="color.text.subtle" maxLines={1} className="tabular-nums">
         {work.satisfied}/{work.total}
@@ -544,6 +637,222 @@ function ControlSetCell({ scope }: { scope: AssessmentScope }) {
   return flag ?? <Absent />;
 }
 
+function EditNodeSheet({
+  node,
+  programId,
+  onClose,
+}: {
+  node: CompositionNode;
+  programId: string;
+  onClose: () => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const { form, values, formId, formRef, isSubmitting } = useRecordForm(
+    { name: node.name, supplier: node.supplier, version: node.version, note: node.note },
+    (value) => ({ name: value.name }),
+  );
+  const save = () =>
+    form.handleSubmit({
+      save: () => {
+        if (node.program !== programId) return;
+        try {
+          updateCompositionNode(node.id, {
+            name: values.name.trim(),
+            supplier: values.supplier.trim(),
+            version: values.version.trim(),
+            note: values.note.trim(),
+          });
+          toast.success("Element updated", { description: values.name.trim() });
+          onClose();
+        } catch (cause) {
+          setError(cause instanceof Error ? cause.message : "Could not update this element.");
+        }
+      },
+    });
+  return (
+    <Sheet
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <SheetContent side="end" style={{ maxWidth: 420 }}>
+        <SheetHeader>
+          <SheetTitle>Edit element</SheetTitle>
+          <SheetDescription>
+            {node.id} · {node.kind}
+          </SheetDescription>
+        </SheetHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          <form
+            id={formId}
+            ref={formRef}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void save();
+            }}
+          >
+            <Stack space="space.150">
+              {error ? (
+                <Text color="color.text.danger" role="alert">
+                  {error}
+                </Text>
+              ) : null}
+              {(["name", "supplier", "version", "note"] as const).map((key) => (
+                <form.Field key={key} name={key}>
+                  {(field) => (
+                    <Field
+                      label={key[0]!.toUpperCase() + key.slice(1)}
+                      isRequired={key === "name"}
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined
+                      }
+                    >
+                      {key === "note" ? (
+                        <Textarea
+                          name={field.name}
+                          value={field.state.value}
+                          onChange={(event) => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                        />
+                      ) : (
+                        <Input
+                          autoFocus={key === "name"}
+                          name={field.name}
+                          value={field.state.value}
+                          onChange={(event) => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                        />
+                      )}
+                    </Field>
+                  )}
+                </form.Field>
+              ))}
+            </Stack>
+          </form>
+        </Box>
+        <SheetFooter>
+          <Button variant="subtle" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" form={formId} disabled={isSubmitting}>
+            Save changes
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function MoveNodeSheet({
+  node,
+  programId,
+  onClose,
+  onMoved,
+}: {
+  node: CompositionNode;
+  programId: string;
+  onClose: () => void;
+  onMoved: (parentId: string) => void;
+}) {
+  const nodes = useCompositionGraph(programId);
+  const parents = validCompositionParents(node.id).filter((parent) => parent.program === programId);
+  const [error, setError] = useState<string | null>(null);
+  const { form, values, formId, formRef, isSubmitting } = useRecordForm(
+    { parentId: node.parent ?? "" },
+    (value) => ({ parentId: value.parentId }),
+  );
+  const move = () =>
+    form.handleSubmit({
+      save: () => {
+        if (node.program !== programId) return;
+        try {
+          moveCompositionNode(node.id, values.parentId);
+          onMoved(values.parentId);
+          toast.success("Element moved", { description: node.name });
+          onClose();
+        } catch (cause) {
+          setError(cause instanceof Error ? cause.message : "Could not move this element.");
+        }
+      },
+    });
+  return (
+    <Sheet
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <SheetContent side="end" style={{ maxWidth: 420 }}>
+        <SheetHeader>
+          <SheetTitle>Move {node.name}</SheetTitle>
+          <SheetDescription>
+            Current parent: {nodes.find((item) => item.id === node.parent)?.name ?? "—"}
+          </SheetDescription>
+        </SheetHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          <form
+            id={formId}
+            ref={formRef}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void move();
+            }}
+          >
+            <Stack space="space.150">
+              {error ? (
+                <Text color="color.text.danger" role="alert">
+                  {error}
+                </Text>
+              ) : null}
+              <form.Field name="parentId">
+                {(field) => (
+                  <Field label="New parent" isRequired>
+                    <NativeSelect
+                      aria-label="New parent"
+                      name={field.name}
+                      value={field.state.value}
+                      onChange={(event) => field.handleChange(event.target.value)}
+                      onBlur={field.handleBlur}
+                    >
+                      {parents.map((parent) => (
+                        <option key={parent.id} value={parent.id}>
+                          {parent.name} · {parent.kind}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Field>
+                )}
+              </form.Field>
+            </Stack>
+          </form>
+        </Box>
+        <SheetFooter>
+          <Button variant="subtle" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            type="submit"
+            form={formId}
+            disabled={
+              isSubmitting ||
+              !parents.some((parent) => parent.id === values.parentId) ||
+              values.parentId === node.parent
+            }
+          >
+            Move element
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 /* --------------------------------------------------------- Add a node */
 
 /**
@@ -556,25 +865,30 @@ export function AddNodeSheet({
   onClose,
   programId,
   parent,
-  scopes,
+  initialKind = "Subsystem",
+  onCreated,
 }: {
   open: boolean;
   onClose: () => void;
   programId: string;
   parent: CompositionNode | null;
-  scopes: AssessmentScope[];
+  initialKind?: NodeKind;
+  onCreated?: (node: CompositionNode) => void;
 }) {
+  const nodes = useCompositionGraph(programId);
+  const [error, setError] = useState<string | null>(null);
   const { form, values, setValue, formId, formRef } = useRecordForm(
     {
       name: "",
-      kind: "Subsystem" as NodeKind,
+      kind: initialKind,
+      parentId: parent?.id ?? "",
       note: "",
       owner: "",
-      basis: "",
     },
-    (value) => ({ name: value.name }),
+    (value) => ({ name: value.name, parentId: value.parentId }),
   );
-  const { name, kind, note, owner, basis } = values;
+  const { name, kind, note, owner, parentId } = values;
+  const selectedParent = nodes.find((node) => node.id === parentId) ?? null;
   const setName = useCallback(
     (value: SetStateAction<typeof name>) => setValue("name", value),
     [setValue],
@@ -591,72 +905,47 @@ export function AddNodeSheet({
     (value: SetStateAction<typeof owner>) => setValue("owner", value),
     [setValue],
   );
-  const setBasis = useCallback(
-    (value: SetStateAction<typeof basis>) => setValue("basis", value),
-    [setValue],
-  );
-
   const chosen = addableKinds.find((k) => k.kind === kind) ?? addableKinds[0]!;
   const isScope = kind === "Subsystem" || kind === "Enclave";
-  const basisScope = scopes.find((s) => s.id === basis) ?? scopes[0] ?? null;
+  const basisScope = selectedParent ? closestProgramScope(programId, selectedParent.id) : undefined;
 
   const reset = () => {
     setName("");
-    setKind("Subsystem");
+    setKind(initialKind);
     setNote("");
     setOwner("");
-    setBasis("");
   };
 
   const create = () => {
     return form.handleSubmit({
       save: () => {
-        if (!name.trim() || !parent) return;
-        const [node] = addCompositionNodes([
-          {
-            id: nextNodeId(),
-            name: name.trim(),
-            kind: chosen.kind,
-            class: chosen.class,
-            parent: parent.id,
-            program: programId,
-            note: note.trim(),
-          },
-        ]);
-        if (!node) return;
-        if (isScope && basisScope) {
-          const [scope] = addScopes([
+        if (!name.trim() || !selectedParent) return;
+        try {
+          const node = createCompositionNode(
             {
-              program: programId,
-              element: node.id,
+              id: nextNodeId(),
               name: name.trim(),
-              owner: owner || basisScope.owner,
-              mission: note.trim() || `${name.trim()} subsystem.`,
-              independentlyAuthorized: false,
-              parameters: { ...basisScope.parameters },
-              separationBasis: `Categorized as ${basisScope.name} until its own boundary is demonstrated.`,
-            },
-          ]);
-          if (scope) {
-            const rev = createInitialRevision({
+              kind: chosen.kind,
+              class: chosen.class,
+              parent: selectedParent.id,
               program: programId,
-              scope: scope.id,
-              parameters: { ...basisScope.parameters },
-              overlays: initialOverlayDecisions(basisScope.parameters),
-              tailoring: [],
-              separationBasis: scope.separationBasis,
-              reason: `Subsystem added under ${parent.name}`,
-              submit: false,
-            });
-            toast.success(`${scope.id} created`, {
-              description: `${name.trim()} · categorized as ${basisScope.name} · v${rev.number} draft`,
-            });
-          }
-        } else {
-          toast.success(`${node.id} added`, { description: `${name.trim()} under ${parent.name}` });
+              note: note.trim(),
+            },
+            {
+              ...(basisScope ? { basisScopeId: basisScope.id } : {}),
+              ...(owner ? { owner } : {}),
+            },
+          );
+          if (!node) return;
+          toast.success(`${node.id} added`, {
+            description: `${name.trim()} under ${selectedParent.name}`,
+          });
+          onCreated?.(node);
+          reset();
+          onClose();
+        } catch (cause) {
+          setError(cause instanceof Error ? cause.message : "Could not add this element.");
         }
-        reset();
-        onClose();
       },
     });
   };
@@ -664,168 +953,183 @@ export function AddNodeSheet({
   return (
     <Sheet
       open={open}
-      onClose={() => {
-        reset();
-        onClose();
+      onOpenChange={(next) => {
+        if (!next) {
+          reset();
+          onClose();
+        }
       }}
-      title={parent ? `Add under ${parent.name}` : "Add an element"}
-      subtitle={
-        isScope
-          ? "A node in the tree, a scope of its own, and revision 1 of its control set."
-          : "A part of the system. It inherits the obligations of the subsystem that contains it."
-      }
-      footer={
-        <>
-          <Button
-            variant="subtle"
-            onClick={() => {
-              reset();
-              onClose();
+    >
+      <SheetContent side="end" style={{ maxWidth: 420 }}>
+        <SheetHeader>
+          <SheetTitle>{isScope ? "Add subsystem" : "Add component"}</SheetTitle>
+          <SheetDescription>Choose where it belongs.</SheetDescription>
+        </SheetHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          <form
+            id={formId + "-1"}
+            ref={formRef}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void create();
             }}
           >
-            Cancel
-          </Button>
-          <Button variant="primary" type="submit" form={formId + "-1"} disabled={!parent}>
-            Add {kind.toLowerCase()}
-          </Button>
-        </>
-      }
-    >
-      <form
-        id={formId + "-1"}
-        ref={formRef}
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          void create();
-        }}
-      >
-        <Stack space="space.150">
-          <form.Field name="kind">
-            {(field) => (
-              <Field
-                label="Kind"
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-              >
-                <NativeSelect
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value as NodeKind)}
-                  aria-label="Kind"
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                >
-                  {addableKinds.map((k) => (
-                    <option key={k.kind} value={k.kind}>
-                      {k.kind} · {k.class}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="name">
-            {(field) => (
-              <Field
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label="Name"
-              >
-                <Input
-                  autoFocus
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder={isScope ? "Flight computer" : "Mission data bus controller"}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="note">
-            {(field) => (
-              <Field
-                label={isScope ? "Function" : "Note"}
-                hint="What it does for the mission."
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-              >
-                <Textarea
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Flight control laws, actuator command, and the mission data bus."
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-          {isScope ? (
-            <>
-              <form.Field name="owner">
+            <Stack space="space.150">
+              {error ? (
+                <Text color="color.text.danger" role="alert">
+                  {error}
+                </Text>
+              ) : null}
+              <form.Field name="parentId">
                 {(field) => (
                   <Field
-                    label="Owner"
+                    label="Parent"
+                    isRequired
                     error={
                       field.state.meta.isTouched && !field.state.meta.isValid
                         ? [...new Set(field.state.meta.errors)].join(" ")
                         : undefined
                     }
                   >
-                    <Combobox
+                    <NativeSelect
                       value={field.state.value}
-                      onChange={field.handleChange}
-                      options={people.map((p) => ({ value: p, label: p }))}
-                      placeholder={basisScope ? `Inherits ${basisScope.owner}` : "Choose an owner"}
-                      searchPlaceholder="Search people…"
-                      className="w-full"
+                      onChange={(event) => field.handleChange(event.target.value)}
+                      aria-label="Parent"
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    >
+                      {nodes.map((node) => (
+                        <option key={node.id} value={node.id}>
+                          {node.name} · {node.kind}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Field>
+                )}
+              </form.Field>
+              <form.Field name="kind">
+                {(field) => (
+                  <Field
+                    label="Kind"
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined
+                    }
+                  >
+                    <NativeSelect
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value as NodeKind)}
+                      aria-label="Kind"
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    >
+                      {addableKinds.map((k) => (
+                        <option key={k.kind} value={k.kind}>
+                          {k.kind} · {k.class}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Field>
+                )}
+              </form.Field>
+              <form.Field name="name">
+                {(field) => (
+                  <Field
+                    isRequired
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined
+                    }
+                    label="Name"
+                  >
+                    <Input
+                      autoFocus
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder={isScope ? "Flight computer" : "Mission data bus controller"}
                       name={field.name}
                       onBlur={field.handleBlur}
                     />
                   </Field>
                 )}
               </form.Field>
+              <form.Field name="note">
+                {(field) => (
+                  <Field
+                    label={isScope ? "Function" : "Note"}
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined
+                    }
+                  >
+                    <Textarea
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Flight control laws, actuator command, and the mission data bus."
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+              {basisScope ? (
+                <form.Field name="owner">
+                  {(field) => (
+                    <Field
+                      label="Owner"
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined
+                      }
+                    >
+                      <Input
+                        value={field.state.value}
+                        onChange={(event) => field.handleChange(event.target.value)}
+                        placeholder="Name or team"
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                </form.Field>
+              ) : null}
               <Field
-                label="Start from the categorization of"
-                hint="Copied into revision 1 as a draft; change it on the scope's Control set tab before submitting."
+                label="Starting control set"
+                hint={
+                  basisScope ? "Review and tailor the draft on the Control set tab." : undefined
+                }
               >
-                <Select
-                  items={scopes.map((s) => ({
-                    value: s.id,
-                    label: `${s.name} · ${triadOf(s).Confidentiality[0]}-${triadOf(s).Integrity[0]}-${triadOf(s).Availability[0]}`,
-                  }))}
-                  value={basisScope?.id ?? null}
-                  onValueChange={(value) => {
-                    if (value !== null) setBasis(value);
-                  }}
-                >
-                  <SelectTrigger className="w-full" aria-label="Basis scope">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent align="start" alignItemWithTrigger={false}>
-                    {scopes.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name} · {triadOf(s).Confidentiality[0]}-{triadOf(s).Integrity[0]}-
-                        {triadOf(s).Availability[0]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Text>
+                  {basisScope
+                    ? `${basisScope.name} · ${controlSetFor(basisScope.id)?.total ?? 0} controls`
+                    : "No parent control set"}
+                </Text>
               </Field>
-            </>
-          ) : null}
-        </Stack>
-      </form>
+            </Stack>
+          </form>
+        </Box>
+        <SheetFooter>
+          <>
+            <Button
+              variant="subtle"
+              onClick={() => {
+                reset();
+                onClose();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" form={formId + "-1"} disabled={!selectedParent}>
+              {isScope ? "Add subsystem" : "Add component"}
+            </Button>
+          </>
+        </SheetFooter>
+      </SheetContent>
     </Sheet>
   );
 }

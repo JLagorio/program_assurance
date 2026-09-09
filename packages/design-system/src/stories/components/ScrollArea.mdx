@@ -1,102 +1,37 @@
-import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-
-import { ScrollArea } from "../../components";
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
 import * as Stories from "./ScrollArea.stories";
 
 <Meta of={Stories} />
 
 # ScrollArea
 
-A region that scrolls with the kit's thin bar instead of the platform's, so a rail looks the same on every OS and the bar takes no room from the content. A rail of facts in a fixed height, a list in a Resizable pane, a table wider than its card. The viewport is a tab stop, so a keyboard reader scrolls it too.
-
-The page scrolls on its own; a ScrollArea is for a region inside the page that has a height of its own. A register is a [DataTable](?path=/docs/patterns-datatable--docs), which scrolls itself with its header held. Source is a [CodeBlock](?path=/docs/components-codeblock--docs), which keeps the platform's bar so its gutter can stick.
-
-<Canvas of={Stories.Rail} />
+Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/scroll-area) and [Base UI](https://base-ui.com/react/components/scroll-area). Ledger retains its tokens and application layouts.
 
 ## Anatomy
 
-| Part     | What it is                                                                                                                                         |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Region   | The box, sized by `className`; it clips and never grows taller than its content. Radix ScrollArea underneath.                                      |
-| Viewport | What scrolls: the content at its full size. A tab stop, and a region named by `label` when one is given.                                           |
-| Bar      | Over the content's edge, `space.100` wide with `space.025` around the thumb; vertical, horizontal or both. It does not take room from the content. |
-| Thumb    | `color.background.neutral.pressed`, `radius.full`; `color.background.neutral.bold` under the pointer. Its length is the visible share.             |
-| Corner   | Where two bars meet, when there are two.                                                                                                           |
+A bounded scrolling region following shadcn’s ScrollArea and ScrollBar composition. ScrollArea includes the viewport, a vertical scrollbar and corner. Add ScrollBar with orientation="horizontal" for horizontal overflow.
 
 ## Variants
 
-By orientation. **Vertical**, the default: a rail, a list, a pane. **Horizontal**: a table wider than its card, a strip. **Both**: a large figure. The bar is the same in each.
+<Canvas of={Stories.Vertical} />
 
-<Canvas of={Stories.Wide} />
-
-Use it for a scrollable details rail, a list in a [Resizable](?path=/docs/components-resizable--docs) pane, or a card with a wide table.
-
-## Sizes
-
-None of its own: `className` sizes it (`h-full` in a pane, `max-h-full` in a rail, a fixed height on a card), and it is never taller than its content. The bar is 8px, `space.100`, and the thumb 4px inside it.
-
-## States
-
-| State     | Look                                                                                                                |
-| --------- | ------------------------------------------------------------------------------------------------------------------- |
-| Rest      | The content; no bar, under `hover`.                                                                                 |
-| Hover     | The bar fades in while the pointer is over the region, and stays 600ms after the last scroll.                       |
-| Always    | `bar="always"`: the bar stays, so the reader sees there is more.                                                    |
-| Scrolling | The thumb moves; under the pointer it darkens to `color.background.neutral.bold`.                                   |
-| Focus     | The kit's focus outline on the viewport, on keyboard focus, so a keyboard reader sees which region the arrows move. |
-| Fits      | The content fits: no bar, nothing to scroll, the region is exactly its content.                                     |
-
-<Canvas of={Stories.ScrollAreaMatrix} />
-
-## Modifiers
-
-- **`orientation`**, as in Variants.
-- **`bar`**: `hover`, the default, or `always`, for a list whose length matters, where a reader should see there is more without touching it.
-- **`label`**: names the region for a screen reader ("Facts", "Related"), so a keyboard reader who lands on it knows what scrolls. Unsaid, it is a plain scrolling box that still takes focus.
-
-<Canvas of={Stories.Always} />
-
-## Content
-
-- **One region of a kind per view.** Two scrolling boxes side by side is a layout the reader has to manage.
-- **The region has a reason for its height:** a rail beside a page, a pane in a split, a card of fixed size. Not a box that could have been taller.
-- **Nothing important below the fold of a hover bar.** A control the reader must find sits above it, or the bar is `always`.
-- **Horizontal scrolling is for tables and figures,** never for text.
-
-## Style
-
-| Element | Token                                                                                                                                                                                                                                                                                                       |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bar     | `space.100` 8px · `space.025` around the thumb                                                                                                                                                                                                                                                              |
-| Thumb   | `color.background.neutral.pressed` · `color.background.neutral.bold` hovered · `radius.full` · `motion.duration.fast` on `motion.easing.standard`                                                                                                                                                           |
-| Focus   | The kit's focus outline, `color.border.focused`, on the viewport                                                                                                                                                                                                                                            |
-| Edge    | The viewport chains: at its end the gesture goes on to the page, as every scroller in the flow of a page does. Only the root and the surfaces with nothing behind them (the shell's side nav and panel, a sheet's, dialog's or drawer's body, a menu, a listbox) stop at their edge, with `overscroll-none` |
+<Canvas of={Stories.HorizontalAndRTL} />
 
 ## Accessibility
 
-- **The viewport is a tab stop,** so a region that scrolls can be reached and moved with the arrows, Page Up and Page Down, Home and End, without a pointer. This is the rule a scrollable region must meet.
-- **With `label` it is a region** named by it, so a screen reader announces "Facts, region" on arrival and lists it among the landmarks. Give one wherever the region is not the only thing in its container.
-- **The bar is not in the tab order** and has no role: it is a drawing of where the reader is, and the viewport is the control.
-- **The bar takes no room,** so nothing reflows when it appears.
-- **The region reaches its edge and hands on.** Scrolling past its end moves the page behind it, as any scroller in the flow of a page does, and a swipe never becomes the browser's back gesture: the page holds `overscroll-behavior: none` at the root, from `base.css`. The surfaces with nothing behind them (the shell's side nav and panel, a sheet's, dialog's or drawer's body, a menu, a listbox) stop at their edge instead, with `overscroll-none` on their own element. A region in the flow must not: Chrome contains a gesture in any scroller whose overflow is auto, whether or not it has anything to scroll and in every axis the gesture touches, so a region that fits its content would swallow the wheel and the page would not scroll under the pointer.
-- **The a11y gate** checks the focusability and the name in the matrix.
+Base UI manages keyboard scrolling, scrollbar geometry and dragging. Its viewport becomes keyboard-reachable when it overflows. Use viewportProps to name the scrolling region and expose its native ref/events. Direction follows LedgerProvider or explicit dir.
 
 ## Props
 
-<ArgTypes of={ScrollArea} />
+Root exposes Base UI ScrollArea props, native refs, render and state callbacks; viewportProps forwards the corresponding viewport contract. ScrollBar exposes native scrollbar props, including orientation and keepMounted. Bars appear when there is overflow, following the source behavior.
 
-### Playground
+### Migration and API
 
-<Canvas of={Stories.Playground} />
-
-<Controls of={Stories.Playground} />
+- Replace label with viewportProps containing role="region" and aria-label. Put sizing classes on ScrollArea.
+- Replace root orientation="horizontal"/"both" with a horizontal ScrollBar child; overflow determines which bars are needed.
+- The old bar visibility shortcut and fixed hide delay are removed. Native state attributes and classes can style hovering/scrolling if needed.
 
 ## Related
 
-- [Resizable](?path=/docs/components-resizable--docs): the panes a ScrollArea sits in.
-- [DataTable](?path=/docs/patterns-datatable--docs): a register that scrolls itself, header held.
-- [CodeBlock](?path=/docs/components-codeblock--docs): source, on the platform's bar.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+- [Resizable](?path=/docs/components-resizable--docs)
+- [Table](?path=/docs/components-table--docs)

@@ -1,25 +1,24 @@
-import { useCallback, type SetStateAction, useId, useState } from "react";
-import { useRecordForm } from "@/lib/record-form";
 import { UnavailableAction } from "@/components/app/unavailable-action";
+import { useRecordForm } from "@/lib/record-form";
 import { addRiskTreatment, treatmentsForRisk, useRisksVersion } from "@/lib/risk-store";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ChevronLeft, MoreHorizontal, Paperclip, Pencil } from "lucide-react";
-
 import {
   Badge,
-  Empty,
-  toast,
   Box,
   Button,
   buttonVariants,
   DatePicker,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Empty,
   Field,
   Grid,
   IconButton,
   Id,
   Inline,
-  Input,
   Inspector,
   KeyValue,
   NativeSelect,
@@ -29,9 +28,14 @@ import {
   Textarea,
   TextLink,
   Timeline,
+  toast,
 } from "@ledger/design-system";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronLeft, MoreHorizontal, Paperclip } from "lucide-react";
+import { useCallback, useId, useState, type SetStateAction } from "react";
+
 import { Shell } from "@/components/app/shell";
-import { riskStatusTone, risks } from "@/lib/grc-data";
+import { risks, riskStatusTone } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/risks/$riskId")({
   loader: ({ params }) => {
@@ -311,135 +315,147 @@ function RiskDetail() {
 
       <Dialog
         open={treating}
-        onClose={() => setTreating(false)}
-        title="Add treatment"
-        description={`Recorded against ${risk.id} and saved in this browser.`}
-        footer={
-          <>
-            <Button variant="subtle" onClick={() => setTreating(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              form={treatmentFormId}
-              disabled={form.state.isSubmitting}
-            >
-              Add treatment
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setTreating(false);
+          }
+        }}
       >
-        <form
-          id={treatmentFormId}
-          ref={formRef}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            saveTreatment();
-          }}
-        >
-          <Stack space="space.150">
-            {saveError ? (
-              <p role="alert" className="text-danger">
-                {saveError}
-              </p>
-            ) : null}
-            <form.Field name="action">
-              {(field) => (
-                <Field
-                  label="Action"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? field.state.meta.errors.join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  >
-                    {["Mitigate", "Accept", "Transfer", "Avoid"].map((t) => (
-                      <option key={t}>{t}</option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="plan">
-              {(field) => (
-                <Field
-                  label="Plan"
-                  hint="Include the control change and how it will be verified."
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? field.state.meta.errors.join(" ")
-                      : undefined
-                  }
-                >
-                  <Textarea
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Enforce tenant scoping in the export resolver and add a regression test."
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-            <Grid
-              gap="space.150"
-              templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Add treatment</DialogTitle>
+            <DialogDescription>{`Recorded against ${risk.id} and saved in this browser.`}</DialogDescription>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <form
+              id={treatmentFormId}
+              ref={formRef}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                saveTreatment();
+              }}
             >
-              <form.Field name="assignee">
-                {(field) => (
-                  <Field
-                    label="Assignee"
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? field.state.meta.errors.join(" ")
-                        : undefined
-                    }
-                  >
-                    <NativeSelect
-                      value={field.state.value}
-                      onChange={(event) => field.handleChange(event.target.value)}
-                      name={field.name}
-                      onBlur={field.handleBlur}
+              <Stack space="space.150">
+                {saveError ? (
+                  <p role="alert" className="text-danger">
+                    {saveError}
+                  </p>
+                ) : null}
+                <form.Field name="action">
+                  {(field) => (
+                    <Field
+                      label="Action"
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? field.state.meta.errors.join(" ")
+                          : undefined
+                      }
                     >
-                      {["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map((o) => (
-                        <option key={o}>{o}</option>
-                      ))}
-                    </NativeSelect>
-                  </Field>
-                )}
-              </form.Field>
-              <form.Field name="due">
-                {(field) => (
-                  <Field
-                    label="Due date"
-                    isRequired
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? field.state.meta.errors.join(" ")
-                        : undefined
-                    }
-                  >
-                    <DatePicker
-                      value={field.state.value}
-                      onChange={field.handleChange}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                    />
-                  </Field>
-                )}
-              </form.Field>
-            </Grid>
-          </Stack>
-        </form>
+                      <NativeSelect
+                        value={field.state.value}
+                        onChange={(event) => field.handleChange(event.target.value)}
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      >
+                        {["Mitigate", "Accept", "Transfer", "Avoid"].map((t) => (
+                          <option key={t}>{t}</option>
+                        ))}
+                      </NativeSelect>
+                    </Field>
+                  )}
+                </form.Field>
+                <form.Field name="plan">
+                  {(field) => (
+                    <Field
+                      label="Plan"
+                      hint="Include the control change and how it will be verified."
+                      isRequired
+                      error={
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? field.state.meta.errors.join(" ")
+                          : undefined
+                      }
+                    >
+                      <Textarea
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="Enforce tenant scoping in the export resolver and add a regression test."
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                </form.Field>
+                <Grid
+                  gap="space.150"
+                  templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+                >
+                  <form.Field name="assignee">
+                    {(field) => (
+                      <Field
+                        label="Assignee"
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? field.state.meta.errors.join(" ")
+                            : undefined
+                        }
+                      >
+                        <NativeSelect
+                          value={field.state.value}
+                          onChange={(event) => field.handleChange(event.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        >
+                          {["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map(
+                            (o) => (
+                              <option key={o}>{o}</option>
+                            ),
+                          )}
+                        </NativeSelect>
+                      </Field>
+                    )}
+                  </form.Field>
+                  <form.Field name="due">
+                    {(field) => (
+                      <Field
+                        label="Due date"
+                        isRequired
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? field.state.meta.errors.join(" ")
+                            : undefined
+                        }
+                      >
+                        <DatePicker
+                          value={field.state.value}
+                          onChange={field.handleChange}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                </Grid>
+              </Stack>
+            </form>
+          </Box>
+          <DialogFooter>
+            <>
+              <Button variant="subtle" onClick={() => setTreating(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                form={treatmentFormId}
+                disabled={form.state.isSubmitting}
+              >
+                Add treatment
+              </Button>
+            </>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </Shell>
   );

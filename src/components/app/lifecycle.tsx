@@ -1,14 +1,19 @@
-import { useEffect, Fragment, useMemo, useState } from "react";
 import { useRecordForm } from "@/lib/record-form";
-
 import {
   Badge,
   Box,
   Button,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Eyebrow,
   Field,
   Grid,
   Id,
+  Indicator,
   Inline,
   Input,
   KeyValue,
@@ -17,9 +22,9 @@ import {
   Stack,
   Table,
   Textarea,
-  Indicator,
-  Eyebrow,
 } from "@ledger/design-system";
+import { Fragment, useEffect, useMemo, useState } from "react";
+
 import {
   gateKindTone,
   gateStatusTone,
@@ -221,188 +226,210 @@ function GateModal({
   return (
     <Dialog
       open={Boolean(gate)}
-      onClose={onClose}
-      width="large"
-      title={`${gate.id} — ${gate.name}`}
-      description={`${programId} · ${gate.phase}`}
-      aside={
-        <div>
-          <Eyebrow as="p">Gate detail</Eyebrow>
-          <Box paddingBlockStart="space.100">
-            <KeyValue label="Type">{gate.kind}</KeyValue>
-            <KeyValue label="Phase">{gate.phase}</KeyValue>
-            <KeyValue label="Cyber gate">{gate.cyberGate}</KeyValue>
-            <KeyValue label="Artifact">{draft.artifact}</KeyValue>
-          </Box>
-          <p className="pt-150 border-t border-default font-body-small text-subtle">
-            {gate.description}
-          </p>
-        </div>
-      }
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            form={formId + "-1"}
-            disabled={form.state.isSubmitting}
-          >
-            Save gate
-          </Button>
-        </>
-      }
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <form
-        id={formId + "-1"}
-        ref={formRef}
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit({
-            save: () => {
-              onSave(draft);
-            },
-          });
-        }}
+      <DialogContent
+        style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+        className="top-200 translate-y-0 sm:top-600"
       >
-        <Stack space="space.150">
-          <Grid
-            gap="space.150"
-            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-          >
-            <form.Field name="draft.status">
-              {(field) => (
-                <Field
-                  label="Status"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <NativeSelect
-                    value={field.state.value ?? ""}
-                    onChange={(e) => field.handleChange(e.target.value as GateStatus)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
+        <DialogHeader>
+          <DialogTitle>{`${gate.id} — ${gate.name}`}</DialogTitle>
+          <DialogDescription>{`${programId} · ${gate.phase}`}</DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none">
+          <Box className="grid grid-cols-1 md:grid-cols-3">
+            <Box className="px-250 py-200 md:col-span-2">
+              <form
+                id={formId + "-1"}
+                ref={formRef}
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void form.handleSubmit({
+                    save: () => {
+                      onSave(draft);
+                    },
+                  });
+                }}
+              >
+                <Stack space="space.150">
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
-                    {(
-                      ["Planned", "In progress", "At risk", "Blocked", "Complete"] as GateStatus[]
-                    ).map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="draft.owner">
-              {(field) => (
-                <Field
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                  label="Owner"
-                >
-                  <Input
-                    value={field.state.value ?? ""}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="draft.planned">
-              {(field) => (
-                <Field
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                  label="Planned date"
-                >
-                  <Input
-                    value={field.state.value ?? ""}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-            <form.Field name="draft.actual">
-              {(field) => (
-                <Field
-                  label="Actual date"
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                >
-                  <Input
-                    value={field.state.value ?? ""}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
-            </form.Field>
-          </Grid>
-          <form.Field name="draft.artifact">
-            {(field) => (
-              <Field
-                label="Artifact of record"
-                hint="SSP, SAR, IATT memo, review minutes."
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-              >
-                <Input
-                  value={field.state.value ?? ""}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="note">
-            {(field) => (
-              <Field
-                label="Entry note"
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-              >
-                <Textarea
-                  rows={3}
-                  value={field.state.value ?? ""}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Assessment findings, exit criteria met, dependencies…"
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-        </Stack>
-      </form>
+                    <form.Field name="draft.status">
+                      {(field) => (
+                        <Field
+                          label="Status"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <NativeSelect
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value as GateStatus)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          >
+                            {(
+                              [
+                                "Planned",
+                                "In progress",
+                                "At risk",
+                                "Blocked",
+                                "Complete",
+                              ] as GateStatus[]
+                            ).map((s) => (
+                              <option key={s} value={s}>
+                                {s}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="draft.owner">
+                      {(field) => (
+                        <Field
+                          isRequired
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                          label="Owner"
+                        >
+                          <Input
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="draft.planned">
+                      {(field) => (
+                        <Field
+                          isRequired
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                          label="Planned date"
+                        >
+                          <Input
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="draft.actual">
+                      {(field) => (
+                        <Field
+                          label="Actual date"
+                          error={
+                            field.state.meta.isTouched && !field.state.meta.isValid
+                              ? [...new Set(field.state.meta.errors)].join(" ")
+                              : undefined
+                          }
+                        >
+                          <Input
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                  </Grid>
+                  <form.Field name="draft.artifact">
+                    {(field) => (
+                      <Field
+                        label="Artifact of record"
+                        hint="SSP, SAR, IATT memo, review minutes."
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                      >
+                        <Input
+                          value={field.state.value ?? ""}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                  <form.Field name="note">
+                    {(field) => (
+                      <Field
+                        label="Entry note"
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                      >
+                        <Textarea
+                          rows={3}
+                          value={field.state.value ?? ""}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="Assessment findings, exit criteria met, dependencies…"
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                </Stack>
+              </form>
+            </Box>
+            <Box className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+              <div>
+                <Eyebrow as="p">Gate detail</Eyebrow>
+                <Box paddingBlockStart="space.100">
+                  <KeyValue label="Type">{gate.kind}</KeyValue>
+                  <KeyValue label="Phase">{gate.phase}</KeyValue>
+                  <KeyValue label="Cyber gate">{gate.cyberGate}</KeyValue>
+                  <KeyValue label="Artifact">{draft.artifact}</KeyValue>
+                </Box>
+                <p className="pt-150 border-t border-default font-body-small text-subtle">
+                  {gate.description}
+                </p>
+              </div>
+            </Box>
+          </Box>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="subtle" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId + "-1"}
+              disabled={form.state.isSubmitting}
+            >
+              Save gate
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

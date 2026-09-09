@@ -140,4 +140,89 @@ describe("requirement persistence", () => {
     expect(() => reloaded.restoreRequirements()).toThrow();
     expect(JSON.stringify(reloaded.requirements)).toBe(before);
   });
+
+  it("allocates an independent requirement without controls and links mapped versus derived controls separately", async () => {
+    let store = await import("./requirements");
+    const requirement = store.addRequirement(draft);
+    const originalSources = structuredClone(requirement.derivations);
+    const allocation = store.addAllocation({ ...allocationDraft, requirement: requirement.id });
+    expect(store.requirementControlOrigin(requirement)).toBe("No control");
+    expect(requirement.derivations).toEqual(originalSources);
+    expect(store.controlDerivationsForRequirement(requirement.id)).toEqual([]);
+    const priorAllocation = structuredClone(store.allocationsFor(requirement.id));
+    expect(
+      store.linkRequirementControls(
+        requirement.id,
+        [{ id: "AC-11", label: "Device lock" }],
+        "mapped",
+        "The session lock supports the control.",
+      ),
+    ).toEqual(["AC-11"]);
+    expect(
+      store.linkRequirementControls(
+        requirement.id,
+        [{ id: "AC-12", label: "Session termination" }],
+        "derived",
+        "The control statement is the source of this obligation.",
+      ),
+    ).toEqual(["AC-12"]);
+    expect(store.allocationsFor(requirement.id)).toEqual(priorAllocation);
+    expect(draft.derivations).toEqual(originalSources);
+    expect(requirement.state).toBe("Draft");
+    expect(
+      store
+        .controlDerivationsForRequirement(requirement.id)
+        .map(({ sourceId, relation }) => ({ sourceId, relation })),
+    ).toEqual([
+      { sourceId: "AC-11", relation: "mapped" },
+      { sourceId: "AC-12", relation: "derived" },
+    ]);
+    expect(
+      store.linkRequirementControls(
+        requirement.id,
+        [{ id: "AC-12", label: "Session termination" }],
+        "mapped",
+        "Duplicate.",
+      ),
+    ).toEqual([]);
+
+    vi.resetModules();
+    store = await import("./requirements");
+    store.restoreRequirements();
+    expect(store.getRequirement(requirement.id)?.state).toBe("Draft");
+    expect(store.allocationsFor(requirement.id)).toEqual([
+      expect.objectContaining({ id: allocation.id, state: "Proposed" }),
+    ]);
+    expect(
+      store
+        .controlDerivationsForRequirement(requirement.id)
+        .map(({ sourceId, relation }) => ({ sourceId, relation })),
+    ).toEqual([
+      { sourceId: "AC-11", relation: "mapped" },
+      { sourceId: "AC-12", relation: "derived" },
+    ]);
+  });
+
+  it("does not allocate while linking controls and saves a multiple-control change atomically", async () => {
+    const store = await import("./requirements");
+    const requirement = store.addRequirement(draft);
+    const before = structuredClone(requirement.derivations);
+    setItem.mockImplementation(() => {
+      throw new Error("Quota exceeded");
+    });
+    expect(() =>
+      store.linkRequirementControls(
+        requirement.id,
+        [
+          { id: "AC-11", label: "Device lock" },
+          { id: "AC-12", label: "Session termination" },
+        ],
+        "mapped",
+        "Supports session security.",
+      ),
+    ).toThrow("Quota exceeded");
+    expect(store.getRequirement(requirement.id)?.derivations).toEqual(before);
+    expect(store.allocationsFor(requirement.id)).toEqual([]);
+    expect(store.getRequirement(requirement.id)?.state).toBe("Draft");
+  });
 });

@@ -1,14 +1,7 @@
-/**
- * Coverage by control family as a chart: one stacked column per family, the four determinations
- * in the status tones, least satisfied first. A click on a segment opens the family's card and
- * filters the control matrix under it to that family and status; Enter on a focused column takes
- * the family alone. The Frame lays the same numbers out as a table with the family's name, total,
- * inherited count, share and owner beside the determinations, hands them over as CSV or PNG, and
- * expands.
- */
-
 import { useMemo } from "react";
 
+import type { ControlStatus } from "@/lib/control-matrix";
+import type { Coverage } from "@/lib/program-coverage";
 import {
   Chart,
   KeyValue,
@@ -18,8 +11,6 @@ import {
   type ChartSelection,
   type ChartSeries,
 } from "@ledger/design-system";
-import type { ControlStatus } from "@/lib/control-matrix";
-import type { Coverage } from "@/lib/program-coverage";
 
 /** The four determinations, in the status tones the rest of the record uses. */
 const coverageSeries: ChartSeries[] = [

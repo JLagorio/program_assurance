@@ -1,34 +1,27 @@
-/**
- * The full RMF timeline: acquisition phases → gates → milestones.
- *
- * Phases come from the DoD lifecycle, gates from the program's lifecycle
- * record, and the milestones under each gate auto-populate from the controls
- * and workstreams that are tied to that gate. Nothing here is hand-maintained.
- */
-
-import { useMemo } from "react";
-import { Link } from "@tanstack/react-router";
-
 import {
   Badge,
   Box,
   Button,
   Dot,
+  Eyebrow,
   Id,
   Inline,
   Person,
-  Progress,
+  ProgressStacked,
   Section,
   Stack,
   Table,
   TextLink,
-  Eyebrow,
 } from "@ledger/design-system";
-import { cn } from "@ledger/design-system/cn";
-import { gatesForProgram, gateKindTone, lifecyclePhases, type ProgramGate } from "@/lib/grc-data";
-import { daysUntil } from "@/lib/program-stage";
-import { workstreamsForProgram } from "@/lib/people";
+import { Link } from "@tanstack/react-router";
+import { useMemo } from "react";
+
 import type { ControlRow } from "@/lib/control-matrix";
+import { gateKindTone, gatesForProgram, lifecyclePhases, type ProgramGate } from "@/lib/grc-data";
+import { workstreamsForProgram } from "@/lib/people";
+import { daysUntil } from "@/lib/program-stage";
+
+import { cn } from "@ledger/design-system/cn";
 
 type Tone = "success" | "warning" | "danger" | "information" | "neutral";
 
@@ -76,13 +69,13 @@ export function RmfTimeline({
       action={
         <Box style={{ width: 240, maxWidth: "100%" }}>
           <Inline space="space.100" alignBlock="center">
-            <Progress.Stacked
+            <ProgressStacked
               size="small"
               segments={[
                 { key: "d", value: done, tone: "success" },
                 { key: "r", value: gates.length - done, tone: "neutral" },
               ]}
-            />
+            ></ProgressStacked>
             <span className="tabular-nums shrink-0 font-body-small text-subtle">
               {done}/{gates.length}
             </span>

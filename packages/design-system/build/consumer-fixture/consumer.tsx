@@ -1,146 +1,203 @@
-import { createRef, type ComponentProps } from "react";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectGroup,
-  SelectLabel,
-  SelectItem,
-  SelectSeparator,
-  SelectScrollUpButton,
-  SelectScrollDownButton,
-  type SelectProps,
-  type SelectTriggerProps,
-  type SelectValueProps,
-  type SelectContentProps,
-  type SelectGroupProps,
-  type SelectLabelProps,
-  type SelectItemProps,
-  type SelectSeparatorProps,
-  type SelectScrollUpButtonProps,
-  type SelectScrollDownButtonProps,
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
-  Avatar,
-  Person,
-  Combobox,
-  Attachment,
-  Alert,
   Accordion,
+  AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  AccordionContent,
-  Collapsible,
-  Button,
-  IconButton,
-  buttonVariants,
-  type ButtonProps,
-  type IconButtonProps,
+  Alert,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogOverlay,
+  AlertDialogPortal,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  Attachment,
+  Avatar,
   Badge,
-  badgeVariants,
-  type BadgeProps,
-  Separator,
-  type SeparatorProps,
-  Skeleton,
-  type SkeletonProps,
-  type SkeletonShape,
-  Kbd,
-  KbdGroup,
-  type KbdProps,
-  type KbdGroupProps,
-  Composer,
-  TaskRow,
-  Item,
-  Text,
-  Input,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-  tabsListVariants,
-  type TabsProps,
-  type TabsListProps,
-  type TabsTriggerProps,
-  type TabsContentProps,
-  Toggle,
-  toggleVariants,
-  ToggleGroup,
-  ToggleGroupItem,
-  Switch,
-  RadioGroup,
-  RadioGroupItem,
+  Breadcrumb,
+  BreadcrumbEllipsis,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
   Checkbox,
-  HoverCard,
-  HoverCardTrigger,
-  HoverCardContent,
-  type HoverCardProps,
-  type HoverCardTriggerProps,
-  type HoverCardContentProps,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Combobox,
+  Command,
+  CommandCount,
+  CommandDialog,
+  CommandEmpty,
+  CommandFooter,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandLoading,
+  CommandSeparator,
+  CommandShortcut,
+  Composer,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
   DropdownMenu,
-  DropdownMenuPortal,
-  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuLabel,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuLinkItem,
-  DropdownMenuCheckboxItem,
+  DropdownMenuPortal,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuSub,
-  DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-  type DropdownMenuProps,
-  type DropdownMenuPortalProps,
-  type DropdownMenuTriggerProps,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  IconButton,
+  Input,
+  Item,
+  Kbd,
+  KbdGroup,
+  LedgerProvider,
+  Person,
+  Popover,
+  PopoverClose,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+  Progress,
+  ProgressIndicator,
+  ProgressLabel,
+  ProgressStacked,
+  ProgressTrack,
+  ProgressValue,
+  RadioGroup,
+  RadioGroupItem,
+  ScrollArea,
+  ScrollBar,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+  Separator,
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  Skeleton,
+  Switch,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TaskRow,
+  Text,
+  Toggle,
+  ToggleGroup,
+  ToggleGroupItem,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  badgeVariants,
+  buttonVariants,
+  tabsListVariants,
+  toast,
+  toggleVariants,
+  type AlertDialogProps,
+  type BadgeProps,
+  type ButtonProps,
+  type DialogProps,
+  type DropdownMenuCheckboxItemProps,
   type DropdownMenuContentProps,
   type DropdownMenuGroupProps,
-  type DropdownMenuLabelProps,
   type DropdownMenuItemProps,
+  type DropdownMenuLabelProps,
   type DropdownMenuLinkItemProps,
-  type DropdownMenuCheckboxItemProps,
+  type DropdownMenuPortalProps,
+  type DropdownMenuProps,
   type DropdownMenuRadioGroupProps,
   type DropdownMenuRadioItemProps,
   type DropdownMenuSeparatorProps,
   type DropdownMenuShortcutProps,
+  type DropdownMenuSubContentProps,
   type DropdownMenuSubProps,
   type DropdownMenuSubTriggerProps,
-  type DropdownMenuSubContentProps,
-  Tooltip,
+  type DropdownMenuTriggerProps,
+  type HoverCardContentProps,
+  type HoverCardProps,
+  type HoverCardTriggerProps,
+  type IconButtonProps,
+  type KbdGroupProps,
+  type KbdProps,
+  type PopoverCloseProps,
+  type PopoverContentProps,
+  type PopoverDescriptionProps,
+  type PopoverHeaderProps,
+  type PopoverProps,
+  type PopoverTitleProps,
+  type PopoverTriggerProps,
+  type ProgressProps,
+  type ScrollAreaProps,
+  type SelectContentProps,
+  type SelectGroupProps,
+  type SelectItemProps,
+  type SelectLabelProps,
+  type SelectProps,
+  type SelectScrollDownButtonProps,
+  type SelectScrollUpButtonProps,
+  type SelectSeparatorProps,
+  type SelectTriggerProps,
+  type SelectValueProps,
+  type SeparatorProps,
+  type SheetContentProps,
+  type SheetProps,
+  type SkeletonProps,
+  type SkeletonShape,
+  type TabsContentProps,
+  type TabsListProps,
+  type TabsProps,
+  type TabsTriggerProps,
+  type ToastOptions,
+  type TooltipContentProps,
   type TooltipProps,
   type TooltipProviderProps,
   type TooltipTriggerProps,
-  type TooltipContentProps,
-  TooltipProvider,
-  TooltipTrigger,
-  TooltipContent,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverDescription,
-  PopoverClose,
-  type PopoverProps,
-  type PopoverTriggerProps,
-  type PopoverContentProps,
-  type PopoverHeaderProps,
-  type PopoverTitleProps,
-  type PopoverDescriptionProps,
-  type PopoverCloseProps,
-  ScrollArea,
-  toast,
-  type ToastOptions,
-  LedgerProvider,
 } from "@ledger/design-system";
+import { createRef, type ComponentProps } from "react";
 const breadcrumbRefs = {
   nav: createRef<HTMLElement>(),
   list: createRef<HTMLOListElement>(),
@@ -266,15 +323,15 @@ const alert = (
 void alert;
 const disclosures = (
   <>
-    <Accordion
-      type="multiple"
-      defaultValue={["stable"]}
     <Accordion multiple defaultValue={["stable"]} onValueChange={(values) => values.map(String)}>
       <AccordionItem value="stable">
         <AccordionTrigger>Details</AccordionTrigger>
         <AccordionContent keepMounted>Retained</AccordionContent>
       </AccordionItem>
-      <Collapsible.Content>Content</Collapsible.Content>
+    </Accordion>
+    <Collapsible defaultOpen>
+      <CollapsibleTrigger>Details</CollapsibleTrigger>
+      <CollapsibleContent keepMounted>Content</CollapsibleContent>
     </Collapsible>
   </>
 );
@@ -1185,3 +1242,246 @@ const tabsPanel: TabsContentProps = {
 <TabsTrigger value="overview" count={2} />;
 // @ts-expect-error Composition uses render.
 <TabsContent value="overview" asChild />;
+
+// The migrated shadcn/Base UI contracts must survive the emitted declaration boundary.
+const packedDialogProps: DialogProps<{ id: number }> = {
+  modal: "trap-focus",
+  disablePointerDismissal: true,
+  onOpenChange: (open, details) => {
+    if (!open && details.reason === "escape-key") details.cancel();
+  },
+  children: ({ payload }) => <span>{payload?.id}</span>,
+};
+void packedDialogProps;
+const packedDialog = (
+  <Dialog>
+    <DialogTrigger payload={{ id: 4 }} ref={createRef<HTMLButtonElement>()} render={<Button />}>
+      Edit
+    </DialogTrigger>
+    <DialogContent
+      ref={createRef<HTMLDivElement>()}
+      initialFocus={createRef<HTMLInputElement>()}
+      finalFocus={() => true}
+      className={(state) => (state.open ? "packed-open" : "packed-closed")}
+      style={(state) => ({ opacity: state.open ? 1 : 0 })}
+    >
+      <DialogHeader>
+        <DialogTitle>Record</DialogTitle>
+        <DialogDescription>Edit details.</DialogDescription>
+      </DialogHeader>
+      <DialogFooter showCloseButton>
+        <DialogClose render={<Button />}>Done</DialogClose>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+);
+void packedDialog;
+const packedCustomOverlay = (
+  <Dialog>
+    <DialogPortal keepMounted container={createRef<HTMLDivElement>()}>
+      <DialogOverlay
+        ref={createRef<HTMLDivElement>()}
+        className={(state) => (state.open ? "open" : "closed")}
+      />
+    </DialogPortal>
+  </Dialog>
+);
+void packedCustomOverlay;
+const packedSheetProps: SheetProps = {
+  defaultOpen: true,
+  onOpenChange: (_, details) => details.cancel(),
+};
+const packedSheetContent: SheetContentProps = {
+  side: "left",
+  showCloseButton: false,
+  initialFocus: false,
+  finalFocus: createRef<HTMLButtonElement>(),
+};
+void packedSheetProps;
+void packedSheetContent;
+const packedSheet = (
+  <Sheet>
+    <SheetTrigger render={<Button />}>Details</SheetTrigger>
+    <SheetContent side="end" dir="rtl">
+      <SheetHeader>
+        <SheetTitle>Details</SheetTitle>
+        <SheetDescription>Review this record.</SheetDescription>
+      </SheetHeader>
+      <SheetFooter>
+        <SheetClose ref={createRef<HTMLButtonElement>()}>Done</SheetClose>
+      </SheetFooter>
+    </SheetContent>
+  </Sheet>
+);
+void packedSheet;
+const packedAlertProps: AlertDialogProps<{ id: number }> = {
+  defaultOpen: true,
+  children: ({ payload }) => payload?.id,
+};
+void packedAlertProps;
+const packedAlert = (
+  <AlertDialog>
+    <AlertDialogTrigger render={<Button />}>Remove</AlertDialogTrigger>
+    <AlertDialogContent
+      size="sm"
+      ref={createRef<HTMLDivElement>()}
+      initialFocus={createRef<HTMLButtonElement>()}
+    >
+      <AlertDialogHeader>
+        <AlertDialogMedia>
+          <svg />
+        </AlertDialogMedia>
+        <AlertDialogTitle>Remove record?</AlertDialogTitle>
+        <AlertDialogDescription>This removes the record.</AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel ref={createRef<HTMLButtonElement>()}>Cancel</AlertDialogCancel>
+        <AlertDialogAction variant="danger" onClick={() => {}}>
+          Remove
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+    <AlertDialogPortal keepMounted>
+      <AlertDialogOverlay ref={createRef<HTMLDivElement>()} />
+    </AlertDialogPortal>
+  </AlertDialog>
+);
+void packedAlert;
+const packedCommand = (
+  <CommandDialog
+    title="Commands"
+    onOpenChange={(_, details) => details.cancel()}
+    style={{ maxWidth: 640 }}
+    finalFocus={createRef<HTMLButtonElement>()}
+  >
+    <Command
+      ref={createRef<HTMLDivElement>()}
+      label="Search records"
+      shouldFilter={false}
+      value="record"
+      onValueChange={(value) => value.toUpperCase()}
+    >
+      <CommandInput
+        ref={createRef<HTMLInputElement>()}
+        onValueChange={(value) => value.toUpperCase()}
+      />
+      <CommandList ref={createRef<HTMLDivElement>()} aria-busy="true">
+        <CommandEmpty>No results</CommandEmpty>
+        <CommandGroup heading="Records">
+          <CommandItem
+            value="record"
+            keywords={["review"]}
+            onSelect={(value) => value.toUpperCase()}
+          >
+            Record<CommandShortcut>R</CommandShortcut>
+          </CommandItem>
+        </CommandGroup>
+        <CommandSeparator alwaysRender />
+      </CommandList>
+      <CommandLoading label="Loading records" />
+      <CommandFooter>
+        <CommandCount />
+      </CommandFooter>
+    </Command>
+  </CommandDialog>
+);
+void packedCommand;
+const packedProgressProps: ProgressProps = {
+  value: null,
+  min: 10,
+  max: 30,
+  locale: "en-US",
+  getAriaValueText: (formatted, value) => `${formatted}: ${value}`,
+};
+void packedProgressProps;
+const packedProgress = (
+  <Progress
+    value={20}
+    max={30}
+    tone="success"
+    ref={createRef<HTMLDivElement>()}
+    className={(state) => state.status}
+    style={(state) => ({ opacity: state.status === "indeterminate" ? 0.5 : 1 })}
+  >
+    <ProgressLabel ref={createRef<HTMLSpanElement>()}>Upload</ProgressLabel>
+    <ProgressValue ref={createRef<HTMLSpanElement>()}>
+      {(formatted, value) => `${value} (${formatted})`}
+    </ProgressValue>
+  </Progress>
+);
+void packedProgress;
+const packedProgressParts = (
+  <ProgressTrack ref={createRef<HTMLDivElement>()}>
+    <ProgressIndicator ref={createRef<HTMLDivElement>()} />
+  </ProgressTrack>
+);
+void packedProgressParts;
+const packedCoverage = (
+  <ProgressStacked
+    label="Coverage"
+    segments={[{ key: "met", value: 2, tone: "success", onClick: () => {} }]}
+  />
+);
+void packedCoverage;
+const packedScrollProps: ScrollAreaProps = {
+  dir: "rtl",
+  viewportProps: {
+    ref: createRef<HTMLDivElement>(),
+    role: "region",
+    "aria-label": "Records",
+    onScroll: (event) => event.currentTarget.scrollLeft,
+  },
+};
+void packedScrollProps;
+const packedScroll = (
+  <ScrollArea {...packedScrollProps} ref={createRef<HTMLDivElement>()} render={<section />}>
+    <div>Records</div>
+    <ScrollBar orientation="horizontal" keepMounted ref={createRef<HTMLDivElement>()} />
+  </ScrollArea>
+);
+void packedScroll;
+const packedCollapsible = (
+  <Collapsible
+    defaultOpen
+    ref={createRef<HTMLDivElement>()}
+    onOpenChange={(_, details) => details.cancel()}
+    className={(state) => (state.open ? "open" : "closed")}
+    render={<section />}
+  >
+    <CollapsibleTrigger
+      nativeButton={false}
+      render={<span />}
+      ref={(node) => {
+        const element: HTMLElement | null = node;
+        void element;
+      }}
+    >
+      Details
+    </CollapsibleTrigger>
+    <CollapsibleContent
+      hiddenUntilFound
+      keepMounted
+      ref={createRef<HTMLDivElement>()}
+      style={(state) => ({ opacity: state.open ? 1 : 0 })}
+    >
+      Retained content
+    </CollapsibleContent>
+  </Collapsible>
+);
+void packedCollapsible;
+// @ts-expect-error Root is state-only; title belongs in DialogTitle.
+<Dialog title="Record" />;
+// @ts-expect-error Focus belongs on Content.
+<Sheet initialFocus={false} />;
+// @ts-expect-error Confirmation belongs on an explicit Action.
+<AlertDialog onConfirm={() => {}} />;
+// @ts-expect-error Compose trailing item content as children.
+<CommandItem trailing="R" />;
+// @ts-expect-error Progress values are numbers or null.
+<Progress value="50" />;
+// @ts-expect-error Orientation belongs to ScrollBar.
+<ScrollArea orientation="horizontal" />;
+// @ts-expect-error Base UI uses render instead of asChild.
+<CollapsibleTrigger asChild />;
+// @ts-expect-error Base UI uses keepMounted instead of forceMount.
+<CollapsibleContent forceMount />;

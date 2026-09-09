@@ -1,24 +1,30 @@
-import { MoreHorizontal, Plus } from "lucide-react";
-import { useState, type ReactNode } from "react";
-
 import {
+  Box,
   Button,
   Combobox,
   DatePicker,
   Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
   Field,
+  Grid,
   IconButton,
+  Inline,
   NativeSelect,
   Section,
+  Stack,
 } from "@ledger/design-system";
-import { Box, Grid, Inline, Stack } from "@ledger/design-system";
+import { MoreHorizontal, Plus } from "lucide-react";
+import { useState, type ReactNode } from "react";
 
-import { Task } from "@/components/app/task";
 import { SubjectWords } from "@/components/app/subject-link";
+import { Task } from "@/components/app/task";
 import { TaskDialog } from "@/components/app/task-dialog";
 import { programPresets, TaskTable } from "@/components/app/task-table";
 import type { Subject } from "@/lib/activity";
@@ -172,70 +178,80 @@ function TaskEditDialog({
 
   return (
     <Dialog
-      open
-      onClose={onClose}
-      title="Edit task"
-      eyebrow={task.title}
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={save}>
-            Save
-          </Button>
-        </>
-      }
+      open={true}
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <Stack space="space.150">
-        <Grid
-          gap="space.150"
-          templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-        >
-          <Field label="Assignee">
-            <Combobox
-              value={assignee}
-              onChange={setAssignee}
-              options={options}
-              width={300}
-              className="w-full"
-            />
-          </Field>
-          <Field label="Due">
-            <DatePicker value={due} onChange={setDue} placeholder="Choose a day" />
-          </Field>
-        </Grid>
-        <Grid
-          gap="space.150"
-          templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
-        >
-          <Field label="State">
-            <NativeSelect
-              value={state}
-              onChange={(e) => setState(e.target.value as TaskState)}
-              aria-label="State"
+      <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+        <DialogHeader>
+          <Box className="flex items-center gap-100 pb-025">{task.title}</Box>
+          <DialogTitle>Edit task</DialogTitle>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <Stack space="space.150">
+            <Grid
+              gap="space.150"
+              templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
             >
-              {(["Open", "Waiting", "Blocked", "Done"] as TaskState[]).map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
-          {state === "Waiting" ? (
-            <Field label="Waiting on">
-              <Combobox
-                value={waitingOn}
-                onChange={setWaitingOn}
-                options={options}
-                placeholder="Choose a person"
-                width={300}
-                className="w-full"
-              />
-            </Field>
-          ) : null}
-        </Grid>
-      </Stack>
+              <Field label="Assignee">
+                <Combobox
+                  value={assignee}
+                  onChange={setAssignee}
+                  options={options}
+                  width={300}
+                  className="w-full"
+                />
+              </Field>
+              <Field label="Due">
+                <DatePicker value={due} onChange={setDue} placeholder="Choose a day" />
+              </Field>
+            </Grid>
+            <Grid
+              gap="space.150"
+              templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+            >
+              <Field label="State">
+                <NativeSelect
+                  value={state}
+                  onChange={(e) => setState(e.target.value as TaskState)}
+                  aria-label="State"
+                >
+                  {(["Open", "Waiting", "Blocked", "Done"] as TaskState[]).map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              {state === "Waiting" ? (
+                <Field label="Waiting on">
+                  <Combobox
+                    value={waitingOn}
+                    onChange={setWaitingOn}
+                    options={options}
+                    placeholder="Choose a person"
+                    width={300}
+                    className="w-full"
+                  />
+                </Field>
+              ) : null}
+            </Grid>
+          </Stack>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="subtle" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={save}>
+              Save
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

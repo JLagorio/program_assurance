@@ -1,20 +1,5 @@
-/**
- * One preview body per record type at the glance density, and the hover that
- * shows it. Hover on an id or a name is a glance: facts only, no actions. The
- * click is the peek and the footer link there is the record. Three record
- * types, one Glance each; the kit's HoverCard is the shell.
- */
-
 import type { ReactElement } from "react";
 
-import {
-  Badge,
-  Glance,
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-  Indicator,
-} from "@ledger/design-system";
 import { descendantsOf, nodeById, pathLabel } from "@/lib/composition";
 import { workIndex } from "@/lib/control-board";
 import { controlById, inForceRevision, openRevision, revisionTone } from "@/lib/control-set";
@@ -29,6 +14,14 @@ import {
   resolveRequirement,
 } from "@/lib/requirements";
 import { rollupControlSet, scopesForProgram } from "@/lib/scopes";
+import {
+  Badge,
+  Glance,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  Indicator,
+} from "@ledger/design-system";
 
 export function ElementGlance({ nodeId }: { nodeId: string }) {
   const node = nodeById.get(nodeId);

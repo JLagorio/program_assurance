@@ -13,13 +13,13 @@ A ⌘K palette over a page or a record: a field at the top, the commands under h
 
 ## Anatomy
 
-| Part    | What it is                                                                        |
-| ------- | --------------------------------------------------------------------------------- |
-| Field   | "Type a command…", focused on open.                                               |
-| Heading | The group's name, over its commands: Record, Go to, Preferences.                  |
-| Command | A verb and its object; the shortcut or hint at the end in `font.body.xsmall`.     |
-| Empty   | "No commands match."                                                              |
-| Footer  | The keys: the arrows to move, Enter to run, Escape to close.                      |
+| Part    | What it is                                                                    |
+| ------- | ----------------------------------------------------------------------------- |
+| Field   | "Type a command…", focused on open.                                           |
+| Heading | The group's name, over its commands: Record, Go to, Preferences.              |
+| Command | A verb and its object; the shortcut or hint at the end in `font.body.xsmall`. |
+| Empty   | "No commands match."                                                          |
+| Footer  | The keys: the arrows to move, Enter to run, Escape to close.                  |
 
 <Canvas of={Stories.CommandPaletteMatrix} story={{ inline: false, height: "420px" }} />
 
@@ -35,13 +35,13 @@ One: the Command dialog at its medium width, 560px, over the page at the top.
 
 ## States
 
-| State    | What changes                                                     |
-| -------- | ---------------------------------------------------------------- |
-| Closed   | Not rendered. ⌘K opens it.                                       |
-| Open     | Over the page at the top, the field focused, every group shown.  |
-| Filtered | The commands that match, under their headings; empty groups go.  |
-| None     | The empty sentence.                                              |
-| Run      | The palette closes, then the command runs.                       |
+| State    | What changes                                                    |
+| -------- | --------------------------------------------------------------- |
+| Closed   | Not rendered. ⌘K opens it.                                      |
+| Open     | Over the page at the top, the field focused, every group shown. |
+| Filtered | The commands that match, under their headings; empty groups go. |
+| None     | The empty sentence.                                             |
+| Run      | The palette closes, then the command runs.                      |
 
 ## Modifiers
 
@@ -58,13 +58,13 @@ One: the Command dialog at its medium width, 560px, over the page at the top.
 
 ## Style
 
-| Element | Token                                                                                                       |
-| ------- | ----------------------------------------------------------------------------------------------------------- |
-| Dialog  | Command.Dialog: `radius.xxlarge` · `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` |
-| Heading | Command.Group's: `font.body.xsmall` · `color.text.subtle`                                                   |
-| Command | Command.Item: `dimension.control.medium` · `color.background.selected` when selected                        |
-| Hint    | `font.body.xsmall` · `color.text.subtle` · at the end                                                       |
-| Footer  | Command.Footer: `elevation.surface.sunken` · `font.body.xsmall` · Kbd for each key                          |
+| Element | Token                                                                                                        |
+| ------- | ------------------------------------------------------------------------------------------------------------ |
+| Dialog  | CommandDialog: `radius.xxlarge` · `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` |
+| Heading | CommandGroup's: `font.body.xsmall` · `color.text.subtle`                                                     |
+| Command | CommandItem: `dimension.control.medium` · `color.background.selected` when selected                          |
+| Hint    | `font.body.xsmall` · `color.text.subtle` · at the end                                                        |
+| Footer  | CommandFooter: `elevation.surface.sunken` · `font.body.xsmall` · Kbd for each key                            |
 
 ## Accessibility
 
@@ -85,7 +85,7 @@ The palette's open state, toggled by ⌘K or Ctrl+K anywhere on the page. Return
 ## Related
 
 - [Command](?path=/docs/components-command--docs): the dialog and the list.
-- [RecordPicker](?path=/docs/patterns-recordpicker--docs): the same Command.Dialog, picking one record instead of running a command.
+- [RecordPicker](?path=/docs/patterns-recordpicker--docs): the same CommandDialog, picking one record instead of running a command.
 - [Kbd](?path=/docs/components-kbd--docs): the keys in the footer and the hints.
 
 ## Don't

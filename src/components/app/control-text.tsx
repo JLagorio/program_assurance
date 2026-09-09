@@ -1,16 +1,5 @@
-/**
- * Renderers for verbatim catalog text.
- *
- * SP 800-53 statements and SP 800-53A objectives are nested lists with their
- * own label scheme (a. → 1. → (a)), and the labels carry meaning — an assessor
- * cites AC-02(03)(a), not "the first bullet". These components keep the label
- * in a hanging column so the prose stays in one readable measure.
- */
-
 import type { ReactNode } from "react";
 
-import { Badge, Box, Id, Inline, Stack, Table, TextLink } from "@ledger/design-system";
-import { cn } from "@ledger/design-system/cn";
 import type {
   NistMethod,
   NistObjective,
@@ -18,6 +7,8 @@ import type {
   NistReference,
   NistStatementItem,
 } from "@/lib/nist-catalog";
+import { Badge, Box, Id, Inline, Stack, Table, TextLink } from "@ledger/design-system";
+import { cn } from "@ledger/design-system/cn";
 
 /** Assignment / Selection brackets, set apart from the surrounding sentence. */
 export function ControlStatement({ children }: { children: string }) {

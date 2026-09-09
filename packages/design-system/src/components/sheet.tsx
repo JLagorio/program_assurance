@@ -1,128 +1,179 @@
-import { useLedgerLocale } from "../lib/locale";
-import { preserveNestedPopupEscape, useOverlayFocus } from "./_overlay-focus";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { ChevronLeft, X } from "lucide-react";
-import type { ReactNode, RefObject } from "react";
-
+import { Dialog as Primitive } from "@base-ui/react/dialog";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
+import { X } from "lucide-react";
+import type { ComponentProps } from "react";
+import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
-import { IconButton } from "./button";
-import { overlayClose } from "./dialog";
-import { Fact } from "./typography";
+import { useLedgerLocale } from "../lib/locale";
+import { Button } from "./button";
 
-export type SheetProps = {
-  /** The caller's state. */
-  open: boolean;
-  /** Focus destination after closing; defaults to the opener, then a surviving dialog or main. */
-  returnFocusRef?: RefObject<HTMLElement | null> | undefined;
-  /** Called on Escape, the blanket and the close button. */
-  onClose: () => void;
-  /** The record's id or name, or the task. Truncates to one line. */
-  title: ReactNode;
-  /** The meta line under the title: kind, path, owner. Read as the sheet's description. */
-  subtitle?: ReactNode;
-  /** A row above the title: an Eyebrow, an id, a status. */
-  eyebrow?: ReactNode;
-  /** Facts under the subtitle, as a Fact.Group. At most three in a sheet. */
-  facts?: ReactNode;
-  /** A back chevron before the title, for a sheet that is one frame of a stack. */
-  onBack?: (() => void) | undefined;
-  /** A row between the header and the body that does not scroll: search and filters, a defaults row. */
-  toolbar?: ReactNode;
-  /** The buttons at the end: the way to the record, the one thing to do. It stays put while the body scrolls. */
-  footer?: ReactNode;
-  /** The edge it slides from. `end` by default; `start` for a sheet about the navigation. */
-  side?: "end" | "start" | undefined;
-  /** Pixels. 420 for a detail, 640 for a form, 880 for a picker's table. */
-  width?: number | undefined;
-  /** The body. It scrolls; the header, the toolbar and the footer do not. */
-  children: ReactNode;
-};
-
-/** A detail surface that slides in from an edge and leaves the page visible. For the bottom sheet with a drag handle, Drawer. */
-export function Sheet({
-  open,
-  returnFocusRef,
-  onClose,
-  title,
-  subtitle,
-  eyebrow,
-  facts,
-  onBack,
-  toolbar,
-  footer,
-  side = "end",
-  width = 420,
-  children,
-}: SheetProps) {
-  const { t, direction } = useLedgerLocale();
-  const restoreFocus = useOverlayFocus(open, returnFocusRef);
+export type SheetProps<Payload = unknown> = Primitive.Root.Props<Payload>;
+export function Sheet<Payload = unknown>(props: SheetProps<Payload>) {
+  const { direction } = useLedgerLocale();
   return (
-    <DialogPrimitive.Root
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) onClose();
-      }}
-    >
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
-        <DialogPrimitive.Content
-          onEscapeKeyDown={preserveNestedPopupEscape}
-          onCloseAutoFocus={restoreFocus}
-          dir={direction}
-          {...(subtitle ? {} : { "aria-describedby": undefined })}
-          style={{ maxWidth: width }}
-          className={cn(
-            "fixed inset-y-0 z-50 flex w-full flex-col bg-surface-overlay shadow-overlay outline-none",
-            side === "end"
-              ? "end-0 data-[state=open]:animate-slide-in-end data-[state=closed]:animate-slide-out-end"
-              : "start-0 data-[state=open]:animate-slide-in-start data-[state=closed]:animate-slide-out-start",
+    <DirectionProvider direction={direction}>
+      <Primitive.Root {...props} />
+    </DirectionProvider>
+  );
+}
+export type SheetTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;
+export function SheetTrigger<Payload = unknown>(props: SheetTriggerProps<Payload>) {
+  return <Primitive.Trigger data-slot="sheet-trigger" {...props} />;
+}
+type SheetPortalProps = Primitive.Portal.Props;
+function SheetPortal(props: SheetPortalProps) {
+  return <Primitive.Portal {...props} />;
+}
+type SheetOverlayProps = Primitive.Backdrop.Props;
+function SheetOverlay({ className, ...props }: SheetOverlayProps) {
+  return (
+    <Primitive.Backdrop
+      data-slot="sheet-overlay"
+      {...props}
+      className={classes(
+        "fixed inset-0 z-50 bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
+        className,
+      )}
+    />
+  );
+}
+export type SheetCloseProps = Primitive.Close.Props;
+export function SheetClose(props: SheetCloseProps) {
+  return <Primitive.Close data-slot="sheet-close" {...props} />;
+}
+export type SheetContentProps = Primitive.Popup.Props & {
+  showCloseButton?: boolean | undefined;
+  side?: "top" | "right" | "bottom" | "left" | "start" | "end" | undefined;
+};
+const sheetMotion = {
+  top: "data-open:animate-slide-in-top data-closed:animate-slide-out-top",
+  bottom: "data-open:animate-slide-in-bottom data-closed:animate-slide-out-bottom",
+  start: "data-open:animate-slide-in-start data-closed:animate-slide-out-start",
+  end: "data-open:animate-slide-in-end data-closed:animate-slide-out-end",
+};
+export function SheetContent({
+  className,
+  children,
+  dir,
+  showCloseButton = true,
+  side = "right",
+  style,
+  ...props
+}: SheetContentProps) {
+  const { direction, t } = useLedgerLocale();
+  const contentDirection = dir === "rtl" || dir === "ltr" ? dir : direction;
+  const physicalSide =
+    side === "start"
+      ? contentDirection === "rtl"
+        ? "right"
+        : "left"
+      : side === "end"
+        ? contentDirection === "rtl"
+          ? "left"
+          : "right"
+        : side;
+  // Shared slide utilities use logical edges; choose one after resolving the physical side.
+  const motionSide =
+    physicalSide === "left"
+      ? contentDirection === "rtl"
+        ? "end"
+        : "start"
+      : physicalSide === "right"
+        ? contentDirection === "rtl"
+          ? "start"
+          : "end"
+        : physicalSide;
+  return (
+    <DirectionProvider direction={dir === "rtl" || dir === "ltr" ? dir : direction}>
+      <SheetPortal>
+        <SheetOverlay />
+        <Primitive.Popup
+          data-slot="sheet-content"
+          data-side={physicalSide}
+          dir={dir ?? direction}
+          {...props}
+          style={
+            typeof style === "function"
+              ? (state) => ({
+                  maxWidth: physicalSide === "left" || physicalSide === "right" ? 420 : undefined,
+                  ...style(state),
+                })
+              : {
+                  maxWidth: physicalSide === "left" || physicalSide === "right" ? 420 : undefined,
+                  ...style,
+                }
+          }
+          className={classes(
+            cn(
+              "fixed z-50 flex max-h-dvh flex-col overflow-hidden bg-surface-overlay text-default shadow-overlay outline-none data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:w-full data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:w-full data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0",
+              sheetMotion[motionSide],
+            ),
+            className,
           )}
         >
-          <div className="flex shrink-0 items-start gap-100 border-b border-default py-150 pe-600 ps-200">
-            {onBack ? (
-              <IconButton
-                label={t("back")}
-                variant="subtle"
-                size="small"
-                onClick={onBack}
-                icon={<ChevronLeft />}
-              />
-            ) : null}
-            <div className="flex min-w-0 flex-1 flex-col gap-025">
-              {eyebrow ? <div className="flex items-center gap-100 pb-025">{eyebrow}</div> : null}
-              <DialogPrimitive.Title className="truncate font-heading-xsmall text-default">
-                {title}
-              </DialogPrimitive.Title>
-              {subtitle ? (
-                <DialogPrimitive.Description className="truncate font-body-small text-subtle">
-                  {subtitle}
-                </DialogPrimitive.Description>
-              ) : null}
-              {facts ? <Fact.Group className="pt-075">{facts}</Fact.Group> : null}
-            </div>
-          </div>
-          {toolbar ? (
-            <div className="shrink-0 border-b border-default px-200 py-100">{toolbar}</div>
-          ) : null}
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
-            {children}
-          </div>
-          {footer ? (
-            <div className="flex shrink-0 items-center justify-end gap-100 border-t border-default bg-surface-sunken px-200 py-100">
-              {footer}
-            </div>
-          ) : null}
-          <DialogPrimitive.Close asChild>
-            <button
-              type="button"
+          {children}
+          {showCloseButton && (
+            <SheetClose
               aria-label={t("close")}
-              className={cn(overlayClose, "absolute end-150 top-150")}
+              render={
+                <Button
+                  variant="subtle"
+                  size="small"
+                  className="absolute end-150 top-100 size-control-small p-0"
+                />
+              }
             >
-              <X className="size-icon-small" />
-            </button>
-          </DialogPrimitive.Close>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+              <X aria-hidden className="size-icon-small" />
+            </SheetClose>
+          )}
+        </Primitive.Popup>
+      </SheetPortal>
+    </DirectionProvider>
+  );
+}
+export type SheetHeaderProps = ComponentProps<"div">;
+export function SheetHeader({ className, ...props }: SheetHeaderProps) {
+  return (
+    <div
+      data-slot="sheet-header"
+      className={cn(
+        "flex shrink-0 flex-col gap-025 border-b border-default py-150 pe-600 ps-200",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+export type SheetFooterProps = ComponentProps<"div">;
+export function SheetFooter({ className, ...props }: SheetFooterProps) {
+  return (
+    <div
+      data-slot="sheet-footer"
+      className={cn(
+        "flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+export type SheetTitleProps = Primitive.Title.Props;
+export function SheetTitle({ className, ...props }: SheetTitleProps) {
+  return (
+    <Primitive.Title
+      data-slot="sheet-title"
+      {...props}
+      className={classes("font-heading-xsmall text-default", className)}
+    />
+  );
+}
+export type SheetDescriptionProps = Primitive.Description.Props;
+export function SheetDescription({ className, ...props }: SheetDescriptionProps) {
+  return (
+    <Primitive.Description
+      data-slot="sheet-description"
+      {...props}
+      className={classes("font-body text-subtle", className)}
+    />
   );
 }

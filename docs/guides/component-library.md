@@ -17,7 +17,7 @@ the layers below it, by relative path, so the dependency graph stays visible.
 | --- | -------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0   | **Tokens**     | `tokens/`        | Nothing. DTCG JSON, built by Style Dictionary into `src/generated/` (CSS variables, the Tailwind theme map, per-token utilities, `token()`).         |
 | 1   | **Primitives** | `src/primitives` | Layout and type: Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading. Every prop is a token name.                                                   |
-| 2   | **Components** | `src/components` | Reusable component families. Standard families follow the shadcn Base UI contracts as they migrate; existing families retain their documented APIs. |
+| 2   | **Components** | `src/components` | Reusable component families. Standard families follow the shadcn Base UI contracts as they migrate; existing families retain their documented APIs.  |
 | 3   | **Patterns**   | `src/patterns`   | Several components with a contract and no domain words: PageHeader, RecordHeader, Card, PreviewRail, PreviewSheet, PickerSheet, the page archetypes. |
 | 4   | **Shapes**     | `src/shapes`     | A whole screen region and the job it does: ActionBar, Block, Inspector, WorkPane.                                                                    |
 | 5   | **Shell**      | `src/shell`      | The navigation system: banner, top nav, side nav, main, panel, and the items that go in them. It knows nothing about routes.                         |
@@ -256,10 +256,13 @@ changelog entry.
 
 ## What is underneath
 
-Base UI powers Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select, Tabs, Avatar, Combobox and Separator and supplies Badge and BreadcrumbLink's composition helpers. The rest
-of Breadcrumb is native HTML; there is no dedicated Base UI breadcrumb primitive. Existing
-families still use Radix under overlays, Progress and ScrollArea;
-cmdk under Command; vaul under Drawer; react-day-picker under Calendar and DatePicker;
+Base UI powers Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard,
+Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog,
+Progress, ScrollArea, Avatar, Combobox and Separator. It also supplies Badge and BreadcrumbLink's
+composition helpers. The rest of Breadcrumb is native HTML. Command uses cmdk with a Base UI
+Dialog shell, matching shadcn's Base UI implementation. Drawer uses Vaul. Radix Slot remains in
+parts that still expose asChild; these packages can also have transitive Radix dependencies.
+Calendar and DatePicker use react-day-picker;
 react-resizable-panels under Resizable; sonner under Toaster; recharts under Chart. Preserve the
 dependency's focus, Escape, outside-click, keyboard and ARIA behavior through the public parts.
 Screens import the package's documented APIs.
@@ -283,4 +286,4 @@ Application record forms use `src/lib/record-form.ts`: `useRecordForm` configure
 
 ## Accordion and Collapsible
 
-Accordion coordinates a set of sections using explicit item values and root-owned selection. Collapsible owns one independent boolean toggle. Compose titles, counts, actions, borders and body spacing with their parts; no extra disclosure pattern is needed. Both expose native attributes and refs on their named parts. See [the migration guide](disclosure-migration.md) for the former title/count/Group API and temporary legacy adapters.
+Accordion coordinates a set of sections using explicit item values and root-owned selection. Collapsible owns one independent boolean toggle. Compose titles, counts, actions, borders and body spacing with their parts; no extra disclosure pattern is needed. Both expose native attributes and refs on their named parts. See [the migration guide](disclosure-migration.md) for the former title/count/Group API and current flat parts.

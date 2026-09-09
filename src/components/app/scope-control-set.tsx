@@ -1,14 +1,3 @@
-/**
- * The control set of a categorized element, folded into that element's
- * record. Until 2026-09-02 a scope (`SYS-`) had a record of its own, so one
- * subsystem had two records and a footer link between them. Now one element
- * has one record, and when the element is categorized the record carries a
- * Control set tab: the revision in force and the one proposed, the controls
- * in force, why the categorization and overlays select what they do, and the
- * history. Nothing here is a pattern of its own: Section, Table, FilterChip,
- * Fact and Inspector.Group as the kit documents them.
- */
-
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -27,8 +16,6 @@ import {
   TextLink,
 } from "@ledger/design-system";
 
-import { ControlSetRevisions, RevisionHistory } from "./control-set-revisions";
-import { ControlHover } from "./glances";
 import {
   controlSetFor,
   objectives,
@@ -37,6 +24,8 @@ import {
   type AssessmentScope,
   type Objective,
 } from "@/lib/scopes";
+import { ControlSetRevisions, RevisionHistory } from "./control-set-revisions";
+import { ControlHover } from "./glances";
 
 const impactTone = { Low: "neutral", Moderate: "warning", High: "danger" } as const;
 

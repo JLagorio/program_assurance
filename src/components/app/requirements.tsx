@@ -1,17 +1,32 @@
-/**
- * Presentation for the requirements layer.
- *
- * Read-only, takes resolved data as props. Every block here is a table or a
- * property row, not prose: the reason a requirement exists is informational
- * and belongs on screen, but it belongs in the cell next to the source that
- * produced it, not in a paragraph explaining the model to someone who opened
- * the page to read a shall statement.
- */
-
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useMemo } from "react";
 
+import { ControlHover, ElementHover, RequirementHover } from "@/components/app/glances";
+import { SuspectFlag } from "@/components/app/link-currency";
+import { closestProgramScope } from "@/lib/program-scope";
+import {
+  allocationStateTone,
+  allocationStates,
+  coverageTone,
+  coverages,
+  derivationSourceTone,
+  nestRequirements,
+  requirementMethodLabel,
+  requirementStateTone,
+  resolveTarget,
+  responsibilities,
+  responsibilityTone,
+  saveRequirementField,
+  setAllocationField,
+  type Allocation,
+  type AllocationPatch,
+  type ControlTraceHop,
+  type Derivation,
+  type Nested,
+  type NodeControlTrace,
+  type Requirement,
+} from "@/lib/requirements";
 import {
   Absent,
   Badge,
@@ -26,31 +41,6 @@ import {
   defineColumns,
   useDataTable,
 } from "@ledger/design-system";
-import { ControlHover, ElementHover, RequirementHover } from "@/components/app/glances";
-import { SuspectFlag } from "@/components/app/link-currency";
-import { closestProgramScope } from "@/lib/program-scope";
-import {
-  allocationStateTone,
-  allocationStates,
-  coverages,
-  responsibilities,
-  saveRequirementField,
-  setAllocationField,
-  coverageTone,
-  derivationSourceTone,
-  nestRequirements,
-  requirementStateTone,
-  requirementMethodLabel,
-  resolveTarget,
-  responsibilityTone,
-  type Allocation,
-  type AllocationPatch,
-  type ControlTraceHop,
-  type Derivation,
-  type Nested,
-  type NodeControlTrace,
-  type Requirement,
-} from "@/lib/requirements";
 
 /** Cell that wraps instead of truncating — for the one column that is prose. */
 const wrap = "max-w-none whitespace-normal align-top py-100";

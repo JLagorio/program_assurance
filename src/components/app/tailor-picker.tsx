@@ -1,12 +1,9 @@
-/**
- * Controls into a set: the tailoring picker. Frame one chooses controls from
- * the catalog, in the set (to tailor out) or not (to tailor in); frame two
- * takes the source and the rationale each decision must carry, so a decision
- * never reaches the draft without the reason the submit gate will ask for.
- */
-
 import { useMemo, useState } from "react";
 
+import { tailoringSources, type TailoringDecision, type TailoringSource } from "@/lib/control-set";
+import { currentSession } from "@/lib/control-work";
+import { datasetToday } from "@/lib/dataset-clock";
+import { nistControls } from "@/lib/nist-catalog";
 import {
   Badge,
   Box,
@@ -21,10 +18,6 @@ import {
   Table,
   Text,
 } from "@ledger/design-system";
-import { tailoringSources, type TailoringDecision, type TailoringSource } from "@/lib/control-set";
-import { currentSession } from "@/lib/control-work";
-import { datasetToday } from "@/lib/dataset-clock";
-import { nistControls } from "@/lib/nist-catalog";
 
 const shown = 150;
 

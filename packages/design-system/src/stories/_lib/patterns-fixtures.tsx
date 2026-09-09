@@ -1,4 +1,3 @@
-/** The groups of facts a record's rail shows: the ShowPage's `rail` and a flush Panel draw the same ones. */
 export const panelGroups = [
   {
     title: "Identity",

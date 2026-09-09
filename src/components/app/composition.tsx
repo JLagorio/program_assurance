@@ -1,20 +1,3 @@
-/**
- * Composition presentation — the HBOM / FBOM / SBOM surface.
- *
- * Every component here is pure presentation: the graph, the posture rollup and
- * the reconciliation arithmetic all arrive as props, so this file imports types
- * only and can be dropped into a program page, an asset page or a preview rail
- * without dragging the seed data along.
- *
- * `BomTree` is the load-bearing one. It renders a strict parent-pointer tree as
- * one flat list of indented rows — never nested lists — so a 34-node system and
- * a 300-node one cost the same to read: collapsed below depth 2, filterable,
- * with the subtree's posture summarised on the parent row so a collapsed branch
- * never hides a CAT I.
- */
-
-import { useMemo, useState } from "react";
-
 import {
   Absent,
   Badge,
@@ -22,6 +5,7 @@ import {
   Button,
   Card,
   Dot,
+  Eyebrow,
   Grid,
   Id,
   Indicator,
@@ -29,17 +13,20 @@ import {
   Inspector,
   KeyValue,
   Progress,
+  ProgressStacked,
   Stack,
   Table,
   Toolbar,
   Tree,
-  Eyebrow,
+  type Tone,
 } from "@ledger/design-system";
-import type { Tone } from "@ledger/design-system";
-import { cn } from "@ledger/design-system/cn";
+import { useMemo, useState } from "react";
+
 import type { CompositionNode } from "@/lib/composition";
 import { datasetToday } from "@/lib/dataset-clock";
 import type { BomStats, NodePosture, ReconciliationRow } from "@/lib/graph-posture";
+
+import { cn } from "@ledger/design-system/cn";
 
 /* ------------------------------------------------------------- Shared bits */
 
@@ -507,14 +494,14 @@ export function PostureStrip({ posture }: { posture: NodePosture }) {
         ) : null}
       </Inline>
 
-      <Progress.Stacked
+      <ProgressStacked
         segments={legend.map((l) => ({
           key: l.key,
           value: l.value,
           tone: l.tone,
           title: `${l.label} — ${l.value}`,
         }))}
-      />
+      ></ProgressStacked>
 
       <Inline space="space.200" rowSpace="space.050" alignBlock="center" shouldWrap>
         {legend.map((l) => (
@@ -663,7 +650,7 @@ function MeterRow({
         {label}
       </span>
       <span className="min-w-0 flex-1">
-        <Progress value={pct} tone={tone} />
+        <Progress value={pct} tone={tone} aria-hidden />
       </span>
       <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-400">
         {value}
@@ -892,13 +879,13 @@ export function SupplyChainTable({
               <Table.Cell>
                 <Inline as="span" space="space.100" alignBlock="center">
                   <span className="w-1000">
-                    <Progress.Stacked
+                    <ProgressStacked
                       size="small"
                       segments={[
                         { key: "a", value: r.attested, tone: "success" },
                         { key: "u", value: r.unattested, tone: "warning" },
                       ]}
-                    />
+                    ></ProgressStacked>
                   </span>
                   <span className="tabular-nums font-body-small text-subtle">
                     {r.attested}/{r.parts}

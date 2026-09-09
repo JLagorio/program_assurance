@@ -703,7 +703,10 @@ function create(program: string, scope: string, control: string, seed: Partial<C
  * carries no information a lookup cannot reconstruct.
  */
 export function workFor(program: string, scope: string, control: string): ControlWork {
-  return byKey.get(keyOf(scope, control)) ?? create(program, scope, control);
+  return (
+    byKey.get(keyOf(scope, control)) ??
+    create(program, scope, control, { implementationRecorded: false })
+  );
 }
 
 /** Register source implementation records without inventing user actions or evidence. */

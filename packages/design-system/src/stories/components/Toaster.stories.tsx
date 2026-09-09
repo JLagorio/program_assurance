@@ -1,7 +1,20 @@
 import type { Decorator, Meta, StoryObj } from "@storybook/react-vite";
-import { useEffect, useState, type ComponentProps } from "react";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
+import {
+  Alert,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Button,
+  toast,
+  Toaster,
+} from "../../components";
 
-import { Alert, AlertDialog, Button, Toaster, toast } from "../../components";
 import { toastClasses, toastIcons } from "../../components/toaster";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -268,6 +281,8 @@ export const ToasterMatrix: Story = {
 };
 
 function DeleteDialog() {
+  const alertCancelRef = useRef<HTMLButtonElement>(null);
+
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -276,15 +291,39 @@ function DeleteDialog() {
       </Button>
       <AlertDialog
         open={open}
-        onClose={() => setOpen(false)}
-        title="Delete F-0088?"
-        description="Its evidence stays; the finding and its history go."
-        confirmLabel="Delete"
-        onConfirm={() => {
-          setOpen(false);
-          toast.success("Deleted F-0088", { action: { label: "Undo", onClick: () => undefined } });
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpen(false);
+          }
         }}
-      />
+      >
+        <AlertDialogContent
+          initialFocus={alertCancelRef}
+          className="top-200 translate-y-0 sm:top-1000"
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete F-0088?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Its evidence stays; the finding and its history go.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={alertCancelRef}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="primary"
+
+              onClick={() => {
+                setOpen(false);
+                toast.success("Deleted F-0088", {
+                  action: { label: "Undo", onClick: () => undefined },
+                });
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

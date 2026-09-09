@@ -299,15 +299,15 @@ const deprecatedNames = {
   },
   "Collapsible.Group": {
     to: "Accordion",
-    note: 'use type="multiple", root defaultValue and Accordion.Item with explicit stable values; see the disclosure migration guide',
+    note: "use multiple, root defaultValue and AccordionItem with explicit stable values; see the disclosure migration guide",
   },
   LegacyCollapsible: {
     to: "Collapsible",
-    note: "standalone sections; grouped sections use Accordion with Accordion.Item",
+    note: "compose CollapsibleTrigger/CollapsibleContent; grouped sections use Accordion with AccordionItem",
   },
   LegacyAccordion: {
     to: "Accordion",
-    note: "use explicit Item, Header, Trigger and Content parts",
+    note: "use explicit AccordionItem, AccordionTrigger and AccordionContent parts",
   },
 };
 
@@ -355,7 +355,7 @@ const LEGACY = {
   TabStrip: "Tabs",
   RailGroup: "Inspector.Group",
   CardHeader: "Card.Header",
-  StackedBar: "Progress.Stacked",
+  StackedBar: "ProgressStacked",
   AvatarStack: "Avatar.Stack",
   MenuItem: "DropdownMenu.Item",
   MenuLabel: "DropdownMenu.Label",

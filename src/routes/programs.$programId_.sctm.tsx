@@ -1,7 +1,3 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { FileDown } from "lucide-react";
-
 import {
   Badge,
   Box,
@@ -9,11 +5,14 @@ import {
   BreadcrumbLink,
   BreadcrumbSeparator,
   Button,
+  Count,
+  Eyebrow,
   Id,
   Inline,
   NativeSelect,
   Panel,
   Progress,
+  ProgressValue,
   RecordHeader,
   Section,
   Shell as DsShell,
@@ -21,13 +20,15 @@ import {
   Table,
   TabsList,
   TabsTrigger,
-  Count,
   TextLink,
   Toolbar,
-  Eyebrow,
 } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { FileDown } from "lucide-react";
+import { useMemo, useState } from "react";
+
 import { SctmRail, SctmSummary, SctmTable } from "@/components/app/sctm";
+import { Shell } from "@/components/app/shell";
 import { controlMatrix } from "@/lib/control-matrix";
 import { programs } from "@/lib/grc-data";
 import { catalogVersion } from "@/lib/nist-catalog";
@@ -38,6 +39,7 @@ import {
   type RowCurrency,
   type SctmRow,
 } from "@/lib/sctm";
+
 import { cn } from "@ledger/design-system/cn";
 
 const sctmTabs = ["Matrix", "Coverage", "Gaps"] as const;
@@ -263,14 +265,12 @@ function ProgramSctm() {
               crumbs={
                 <>
                   <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to={"/programs"} />}>{"Programs"}</BreadcrumbLink>
+                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbLink
-                      render={
-                        <Link to={"/programs/$programId"} params={{ programId: program.id }} />
-                      }
+                      render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
                     >
                       {program.name}
                     </BreadcrumbLink>
@@ -459,8 +459,11 @@ function ProgramSctm() {
                             tone={
                               f.coverage >= 90 ? "success" : f.coverage >= 60 ? "warning" : "danger"
                             }
-                            showValue
-                          />
+                            aria-hidden
+                            className="flex-nowrap [&_[data-slot=progress-track]]:order-first [&_[data-slot=progress-track]]:min-w-0 [&_[data-slot=progress-track]]:flex-1"
+                          >
+                            <ProgressValue />
+                          </Progress>
                         </Table.Cell>
                       </Table.Row>
                     ))}
@@ -505,6 +508,7 @@ function ProgramSctm() {
                           <Progress
                             value={Math.round((g.count / (sctm.counts.total || 1)) * 100)}
                             tone="danger"
+                            aria-hidden
                           />
                         </Table.Cell>
                       </Table.Row>

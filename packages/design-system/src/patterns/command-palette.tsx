@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandFooter,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../components/command";
 
-import { Command } from "../components/command";
 import { CommandKeys } from "../lib/command-keys";
 
 /* The ⌘K palette: a field at the top, commands under headings, a shortcut at the end of the ones that have one,
@@ -62,32 +71,40 @@ export function CommandPalette({
     else groups.push([c.group, [c]]);
   }
   return (
-    <Command.Dialog open={open} onClose={onClose} label="Command palette">
-      <Command.Input placeholder={placeholder} hint={null} />
-      <Command.List>
-        {groups.map(([group, items]) => (
-          <Command.Group key={items[0]!.id} value={items[0]!.id} heading={group}>
-            {items.map((c) => (
-              <Command.Item
-                key={c.id}
-                value={c.id}
-                keywords={[c.group, c.label, c.hint ?? ""]}
-                trailing={c.hint}
-                onSelect={() => {
-                  onClose();
-                  c.run();
-                }}
-              >
-                {c.label}
-              </Command.Item>
-            ))}
-          </Command.Group>
-        ))}
-      </Command.List>
-      <Command.Empty>No commands match.</Command.Empty>
-      <Command.Footer>
-        <CommandKeys choose="to run" />
-      </Command.Footer>
-    </Command.Dialog>
+    <CommandDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title="Command palette"
+    >
+      <Command label="Command palette">
+        <CommandInput placeholder={placeholder} hint={null}></CommandInput>
+        <CommandList>
+          {groups.map(([group, items]) => (
+            <CommandGroup key={items[0]!.id} value={items[0]!.id} heading={group}>
+              {items.map((c) => (
+                <CommandItem
+                  key={c.id}
+                  value={c.id}
+                  keywords={[c.group, c.label, c.hint ?? ""]}
+                  onSelect={() => {
+                    onClose();
+                    c.run();
+                  }}
+                >
+                  {c.label}
+                  <span className="ms-auto shrink-0 font-body-xsmall text-subtle">{c.hint}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ))}
+        </CommandList>
+        <CommandEmpty>No commands match.</CommandEmpty>
+        <CommandFooter>
+          <CommandKeys choose="to run" />
+        </CommandFooter>
+      </Command>
+    </CommandDialog>
   );
 }

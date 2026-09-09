@@ -1,14 +1,23 @@
-import { useCallback, type SetStateAction, useMemo, useState } from "react";
-import { useRecordForm } from "@/lib/record-form";
-import { Link } from "@tanstack/react-router";
-
 import {
   Alert,
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Badge,
   Block,
+  Box,
   Button,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Field,
   Grid,
   Id,
@@ -23,6 +32,11 @@ import {
   Timeline,
   toast,
 } from "@ledger/design-system";
+import { useRecordForm } from "@/lib/record-form";
+
+import { Link } from "@tanstack/react-router";
+import { useCallback, useMemo, useRef, useState, type SetStateAction } from "react";
+
 import {
   approvalConsequence,
   deltaOf,
@@ -33,9 +47,9 @@ import {
   offersFor,
   openRevision,
   openStates,
+  performRevision,
   proposeBlocked,
   proposeRevision,
-  performRevision,
   resolveDraft,
   revisionById,
   revisionTone,
@@ -49,8 +63,7 @@ import {
   type RevisionDelta,
   type RevisionOffer,
 } from "@/lib/control-set";
-import { currentSession, useWorkVersion } from "@/lib/control-work";
-import { positionOf } from "@/lib/control-work";
+import { currentSession, positionOf, useWorkVersion } from "@/lib/control-work";
 import { frameworkById } from "@/lib/frameworks";
 import { scopeById } from "@/lib/scopes";
 
@@ -111,6 +124,8 @@ export function RevisionActions({
   revision: ControlSetRevision;
   align?: "start" | "end";
 }) {
+  const alertCancelRef = useRef<HTMLButtonElement>(null);
+
   const version = useControlSetVersion();
   const workVersion = useWorkVersion();
   const session = currentSession();
@@ -176,39 +191,74 @@ export function RevisionActions({
       {acting ? (
         acting.def.note === "required" ? (
           <Dialog
-            open
-            onClose={() => setActing(null)}
-            title={acting.def.label}
-            description={consequenceFor(acting.def.key, revision, delta)}
-            footer={
-              <>
-                <Button variant="subtle" onClick={() => setActing(null)}>
-                  Cancel
-                </Button>
-                <Button
-                  variant={acting.def.tone === "danger" ? "danger" : "primary"}
-                  onClick={perform}
-                  disabled={!note.trim()}
-                >
-                  {acting.def.label}
-                </Button>
-              </>
-            }
+            open={true}
+            onOpenChange={(next) => {
+              if (!next) {
+                setActing(null);
+              }
+            }}
           >
-            <Field label="Reason" hint="Recorded on the revision and in its history.">
-              <Textarea autoFocus value={note} onChange={(e) => setNote(e.target.value)} />
-            </Field>
+            <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+              <DialogHeader>
+                <DialogTitle>{acting.def.label}</DialogTitle>
+                <DialogDescription>
+                  {consequenceFor(acting.def.key, revision, delta)}
+                </DialogDescription>
+              </DialogHeader>
+              <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+                <Field label="Reason" hint="Recorded on the revision and in its history.">
+                  <Textarea autoFocus value={note} onChange={(e) => setNote(e.target.value)} />
+                </Field>
+              </Box>
+              <DialogFooter>
+                <>
+                  <Button variant="subtle" onClick={() => setActing(null)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant={acting.def.tone === "danger" ? "danger" : "primary"}
+                    onClick={perform}
+                    disabled={!note.trim()}
+                  >
+                    {acting.def.label}
+                  </Button>
+                </>
+              </DialogFooter>
+            </DialogContent>
           </Dialog>
         ) : (
           <AlertDialog
-            open
-            onClose={() => setActing(null)}
-            onConfirm={perform}
-            title={`${acting.def.label} v${revision.number}?`}
-            description={consequenceFor(acting.def.key, revision, delta)}
-            confirmLabel={acting.def.label}
-            tone={acting.def.tone}
-          />
+            open={true}
+            onOpenChange={(next) => {
+              if (!next) {
+                setActing(null);
+              }
+            }}
+          >
+            <AlertDialogContent
+              initialFocus={alertCancelRef}
+              className="top-200 translate-y-0 sm:top-1000"
+            >
+              <AlertDialogHeader>
+                <AlertDialogTitle>{`${acting.def.label} v${revision.number}?`}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {consequenceFor(acting.def.key, revision, delta)}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel ref={alertCancelRef}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  variant={acting.def.tone === "danger" ? "danger" : "primary"}
+
+                  onClick={() => {
+                    perform();
+                  }}
+                >
+                  {acting.def.label}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )
       ) : null}
     </Stack>
@@ -262,62 +312,72 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
       {blocked ? <span className="font-body-xsmall text-subtle">{blocked}</span> : null}
       <Dialog
         open={proposing}
-        onClose={() => setProposing(false)}
-        title="Propose a change"
-        description={
-          inForce
-            ? `Copies v${inForce.number} into a draft you can edit. Nothing changes for ${scope?.name ?? "the scope"} until the draft is approved.`
-            : "Starts the first revision for this scope."
-        }
-        footer={
-          <>
-            <Button variant="subtle" onClick={() => setProposing(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              form={formId + "-1"}
-              disabled={form.state.isSubmitting}
-            >
-              Draft revision
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setProposing(false);
+          }
+        }}
       >
-        <form
-          id={formId + "-1"}
-          ref={formRef}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            void propose();
-          }}
-        >
-          <form.Field name="reason">
-            {(field) => (
-              <Field
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors)].join(" ")
-                    : undefined
-                }
-                label="What changed"
-                hint="The reason the control set has to move."
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Propose a change</DialogTitle>
+            <DialogDescription>
+              {inForce
+                ? `Copies v${inForce.number} into a draft you can edit. Nothing changes for ${scope?.name ?? "the scope"} until the draft is approved.`
+                : "Starts the first revision for this scope."}
+            </DialogDescription>
+          </DialogHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <form
+              id={formId + "-1"}
+              ref={formRef}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void propose();
+              }}
+            >
+              <form.Field name="reason">
+                {(field) => (
+                  <Field
+                    isRequired
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined
+                    }
+                    label="What changed"
+                    hint="The reason the control set has to move."
+                  >
+                    <Textarea
+                      autoFocus
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="A new interface, a categorization challenge, an overlay revision, a finding…"
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+            </form>
+          </Box>
+          <DialogFooter>
+            <>
+              <Button variant="subtle" onClick={() => setProposing(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                form={formId + "-1"}
+                disabled={form.state.isSubmitting}
               >
-                <Textarea
-                  autoFocus
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="A new interface, a categorization challenge, an overlay revision, a finding…"
-                  name={field.name}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-        </form>
+                Draft revision
+              </Button>
+            </>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </Stack>
   );

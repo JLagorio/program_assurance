@@ -1,49 +1,33 @@
-import * as Primitive from "@radix-ui/react-collapsible";
-import type { ComponentProps } from "react";
+import { Collapsible as Primitive } from "@base-ui/react/collapsible";
+import { classes } from "../lib/base-ui";
 
-import { cn } from "../lib/cn";
-
-/** An independent boolean disclosure. Native props and ref target the root; ancestry never changes state ownership. */
-export type CollapsibleProps = ComponentProps<typeof Primitive.Root>;
-/** Native button props and ref target the trigger. asChild composes one ref-capable button, such as Button. */
-export type CollapsibleTriggerProps = ComponentProps<typeof Primitive.Trigger>;
-/** Native props and ref target the content. forceMount preserves child state while closed content remains hidden and unfocusable. */
-export type CollapsibleContentProps = ComponentProps<typeof Primitive.Content>;
-
-function CollapsibleRoot(props: CollapsibleProps) {
+export type CollapsibleProps = Primitive.Root.Props;
+export type CollapsibleTriggerProps = Primitive.Trigger.Props;
+export type CollapsibleContentProps = Primitive.Panel.Props;
+export function Collapsible(props: CollapsibleProps) {
   return <Primitive.Root data-slot="collapsible" {...props} />;
 }
-
-function CollapsibleTrigger({ className, ...props }: CollapsibleTriggerProps) {
+export function CollapsibleTrigger({ className, ...props }: CollapsibleTriggerProps) {
   return (
     <Primitive.Trigger
       data-slot="collapsible-trigger"
-      className={cn(
-        "rounded-small outline-none focus-visible:outline-focused disabled:pointer-events-none disabled:text-disabled",
+      {...props}
+      className={classes(
+        "rounded-small outline-none focus-visible:outline-focused data-disabled:pointer-events-none data-disabled:text-disabled",
         className,
       )}
-      {...props}
     />
   );
 }
-
-function CollapsibleContent({ className, forceMount, ...props }: CollapsibleContentProps) {
+export function CollapsibleContent({ className, ...props }: CollapsibleContentProps) {
   return (
-    <Primitive.Content
+    <Primitive.Panel
       data-slot="collapsible-content"
-      {...(forceMount ? { forceMount: true } : {})}
-      className={cn(
-        "overflow-hidden data-[state=open]:animate-collapse-open data-[state=closed]:animate-collapse-close",
-        forceMount && "data-[state=closed]:hidden",
+      {...props}
+      className={classes(
+        "h-(--collapsible-panel-height) overflow-hidden data-open:animate-collapse-open data-closed:animate-collapse-close [&[hidden]:not([hidden=until-found])]:hidden",
         className,
       )}
-      {...props}
     />
   );
 }
-
-/** One disclosure, with caller-composed trigger and content. Use Accordion for a coordinated set. */
-export const Collapsible = Object.assign(CollapsibleRoot, {
-  Trigger: CollapsibleTrigger,
-  Content: CollapsibleContent,
-});

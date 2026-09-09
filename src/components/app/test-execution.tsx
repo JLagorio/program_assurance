@@ -1,21 +1,3 @@
-/**
- * The test execution surface: the procedure that was written, the run that was
- * executed against a named build, the step records the operator actually took,
- * and the regression table that compares a retest against the run it re-executes.
- *
- * The load-bearing view here is the declared-versus-executed objective table.
- * `TestObjective.result` is an assertion somebody typed into the campaign
- * record; a run verdict is what the step records add up to. Where the two
- * disagree the table shows BOTH values side by side and says which one the
- * product is standing behind — collapsing them into one column would hide the
- * only thing this feature exists to surface.
- *
- * Presentation only. Every value arrives as a prop; nothing here derives a
- * verdict, resolves an objective, sorts a run log or reads a clock.
- */
-
-import type { ReactNode } from "react";
-
 import {
   Absent,
   Badge,
@@ -23,6 +5,7 @@ import {
   Button,
   Dot,
   Empty,
+  Eyebrow,
   Grid,
   Id,
   Inline,
@@ -30,13 +13,15 @@ import {
   KeyValue,
   Person,
   Progress,
+  ProgressStacked,
   Section,
   Stack,
   Stat,
   Table,
-  Eyebrow,
+  type Tone,
 } from "@ledger/design-system";
-import type { Tone } from "@ledger/design-system";
+import type { ReactNode } from "react";
+
 import { objectiveTone, type ObjectiveResult } from "@/lib/campaigns";
 import {
   regressionStateTone,
@@ -50,6 +35,7 @@ import {
   type TestProcedure,
   type TestRun,
 } from "@/lib/test-execution";
+
 import { cn } from "@ledger/design-system/cn";
 
 /* ── Row shapes the route assembles ──────────────────────────────────────── */
@@ -236,7 +222,7 @@ export function ExecutionSummary({
         }
       >
         <Box paddingBlockStart="space.150">
-          <Progress.Stacked
+          <ProgressStacked
             segments={[
               {
                 key: "met",
@@ -263,7 +249,7 @@ export function ExecutionSummary({
                 title: `Not run — ${execution.notRun}`,
               },
             ]}
-          />
+          ></ProgressStacked>
           <Inline
             className="pt-100"
             space="space.200"
@@ -314,6 +300,7 @@ export function ExecutionSummary({
                     ? "warning"
                     : "danger"
               }
+              aria-hidden
             />
           </Box>
 

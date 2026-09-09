@@ -1,30 +1,31 @@
-/**
- * True activity timeline: chronological grouping, per-user filters that
- * persist, read/unread state, and a detail drawer for a single event.
- */
-
-import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { ChevronDown, Circle } from "lucide-react";
-
 import {
   Avatar,
+  Box,
   Button,
   buttonVariants,
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuLabel,
-  DropdownMenuRadioItem,
   DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
   Empty,
   Inline,
   Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
   Timeline,
   ToggleGroup,
   ToggleGroupItem,
 } from "@ledger/design-system";
-import { cn } from "@ledger/design-system/cn";
+
+import { Link } from "@tanstack/react-router";
+import { ChevronDown, Circle } from "lucide-react";
+import { useMemo, useState } from "react";
+
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
 import {
   absoluteStamp,
@@ -37,6 +38,8 @@ import {
   relativeStamp,
   type ActivityEvent,
 } from "@/lib/program-activity";
+
+import { cn } from "@ledger/design-system/cn";
 
 const toneRing: Record<string, string> = {
   danger: "bg-danger-bold",
@@ -198,46 +201,62 @@ export function ActivityTimeline({
 
       <Sheet
         open={active !== null}
-        onClose={() => setOpenId(null)}
-        title={active?.title ?? ""}
-        subtitle={active ? `${active.kind} · ${active.actor}` : undefined}
-        footer={
-          active ? (
-            <>
-              <Button
-                variant="subtle"
-                size="small"
-                onClick={() => {
-                  markUnread(active.id);
-                  setOpenId(null);
-                }}
-              >
-                Mark unread
-              </Button>
-              {active.to ? (
-                <Link
-                  to={active.to}
-                  params={active.params as never}
-                  className={buttonVariants({ variant: "primary", size: "small" })}
-                >
-                  Open record
-                </Link>
-              ) : null}
-            </>
-          ) : null
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpenId(null);
+          }
+        }}
       >
-        {active ? (
-          <dl className="font-body-small">
-            <DrawerRow label="When" value={absoluteStamp(active.at)} />
-            <DrawerRow label="Relative" value={relativeStamp(active.at)} />
-            <DrawerRow label="Type" value={active.kind} />
-            <DrawerRow label="Actor" value={active.actor} />
-            {(active.details ?? []).map((d) => (
-              <DrawerRow key={d.label} label={d.label} value={d.value} />
-            ))}
-          </dl>
-        ) : null}
+        <SheetContent side="end" style={{ maxWidth: 420 }}>
+          <SheetHeader>
+            <Box className="flex items-start gap-100">
+              <Box className="flex min-w-0 flex-1 flex-col gap-025">
+                <SheetTitle>{active?.title ?? ""}</SheetTitle>
+                <SheetDescription>
+                  {active ? `${active.kind} · ${active.actor}` : undefined}
+                </SheetDescription>
+              </Box>
+            </Box>
+          </SheetHeader>
+          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+            {active ? (
+              <dl className="font-body-small">
+                <DrawerRow label="When" value={absoluteStamp(active.at)} />
+                <DrawerRow label="Relative" value={relativeStamp(active.at)} />
+                <DrawerRow label="Type" value={active.kind} />
+                <DrawerRow label="Actor" value={active.actor} />
+                {(active.details ?? []).map((d) => (
+                  <DrawerRow key={d.label} label={d.label} value={d.value} />
+                ))}
+              </dl>
+            ) : null}
+          </Box>
+          <SheetFooter>
+            {active ? (
+              <>
+                <Button
+                  variant="subtle"
+                  size="small"
+                  onClick={() => {
+                    markUnread(active.id);
+                    setOpenId(null);
+                  }}
+                >
+                  Mark unread
+                </Button>
+                {active.to ? (
+                  <Link
+                    to={active.to}
+                    params={active.params as never}
+                    className={buttonVariants({ variant: "primary", size: "small" })}
+                  >
+                    Open record
+                  </Link>
+                ) : null}
+              </>
+            ) : null}
+          </SheetFooter>
+        </SheetContent>
       </Sheet>
     </div>
   );

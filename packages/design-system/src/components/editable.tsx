@@ -1,17 +1,18 @@
-import { useLedgerLocale } from "../lib/locale";
 import { AlertCircle, Check, ChevronDown } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+
+import { useLedgerLocale } from "../lib/locale";
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "./command";
 
 import { cn } from "../lib/cn";
 import { Bleed } from "../primitives/bleed";
-import { Command } from "./command";
+
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuRadioItem,
   DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
 } from "./dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Spinner } from "./spinner";
@@ -292,10 +293,10 @@ function EditableSelect<T extends string>({
             className="p-0"
           >
             <Command className="rounded-large">
-              <Command.Input placeholder={t("search")} hint={null} autoFocus />
-              <Command.List style={{ maxHeight: 260 }}>
+              <CommandInput placeholder={t("search")} hint={null} autoFocus></CommandInput>
+              <CommandList style={{ maxHeight: 260 }}>
                 {options.map((o) => (
-                  <Command.Item
+                  <CommandItem
                     key={o}
                     value={o}
                     onSelect={() => {
@@ -311,10 +312,10 @@ function EditableSelect<T extends string>({
                         o === props.value ? "visible" : "invisible",
                       )}
                     />
-                  </Command.Item>
+                  </CommandItem>
                 ))}
-              </Command.List>
-              <Command.Empty>{t("noMatches")}</Command.Empty>
+              </CommandList>
+              <CommandEmpty>{t("noMatches")}</CommandEmpty>
             </Command>
           </PopoverContent>
         </Popover>

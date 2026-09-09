@@ -7,7 +7,7 @@ import {
 } from "@/lib/composition";
 import { scopesForProgram, type AssessmentScope } from "@/lib/scopes";
 
-/** Shared navigation uses element IDs; assessment scope IDs remain local to control records. */
+/** Element links use composition IDs; assessment scope IDs remain local to implementation records. */
 export function resolveProgramElement(
   programId: string,
   elementId?: string,

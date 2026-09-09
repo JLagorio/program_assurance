@@ -95,27 +95,6 @@
         }
       }
     },
-    "AlertDialog": {
-      "domTarget": "Portaled Radix/Vaul content div with dialog semantics. No generic id/style/root-ref forwarding; returnFocusRef identifies an external focus destination, not the content ref.",
-      "controlledBehavior": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal.",
-      "defaultBehavior": "Closed when open=false; no uncontrolled default. Focus restores explicit returnFocusRef, captured opener, then a surviving dialog/main/h1. Optional absent description/subtitle has no aria-describedby. Dialog defaults medium=520px and pending=false; AlertDialog primary tone, pending=false and localized labels; Drawer max-width 640px/max-height 85vh; Sheet end side/420px. Optional slots are omitted when falsy.",
-      "props": {
-        "onClose": {
-          "meaning": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal."
-        },
-        "open": {
-          "meaning": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal."
-        },
-        "tone": {
-          "meaning": "Destructive action presentation. primary is normal confirmation emphasis, danger is destructive confirmation.",
-          "migration": "Retain the intentionally limited action palette rather than adding unrelated success/information states."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/alert-dialog.tsx",
-        "packages/design-system/src/components/_overlay-focus.ts"
-      ]
-    },
     "Attachment": {
       "domTarget": "Native div root; DOM attributes, events, className, style and HTMLDivElement ref forwarded. Native title remains a tooltip attribute.",
       "controlledBehavior": "Stateless presentation of caller-owned state, size and orientation. No upload, removal, preview, selection or disabled-state inference.",
@@ -818,7 +797,7 @@
         },
         "width": {
           "meaning": "CSS pixels for the input group and popup; overrides style.width on the group.",
-          "migration": "Preserve physical dimension units and each family’s preset meaning; do not reinterpret as control size."
+          "migration": "Preserve physical dimension units and each family\u2019s preset meaning; do not reinterpret as control size."
         }
       },
       "reviewSources": [
@@ -838,7 +817,7 @@
       ]
     },
     "Combobox.ChipRemove": {
-      "domTarget": "Native button removing its enclosing chip’s selection. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
+      "domTarget": "Native button removing its enclosing chip\u2019s selection. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
       "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
       "defaultBehavior": "Decorative X when children are absent. Caller supplies a target-specific accessible name; Base UI controls disabled/read-only interaction.",
       "reviewSources": [
@@ -883,7 +862,7 @@
       ]
     },
     "Combobox.Empty": {
-      "domTarget": "Native div with Base UI’s polite live-region semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
+      "domTarget": "Native div with Base UI\u2019s polite live-region semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
       "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
       "defaultBehavior": "Keep mounted while popup is open; shows caller content only when no items match. Empty children remove spacing, not the live region. No fallback text on the compound part.",
       "reviewSources": [
@@ -894,14 +873,14 @@
     "Combobox.Group": {
       "domTarget": "Native div role=group with label association supplied by GroupLabel. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
       "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Contains filtered group items; items provides this group’s collection. No heading content is invented.",
+      "defaultBehavior": "Contains filtered group items; items provides this group\u2019s collection. No heading content is invented.",
       "reviewSources": [
         "packages/design-system/src/components/combobox.tsx",
         "packages/design-system/package.json"
       ]
     },
     "Combobox.GroupLabel": {
-      "domTarget": "Native div providing the enclosing group’s accessible label. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
+      "domTarget": "Native div providing the enclosing group\u2019s accessible label. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
       "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
       "defaultBehavior": "Base UI generates a label ID and associates it with Group; explicit id participates in that relationship.",
       "reviewSources": [
@@ -911,12 +890,12 @@
       "props": {
         "id": {
           "meaning": "Explicit group label identity, registered with the enclosing Base UI Group.",
-          "migration": "Keep IDs on the element they identify and preserve Base UI’s generated accessible relationships."
+          "migration": "Keep IDs on the element they identify and preserve Base UI\u2019s generated accessible relationships."
         }
       }
     },
     "Combobox.Input": {
-      "domTarget": "Native input, including input ref; Field bindings attach to the editable control outside Content. The shorthand’s popup input has its own search name. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
+      "domTarget": "Native input, including input ref; Field bindings attach to the editable control outside Content. The shorthand\u2019s popup input has its own search name. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
       "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
       "defaultBehavior": "medium=32px, small=28px; Field id/label/description/invalid/required bindings are inherited unless explicitly supplied. Root owns the query and selection.",
       "reviewSources": [
@@ -926,11 +905,11 @@
       "props": {
         "id": {
           "meaning": "Native editable input identity; defaults to explicit props, then Ledger Field binding, then Base UI generated identity.",
-          "migration": "Keep IDs on the element they identify and preserve Base UI’s generated accessible relationships."
+          "migration": "Keep IDs on the element they identify and preserve Base UI\u2019s generated accessible relationships."
         },
         "size": {
           "meaning": "Ledger control height: small=28px, medium=32px (default), replacing the native input character-width attribute.",
-          "migration": "Preserve Ledger’s control size scale; use layout classes/style for width."
+          "migration": "Preserve Ledger\u2019s control size scale; use layout classes/style for width."
         },
         "value": {
           "meaning": "Inherited native input value reaches Base UI input merging. Root inputValue/onInputValueChange is the supported query ownership pair; Root value owns selection.",
@@ -972,13 +951,13 @@
       ],
       "props": {
         "id": {
-          "meaning": "Native listbox id override; Base UI generates the linked default. Overriding it requires preserving the input’s aria-controls relationship.",
-          "migration": "Keep IDs on the element they identify and preserve Base UI’s generated accessible relationships."
+          "meaning": "Native listbox id override; Base UI generates the linked default. Overriding it requires preserving the input\u2019s aria-controls relationship.",
+          "migration": "Keep IDs on the element they identify and preserve Base UI\u2019s generated accessible relationships."
         }
       }
     },
     "Combobox.Root": {
-      "domTarget": "No wrapper DOM node or DOM ref. inputRef targets Base UI’s hidden native form input; name/form apply there.",
+      "domTarget": "No wrapper DOM node or DOM ref. inputRef targets Base UI\u2019s hidden native form input; name/form apply there.",
       "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
       "defaultBehavior": "Defaults to single selection, no value and a closed popup; uses Ledger locale/direction. Uncontrolled selection resets to defaultValue (or null/[]) after an uncanceled native form reset, including external form ownership. Controlled selection stays caller-owned. Object values need label/value serializers and stable equality; multiple values serialize under repeated names.",
       "reviewSources": [
@@ -1015,7 +994,7 @@
           "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
         },
         "value": {
-          "meaning": "Controlled selection: generic single value/null or multiple array. Omit for the adapter’s uncontrolled state; do not switch ownership during a mount.",
+          "meaning": "Controlled selection: generic single value/null or multiple array. Omit for the adapter\u2019s uncontrolled state; do not switch ownership during a mount.",
           "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
         }
       }
@@ -1030,7 +1009,7 @@
       ]
     },
     "Combobox.Status": {
-      "domTarget": "Native div with Base UI’s polite status/live-region semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
+      "domTarget": "Native div with Base UI\u2019s polite status/live-region semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
       "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
       "defaultBehavior": "Keep mounted and update caller-owned loading/error/result text. Empty children remove spacing; Root does not fetch data.",
       "reviewSources": [
@@ -1039,7 +1018,7 @@
       ]
     },
     "Combobox.Trigger": {
-      "domTarget": "Native button that opens/toggles Root’s popup. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
+      "domTarget": "Native button that opens/toggles Root\u2019s popup. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
       "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
       "defaultBehavior": "Decorative downward chevron when children are absent. Give icon-only triggers an accessible name. Base UI manages disabled state, popup relationships and keyboard interaction.",
       "reviewSources": [
@@ -1056,138 +1035,10 @@
         "packages/design-system/package.json"
       ]
     },
-    "Command": {
-      "domTarget": "cmdk root div receives forwarded DOM props/id/events and className; Command.Dialog wraps that root in portaled Radix dialog content. Public ComponentPropsWithoutRef excludes ref; returnFocusRef in Dialog is external dismissal focus target.",
-      "controlledBehavior": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it.",
-      "defaultBehavior": "cmdk supplies filtering and first enabled active match. Root default query/active value empty unless supplied. Dialog medium=560px, large=640px, no description, label required, focus restoration via useOverlayFocus. User DOM props apply to cmdk root, not dialog surface.",
-      "props": {
-        "defaultValue": {
-          "meaning": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it."
-        },
-        "onValueChange": {
-          "meaning": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it."
-        },
-        "value": {
-          "meaning": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
-    "Command.Count": {
-      "domTarget": "span containing count from cmdk store; no native props/ref API.",
-      "controlledBehavior": "Context-owned filtered match count, subscribed via useCommandState.",
-      "defaultBehavior": "one=match, many=matches; singular only for count=1. Caller translates both words; count uses current filtered store, no independent value.",
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
-    "Command.Dialog": {
-      "domTarget": "cmdk root div receives forwarded DOM props/id/events and className; Command.Dialog wraps that root in portaled Radix dialog content. Public ComponentPropsWithoutRef excludes ref; returnFocusRef in Dialog is external dismissal focus target.",
-      "controlledBehavior": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it.",
-      "defaultBehavior": "cmdk supplies filtering and first enabled active match. Root default query/active value empty unless supplied. Dialog medium=560px, large=640px, no description, label required, focus restoration via useOverlayFocus. User DOM props apply to cmdk root, not dialog surface.",
-      "props": {
-        "defaultValue": {
-          "meaning": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it."
-        },
-        "onClose": {
-          "meaning": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it."
-        },
-        "onValueChange": {
-          "meaning": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it."
-        },
-        "open": {
-          "meaning": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it."
-        },
-        "value": {
-          "meaning": "cmdk value/onValueChange or defaultValue owns active command item, independently from Command.Input search query. shouldFilter/filter and keyboard behavior belong to cmdk. Dialog open/onClose is separately caller-controlled; choosing an item only closes when caller handles it."
-        },
-        "width": {
-          "meaning": "Palette maximum width preset medium=560px/large=640px; distinct from Dialog presets.",
-          "migration": "Preserve physical dimension units and each family’s preset meaning; do not reinterpret as control size."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/command.tsx",
-        "packages/design-system/src/components/_overlay-focus.ts"
-      ]
-    },
-    "Command.Empty": {
-      "domTarget": "cmdk empty-state div receives native props/id/className; no public ref.",
-      "controlledBehavior": "cmdk context decides visibility from filtered result count; no caller-owned empty boolean.",
-      "defaultBehavior": "Renders only on zero matches; no package fallback children.",
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
-    "Command.Footer": {
-      "domTarget": "Fixed footer div; children only, no native props/ref API.",
-      "controlledBehavior": "Stateless presentation inside Command.",
-      "defaultBehavior": "No runtime defaults or implicit content.",
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
-    "Command.Group": {
-      "domTarget": "cmdk group div receives native props/id/className with internal heading; no public ref.",
-      "controlledBehavior": "cmdk context controls group filtering; value identifies group and is not selected command value.",
-      "defaultBehavior": "Group value inferred by cmdk from explicit value/heading/text when absent. Entire group hides if no matching items unless dependency forceMount applies.",
-      "props": {
-        "value": {
-          "meaning": "Stable identity for Command.Group in its owning context. cmdk can infer it from displayed content if omitted.",
-          "migration": "Keep keys stable across reorders/localization; do not rename identity to DOM id."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
-    "Command.Input": {
-      "domTarget": "Inner cmdk native input receives id/native props/className; outer div holds decorative search icon and hint. Public contract excludes ref.",
-      "controlledBehavior": "cmdk input value/onValueChange controls search; otherwise query lives in Command context. This is distinct from root active-item value.",
-      "defaultBehavior": "hint defaults to esc only when undefined; null suppresses it. Search defaults to context empty query. Native defaultValue is not the context-owned query initializer; prefer value/onValueChange for preset search. Input size remains native character count; wrapper height is fixed.",
-      "props": {
-        "onValueChange": {
-          "meaning": "cmdk input value/onValueChange controls search; otherwise query lives in Command context. This is distinct from root active-item value."
-        },
-        "size": {
-          "meaning": "Inherited native input character-count size; does not change wrapper control height.",
-          "migration": "Keep family-relative geometry and native attribute exceptions explicit; no global enum normalization."
-        },
-        "value": {
-          "meaning": "cmdk input value/onValueChange controls search; otherwise query lives in Command context. This is distinct from root active-item value."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
-    "Command.Item": {
-      "domTarget": "cmdk option div receives native props/id/className, with label wrapper and optional trailing span; no public ref.",
-      "controlledBehavior": "value identifies action/filter text; cmdk context owns active selection. onSelect(value) is a string callback for activation, not native text-selection event. Caller executes action.",
-      "defaultBehavior": "Value inferred from rendered text when omitted by dependency. Disabled blocks activation; trailing falsy omitted. Fixed medium-height menu row; dependency filtering/forceMount defaults apply.",
-      "props": {
-        "onSelect": {
-          "meaning": "value identifies action/filter text; cmdk context owns active selection. onSelect(value) is a string callback for activation, not native text-selection event. Caller executes action."
-        },
-        "value": {
-          "meaning": "Stable identity for Command.Item in its owning context. cmdk can infer it from displayed content if omitted.",
-          "migration": "Keep keys stable across reorders/localization; do not rename identity to DOM id."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
-    "Command.List": {
-      "domTarget": "cmdk listbox div receives native props/id/style/className; no public ref.",
-      "controlledBehavior": "Context-owned filtered collection; scrolling native to list, no controlled list state.",
-      "defaultBehavior": "maxHeight=340px unless caller replaces style; cmdk manages listbox id and inner measurement wrapper.",
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
-    "Command.Loading": {
-      "domTarget": "cmdk progressbar div receives native props/id/className; no public ref.",
-      "controlledBehavior": "Caller decides whether to render pending state; cmdk supplies progress semantics, not data fetching.",
-      "defaultBehavior": "label falls back to localized loading; children fall back to localized search. Package adds Spinner small. No task promise or pending state is inferred.",
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
-    "Command.Separator": {
-      "domTarget": "cmdk separator asChild delegates to fixed div role=presentation. No props/ref API.",
-      "controlledBehavior": "Context/dependency decides filtered visibility; stateless presentation.",
-      "defaultBehavior": "No public defaults; role is intentionally presentation inside listbox.",
-      "reviewSources": ["packages/design-system/src/components/command.tsx"]
-    },
     "CommandPalette": {
       "domTarget": "Portaled Command.Dialog/Radix dialog; its input and listbox/options come from cmdk. There is no root DOM/ref passthrough on the pattern.",
       "controlledBehavior": "Caller owns open; cmdk internally owns search and active-option navigation. Choosing requests onClose before invoking command.run synchronously. Neither callback is awaited or caught; caller owns action failures. useCommandPalette is a separate optional hook with local false initial state and window Cmd/Ctrl+K listener.",
-      "defaultBehavior": "Placeholder defaults to Type a command…. Input hint is explicitly null. Empty matching result uses No commands match. Contiguous commands with equal group share a heading; repeated nonadjacent groups remain separate. Unique command ids identify options and group runs; group, label and hint remain searchable keywords.",
+      "defaultBehavior": "Placeholder defaults to Type a command\u2026. Input hint is explicitly null. Empty matching result uses No commands match. Contiguous commands with equal group share a heading; repeated nonadjacent groups remain separate. Unique command ids identify options and group runs; group, label and hint remain searchable keywords.",
       "reviewSources": [
         "packages/design-system/src/patterns/command-palette.tsx",
         "packages/design-system/src/components/command.tsx",
@@ -1409,27 +1260,6 @@
           "defaultBehavior": "No-op when omitted."
         }
       }
-    },
-    "Dialog": {
-      "domTarget": "Portaled Radix/Vaul content div with dialog semantics. No generic id/style/root-ref forwarding; returnFocusRef identifies an external focus destination, not the content ref.",
-      "controlledBehavior": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal.",
-      "defaultBehavior": "Closed when open=false; no uncontrolled default. Focus restores explicit returnFocusRef, captured opener, then a surviving dialog/main/h1. Optional absent description/subtitle has no aria-describedby. Dialog defaults medium=520px and pending=false; AlertDialog primary tone, pending=false and localized labels; Drawer max-width 640px/max-height 85vh; Sheet end side/420px. Optional slots are omitted when falsy.",
-      "props": {
-        "onClose": {
-          "meaning": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal."
-        },
-        "open": {
-          "meaning": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal."
-        },
-        "width": {
-          "meaning": "Dialog maximum width preset medium=520px/large=860px.",
-          "migration": "Preserve physical dimension units and each family’s preset meaning; do not reinterpret as control size."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/dialog.tsx",
-        "packages/design-system/src/components/_overlay-focus.ts"
-      ]
     },
     "Dot": {
       "domTarget": "SVG circle: supplied label makes a named image; otherwise aria-hidden. No native prop/ref bag.",
@@ -2054,34 +1884,6 @@
         }
       }
     },
-    "Progress": {
-      "domTarget": "Radix progress div, or wrapper span when showValue=true. label names the bar; without label the bar is hidden from assistive technology. className belongs to the bar; no arbitrary DOM/ref props.",
-      "controlledBehavior": "Required value is caller-owned display data; no editable/uncontrolled value or change callback.",
-      "defaultBehavior": "tone=information, size=medium (6px); small=4px, large=8px. Finite value is clamped to 0..100. showValue omitted hides the readout. valueText overrides rounded percent and supplies aria-valuetext when labelled. Supply a valid numeric value.",
-      "reviewSources": ["packages/design-system/src/components/progress.tsx"],
-      "props": {
-        "size": {
-          "meaning": "`small` is 4px, in a cell or beside a name; `medium` 6px, the default; `large` 8px, a band."
-        },
-        "tone": {
-          "meaning": "Semantic tone from the component allowed union; neutral is not a category hue. Uses the family tone styling described above."
-        },
-        "value": {
-          "meaning": "Caller-owned numeric percentage, clamped to 0..100 for valid finite input; display only."
-        }
-      }
-    },
-    "Progress.Stacked": {
-      "domTarget": "span becomes group when interactive segments exist, named img for a labelled static bar, otherwise decorative. Segment onClick renders native buttons. No arbitrary DOM/ref props.",
-      "controlledBehavior": "Caller owns segment counts and selection/filter state. Segment onClick is an activation callback, not a value change handler.",
-      "defaultBehavior": "size=large (8px). Positive finite counts are expected; nonpositive segments are skipped, remaining shares use total count. appearance defaults to solid; hatched is patterned. Interactive names use title or key; provide descriptive titles. Static unnamed bars are decorative.",
-      "reviewSources": ["packages/design-system/src/components/progress.tsx"],
-      "props": {
-        "size": {
-          "meaning": "`small` is 4px, in a cell or beside a name; `medium` 6px, in a row; `large` 8px, the default, a coverage band."
-        }
-      }
-    },
     "Prose": {
       "domTarget": "div with Eyebrow and paragraph; no arbitrary DOM/ref forwarding.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
@@ -2221,22 +2023,6 @@
         "packages/design-system/src/patterns/data-table/features.ts"
       ]
     },
-    "ScrollArea": {
-      "domTarget": "Radix root div receives className; inner viewport is tabIndex=0 and gets region role/name only when label provided. No generic id/ref forwarding to root or viewport.",
-      "controlledBehavior": "Dependency owns scrolling and scrollbar visibility; no controlled scroll position API.",
-      "defaultBehavior": "orientation=vertical, bar=hover, scrollHideDelay=600ms. Optional both adds both bars; absent label leaves plain scrolling viewport. Caller supplies dimensions through className. Direction falls back to LedgerProvider locale; an explicit dir overrides it and reaches Radix context.",
-      "props": {
-        "dir": {
-          "meaning": "Reading and interaction direction passed to the Radix root, including keyboard navigation, portal direction and scroll positioning where applicable.",
-          "migration": "Use the LedgerProvider default for the localized subtree; preserve explicit dir when embedding opposite-direction content.",
-          "defaultBehavior": "Explicit dir wins; otherwise useLedgerLocale().direction."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/scroll-area.tsx",
-        "packages/design-system/src/lib/locale.tsx"
-      ]
-    },
     "Section": {
       "domTarget": "section receiving className with h2 header. No arbitrary DOM attributes/ref forwarding.",
       "controlledBehavior": "Stateless region; action children own behavior.",
@@ -2257,27 +2043,6 @@
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "orientation=horizontal; decorative omitted is false. Vertical uses the fixed line classes and caller layout height.",
       "reviewSources": ["packages/design-system/src/components/separator.tsx"]
-    },
-    "Sheet": {
-      "domTarget": "Portaled Radix/Vaul content div with dialog semantics. No generic id/style/root-ref forwarding; returnFocusRef identifies an external focus destination, not the content ref.",
-      "controlledBehavior": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal.",
-      "defaultBehavior": "Closed when open=false; no uncontrolled default. Focus restores explicit returnFocusRef, captured opener, then a surviving dialog/main/h1. Optional absent description/subtitle has no aria-describedby. Dialog defaults medium=520px and pending=false; AlertDialog primary tone, pending=false and localized labels; Drawer max-width 640px/max-height 85vh; Sheet end side/420px. Optional slots are omitted when falsy.",
-      "props": {
-        "onClose": {
-          "meaning": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal."
-        },
-        "open": {
-          "meaning": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal."
-        },
-        "width": {
-          "meaning": "Maximum content width in CSS pixels; surface remains bounded by viewport.",
-          "migration": "Preserve physical dimension units and each family’s preset meaning; do not reinterpret as control size."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/sheet.tsx",
-        "packages/design-system/src/components/_overlay-focus.ts"
-      ]
     },
     "Shell": {
       "domTarget": "div.shell-root wraps skip navigation and caller areas; className targets root. No native rest/ref API.",
@@ -2856,79 +2621,6 @@
         }
       }
     },
-    "LegacyAccordion": {
-      "domTarget": "Radix accordion root div; className targets root; generated trigger/content IDs belong to child sections. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "value/onValueChange controls open sections; defaultValue initializes uncontrolled state. multiple normalizes strings to arrays; single takes first array entry and permits closing the last open section.",
-      "defaultBehavior": "Collapsible.Group defaults type=multiple; deprecated Accordion defaults type=single. defaultValue falls back to direct Collapsible children marked defaultOpen, then [] for multiple or empty string for single. Explicit parent state takes precedence.",
-      "props": {
-        "defaultValue": {
-          "meaning": "value/onValueChange controls open sections; defaultValue initializes uncontrolled state. multiple normalizes strings to arrays; single takes first array entry and permits closing the last open section."
-        },
-        "onValueChange": {
-          "meaning": "value/onValueChange controls open sections; defaultValue initializes uncontrolled state. multiple normalizes strings to arrays; single takes first array entry and permits closing the last open section."
-        },
-        "value": {
-          "meaning": "value/onValueChange controls open sections; defaultValue initializes uncontrolled state. multiple normalizes strings to arrays; single takes first array entry and permits closing the last open section."
-        },
-        "type": {
-          "meaning": "Legacy Accordion defaults to single while Collapsible.Group defaults to multiple.",
-          "migration": "When migrating a bare Accordion root, explicitly set Collapsible.Group type=single; preserve any existing explicit type.",
-          "defaultBehavior": "Accordion single; Collapsible.Group multiple."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/_legacy-disclosure.tsx"]
-    },
-    "LegacyAccordion.Item": {
-      "domTarget": "Deprecated alias to Collapsible section; standalone/grouped rendering follows nearest Group context. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Group context owns open state by required value; alias exposes no open/defaultOpen callbacks.",
-      "defaultBehavior": "Required value is the stable section key. Group headingLevel/inset inherit unless overridden. Migrate to Collapsible with the same value; preserve explicit type=single when migrating an Accordion root.",
-      "props": {
-        "value": {
-          "meaning": "Stable identity for Accordion.Item in its owning context. Required and supplied by the caller; no runtime default.",
-          "migration": "Keep keys stable across reorders/localization; do not rename identity to DOM id."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/_legacy-disclosure.tsx"]
-    },
-    "LegacyCollapsible": {
-      "domTarget": "Standalone Radix collapsible div or grouped Radix accordion item div; className targets that section. Generated button/content IDs are dependency-owned; no arbitrary root DOM/ref API.",
-      "controlledBehavior": "Standalone open/onOpenChange or defaultOpen; inside Group the parent value owns state and item open/onOpenChange are ignored.",
-      "defaultBehavior": "Standalone defaultOpen=false. Group item identity prefers value, then string title, then useId; headingLevel and inset inherit group values when absent. Count 0/null/undefined is hidden. Group discovery of defaultOpen requires direct Collapsible children with explicit value or string title.",
-      "props": {
-        "defaultOpen": {
-          "meaning": "Standalone open/onOpenChange or defaultOpen; inside Group the parent value owns state and item open/onOpenChange are ignored."
-        },
-        "onOpenChange": {
-          "meaning": "Standalone open/onOpenChange or defaultOpen; inside Group the parent value owns state and item open/onOpenChange are ignored."
-        },
-        "open": {
-          "meaning": "Standalone open/onOpenChange or defaultOpen; inside Group the parent value owns state and item open/onOpenChange are ignored."
-        },
-        "value": {
-          "meaning": "Group section key, preferred over string title and generated fallback. Standalone mode ignores this key.",
-          "migration": "Use explicit stable values with controlled groups and localized/rich titles.",
-          "defaultBehavior": "Falls back to string title then useId; generated fallback is not discoverable by parent defaultOpen scan."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/_legacy-disclosure.tsx"]
-    },
-    "LegacyCollapsible.Group": {
-      "domTarget": "Radix accordion root div; className targets root; generated trigger/content IDs belong to child sections. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "value/onValueChange controls open sections; defaultValue initializes uncontrolled state. multiple normalizes strings to arrays; single takes first array entry and permits closing the last open section.",
-      "defaultBehavior": "Collapsible.Group defaults type=multiple; deprecated Accordion defaults type=single. defaultValue falls back to direct Collapsible children marked defaultOpen, then [] for multiple or empty string for single. Explicit parent state takes precedence.",
-      "props": {
-        "defaultValue": {
-          "meaning": "value/onValueChange controls open sections; defaultValue initializes uncontrolled state. multiple normalizes strings to arrays; single takes first array entry and permits closing the last open section."
-        },
-        "onValueChange": {
-          "meaning": "value/onValueChange controls open sections; defaultValue initializes uncontrolled state. multiple normalizes strings to arrays; single takes first array entry and permits closing the last open section."
-        },
-        "value": {
-          "meaning": "value/onValueChange controls open sections; defaultValue initializes uncontrolled state. multiple normalizes strings to arrays; single takes first array entry and permits closing the last open section."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/_legacy-disclosure.tsx"]
-    },
     "Accordion": {
       "domTarget": "Root div; native attributes, events, className, style and ref forwarded; asChild composes one child. dir follows LedgerProvider unless explicit.",
       "controlledBehavior": "Root controls string selection in single mode or string-array selection in multiple mode, with value/onValueChange or initial defaultValue. No coercion or child inspection.",
@@ -3003,59 +2695,6 @@
       },
       "reviewSources": [
         "packages/design-system/src/components/accordion.tsx",
-        "packages/design-system/src/styles/motion.css"
-      ]
-    },
-    "Collapsible": {
-      "domTarget": "Root div; native attributes/events/ref forwarded; asChild composes its target. No title/count/inset layout.",
-      "controlledBehavior": "Independent boolean open/onOpenChange or initial defaultOpen. Accordion ancestry never changes ownership.",
-      "defaultBehavior": "defaultOpen=false, disabled=false underneath. No grouping or child inspection; explicit trigger and content.",
-      "props": {
-        "defaultOpen": {
-          "meaning": "Independent boolean open/onOpenChange or initial defaultOpen. Accordion ancestry never changes ownership.",
-          "migration": "Compose Trigger and Content; use Accordion for old Group behavior. Ancestry no longer changes state ownership."
-        },
-        "onOpenChange": {
-          "meaning": "Independent boolean open/onOpenChange or initial defaultOpen. Accordion ancestry never changes ownership.",
-          "migration": "Compose Trigger and Content; use Accordion for old Group behavior. Ancestry no longer changes state ownership."
-        },
-        "open": {
-          "meaning": "Independent boolean open/onOpenChange or initial defaultOpen. Accordion ancestry never changes ownership.",
-          "migration": "Compose Trigger and Content; use Accordion for old Group behavior. Ancestry no longer changes state ownership."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/collapsible.tsx",
-        "packages/design-system/src/styles/motion.css"
-      ]
-    },
-    "Collapsible.Content": {
-      "domTarget": "Content div; native attributes/events/ref forwarded. Radix supplies the ID associated with its trigger.",
-      "controlledBehavior": "Follows its independent root. forceMount retains child state while closed-state CSS hides content and excludes its controls from tab order.",
-      "defaultBehavior": "Unmounts after exit animation normally. forceMount absent by default; retained closed panels hide immediately. Reduced-motion support, no spacing, implicit region or browser-find support.",
-      "props": {
-        "id": {
-          "meaning": "Native DOM ID on the named part; Radix supplies trigger/content association IDs when omitted. Item selection identity is separate.",
-          "migration": "Keep DOM IDs separate from item values and preserve ARIA associations when overriding IDs."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/collapsible.tsx",
-        "packages/design-system/src/styles/motion.css"
-      ]
-    },
-    "Collapsible.Trigger": {
-      "domTarget": "Native button; attributes/events/ref forwarded, or composed onto one ref-capable button via asChild.",
-      "controlledBehavior": "Toggles its independent root; Radix supplies aria-expanded and aria-controls. Native onChange is not expansion state.",
-      "defaultBehavior": "Token focus/disabled treatment only; no imposed icon, heading, label or layout.",
-      "props": {
-        "id": {
-          "meaning": "Native DOM ID on the named part; Radix supplies trigger/content association IDs when omitted. Item selection identity is separate.",
-          "migration": "Keep DOM IDs separate from item values and preserve ARIA associations when overriding IDs."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/collapsible.tsx",
         "packages/design-system/src/styles/motion.css"
       ]
     },

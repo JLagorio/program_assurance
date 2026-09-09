@@ -1,5 +1,33 @@
+import {
+  Badge,
+  Block,
+  Box,
+  Button,
+  Checkbox,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Count,
+  Field,
+  Gates,
+  Grid,
+  Id,
+  Indicator,
+  Inline,
+  NativeSelect,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Stack,
+  Switch,
+  Table,
+  Textarea,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@ledger/design-system";
 import { ChevronDown } from "lucide-react";
-import { Collapsible, Count } from "@ledger/design-system";
 /**
  * One scope's categorization and tailoring, edited in place.
  *
@@ -10,34 +38,9 @@ import { Collapsible, Count } from "@ledger/design-system";
  * carrying its rationale where it disagrees with the engine.
  */
 
-import { TailorControlsSheet } from "./tailor-picker";
 import { useMemo, useState } from "react";
+import { TailorControlsSheet } from "./tailor-picker";
 
-import {
-  Badge,
-  Block,
-  Box,
-  Button,
-  Checkbox,
-  Field,
-  Gates,
-  Grid,
-  Id,
-  Indicator,
-  Inline,
-  NativeSelect,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Stack,
-  Switch,
-  Table,
-  Textarea,
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@ledger/design-system";
 import {
   contestedOverlays,
   decideOverlay,
@@ -448,16 +451,16 @@ export function ScopeTailoringPane({
       {show("controls") ? (
         <Collapsible className="border-t border-default" defaultOpen={draft.tailoring.length > 0}>
           <h3>
-            <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-              {"Individual controls"}{" "}
+            <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+              Individual controls{" "}
               {draft.tailoring.length > 0 ? <Count value={draft.tailoring.length} /> : null}
               <ChevronDown
                 aria-hidden="true"
                 className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
               />
-            </Collapsible.Trigger>
+            </CollapsibleTrigger>
           </h3>
-          <Collapsible.Content>
+          <CollapsibleContent>
             <Box paddingBlockEnd="space.200">
               {readOnly ? null : (
                 <Inline className="pb-150" space="space.150">
@@ -581,7 +584,7 @@ export function ScopeTailoringPane({
                 </p>
               )}
             </Box>
-          </Collapsible.Content>
+          </CollapsibleContent>
         </Collapsible>
       ) : null}
     </Stack>

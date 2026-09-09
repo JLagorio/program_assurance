@@ -32,8 +32,10 @@
  * spreadsheet instead of in the model.
  */
 
+import { ancestorsOf, nodeById } from "@/lib/composition";
 import { useSyncExternalStore } from "react";
 
+import type { ImpactLevel } from "@/lib/grc-data";
 import { nistControls, type NistControl } from "@/lib/nist-catalog";
 import {
   computeTailoring,
@@ -41,7 +43,6 @@ import {
   type OverlayControl,
   type SystemParameters,
 } from "@/lib/tailoring";
-import type { ImpactLevel } from "@/lib/grc-data";
 
 /* -------------------------------------------------------------- Objectives */
 
@@ -143,6 +144,8 @@ export type ControlSelectionSource = {
   label: string;
   startingControlIds: string[];
   parentScope?: string;
+  /** Retains inheritance intent when a move temporarily leaves no categorized ancestor. */
+  inheritance?: "containment";
 };
 
 export const assessmentScopes: AssessmentScope[] = [
@@ -328,7 +331,7 @@ export function triadOf(scope: AssessmentScope): Triad {
 export function controlSetFor(scopeId: string): ScopeControlSet | null {
   const scope = scopeById.get(scopeId);
   if (!scope) return null;
-  const source = scope.selectionSource;
+  const source = liveScopeSelectionSource(scope);
   const parent = source?.parentScope ? controlSetFor(source.parentScope) : null;
   const selection = source
     ? {
@@ -340,6 +343,44 @@ export function controlSetFor(scopeId: string): ScopeControlSet | null {
       }
     : undefined;
   return { scope, ...resolveSelection(triadOf(scope), tailoringFor(scope), selection) };
+}
+
+/** Inheritance follows the live system tree; revision snapshots remain historical. */
+export function liveScopeSelectionSource(
+  scope: AssessmentScope,
+): ControlSelectionSource | undefined {
+  const source = scope.selectionSource;
+  if (!source || (!source.parentScope && source.inheritance !== "containment")) return source;
+  const parent = ancestorsOf(scope.element)
+    .map((node) =>
+      assessmentScopes.find(
+        (candidate) => candidate.program === scope.program && candidate.element === node.id,
+      ),
+    )
+    .find((candidate) => candidate !== undefined);
+  if (!parent) {
+    const { parentScope: _oldParent, ...selection } = source;
+    return { ...selection, inheritance: "containment", label: "Previously inherited control set" };
+  }
+  return {
+    ...source,
+    inheritance: "containment",
+    parentScope: parent.id,
+    label: `Inherited from ${parent.name}`,
+  };
+}
+
+/** Refresh labels and inherited parent references without replacing local tailoring. */
+export function synchronizeCompositionScopes(programId: string) {
+  for (const scope of scopesForProgram(programId)) {
+    const node = nodeById.get(scope.element);
+    if (node) scope.name = node.name;
+  }
+  for (const scope of scopesForProgram(programId)) {
+    const selection = liveScopeSelectionSource(scope);
+    if (selection) scope.selectionSource = selection;
+  }
+  bumpScopes();
 }
 
 /** A control set without its scope — what a draft resolves to before it is registered. */

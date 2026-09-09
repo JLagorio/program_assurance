@@ -4,38 +4,38 @@ Ledger, the product design system: tokens, primitives, components, patterns, sha
 
 ## Map
 
-| Path | What is there |
-| --- | --- |
-| `tokens/` | The source of truth: ledger-css-v1 JSON, one file per group (`palette`, `color`, `elevation`, `font`, `space`, `shape`, `dimension`, `motion`, `opacity`). A token's `$value` is its light value, `$extensions.ledger.dark` is its dark value, `.introduced` and `.deprecated` are metadata. Every token has a `$description`. |
-| `build/tokens.mjs` | The Style Dictionary build. Reads `tokens/` and writes `src/generated/`. |
-| `build/dist.mjs` | The publishable build: TypeScript emit with Node-compatible specifiers to `dist/`, then the stylesheets and token data copied beside it. |
-| `src/generated/` | Committed build output, so a token change reviews as a diff: `tokens.css` (the variables, both modes), `theme.css` (the Tailwind namespace mapping), `reset.css` (Tailwind's default namespaces removed), `utilities.css` (one utility per token on its own property), `tokens.ts` (the name union, `token()`, `tokenValue()`, the utility allowlist), `merge-config.ts` (tailwind-merge groups), `classes.ts` and `space.ts` (token to class, for primitive props), `docs.json` (for the Storybook sheets), `tokens.figma.json` (legacy merged source) and mode-specific `tokens.dtcg.*.json` interchange documents. |
-| `src/styles/` | The stylesheets a consumer imports: `reset.css`, `ledger.css` (the theme, the variables, the utilities, `motion.css`, `layout.css`, and the `@source` that lets Tailwind scan the package), `base.css` (document defaults: colour scheme, border colour, the body's type). `storybook.css` is the package's own entry. |
-| `src/primitives/` | Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading. Token-typed props, no margins. |
-| `src/components/` | The parts: Button, Badge, the controls, Table, Tabs, the overlays, Chart and the rest. |
-| `src/patterns/` | Page-level compositions: IndexPage, ShowPage, PageHeader, Card, Section, Panel, the pickers and the previews. |
-| `src/shapes/` | Existing application compositions: WorkPane, Inspector, ActionBar, Block. Runtime exports remain; the standalone Shapes Storybook catalog is retired. |
-| `src/shell/` | The navigation system: Shell with Banner, TopNav, SideNav, Main and Panel, and what it remembers. |
-| `src/mode/` | The colour mode: ModeProvider, ModeSwitch, the script that applies the stored choice before first paint. |
-| `src/lib/` | `cn`, the class merger, and the panel context. |
-| `src/stories/` | The Storybook: the token sheets and their pages (`tokens/`), the primitives, the components, the patterns, and the guidance under `docs/` (Introduction, Getting started, Token grammar, Lint rules). Every component page attaches to its stories file. Not in the tarball. |
-| `eslint-plugin/` | The `ledger/*` rules and the flat configs, exported as `@ledger/design-system/eslint`. |
-| `test/` | `contrast.test.mjs`: every text-on-background pairing the mapping declares meets WCAG AA in both modes. |
+| Path               | What is there                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tokens/`          | The source of truth: ledger-css-v1 JSON, one file per group (`palette`, `color`, `elevation`, `font`, `space`, `shape`, `dimension`, `motion`, `opacity`). A token's `$value` is its light value, `$extensions.ledger.dark` is its dark value, `.introduced` and `.deprecated` are metadata. Every token has a `$description`.                                                                                                                                                                                                                                                                                        |
+| `build/tokens.mjs` | The Style Dictionary build. Reads `tokens/` and writes `src/generated/`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `build/dist.mjs`   | The publishable build: TypeScript emit with Node-compatible specifiers to `dist/`, then the stylesheets and token data copied beside it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `src/generated/`   | Committed build output, so a token change reviews as a diff: `tokens.css` (the variables, both modes), `theme.css` (the Tailwind namespace mapping), `reset.css` (Tailwind's default namespaces removed), `utilities.css` (one utility per token on its own property), `tokens.ts` (the name union, `token()`, `tokenValue()`, the utility allowlist), `merge-config.ts` (tailwind-merge groups), `classes.ts` and `space.ts` (token to class, for primitive props), `docs.json` (for the Storybook sheets), `tokens.figma.json` (legacy merged source) and mode-specific `tokens.dtcg.*.json` interchange documents. |
+| `src/styles/`      | The stylesheets a consumer imports: `reset.css`, `ledger.css` (the theme, the variables, the utilities, `motion.css`, `layout.css`, and the `@source` that lets Tailwind scan the package), `base.css` (document defaults: colour scheme, border colour, the body's type). `storybook.css` is the package's own entry.                                                                                                                                                                                                                                                                                                |
+| `src/primitives/`  | Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading. Token-typed props, no margins.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `src/components/`  | The parts: Button, Badge, the controls, Table, Tabs, the overlays, Chart and the rest.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `src/patterns/`    | Page-level compositions: IndexPage, ShowPage, PageHeader, Card, Section, Panel, the pickers and the previews.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `src/shapes/`      | Existing application compositions: WorkPane, Inspector, ActionBar, Block. Runtime exports remain; the standalone Shapes Storybook catalog is retired.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `src/shell/`       | The navigation system: Shell with Banner, TopNav, SideNav, Main and Panel, and what it remembers.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `src/mode/`        | The colour mode: ModeProvider, ModeSwitch, the script that applies the stored choice before first paint.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `src/lib/`         | `cn`, the class merger, and the panel context.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `src/stories/`     | The Storybook: the token sheets and their pages (`tokens/`), the primitives, the components, the patterns, and the guidance under `docs/` (Introduction, Getting started, Token grammar, Lint rules). Every component page attaches to its stories file. Not in the tarball.                                                                                                                                                                                                                                                                                                                                          |
+| `eslint-plugin/`   | The `ledger/*` rules and the flat configs, exported as `@ledger/design-system/eslint`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `test/`            | `contrast.test.mjs`: every text-on-background pairing the mapping declares meets WCAG AA in both modes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 `dist/` and `storybook-static/` are build output and are ignored.
 
 ## Exports
 
-| Specifier | Resolves to |
-| --- | --- |
-| `@ledger/design-system` | `src/index.ts` under the `development` condition, `dist/index.js` otherwise |
-| `@ledger/design-system/cn` | The class merger on its own |
-| `@ledger/design-system/reset.css` | `src/styles/reset.css`. Import before `ledger.css`. |
-| `@ledger/design-system/ledger.css` | `src/styles/ledger.css` |
-| `@ledger/design-system/base.css` | `src/styles/base.css` |
-| `@ledger/design-system/tokens.css` | `src/generated/tokens.css`, the variables alone |
-| `@ledger/design-system/tokens.json` | `src/generated/tokens.figma.json` |
-| `@ledger/design-system/eslint` | `eslint-plugin/index.js` |
+| Specifier                           | Resolves to                                                                 |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `@ledger/design-system`             | `src/index.ts` under the `development` condition, `dist/index.js` otherwise |
+| `@ledger/design-system/cn`          | The class merger on its own                                                 |
+| `@ledger/design-system/reset.css`   | `src/styles/reset.css`. Import before `ledger.css`.                         |
+| `@ledger/design-system/ledger.css`  | `src/styles/ledger.css`                                                     |
+| `@ledger/design-system/base.css`    | `src/styles/base.css`                                                       |
+| `@ledger/design-system/tokens.css`  | `src/generated/tokens.css`, the variables alone                             |
+| `@ledger/design-system/tokens.json` | `src/generated/tokens.figma.json`                                           |
+| `@ledger/design-system/eslint`      | `eslint-plugin/index.js`                                                    |
 
 The install steps and the CSS order are in the Storybook under Guidance/Getting started.
 
@@ -43,14 +43,14 @@ The install steps and the CSS order are in the Storybook under Guidance/Getting 
 
 Run inside the package, or from the repo root with `-w @ledger/design-system`.
 
-| Script | Does |
-| --- | --- |
-| `npm run storybook` | Storybook on port 6007. The root app's Storybook is 6006. |
-| `npm run build:tokens` | Rebuilds `src/generated/` from `tokens/`. |
-| `npm run build` | Builds `dist/`. Runs on `prepack`. |
-| `npm run typecheck` | `tsc --noEmit`. |
-| `npm run lint` | ESLint over the package, on its own preset. |
-| `npm test` | Contrast, token interchange, locale and persisted-view tests. `npm run test:report` prints every contrast pairing. |
+| Script                 | Does                                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `npm run storybook`    | Storybook on port 6007. The root app's Storybook is 6006.                                                          |
+| `npm run build:tokens` | Rebuilds `src/generated/` from `tokens/`.                                                                          |
+| `npm run build`        | Builds `dist/`. Runs on `prepack`.                                                                                 |
+| `npm run typecheck`    | `tsc --noEmit`.                                                                                                    |
+| `npm run lint`         | ESLint over the package, on its own preset.                                                                        |
+| `npm test`             | Contrast, token interchange, locale and persisted-view tests. `npm run test:report` prints every contrast pairing. |
 
 Never edit `src/generated/` by hand; run `npm run build:tokens -w @ledger/design-system`.
 
@@ -78,10 +78,12 @@ Configure Vite with the React and Tailwind plugins. Import this stylesheet from 
 import { Button, LedgerProvider, Toaster } from "@ledger/design-system";
 
 export function App() {
-  return <LedgerProvider locale="en-US" timeZone="UTC">
-    <Button onClick={() => console.log("Save requested")}>Save</Button>
-    <Toaster />
-  </LedgerProvider>;
+  return (
+    <LedgerProvider locale="en-US" timeZone="UTC">
+      <Button onClick={() => console.log("Save requested")}>Save</Button>
+      <Toaster />
+    </LedgerProvider>
+  );
 }
 ```
 
@@ -123,6 +125,12 @@ DOM attributes and refs belong on the element that consumers must label, submit,
 
 [Tabs](src/stories/components/Tabs.mdx) uses flat Root, List, Trigger and Content parts with shadcn default/line list variants. List owns `activateOnFocus` (manual by default); Root owns orientation and controlled values. Compose counts as children and native/router links through `render` with `nativeButton={false}`.
 
+[Accordion](src/stories/components/Accordion.mdx) and [Collapsible](src/stories/components/Collapsible.mdx) use flat Base UI parts, native `render` composition and `keepMounted`/`hiddenUntilFound`. Accordion selection is an array in both modes; Collapsible owns one boolean.
+
+[Dialog](src/stories/components/Dialog.mdx), [Sheet](src/stories/components/Sheet.mdx) and [AlertDialog](src/stories/components/AlertDialog.mdx) compose explicit Trigger, Content, Title, Description and action parts. Root owns open state and cancellable `onOpenChange`; Content owns focus and layout. AlertDialogAction is a Button: close after successful work in the caller. [Command](src/stories/components/Command.mdx) follows shadcn's cmdk parts with a Base UI CommandDialog shell.
+
+[Progress](src/stories/components/Progress.mdx) uses the Base UI numeric range, label and value contracts, retaining Ledger tone/size and the separate ProgressStacked coverage bar. [ScrollArea](src/stories/components/ScrollArea.mdx) uses Base UI with an explicit horizontal ScrollBar; `viewportProps` targets the scrolling element for ARIA, refs and events.
+
 Base UI, Radix, Vaul and layout helpers are implementation dependencies. Consumers use the package's public parts and their documented native and dependency-derived contracts. **Explicit public adapters** also include Sonner's toast options/promise API, TanStack table definitions, and chart configuration types exposed by the package. Upgrades that affect public contracts require checking consumer types and migration notes. React and Tailwind remain peers. `MODE_STORAGE_KEY` and `SHELL_STORAGE_KEY` are public storage integration constants; persisted data must be validated and fall back safely.
 
 ## Lifecycle and contribution
@@ -132,7 +140,6 @@ Document a component's intended use, relevant behavior and known limitations alo
 The [contribution workflow](../../docs/guides/component-library.md#adding-to-the-kit) covers checks and API baseline updates. The large prop matrix is generated only when an audit needs it; it is not committed or checked for freshness in CI.
 
 Tokens and layout implement the design; keyboard operation, understandable copy, visible focus, validation, recovery and honest persistence implement the user contract. The application still owns business permissions and server durability. See Storybook Guidance/Testing and review for the review checklist and workflow specimens.
-
 
 ## Package and product boundary
 

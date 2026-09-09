@@ -1,19 +1,11 @@
-/**
- * The two composition pieces that make the program page actionable:
- *
- *   LifecycleBar — the program IS a state machine, so the stage lives in the
- *                  header as one dense line, not in the tab strip.
- *   NextActions  — a short owned/dated list derived from existing records.
- */
-
-import { useState } from "react";
 import { Check, ChevronRight, Lock } from "lucide-react";
+import { useState } from "react";
+
+import type { NextAction, Posture } from "@/lib/program-actions";
+import { stages, type ProgramState, type Stage } from "@/lib/program-stage";
 
 import { Badge, Button, Dot, Id, Inline, Person, Section, Table } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
-import type { ProgramState, Stage } from "@/lib/program-stage";
-import { stages } from "@/lib/program-stage";
-import type { NextAction, Posture } from "@/lib/program-actions";
 
 export function LifecycleBar({
   state,

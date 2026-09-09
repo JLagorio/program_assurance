@@ -1,33 +1,9 @@
-/**
- * The SCTM surface: one wide requirement table, one detail rail, one summary.
- *
- * An assessor reads this artifact left to right — control, requirement, who is
- * responsible, how it is verified, what evidence exists, what the determination
- * is — and the last column answers the only question the package review cares
- * about: can this row ship. The gap column is therefore weighted, not muted;
- * a row that cannot ship reads as a block of red in a column of blanks.
- *
- * Currency rides inside the Determination cell rather than taking a column of
- * its own. It is a second axis, not a second determination, and the matrix has
- * room for exactly one weighted column: so a withdrawn claim is struck through
- * beside the value that replaced it — an assessor must be able to see what was
- * claimed and when it stopped counting, which is the whole reason `buildSctm`
- * retains it — an invalidated row carries a chip, a suspect row carries a quiet
- * dot, and a current row carries nothing at all.
- *
- * Presentation only. Every value arrives as a prop from `@/lib/sctm`; nothing
- * here derives, sorts or filters the matrix.
- */
-
-import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
-
 import {
   Badge,
   Box,
   Dot,
   Empty,
+  Eyebrow,
   Grid,
   Id,
   Indicator,
@@ -35,16 +11,19 @@ import {
   Inspector,
   KeyValue,
   Progress,
+  ProgressStacked,
   Section,
   Stack,
   Stat,
   Table,
   TextLink,
-  Eyebrow,
+  type Tone,
 } from "@ledger/design-system";
-import type { Tone } from "@ledger/design-system";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
+import type { ReactNode } from "react";
+
 import { inheritanceStateTone } from "@/lib/inheritance";
-import { cn } from "@ledger/design-system/cn";
 import {
   determinationTone,
   rowCurrencyTone,
@@ -56,6 +35,8 @@ import {
   type SctmRow,
   type VerificationMethod,
 } from "@/lib/sctm";
+
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Chips ───────────────────────────────────────────────────────────────── */
 
@@ -347,14 +328,14 @@ export function SctmFamilyTable({
                 ) : null}
 
                 <span className="shrink-0" style={{ width: 112 }}>
-                  <Progress.Stacked
+                  <ProgressStacked
                     size="small"
                     segments={[
                       { key: "s", value: group.satisfied, tone: "success" },
                       { key: "o", value: group.other, tone: "danger" },
                       { key: "n", value: group.notAssessed, tone: "neutral" },
                     ]}
-                  />
+                  ></ProgressStacked>
                 </span>
                 <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-1000">
                   {group.satisfied}/{group.rows.length - group.notApplicable} · {group.pct}%
@@ -550,7 +531,7 @@ function BreakdownRow({
         {label}
       </span>
       <span className="min-w-0 flex-1">
-        <Progress value={pct} tone={tone} />
+        <Progress value={pct} tone={tone} aria-hidden />
       </span>
       <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-800">
         {count} · {pct}%
@@ -586,10 +567,10 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
               of rows carry a determination and no gap
             </span>
           </Inline>
-          <Progress value={sctm.coverage} tone={coverageTone} />
+          <Progress value={sctm.coverage} tone={coverageTone} aria-hidden />
 
           <Box paddingBlockStart="space.150">
-            <Progress.Stacked
+            <ProgressStacked
               segments={[
                 {
                   key: "satisfied",
@@ -616,7 +597,7 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
                   title: `Not applicable — ${counts.notApplicable}`,
                 },
               ]}
-            />
+            ></ProgressStacked>
             <Inline
               className="pt-100"
               space="space.200"

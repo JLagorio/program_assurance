@@ -1,17 +1,24 @@
-/**
- * The row flag for a link whose upstream changed, and the one action that
- * clears it. Nothing renders while the link is Current; a Suspect or
- * Invalidated link gets the Indicator beside its state and a "Reviewed" link
- * that asks for a word before it records the review.
- */
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Button,
+  Indicator,
+  Inline,
+} from "@ledger/design-system";
+import { useRef, useState } from "react";
 
-import { useState } from "react";
-
-import { AlertDialog, Button, Indicator, Inline } from "@ledger/design-system";
 import { currentSession } from "@/lib/control-work";
 import { currencyOf, reviewLink, useLinkCurrencyVersion, type LinkRef } from "@/lib/link-currency";
 
 export function SuspectFlag({ link, name }: { link: LinkRef; name: string }) {
+  const alertCancelRef = useRef<HTMLButtonElement>(null);
+
   useLinkCurrencyVersion();
   const [confirming, setConfirming] = useState(false);
   const { currency, causes } = currencyOf(link);
@@ -30,20 +37,39 @@ export function SuspectFlag({ link, name }: { link: LinkRef; name: string }) {
       </Button>
       <AlertDialog
         open={confirming}
-        onClose={() => setConfirming(false)}
-        onConfirm={() => {
-          reviewLink(link, who);
-          setConfirming(false);
+        onOpenChange={(next) => {
+          if (!next) {
+            setConfirming(false);
+          }
         }}
-        title="Reviewed, still holds"
-        description={`${name} is recorded as re-read by ${who} against ${causes.length === 1 ? "this change" : `these ${causes.length} changes`}. It stays Current until the next one.`}
-        confirmLabel="Record the review"
       >
-        <ul className="list-disc ps-200 font-body-small text-subtle">
-          {causes.map((c) => (
-            <li key={c.key}>{c.detail}</li>
-          ))}
-        </ul>
+        <AlertDialogContent
+          initialFocus={alertCancelRef}
+          className="top-200 translate-y-0 sm:top-1000"
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reviewed, still holds</AlertDialogTitle>
+            <AlertDialogDescription>{`${name} is recorded as re-read by ${who} against ${causes.length === 1 ? "this change" : `these ${causes.length} changes`}. It stays Current until the next one.`}</AlertDialogDescription>
+            <ul className="list-disc ps-200 font-body-small text-subtle">
+              {causes.map((c) => (
+                <li key={c.key}>{c.detail}</li>
+              ))}
+            </ul>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={alertCancelRef}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="primary"
+
+              onClick={() => {
+                reviewLink(link, who);
+                setConfirming(false);
+              }}
+            >
+              Record the review
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </Inline>
   );

@@ -1,12 +1,30 @@
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo } from "react";
-import { useAssuranceVersion } from "@/lib/assurance-record-store";
 
+import { TextBlock } from "@/components/app/control-text";
+import { RemediationPlanSection } from "@/components/app/remediation";
+import { Shell } from "@/components/app/shell";
+import { ccis } from "@/lib/catalog";
+import { useControlMatrix } from "@/lib/control-matrix";
 import {
-  BreadcrumbItem,
-  BreadcrumbLink,
+  assetById,
+  findingProgram,
+  findings,
+  findingsByCci,
+  isDeficiency,
+  isOpen,
+} from "@/lib/findings";
+import { controlTitle, nistControlById } from "@/lib/nist-catalog";
+import { poamById } from "@/lib/register";
+import { planForFinding } from "@/lib/remediation";
+import { bandTone, scoreFinding, type ScoreFactor } from "@/lib/risk-scoring";
+import { severityTone, statusTone } from "@/lib/spine";
+import {
   Badge,
   Box,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Button,
   buttonVariants,
   Empty,
@@ -27,24 +45,6 @@ import {
   TabsTrigger,
   TextLink,
 } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
-import { RemediationPlanSection } from "@/components/app/remediation";
-import { TextBlock } from "@/components/app/control-text";
-import { ccis } from "@/lib/catalog";
-import { useControlMatrix } from "@/lib/control-matrix";
-import {
-  assetById,
-  findingProgram,
-  findings,
-  findingsByCci,
-  isDeficiency,
-  isOpen,
-} from "@/lib/findings";
-import { controlTitle, nistControlById } from "@/lib/nist-catalog";
-import { planForFinding } from "@/lib/remediation";
-import { poamById } from "@/lib/register";
-import { bandTone, scoreFinding, type ScoreFactor } from "@/lib/risk-scoring";
-import { severityTone, statusTone } from "@/lib/spine";
 
 const findingTabs = ["Finding", "Assessment", "Remediation", "Residual risk"] as const;
 type FindingTab = (typeof findingTabs)[number];
@@ -583,7 +583,11 @@ function FindingRecord() {
                         </Badge>
                       </Inline>
                       <Box paddingBlockStart="space.150">
-                        <Progress value={residual.score} tone={bandTone[residual.band]} />
+                        <Progress
+                          value={residual.score}
+                          tone={bandTone[residual.band]}
+                          aria-hidden
+                        />
                       </Box>
                       <dl className="pt-150 space-y-075 font-body-small">
                         <Inline space="space.150" alignBlock="baseline" spread="space-between">

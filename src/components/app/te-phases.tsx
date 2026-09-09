@@ -1,39 +1,19 @@
-/**
- * Cyber T&E phase presentation — the phase track, the gate, the adversary.
- *
- * Three things this file exists to make legible, and each of them is a doctrine
- * rather than a layout preference:
- *
- *  - **DT&E and OT&E are different regimes with different authorities.** The
- *    track is not six equal cards in a row. Phases 1–4 sit inside a
- *    developmental band the program runs; phases 5 and 6 sit inside an
- *    operational band the operational test agency runs and the program cannot
- *    waive. Flattening them into one strip would say the program can sign off
- *    its own adversarial assessment, which is exactly what it cannot do.
- *
- *  - **A gate criterion shows its arithmetic or its signature, never a tick.**
- *    `CriteriaTable` prints the whole computed sentence with the numbers in it
- *    and the ids the judgement rests on, and it separates `Derived` from
- *    `Attested` by accent, by icon and by label — because they fail differently.
- *    A Derived criterion that is unmet is a fact about the system; an Attested
- *    criterion with no signer is a fact about the paperwork, and an unsigned one
- *    is rendered as the gap it is rather than as a quiet grey row.
- *
- *  - **An attack chain without a path is a story.** `AttackChain` prints the
- *    ordered ATT&CK technique chain and then, beneath it, the actual walk
- *    through the composition graph — hop by hop, naming the reachability edge or
- *    the containment link that carries each step, the trust boundary it crosses
- *    and whether the hop has a redundant path. A step the graph cannot walk is
- *    called out in red rather than drawn as if it were real.
- *
- * Presentation only. Every number, sentence and verdict arrives as a prop from
- * `@/lib/te-phases`; nothing here evaluates a criterion or walks the graph.
- */
-
-import { Fragment, useState } from "react";
-import type { ReactNode } from "react";
 import { ArrowRight, Calculator, CornerDownRight, PenLine } from "lucide-react";
+import { Fragment, useState } from "react";
 
+import {
+  effectTone,
+  phaseStateTone,
+  scenarioStatusTone,
+  type CriterionKind,
+  type CriterionResult,
+  type MissionEffect,
+  type PhaseCriterion,
+  type PhaseReadiness,
+  type TePhase,
+  type TePhaseId,
+  type ThreatScenario,
+} from "@/lib/te-phases";
 import {
   Absent,
   Alert,
@@ -48,21 +28,9 @@ import {
   Stack,
   Stat,
   Table,
+  type Tone,
 } from "@ledger/design-system";
-import type { Tone } from "@ledger/design-system";
-import {
-  effectTone,
-  phaseStateTone,
-  scenarioStatusTone,
-  type CriterionKind,
-  type CriterionResult,
-  type MissionEffect,
-  type PhaseCriterion,
-  type PhaseReadiness,
-  type TePhase,
-  type TePhaseId,
-  type ThreatScenario,
-} from "@/lib/te-phases";
+
 import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */

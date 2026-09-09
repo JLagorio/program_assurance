@@ -1,8 +1,10 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
 import { downloadText } from "@/components/app/export";
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Download } from "lucide-react";
+import { Download } from "lucide-react";
 
+import { Shell } from "@/components/app/shell";
+import { activity, frameworks, risks, riskStatusTone } from "@/lib/grc-data";
 import {
   Badge,
   Box,
@@ -20,8 +22,6 @@ import {
   TextLink,
   Timeline,
 } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
-import { activity, frameworks, riskStatusTone, risks } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -188,6 +188,7 @@ function Overview() {
                                   ? "warning"
                                   : "success"
                             }
+                            aria-hidden
                           />
                           <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-250">
                             {risk.residual}
@@ -225,7 +226,7 @@ function Overview() {
                       <Table.Cell>{fw.name}</Table.Cell>
                       <Table.Cell>
                         <Inline space="space.100" alignBlock="center">
-                          <Progress value={fw.coverage} tone={fw.tone} />
+                          <Progress value={fw.coverage} tone={fw.tone} aria-hidden />
                           <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-400">
                             {fw.coverage}%
                           </span>

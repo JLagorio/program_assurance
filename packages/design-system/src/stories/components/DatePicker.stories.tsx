@@ -1,8 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
+import {
+  Button,
+  Calendar,
+  DatePicker,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  Field,
+  Input,
+  useRequired,
+} from "../../components";
 
-import { Button, Calendar, DatePicker, Dialog, Field, Input, useRequired } from "../../components";
 import { Inline, Stack } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -73,33 +84,47 @@ function FormDemo() {
   return (
     <>
       <Button onClick={() => setOpen(true)}>Edit milestone dates</Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Milestone dates">
-        <Stack space="space.200">
-          <Field
-            label="Scheduled completion"
-            isRequired
-            hint="When the milestone is due."
-            error={req.errorFor("scheduled")}
-          >
-            <DatePicker value={scheduled} onChange={setScheduled} />
-          </Field>
-          <Field label="Target date" hint="Optional. Clear it if the target is not set.">
-            <DatePicker value={target} onChange={setTarget} />
-          </Field>
-          <Inline space="space.100" alignInline="end">
-            <Button variant="subtle" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                if (req.check()) setOpen(false);
-              }}
-            >
-              Save milestone
-            </Button>
-          </Inline>
-        </Stack>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpen(false);
+          }
+        }}
+      >
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Milestone dates</DialogTitle>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <Stack space="space.200">
+              <Field
+                label="Scheduled completion"
+                isRequired
+                hint="When the milestone is due."
+                error={req.errorFor("scheduled")}
+              >
+                <DatePicker value={scheduled} onChange={setScheduled} />
+              </Field>
+              <Field label="Target date" hint="Optional. Clear it if the target is not set.">
+                <DatePicker value={target} onChange={setTarget} />
+              </Field>
+              <Inline space="space.100" alignInline="end">
+                <Button variant="subtle" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    if (req.check()) setOpen(false);
+                  }}
+                >
+                  Save milestone
+                </Button>
+              </Inline>
+            </Stack>
+          </div>
+        </DialogContent>
       </Dialog>
     </>
   );

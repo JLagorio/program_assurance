@@ -1,69 +1,57 @@
+import { DirectionProvider } from "@base-ui/react/direction-provider";
+import { ScrollArea as Primitive } from "@base-ui/react/scroll-area";
+import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
-import type { ReactNode } from "react";
 
-import { cn } from "../lib/cn";
-
-/* A region that scrolls with the kit's thin bar instead of the platform's, so a rail looks the
-   same on every OS. The bar sits over the content's edge and shows while the pointer is over the
-   region or, said so, always. The viewport is a tab stop, so a keyboard reader can scroll it. */
-
-export type ScrollAreaProps = {
-  /** Reading and scrolling direction; defaults to the surrounding LedgerProvider. */
-  dir?: "ltr" | "rtl" | undefined;
-  /** Which way it scrolls: `vertical`, the default; `horizontal` for a wide table in a card; `both`. */
-  orientation?: "vertical" | "horizontal" | "both" | undefined;
-  /** When the bar shows: `hover`, the default, while the pointer is over the region and for a moment after it scrolls; `always`, so a reader sees there is more without touching it. */
-  bar?: "hover" | "always" | undefined;
-  /** Names the region for a screen reader, so a keyboard reader who lands on it knows what scrolls: "Facts", "Related". Unsaid, it is a plain scrolling box. */
-  label?: string | undefined;
-  /** Sizes the region: a height, `h-full` in a pane, `max-h-full` in a rail. It is never taller than its content. */
-  className?: string | undefined;
-  children: ReactNode;
+export type ScrollAreaProps = Primitive.Root.Props & {
+  /** Native attributes and ref for the element that actually scrolls. */
+  viewportProps?: Primitive.Viewport.Props | undefined;
 };
-
-/** A region that scrolls with the kit's thin bar. */
-export function ScrollArea({
-  dir,
-  orientation = "vertical",
-  bar = "hover",
-  label,
-  className,
-  children,
-}: ScrollAreaProps) {
+export function ScrollArea({ className, children, dir, viewportProps, ...props }: ScrollAreaProps) {
   const { direction } = useLedgerLocale();
   return (
-    <ScrollAreaPrimitive.Root
-      dir={dir ?? direction}
-      type={bar}
-      scrollHideDelay={600}
-      className={cn("relative flex flex-col overflow-hidden", className)}
-    >
-      <ScrollAreaPrimitive.Viewport
-        tabIndex={0}
-        {...(label ? { role: "region", "aria-label": label } : {})}
-        className="size-full min-h-0 flex-1 outline-none focus-visible:outline-focused"
+    <DirectionProvider direction={dir === "rtl" || dir === "ltr" ? dir : direction}>
+      <Primitive.Root
+        data-slot="scroll-area"
+        dir={dir ?? direction}
+        {...props}
+        className={classes(
+          "group/scroll-area relative flex min-h-0 flex-col overflow-hidden",
+          className,
+        )}
       >
-        {children}
-      </ScrollAreaPrimitive.Viewport>
-      {orientation !== "horizontal" ? <Bar orientation="vertical" /> : null}
-      {orientation !== "vertical" ? <Bar orientation="horizontal" /> : null}
-      <ScrollAreaPrimitive.Corner />
-    </ScrollAreaPrimitive.Root>
+        <Primitive.Viewport
+          data-slot="scroll-area-viewport"
+          {...viewportProps}
+          className={classes(
+            "size-full min-h-0 flex-1 rounded-[inherit] outline-none focus-visible:outline-focused",
+            viewportProps?.className,
+          )}
+        >
+          {children}
+        </Primitive.Viewport>
+        <ScrollBar />
+        <Primitive.Corner />
+      </Primitive.Root>
+    </DirectionProvider>
   );
 }
-
-/** The bar: 8px of track with a 4px thumb, over the content's edge. */
-function Bar({ orientation }: { orientation: "vertical" | "horizontal" }) {
+export type ScrollBarProps = Primitive.Scrollbar.Props;
+export function ScrollBar({ className, orientation = "vertical", ...props }: ScrollBarProps) {
   return (
-    <ScrollAreaPrimitive.Scrollbar
+    <Primitive.Scrollbar
+      data-slot="scroll-area-scrollbar"
       orientation={orientation}
-      className={cn(
-        "flex touch-none select-none p-025 transition-colors",
-        orientation === "vertical" ? "h-full w-100" : "h-100 w-full flex-col",
+      {...props}
+      className={classes(
+        "flex touch-none select-none p-025 transition-opacity duration-fast data-[orientation=vertical]:h-full data-[orientation=vertical]:w-100 data-[orientation=horizontal]:h-100 data-[orientation=horizontal]:flex-col",
+        className,
       )}
     >
-      <ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-full bg-neutral-pressed transition-colors duration-fast ease-standard hover:bg-neutral-bold" />
-    </ScrollAreaPrimitive.Scrollbar>
+      <Primitive.Thumb
+        data-slot="scroll-area-thumb"
+        className="relative flex-1 rounded-full bg-neutral-pressed transition-colors duration-fast ease-standard hover:bg-neutral-bold"
+      />
+    </Primitive.Scrollbar>
   );
 }

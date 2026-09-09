@@ -1,28 +1,57 @@
-import { controlMatrix } from "./control-matrix";
-import { nistControls } from "./nist-catalog";
 import { beforeAll, describe, expect, it } from "vitest";
-import { registerPlatformStructure } from "./platform-structure";
-import { registerPlatformControls } from "./platform-controls";
+import { controlMatrix } from "./control-matrix";
+import { workFor, workForProgram } from "./control-work";
+import { findings } from "./findings";
+import { nistControls } from "./nist-catalog";
 import { registerPlatformAssurance } from "./platform-assurance";
+import { registerPlatformControls } from "./platform-controls";
 import { platformNodeId, platformScopeId } from "./platform-ids";
+import { registerPlatformStructure } from "./platform-structure";
 import {
-  programControlRows,
-  controlRequirementsInElement,
-  controlFindingsInElement,
   controlAllocationCount,
+  controlFindingsInElement,
+  controlRequirementsInElement,
+  programControlImplementations,
+  programControlRows,
   programControlScopes,
 } from "./program-controls";
-import { controlSetFor, recordTailoring, recordedTailoring } from "./scopes";
-import { allocationsFor, requirementsForControl } from "./requirements";
-import { findings } from "./findings";
 import { programElementIds } from "./program-scope";
+import { allocationsFor, requirementsForControl } from "./requirements";
+import { controlSetFor, recordTailoring, recordedTailoring } from "./scopes";
 
 beforeAll(() => {
   registerPlatformStructure();
   registerPlatformControls();
   registerPlatformAssurance();
 });
-describe("program controls within a shared element selection", () => {
+describe("program controls and their named element implementations", () => {
+  it("keeps an untouched implementation unrecorded when its editor is opened", () => {
+    const candidates = programControlImplementations("PRG-1090", "AU-6");
+    const recorded = workForProgram("PRG-1090");
+    const untouched = candidates.find(
+      (row) => !recorded.some((work) => work.scope === row.scopeId && work.control === "AU-6"),
+    )!;
+    expect(untouched).toBeDefined();
+    const opened = workFor("PRG-1090", untouched.scopeId, "AU-6");
+    expect(opened.implementationRecorded).toBe(false);
+    expect(opened.assessment).toBe("Not assessed");
+    expect(
+      programControlImplementations("PRG-1090", "AU-6").find(
+        (row) => row.scopeId === untouched.scopeId,
+      ),
+    ).toEqual(untouched);
+  });
+  it("shows each named implementation independently from the program rollup", () => {
+    const rows = programControlImplementations("PRG-1090", "AU-6");
+    const component = rows.find((row) => row.elementId === platformNodeId("LRU-001"))!;
+    expect(component.name).toBe("Mission Computer");
+    expect(component.implementation).toBe("Unrecorded");
+    expect(component.requirements).toBe(2);
+    expect(component.evidence).toBe(2);
+    const local = programControlImplementations("PRG-1090", "AU-6", component.elementId);
+    expect(local).toEqual([component]);
+    expect(rows.some((row) => row.implementation === "Partially implemented")).toBe(true);
+  });
   it("keeps the exact native set and applies local tailoring without changing siblings", () => {
     const element = platformNodeId("LRU-001");
     const scope = platformScopeId("LRU-001");
@@ -72,13 +101,19 @@ describe("program controls within a shared element selection", () => {
       ),
     ).not.toContain(siblingOnly.id);
   });
-  it("separates unrecorded component implementation from the aggregate system claim", () => {
+  it("does not promote the system claim to unrecorded component implementations", () => {
     const component = programControlRows("PRG-1090", platformNodeId("LRU-001")).find(
       (row) => row.id === "AC-2",
     )!;
     const system = programControlRows("PRG-1090").find((row) => row.id === "AC-2")!;
     expect(component.implementation).toBe("Unrecorded");
-    expect(system.implementation).toBe("Partially implemented");
+    expect(system.implementation).toBe("Mixed");
+    expect(system.assessment).toBe("Not assessed");
+    const systemClaim = programControlImplementations("PRG-1090", "AC-2").find(
+      (row) => row.scopeId === "SYS-1090",
+    )!;
+    expect(systemClaim.implementation).toBe("Partially implemented");
+    expect(systemClaim.assessment).toBe("Satisfied");
     expect(component.scopeIds).toEqual([platformScopeId("LRU-001")]);
     expect(component.assessment).toBeDefined();
   });

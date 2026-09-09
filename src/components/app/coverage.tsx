@@ -1,14 +1,6 @@
-/**
- * The two RMF answers a program record owes the reader:
- *   CoverageBand   — how much of the tailored baseline is satisfied, by whom.
- *   MilestoneTrack — which dated decision gates are coming due.
- *
- * Presentation only: bars and tracks, no chart library, no cards.
- */
-
-import { Box, Grid, Id, Inline, Progress, Section, Stepper } from "@ledger/design-system";
-import { cn } from "@ledger/design-system/cn";
 import type { Coverage, MilestoneNode } from "@/lib/program-coverage";
+import { Box, Grid, Id, Inline, ProgressStacked, Section, Stepper } from "@ledger/design-system";
+import { cn } from "@ledger/design-system/cn";
 
 const toneText: Record<string, string> = {
   success: "text-success",
@@ -55,7 +47,7 @@ export function CoverageBand({
           </span>
         </Inline>
 
-        <Progress.Stacked
+        <ProgressStacked
           segments={coverage.segments.map((s) => ({
             key: s.key,
             value: s.value,
@@ -63,7 +55,7 @@ export function CoverageBand({
             title: `${s.label} — ${s.value}`,
             onClick: () => onSelectSegment(s.key),
           }))}
-        />
+        ></ProgressStacked>
 
         <Inline
           className="pt-100"
@@ -102,7 +94,7 @@ export function CoverageBand({
                 <Id className="shrink-0 text-subtle w-400">{f.id}</Id>
                 <span className="min-w-0 flex-1 truncate font-body-small">{f.name}</span>
                 <span className="shrink-0 w-1000">
-                  <Progress.Stacked
+                  <ProgressStacked
                     size="small"
                     segments={[
                       { key: "s", value: f.satisfied, tone: "success" },
@@ -110,7 +102,7 @@ export function CoverageBand({
                       { key: "o", value: f.other, tone: "danger" },
                       { key: "n", value: f.notAssessed, tone: "neutral" },
                     ]}
-                  />
+                  ></ProgressStacked>
                 </span>
                 <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-800">
                   {f.satisfied}/{f.total}

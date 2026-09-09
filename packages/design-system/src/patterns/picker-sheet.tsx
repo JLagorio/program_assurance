@@ -1,10 +1,17 @@
-import { Search } from "lucide-react";
+import { ChevronLeft, Search } from "lucide-react";
 import type { ReactNode } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "../components/sheet";
 
 import { Button } from "../components/button";
 import { Input } from "../components/controls";
 import { InputGroup } from "../components/input-group";
-import { Sheet } from "../components/sheet";
 
 /**
  * Choosing many from hundreds: the association panel. A Sheet whose toolbar is a search field and the
@@ -74,59 +81,80 @@ export function PickerSheet({
   return (
     <Sheet
       open={open}
-      onClose={onClose}
-      onBack={onBack}
-      width={width}
-      title={title}
-      subtitle={subtitle}
-      toolbar={
-        hasToolbar ? (
-          <div className="flex flex-col gap-100">
-            {search || filters ? (
-              <div className="flex flex-wrap items-center gap-100">
-                {search ? (
-                  <InputGroup leading={<Search />} width={240}>
-                    <Input
-                      value={search.value}
-                      onChange={(e) => search.onChange(e.target.value)}
-                      placeholder={search.placeholder ?? "Search"}
-                      aria-label={search.placeholder ?? "Search"}
-                      className="h-control-small"
-                    />
-                  </InputGroup>
-                ) : null}
-                {filters}
-              </div>
-            ) : null}
-            {toolbar}
-          </div>
-        ) : undefined
-      }
-      footer={
-        <div className="flex w-full items-center justify-between gap-150">
-          <span className="flex items-center gap-100 font-body-small text-subtle">
-            <span className="tabular-nums">{summary}</span>
-            {selected > 0 && onClear ? (
-              <Button variant="link" size="small" onClick={onClear}>
-                Clear
-              </Button>
-            ) : null}
-          </span>
-          <span className="flex shrink-0 items-center gap-100">
-            {secondary}
-            <Button onClick={onClose}>Cancel</Button>
-            <Button
-              variant="primary"
-              disabled={selected === 0 || Boolean(action.disabled)}
-              onClick={action.onClick}
-            >
-              {action.label}
-            </Button>
-          </span>
-        </div>
-      }
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      {children}
+      <SheetContent side="end" style={{ maxWidth: width }}>
+        <SheetHeader>
+          <div className="flex items-start gap-100">
+            <Button
+              aria-label="Back"
+              variant="subtle"
+              size="small"
+              className="size-control-small p-0"
+              onClick={onBack}
+            >
+              <ChevronLeft aria-hidden />
+            </Button>
+            <div className="flex min-w-0 flex-1 flex-col gap-025">
+              <SheetTitle>{title}</SheetTitle>
+              <SheetDescription>{subtitle}</SheetDescription>
+            </div>
+          </div>
+        </SheetHeader>
+        <div className="shrink-0 border-b border-default px-200 py-100">
+          {hasToolbar ? (
+            <div className="flex flex-col gap-100">
+              {search || filters ? (
+                <div className="flex flex-wrap items-center gap-100">
+                  {search ? (
+                    <InputGroup leading={<Search />} width={240}>
+                      <Input
+                        value={search.value}
+                        onChange={(e) => search.onChange(e.target.value)}
+                        placeholder={search.placeholder ?? "Search"}
+                        aria-label={search.placeholder ?? "Search"}
+                        className="h-control-small"
+                      />
+                    </InputGroup>
+                  ) : null}
+                  {filters}
+                </div>
+              ) : null}
+              {toolbar}
+            </div>
+          ) : undefined}
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          {children}
+        </div>
+        <SheetFooter>
+          <div className="flex w-full items-center justify-between gap-150">
+            <span className="flex items-center gap-100 font-body-small text-subtle">
+              <span className="tabular-nums">{summary}</span>
+              {selected > 0 && onClear ? (
+                <Button variant="link" size="small" onClick={onClear}>
+                  Clear
+                </Button>
+              ) : null}
+            </span>
+            <span className="flex shrink-0 items-center gap-100">
+              {secondary}
+              <Button onClick={onClose}>Cancel</Button>
+              <Button
+                variant="primary"
+                disabled={selected === 0 || Boolean(action.disabled)}
+                onClick={action.onClick}
+              >
+                {action.label}
+              </Button>
+            </span>
+          </div>
+        </SheetFooter>
+      </SheetContent>
     </Sheet>
   );
 }

@@ -10,23 +10,23 @@ The names are the token names, so a tone reads straight through to `color.backgr
 
 ## Who takes a tone
 
-| Prop | Parts |
-| --- | --- |
-| `tone: Tone` | `Badge`, `Dot`, `Indicator`, `Alert`, `Progress` and each `Progress.Stacked` segment, `Stat` and `Stat.Tile`, `Gates.Item`, `Timeline.Item`, `Eyebrow`, `Prose`, an `ActionBar` state, a `WorkPane` row, a `RecordPicker` badge |
-| `tone: BannerTone` | `Banner`: `information`, `warning` or `danger`. A banner is never neutral and never a success. |
-| `tone: ChartTone` | A `Chart` series: a `Tone`, `brand` for the one series the reader is asked to look at, or `categorical.1` to `categorical.8` when the categories carry no status (`packages/design-system/src/components/chart.tsx`). |
+| Prop               | Parts                                                                                                                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tone: Tone`       | `Badge`, `Dot`, `Indicator`, `Alert`, `Progress` and each `ProgressStacked` segment, `Stat` and `Stat.Tile`, `Gates.Item`, `Timeline.Item`, `Eyebrow`, `Prose`, an `ActionBar` state, a `WorkPane` row, a `RecordPicker` badge |
+| `tone: BannerTone` | `Banner`: `information`, `warning` or `danger`. A banner is never neutral and never a success.                                                                                                                                 |
+| `tone: ChartTone`  | A `Chart` series: a `Tone`, `brand` for the one series the reader is asked to look at, or `categorical.1` to `categorical.8` when the categories carry no status (`packages/design-system/src/components/chart.tsx`).          |
 
 `AlertDialog`'s `tone` is `primary` or `danger`: the weight of the confirming action, not a status.
 
 ## Meanings
 
-| Tone | Meaning | Examples from the app |
-| --- | --- | --- |
-| `success` | Meets the bar | Compliant · Passing · Satisfied · Approved · a revision in force |
-| `warning` | Needs human attention, not yet a failure | Needs review · Partially satisfied · In remediation · Pending approval · evidence age ("34d") · suspect links · versions behind |
-| `danger` | Failing the bar | Failing · Non-compliant · Other than satisfied · Overdue · Changes requested |
-| `information` | Informational, automated, in progress | Automated · In assessment |
-| `neutral` | No judgment | Not assessed · Accepted · Draft · Superseded · source and method labels |
+| Tone          | Meaning                                  | Examples from the app                                                                                                           |
+| ------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `success`     | Meets the bar                            | Compliant · Passing · Satisfied · Approved · a revision in force                                                                |
+| `warning`     | Needs human attention, not yet a failure | Needs review · Partially satisfied · In remediation · Pending approval · evidence age ("34d") · suspect links · versions behind |
+| `danger`      | Failing the bar                          | Failing · Non-compliant · Other than satisfied · Overdue · Changes requested                                                    |
+| `information` | Informational, automated, in progress    | Automated · In assessment                                                                                                       |
+| `neutral`     | No judgment                              | Not assessed · Accepted · Draft · Superseded · source and method labels                                                         |
 
 ## Rules
 

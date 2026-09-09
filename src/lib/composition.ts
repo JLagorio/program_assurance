@@ -30,8 +30,8 @@
  * so that `findings.ts` never has to import this file.
  */
 
-import { useSyncExternalStore } from "react";
 import type { PlatformSourceRecord } from "@/lib/platform-ids";
+import { useSyncExternalStore } from "react";
 
 export type NodeClass = "System" | "Hardware" | "Firmware" | "Software";
 
@@ -1050,7 +1050,12 @@ for (const e of compositionEdges) {
 
 /* ── Store ───────────────────────────────────────────────────────────────── */
 
-type NodePatch = Partial<Pick<CompositionNode, "criticality" | "zone" | "attested" | "note">>;
+export type NodePatch = Partial<
+  Pick<
+    CompositionNode,
+    "name" | "version" | "supplier" | "origin" | "criticality" | "zone" | "attested" | "note"
+  >
+>;
 
 const overrides = new Map<string, NodePatch>();
 const cache = new Map<string, CompositionNode[]>();
@@ -1089,10 +1094,7 @@ export function subscribeGraph(cb: () => void): () => void {
 
 export function setNodeField(nodeId: string, patch: NodePatch) {
   if (!nodeById.has(nodeId)) return;
-  overrides.set(nodeId, { ...overrides.get(nodeId), ...patch });
-  cache.clear();
-  version += 1;
-  for (const l of listeners) l();
+  applyCompositionChanges([], [{ id: nodeId, patch }]);
 }
 
 /* ── Creation ────────────────────────────────────────────────────────────── */
@@ -1154,6 +1156,33 @@ export function addCompositionNodes(inputs: NewCompositionNode[]): CompositionNo
   version += 1;
   for (const l of listeners) l();
   return out;
+}
+
+/** Apply an already validated, durably saved composition transaction. */
+export function applyCompositionChanges(
+  created: NewCompositionNode[],
+  updates: { id: string; patch: NodePatch & { parent?: string } }[],
+  beforeNotify?: () => void,
+) {
+  created.forEach(insertNode);
+  for (const { id, patch } of updates) {
+    const node = nodeById.get(id);
+    if (node) Object.assign(node, overrides.get(id), patch);
+    overrides.delete(id);
+  }
+  // Keep every containment reader aligned with the edited parent pointers.
+  // Reachability edges describe independent relationships and retain their IDs.
+  childIndex.clear();
+  for (const node of compositionNodes) {
+    if (!node.parent) continue;
+    const children = childIndex.get(node.parent) ?? [];
+    children.push(node);
+    childIndex.set(node.parent, children);
+  }
+  cache.clear();
+  version += 1;
+  beforeNotify?.();
+  for (const listener of listeners) listener();
 }
 
 /* ── Selectors ───────────────────────────────────────────────────────────── */

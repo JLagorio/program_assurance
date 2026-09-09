@@ -1,21 +1,13 @@
-/**
- * The systems view: every assessment scope inside one authorization boundary,
- * what each one's categorization actually costs it in controls, and where its
- * control set stands. A subsystem is added here: it becomes a node in the
- * composition tree, a scope with its own categorization, and a first
- * control-set revision.
- */
-
-import { Link } from "@tanstack/react-router";
-import { Button, Indicator, Item, Section } from "@ledger/design-system";
 import {
   currentRevision,
   openRevision,
   revisionTone,
   useControlSetVersion,
 } from "@/lib/control-set";
-import { controlSetFor } from "@/lib/scopes";
-import type { AssessmentScope, ProgramRollup } from "@/lib/scopes";
+import { controlSetFor, type AssessmentScope, type ProgramRollup } from "@/lib/scopes";
+
+import { Button, Indicator, Item, Section } from "@ledger/design-system";
+import { Link } from "@tanstack/react-router";
 
 import { SystemTree } from "./system-tree";
 

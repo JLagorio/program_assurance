@@ -1,4 +1,4 @@
-import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
+import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
 import { ChevronRight } from "lucide-react";
 import {
   cloneElement,
@@ -132,7 +132,7 @@ function ItemRoot({
   const chevron = (
     <ChevronRight
       aria-hidden
-      className="size-icon-small transition-transform duration-fast ease-standard group-data-[state=open]/item:rotate-90"
+      className="size-icon-small transition-transform duration-fast ease-standard group-data-open/item:rotate-90"
     />
   );
   const toggle = !collapsible ? null : interactive ? (
@@ -197,7 +197,7 @@ function ItemRoot({
 
   const below = "col-start-4 col-end-7 pb-100 pt-025";
   const content = !children ? null : collapsible ? (
-    <CollapsiblePrimitive.Content className={below}>{children}</CollapsiblePrimitive.Content>
+    <CollapsiblePrimitive.Panel className={below}>{children}</CollapsiblePrimitive.Panel>
   ) : (
     <div className={below}>{children}</div>
   );
@@ -218,12 +218,10 @@ function ItemRoot({
 
   return collapsible ? (
     <CollapsiblePrimitive.Root
-      asChild
+      render={li}
       {...(open === undefined ? { defaultOpen } : { open })}
       {...(onOpenChange ? { onOpenChange } : {})}
-    >
-      {li}
-    </CollapsiblePrimitive.Root>
+    />
   ) : (
     li
   );

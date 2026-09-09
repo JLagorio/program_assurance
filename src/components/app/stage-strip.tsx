@@ -1,17 +1,31 @@
-import { Plus, Settings2, X } from "lucide-react";
-import { useState } from "react";
-
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Box,
   Button,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Field,
   IconButton,
+  Inline,
   Input,
   NativeSelect,
+  Stack,
   Stepper,
 } from "@ledger/design-system";
-import { Inline, Stack } from "@ledger/design-system";
+
+import { Plus, Settings2, X } from "lucide-react";
+import { useRef, useState } from "react";
 
 import { currentSession } from "@/lib/control-work";
 import {
@@ -26,6 +40,8 @@ import {
 
 /** Where the program is on its own stages. A step is a button: choosing one asks, then moves and logs. The gear edits the names. */
 export function StageStrip({ programId }: { programId: string }) {
+  const alertCancelRef = useRef<HTMLButtonElement>(null);
+
   useStagesVersion();
   const stages = stagesFor(programId);
   const current = stageOf(programId);
@@ -58,15 +74,35 @@ export function StageStrip({ programId }: { programId: string }) {
 
       <AlertDialog
         open={pending !== null}
-        onClose={() => setPending(null)}
-        onConfirm={() => {
-          if (pending) setStage(programId, pending, session.name);
-          setPending(null);
+        onOpenChange={(next) => {
+          if (!next) {
+            setPending(null);
+          }
         }}
-        title={`Move to ${pending ?? ""}?`}
-        description={`The program leaves ${current}. The move is logged with your name.`}
-        confirmLabel={`Move to ${pending ?? ""}`}
-      />
+      >
+        <AlertDialogContent
+          initialFocus={alertCancelRef}
+          className="top-200 translate-y-0 sm:top-1000"
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>{`Move to ${pending ?? ""}?`}</AlertDialogTitle>
+            <AlertDialogDescription>{`The program leaves ${current}. The move is logged with your name.`}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={alertCancelRef}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="primary"
+
+              onClick={() => {
+                (() => {
+                  if (pending) setStage(programId, pending, session.name);
+                  setPending(null);
+                })();
+              }}
+            >{`Move to ${pending ?? ""}`}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <StagesDialog
         open={editing}
@@ -103,70 +139,89 @@ function StagesDialog({
   return (
     <Dialog
       open={open}
-      onClose={onClose}
-      title="Stages"
-      description="The names the program moves through, in order. RMF is the default; a program can use its own."
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            disabled={clean.length === 0}
-            onClick={() => {
-              setStages(programId, clean, actor);
-              onClose();
-            }}
-          >
-            Save stages
-          </Button>
-        </>
-      }
+      onOpenChange={(next) => {
+        if (!next) {
+          onClose();
+        }
+      }}
     >
-      <Stack space="space.150">
-        <Field label="Start from">
-          <NativeSelect
-            value=""
-            onChange={(e) => {
-              const set = stageSets.find((s) => s.id === e.target.value);
-              if (set) setDraft(set.stages);
-            }}
-            aria-label="Start from a template"
-          >
-            <option value="">Choose a template</option>
-            {stageSets.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </NativeSelect>
-        </Field>
-        <Stack space="space.075">
-          {draft.map((s, i) => (
-            <Inline key={i} space="space.075" alignBlock="center">
-              <Input
+      <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+        <DialogHeader>
+          <DialogTitle>Stages</DialogTitle>
+          <DialogDescription>
+            The names the program moves through, in order. RMF is the default; a program can use its
+            own.
+          </DialogDescription>
+        </DialogHeader>
+        <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <Stack space="space.150">
+            <Field label="Start from">
+              <NativeSelect
+                value=""
+                onChange={(e) => {
+                  const set = stageSets.find((s) => s.id === e.target.value);
+                  if (set) setDraft(set.stages);
+                }}
+                aria-label="Start from a template"
+              >
+                <option value="">Choose a template</option>
+                {stageSets.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Stack space="space.075">
+              {draft.map((s, i) => (
+                <Inline key={i} space="space.075" alignBlock="center">
+                  <Input
+                    size="small"
+                    value={s}
+                    aria-label={`Stage ${i + 1}`}
+                    onChange={(e) =>
+                      setDraft((d) => d.map((x, j) => (j === i ? e.target.value : x)))
+                    }
+                  />
+                  <IconButton
+                    label={`Remove stage ${i + 1}`}
+                    variant="subtle"
+                    size="small"
+                    icon={<X />}
+                    onClick={() => setDraft((d) => d.filter((_, j) => j !== i))}
+                  />
+                </Inline>
+              ))}
+            </Stack>
+            <Inline>
+              <Button
                 size="small"
-                value={s}
-                aria-label={`Stage ${i + 1}`}
-                onChange={(e) => setDraft((d) => d.map((x, j) => (j === i ? e.target.value : x)))}
-              />
-              <IconButton
-                label={`Remove stage ${i + 1}`}
-                variant="subtle"
-                size="small"
-                icon={<X />}
-                onClick={() => setDraft((d) => d.filter((_, j) => j !== i))}
-              />
+                iconBefore={<Plus />}
+                onClick={() => setDraft((d) => [...d, ""])}
+              >
+                Add stage
+              </Button>
             </Inline>
-          ))}
-        </Stack>
-        <Inline>
-          <Button size="small" iconBefore={<Plus />} onClick={() => setDraft((d) => [...d, ""])}>
-            Add stage
-          </Button>
-        </Inline>
-      </Stack>
+          </Stack>
+        </Box>
+        <DialogFooter>
+          <>
+            <Button variant="subtle" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              disabled={clean.length === 0}
+              onClick={() => {
+                setStages(programId, clean, actor);
+                onClose();
+              }}
+            >
+              Save stages
+            </Button>
+          </>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

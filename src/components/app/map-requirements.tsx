@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 
-import { Badge, Id, PickerSheet, Table, Textarea, Field } from "@ledger/design-system";
-import { Stack, Text } from "@ledger/design-system";
+import { Badge, Field, Id, PickerSheet, Stack, Table, Text, Textarea } from "@ledger/design-system";
 
 import { record } from "@/lib/activity";
 import {
@@ -10,7 +9,7 @@ import {
   requirementsForProgram,
 } from "@/lib/requirements";
 
-/** Map the program's existing requirements to a control: pick the ones that satisfy it, say why once. */
+/** Map existing requirements to a control without allocating or assessing them. */
 export function MapRequirementsSheet({
   open,
   onClose,
@@ -104,7 +103,7 @@ export function MapRequirementsSheet({
         disabled: chosen.size === 0,
       }}
       toolbar={
-        <Field label="Why they satisfy it">
+        <Field label="Relationship rationale">
           <Textarea
             value={rationale}
             onChange={(e) => setRationale(e.target.value)}

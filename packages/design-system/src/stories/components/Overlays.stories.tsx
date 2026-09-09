@@ -1,23 +1,32 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-
-import { ChevronDown, MoreHorizontal } from "lucide-react";
-import { useState } from "react";
-
+import { useRef, useState } from "react";
 import {
-  Badge,
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Badge,
   Button,
   Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Drawer,
   DropdownMenu,
-  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuShortcut,
-  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
   Field,
   HoverCard,
   HoverCardContent,
@@ -26,15 +35,23 @@ import {
   Input,
   KeyValue,
   Popover,
-  PopoverTrigger,
-  PopoverContent,
   PopoverClose,
+  PopoverContent,
+  PopoverTrigger,
   Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
   Textarea,
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
+  TooltipTrigger,
 } from "../../components";
+
+import { ChevronDown, MoreHorizontal } from "lucide-react";
+
 import { Inline, Stack, Text } from "../../primitives";
 
 const meta = {
@@ -112,6 +129,8 @@ export const Anchored: Story = {
 };
 
 function Modals() {
+  const alertCancelRef = useRef<HTMLButtonElement>(null);
+
   const [dialog, setDialog] = useState(false);
   const [large, setLarge] = useState(false);
   const [sheet, setSheet] = useState(false);
@@ -130,73 +149,115 @@ function Modals() {
 
       <Dialog
         open={dialog}
-        onClose={() => setDialog(false)}
-        title="Schedule assessment"
-        description="Pick a window; the owner is notified when you save."
-        footer={
-          <>
-            <Button variant="subtle" onClick={() => setDialog(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={() => setDialog(false)}>
-              Schedule
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setDialog(false);
+          }
+        }}
       >
-        <Stack space="space.200">
-          <Field label="Assessor">
-            <Input placeholder="Choose an assessor" />
-          </Field>
-          <Field label="Notes">
-            <Textarea placeholder="Anything the assessor should know first." />
-          </Field>
-        </Stack>
+        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+          <DialogHeader>
+            <DialogTitle>Schedule assessment</DialogTitle>
+            <DialogDescription>
+              Pick a window; the owner is notified when you save.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+            <Stack space="space.200">
+              <Field label="Assessor">
+                <Input placeholder="Choose an assessor" />
+              </Field>
+              <Field label="Notes">
+                <Textarea placeholder="Anything the assessor should know first." />
+              </Field>
+            </Stack>
+          </div>
+          <DialogFooter>
+            <>
+              <Button variant="subtle" onClick={() => setDialog(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={() => setDialog(false)}>
+                Schedule
+              </Button>
+            </>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
       <Dialog
         open={large}
-        width="large"
-        onClose={() => setLarge(false)}
-        title="Link evidence"
-        aside={
-          <Stack space="space.050">
-            <KeyValue label="Control">CTRL-0412</KeyValue>
-            <KeyValue label="Owner">Dana Whitfield</KeyValue>
-            <KeyValue label="Status">
-              <Badge variant="secondary" tone="information">
-                In review
-              </Badge>
-            </KeyValue>
-          </Stack>
-        }
-        footer={
-          <Button variant="primary" onClick={() => setLarge(false)}>
-            Link 3 items
-          </Button>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setLarge(false);
+          }
+        }}
       >
-        <Text color="color.text.subtle">
-          The body scrolls; the header, aside and footer stay put.
-        </Text>
+        <DialogContent
+          style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
+          className="top-200 translate-y-0 sm:top-600"
+        >
+          <DialogHeader>
+            <DialogTitle>Link evidence</DialogTitle>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none">
+            <div className="grid grid-cols-1 md:grid-cols-3">
+              <div className="px-250 py-200 md:col-span-2">
+                <Text color="color.text.subtle">
+                  The body scrolls; the header, aside and footer stay put.
+                </Text>
+              </div>
+              <div className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+                <Stack space="space.050">
+                  <KeyValue label="Control">CTRL-0412</KeyValue>
+                  <KeyValue label="Owner">Dana Whitfield</KeyValue>
+                  <KeyValue label="Status">
+                    <Badge variant="secondary" tone="information">
+                      In review
+                    </Badge>
+                  </KeyValue>
+                </Stack>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="primary" onClick={() => setLarge(false)}>
+              Link 3 items
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
       <Sheet
         open={sheet}
-        onClose={() => setSheet(false)}
-        title="CTRL-0412"
-        subtitle="Segregation of duties, payables"
-        footer={
-          <Button variant="primary" onClick={() => setSheet(false)}>
-            Done
-          </Button>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setSheet(false);
+          }
+        }}
       >
-        <Stack space="space.050">
-          <KeyValue label="Owner">Dana Whitfield</KeyValue>
-          <KeyValue label="Frequency">Quarterly</KeyValue>
-          <KeyValue label="Last verified">12 Aug 2026</KeyValue>
-        </Stack>
+        <SheetContent side="end" style={{ maxWidth: 420 }}>
+          <SheetHeader>
+            <div className="flex items-start gap-100">
+              <div className="flex min-w-0 flex-1 flex-col gap-025">
+                <SheetTitle>CTRL-0412</SheetTitle>
+                <SheetDescription>Segregation of duties, payables</SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+            <Stack space="space.050">
+              <KeyValue label="Owner">Dana Whitfield</KeyValue>
+              <KeyValue label="Frequency">Quarterly</KeyValue>
+              <KeyValue label="Last verified">12 Aug 2026</KeyValue>
+            </Stack>
+          </div>
+          <SheetFooter>
+            <Button variant="primary" onClick={() => setSheet(false)}>
+              Done
+            </Button>
+          </SheetFooter>
+        </SheetContent>
       </Sheet>
 
       <Drawer
@@ -214,20 +275,47 @@ function Modals() {
 
       <AlertDialog
         open={confirm}
-        onClose={() => setConfirm(false)}
-        onConfirm={() => {
-          setPending(true);
-          setTimeout(() => {
-            setPending(false);
+        onOpenChange={(next, details) => {
+          if (!next) {
+            if (pending) {
+              details.cancel();
+              return;
+            }
             setConfirm(false);
-          }, 1200);
+          }
         }}
-        pending={pending}
-        tone="danger"
-        title="Delete this control?"
-        description="Its evidence links are removed. The evidence itself is kept."
-        confirmLabel="Delete"
-      />
+      >
+        <AlertDialogContent
+          initialFocus={alertCancelRef}
+          className="top-200 translate-y-0 sm:top-1000"
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this control?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Its evidence links are removed. The evidence itself is kept.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={alertCancelRef} disabled={pending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="danger"
+              isLoading={pending}
+              onClick={() => {
+                if (pending) return;
+                setPending(true);
+                setTimeout(() => {
+                  setPending(false);
+                  setConfirm(false);
+                }, 1200);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Inline>
   );
 }
@@ -235,6 +323,8 @@ function Modals() {
 export const Modal: Story = { render: () => <Modals /> };
 
 function StackDemo() {
+  const alertCancelRef2 = useRef<HTMLButtonElement>(null);
+
   const [sheet, setSheet] = useState(false);
   const [confirm, setConfirm] = useState(false);
   return (
@@ -242,38 +332,73 @@ function StackDemo() {
       <Button onClick={() => setSheet(true)}>Sheet, then a decision</Button>
       <Sheet
         open={sheet}
-        onClose={() => setSheet(false)}
-        title="CTRL-0412"
-        subtitle="Segregation of duties, payables"
-        footer={
-          <>
-            <Button variant="danger" onClick={() => setConfirm(true)}>
-              Archive
-            </Button>
-            <Button variant="primary" onClick={() => setSheet(false)}>
-              Done
-            </Button>
-          </>
-        }
+        onOpenChange={(next) => {
+          if (!next) {
+            setSheet(false);
+          }
+        }}
       >
-        <Stack space="space.050">
-          <KeyValue label="Owner">Dana Whitfield</KeyValue>
-          <KeyValue label="Frequency">Quarterly</KeyValue>
-          <KeyValue label="Last verified">12 Aug 2026</KeyValue>
-        </Stack>
+        <SheetContent side="end" style={{ maxWidth: 420 }}>
+          <SheetHeader>
+            <div className="flex items-start gap-100">
+              <div className="flex min-w-0 flex-1 flex-col gap-025">
+                <SheetTitle>CTRL-0412</SheetTitle>
+                <SheetDescription>Segregation of duties, payables</SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+            <Stack space="space.050">
+              <KeyValue label="Owner">Dana Whitfield</KeyValue>
+              <KeyValue label="Frequency">Quarterly</KeyValue>
+              <KeyValue label="Last verified">12 Aug 2026</KeyValue>
+            </Stack>
+          </div>
+          <SheetFooter>
+            <>
+              <Button variant="danger" onClick={() => setConfirm(true)}>
+                Archive
+              </Button>
+              <Button variant="primary" onClick={() => setSheet(false)}>
+                Done
+              </Button>
+            </>
+          </SheetFooter>
+        </SheetContent>
       </Sheet>
       <AlertDialog
         open={confirm}
-        onClose={() => setConfirm(false)}
-        onConfirm={() => {
-          setConfirm(false);
-          setSheet(false);
+        onOpenChange={(next) => {
+          if (!next) {
+            setConfirm(false);
+          }
         }}
-        tone="danger"
-        title="Archive this control?"
-        description="It leaves the register; its evidence and findings stay readable."
-        confirmLabel="Archive"
-      />
+      >
+        <AlertDialogContent
+          initialFocus={alertCancelRef2}
+          className="top-200 translate-y-0 sm:top-1000"
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive this control?</AlertDialogTitle>
+            <AlertDialogDescription>
+              It leaves the register; its evidence and findings stay readable.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={alertCancelRef2}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="danger"
+
+              onClick={() => {
+                setConfirm(false);
+                setSheet(false);
+              }}
+            >
+              Archive
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -1,9 +1,6 @@
-import { ChevronDown } from "lucide-react";
-
-import { Badge, Collapsible } from "../../components";
-import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Check,
+  ChevronDown,
   ChevronRight,
   Download,
   MoreHorizontal,
@@ -12,29 +9,40 @@ import {
   Plus,
   X,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
-
 import {
   Avatar,
+  Badge,
   Button,
   ButtonGroup,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
   Count,
   Dot,
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
   IconButton,
   Item,
   Person,
   Progress,
   ScrollArea,
+  ScrollBar,
   Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
   TextLink,
   Timeline,
   tones,
 } from "../../components";
+
+import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { useState, type ReactNode } from "react";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -455,7 +463,7 @@ function Feed() {
         trailing={menu()}
       >
         <Box className="max-w-[240px]">
-          <Progress value={62} tone="success" label="Sprint progress" size="small" />
+          <Progress value={62} tone="success" size="small" aria-label="Sprint progress"></Progress>
         </Box>
       </Timeline.Item>
       <Timeline.Item
@@ -733,7 +741,7 @@ export const Releases: Story = {
 export const Runs: Story = {
   render: () => (
     <Stack space="space.600">
-      <ScrollArea orientation="horizontal" className="max-w-[640px]">
+      <ScrollArea className="max-w-[640px]">
         <Box style={{ width: 960 }}>
           <Timeline
             label="Approval workflow"
@@ -789,6 +797,7 @@ export const Runs: Story = {
             </Timeline.Item>
           </Timeline>
         </Box>
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
       <Timeline label="Journey" orientation="horizontal" className="max-w-[640px]">
         <Timeline.Item
@@ -828,21 +837,21 @@ export const Runs: Story = {
         >
           <Collapsible className="border-t border-default border-t-0">
             <h3>
-              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                {"Alex Johnson"}
+              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                Alex Johnson
                 <ChevronDown
                   aria-hidden="true"
                   className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
                 />
-              </Collapsible.Trigger>
+              </CollapsibleTrigger>
             </h3>
-            <Collapsible.Content>
+            <CollapsibleContent>
               <div className="pb-200">
                 <Text size="small" color="color.text.subtle">
                   Fetched the latest changes from main.
                 </Text>
               </div>
-            </Collapsible.Content>
+            </CollapsibleContent>
           </Collapsible>
         </Timeline.Item>
         <Timeline.Item
@@ -862,21 +871,21 @@ export const Runs: Story = {
         >
           <Collapsible defaultOpen className="border-t border-default border-t-0">
             <h3>
-              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                {"Michael Rodriguez"}
+              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                Michael Rodriguez
                 <ChevronDown
                   aria-hidden="true"
                   className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
                 />
-              </Collapsible.Trigger>
+              </CollapsibleTrigger>
             </h3>
-            <Collapsible.Content>
+            <CollapsibleContent>
               <div className="pb-200">
                 <Text size="small" color="color.text.subtle">
                   Running 142 suites across the codebase.
                 </Text>
               </div>
-            </Collapsible.Content>
+            </CollapsibleContent>
           </Collapsible>
         </Timeline.Item>
         <Timeline.Item title="Production build" meta="Pending" />
@@ -892,17 +901,30 @@ function ActivitySheet() {
       <Button onClick={() => setOpen(true)}>Open activity</Button>
       <Sheet
         open={open}
-        onClose={() => setOpen(false)}
-        title={
-          <Inline space="space.100" alignBlock="center">
-            Finance activity
-            <Count value={12} appearance="primary" />
-          </Inline>
-        }
-        subtitle="Payouts, risk, invoices and ledger updates"
-        width={560}
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpen(false);
+          }
+        }}
       >
-        <Feed />
+        <SheetContent side="end" style={{ maxWidth: 560 }}>
+          <SheetHeader>
+            <div className="flex items-start gap-100">
+              <div className="flex min-w-0 flex-1 flex-col gap-025">
+                <SheetTitle>
+                  <Inline space="space.100" alignBlock="center">
+                    Finance activity
+                    <Count value={12} appearance="primary" />
+                  </Inline>
+                </SheetTitle>
+                <SheetDescription>Payouts, risk, invoices and ledger updates</SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+            <Feed />
+          </div>
+        </SheetContent>
       </Sheet>
     </>
   );

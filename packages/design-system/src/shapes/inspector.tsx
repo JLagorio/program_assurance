@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
-import { Collapsible } from "../components/collapsible";
 import { useContext, type ReactNode } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/collapsible";
 
 import {
   Accordion,
@@ -92,20 +92,20 @@ function InspectorGroup({ title, children, action }: InspectorGroupProps) {
   return (
     <Collapsible defaultOpen className="border-t border-default first:border-t-0">
       <h3>
-        <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+        <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
           {title}
           <ChevronDown
             aria-hidden="true"
-            className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+            className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-open/collapsible:rotate-180"
           />
-        </Collapsible.Trigger>
+        </CollapsibleTrigger>
       </h3>
-      <Collapsible.Content>
+      <CollapsibleContent>
         <div className={(panel?.flush ?? false) ? "px-300 pb-200" : "pb-200"}>
           {action ? <div className="flex justify-end pb-050">{action}</div> : null}
           <div className="flex flex-col">{children}</div>
         </div>
-      </Collapsible.Content>
+      </CollapsibleContent>
     </Collapsible>
   );
 }

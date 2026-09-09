@@ -5,6 +5,8 @@ import {
   AccordionItem,
   AccordionTrigger,
   Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from "../src/index";
 
 const button = createRef<HTMLButtonElement>();
@@ -16,8 +18,8 @@ const content = createRef<HTMLDivElement>();
 <AccordionTrigger ref={button} aria-label="Details" render={<button type="button" />} />;
 <AccordionContent ref={content} keepMounted />;
 <Collapsible open onOpenChange={(open) => Boolean(open)} ref={content} />;
-<Collapsible.Trigger ref={button} />;
-<Collapsible.Content forceMount ref={content} />;
+<CollapsibleTrigger ref={button}></CollapsibleTrigger>;
+<CollapsibleContent ref={content} keepMounted={true}></CollapsibleContent>;
 // @ts-expect-error Multiple selection must use arrays.
 <Accordion multiple value="a" />;
 // @ts-expect-error Single selection also uses an array.

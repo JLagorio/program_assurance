@@ -1,68 +1,40 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-import { Collapsible } from "../../components";
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
 import * as Stories from "./Collapsible.stories";
 
 <Meta of={Stories} />
 
 # Collapsible
 
-One independent disclosure. Experimental; owner: Ledger maintainers. The caller supplies the trigger and content. Compose a title, count or chevron into the trigger when needed.
+Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/collapsible) and [Base UI](https://base-ui.com/react/components/collapsible). Ledger retains its tokens and application layouts.
 
 ## Anatomy
 
-`Collapsible` owns boolean state. `Collapsible.Trigger` toggles it. `Collapsible.Content` contains what it reveals. No title row, heading, count, border or chevron is imposed.
-
-```tsx
-<Collapsible>
-  <Collapsible.Trigger asChild>
-    <Button>Advanced options</Button>
-  </Collapsible.Trigger>
-  <Collapsible.Content>Additional settings.</Collapsible.Content>
-</Collapsible>
-```
+An independent boolean disclosure using Collapsible, CollapsibleTrigger and CollapsibleContent. Use Accordion for a coordinated set. Labels, counts and icons are ordinary trigger children.
 
 ## Variants
 
-The same interaction accepts either a plain native trigger or `asChild` around a single ref-capable Button. Use Accordion for coordinated sections. An independent Collapsible keeps its own state even inside an Accordion's content.
+<Canvas of={Stories.RetainedState} />
 
-<Canvas of={Stories.CollapsibleMatrix} />
+<Canvas of={Stories.IndependentAndDisabled} />
 
-## Sizes
-
-No fixed dimensions. Button determines the size of a composed trigger; the content takes its container width. Supply wrapping labels and responsive body content.
-
-## States
-
-Closed by default; `defaultOpen` opens initially. `open` and `onOpenChange` make state controlled. `disabled` disables toggling. Focus remains on a trigger when it closes its panel. Avoid changing between controlled and uncontrolled use during a mount.
-
-## Modifiers
-
-Native attributes, events and refs go to the named root, button or content. `asChild` merges them onto a single child that must forward them. `Content forceMount` retains local child state while closed content is hidden and out of the tab order. Closed retained panels hide immediately; ordinary panels animate before unmounting. Caller-controlled closures must relocate focus first if it is inside the panel.
-
-<Canvas of={Stories.ControlledAndRetained} />
-
-## Content
-
-Name what the trigger reveals. Forms, reference material and additional settings are supported. Avoid hiding required steps without a discoverable path to reveal them. Closed content cannot be found with browser search; retaining it does not implement hidden-until-found behavior.
-
-## Style
-
-Minimal small-radius focus treatment on the trigger, disabled text and pointer behavior. Content uses Ledger collapse motion and honors reduced motion. Spacing and visual surfaces belong to the composition.
+<Canvas of={Stories.SearchableContent} />
 
 ## Accessibility
 
-A native button handles Enter and Space, `aria-expanded` and `aria-controls`; Radix associates it with the content ID. There is no group arrow-navigation model and no implicit region landmark or heading. Add semantic structure when the content requires it. Hidden retained controls are excluded from tab navigation and the accessibility tree. Use a button as the slotted trigger, not a navigation link.
+Base UI owns expanded state, trigger/panel association, disabled behavior and keyboard activation. Retained closed panels stay hidden and unfocusable. hiddenUntilFound lets supported browser find-in-page reveal closed content. Nested disclosures keep independent state.
 
 ## Props
 
-<ArgTypes of={Collapsible} />
+The three parts expose native Base UI props, refs, render, state classes/styles and cancellable onOpenChange. Content uses the measured --collapsible-panel-height for Ledger motion and respects reduced motion.
 
-`Trigger` accepts native button attributes/events and an HTMLButtonElement ref. Root and Content accept native div attributes/events and HTMLDivElement refs. Content adds `forceMount`; the root adds `open`, `defaultOpen`, `onOpenChange`, and `disabled`.
+### Migration and API
+
+- Replace Collapsible.Trigger/Content with the flat exports. Replace asChild with render and forceMount with keepMounted.
+- Use data-open/data-closed instead of Radix data-state selectors. Item, Section, Stepper, Inspector and DataTable metrics use the same Base UI disclosure behavior.
+- The unused LegacyAccordion/LegacyCollapsible adapters are removed; use the current flat Accordion and Collapsible parts.
 
 ## Related
 
-[Accordion](?path=/docs/components-accordion--docs), [Button](?path=/docs/components-button--docs), [shadcn Collapsible](https://ui.shadcn.com/docs/components/base/collapsible).
-
-## Don't
-
-Do not put a Button inside a native Trigger without `asChild`. Do not use `title`, `count`, `inset`, or `.Group` to request the former section API. Compose the trigger and content directly; use Accordion for coordinated state.
+- [Accordion](?path=/docs/components-accordion--docs)
+- [Section](?path=/docs/patterns-section--docs)
+- [Stepper](?path=/docs/components-stepper--docs)

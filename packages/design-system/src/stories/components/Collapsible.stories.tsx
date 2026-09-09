@@ -1,9 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useRef, useState } from "react";
-
-import { Button, Collapsible, Input } from "../../components";
-import { Stack, Text } from "../../primitives";
-
+import { createRef } from "react";
+import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Button,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Input,
+} from "../../components";
 const meta = {
   title: "Components/Collapsible",
   component: Collapsible,
@@ -11,93 +19,92 @@ const meta = {
 } satisfies Meta<typeof Collapsible>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const CollapsibleMatrix: Story = {
+const triggerRef = createRef<HTMLButtonElement>(),
+  panelRef = createRef<HTMLDivElement>();
+export const RetainedState: Story = {
   render: () => (
-    <Stack space="space.200">
-      <Collapsible>
-        <Collapsible.Trigger asChild>
-          <Button>Show details</Button>
-        </Collapsible.Trigger>
-        <Collapsible.Content>
-          <Text>Additional details</Text>
-        </Collapsible.Content>
-      </Collapsible>
-      <Collapsible defaultOpen>
-        <Collapsible.Trigger>Initially open</Collapsible.Trigger>
-        <Collapsible.Content>Initially visible content</Collapsible.Content>
-      </Collapsible>
-      <Collapsible disabled>
-        <Collapsible.Trigger>Unavailable details</Collapsible.Trigger>
-        <Collapsible.Content>Disabled content</Collapsible.Content>
-      </Collapsible>
-    </Stack>
+    <Collapsible defaultOpen>
+      <CollapsibleTrigger ref={triggerRef} render={<Button />}>
+        Review details
+      </CollapsibleTrigger>
+      <CollapsibleContent ref={panelRef} keepMounted className="flex">
+        <div className="py-200">
+          <Input aria-label="Review note" defaultValue="Initial note" />
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within, waitFor } = await import("storybook/test");
-    const canvas = within(canvasElement);
-    const trigger = canvas.getByRole("button", { name: "Show details" });
-    trigger.focus();
-    await userEvent.keyboard("{Enter}");
-    await expect(trigger).toHaveAttribute("aria-expanded", "true");
-    await waitFor(() => expect(canvas.getByText("Additional details")).toBeVisible());
+    const canvas = within(canvasElement),
+      trigger = canvas.getByRole("button", { name: "Review details" });
+    await expect(triggerRef.current).toBe(trigger);
+    const note = canvas.getByRole("textbox", { name: "Review note" });
+    await userEvent.type(note, " updated");
+    await userEvent.click(trigger);
+    await waitFor(() => expect(panelRef.current).not.toBeVisible());
+    await expect(note).toBeInTheDocument();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
     await userEvent.keyboard(" ");
-    await waitFor(() => expect(canvas.queryByText("Additional details")).toBeNull());
-    await expect(trigger).toHaveFocus();
-    await expect(canvas.getByRole("button", { name: "Unavailable details" })).toBeDisabled();
-    await expect(canvasElement.querySelector("button button")).toBeNull();
+    await waitFor(() => expect(note).toBeVisible());
+    await expect(note).toHaveValue("Initial note updated");
+    await expect(trigger).toHaveAttribute("aria-controls", panelRef.current?.id);
   },
 };
-
-function RetainedExample() {
-  const [open, setOpen] = useState(false);
-  const trigger = useRef<HTMLButtonElement>(null);
-  return (
-    <Stack space="space.200">
-      <Button
-        onClick={() => {
-          setOpen(true);
-          trigger.current?.focus();
-        }}
-      >
-        Open and focus externally
-      </Button>
-      <Collapsible open={open} onOpenChange={setOpen} data-testid="retained-root">
-        <Collapsible.Trigger asChild ref={trigger}>
-          <Button>Advanced options</Button>
-        </Collapsible.Trigger>
-        <Collapsible.Content forceMount data-testid="retained-content">
-          <Input aria-label="Draft value" defaultValue="Original" />
-        </Collapsible.Content>
-      </Collapsible>
-      <Button>After disclosure</Button>
-    </Stack>
-  );
-}
-
-export const ControlledAndRetained: Story = {
-  render: () => <RetainedExample />,
+export const IndependentAndDisabled: Story = {
+  render: () => (
+    <Accordion defaultValue={["details"]}>
+      <AccordionItem value="details">
+        <AccordionTrigger>Record details</AccordionTrigger>
+        <AccordionContent>
+          <Collapsible defaultOpen onOpenChange={(_, details) => details.cancel()}>
+            <CollapsibleTrigger>Required evidence</CollapsibleTrigger>
+            <CollapsibleContent>Retention is required.</CollapsibleContent>
+          </Collapsible>
+          <Collapsible disabled>
+            <CollapsibleTrigger>Unavailable</CollapsibleTrigger>
+            <CollapsibleContent>Restricted details</CollapsibleContent>
+          </Collapsible>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  ),
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
-    await expect(canvas.getByTestId("retained-content")).not.toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: "Open and focus externally" }));
-    const trigger = canvas.getByRole("button", { name: "Advanced options" });
-    await expect(trigger).toHaveFocus();
-    await expect(canvas.getByTestId("retained-content")).toHaveAttribute(
-      "id",
-      trigger.getAttribute("aria-controls"),
+    await userEvent.click(canvas.getByRole("button", { name: "Required evidence" }));
+    await expect(canvas.getByRole("button", { name: "Required evidence" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
     );
-    const input = canvas.getByRole("textbox", { name: "Draft value" });
-    await userEvent.clear(input);
-    await userEvent.type(input, "Keep this draft");
-    await userEvent.click(trigger);
-    await expect(canvas.getByTestId("retained-content")).not.toBeVisible();
-    await userEvent.tab();
-    await expect(canvas.getByRole("button", { name: "After disclosure" })).toHaveFocus();
-    await userEvent.click(trigger);
-    await expect(canvas.getByRole("textbox", { name: "Draft value" })).toHaveValue(
-      "Keep this draft",
+    await expect(canvas.getByRole("button", { name: "Record details" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
     );
+    await expect(canvas.getByRole("button", { name: "Unavailable" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+  },
+};
+export const SearchableContent: Story = {
+  render: () => (
+    <Collapsible>
+      <CollapsibleTrigger>Recovery details</CollapsibleTrigger>
+      <CollapsibleContent hiddenUntilFound data-testid="searchable">
+        Recovery reference AC-47
+      </CollapsibleContent>
+    </Collapsible>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      panel = canvas.getByTestId("searchable");
+    await expect(panel).toHaveAttribute("hidden", "until-found");
+    await fireEvent(panel, new Event("beforematch"));
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "Recovery details" })).toHaveAttribute(
+        "aria-expanded",
+        "true",
+      ),
+    );
+    await waitFor(() => expect(panel).not.toHaveAttribute("hidden"));
   },
 };

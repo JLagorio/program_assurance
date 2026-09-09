@@ -1,115 +1,142 @@
-import { useLedgerLocale } from "../lib/locale";
-import { preserveNestedPopupEscape, useOverlayFocus } from "./_overlay-focus";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Dialog as Primitive } from "@base-ui/react/dialog";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { X } from "lucide-react";
-import type { ReactNode, RefObject } from "react";
-
+import type { ComponentProps } from "react";
+import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
+import { Button } from "./button";
 
-/** The close button every overlay shares. */
-export const overlayClose =
-  "flex size-control-small items-center justify-center rounded-medium icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused";
-
-export type DialogProps = {
-  /** The caller's state. A dialog is opened by an act and closed by the caller. */
-  open: boolean;
-  /** Focus destination after closing; defaults to the opener, then a surviving dialog or main. */
-  returnFocusRef?: RefObject<HTMLElement | null> | undefined;
-  /** Called on Escape, the blanket, the close button, and Cancel. Ignored while `pending`. */
-  onClose: () => void;
-  /** The task, as the button that opened it says it: "Schedule assessment". */
-  title: ReactNode;
-  /** A line above the title: the record the task applies to, as an id or an Eyebrow. */
-  eyebrow?: ReactNode;
-  /** One sentence under the title, when the title does not say enough. Read as the dialog's description. */
-  description?: ReactNode;
-  /** The buttons: Cancel, then the verb. They stay put while the body scrolls. */
-  footer?: ReactNode;
-  /** A column of facts beside the body, on the sunken surface. Large dialogs only. */
-  aside?: ReactNode;
-  /** The task: fields, a table, prose. It scrolls; the header and the footer do not. */
-  children: ReactNode;
-  /** `medium` (520px) for a form; `large` (860px) for a table or an aside. */
-  width?: "medium" | "large" | undefined;
-  /** Holds the dialog open while the caller saves: Escape, the blanket and the close button do nothing. Pair it with `isLoading` on the verb. */
-  pending?: boolean | undefined;
-};
-
-const widths = { medium: 520, large: 860 } as const;
-
-/** A focused task over the page: title, optional description, body, optional aside, footer actions. Focus moves in and back; Escape and the blanket close it. */
-export function Dialog({
-  open,
-  returnFocusRef,
-  onClose,
-  title,
-  eyebrow,
-  description,
-  footer,
-  aside,
-  children,
-  width = "medium",
-  pending = false,
-}: DialogProps) {
-  const { t, direction } = useLedgerLocale();
-  const restoreFocus = useOverlayFocus(open, returnFocusRef);
+export type DialogProps<Payload = unknown> = Primitive.Root.Props<Payload>;
+export function Dialog<Payload = unknown>(props: DialogProps<Payload>) {
+  const { direction } = useLedgerLocale();
   return (
-    <DialogPrimitive.Root
-      open={open}
-      onOpenChange={(next) => {
-        if (!next && !pending) onClose();
-      }}
+    <DirectionProvider direction={direction}>
+      <Primitive.Root {...props} />
+    </DirectionProvider>
+  );
+}
+export type DialogTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;
+export function DialogTrigger<Payload = unknown>(props: DialogTriggerProps<Payload>) {
+  return <Primitive.Trigger data-slot="dialog-trigger" {...props} />;
+}
+export type DialogPortalProps = Primitive.Portal.Props;
+export function DialogPortal(props: DialogPortalProps) {
+  return <Primitive.Portal {...props} />;
+}
+export type DialogOverlayProps = Primitive.Backdrop.Props;
+export function DialogOverlay({ className, ...props }: DialogOverlayProps) {
+  return (
+    <Primitive.Backdrop
+      data-slot="dialog-overlay"
+      {...props}
+      className={classes(
+        "fixed inset-0 z-50 bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
+        className,
+      )}
+    />
+  );
+}
+export type DialogCloseProps = Primitive.Close.Props;
+export function DialogClose(props: DialogCloseProps) {
+  return <Primitive.Close data-slot="dialog-close" {...props} />;
+}
+export type DialogContentProps = Primitive.Popup.Props & { showCloseButton?: boolean | undefined };
+export function DialogContent({
+  className,
+  children,
+  dir,
+  showCloseButton = true,
+  ...props
+}: DialogContentProps) {
+  const { direction, t } = useLedgerLocale();
+  return (
+    <DirectionProvider direction={dir === "rtl" || dir === "ltr" ? dir : direction}>
+      <DialogPortal>
+        <DialogOverlay />
+        <Primitive.Popup
+          data-slot="dialog-content"
+          dir={dir ?? direction}
+          {...props}
+          className={classes(
+            "fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[520px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xxlarge bg-surface-overlay text-default shadow-overlay outline-none data-open:animate-dialog-in data-closed:animate-dialog-out",
+            className,
+          )}
+        >
+          {children}
+          {showCloseButton && (
+            <DialogClose
+              aria-label={t("close")}
+              render={
+                <Button
+                  variant="subtle"
+                  size="small"
+                  className="absolute end-150 top-100 size-control-small p-0"
+                />
+              }
+            >
+              <X aria-hidden className="size-icon-small" />
+            </DialogClose>
+          )}
+        </Primitive.Popup>
+      </DialogPortal>
+    </DirectionProvider>
+  );
+}
+export type DialogHeaderProps = ComponentProps<"div">;
+export function DialogHeader({ className, ...props }: DialogHeaderProps) {
+  return (
+    <div
+      data-slot="dialog-header"
+      className={cn(
+        "flex shrink-0 flex-col gap-025 border-b border-default py-150 pe-600 ps-250",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+export type DialogFooterProps = ComponentProps<"div"> & { showCloseButton?: boolean | undefined };
+export function DialogFooter({
+  className,
+  children,
+  showCloseButton = false,
+  ...props
+}: DialogFooterProps) {
+  const { t } = useLedgerLocale();
+  return (
+    <div
+      data-slot="dialog-footer"
+      className={cn(
+        "flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
+        className,
+      )}
+      {...props}
     >
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-200 sm:p-600">
-          <DialogPrimitive.Content
-            onEscapeKeyDown={preserveNestedPopupEscape}
-            onCloseAutoFocus={restoreFocus}
-            dir={direction}
-            {...(description ? {} : { "aria-describedby": undefined })}
-            style={{ maxWidth: widths[width] }}
-            className="relative flex max-h-full w-full flex-col overflow-hidden rounded-xxlarge bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out"
-          >
-            <div className="flex shrink-0 flex-col gap-025 border-b border-default py-150 pe-600 ps-250">
-              {eyebrow ? <div className="flex items-center gap-100 pb-025">{eyebrow}</div> : null}
-              <DialogPrimitive.Title className="font-heading-xsmall text-default">
-                {title}
-              </DialogPrimitive.Title>
-              {description ? (
-                <DialogPrimitive.Description className="font-body text-subtle">
-                  {description}
-                </DialogPrimitive.Description>
-              ) : null}
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-none">
-              <div className={cn("grid", aside && "grid-cols-1 md:grid-cols-3")}>
-                <div className={cn("px-250 py-200", aside && "md:col-span-2")}>{children}</div>
-                {aside ? (
-                  <div className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
-                    {aside}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-            {footer ? (
-              <div className="flex shrink-0 items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150">
-                {footer}
-              </div>
-            ) : null}
-            <DialogPrimitive.Close asChild>
-              <button
-                type="button"
-                aria-label={t("close")}
-                disabled={pending}
-                className={cn(overlayClose, "absolute end-150 top-100 disabled:opacity-disabled")}
-              >
-                <X className="size-icon-small" />
-              </button>
-            </DialogPrimitive.Close>
-          </DialogPrimitive.Content>
-        </div>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+      {children}
+      {showCloseButton && (
+        <DialogClose render={<Button variant="subtle" />}>{t("close")}</DialogClose>
+      )}
+    </div>
+  );
+}
+export type DialogTitleProps = Primitive.Title.Props;
+export function DialogTitle({ className, ...props }: DialogTitleProps) {
+  return (
+    <Primitive.Title
+      data-slot="dialog-title"
+      {...props}
+      className={classes("font-heading-xsmall text-default", className)}
+    />
+  );
+}
+export type DialogDescriptionProps = Primitive.Description.Props;
+export function DialogDescription({ className, ...props }: DialogDescriptionProps) {
+  return (
+    <Primitive.Description
+      data-slot="dialog-description"
+      {...props}
+      className={classes("font-body text-subtle", className)}
+    />
   );
 }

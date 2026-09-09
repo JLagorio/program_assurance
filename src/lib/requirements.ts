@@ -41,12 +41,12 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { z } from "zod";
 
-import { toast, type Tone } from "@ledger/design-system";
 import { nodeById, pathLabel, type CompositionNode } from "@/lib/composition";
-import { componentByKey, type SystemComponent } from "@/lib/reusable-components";
 import { datasetToday } from "@/lib/dataset-clock";
-import type { VerificationMethod } from "@/lib/spine";
 import type { PlatformSourceRecord } from "@/lib/platform-ids";
+import { componentByKey, type SystemComponent } from "@/lib/reusable-components";
+import type { VerificationMethod } from "@/lib/spine";
+import { toast, type Tone } from "@ledger/design-system";
 
 /* ------------------------------------------------------------------- Types */
 
@@ -1346,7 +1346,7 @@ export function addRequirement(input: {
       revision: 1,
       state: "Draft",
       owner: input.owner,
-      derivations: input.derivations,
+      derivations: structuredClone(input.derivations),
       method: input.method,
       successCriteria: input.successCriteria,
       workstream: input.parent ? (requirementById.get(input.parent)?.workstream ?? null) : null,
@@ -1517,27 +1517,50 @@ export function mapRequirementToControl(
   controlLabel: string,
   rationale: string,
 ): boolean {
+  return (
+    linkRequirementControls(
+      requirementId,
+      [{ id: controlId, label: controlLabel }],
+      "mapped",
+      rationale,
+    ).length > 0
+  );
+}
+
+/** Link controls explicitly; allocation, lifecycle and assessment records are unaffected. */
+export function linkRequirementControls(
+  requirementId: string,
+  controls: { id: string; label: string }[],
+  relation: "mapped" | "derived",
+  rationale: string,
+): string[] {
   return withRequirementsTransaction(() => {
     const r = requirements.find((x) => x.id === requirementId);
-    if (!r) return false;
-    if (
-      r.derivations.some(
-        (d) =>
-          (d.sourceType === "Control statement" || d.sourceType === "Overlay") &&
-          d.sourceId === controlId,
+    if (!r) return [];
+    const linked: string[] = [];
+    for (const control of controls) {
+      if (!control.id.trim()) throw new Error("Choose a control to link.");
+      if (
+        r.derivations.some(
+          (d) =>
+            (d.sourceType === "Control statement" || d.sourceType === "Overlay") &&
+            d.sourceId === control.id,
+        )
       )
-    ) {
-      return false;
+        continue;
+      r.derivations.push({
+        relation,
+        sourceType: "Control statement",
+        sourceId: control.id,
+        sourceLabel: control.label,
+        rationale:
+          rationale.trim() ||
+          `${relation === "mapped" ? "Mapped to" : "Derived from"} ${control.id}`,
+      });
+      linked.push(control.id);
     }
-    r.derivations.push({
-      relation: "mapped",
-      sourceType: "Control statement",
-      sourceId: controlId,
-      sourceLabel: controlLabel,
-      rationale: rationale.trim() || `Satisfies ${controlId}`,
-    });
-    bump();
-    return true;
+    if (linked.length) bump();
+    return linked;
   });
 }
 

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
@@ -17,7 +18,6 @@ import {
   Stack,
   Table,
 } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 import { MoreHorizontal } from "lucide-react";
 
 export const Route = createFileRoute("/components")({
@@ -125,7 +125,7 @@ function Components() {
               ].map((row) => (
                 <Inline key={row.label} space="space.150" alignBlock="center">
                   <span className="font-body text-subtle w-1000">{row.label}</span>
-                  <Progress value={row.value} tone={row.tone} />
+                  <Progress value={row.value} tone={row.tone} aria-hidden />
                   <span className="tabular-nums text-right font-body font-medium w-500">
                     {row.value}%
                   </span>
