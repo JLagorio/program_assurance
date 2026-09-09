@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Download, RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import {
@@ -236,11 +236,17 @@ export const ChartMatrix: Story = {
 /* ---------- the frame ---------- */
 
 function FramedChart() {
+  const figure = useRef<HTMLElement>(null);
   const [range, setRange] = useState<"3m" | "9m">("9m");
   const data = range === "3m" ? byMonth.slice(-3) : byMonth;
   return (
     <Box style={{ width: 720 }}>
+      <Button onClick={() => figure.current?.focus()}>Focus chart</Button>
       <Chart.Frame
+        ref={figure}
+        id="findings-chart"
+        tabIndex={-1}
+        data-report="findings"
         title="Findings over time"
         description="Open and closed at the end of each month, this year"
         summary="Open findings fell from 14 in January to 5 in September; closed findings peaked at 11 in May."
@@ -271,7 +277,26 @@ function FramedChart() {
 }
 
 /** The Frame: title, one line under it, the legend (hover dims the other series, click isolates one), a control that redraws the plot, and the Table toggle that lays the same numbers out. */
-export const Framed: Story = { render: () => <FramedChart /> };
+export const Framed: Story = {
+  render: () => <FramedChart />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      page = within(canvasElement.ownerDocument.body);
+    const figure = canvas.getByRole("figure", { name: "Findings over time" });
+    await expect(figure).toHaveAttribute("id", "findings-chart");
+    await expect(figure).toHaveAttribute("data-report", "findings");
+    await userEvent.click(canvas.getByRole("button", { name: "Focus chart" }));
+    await expect(figure).toHaveFocus();
+    await userEvent.click(canvas.getByRole("button", { name: "Expand" }));
+    const dialog = await page.findByRole("dialog", { name: "Findings over time" });
+    await expect(within(dialog).getByRole("figure")).not.toHaveAttribute("id", "findings-chart");
+    await expect(canvasElement.ownerDocument.querySelectorAll("#findings-chart")).toHaveLength(1);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    await userEvent.click(canvas.getByRole("button", { name: "Focus chart" }));
+    await expect(figure).toHaveFocus();
+  },
+};
 
 function ComponentCard({ name }: { name: string }) {
   const f = componentFacts[name];

@@ -6,6 +6,9 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ## Unreleased · audit implementation
 
+- **Item, Table and Chart.Frame forward native DOM props and refs.** Item keeps its configured record id/title/action props, composes links through Base UI useRender, preserves link ids and accepts native cancellable disclosure changes. Table root/cell refs target native elements; its scroll-frame ref supports React 19 cleanup, and overflow tracking observes the table as well as the container. Chart.Frame exposes its original figure without duplicating DOM ids/refs/events into the expanded view. Existing record layouts, selection, sorting, pinning and chart interactions remain. Remove Item's duplicate comparison story and shorten its family page. See [Item](src/stories/components/Item.mdx), [Table](src/stories/components/Table.mdx) and [Chart](src/stories/components/Chart.mdx).
+
+
 - **Breaking: TextLink and Shell navigation use Base UI render/mergeProps.** Native anchors and refs replace Slot composition. AppLogo defaults to a span; navigation actions explicitly render buttons. Keep item labels outside the rendered router Link so icons and badges remain. Shell's layout, mobile navigation, resizing and persistence are preserved. See [TextLink](src/stories/components/TextLink.mdx) and [Shell](src/stories/patterns/Shell.mdx).
 - **Breaking: Toaster adopts shadcn's Base UI Toast.** Replace callable Sonner helpers with native add/update/close/promise, duration with timeout (zero is persistent), and action.label with actionProps.children. Explicitly close completed actions and handle rejected promises. Provider props stay on Toaster; DOM refs, placement and naming belong to the exported parts. App callers and catalog Retry are migrated. Remove the package's final Radix Slot and Sonner dependencies; reference catalogs remain refreshable in place. See [Toaster](src/stories/components/Toaster.mdx).
 

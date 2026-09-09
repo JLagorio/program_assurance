@@ -202,7 +202,7 @@ Every chart colour clears 3:1 on `elevation.surface` in both modes. Text never w
 
 ## Props
 
-The Frame, `Chart`:
+The Frame, `Chart`, accepts native figure attributes, events, styles and refs. `title` remains the visible chart title. Native DOM ids, refs and handlers belong to the original figure; expanding creates a separately named figure without duplicating those attributes or moving the caller's ref. Internal PNG export still reads the same figure.
 
 <ArgTypes of={Chart.Frame} />
 

@@ -411,32 +411,6 @@
         }
       }
     },
-    "Chart.Frame": {
-      "domTarget": "figure named by its figcaption title; className targets figure. An expansion Dialog is a sibling. No generic DOM spread/ref contract.",
-      "controlledBehavior": "Caller owns status/data/path/actions. Frame owns hidden/highlighted series, table visibility and expanded Dialog; expanded copy has its own Frame state. No controlled props exist for these presentation states.",
-      "defaultBehavior": "status=ready, size=medium, swatch=square, texture=false. Locale formatters default; legend is top only for more than one series, otherwise none. data+x+nonempty series enables table twin; downloads and expansion are absent unless requested. height/size sets fallback loading/error/empty height, not child plot geometry. Missing summary/description/path/action/statusText renders no corresponding content; localized status titles fill missing statusTitle.",
-      "reviewSources": [
-        "packages/design-system/src/components/chart/frame.tsx",
-        "packages/design-system/src/components/chart/chart.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx"
-      ],
-      "props": {
-        "size": {
-          "meaning": "Preset fallback-state height in this frame. Child plots own their own size; expanding renders a fresh Frame with large fallback height.",
-          "migration": "Preserve this family-specific contract; any replacement must retain payload, units and state ownership.",
-          "defaultBehavior": "medium=200px; explicit height wins."
-        },
-        "height": {
-          "meaning": "Fallback-state height in CSS pixels; child plots are not cloned or resized by this prop.",
-          "migration": "Preserve this family-specific contract; any replacement must retain payload, units and state ownership.",
-          "defaultBehavior": "Uses frame size preset if omitted."
-        },
-        "actions": {
-          "meaning": "ReactNode toolbar slot next to legend and built-in tools; each action owns its own event and outcome.",
-          "migration": "Keep a content slot; do not convert actions to an invoked callback."
-        }
-      }
-    },
     "Chart.Heatmap": {
       "domTarget": "Overflow div contains a named semantic table, cell spans or selection buttons and a portaled details card. className targets div; no public ref/DOM spread.",
       "controlledBehavior": "Caller owns rows/columns/value callback and loading. Local picked cell drives details; onSelect is a notification. Unlike other plots, heatmap does not inherit Frame loading/legend state.",
@@ -1058,46 +1032,6 @@
         }
       }
     },
-    "Item": {
-      "domTarget": "Outer li belongs inside Item.Group ol. Link/title button receives generated title id; actions are sibling controls. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "When isCollapsible and children are truthy, Radix Collapsible owns uncontrolled open state or follows open/onOpenChange. defaultOpen initializes once. onSelect makes a title button; link takes precedence. isActive is caller-owned styling.",
-      "defaultBehavior": "defaultOpen=false. Standalone context is default size/non-flush; idWidth=72px. Noncollapsible children render statically. Link children/className/id are composed by Item, including replacing the link id. id is displayed record content, not DOM identity.",
-      "reviewSources": ["packages/design-system/src/components/item.tsx"],
-      "props": {
-        "actions": {
-          "meaning": "Buttons at the end of the row, beside the row's link or button, never inside it."
-        },
-        "defaultOpen": {
-          "meaning": "Initial uncontrolled expansion, false by default; not resynchronized after mount."
-        },
-        "id": {
-          "meaning": "Displayed record identifier, not an HTML id. The title gets an internal generated DOM id."
-        },
-        "onOpenChange": {
-          "meaning": "Radix expansion request callback receiving boolean; controlled callers must update open."
-        },
-        "onSelect": {
-          "meaning": "Optional title activation callback. A supplied link takes precedence; this does not select or expand internal state."
-        },
-        "open": {
-          "meaning": "Controlled expansion state used only when isCollapsible and children are truthy."
-        }
-      }
-    },
-    "Item.Group": {
-      "domTarget": "Outer div, optional h3 header and ol; empty content uses a div instead of ol. aria-labelledby uses title heading id or supplied labelledBy. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "size=default, flush=false. Context controls row density/padding. No truthy children plus truthy empty renders fallback; string empty uses compact Empty. Count appears for zero, but only when title/trailing creates the header. Caller supplies valid Item li children.",
-      "reviewSources": ["packages/design-system/src/components/item.tsx"],
-      "props": {
-        "empty": {
-          "meaning": "Fallback string or rendered node when no truthy children exist. Strings become compact Empty; falsy empty values do not activate the fallback."
-        },
-        "size": {
-          "meaning": "Row density recipe inherited by Item children: default or compact, not a fixed group height."
-        }
-      }
-    },
     "Kbd": {
       "domTarget": "kbd element with optional aria-label; no arbitrary DOM/ref forwarding.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
@@ -1711,28 +1645,6 @@
       "props": {
         "onSelect": {
           "meaning": "Optional step activation callback; caller owns step state. No automatic progression."
-        }
-      }
-    },
-    "Table": {
-      "domTarget": "table receives native props/className/style/id/role. frameRef targets the outer scroll div, whose maxHeight/density and overflow keyboard affordance are package-owned. No public table ref prop.",
-      "controlledBehavior": "Caller owns content/density; local DOM tracking detects scroll position and overflow to expose a focusable named region/group. No sort or selection state exists at root.",
-      "defaultBehavior": "density absent resolves ordinary CSS row density; compact sets data-density on the frame. Missing maxHeight only enables horizontal overflow; provided number sets CSS pixel maxHeight. No default label/role/id/native callbacks; native aria-label can override label on table, while label also names the scroll frame.",
-      "reviewSources": [
-        "packages/design-system/src/components/table.tsx",
-        "packages/design-system/src/mode/density.tsx"
-      ]
-    },
-    "Table.Cell": {
-      "domTarget": "td; native props/id/style target td; no public ref.",
-      "controlledBehavior": "Stateless presentation; caller owns row/column data and native event effects. Inherited React defaultValue/defaultChecked and media/change event names are DOM compatibility surface, not table state APIs.",
-      "defaultBehavior": "pinned overrides sticky; offset defaults 0. Missing width uses content/native style; string child provides title unless native title overrides it.",
-      "reviewSources": ["packages/design-system/src/components/table.tsx"],
-      "props": {
-        "width": {
-          "meaning": "Column width in CSS pixels composed into cell style; explicit style.width can override it.",
-          "migration": "Preserve numeric pixel semantics and style precedence; do not rename to a control size preset.",
-          "defaultBehavior": "Absent width leaves caller/native table layout."
         }
       }
     },

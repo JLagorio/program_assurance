@@ -1,3 +1,4 @@
+import { useRender } from "@base-ui/react/use-render";
 import { Download, Maximize2, Table2 } from "lucide-react";
 import {
   Fragment,
@@ -8,6 +9,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentProps,
   type ReactNode,
 } from "react";
 import { useLedgerLocale } from "../../lib/locale";
@@ -134,7 +136,7 @@ export type ChartCrumb = {
   onSelect?: (() => void) | undefined;
 };
 
-export type ChartFrameProps = {
+export type ChartFrameProps = Omit<ComponentProps<"figure">, "title" | "children"> & {
   /** What the chart shows, as a noun phrase: "Coverage by control family". It names the plot to a screen reader. */
   title: string;
   /** One line under the title: the period, the unit, the source. */
@@ -220,6 +222,7 @@ export function ChartFrame(props: ChartFrameProps) {
     height,
     children,
     className,
+    ...figureProps
   } = props;
   const id = useId();
   const figure = useRef<HTMLElement>(null);
@@ -281,13 +284,16 @@ export function ChartFrame(props: ChartFrameProps) {
     download(fileName(title, "png"), await svgToPng(svg));
   };
   const tools = csv || png || expandable || twin;
-  return (
-    <FrameContext.Provider value={state}>
+  const frameElement = useRender({
+    defaultTagName: "figure",
+    ref: figure,
+    // Keep the caller's DOM ids, ref and handlers on the original figure only.
+    render: (
       <figure
-        ref={figure}
         aria-labelledby={id}
         {...(summary ? { "aria-describedby": `${id}-summary` } : {})}
         className={cn("flex min-w-0 flex-col gap-150", className)}
+        {...(!inDialog ? figureProps : {})}
       >
         <div className="flex flex-wrap items-start justify-between gap-x-200 gap-y-100">
           <figcaption className="flex min-w-0 flex-col gap-025" style={{ flex: "1 1 200px" }}>
@@ -473,6 +479,11 @@ export function ChartFrame(props: ChartFrameProps) {
           </div>
         ) : null}
       </figure>
+    ),
+  });
+  return (
+    <FrameContext.Provider value={state}>
+      {frameElement}
       {expandable ? (
         <Dialog
           open={expanded}

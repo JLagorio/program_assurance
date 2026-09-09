@@ -1,3 +1,4 @@
+import { useRender } from "@base-ui/react/use-render";
 import { useLedgerLocale } from "../lib/locale";
 import {
   ArrowDown,
@@ -13,7 +14,7 @@ import {
   useEffect,
   useRef,
   useState,
-  type ComponentPropsWithoutRef,
+  type ComponentProps,
   type CSSProperties,
   type ReactNode,
   type Ref,
@@ -42,7 +43,7 @@ export type TableProps = {
   density?: Density | undefined;
   className?: string | undefined;
   children?: ReactNode;
-} & Omit<ComponentPropsWithoutRef<"table">, "className" | "children" | "role">;
+} & Omit<ComponentProps<"table">, "className" | "children" | "role">;
 
 /**
  * The register. The wrapper is the scroll frame: sideways always, and down past `maxHeight`, so the
@@ -54,6 +55,7 @@ export type TableProps = {
 function TableRoot({ label, className, maxHeight, frameRef, role, density, ...props }: TableProps) {
   const { t, direction } = useLedgerLocale();
   const frame = useRef<HTMLDivElement>(null);
+  const table = useRef<HTMLTableElement>(null);
   const track = useCallback(() => {
     const el = frame.current;
     if (!el) return;
@@ -80,32 +82,36 @@ function TableRoot({ label, className, maxHeight, frameRef, role, density, ...pr
     if (!el || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(track);
     observer.observe(el);
+    if (table.current) observer.observe(table.current);
+    track();
     return () => observer.disconnect();
   }, [track]);
-  return (
-    <div
-      ref={(el) => {
-        frame.current = el;
-        if (typeof frameRef === "function") frameRef(el);
-        else if (frameRef) frameRef.current = el;
-        if (el) track();
-      }}
-      onScroll={track}
-      {...(density === "compact" ? { "data-density": "compact" } : {})}
-      className={cn(
+  const tableElement = useRender({
+    defaultTagName: "table",
+    ref: table,
+    props: {
+      "data-slot": "table",
+      className: cn("w-full border-collapse text-left font-body", className),
+      ...(label ? { "aria-label": label } : {}),
+      ...(role ? { role } : {}),
+      ...props,
+    },
+  });
+  return useRender({
+    defaultTagName: "div",
+    ref: frameRef ? [frame, frameRef] : frame,
+    props: {
+      "data-slot": "table-container",
+      onScroll: track,
+      ...(density === "compact" ? { "data-density": "compact" } : {}),
+      className: cn(
         "group/scroll w-full rounded-small outline-none focus-visible:outline-focused",
         maxHeight === undefined ? "overflow-x-auto" : "overflow-auto",
-      )}
-      style={maxHeight === undefined ? undefined : { maxHeight }}
-    >
-      <table
-        className={cn("w-full border-collapse text-left font-body", className)}
-        {...(label ? { "aria-label": label } : {})}
-        {...(role ? { role } : {})}
-        {...props}
-      />
-    </div>
-  );
+      ),
+      style: maxHeight === undefined ? undefined : { maxHeight },
+      children: tableElement,
+    },
+  });
 }
 
 /** Where a column is pinned, and how far from that edge. `edge` marks the pinned column that touches the scrolling middle: `true` draws its hairline at rest, `"scrolled"` only while the frame is scrolled, for a checkbox column that is pinned on its own. */
@@ -152,9 +158,8 @@ const pinnedStyle = (
       ? { insetInlineEnd: offset ?? 0 }
       : undefined;
 
-export type ThProps = ComponentPropsWithoutRef<"th"> &
+export type ThProps = ComponentProps<"th"> &
   PinnedProps & {
-    ref?: Ref<HTMLTableCellElement> | undefined;
     /** Makes the heading a button that reports its direction (aria-sort) and shows the arrow. */
     sort?: "asc" | "desc" | false | undefined;
     onSort?: (() => void) | undefined;
@@ -287,7 +292,7 @@ function Th({
   );
 }
 
-export type TdProps = ComponentPropsWithoutRef<"td"> &
+export type TdProps = ComponentProps<"td"> &
   PinnedProps & {
     /** Pins the column to the leading edge. The same as `pinned="start"` with no offset. */
     sticky?: boolean | undefined;
@@ -332,8 +337,7 @@ function Tr({
   isSelected,
   isStatic,
   ...props
-}: ComponentPropsWithoutRef<"tr"> & {
-  ref?: Ref<HTMLTableRowElement> | undefined;
+}: ComponentProps<"tr"> & {
   isSelected?: boolean | undefined;
   isStatic?: boolean | undefined;
 }) {
@@ -702,7 +706,7 @@ function HandleCell({
   offset,
   edge,
   ...props
-}: ComponentPropsWithoutRef<"span"> &
+}: ComponentProps<"span"> &
   PinnedProps & {
     ref?: Ref<HTMLSpanElement> | undefined;
     label?: string | undefined;

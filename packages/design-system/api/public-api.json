@@ -3811,7 +3811,7 @@
     "\"src/components/chart/frame\".ChartFrameProps": [
       {
         "source": "src/components/chart/frame.d.ts",
-        "declaration": "export type ChartFrameProps = {\n    title: string;\n    description?: ReactNode | undefined;\n    summary?: string | undefined;\n    path?: ChartCrumb[] | undefined;\n    series?: ChartSeries[] | undefined;\n    legend?: \"top\" | \"bottom\" | \"none\" | undefined;\n    swatch?: SwatchShape | undefined;\n    texture?: boolean | undefined;\n    syncId?: string | undefined;\n    actions?: ReactNode | undefined;\n    download?: (\"csv\" | \"png\")[] | undefined;\n    expandable?: boolean | undefined;\n    status?: \"ready\" | \"loading\" | \"refreshing\" | \"empty\" | \"error\" | undefined;\n    statusTitle?: string | undefined;\n    statusText?: string | undefined;\n    data?: ChartDatum[] | undefined;\n    x?: string | undefined;\n    xLabel?: string | undefined;\n    columns?: ChartColumn[] | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
+        "declaration": "export type ChartFrameProps = Omit<ComponentProps<\"figure\">, \"title\" | \"children\"> & {\n    title: string;\n    description?: ReactNode | undefined;\n    summary?: string | undefined;\n    path?: ChartCrumb[] | undefined;\n    series?: ChartSeries[] | undefined;\n    legend?: \"top\" | \"bottom\" | \"none\" | undefined;\n    swatch?: SwatchShape | undefined;\n    texture?: boolean | undefined;\n    syncId?: string | undefined;\n    actions?: ReactNode | undefined;\n    download?: (\"csv\" | \"png\")[] | undefined;\n    expandable?: boolean | undefined;\n    status?: \"ready\" | \"loading\" | \"refreshing\" | \"empty\" | \"error\" | undefined;\n    statusTitle?: string | undefined;\n    statusText?: string | undefined;\n    data?: ChartDatum[] | undefined;\n    x?: string | undefined;\n    xLabel?: string | undefined;\n    columns?: ChartColumn[] | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/components/chart/frame\".ChartLegend": [
@@ -5197,19 +5197,19 @@
     "\"src/components/item\".ItemGroup": [
       {
         "source": "src/components/item.d.ts",
-        "declaration": "export declare function ItemGroup({ children, empty, title, count, trailing, size, labelledBy, flush, className, }: ItemGroupProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function ItemGroup({ children, empty, title, count, trailing, size, labelledBy, flush, className, ...props }: ItemGroupProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/item\".ItemGroupProps": [
       {
         "source": "src/components/item.d.ts",
-        "declaration": "export type ItemGroupProps = {\n    children?: ReactNode;\n    empty?: ReactNode;\n    title?: ReactNode;\n    count?: number | undefined;\n    trailing?: ReactNode;\n    size?: ItemSize | undefined;\n    labelledBy?: string | undefined;\n    flush?: boolean | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type ItemGroupProps = Omit<ComponentProps<\"div\">, \"title\"> & {\n    children?: ReactNode;\n    empty?: ReactNode;\n    title?: ReactNode;\n    count?: number | undefined;\n    trailing?: ReactNode;\n    size?: ItemSize | undefined;\n    labelledBy?: string | undefined;\n    flush?: boolean | undefined;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/components/item\".ItemProps": [
       {
         "source": "src/components/item.d.ts",
-        "declaration": "export type ItemProps = {\n    leading?: ReactNode;\n    id?: ReactNode;\n    idWidth?: number | undefined;\n    title: ReactNode;\n    description?: ReactNode;\n    meta?: ReactNode;\n    trailing?: ReactNode;\n    actions?: ReactNode;\n    link?: ReactElement<{\n        id?: string | undefined;\n        className?: string | undefined;\n        children?: ReactNode;\n    }> | undefined;\n    onSelect?: (() => void) | undefined;\n    isActive?: boolean | undefined;\n    isCollapsible?: boolean | undefined;\n    defaultOpen?: boolean | undefined;\n    open?: boolean | undefined;\n    onOpenChange?: ((open: boolean) => void) | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n};"
+        "declaration": "export type ItemProps = Omit<ComponentProps<\"li\">, \"id\" | \"title\" | \"onSelect\"> & {\n    leading?: ReactNode;\n    id?: ReactNode;\n    idWidth?: number | undefined;\n    title: ReactNode;\n    description?: ReactNode;\n    meta?: ReactNode;\n    trailing?: ReactNode;\n    actions?: ReactNode;\n    link?: ReactElement<{\n        id?: string | undefined;\n        className?: string | undefined;\n        children?: ReactNode;\n    }> | undefined;\n    onSelect?: (() => void) | undefined;\n    isActive?: boolean | undefined;\n    isCollapsible?: boolean | undefined;\n    defaultOpen?: boolean | undefined;\n    open?: boolean | undefined;\n    onOpenChange?: CollapsiblePrimitive.Root.Props[\"onOpenChange\"];\n    className?: string | undefined;\n    children?: ReactNode;\n};"
       }
     ],
     "\"src/components/item\".ItemSize": [
@@ -5983,19 +5983,19 @@
     "\"src/components/table\".TableProps": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "export type TableProps = {\n    label?: string | undefined;\n    maxHeight?: number | undefined;\n    frameRef?: Ref<HTMLDivElement> | undefined;\n    role?: \"table\" | \"treegrid\" | \"grid\" | undefined;\n    density?: Density | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n} & Omit<ComponentPropsWithoutRef<\"table\">, \"className\" | \"children\" | \"role\">;"
+        "declaration": "export type TableProps = {\n    label?: string | undefined;\n    maxHeight?: number | undefined;\n    frameRef?: Ref<HTMLDivElement> | undefined;\n    role?: \"table\" | \"treegrid\" | \"grid\" | undefined;\n    density?: Density | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n} & Omit<ComponentProps<\"table\">, \"className\" | \"children\" | \"role\">;"
       }
     ],
     "\"src/components/table\".TdProps": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "export type TdProps = ComponentPropsWithoutRef<\"td\"> & PinnedProps & {\n    sticky?: boolean | undefined;\n    width?: number | undefined;\n};"
+        "declaration": "export type TdProps = ComponentProps<\"td\"> & PinnedProps & {\n    sticky?: boolean | undefined;\n    width?: number | undefined;\n};"
       }
     ],
     "\"src/components/table\".ThProps": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "export type ThProps = ComponentPropsWithoutRef<\"th\"> & PinnedProps & {\n    ref?: Ref<HTMLTableCellElement> | undefined;\n    sort?: \"asc\" | \"desc\" | false | undefined;\n    onSort?: (() => void) | undefined;\n    sticky?: boolean | undefined;\n    width?: number | undefined;\n    resize?: {\n        onResizeStart: (event: unknown) => void;\n        onResizeKeyboard?: ((change: number | \"min\" | \"max\") => void) | undefined;\n        value?: number | undefined;\n        min?: number | undefined;\n        max?: number | undefined;\n        onResizeReset?: (() => void) | undefined;\n        isResizing?: boolean | undefined;\n        resizeDelta?: number | null | undefined;\n    } | undefined;\n    trailing?: ReactNode;\n};"
+        "declaration": "export type ThProps = ComponentProps<\"th\"> & PinnedProps & {\n    sort?: \"asc\" | \"desc\" | false | undefined;\n    onSort?: (() => void) | undefined;\n    sticky?: boolean | undefined;\n    width?: number | undefined;\n    resize?: {\n        onResizeStart: (event: unknown) => void;\n        onResizeKeyboard?: ((change: number | \"min\" | \"max\") => void) | undefined;\n        value?: number | undefined;\n        min?: number | undefined;\n        max?: number | undefined;\n        onResizeReset?: (() => void) | undefined;\n        isResizing?: boolean | undefined;\n        resizeDelta?: number | null | undefined;\n    } | undefined;\n    trailing?: ReactNode;\n};"
       }
     ],
     "\"src/components/tabs\".Tabs": [
@@ -7843,7 +7843,7 @@
     "src/components/item.d.ts#ItemRoot": [
       {
         "source": "src/components/item.d.ts",
-        "declaration": "declare function ItemRoot({ leading, id, idWidth, title, description, meta, trailing, actions, link, onSelect, isActive, isCollapsible, defaultOpen, open, onOpenChange, className, children, }: ItemProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function ItemRoot({ leading, id, idWidth, title, description, meta, trailing, actions, link, onSelect, isActive, isCollapsible, defaultOpen, open, onOpenChange, className, children, ...props }: ItemProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/kbd.d.ts#KbdRoot": [
@@ -7885,7 +7885,7 @@
     "src/components/table.d.ts#HandleCell": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "declare function HandleCell({ ref, label, isDragging, className, pinned, offset, edge, ...props }: ComponentPropsWithoutRef<\"span\"> & PinnedProps & {\n    ref?: Ref<HTMLSpanElement> | undefined;\n    label?: string | undefined;\n    isDragging?: boolean | undefined;\n}): import(\"react\").JSX.Element;"
+        "declaration": "declare function HandleCell({ ref, label, isDragging, className, pinned, offset, edge, ...props }: ComponentProps<\"span\"> & PinnedProps & {\n    ref?: Ref<HTMLSpanElement> | undefined;\n    label?: string | undefined;\n    isDragging?: boolean | undefined;\n}): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/table.d.ts#IdCell": [
@@ -7915,7 +7915,7 @@
     "src/components/table.d.ts#TableRoot": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "declare function TableRoot({ label, className, maxHeight, frameRef, role, density, ...props }: TableProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function TableRoot({ label, className, maxHeight, frameRef, role, density, ...props }: TableProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
       }
     ],
     "src/components/table.d.ts#Td": [
@@ -7933,7 +7933,7 @@
     "src/components/table.d.ts#Tr": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "declare function Tr({ ref, className, isSelected, isStatic, ...props }: ComponentPropsWithoutRef<\"tr\"> & {\n    ref?: Ref<HTMLTableRowElement> | undefined;\n    isSelected?: boolean | undefined;\n    isStatic?: boolean | undefined;\n}): import(\"react\").JSX.Element;"
+        "declaration": "declare function Tr({ ref, className, isSelected, isStatic, ...props }: ComponentProps<\"tr\"> & {\n    isSelected?: boolean | undefined;\n    isStatic?: boolean | undefined;\n}): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/table.d.ts#TreeCell": [

@@ -1,10 +1,11 @@
+import { useRender } from "@base-ui/react/use-render";
 import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
 import { ChevronRight } from "lucide-react";
 import {
-  cloneElement,
   createContext,
   useContext,
   useId,
+  type ComponentProps,
   type ReactElement,
   type ReactNode,
 } from "react";
@@ -26,7 +27,7 @@ export type ItemSize = "default" | "compact";
 
 const GroupContext = createContext<{ size: ItemSize; flush: boolean } | null>(null);
 
-export type ItemProps = {
+export type ItemProps = Omit<ComponentProps<"li">, "id" | "title" | "onSelect"> & {
   /** Before the id, centred on the title's line: a Dot, an Avatar, an icon. A 20px slot, so the marks of a list line up. */
   leading?: ReactNode;
   /** The record's id, in its own column so a list of ids lines up. */
@@ -61,7 +62,7 @@ export type ItemProps = {
   defaultOpen?: boolean | undefined;
   /** Controlled open state, when collapsible. */
   open?: boolean | undefined;
-  onOpenChange?: ((open: boolean) => void) | undefined;
+  onOpenChange?: CollapsiblePrimitive.Root.Props["onOpenChange"];
   className?: string | undefined;
   /** Content under the row, from the title's column to the end: a sentence, a Badge, a nested Item.Group. */
   children?: ReactNode;
@@ -86,11 +87,13 @@ function ItemRoot({
   onOpenChange,
   className,
   children,
+  ...props
 }: ItemProps) {
   const group = useContext(GroupContext);
   const size = group?.size ?? "default";
   const flush = group?.flush ?? false;
-  const titleId = useId();
+  const generatedTitleId = useId();
+  const titleId = link?.props.id ?? generatedTitleId;
   const interactive = Boolean(link || onSelect);
   const collapsible = Boolean(isCollapsible && children);
   const clickable = interactive || collapsible;
@@ -101,12 +104,15 @@ function ItemRoot({
     clickable && "after:absolute after:inset-0 focus-visible:after:outline-focused",
     clickable && (flush ? "after:rounded-none" : "after:rounded-medium"),
   );
+  const titleLink = useRender({
+    defaultTagName: "a",
+    render: link,
+    enabled: Boolean(link),
+    state: { slot: "item-link" },
+    props: { id: titleId, className: titleClass, children: text },
+  });
   const titleEl = link ? (
-    cloneElement(link, {
-      id: titleId,
-      className: cn(titleClass, link.props.className),
-      children: text,
-    })
+    titleLink
   ) : onSelect ? (
     <button
       type="button"
@@ -209,7 +215,8 @@ function ItemRoot({
         group ? "col-span-full grid grid-cols-subgrid" : "grid",
         className,
       )}
-      style={group ? undefined : { gridTemplateColumns: columns }}
+      {...props}
+      style={{ ...(group ? {} : { gridTemplateColumns: columns }), ...props.style }}
     >
       {row}
       {content}
@@ -227,7 +234,7 @@ function ItemRoot({
   );
 }
 
-export type ItemGroupProps = {
+export type ItemGroupProps = Omit<ComponentProps<"div">, "title"> & {
   /** Item rows. */
   children?: ReactNode;
   /** What to say when there are no rows: "No milestones recorded." */
@@ -258,6 +265,7 @@ export function ItemGroup({
   labelledBy,
   flush = false,
   className,
+  ...props
 }: ItemGroupProps) {
   const headingId = useId();
   const has = Array.isArray(children) ? children.some(Boolean) : Boolean(children);
@@ -283,27 +291,28 @@ export function ItemGroup({
         <GroupContext.Provider value={{ size, flush }}>{children}</GroupContext.Provider>
       </ol>
     );
-  if (!title && !trailing) return <div className={className}>{body}</div>;
   return (
-    <div className={className}>
-      <div
-        className={cn(
-          "flex items-center gap-100 border-b border-default pb-100",
-          flush ? "px-200" : "px-050",
-        )}
-      >
-        {title ? (
-          <h3 id={headingId} className="min-w-0 truncate font-body font-semibold text-default">
-            {title}
-          </h3>
-        ) : null}
-        {count !== undefined ? <Count value={count} /> : null}
-        {trailing ? (
-          <span className="ms-auto flex shrink-0 items-center gap-100 font-body-small text-subtle tabular-nums">
-            {trailing}
-          </span>
-        ) : null}
-      </div>
+    <div className={className} {...props}>
+      {title || trailing ? (
+        <div
+          className={cn(
+            "flex items-center gap-100 border-b border-default pb-100",
+            flush ? "px-200" : "px-050",
+          )}
+        >
+          {title ? (
+            <h3 id={headingId} className="min-w-0 truncate font-body font-semibold text-default">
+              {title}
+            </h3>
+          ) : null}
+          {count !== undefined ? <Count value={count} /> : null}
+          {trailing ? (
+            <span className="ms-auto flex shrink-0 items-center gap-100 font-body-small text-subtle tabular-nums">
+              {trailing}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       {body}
     </div>
   );

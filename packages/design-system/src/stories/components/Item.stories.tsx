@@ -1,3 +1,5 @@
+import { useRef, useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 import {
   avatarHue,
   AvatarFallback,
@@ -8,12 +10,10 @@ import {
   Dot,
   IconButton,
   Item,
-  Table,
 } from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
 import { Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Item",
@@ -270,118 +270,82 @@ export const Nested: Story = {
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Item.Group>
-            <Item id="MS-B" idWidth={48} title="Design review" meta="At risk" trailing="18 Sep" />
-            <Item id="MS-C" idWidth={48} title="Authorization" meta="Planned" trailing="2 Dec" />
-          </Item.Group>
-        }
-        doText="Rows with a name and a date are an Item list."
-        dont={
-          <Table label="Milestones">
-            <thead>
-              <tr>
-                <Table.Header>Milestone</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              <Table.Row>
-                <Table.Cell>MS-B Design review · At risk · 18 Sep</Table.Cell>
-              </Table.Row>
-              <Table.Row>
-                <Table.Cell>MS-C Authorization · Planned · 2 Dec</Table.Cell>
-              </Table.Row>
-            </tbody>
-          </Table>
-        }
-        dontText="A one-column table. Nothing to sort, nothing to compare: a table with one column is a list wearing a header."
-      />
-      <Pair
-        do={
-          <Item.Group title="Milestones" trailing="1 of 3 complete">
-            <Item id="MS-B" idWidth={48} title="Design review" meta="At risk" trailing="18 Sep" />
-          </Item.Group>
-        }
-        doText="The list's heading is the group's: semibold, a rule under it, the read-out at the end."
-        dont={
-          <div>
-            <div className="flex items-center justify-between border-b border-default pb-100">
-              <span className="font-body font-semibold">Milestones</span>
-              <span className="font-body-small text-subtle">1 of 3 complete</span>
-            </div>
-            <Item.Group>
-              <Item id="MS-B" idWidth={48} title="Design review" meta="At risk" trailing="18 Sep" />
-            </Item.Group>
-          </div>
-        }
-        dontText="A heading drawn by hand above the group. It is not the list's name to a screen reader, and every page draws it a little differently."
-      />
-      <Pair
-        do={
-          <Item.Group>
-            <Item
-              id="EV-2201"
-              title="Bank reconciliation, July"
-              meta="PDF · 2.1 MB"
-              description="Uploaded by Dana Whitfield"
-              trailing="12 Aug"
-            />
-          </Item.Group>
-        }
-        doText="The title one line, the meta a few words, the description one sentence."
-        dont={
-          <Item.Group>
-            <Item
-              id="EV-2201"
-              title="Bank reconciliation for July prepared by the payables team and reviewed by finance"
-              meta="This is a PDF document of about two megabytes uploaded last month"
-              description="Dana Whitfield uploaded this artifact on 12 August after the July close, following the request from the assessor for evidence that the reconciliation was performed and reviewed by someone other than the preparer, which is the control's whole point."
-              trailing="12 August 2026, 14:32"
-            />
-          </Item.Group>
-        }
-        dontText="A paragraph in every slot. The row is a pointer to the record, not the record."
-      />
-      <Pair
-        do={
-          <Item.Group>
-            <Item title="Approval matrix" meta="XLSX" actions={more} />
-          </Item.Group>
-        }
-        doText="One action on a row, as an icon button, the rest behind it."
-        dont={
-          <Item.Group>
-            <Item
-              title="Approval matrix"
-              meta="XLSX"
-              actions={
-                <>
-                  <Button size="small" variant="primary">
-                    Open
-                  </Button>
-                  <Button size="small">Download</Button>
-                  <Button size="small" variant="subtle">
-                    Replace
-                  </Button>
-                </>
-              }
-            />
-          </Item.Group>
-        }
-        dontText="A toolbar per row. Three buttons on every line and the list is a wall of buttons."
-      />
-    </Stack>
-  ),
-};
-
 export const Playground: Story = {
   render: (args) => (
     <Item.Group>
       <Item {...args} />
     </Item.Group>
   ),
+};
+
+/** A record row keeps its link, disclosure and secondary actions independent. */
+export const NativeIntegration: Story = {
+  render: function Example() {
+    const row = useRef<HTMLLIElement>(null);
+    const link = useRef<HTMLAnchorElement>(null);
+    const [locked, setLocked] = useState(true);
+    const [action, setAction] = useState("Ready");
+    return (
+      <Stack>
+        <Item.Group id="record-actions" title="Record actions">
+          <Item
+            ref={row}
+            aria-label="Assessment package row"
+            tabIndex={-1}
+            style={{ maxWidth: 640 }}
+            title="Assessment package"
+            id="PKG-1041"
+            isCollapsible
+            onOpenChange={(_open, details) => {
+              if (locked) details.cancel();
+            }}
+            link={
+              <a
+                id="assessment-package-link"
+                ref={link}
+                href="#package"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setAction("Opened record");
+                }}
+              />
+            }
+            actions={
+              <Button size="small" onClick={() => setAction("Downloaded")}>
+                Download
+              </Button>
+            }
+          >
+            <Text>Evidence and approval details</Text>
+          </Item>
+        </Item.Group>
+        <Button onClick={() => setLocked(false)}>Allow details</Button>
+        <Button onClick={() => row.current?.focus()}>Focus row</Button>
+        <Button onClick={() => link.current?.focus()}>Focus record link</Button>
+        <Text role="status">{action}</Text>
+      </Stack>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const link = canvas.getByRole("link", { name: "Assessment package" });
+    await expect(link).toHaveAttribute("id", "assessment-package-link");
+    await expect(link).toHaveAttribute("href", "#package");
+    const toggle = canvas.getByRole("button", { name: "Assessment package" });
+    await userEvent.click(toggle);
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(canvas.getByRole("button", { name: "Allow details" }));
+    await userEvent.click(toggle);
+    await expect(await canvas.findByText("Evidence and approval details")).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Download" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("Downloaded");
+    await userEvent.click(canvas.getByRole("button", { name: "Focus row" }));
+    await expect(canvas.getByRole("listitem", { name: "Assessment package row" })).toHaveFocus();
+    await userEvent.click(canvas.getByRole("button", { name: "Focus record link" }));
+    await expect(link).toHaveFocus();
+    await userEvent.keyboard(" ");
+    await expect(canvas.getByRole("status")).toHaveTextContent("Downloaded");
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByRole("status")).toHaveTextContent("Opened record");
+  },
 };

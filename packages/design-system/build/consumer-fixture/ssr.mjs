@@ -1420,3 +1420,20 @@ assert.match(sideNavHtml, /Records/);
 assert.match(sideNavHtml, />3</);
 assert.equal((sideNavHtml.match(/<a /g) || []).length, 1);
 console.log("Packed Base UI navigation and toast exports passed");
+
+const itemHtml = renderToString(createElement(ledger.Item, {
+  title: "Record", id: "REC-1", "data-record": "REC-1", tabIndex: -1,
+  style: { maxWidth: 640 }, link: createElement("a", { id: "record-destination", href: "/record" }),
+}));
+assert.match(itemHtml, /<li[^>]*data-record="REC-1"/);
+assert.match(itemHtml, /grid-template-columns:/);
+assert.match(itemHtml, /max-width:640px/);
+assert.match(itemHtml, /<a[^>]*id="record-destination"/);
+const frameHtml = renderToString(createElement(ledger.Chart.Frame, {
+  title: "Report", id: "report-figure", "data-report": "coverage", tabIndex: -1,
+  style: { maxWidth: 800 },
+}, createElement("span", null, "Plot")));
+assert.match(frameHtml, /<figure[^>]*id="report-figure"/);
+assert.match(frameHtml, /data-report="coverage"/);
+assert.match(frameHtml, /max-width:800px/);
+console.log("Packed Item, Table and Chart native contracts passed");

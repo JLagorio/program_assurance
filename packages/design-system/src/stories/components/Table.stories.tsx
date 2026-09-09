@@ -2,8 +2,8 @@ import { TablePagination } from "../../patterns/data-table/pagination";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Filter, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
-import { expect, fireEvent, userEvent, within } from "storybook/test";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
 
 import {
   Badge,
@@ -860,3 +860,82 @@ function PinnedSelection() {
     </Table>
   );
 }
+
+/** Content can grow inside a fixed frame; refs retain their native targets and cleanup. */
+export const DynamicFrame: Story = {
+  render: function Example() {
+    const [wide, setWide] = useState(false);
+    const [mounted, setMounted] = useState(true);
+    const [report, setReport] = useState("Ready");
+    const table = useRef<HTMLTableElement>(null);
+    const calls = useRef({ attached: 0, cleaned: 0 });
+    const frameRef = useCallback((node: HTMLDivElement | null) => {
+      if (!node) return;
+      calls.current.attached++;
+      return () => {
+        calls.current.cleaned++;
+      };
+    }, []);
+    return (
+      <Stack>
+        <div style={{ width: 260 }}>
+          {mounted ? (
+            <Table
+              ref={table}
+              frameRef={frameRef}
+              label="Dynamic records"
+              style={{ width: wide ? 640 : "100%" }}
+              tabIndex={-1}
+            >
+              <thead>
+                <Table.Row>
+                  <Table.Header>Record</Table.Header>
+                  <Table.Header>Status</Table.Header>
+                </Table.Row>
+              </thead>
+              <tbody>
+                <Table.Row>
+                  <Table.Cell>PRG-1041</Table.Cell>
+                  <Table.Cell>Active</Table.Cell>
+                </Table.Row>
+              </tbody>
+            </Table>
+          ) : null}
+        </div>
+        <Button onClick={() => setWide((value) => !value)}>Toggle columns</Button>
+        <Button onClick={() => table.current?.focus()}>Focus table</Button>
+        <Button onClick={() => setMounted(false)}>Remove table</Button>
+        <Button
+          onClick={() =>
+            setReport(`${calls.current.attached} attached, ${calls.current.cleaned} cleaned`)
+          }
+        >
+          Inspect refs
+        </Button>
+        <Text role="status">{report}</Text>
+      </Stack>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Dynamic records" });
+    const frame = table.parentElement!;
+    await waitFor(() => expect(frame).not.toHaveAttribute("tabindex"));
+    await userEvent.click(canvas.getByRole("button", { name: "Toggle columns" }));
+    await waitFor(() => expect(frame).toHaveAttribute("tabindex", "0"));
+    await expect(frame).toHaveAttribute("role", "region");
+    await expect(frame).toHaveAttribute("data-scrolled-end");
+    frame.scrollTo({ left: 120 });
+    await waitFor(() => expect(frame).toHaveAttribute("data-scrolled-start"));
+    await userEvent.click(canvas.getByRole("button", { name: "Toggle columns" }));
+    await waitFor(() => expect(frame).not.toHaveAttribute("tabindex"));
+    await expect(frame).not.toHaveAttribute("data-scrolled-end");
+    await userEvent.click(canvas.getByRole("button", { name: "Focus table" }));
+    await expect(table).toHaveFocus();
+    await userEvent.click(canvas.getByRole("button", { name: "Inspect refs" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("1 attached, 0 cleaned");
+    await userEvent.click(canvas.getByRole("button", { name: "Remove table" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Inspect refs" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("1 attached, 1 cleaned");
+  },
+};
