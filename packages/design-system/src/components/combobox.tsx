@@ -5,7 +5,6 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Check, ChevronDown, X } from "lucide-react";
 import { createContext, useContext, type ComponentProps, useRef } from "react";
 import { classes } from "../lib/base-ui";
-import { useOverlayContainer } from "./_overlay-focus";
 import { useLedgerLocale } from "../lib/locale";
 import { type ControlSize } from "./controls";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "./input-group";
@@ -135,7 +134,6 @@ export function ComboboxContent({
   ...props
 }: ComboboxContentProps) {
   const direction = useContext(DirectionContext);
-  const portal = useOverlayContainer();
   const defaults = {
     width: "var(--anchor-width)",
     maxWidth: "var(--available-width)",
@@ -143,11 +141,7 @@ export function ComboboxContent({
   };
   return (
     <>
-      <span hidden ref={portal.ref} />
-      <Primitive.Portal
-        container={portalContainer === undefined ? portal.container : portalContainer}
-        keepMounted={keepMounted}
-      >
+      <Primitive.Portal container={portalContainer} keepMounted={keepMounted}>
         <Primitive.Positioner
           side={side}
           align={align}

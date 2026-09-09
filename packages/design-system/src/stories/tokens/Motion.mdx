@@ -52,7 +52,7 @@ A side panel leaves on the standard curve, not the exit curve, because it stays 
 | A set of tiles or cards arriving | one stagger step apart | | `stagger-children` on the parent |
 | A chart's marks | slow | | Components/Chart |
 
-Radix and vaul set `data-state` on what they open, so a part pairs `data-[state=open]:animate-enter` with `data-[state=closed]:animate-exit`; `src/styles/motion.css` defines the keyframes and one utility per entrance and exit, all on the tokens. A collapse reads the height Radix measures (`--radix-accordion-content-height`, `--radix-collapsible-content-height`), so it animates to the content's own height and nothing is clipped.
+Base UI components use `data-open`/`data-closed` or starting/ending styles; `src/styles/motion.css` defines the shared token-based animation utilities. Accordion reads Base UI’s `--accordion-panel-height`. Drawer’s `drawer.css` combines measured height, snap offset and swipe progress with Ledger motion tokens, and disables transitions under reduced motion.
 
 ## Transitions
 

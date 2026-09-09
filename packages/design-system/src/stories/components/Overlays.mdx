@@ -6,7 +6,7 @@ import * as Stories from "./Overlays.stories";
 
 # Overlays
 
-Everything that floats over the page, from the smallest label to a full task. Four are anchored to the thing that opened them and four cover the page under a blanket. The four anchored overlays use Base UI; modal overlays use Radix, with vaul for Drawer. Modal overlays manage focus and page scrolling; anchored previews keep focus on their trigger. The surfaces share one recipe, `elevation.surface.overlay`, `elevation.shadow.overlay`, the large radius, the enter and exit motion, so a product's overlays read as one family.
+Everything that floats over the page, from the smallest label to a full task. Four are anchored to the thing that opened them and four cover the page under a blanket. The anchored and modal overlays all use Base UI. Modal overlays manage focus and page scrolling; anchored previews keep focus on their trigger. The surfaces share one recipe, `elevation.surface.overlay`, `elevation.shadow.overlay`, the large radius, the enter and exit motion, so a product's overlays read as one family.
 
 Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [HoverCard](?path=/docs/components-hovercard--docs), [Popover](?path=/docs/components-popover--docs), [DropdownMenu](?path=/docs/components-dropdownmenu--docs), [Dialog](?path=/docs/components-dialog--docs), [Sheet](?path=/docs/components-sheet--docs), [Drawer](?path=/docs/components-drawer--docs), [AlertDialog](?path=/docs/components-alertdialog--docs).
 
@@ -31,11 +31,11 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 
 - **The anchored four** sit beside their trigger, 4 to 6px off it, flipping when there is no room, with Tooltip adding a small arrow. A Tooltip is the dark one, `color.background.neutral.bold` with inverse text; the other three are the overlay surface with a hairline border.
 - **The blanketed four** paint `color.blanket` over the page; nothing else paints it. Their surface is `elevation.surface.overlay` with `radius.xxlarge` (a Sheet has square corners, since it is an edge), a header with the title in `font.heading.xsmall`, a body that scrolls, a footer on `elevation.surface.sunken` with the buttons at the end.
-- **The close** is one shared icon button at the top end, `dimension.control.small`. An AlertDialog and a Drawer have none: the AlertDialog's buttons are the way out, and the Drawer's handle.
+- **The close** is one shared icon button at the top end, `dimension.control.small`. AlertDialog and Drawer compose explicit action buttons; a Drawer’s optional swipe handle is decorative.
 
 ## Accessibility
 
-- **Focus moves in** when a blanketed overlay opens (the first field, else the first button, else the close) and **returns** to what opened it when it closes. The page behind is hidden from assistive technology and does not scroll.
+- **Focus moves in** when a blanketed overlay opens (Drawer focuses its popup by default; initialFocus can target an action or field) and **returns** to what opened it when it closes. The page behind is hidden from assistive technology and does not scroll.
 - **Escape closes** every overlay. An outside click closes the anchored ones and the blanket closes a Dialog, a Sheet and a Drawer; an AlertDialog ignores it.
 - **Pending holds.** A Dialog or an AlertDialog saving takes `pending`: Escape, the blanket and the close do nothing until the save returns.
 - **A tooltip never holds a control**, a hover card never holds an action, a popover never holds a task the reader must finish.

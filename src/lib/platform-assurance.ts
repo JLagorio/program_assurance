@@ -38,6 +38,15 @@ import { registerAssessmentVerification } from "@/lib/requirement-verification";
 
 export const platformCampaignId = "TC-1090";
 export const platformEventId = "TE-1090";
+/**
+ * One campaign and one test event per imported assessment. The first assessment keeps
+ * the original ids so existing links, overrides and saved snapshots still resolve.
+ */
+export const platformCampaignIdFor = (index: number) =>
+  index === 0 ? platformCampaignId : `${platformCampaignId}-${index + 1}`;
+export const platformEventIdFor = (index: number) =>
+  index === 0 ? platformEventId : `${platformEventId}-${index + 1}`;
+/** Objectives, procedures and runs are numbered across all campaigns, not per campaign. */
 export const platformObjectiveId = (index: number) => `TO-${109001 + index}`;
 export const platformProcedureId = (index: number) => `TP-${109001 + index}`;
 export const platformRunId = (index: number) => `TR-${109001 + index}`;
@@ -58,53 +67,80 @@ let registered = false;
 export function registerPlatformAssurance(): void {
   if (registered) return;
   const data = platformSeed;
-  const assessment = data.assessments[0]!;
   const requirementById = new Map(
     data.requirements.map((requirement) => [requirement.id, requirement]),
   );
-  const campaign: Campaign = {
-    id: platformCampaignId,
-    name: assessment.name,
-    program: platformProgramId,
-    trigger: "Gate entry",
-    gate: "—",
-    state: assessment.status === "completed" ? "Reporting" : "Planning",
-    lead: assessment.assessor_role,
-    opened: assessment.planned_start.slice(0, 10),
-    target: assessment.planned_end.slice(0, 10),
-    scope: platformRootScopeId,
-    sourceRecord: platformSourceRecord(assessment),
-  };
-  const event: TestEvent = {
-    id: platformEventId,
-    campaign: campaign.id,
-    name: assessment.name,
-    kind: "Cooperative",
-    state: assessment.status === "completed" ? "Reported" : "Planned",
-    window: `${assessment.planned_start.slice(0, 10)} – ${assessment.planned_end.slice(0, 10)}`,
-    start: assessment.planned_start.slice(0, 10),
-    end: assessment.planned_end.slice(0, 10),
-    team: assessment.assessor_role,
-    assets: assessment.scope.component_ids.map(platformAssetId),
-    objectives: data.assessment_results.map((_, index) => platformObjectiveId(index)),
-    findings: data.findings
-      .filter((finding) => finding.assessment_id === assessment.id)
-      .map((finding) => finding.id),
-    notes: `Imported assessment ${assessment.id}. Source status: ${assessment.status}.`,
-  };
-  if (!campaignById.has(campaign.id)) {
-    campaigns.push(campaign);
-    campaignById.set(campaign.id, campaign);
+  const assessmentById = new Map(data.assessments.map((item) => [item.id, item]));
+  /**
+   * A result or finding is attached to the assessment its `assessment_id` names. A row
+   * that omits one belongs to the first assessment — the original 120 results do.
+   */
+  const assessmentFor = (id: string | undefined) =>
+    (id ? assessmentById.get(id) : undefined) ?? data.assessments[0]!;
+
+  const objectivesByAssessment = new Map<string, string[]>();
+  for (const [index, result] of data.assessment_results.entries()) {
+    const id = assessmentFor(result.assessment_id).id;
+    objectivesByAssessment.set(id, [
+      ...(objectivesByAssessment.get(id) ?? []),
+      platformObjectiveId(index),
+    ]);
   }
-  if (!eventById.has(event.id)) {
-    events.push(event);
-    eventById.set(event.id, event);
+  const findingsByAssessment = new Map<string, string[]>();
+  for (const finding of data.findings) {
+    const id = assessmentFor(finding.assessment_id).id;
+    findingsByAssessment.set(id, [...(findingsByAssessment.get(id) ?? []), finding.id]);
+  }
+
+  const campaignByAssessment = new Map<string, Campaign>();
+  const eventByAssessment = new Map<string, TestEvent>();
+  for (const [index, assessment] of data.assessments.entries()) {
+    const campaign: Campaign = {
+      id: platformCampaignIdFor(index),
+      name: assessment.name,
+      program: platformProgramId,
+      trigger: "Gate entry",
+      gate: "—",
+      state: assessment.status === "completed" ? "Reporting" : "Planning",
+      lead: assessment.assessor_role,
+      opened: assessment.planned_start.slice(0, 10),
+      target: assessment.planned_end.slice(0, 10),
+      scope: platformRootScopeId,
+      sourceRecord: platformSourceRecord(assessment),
+    };
+    const event: TestEvent = {
+      id: platformEventIdFor(index),
+      campaign: campaign.id,
+      name: assessment.name,
+      kind: "Cooperative",
+      state: assessment.status === "completed" ? "Reported" : "Planned",
+      window: `${assessment.planned_start.slice(0, 10)} – ${assessment.planned_end.slice(0, 10)}`,
+      start: assessment.planned_start.slice(0, 10),
+      end: assessment.planned_end.slice(0, 10),
+      team: assessment.assessor_role,
+      assets: assessment.scope.component_ids.map(platformAssetId),
+      objectives: objectivesByAssessment.get(assessment.id) ?? [],
+      findings: findingsByAssessment.get(assessment.id) ?? [],
+      notes: `Imported assessment ${assessment.id}. Source status: ${assessment.status}.`,
+    };
+    campaignByAssessment.set(assessment.id, campaign);
+    eventByAssessment.set(assessment.id, event);
+    if (!campaignById.has(campaign.id)) {
+      campaigns.push(campaign);
+      campaignById.set(campaign.id, campaign);
+    }
+    if (!eventById.has(event.id)) {
+      events.push(event);
+      eventById.set(event.id, event);
+    }
   }
 
   const procedures: TestProcedure[] = [];
   const runs: TestRun[] = [];
   for (const [index, result] of data.assessment_results.entries()) {
     const requirement = requirementById.get(result.requirement_id)!;
+    const assessment = assessmentFor(result.assessment_id);
+    const event = eventByAssessment.get(assessment.id)!;
     const objectiveId = platformObjectiveId(index);
     const procedureId = platformProcedureId(index);
     const nodes = result.component_ids.map(platformNodeId);
@@ -211,6 +247,8 @@ export function registerPlatformAssurance(): void {
 
   for (const source of data.findings) {
     if (findings.some((finding) => finding.id === source.id)) continue;
+    const assessment = assessmentFor(source.assessment_id);
+    const campaign = campaignByAssessment.get(assessment.id)!;
     const result = data.assessment_results.find((row) =>
       source.requirement_ids.includes(row.requirement_id),
     );

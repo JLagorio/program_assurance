@@ -35,10 +35,31 @@ describe("platform records in the existing program workflow", () => {
   it("registers once and preserves every finding, control, component, evidence and remediation join", async () => {
     const app = await boot();
     app.registerPlatformData();
-    expect(app.campaigns.campaigns.filter((row) => row.program === "PRG-1090")).toHaveLength(1);
-    expect(app.findings.programFindings("PRG-1090")).toHaveLength(16);
-    expect(app.register.poamsForProgram("PRG-1090")).toHaveLength(16);
-    expect(app.evidence.evidenceForProgram("PRG-1090")).toHaveLength(90);
+    // One campaign per imported assessment, and every result and finding lands on the
+    // campaign its assessment_id names.
+    expect(app.campaigns.campaigns.filter((row) => row.program === "PRG-1090")).toHaveLength(2);
+    expect(
+      app.campaigns.campaigns.filter((row) => row.program === "PRG-1090").map((row) => row.id),
+    ).toEqual(["TC-1090", "TC-1090-2"]);
+    for (const [index, assessment] of app.seed.assessments.entries()) {
+      const event = app.campaigns.eventById.get(app.adapter.platformEventIdFor(index))!;
+      expect(event.campaign).toBe(app.adapter.platformCampaignIdFor(index));
+      expect(event.objectives).toHaveLength(
+        app.seed.assessment_results.filter(
+          (row) => (row.assessment_id ?? app.seed.assessments[0]!.id) === assessment.id,
+        ).length,
+      );
+      expect(new Set(event.findings)).toEqual(
+        new Set(
+          app.seed.findings
+            .filter((row) => (row.assessment_id ?? app.seed.assessments[0]!.id) === assessment.id)
+            .map((row) => row.id),
+        ),
+      );
+    }
+    expect(app.findings.programFindings("PRG-1090")).toHaveLength(52);
+    expect(app.register.poamsForProgram("PRG-1090")).toHaveLength(40);
+    expect(app.evidence.evidenceForProgram("PRG-1090")).toHaveLength(368);
     for (const source of app.seed.findings) {
       const finding = app.findings.programFindings("PRG-1090").find((row) => row.id === source.id)!;
       expect(finding.controls).toEqual(source.control_ids);
@@ -82,7 +103,7 @@ describe("platform records in the existing program workflow", () => {
           .findingsByAsset(app.ids.platformAssetId(component))
           .some((finding) => finding.id === "FND-001"),
       ).toBe(true);
-    expect(postureOf(app.ids.platformRootNodeId).rolled.total).toBe(16);
+    expect(postureOf(app.ids.platformRootNodeId).rolled.total).toBe(52);
   });
 
   it("retains source outcomes and explicitly leaves missing evidence, retests and milestone dates missing", async () => {
@@ -110,27 +131,29 @@ describe("platform records in the existing program workflow", () => {
     const closed = app.findings
       .programFindings("PRG-1090")
       .filter((row) => row.lifecycle === "Closed");
-    expect(closed).toHaveLength(3);
+    expect(closed).toHaveLength(9);
+    // No closure carries an invented retest record. The three closures the source
+    // cannot support are still flagged; the six that name a later passing result are not.
+    expect(closed.every((finding) => !finding.retests?.length)).toBe(true);
     expect(
-      closed.every(
-        (finding) =>
-          !finding.retests?.length &&
-          finding.sourceIssues?.some((issue) => issue.includes("closed")),
-      ),
-    ).toBe(true);
+      closed.filter((finding) => finding.sourceIssues?.some((issue) => issue.includes("closed"))),
+    ).toHaveLength(3);
     const milestones = app.register
       .poamsForProgram("PRG-1090")
       .flatMap((item) => item.milestones ?? []);
-    expect(milestones).toHaveLength(48);
-    expect(milestones.every((item) => item.targetDate === "")).toBe(true);
+    expect(milestones).toHaveLength(129);
+    // The first campaign's POA&M supplied no dates and none are invented for it.
+    expect(milestones.filter((item) => item.targetDate === "")).toHaveLength(48);
+    expect(milestones.filter((item) => item.targetDate !== "")).toHaveLength(81);
     expect(app.register.riskById.get("RSK-001")?.residual).toBeNull();
     expect(app.register.riskById.get("RSK-001")?.sourceRating?.overall).toBe("high");
-    const schedule = app.schedule.scheduleForProgram("PRG-1090");
-    expect(
-      schedule
-        .filter((row) => row.kind === "POA&M milestone")
-        .every((row) => row.due === null && row.dates === "Unscheduled"),
-    ).toBe(true);
+    const schedule = app.schedule
+      .scheduleForProgram("PRG-1090")
+      .filter((row) => row.kind === "POA&M milestone");
+    expect(schedule.filter((row) => row.due === null)).toHaveLength(48);
+    expect(schedule.every((row) => (row.due === null) === (row.dates === "Unscheduled"))).toBe(
+      true,
+    );
   });
 
   it("uses existing edit, review and milestone commands and restores them over the imported records", async () => {

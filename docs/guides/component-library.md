@@ -267,10 +267,10 @@ Base UI powers Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkb
 Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog,
 Progress, ScrollArea, Avatar, Combobox and Separator. It also supplies Badge and BreadcrumbLink's
 composition helpers. The rest of Breadcrumb is native HTML. Command uses cmdk with a Base UI
-Dialog shell, matching shadcn's Base UI implementation. Drawer uses Vaul. Radix Slot remains in
+Dialog shell, matching shadcn's Base UI implementation. Drawer also uses Base UI, including native swipe and snap-point behavior. Radix Slot remains in
 parts that still expose asChild; these packages can also have transitive Radix dependencies.
 Calendar and DatePicker use react-day-picker;
-react-resizable-panels under Resizable; sonner under Toaster; recharts under Chart. Preserve the
+react-resizable-panels under ResizablePanelGroup/Panel/Handle; sonner under Toaster; recharts under Chart. Preserve the
 dependency's focus, Escape, outside-click, keyboard and ARIA behavior through the public parts.
 Screens import the package's documented APIs.
 
@@ -296,3 +296,5 @@ Application record forms use `src/lib/record-form.ts`: `useRecordForm` configure
 Accordion coordinates a set of sections using explicit item values and root-owned selection. Collapsible owns one independent boolean toggle. Compose titles, counts, actions, borders and body spacing with their parts; no extra disclosure pattern is needed. Both expose native attributes and refs on their named parts. See [the migration guide](disclosure-migration.md) for the former title/count/Group API and current flat parts.
 
 Field, Alert and ButtonGroup follow shadcn's Base UI source with flat native parts. Field uses explicit label/message associations and TanStack-owned validation; Alert composes its content; ButtonGroup adds native props, orientation and Text/Separator parts. See [Field](../../packages/design-system/src/stories/components/Field.mdx) for migration.
+
+Drawer, Calendar/DatePicker, Pagination and Resizable now follow their shadcn Base UI family sources. Drawer removes the former Vaul bridge; Calendar keeps DayPicker and exports CalendarDayButton; DatePicker preserves ISO form values. Pagination exposes native navigation parts while DataTable owns page calculations. Resizable forwards upstream refs, callbacks and sizes: numbers are pixels, percentages are strings, and saved layouts use the caller’s native hook. See the family pages for migration examples.

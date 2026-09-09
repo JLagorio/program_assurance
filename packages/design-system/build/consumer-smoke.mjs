@@ -70,6 +70,12 @@ try {
     !/\[data-disabled\]:not\(\[data-loading\]\)\{color:\s*var\(--ds-color-text-disabled\)/.test(css)
   )
     throw new Error("Consumer CSS is missing Button's disabled styling with its loading exception");
+  if (
+    !css.includes(".drawer-popup") ||
+    !css.includes("--drawer-swipe-movement-y") ||
+    !css.includes(".drawer-overlay")
+  )
+    throw new Error("Consumer CSS is missing Base UI drawer swipe geometry");
   console.log("Packed consumer declarations, Vite bundle and Tailwind CSS passed");
 } finally {
   if (process.argv.includes("--keep")) console.log(`Consumer fixture: ${dir}`);

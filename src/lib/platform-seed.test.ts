@@ -16,16 +16,18 @@ describe("WS-X90 platform seed ingestion", () => {
     expect(platformSeed.systems[0]?.uuid).toBe("3032be6d-ce7b-565a-841c-ace2b6b3059c");
     expect(platformSeed.subsystems).toHaveLength(6);
     expect(platformSeed.components).toHaveLength(20);
-    expect(platformSeed.requirements).toHaveLength(120);
+    expect(platformSeed.requirements).toHaveLength(640);
     expect(
       platformSeed.requirements.flatMap((requirement) => requirement.component_ids),
-    ).toHaveLength(240);
+    ).toHaveLength(1326);
     expect(platformSeed.profiles[0]?.effective_control_ids).toHaveLength(546);
-    expect(platformSeed.control_implementations).toHaveLength(74);
-    expect(platformSeed.evidence).toHaveLength(90);
-    expect(platformSeed.assessment_results).toHaveLength(120);
-    expect(platformSeed.findings).toHaveLength(16);
-    expect(platformSeed.poam_items).toHaveLength(16);
+    expect(platformSeed.control_implementations).toHaveLength(546);
+    expect(platformSeed.evidence).toHaveLength(368);
+    expect(platformSeed.assessments).toHaveLength(2);
+    expect(platformSeed.assessment_results).toHaveLength(420);
+    expect(platformSeed.findings).toHaveLength(52);
+    expect(platformSeed.risks).toHaveLength(40);
+    expect(platformSeed.poam_items).toHaveLength(40);
     expect(validatePlatformSeed(platformSeed).errors).toEqual([]);
   });
   it("reports unsupported source claims without rewriting them", () => {
@@ -46,11 +48,35 @@ describe("WS-X90 platform seed ingestion", () => {
         (result) => result.outcome === "pass" && !result.evidence_ids.length,
       ),
     ).toHaveLength(23);
-    expect(
-      platformSeed.poam_items
-        .flatMap((item) => item.milestones)
-        .every((milestone) => !milestone.target_date),
-    ).toBe(true);
+    // The first campaign's 48 milestones are still undated in the source and stay
+    // that way; the second campaign's 81 are scheduled. The undated count is the
+    // one the "undated-milestone" warning above is counting.
+    const milestones = platformSeed.poam_items.flatMap((item) => item.milestones);
+    expect(milestones).toHaveLength(129);
+    expect(milestones.filter((milestone) => !milestone.target_date)).toHaveLength(48);
+    expect(milestones.filter((milestone) => milestone.target_date)).toHaveLength(81);
+  });
+  /**
+   * `platform-assurance.ts` promotes a milestone to `Completed` on the exact
+   * string "completed" and to `In progress` on "in-progress", and falls through
+   * to `Planned` for everything else — so a fourth spelling does not fail, it
+   * silently renders as Planned. Nine carried-forward milestones did exactly
+   * that with "complete"; they were corrected to "completed" and are pinned here
+   * with the vocabulary that admits them. See "Deliberate edits to
+   * carried-forward content" in src/data/README.md.
+   */
+  it("spells every milestone status in the vocabulary the assurance mapping reads", () => {
+    const milestones = platformSeed.poam_items.flatMap((item) => item.milestones);
+    const vocabulary = [...new Set(milestones.map((milestone) => milestone.status))].sort();
+    expect(vocabulary).toEqual(["completed", "in-progress", "planned"]);
+    const byId = new Map(milestones.map((milestone) => [milestone.id, milestone]));
+    for (const item of ["POAM-005", "POAM-010", "POAM-015"]) {
+      const poam = platformSeed.poam_items.find((row) => row.id === item);
+      expect(poam?.status, item).toBe("completed");
+      for (const suffix of ["M1", "M2", "M3"]) {
+        expect(byId.get(`${item}-${suffix}`)?.status, `${item}-${suffix}`).toBe("completed");
+      }
+    }
   });
   it("rejects broken allocation references and duplicate identities before applying an import", () => {
     const invalid = copy();
@@ -160,15 +186,34 @@ describe("WS-X90 platform seed ingestion", () => {
     for (const row of profile.odp_starting_values!)
       expect(profile.effective_control_ids).toContain(row.control_id);
   });
-  it("counts the authoring gap instead of inventing narrative for the controls it added", () => {
+  it("carries authored narrative for every control in the set and reports a closed gap", () => {
     const profile = platformSeed.profiles[0]!;
     const derivations = Object.values(profile.control_derivations!);
     const authored = derivations.filter((row) => row.authoring_status === "authored");
     expect(authored).toHaveLength(platformSeed.control_implementations.length);
+    expect(authored).toHaveLength(546);
     const unauthored = derivations.filter((row) => row.authoring_status === "unauthored");
+    expect(unauthored).toHaveLength(0);
     expect(profile.derivation!.authoring_gap.controls_without_authored_content).toBe(
       unauthored.length,
     );
+    expect(profile.derivation!.authoring_gap.controls_without_authored_content).toBe(0);
+    // The invariant that survives the closed gap: an authored row names a real
+    // implementation and the requirements that carry it; an unauthored one never would.
+    const implementationById = new Map(
+      platformSeed.control_implementations.map((item) => [item.id, item]),
+    );
+    const requirementIds = new Set(platformSeed.requirements.map((item) => item.id));
+    for (const row of authored) {
+      expect(row.implementation_id, row.control_id).not.toBeNull();
+      const implementation = implementationById.get(row.implementation_id!);
+      expect(implementation?.control_id, row.control_id).toBe(row.control_id);
+      // "not-implemented" is a real authored claim here, not the placeholder the
+      // unauthored rows carried; the derivation must simply repeat what the record says.
+      expect(row.implementation_status, row.control_id).toBe(implementation!.status);
+      expect(row.requirement_ids.length, row.control_id).toBeGreaterThan(0);
+      for (const id of row.requirement_ids) expect(requirementIds.has(id), id).toBe(true);
+    }
     for (const row of unauthored) {
       expect(row.implementation_id).toBeNull();
       expect(row.implementation_status).toBe("not-implemented");

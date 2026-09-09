@@ -101,7 +101,12 @@ export {
   type ButtonGroupTextProps,
   type ButtonGroupSeparatorProps,
 } from "./button-group";
-export { Calendar, type CalendarProps } from "./calendar";
+export {
+  Calendar,
+  type CalendarProps,
+  CalendarDayButton,
+  type CalendarDayButtonProps,
+} from "./calendar";
 export {
   Chart,
   categoricalTone,
@@ -213,7 +218,30 @@ export {
   type DialogTitleProps,
   type DialogTriggerProps,
 } from "./dialog";
-export { Drawer, type DrawerProps } from "./drawer";
+export {
+  Drawer,
+  type DrawerProps,
+  DrawerPortal,
+  type DrawerPortalProps,
+  DrawerOverlay,
+  type DrawerOverlayProps,
+  DrawerSwipeHandle,
+  type DrawerSwipeHandleProps,
+  DrawerTrigger,
+  type DrawerTriggerProps,
+  DrawerClose,
+  type DrawerCloseProps,
+  DrawerContent,
+  type DrawerContentProps,
+  DrawerHeader,
+  type DrawerHeaderProps,
+  DrawerFooter,
+  type DrawerFooterProps,
+  DrawerTitle,
+  type DrawerTitleProps,
+  DrawerDescription,
+  type DrawerDescriptionProps,
+} from "./drawer";
 export {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -269,7 +297,22 @@ export { Id, type IdListProps, type IdProps } from "./id";
 export { Item, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
 export { Kbd, KbdGroup, type KbdGroupProps, type KbdProps } from "./kbd";
 export { KeyValue, type KeyValueProps } from "./key-value";
-export { Pagination, type PaginationProps } from "./pagination";
+export {
+  Pagination,
+  type PaginationProps,
+  PaginationContent,
+  type PaginationContentProps,
+  PaginationItem,
+  type PaginationItemProps,
+  PaginationLink,
+  type PaginationLinkProps,
+  PaginationPrevious,
+  type PaginationPreviousProps,
+  PaginationNext,
+  type PaginationNextProps,
+  PaginationEllipsis,
+  type PaginationEllipsisProps,
+} from "./pagination";
 export {
   Popover,
   PopoverClose,
@@ -309,10 +352,12 @@ export {
   type RadioGroupProps,
 } from "./radio-group";
 export {
-  Resizable,
-  type ResizableHandleProps,
+  ResizablePanelGroup,
+  type ResizablePanelGroupProps,
+  ResizablePanel,
   type ResizablePanelProps,
-  type ResizableProps,
+  ResizableHandle,
+  type ResizableHandleProps,
 } from "./resizable";
 export { ScrollArea, ScrollBar, type ScrollAreaProps, type ScrollBarProps } from "./scroll-area";
 export {

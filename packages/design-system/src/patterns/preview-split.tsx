@@ -1,6 +1,6 @@
 import { Children, type ReactNode } from "react";
 
-import { Resizable } from "../components/resizable";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../components/resizable";
 import { Grid } from "../primitives/grid";
 
 /**
@@ -20,14 +20,14 @@ export function PreviewSplit({ open, children }: PreviewSplitProps) {
   const [list, ...rail] = Children.toArray(children);
   if (!open) return <Grid>{list}</Grid>;
   return (
-    <Resizable className="items-start">
-      <Resizable.Panel minSize={55}>
+    <ResizablePanelGroup className="items-start">
+      <ResizablePanel minSize="55%">
         <div className="min-w-0 flex-1">{list}</div>
-      </Resizable.Panel>
-      <Resizable.Handle />
-      <Resizable.Panel defaultSize={26} minSize={18} maxSize={45}>
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize="26%" minSize="18%" maxSize="45%">
         <div className="min-w-0 flex-1">{rail}</div>
-      </Resizable.Panel>
-    </Resizable>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }

@@ -4,7 +4,7 @@
 
 **Do not hand-edit it — regenerate with `node scripts/gen-wsx90-seed.mjs`.**
 
-SHA-256: `6a90b3d55ac3e0fdc77ffda5c13ac75fa49671a57f4266b463a17af5118759c5`
+SHA-256: `dec4a04dedd0752761762135ce281e47c323c6591f357237bfc0cc8738544f32`
 
 `src/lib/platform-seed.ts` validates the file at import time and
 `platform-ingestion.ts` registers it in the existing program stores before saved
@@ -18,9 +18,9 @@ in the data itself (`dataset_metadata.reference_layer`, and an `authoritative`
 boolean on every reference source).
 
 **Fictional — the program.** Aurora Defense Systems, the WS-X90 Sentinel
-Mission System, its 6 subsystems and 20 LRUs, 120 requirements, 74 control
-implementations, 90 evidence artifacts, 1 assessment, 120 assessment results,
-16 findings, 16 risks and 16 POA&M items are entirely invented. They are copied
+Mission System, its 6 subsystems and 20 LRUs, 640 requirements, 546 control
+implementations, 368 evidence artifacts, 2 assessments, 420 assessment results,
+52 findings, 40 risks and 40 POA&M items are entirely invented. They are copied
 through from `docs/examples/weapons_system_oscal_dummy/platform/platform-seed.json`
 byte for byte; the generator refuses to write if any of them changed.
 
@@ -98,13 +98,22 @@ CCI-to-SP 800-53A Rev 5 linkage in the source, so none is asserted.
    `src/lib/cnssi-1253.ts`. All 17 stay visible in `derivation.withdrawn`. One of
    them, PE-18, is reinstated by the Deployed Platform overlay.
 
-### The authoring gap is deliberate
+### The authoring gap is closed
 
-Of the 546 effective controls, **74 have an authored implementation** and **472
-do not**. The 472 carry `implementation_status: "not-implemented"` and
-`authoring_status: "unauthored"`, with no invented narrative, evidence, findings
-or requirements. Narrative authoring is a separate pass;
-`derivation.authoring_gap` counts the gap so it cannot be mistaken for coverage.
+All **546** effective controls now have an authored implementation, so
+`derivation.authoring_gap.controls_without_authored_content` is **0** and every
+row in `control_derivations` carries `authoring_status: "authored"`. The 472
+controls the re-derivation added were authored in a later pass on top of the
+original 74: 520 further requirements, 472 further implementations and 278
+further evidence artifacts, plus a second assessment (`ASM-2026-002`) with its
+300 results, 36 findings, 24 risks and 24 POA&M items.
+
+`implementation_status` is the program's own claim per control, not a record of
+whether anything was written: 154 `implemented`, 218 `partially-implemented`,
+136 `planned` and 38 `not-implemented`. A `not-implemented` control here is an
+authored position — the program has not built it yet — and no longer means a
+missing record. The counter stays in the derivation so that a future
+re-resolution which adds controls reopens the gap visibly.
 
 ## Regenerating
 
@@ -134,3 +143,25 @@ Two fields are NOT byte-identical to the upstream fictional seed, on purpose:
 - The three named overlays gain `resolved_adds`, `reaffirmed` and
   `resolution_note`. Their authored `adds`, `removes`, ids, names, types and
   rationale text are unchanged and in their authored order.
+
+One further edit was made to content the original 16-item program carried, but
+in the **upstream authoring file** rather than in the generator — so the shipped
+seed and `platform-seed.json` still agree byte for byte, and the change is
+recorded here because nothing else would show it:
+
+- Nine milestone statuses — `POAM-005-M1`…`M3`, `POAM-010-M1`…`M3` and
+  `POAM-015-M1`…`M3` — were changed from `"complete"` to `"completed"`. All
+  three POA&M items are themselves `status: "completed"`, but
+  `platform-assurance.ts` promotes a milestone to `Completed` only on the exact
+  string `"completed"` and falls through to `Planned` for anything else, so the
+  nine rendered as Planned inside an item the same file rendered as Completed.
+  `"completed"` is the spelling the other 120 milestones already used; `"complete"`
+  was a typo in three records, not a fourth state. This changes what those nine
+  rows display — Planned before, Completed after — and nothing else: no date, no
+  title, no POA&M status moved with it, and the four pinned seed warnings
+  (`pass-without-evidence` 23, `fail-without-evidence` 6,
+  `closure-without-passing-retest` 3, `undated-milestone` 48) are unaffected,
+  since none of the nine carries a target date either way.
+  `src/lib/platform-seed.test.ts` now pins both the milestone status vocabulary
+  (`planned`, `in-progress`, `completed` — nothing else) and these nine ids, so
+  the spelling cannot drift back unnoticed.

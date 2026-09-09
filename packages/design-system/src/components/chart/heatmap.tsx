@@ -4,7 +4,6 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
 import { toneClasses, type Tone } from "../badge";
-import { useOverlayContainer } from "../_overlay-focus";
 import { Popover } from "../popover";
 import {
   CardHead,
@@ -78,7 +77,6 @@ export function ChartHeatmap({
   className,
 }: ChartHeatmapProps) {
   const { t, direction } = useLedgerLocale();
-  const portal = useOverlayContainer();
   const { format: defaultFormat } = useChartFormat();
   const format = formatProp ?? defaultFormat;
 
@@ -132,7 +130,6 @@ export function ChartHeatmap({
   const head = "h-row-header px-050 pb-050 align-bottom font-body-xsmall font-medium text-subtlest";
   return (
     <div className={cn("overflow-x-auto", className)}>
-      <span hidden ref={portal.ref} />
       <table
         aria-label={loading ? t("loadingLabel", { label }) : label}
         aria-busy={loading || undefined}
@@ -223,14 +220,14 @@ export function ChartHeatmap({
             if (!open) close();
           }}
         >
-          <PopoverPrimitive.Portal container={portal.container}>
+          <PopoverPrimitive.Portal>
             <PopoverPrimitive.Positioner
               anchor={anchor}
               side="top"
               align="center"
               sideOffset={6}
               collisionPadding={8}
-              positionMethod={portal.container ? "fixed" : undefined}
+
               className="isolate z-50"
             >
               <PopoverPrimitive.Popup

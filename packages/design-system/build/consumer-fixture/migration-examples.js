@@ -1,3 +1,4 @@
+import * as ledger from "@ledger/design-system";
 // Shared SSR and production-bundle composition for the migrated families.
 import { createElement as h } from "react";
 import {
@@ -152,4 +153,15 @@ export const migrationExamples = h(
     h("div", { style: { width: 800 } }, "Scrollable records"),
     h(ScrollBar, { orientation: "horizontal", keepMounted: true }),
   ),
+  h(ledger.Drawer, { defaultOpen: false, showSwipeHandle: true },
+    h(ledger.DrawerTrigger, { render: h(ledger.Button) }, "Packed drawer"),
+    h(ledger.DrawerContent, null, h(ledger.DrawerHeader, null, h(ledger.DrawerTitle, null, "Packed review")), h(ledger.DrawerFooter, null, h(ledger.DrawerClose, null, "Done")))),
+  h(ledger.Calendar, { mode: "single", defaultMonth: new Date(2026, 8, 1), selected: new Date(2026, 8, 14), showWeekNumber: true }),
+  h(ledger.DatePicker, { name: "due", defaultValue: "2026-09-14", "aria-label": "Packed due date" }),
+  h(ledger.Pagination, { "aria-label": "Packed pages" }, h(ledger.PaginationContent, null,
+    h(ledger.PaginationItem, null, h(ledger.PaginationLink, { href: "?page=2", isActive: true }, "2")))),
+  h(ledger.ResizablePanelGroup, { id: "packed-split" },
+    h(ledger.ResizablePanel, { id: "list", defaultSize: "30%" }, "List"),
+    h(ledger.ResizableHandle, { withHandle: true, "aria-label": "Resize packed list" }),
+    h(ledger.ResizablePanel, { id: "detail" }, "Detail")),
 );

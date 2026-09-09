@@ -19,6 +19,12 @@ import {
   DialogHeader,
   DialogTitle,
   Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -291,17 +297,22 @@ function Modals() {
         </SheetContent>
       </Sheet>
 
-      <Drawer
-        open={drawer}
-        onClose={() => setDrawer(false)}
-        title="Quick actions"
-        description="The bottom sheet for narrow screens."
-        footer={<Button onClick={() => setDrawer(false)}>Close</Button>}
-      >
-        <Stack space="space.100">
-          <Button variant="subtle">Mark verified</Button>
-          <Button variant="subtle">Request evidence</Button>
-        </Stack>
+      <Drawer open={drawer} onOpenChange={setDrawer} showSwipeHandle>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Quick actions</DrawerTitle>
+            <DrawerDescription>The bottom sheet for narrow screens.</DrawerDescription>
+          </DrawerHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-250 py-150">
+            <Stack space="space.100">
+              <Button variant="subtle">Mark verified</Button>
+              <Button variant="subtle">Request evidence</Button>
+            </Stack>
+          </div>
+          <DrawerFooter>
+            <DrawerClose render={<Button />}>Close</DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
       </Drawer>
 
       <AlertDialog

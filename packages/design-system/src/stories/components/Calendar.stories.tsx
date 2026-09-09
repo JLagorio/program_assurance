@@ -1,48 +1,45 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useId, useState } from "react";
+import { useState } from "react";
 import type { DateRange } from "react-day-picker";
-
-import { FieldLabel, FieldSet, FieldLegend, Calendar, DatePicker, Field } from "../../components";
-import { Inline, Stack } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import { expect, userEvent, waitFor, within } from "storybook/test";
+import { Calendar, CalendarDayButton } from "../../components";
 
 const meta = {
   title: "Components/Calendar",
   component: Calendar,
   parameters: { layout: "padded" },
-  args: { mode: "single", defaultMonth: new Date(2026, 8, 1) },
 } satisfies Meta<typeof Calendar>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-/** One day, a range, and a month with the days before a date disabled. */
-export const CalendarMatrix: Story = {
-  parameters: {
-    // Three calendars, three "Navigation bar" navs from react-day-picker; a page has one. A false positive of the layout.
-    a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } },
+function SingleDemo() {
+  const [date, setDate] = useState<Date | undefined>(new Date(2026, 8, 14));
+  return (
+    <Calendar
+      mode="single"
+      selected={date}
+      onSelect={setDate}
+      defaultMonth={new Date(2026, 8, 1)}
+      disabled={{ dayOfWeek: [0, 6] }}
+    />
+  );
+}
+export const Single: Story = {
+  render: () => <SingleDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const selected = canvas.getByRole("button", { name: /September 14, 2026/ });
+    await expect(selected).toHaveAttribute("data-selected-single", "true");
+    selected.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    const next = canvas.getByRole("button", { name: /September 15, 2026/ });
+    await waitFor(() => expect(next).toHaveFocus());
+    await userEvent.keyboard("{Enter}");
+    await expect(next).toHaveAttribute("data-selected-single", "true");
+    await expect(selected).toHaveAttribute("data-selected-single", "false");
+    await expect(canvas.getByRole("button", { name: /September 19, 2026/ })).toBeDisabled();
   },
-  render: () => (
-    <Inline space="space.300" alignBlock="start" shouldWrap>
-      <Calendar
-        mode="single"
-        selected={new Date(2026, 8, 14)}
-        defaultMonth={new Date(2026, 8, 1)}
-      />
-      <Calendar
-        mode="range"
-        selected={{ from: new Date(2026, 8, 7), to: new Date(2026, 8, 18) }}
-        defaultMonth={new Date(2026, 8, 1)}
-      />
-      <Calendar
-        mode="single"
-        disabled={{ before: new Date(2026, 8, 10) }}
-        defaultMonth={new Date(2026, 8, 1)}
-      />
-    </Inline>
-  ),
 };
-
-function Range() {
+function RangeDemo() {
   const [range, setRange] = useState<DateRange | undefined>({
     from: new Date(2026, 8, 7),
     to: new Date(2026, 8, 11),
@@ -54,80 +51,50 @@ function Range() {
       onSelect={setRange}
       defaultMonth={new Date(2026, 8, 1)}
       numberOfMonths={2}
+      showOutsideDays={false}
     />
   );
 }
-
-/** A range across two months: click a start, then an end. The days between paint the selection colour. */
-export const CalendarRange: Story = { render: () => <Range /> };
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  // Independent calendar examples repeat the library navigation landmark.
-  parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
-  render: function FieldExample() {
-    const fieldId = useId();
-    return (
-      <Stack space="space.400">
-        <Pair
-          do={
-            <div style={{ width: 220 }}>
-              <Field>
-                <FieldLabel
-                  id={`${fieldId}-scheduled-completion-1-label`}
-                  htmlFor={`${fieldId}-scheduled-completion-1`}
-                >
-                  {"Scheduled completion"}
-                </FieldLabel>
-                <DatePicker
-                  id={`${fieldId}-scheduled-completion-1`}
-                  aria-labelledby={`${fieldId}-scheduled-completion-1-label`}
-                  defaultValue="2026-09-18"
-                />
-              </Field>
-            </div>
-          }
-          doText="One day in a form is a DatePicker; the month opens when asked."
-          dont={
-            <div style={{ width: 300 }}>
-              <FieldSet aria-labelledby={`${fieldId}-scheduled-completion-2-label`}>
-                <FieldLegend id={`${fieldId}-scheduled-completion-2-label`} variant="label">
-                  {"Scheduled completion"}
-                </FieldLegend>
-                <Calendar
-                  aria-labelledby={`${fieldId}-scheduled-completion-2-label`}
-                  mode="single"
-                  selected={new Date(2026, 8, 18)}
-                  defaultMonth={new Date(2026, 8, 1)}
-                />
-              </FieldSet>
-            </div>
-          }
-          dontText="A month grid inline for one field. It takes the room of six."
-        />
-        <Pair
-          do={
-            <Calendar
-              mode="range"
-              selected={{ from: new Date(2026, 8, 28), to: new Date(2026, 9, 9) }}
-              defaultMonth={new Date(2026, 8, 1)}
-              numberOfMonths={2}
-            />
-          }
-          doText="Two months for a range that may cross one."
-          dont={
-            <Calendar
-              mode="single"
-              selected={new Date(2026, 8, 18)}
-              defaultMonth={new Date(2026, 8, 1)}
-              numberOfMonths={2}
-            />
-          }
-          dontText="Two months for one day. The second month is noise."
-        />
-      </Stack>
+export const CalendarRange: Story = {
+  render: () => <RangeDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: /September 28, 2026/ }));
+    await userEvent.click(canvas.getByRole("button", { name: /October 9, 2026/ }));
+    await expect(canvas.getByRole("button", { name: /October 9, 2026/ })).toHaveAttribute(
+      "data-range-end",
+      "true",
+    );
+    await expect(canvas.getByRole("button", { name: /October 1, 2026/ })).toHaveAttribute(
+      "data-range-middle",
+      "true",
     );
   },
 };
-
-export const Playground: Story = {};
+export const DropdownsAndWeekNumbers: Story = {
+  render: () => (
+    <Calendar
+      mode="single"
+      defaultMonth={new Date(2026, 8, 1)}
+      startMonth={new Date(2020, 0, 1)}
+      endMonth={new Date(2030, 11, 1)}
+      captionLayout="dropdown"
+      showWeekNumber
+      components={{
+        DayButton: (props) => (
+          <CalendarDayButton {...props} title={`Day ${props.day.date.getDate()}`} />
+        ),
+      }}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.selectOptions(canvas.getByRole("combobox", { name: "Month" }), "9");
+    await expect(canvas.getByRole("button", { name: /October 14, 2026/ })).toHaveAttribute(
+      "title",
+      "Day 14",
+    );
+    await userEvent.selectOptions(canvas.getByRole("combobox", { name: "Year" }), "2027");
+    await expect(canvas.getByRole("button", { name: /October 14, 2027/ })).toBeVisible();
+  },
+};

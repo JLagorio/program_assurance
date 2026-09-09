@@ -1,323 +1,181 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-
-import { Resizable, ScrollArea, Separator } from "../../components";
-import { Box, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import { createRef, useState } from "react";
+import {
+  useDefaultLayout,
+  type GroupImperativeHandle,
+  type PanelImperativeHandle,
+} from "react-resizable-panels";
+import { expect, userEvent, waitFor, within } from "storybook/test";
+import {
+  Button,
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+  ScrollArea,
+} from "../../components";
 
 const meta = {
   title: "Components/Resizable",
-  component: Resizable,
+  component: ResizablePanelGroup,
   parameters: { layout: "padded" },
-} satisfies Meta<typeof Resizable>;
+} satisfies Meta<typeof ResizablePanelGroup>;
 export default meta;
-type Story = StoryObj;
-
-function List({ count = 24 }: { count?: number | undefined }) {
+type Story = StoryObj<typeof meta>;
+const groupRef = createRef<GroupImperativeHandle>();
+const panelRef = createRef<PanelImperativeHandle>();
+const elementRef = createRef<HTMLDivElement>();
+function List() {
   return (
     <ScrollArea className="h-full" viewportProps={{ role: "region", "aria-label": "Controls" }}>
-      <Stack space="space.0">
-        {Array.from({ length: count }, (_, i) => (
-          <Box key={i} paddingInline="space.150" paddingBlock="space.075">
-            <Text size="small">CTRL-{400 + i}</Text>
-          </Box>
+      <div className="p-150">
+        {Array.from({ length: 24 }, (_, i) => (
+          <p key={i} className="py-075">
+            CTRL-{400 + i}
+          </p>
         ))}
-      </Stack>
+      </div>
     </ScrollArea>
   );
 }
-
-function Frame({
-  height = 260,
-  children,
-}: {
-  height?: number | undefined;
-  children: React.ReactNode;
-}) {
-  return (
+export const Panes: Story = {
+  render: () => (
     <div
+      style={{ height: 320 }}
       className="max-w-layout-measure overflow-hidden rounded-large border border-default"
-      style={{ height }}
     >
-      {children}
+      <ResizablePanelGroup groupRef={groupRef} elementRef={elementRef}>
+        <ResizablePanel id="list" defaultSize="30%" minSize="20%" maxSize="60%" panelRef={panelRef}>
+          <List />
+        </ResizablePanel>
+        <ResizableHandle withHandle aria-label="Resize the list" />
+        <ResizablePanel id="detail">
+          <div className="p-200">Drag the handle or focus it and use the arrow keys.</div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const handle = within(canvasElement).getByRole("separator", { name: "Resize the list" });
+    await expect(handle).toHaveAttribute("aria-orientation", "vertical");
+    await waitFor(() => expect(groupRef.current?.getLayout()["list"]).toBeCloseTo(30, 0));
+    await expect(elementRef.current).toHaveAttribute("data-slot", "resizable-panel-group");
+    handle.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(panelRef.current?.getSize().asPercentage).toBeGreaterThan(30));
+    await userEvent.keyboard("{Home}");
+    await waitFor(() => expect(panelRef.current?.getSize().asPercentage).toBeCloseTo(20, 0));
+    await userEvent.keyboard("{End}");
+    await waitFor(() => expect(panelRef.current?.getSize().asPercentage).toBeCloseTo(60, 0));
+  },
+};
+export const Vertical: Story = {
+  render: () => (
+    <div
+      style={{ height: 320 }}
+      className="max-w-layout-measure overflow-hidden rounded-large border border-default"
+    >
+      <ResizablePanelGroup orientation="vertical">
+        <ResizablePanel defaultSize="55%" minSize="30%">
+          <div className="p-200">Work above, log below.</div>
+        </ResizablePanel>
+        <ResizableHandle withHandle aria-label="Resize the log" />
+        <ResizablePanel minSize="20%">
+          <List />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const handle = within(canvasElement).getByRole("separator");
+    await expect(handle).toHaveAttribute("aria-orientation", "horizontal");
+    await waitFor(() => expect(Number(handle.getAttribute("aria-valuenow"))).toBeGreaterThan(0));
+    const before = Number(handle.getAttribute("aria-valuenow"));
+    handle.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await waitFor(() =>
+      expect(Number(handle.getAttribute("aria-valuenow"))).toBeGreaterThan(before),
+    );
+  },
+};
+export const Collapsible: Story = {
+  render: () => (
+    <div
+      style={{ height: 320 }}
+      className="max-w-layout-measure overflow-hidden rounded-large border border-default"
+    >
+      <ResizablePanelGroup>
+        <ResizablePanel defaultSize="30%" minSize="20%" collapsible>
+          <List />
+        </ResizablePanel>
+        <ResizableHandle aria-label="Resize the tree" />
+        <ResizablePanel>
+          <div className="p-200">Press Enter on the handle to fold and unfold the tree.</div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const handle = within(canvasElement).getByRole("separator");
+    handle.focus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(handle).toHaveAttribute("aria-valuenow", "0"));
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(Number(handle.getAttribute("aria-valuenow"))).toBeGreaterThan(0));
+  },
+};
+const serverStorage = { getItem: () => null, setItem: () => {} };
+function PersistedGroup() {
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({
+    id: "storybook.resizable.persisted",
+    onlySaveAfterUserInteractions: true,
+    storage: typeof window === "undefined" ? serverStorage : window.localStorage,
+  });
+  return (
+    <ResizablePanelGroup
+      id="storybook.resizable.persisted"
+      {...(defaultLayout ? { defaultLayout } : {})}
+      onLayoutChanged={onLayoutChanged}
+    >
+      <ResizablePanel id="list" defaultSize="35%" minSize="20%" maxSize="75%">
+        <List />
+      </ResizablePanel>
+      <ResizableHandle aria-label="Resize saved list" />
+      <ResizablePanel id="detail">
+        <div className="p-200">Your layout survives remounting and reloading.</div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
+}
+function PersistedDemo() {
+  const [mounted, setMounted] = useState(true);
+  return (
+    <div className="flex flex-col gap-150">
+      <Button onClick={() => setMounted(!mounted)}>
+        {mounted ? "Hide split" : "Restore split"}
+      </Button>
+      <div
+        style={{ height: 320 }}
+        className="max-w-layout-measure overflow-hidden rounded-large border border-default"
+      >
+        {mounted && <PersistedGroup />}
+      </div>
     </div>
   );
 }
-
-/** A list beside what it opens: the list at 30% with a floor of 20%, the detail taking the rest. Drag the hairline; focus it and the arrows move it by 5%. */
-export const Panes: Story = {
-  render: () => (
-    <Frame>
-      <Resizable>
-        <Resizable.Panel defaultSize={30} minSize={20}>
-          <List />
-        </Resizable.Panel>
-        <Resizable.Handle />
-        <Resizable.Panel>
-          <Box padding="space.200">
-            <Text color="color.text.subtle">Drag the hairline. The arrow keys move it too.</Text>
-          </Box>
-        </Resizable.Panel>
-      </Resizable>
-    </Frame>
-  ),
-};
-
-/** `orientation="vertical"`: panes stacked, the handle a horizontal hairline that Up and Down move. A log under a form. */
-export const Vertical: Story = {
-  render: () => (
-    <Frame>
-      <Resizable orientation="vertical">
-        <Resizable.Panel defaultSize={55} minSize={30}>
-          <Box padding="space.200">
-            <Text color="color.text.subtle">The work above.</Text>
-          </Box>
-        </Resizable.Panel>
-        <Resizable.Handle />
-        <Resizable.Panel minSize={20}>
-          <List count={12} />
-        </Resizable.Panel>
-      </Resizable>
-    </Frame>
-  ),
-};
-
-/** `collapsible` on a pane: dragged under its minimum it folds to nothing, and Enter on the handle after it folds and unfolds it. A tree the reader hides. */
-export const Collapsible: Story = {
-  render: () => (
-    <Frame>
-      <Resizable>
-        <Resizable.Panel defaultSize={30} minSize={20} collapsible>
-          <List count={10} />
-        </Resizable.Panel>
-        <Resizable.Handle label="Resize the tree" />
-        <Resizable.Panel>
-          <Box padding="space.200">
-            <Text color="color.text.subtle">
-              Drag the tree past its floor, or focus the handle and press Enter.
-            </Text>
-          </Box>
-        </Resizable.Panel>
-      </Resizable>
-    </Frame>
-  ),
-};
-
-/** `persist`: the sizes are kept under the key, so the split opens as the reader left it. Resize, reload, and it holds. Each pane has an `id`. */
 export const Persisted: Story = {
-  render: () => (
-    <Frame>
-      <Resizable persist="storybook.resizable.persisted">
-        <Resizable.Panel id="list" defaultSize={35} minSize={20}>
-          <List />
-        </Resizable.Panel>
-        <Resizable.Handle />
-        <Resizable.Panel id="detail">
-          <Box padding="space.200">
-            <Text color="color.text.subtle">Resize me, then reload the page.</Text>
-          </Box>
-        </Resizable.Panel>
-      </Resizable>
-    </Frame>
-  ),
-};
-
-/** Horizontal and vertical; a floor and a ceiling; a collapsible pane; three panes with two handles. */
-export const ResizableMatrix: Story = {
-  render: () => (
-    <Stack space="space.300">
-      <Specimens title="horizontal · vertical">
-        <Box style={{ width: 320, height: 160 }} className="rounded-medium border border-default">
-          <Resizable>
-            <Resizable.Panel defaultSize={30} minSize={20}>
-              <Box padding="space.150">
-                <Text size="small">List · 30%</Text>
-              </Box>
-            </Resizable.Panel>
-            <Resizable.Handle />
-            <Resizable.Panel>
-              <Box padding="space.150">
-                <Text size="small">Detail</Text>
-              </Box>
-            </Resizable.Panel>
-          </Resizable>
-        </Box>
-        <Box style={{ width: 320, height: 160 }} className="rounded-medium border border-default">
-          <Resizable orientation="vertical">
-            <Resizable.Panel defaultSize={50}>
-              <Box padding="space.150">
-                <Text size="small">Top</Text>
-              </Box>
-            </Resizable.Panel>
-            <Resizable.Handle />
-            <Resizable.Panel>
-              <Box padding="space.150">
-                <Text size="small">Bottom</Text>
-              </Box>
-            </Resizable.Panel>
-          </Resizable>
-        </Box>
-      </Specimens>
-      <Specimens title="floor and ceiling · collapsible · three panes">
-        <Box style={{ width: 320, height: 120 }} className="rounded-medium border border-default">
-          <Resizable>
-            <Resizable.Panel defaultSize={40} minSize={25} maxSize={60}>
-              <Box padding="space.150">
-                <Text size="small">25% to 60%</Text>
-              </Box>
-            </Resizable.Panel>
-            <Resizable.Handle />
-            <Resizable.Panel>
-              <Box padding="space.150">
-                <Text size="small">The rest</Text>
-              </Box>
-            </Resizable.Panel>
-          </Resizable>
-        </Box>
-        <Box style={{ width: 320, height: 120 }} className="rounded-medium border border-default">
-          <Resizable>
-            <Resizable.Panel defaultSize={35} minSize={25} collapsible>
-              <Box padding="space.150">
-                <Text size="small">Tree, folds</Text>
-              </Box>
-            </Resizable.Panel>
-            <Resizable.Handle label="Resize the tree" />
-            <Resizable.Panel>
-              <Box padding="space.150">
-                <Text size="small">Work</Text>
-              </Box>
-            </Resizable.Panel>
-          </Resizable>
-        </Box>
-        <Box style={{ width: 320, height: 120 }} className="rounded-medium border border-default">
-          <Resizable>
-            <Resizable.Panel defaultSize={25} minSize={15}>
-              <Box padding="space.150">
-                <Text size="small">Tree</Text>
-              </Box>
-            </Resizable.Panel>
-            <Resizable.Handle label="Resize the tree" />
-            <Resizable.Panel>
-              <Box padding="space.150">
-                <Text size="small">Record</Text>
-              </Box>
-            </Resizable.Panel>
-            <Resizable.Handle label="Resize the preview" />
-            <Resizable.Panel defaultSize={25} minSize={15}>
-              <Box padding="space.150">
-                <Text size="small">Preview</Text>
-              </Box>
-            </Resizable.Panel>
-          </Resizable>
-        </Box>
-      </Specimens>
-    </Stack>
-  ),
-};
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Box
-            style={{ height: 140 }}
-            className="overflow-hidden rounded-medium border border-default"
-          >
-            <Resizable>
-              <Resizable.Panel defaultSize={35} minSize={20}>
-                <List count={8} />
-              </Resizable.Panel>
-              <Resizable.Handle />
-              <Resizable.Panel>
-                <Box padding="space.150">
-                  <Text size="small" color="color.text.subtle">
-                    The chosen control.
-                  </Text>
-                </Box>
-              </Resizable.Panel>
-            </Resizable>
-          </Box>
-        }
-        doText="A list beside what it opens: the reader gives the list room when the names are long and the preview room when they read."
-        dont={
-          <Box
-            style={{ height: 140 }}
-            className="overflow-hidden rounded-medium border border-default"
-          >
-            <Resizable>
-              <Resizable.Panel defaultSize={50} minSize={30}>
-                <Box padding="space.150">
-                  <Text size="small" color="color.text.subtle">
-                    Implementation
-                  </Text>
-                </Box>
-              </Resizable.Panel>
-              <Resizable.Handle />
-              <Resizable.Panel>
-                <Box padding="space.150">
-                  <Text size="small" color="color.text.subtle">
-                    Assessment
-                  </Text>
-                </Box>
-              </Resizable.Panel>
-            </Resizable>
-          </Box>
-        }
-        dontText="A page's sections split by a handle. Sections stack and the page scrolls; there is nothing to trade between them."
-      />
-      <Pair
-        do={
-          <Stack space="space.150">
-            <Text size="small">Above the rule</Text>
-            <Separator />
-            <Text size="small">Below it</Text>
-          </Stack>
-        }
-        doText="A rule that divides is a Separator: not focusable, not draggable."
-        dont={
-          <Box
-            style={{ height: 100 }}
-            className="overflow-hidden rounded-medium border border-default"
-          >
-            <Resizable orientation="vertical">
-              <Resizable.Panel defaultSize={50} minSize={50} maxSize={50}>
-                <Box padding="space.150">
-                  <Text size="small">Above the rule</Text>
-                </Box>
-              </Resizable.Panel>
-              <Resizable.Handle />
-              <Resizable.Panel>
-                <Box padding="space.150">
-                  <Text size="small">Below it</Text>
-                </Box>
-              </Resizable.Panel>
-            </Resizable>
-          </Box>
-        }
-        dontText="A handle as a rule, with the panes pinned so it cannot move. It takes focus, shows a resize cursor and does nothing."
-      />
-    </Stack>
-  ),
-};
-
-export const Playground: StoryObj<{ orientation: "horizontal" | "vertical" }> = {
-  args: { orientation: "horizontal" },
-  argTypes: { orientation: { control: "radio", options: ["horizontal", "vertical"] } },
-  render: (args) => (
-    <Frame>
-      <Resizable {...args}>
-        <Resizable.Panel defaultSize={30} minSize={20}>
-          <List />
-        </Resizable.Panel>
-        <Resizable.Handle />
-        <Resizable.Panel>
-          <Box padding="space.200">
-            <Text color="color.text.subtle">The other pane.</Text>
-          </Box>
-        </Resizable.Panel>
-      </Resizable>
-    </Frame>
-  ),
+  render: () => <PersistedDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const handle = canvas.getByRole("separator");
+    handle.focus();
+    await userEvent.keyboard("{Home}{ArrowRight}{ArrowRight}");
+    await waitFor(() => expect(Number(handle.getAttribute("aria-valuenow"))).toBeGreaterThan(20));
+    const saved = handle.getAttribute("aria-valuenow");
+    await userEvent.click(canvas.getByRole("button", { name: "Hide split" }));
+    await expect(canvas.queryByRole("separator")).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Restore split" }));
+    await waitFor(() =>
+      expect(canvas.getByRole("separator")).toHaveAttribute("aria-valuenow", saved),
+    );
+  },
 };

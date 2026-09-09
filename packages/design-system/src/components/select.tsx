@@ -5,7 +5,6 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { useOverlayContainer } from "./_overlay-focus";
 import { controlBase, controlHeight } from "./controls";
 import {
   menuItem,
@@ -94,7 +93,6 @@ export function SelectContent({
 }: SelectContentProps) {
   const inheritedDirection = useDirection();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
-  const portal = useOverlayContainer();
   const defaults = {
     width: "var(--anchor-width)",
     minWidth: 144,
@@ -104,15 +102,14 @@ export function SelectContent({
   };
   return (
     <DirectionProvider direction={direction}>
-      <span hidden ref={portal.ref} />
-      <SelectPrimitive.Portal container={portal.container}>
+      <SelectPrimitive.Portal>
         <SelectPrimitive.Positioner
           side={side}
           sideOffset={sideOffset}
           align={align}
           alignOffset={alignOffset}
           alignItemWithTrigger={alignItemWithTrigger}
-          positionMethod={portal.container ? "fixed" : undefined}
+
           className="isolate z-50"
         >
           <SelectPrimitive.Popup

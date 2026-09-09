@@ -27,7 +27,6 @@ import {
 import { token, tokenValue, type TokenName } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
 import type { Tone } from "../badge";
-import { useOverlayContainer } from "../_overlay-focus";
 import { Popover } from "../popover";
 
 /*
@@ -1029,7 +1028,6 @@ function Card({
 }) {
   const { t, direction } = useLedgerLocale();
   const anchorRef = useRef<HTMLDivElement>(null);
-  const portal = useOverlayContainer();
 
   return (
     <Popover
@@ -1044,15 +1042,15 @@ function Card({
         className="pointer-events-none absolute"
         style={{ left: anchor.x, top: anchor.y, width: anchor.width, height: anchor.height }}
       />
-      <span hidden ref={portal.ref} />
-      <PopoverPrimitive.Portal container={portal.container}>
+
+      <PopoverPrimitive.Portal>
         <PopoverPrimitive.Positioner
           anchor={anchorRef}
           side="top"
           align="center"
           sideOffset={6}
           collisionPadding={8}
-          positionMethod={portal.container ? "fixed" : undefined}
+
           className="isolate z-50"
         >
           <PopoverPrimitive.Popup

@@ -5,7 +5,6 @@ import type { ComponentProps } from "react";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { useOverlayContainer } from "./_overlay-focus";
 
 export type PopoverProps<Payload = unknown> = PopoverPrimitive.Root.Props<Payload>;
 
@@ -38,7 +37,6 @@ export function PopoverContent({
   ...props
 }: PopoverContentProps) {
   const inheritedDirection = useDirection();
-  const portal = useOverlayContainer();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
   const defaults = {
     width: 288,
@@ -47,14 +45,13 @@ export function PopoverContent({
   };
   return (
     <DirectionProvider direction={direction}>
-      <span hidden ref={portal.ref} />
-      <PopoverPrimitive.Portal data-slot="popover-portal" container={portal.container}>
+      <PopoverPrimitive.Portal data-slot="popover-portal">
         <PopoverPrimitive.Positioner
           align={align}
           alignOffset={alignOffset}
           side={side}
           sideOffset={sideOffset}
-          positionMethod={portal.container ? "fixed" : undefined}
+
           className="isolate z-50"
         >
           <PopoverPrimitive.Popup

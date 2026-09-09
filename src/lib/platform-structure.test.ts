@@ -22,7 +22,7 @@ describe("platform records in the existing program stores", () => {
     const { platformSeed } = await import("./platform-seed");
     const canonicalSnapshot = readFileSync("src/data/wsx90-platform-seed.json", "utf8");
     expect(createHash("sha256").update(canonicalSnapshot).digest("hex")).toBe(
-      "6a90b3d55ac3e0fdc77ffda5c13ac75fa49671a57f4266b463a17af5118759c5",
+      "dec4a04dedd0752761762135ce281e47c323c6591f357237bfc0cc8738544f32",
     );
     expect(platformSeed).toEqual(JSON.parse(canonicalSnapshot));
     const { registerPlatformStructure } = await import("./platform-structure");
@@ -38,13 +38,13 @@ describe("platform records in the existing program stores", () => {
     ).toHaveLength(20);
     expect(composition.childrenOf(ids.platformRootNodeId)).toHaveLength(6);
     expect(composition.descendantsOf(ids.platformRootNodeId)).toHaveLength(26);
-    expect(requirements.requirementsForProgram(ids.platformProgramId)).toHaveLength(120);
+    expect(requirements.requirementsForProgram(ids.platformProgramId)).toHaveLength(640);
     expect(requirements.requirementsForProgram("PRG-1041")).toHaveLength(existingCount);
     expect(
       platformSeed.requirements.flatMap((requirement) =>
         requirements.allocationsFor(requirement.id),
       ),
-    ).toHaveLength(240);
+    ).toHaveLength(1326);
     for (const component of platformSeed.components) {
       expect(composition.nodeById.get(ids.platformNodeId(component.id))).toMatchObject({
         parent: ids.platformNodeId(component.subsystem_id),
@@ -119,7 +119,7 @@ describe("platform records in the existing program stores", () => {
         sourceRecord: allocation.sourceRecord,
       }),
     ]);
-    expect(store.requirementsForProgram("PRG-1090")).toHaveLength(120);
+    expect(store.requirementsForProgram("PRG-1090")).toHaveLength(640);
   });
 
   it("merges a pre-ingestion saved browser snapshot and still permits independent native requirements", async () => {
@@ -131,7 +131,7 @@ describe("platform records in the existing program stores", () => {
     structure.registerPlatformStructure();
     store.restoreRequirements();
     expect(store.getRequirement("REQ-0042")?.owner).toBe("Existing program engineer");
-    expect(store.requirementsForProgram("PRG-1090")).toHaveLength(120);
+    expect(store.requirementsForProgram("PRG-1090")).toHaveLength(640);
     const authored = store.addRequirement({
       program: "PRG-1090",
       parent: null,

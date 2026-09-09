@@ -1,3 +1,4 @@
+import { TablePagination } from "../../patterns/data-table/pagination";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Filter, Plus } from "lucide-react";
@@ -10,7 +11,6 @@ import {
   Button,
   FilterChip,
   Indicator,
-  Pagination,
   Person,
   Table,
   type Tone,
@@ -189,7 +189,7 @@ function Register() {
           ))}
         </tbody>
       </Table>
-      <Pagination
+      <TablePagination
         page={page}
         pageCount={28}
         onPageChange={setPage}
@@ -599,7 +599,7 @@ function SortedPaged() {
           ))}
         </tbody>
       </Table>
-      <Pagination
+      <TablePagination
         page={page.page}
         pageCount={page.pageCount}
         onPageChange={page.setPage}

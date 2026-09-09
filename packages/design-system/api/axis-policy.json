@@ -309,29 +309,6 @@
         }
       }
     },
-    "Calendar": {
-      "domTarget": "react-day-picker root div by default, with interactive day buttons. id reaches its root; components overrides can change rendered elements. No wrapper-added ref API; use dependency-supported component refs.",
-      "controlledBehavior": "Dependency-owned mode-specific single/multiple/range selection. With onSelect, selected must be updated by the caller; without onSelect dependency selection can be internal. month controls navigation; defaultMonth initializes it.",
-      "defaultBehavior": "showOutsideDays=true. Package locale supplies direction, calendar formatting and accessible labels; explicit formatters/labels/classNames merge last. Remaining props override dir/components. No selection mode is invented; default displayed month follows dependency month/defaultMonth/today and bounds.",
-      "props": {
-        "id": {
-          "meaning": "react-day-picker root div by default, with interactive day buttons. id reaches its root; components overrides can change rendered elements. No wrapper-added ref API; use dependency-supported component refs.",
-          "migration": "Preserve the actual target; do not move control IDs to wrappers or hidden inputs. For context-generated command/tab IDs prefer the dependency association unless explicitly integrating with external labels.",
-          "defaultBehavior": "Explicit id is forwarded except dependency-owned internal relationships; consult component defaultBehavior for generated/Field fallback."
-        },
-        "onMonthChange": {
-          "meaning": "Dependency callback receives the displayed month Date; month controls it, defaultMonth initializes internal navigation.",
-          "migration": "Preserve Date payload; do not reuse this as the selected-day onSelect callback."
-        },
-        "onSelect": {
-          "meaning": "Dependency-owned mode-specific single/multiple/range selection. With onSelect, selected must be updated by the caller; without onSelect dependency selection can be internal. month controls navigation; defaultMonth initializes it."
-        },
-        "selected": {
-          "meaning": "Dependency-owned mode-specific single/multiple/range selection. With onSelect, selected must be updated by the caller; without onSelect dependency selection can be internal. month controls navigation; defaultMonth initializes it."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/calendar.tsx"]
-    },
     "Card": {
       "domTarget": "Root HTML div receives the complete ...props spread including id, aria/data attributes and event handlers. ComponentPropsWithoutRef deliberately excludes ref.",
       "controlledBehavior": "Stateless surface; no card-level selected/value state or clickable-card behavior.",
@@ -830,40 +807,6 @@
         }
       }
     },
-    "DatePicker": {
-      "domTarget": "Visible button receives id, button events, style and React 19 ref. Hidden input has its own private ref and carries ISO value/name/form and focus-target association.",
-      "controlledBehavior": "value/onChange controls ISO day; otherwise defaultValue initializes local state. Selection reports yyyy-MM-dd or empty string and closes. Native form reset restores the uncontrolled default and closes unless reset was canceled.",
-      "defaultBehavior": "size=medium, defaultOpen=false, initial uncontrolled value empty string. Invalid ISO values display placeholder but remain caller data. Localized placeholder/date/Today/Clear. id prefers explicit id then useId; aria-required is intentionally stripped from the plain button.",
-      "props": {
-        "defaultOpen": {
-          "meaning": "value/onChange controls ISO day; otherwise defaultValue initializes local state. Selection reports yyyy-MM-dd or empty string and closes. Native form reset restores the uncontrolled default and closes unless reset was canceled."
-        },
-        "defaultValue": {
-          "meaning": "value/onChange controls ISO day; otherwise defaultValue initializes local state. Selection reports yyyy-MM-dd or empty string and closes. Native form reset restores the uncontrolled default and closes unless reset was canceled."
-        },
-        "id": {
-          "meaning": "Visible button receives id, button events, style and React 19 ref. Hidden input has its own private ref and carries ISO value/name/form and focus-target association.",
-          "migration": "Preserve the actual target; do not move control IDs to wrappers or hidden inputs. For context-generated command/tab IDs prefer the dependency association unless explicitly integrating with external labels.",
-          "defaultBehavior": "Explicit id is forwarded except dependency-owned internal relationships; consult component defaultBehavior for generated/Field fallback."
-        },
-        "onChange": {
-          "meaning": "value/onChange controls ISO day; otherwise defaultValue initializes local state. Selection reports yyyy-MM-dd or empty string and closes. Native form reset restores the uncontrolled default and closes unless reset was canceled."
-        },
-        "size": {
-          "meaning": "Visible trigger height small=28px/medium=32px.",
-          "migration": "Keep family-relative geometry and native attribute exceptions explicit; no global enum normalization."
-        },
-        "value": {
-          "meaning": "value/onChange controls ISO day; otherwise defaultValue initializes local state. Selection reports yyyy-MM-dd or empty string and closes. Native form reset restores the uncontrolled default and closes unless reset was canceled."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/date-picker.tsx",
-        "packages/design-system/src/components/controls.tsx",
-        "packages/design-system/src/components/popover.tsx",
-        "packages/design-system/src/components/calendar.tsx"
-      ]
-    },
     "DensityProvider": {
       "domTarget": "Fragment preserving children; no wrapper/ref/DOM forwarding.",
       "controlledBehavior": "Deprecated stateless compatibility no-op; does not own or persist density.",
@@ -911,23 +854,6 @@
         "packages/design-system/src/patterns/data-table/use-data-table.ts",
         "packages/design-system/src/patterns/data-table/view-store.ts",
         "packages/design-system/src/patterns/data-table/features.ts"
-      ]
-    },
-    "Drawer": {
-      "domTarget": "Portaled Radix/Vaul content div with dialog semantics. No generic id/style/root-ref forwarding; returnFocusRef identifies an external focus destination, not the content ref.",
-      "controlledBehavior": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal.",
-      "defaultBehavior": "Closed when open=false; no uncontrolled default. Focus restores explicit returnFocusRef, captured opener, then a surviving dialog/main/h1. Optional absent description/subtitle has no aria-describedby. Dialog defaults medium=520px and pending=false; AlertDialog primary tone, pending=false and localized labels; Drawer max-width 640px/max-height 85vh; Sheet end side/420px. Optional slots are omitted when falsy.",
-      "props": {
-        "onClose": {
-          "meaning": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal."
-        },
-        "open": {
-          "meaning": "Caller-controlled open; onClose requests dismissal and caller must update open. Dialog/AlertDialog pending suppresses close requests; AlertDialog onConfirm does not automatically close and caller owns async outcome. Drawer drag also requests dismissal."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/drawer.tsx",
-        "packages/design-system/src/components/_overlay-focus.ts"
       ]
     },
     "Editable.Select": {
@@ -1306,17 +1232,6 @@
         "packages/design-system/src/components/skeleton.tsx"
       ]
     },
-    "Pagination": {
-      "domTarget": "nav labelled by label or locale; internal native buttons own navigation focus. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "page and pageCount are caller-owned, one-based values. Buttons invoke onPageChange(nextPage); no internal current-page state.",
-      "defaultBehavior": "Caller must supply valid page/pageCount. Previous disables at page<=1, next at page>=pageCount. Visible pages include edges and current neighbors. total/pageSize opt into range text; total=0 uses localized no-rows text.",
-      "reviewSources": ["packages/design-system/src/components/pagination.tsx"],
-      "props": {
-        "onPageChange": {
-          "meaning": "Requests a one-based page number. Caller must update page; no native event payload or internal pagination state."
-        }
-      }
-    },
     "Panel": {
       "domTarget": "Outer flex div with optional sticky header/subheader and footer divs; title is h2. Only className forwards to root, no generic DOM props/ref.",
       "controlledBehavior": "No internal open or view state. onBack/onClose are direct user-action requests. PanelContext exposes flush only to body descendants; the shell/caller owns scrolling container and visibility.",
@@ -1554,31 +1469,6 @@
         "packages/design-system/src/patterns/related.tsx",
         "packages/design-system/src/components/item.tsx"
       ]
-    },
-    "Resizable": {
-      "domTarget": "react-resizable-panels Group div; className targets group. persist is passed as group id only in persisted mode. No generic DOM/ref API.",
-      "controlledBehavior": "Dependency owns resize layout; optional persist reads/writes localStorage through useDefaultLayout, saving only after user interaction. No controlled layout API exposed.",
-      "defaultBehavior": "orientation=horizontal. No persist means defaults on each mount. SSR has memory/no-op storage; persisted layouts override panel initial defaults. Numeric sizes are converted to percent strings by Panel wrapper.",
-      "reviewSources": ["packages/design-system/src/components/resizable.tsx"]
-    },
-    "Resizable.Handle": {
-      "domTarget": "Dependency Separator div with separator role and keyboard focus. className targets it; no DOM/ref forwarding.",
-      "controlledBehavior": "Dependency handles pointer/keyboard resize; orientation comes from Resizable context.",
-      "defaultBehavior": "Default orientation context horizontal; label uses localized resize. Hairline classes vary with orientation and include a larger hit area.",
-      "reviewSources": ["packages/design-system/src/components/resizable.tsx"]
-    },
-    "Resizable.Panel": {
-      "domTarget": "Dependency Panel div; id identifies DOM pane and persistence layout key. className targets it. No public element/imperative ref.",
-      "controlledBehavior": "Dependency group owns current size; defaultSize initializes, min/max constrain, onResize receives PanelSize {asPercentage,inPixels}. Callback is observational, not controlled size.",
-      "defaultBehavior": "Absent sizes delegate to dependency distribution and bounds; numeric values become percent strings, strings retain units. collapsible is off; dependency owns collapsed size. id generated when absent; stable explicit ids are needed for persistence.",
-      "props": {
-        "id": {
-          "meaning": "Stable pane identifier, forwarded to dependency DOM and persistence layout map; missing id is generated.",
-          "migration": "Use stable explicit unique IDs when persist is enabled; do not treat this solely as a visual label.",
-          "defaultBehavior": "Dependency generates an id when omitted."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/resizable.tsx"]
     },
     "RowSortable": {
       "domTarget": "Context provider preserves child structure; DndContext also supplies accessibility live regions/instructions. No wrapper/ref/native DOM API.",

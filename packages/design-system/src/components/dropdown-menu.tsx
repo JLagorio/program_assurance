@@ -6,7 +6,6 @@ import type { ComponentProps } from "react";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { useOverlayContainer } from "./_overlay-focus";
 import {
   menuItem,
   menuItemDisabled,
@@ -50,7 +49,6 @@ export function DropdownMenuContent({
 }: DropdownMenuContentProps) {
   const inheritedDirection = useDirection();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
-  const portal = useOverlayContainer();
   const defaults = {
     width: "var(--anchor-width)",
     minWidth: 128,
@@ -60,14 +58,13 @@ export function DropdownMenuContent({
   };
   return (
     <DirectionProvider direction={direction}>
-      <span hidden ref={portal.ref} />
-      <DropdownMenuPortal container={portal.container}>
+      <DropdownMenuPortal>
         <MenuPrimitive.Positioner
           align={align}
           alignOffset={alignOffset}
           side={side}
           sideOffset={sideOffset}
-          positionMethod={portal.container ? "fixed" : undefined}
+
           className="isolate z-50 outline-none"
         >
           <MenuPrimitive.Popup

@@ -8,5 +8,5 @@
     "noEmit": true,
     "skipLibCheck": false
   },
-  "include": ["consumer.tsx"]
+  "include": ["*.tsx"]
 }

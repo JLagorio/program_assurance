@@ -422,21 +422,49 @@ const monthIndex: Record<string, number> = {
 
 /**
  * "Aug 27, 2026" or "Aug 27, 2026 04:10" → an OSCAL `date-time-with-timezone`.
- * Returns null for "—" and for anything that does not parse, so the caller can
- * omit the field rather than emit a malformed timestamp.
+ * Imported records carry their dates as "2026-10-03" or a full ISO timestamp
+ * instead, so both spellings are read. Returns null for "—" and for anything that
+ * does not parse, so the caller can omit the field rather than emit a malformed
+ * timestamp.
+ *
+ * Both branches are anchored at both ends. An unanchored ISO branch would read
+ * the leading date out of a value whose tail says it is not a timestamp at all
+ * ("2026-10-03 draft", "2026-10-03 (estimated)") and emit a confident stamp for
+ * it; a partial match is a parse failure here, not a prefix to salvage.
+ *
+ * @internal Exported only so the parsing edges have a unit test of their own.
  */
-function oscalStamp(display: string): string | null {
-  const match = /^([A-Z][a-z]{2}) (\d{2}), (\d{4})(?: (\d{2}):(\d{2}))?$/.exec(display.trim());
-  if (!match) return null;
-  const month = monthIndex[match[1] ?? ""];
-  if (!month) return null;
-  const day = match[2] ?? "01";
-  const year = match[3] ?? "2026";
-  const hour = match[4] ?? "00";
-  const minute = match[5] ?? "00";
+export function oscalStamp(display: string): string | null {
+  const value = display.trim();
+  const iso =
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?)?$/.exec(
+      value,
+    );
+  const match = iso ? null : /^([A-Z][a-z]{2}) (\d{2}), (\d{4})(?: (\d{2}):(\d{2}))?$/.exec(value);
+  if (!iso && !match) return null;
+  // An ISO value that already names its own offset is a valid OSCAL stamp as it stands.
+  if (iso && /(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return value;
+  const month = iso ? Number(iso[2]) : monthIndex[match![1] ?? ""];
+  if (!month || month < 1 || month > 12) return null;
+  const day = (iso ? iso[3] : match![2]) ?? "01";
+  const year = (iso ? iso[1] : match![3]) ?? "2026";
+  const hour = (iso ? iso[4] : match![4]) ?? "00";
+  const minute = (iso ? iso[5] : match![5]) ?? "00";
   // The dataset's programs run on US Eastern time; Mar–Oct is daylight saving.
   const offset = month >= 3 && month <= 10 ? "-04:00" : "-05:00";
   return `${year}-${String(month).padStart(2, "0")}-${day}T${hour}:${minute}:00${offset}`;
+}
+
+/**
+ * A campaign's `opened`/`target` is "Aug 04" on the demo programs and an ISO
+ * "2026-08-03" on the imported ones. Only the display form is missing its year.
+ * Appending one unconditionally produced "2026-08-03, 2026", which used to parse
+ * only because the ISO branch matched on a prefix; now that both branches are
+ * anchored, the two spellings have to be told apart here instead.
+ */
+function campaignStamp(date: string): string | null {
+  const value = date.trim();
+  return oscalStamp(/^\d{4}-\d{2}-\d{2}/.test(value) ? value : `${value}, 2026`);
 }
 
 /** "Apr 07 – Jun 18, 2025" → the two OSCAL timestamps that bound it. */
@@ -1589,8 +1617,8 @@ export function oscalAssessmentPlan(programId: string): OscalDocument {
   });
 
   for (const campaign of programCampaigns) {
-    const start = oscalStamp(`${campaign.opened}, 2026`);
-    const end = oscalStamp(`${campaign.target}, 2026`);
+    const start = campaignStamp(campaign.opened);
+    const end = campaignStamp(campaign.target);
     const task: JsonObject = {
       uuid: stableUuid(`task|${campaign.id}`),
       type: "milestone",

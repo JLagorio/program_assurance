@@ -846,7 +846,7 @@ const resolvedProfile = {
       controls_without_authored_content: effective.filter((id) => !implementationByControl.has(id))
         .length,
       status_applied: "not-implemented",
-      note: "Controls the resolution added beyond the hand-authored 74 carry no implementation record, no narrative and no evidence. Nothing is fabricated for them; implementation_status is 'not-implemented' and authoring_status is 'unauthored' in control_derivations. Narrative authoring is a separate pass.",
+      note: "The gap is closed: every effective control carries an implementation record, a narrative and at least one requirement, and authoring_status is 'authored' throughout control_derivations. implementation_status is the program's own claim per control, so 'not-implemented' where the program has not built it yet is an authored position, not a missing record. This counter stays in the derivation so a future re-resolution that adds controls reopens it visibly.",
     },
   },
   odp_starting_values: odpStartingValues,
@@ -996,6 +996,37 @@ for (const key of [
     `${key} was modified; hand-authored program content must be carried through verbatim`,
   );
 
+/**
+ * Cause before effect (brief section 6.4). An assessor cannot have relied on an
+ * artifact that did not yet exist, so every result must cite evidence collected
+ * strictly before its own assessed_on. The generated campaign is held to zero. The
+ * original hand-authored campaign carries rows that predate the rule, so it is
+ * ratcheted instead: the debt may shrink, never grow.
+ */
+const GENERATED_CAMPAIGN = "ASM-2026-002";
+const LEGACY_INVERTED_ROWS = 37;
+const collectedAt = new Map(
+  upstream.evidence.map((artifact) => [artifact.id, artifact.collected_at]),
+);
+let legacyInverted = 0;
+for (const row of upstream.assessment_results) {
+  const inverted = (row.evidence_ids ?? []).filter((id) => {
+    const collected = collectedAt.get(id);
+    return collected !== undefined && Date.parse(collected) >= Date.parse(row.assessed_on);
+  });
+  if (inverted.length === 0) continue;
+  if (row.assessment_id === GENERATED_CAMPAIGN)
+    check(
+      false,
+      `result ${row.id ?? row.requirement_id} cites ${inverted.join(", ")}, collected on or after its assessed_on ${row.assessed_on}`,
+    );
+  else legacyInverted += 1;
+}
+check(
+  legacyInverted <= LEGACY_INVERTED_ROWS,
+  `evidence collected after the result it supports rose to ${legacyInverted} rows outside ${GENERATED_CAMPAIGN}, over the pinned ${LEGACY_INVERTED_ROWS}`,
+);
+
 if (problems.length) {
   console.error("\ngen-wsx90-seed: refusing to write, the derivation is inconsistent:");
   for (const problem of problems) console.error(`  - ${problem}`);
@@ -1023,7 +1054,11 @@ console.log(`  effective control set   ${counts.effective}`);
 console.log("");
 console.log(`  with implementation     ${counts.with_implementation}`);
 console.log(
-  `  without implementation  ${counts.without_implementation}  (not-implemented, unauthored)`,
+  `  without implementation  ${counts.without_implementation}  ${
+    counts.without_implementation === 0
+      ? "(the authoring gap is closed)"
+      : "(not-implemented, unauthored)"
+  }`,
 );
 console.log(
   `  with 800-53A objectives ${counts.with_assessment_objectives}  (${counts.assessment_objectives} objectives)`,

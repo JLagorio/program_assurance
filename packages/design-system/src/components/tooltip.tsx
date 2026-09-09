@@ -3,7 +3,6 @@ import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 
 import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
-import { useOverlayContainer } from "./_overlay-focus";
 
 export type TooltipProviderProps = TooltipPrimitive.Provider.Props;
 
@@ -44,21 +43,19 @@ export function TooltipContent({
 }: TooltipContentProps) {
   const inheritedDirection = useDirection();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
-  const portal = useOverlayContainer();
   const defaults = {
     maxWidth: "min(320px, var(--available-width))",
     transformOrigin: "var(--transform-origin)",
   };
   return (
     <DirectionProvider direction={direction}>
-      <span hidden ref={portal.ref} />
-      <TooltipPrimitive.Portal data-slot="tooltip-portal" container={portal.container}>
+      <TooltipPrimitive.Portal data-slot="tooltip-portal">
         <TooltipPrimitive.Positioner
           align={align}
           alignOffset={alignOffset}
           side={side}
           sideOffset={sideOffset}
-          positionMethod={portal.container ? "fixed" : undefined}
+
           className="isolate z-50"
         >
           <TooltipPrimitive.Popup

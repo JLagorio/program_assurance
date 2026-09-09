@@ -21,6 +21,7 @@ export default mergeConfig(
         "@base-ui/react/select",
         "@base-ui/react/tabs",
         "@base-ui/react/dialog",
+        "@base-ui/react/drawer",
         "@base-ui/react/alert-dialog",
         "@base-ui/react/collapsible",
         "@base-ui/react/progress",

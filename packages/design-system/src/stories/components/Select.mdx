@@ -60,7 +60,7 @@ The inner List owns bounded scrolling so hover arrows work in both alignment mod
 
 Trigger is a native button with combobox semantics, expanded state and a listbox association. Options announce selected and disabled state. Enter, Space and ArrowDown open; arrows, Home and End move focus; typing matches labels; Enter/Space select. Closed single-select typeahead changes the selected value. Keep a visible Field label or an explicit accessible name on Trigger. Name Content’s list with `aria-label` or `aria-labelledby` when a specific list name is needed. These name the listbox as well as passing through to Popup.
 
-Base UI coordinates nested Select and Dialog popups; Vaul Drawer retains its own portal boundary. Escape dismisses Select before the dialog, returning focus to the trigger. Closing the dialog then returns to its opener.
+Base UI coordinates nested Select, Dialog and Drawer popups. Escape dismisses Select before the dialog, returning focus to the trigger. Closing the dialog then returns to its opener.
 
 <Canvas of={Stories.Dialogs} />
 

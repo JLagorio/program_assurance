@@ -1333,3 +1333,17 @@ assert.ok(ledger.buttonGroupVariants({ orientation: "vertical" }).includes("flex
 assert.equal("useFieldControl" in ledger, false);
 assert.equal("Title" in ledger.Alert, false);
 console.log("Packed Field, Alert and ButtonGroup composition passed");
+
+const paginationHtml = renderToString(
+  createElement(ledger.PaginationLink, { href: "?page=2", isActive: true }, "2"),
+);
+assert.match(paginationHtml, /<a[^>]*href="\?page=2"/);
+assert.match(paginationHtml, /aria-current="page"/);
+assert.doesNotMatch(paginationHtml, /role="button"/);
+assert.match(migrationHtml, /data-slot="drawer-trigger"/);
+assert.match(migrationHtml, /data-slot="calendar"/);
+assert.match(migrationHtml, /<th[^>]*scope="row"/);
+assert.match(migrationHtml, /name="due"[^>]*value="2026-09-14"/);
+assert.match(migrationHtml, /data-slot="resizable-panel-group"/);
+assert.equal("Resizable" in ledger, false);
+console.log("Packed Drawer, Calendar, DatePicker, Pagination and Resizable passed");

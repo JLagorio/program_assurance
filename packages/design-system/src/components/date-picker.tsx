@@ -66,15 +66,7 @@ export function DatePicker({
 }: DatePickerProps) {
   const { t, formatCalendarDate } = useLedgerLocale();
   const generatedId = useId();
-  const field = {
-    ...triggerProps,
-    id,
-    "aria-label": ariaLabel,
-    "aria-labelledby": ariaLabelledby,
-    "aria-invalid": ariaInvalid,
-    "aria-describedby": ariaDescribedby,
-  };
-  const triggerId = field.id ?? generatedId;
+  const triggerId = id ?? generatedId;
   const input = useRef<HTMLInputElement>(null);
   const [inner, setInner] = useState(defaultValue ?? "");
   const [open, setOpen] = useState(defaultOpen);
@@ -118,21 +110,27 @@ export function DatePicker({
       <Popover open={open && !disabled} onOpenChange={(next) => setOpen(next && !disabled)}>
         <PopoverTrigger
           render={
-            <button
+            <Button
+              variant="secondary"
+              iconBefore={<CalendarIcon />}
+              size={size}
               type="button"
               form={form}
               disabled={disabled}
-              {...field}
+              {...triggerProps}
+              aria-label={ariaLabel}
+              aria-labelledby={ariaLabelledby}
+              aria-invalid={ariaInvalid}
+              aria-describedby={ariaDescribedby}
               id={triggerId}
               aria-required={undefined}
               className={cn(
                 controlBase,
                 controlHeight[size],
-                "flex items-center gap-100 text-left",
+                "flex items-center justify-start gap-100 text-start font-regular shadow-none",
                 className,
               )}
             >
-              <CalendarIcon className="size-icon-small shrink-0 icon-subtle" />
               <span
                 className={cn("min-w-0 flex-1 truncate tabular-nums", !date && "text-subtlest")}
               >
@@ -140,7 +138,7 @@ export function DatePicker({
                   ? formatCalendarDate(date, { month: "short", day: "numeric", year: "numeric" })
                   : (placeholder ?? t("chooseDate"))}
               </span>
-            </button>
+            </Button>
           }
         />
         <PopoverContent
@@ -152,6 +150,7 @@ export function DatePicker({
         >
           <Calendar
             mode="single"
+            autoFocus
             {...(date ? { selected: date, defaultMonth: date } : {})}
             onSelect={pick}
           />

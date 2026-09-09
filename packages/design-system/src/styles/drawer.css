@@ -1,0 +1,211 @@
+/* shadcn's Base UI drawer geometry, with Ledger surfaces, spacing and motion.
+   The measured size, swipe and nested-stack variables are owned by Base UI. */
+@utility drawer-overlay {
+  opacity: max(var(--drawer-overlay-min-opacity, 0), calc(1 - var(--drawer-swipe-progress)));
+  transition: opacity var(--ds-motion-duration-slow) var(--ds-motion-easing-standard);
+  &[data-snap-points] {
+    --drawer-overlay-min-opacity: 0.5;
+  }
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+  &[data-ending-style] {
+    pointer-events: none;
+    transition-duration: calc(var(--drawer-swipe-strength) * var(--ds-motion-duration-slow));
+  }
+  &[data-swiping] {
+    transition-duration: 0s;
+  }
+  @supports (-webkit-touch-callout: none) {
+    position: absolute;
+  }
+}
+@utility drawer-popup {
+  --bleed: var(--ds-space-600);
+  --peek: var(--ds-space-200);
+  --stack-height: var(--drawer-frontmost-height, var(--drawer-height, 0px));
+  --stack-progress: clamp(0, var(--drawer-swipe-progress), 1);
+  --stack-peek-offset: max(
+    0px,
+    calc((var(--nested-drawers) - var(--stack-progress)) * var(--peek))
+  );
+  --stack-step: 0.05;
+  --stack-scale-base: max(0, calc(1 - var(--nested-drawers) * var(--stack-step)));
+  --stack-scale: clamp(
+    0,
+    calc(var(--stack-scale-base) + var(--stack-step) * var(--stack-progress)),
+    1
+  );
+  --stack-shrink: calc(1 - var(--stack-scale));
+  --drawer-content-height: var(--drawer-height, auto);
+  margin: var(--drawer-inset, 0px);
+  height: var(--drawer-content-height);
+  max-height: var(--drawer-content-max-height, none);
+  width: var(--drawer-content-width, auto);
+  transform: translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0)
+    scale(var(--stack-scale));
+  transition:
+    transform var(--ds-motion-duration-slow) var(--ds-motion-easing-standard),
+    height var(--ds-motion-duration-slow) var(--ds-motion-easing-standard);
+  will-change: transform;
+  interpolate-size: allow-keywords;
+  &[data-nested-drawer-open] {
+    overflow: hidden;
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    background: var(--ds-elevation-surface-overlay);
+  }
+  &[data-swipe-axis="y"] {
+    inset-inline: 0;
+    --drawer-content-max-height: calc(100dvh - var(--ds-space-600));
+    &[data-snap-points] {
+      --drawer-content-height: 100dvh;
+    }
+    &[data-nested-drawer-open] {
+      height: var(--stack-height);
+    }
+    &::after {
+      inset-inline: 0;
+      height: var(--bleed);
+    }
+  }
+  &[data-swipe-axis="x"] {
+    inset-block: 0;
+    flex-direction: row;
+    --drawer-content-width: min(75vw, 24rem);
+    &::after {
+      inset-block: 0;
+      width: var(--bleed);
+    }
+  }
+  &[data-swipe-direction="down"] {
+    bottom: 0;
+    transform-origin: bottom;
+    --closed-transform: translate3d(0, calc(100% + var(--drawer-inset, 0px) + 2px), 0);
+    --translate-y: calc(
+      var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y) -
+        var(--stack-peek-offset) - var(--stack-shrink) * var(--stack-height)
+    );
+    &::after {
+      top: 100%;
+    }
+  }
+  &[data-swipe-direction="up"] {
+    top: 0;
+    transform-origin: top;
+    --closed-transform: translate3d(0, calc(-100% - var(--drawer-inset, 0px) - 2px), 0);
+    --translate-y: calc(
+      var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y) +
+        var(--stack-peek-offset) + var(--stack-shrink) * var(--stack-height)
+    );
+    &::after {
+      bottom: 100%;
+    }
+  }
+  &[data-swipe-direction="left"] {
+    left: 0;
+    transform-origin: left;
+    --closed-transform: translate3d(calc(-100% - var(--drawer-inset, 0px) - 2px), 0, 0);
+    --translate-x: calc(
+      var(--drawer-swipe-movement-x) + var(--stack-peek-offset) + var(--stack-shrink) * 100%
+    );
+    &::after {
+      right: 100%;
+    }
+  }
+  &[data-swipe-direction="right"] {
+    right: 0;
+    transform-origin: right;
+    --closed-transform: translate3d(calc(100% + var(--drawer-inset, 0px) + 2px), 0, 0);
+    --translate-x: calc(
+      var(--drawer-swipe-movement-x) - var(--stack-peek-offset) - var(--stack-shrink) * 100%
+    );
+    &::after {
+      left: 100%;
+    }
+  }
+  &[data-starting-style],
+  &[data-ending-style] {
+    transform: var(--closed-transform);
+  }
+  &[data-swiping],
+  &[data-nested-drawer-swiping] {
+    transition-duration: 0s;
+  }
+  &[data-ending-style] {
+    transition-duration: calc(var(--drawer-swipe-strength) * var(--ds-motion-duration-slow));
+  }
+}
+@utility drawer-content {
+  border-radius: inherit;
+  transition: opacity var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard);
+  .drawer-popup[data-nested-drawer-open] & {
+    opacity: 0;
+  }
+  .drawer-popup[data-nested-drawer-swiping] & {
+    opacity: 1;
+  }
+  .drawer-popup[data-swiping] & {
+    user-select: none;
+  }
+}
+@utility drawer-swipe-handle {
+  transition: opacity var(--ds-motion-duration-medium) var(--ds-motion-easing-standard);
+  &::after {
+    content: "";
+    display: block;
+    flex-shrink: 0;
+    border-radius: var(--ds-radius-full);
+    background: var(--ds-color-border-bold);
+  }
+  .drawer-popup[data-swipe-axis="y"] & {
+    width: 100%;
+    height: var(--ds-space-150);
+    justify-content: center;
+    &::after {
+      width: var(--ds-space-600);
+      height: var(--ds-space-050);
+    }
+  }
+  .drawer-popup[data-swipe-axis="x"] & {
+    height: 100%;
+    width: var(--ds-space-150);
+    align-items: center;
+    &::after {
+      height: var(--ds-space-600);
+      width: var(--ds-space-050);
+    }
+  }
+  .drawer-popup[data-swipe-direction="down"] & {
+    align-items: end;
+  }
+  .drawer-popup[data-swipe-direction="up"] & {
+    order: 1;
+    align-items: start;
+  }
+  .drawer-popup[data-swipe-direction="left"] & {
+    order: 1;
+    justify-content: start;
+  }
+  .drawer-popup[data-swipe-direction="right"] & {
+    justify-content: end;
+  }
+  .drawer-popup[data-nested-drawer-open] & {
+    opacity: 0;
+  }
+  .drawer-popup[data-nested-drawer-swiping] & {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer-popup,
+  .drawer-overlay,
+  .drawer-content,
+  .drawer-swipe-handle {
+    transition-duration: 0s !important;
+  }
+}

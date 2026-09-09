@@ -1,0 +1,255 @@
+{
+  "_comment": "Hand-authored WS-X90 assessment findings FND-017..FND-052, one entry per fail result in ASM-2026-002. Read by scripts/gen-wsx90-campaign.mjs, which assembles the record (ids, uuid, requirement/control/component references, evidence, risk, status) around this text and appends the synthetic-content marker. Every title and description is written from the failing requirement, its control implementation narrative and the cited evidence artifact; nothing here is templated. requirement_id is carried so the generator can prove the id-to-requirement binding has not drifted. Controls are cited by id only; no NIST or DISA prose is reproduced.",
+
+  "FND-017": {
+    "requirement_id": "REQ-193",
+    "severity": "low",
+    "title": "SC policy baseline carries an issue date but no recorded review decision in the Configuration Repository (SC-1)",
+    "description": "Examining the LRU-020 baseline object export for SCP-BASE-3 recorded in EVD-146, the assessor found issue date, owner and both superseded revisions present, and watched LRU-017 refuse to assemble a provisioning package against a baseline older than twelve months. What the export does not contain is any trace of the annual review itself: the reissue is carried as a calendar reminder held by a person rather than as a repository workflow step that lodges a decision, so the freshness of the artifact is enforced while the review REQ-193 asks for leaves nothing behind. No protection is absent — the policy and its implementing procedures are current and the build gate demonstrably works — and the shortfall is that the assessor has to take the review on trust."
+  },
+
+  "FND-018": {
+    "requirement_id": "REQ-200",
+    "severity": "high",
+    "title": "Session-table occupancy missing from the gateway counter export, leaving low-rate state exhaustion undetectable (SC-5(3))",
+    "description": "Across the one-hour capture in EVD-151 the 60-second export cadence from LRU-007 held with no sequence gap, and an injected connection-rate excursion sustained for three intervals produced exactly one alert at LRU-018 while a two-interval excursion produced none. The exported set is nevertheless link-level only: interface utilisation, connection rate and drop counters are published, session-table and buffer occupancy are not, so an adversary who exhausts gateway state at a packet rate under the profiled threshold leaves no mark in anything the collector evaluates. REQ-200 counts that occupancy counter as part of the exported set, so the objective is unmet even though the alerting behaviour it also specifies was correct in every trial. Adding the counters is queued behind the next gateway telemetry change, and until then detection on the platform's only external mediation point stops at the link layer."
+  },
+
+  "FND-019": {
+    "requirement_id": "REQ-207",
+    "severity": "high",
+    "title": "Egress denial records attribute maintenance-origin traffic to a device instead of an operator (SC-7(9))",
+    "description": "The 2026-10 threat-rule sample in EVD-157 shows matching outbound traffic dropped at LRU-007 and a denial record reaching LRU-018 inside the 60-second bound, with originating LRU and partition resolved on every row. On rows whose traffic began in a maintenance session the operator field is unpopulated and the origin resolves to the Maintenance Access Gateway, because the session identity is not carried forward into the record the gateway emits. REQ-207 asks the record to name where denied traffic came from, and a device name does not answer that when several technicians reach the platform through the same appliance, so an attempted exfiltration from a maintenance session cannot afterwards be pinned to anyone. Losing attribution on the one path with the widest reach is what lifts this above a routine logging omission."
+  },
+
+  "FND-020": {
+    "requirement_id": "REQ-212",
+    "severity": "high",
+    "title": "Maintenance Access Gateway service connector locked but unsealed, so an unauthorized connection leaves no trace (SC-7(14))",
+    "description": "The platform inventory extract in EVD-161 accounts for every boundary-crossing interface: both LRU-007 external terminations carry keyed locks recorded against a key holder, and unused LRU-009 ports are blanked with the blank noted per port. The LRU-014 service connector carries its lock and no tamper-evident seal, which makes it the one interface where a cable can be seated and pulled between scheduled inspections with nothing left for an inspector to find. REQ-212 was written to make an unauthorized physical connection visible rather than merely inconvenient, and a keyed lock delivers only the second of those. Seals are specified and on order so the window is bounded, but it sits on the connector that reaches the maintenance path directly."
+  },
+
+  "FND-021": {
+    "requirement_id": "REQ-229",
+    "severity": "moderate",
+    "title": "Provisioning Workstation tooling screened for interpreted-code technologies by review rather than at build (SC-18)",
+    "description": "EVD-172 carries a dated acceptable and unacceptable technology list with a named owner, and an LRU-001 load module containing a listed unacceptable technology failed its build with the technology named in the failure text. Tooling built for LRU-017 reached that same list only through a control board reading, so whether an unacceptable technology was caught turned on a reviewer noticing it rather than on a gate refusing the module. REQ-229 puts the rejection in the build for both endpoints, and a review path cannot support that assertion for the workstation however diligent the reviewer is. Aurora Defense Systems extended the existing build scan over the LRU-017 tooling pipeline inside the assessment window and the objective retested to a pass, so the finding is recorded closed."
+  },
+
+  "FND-022": {
+    "requirement_id": "REQ-240",
+    "severity": "high",
+    "title": "In-partition failures never reach the Secure Boot Controller, so the platform does not enter its defined secure state (SC-24)",
+    "description": "Induced boot integrity failures and watchdog expiries in EVD-178 drove LRU-001 into the defined secure state comfortably inside five seconds, with every external interface down and no key material resident in memory afterwards. A failure detected inside a running mission partition takes a different route entirely: it is handed to that partition's own handler and never reaches LRU-002, so the platform can carry on with other partitions live while one has already failed its own checks. REQ-240 describes the secure state as a whole-platform condition, and a per-partition handler has no means of bringing the platform to it. The uncovered case is also the airborne case rather than the power-on one, which is why on an integrity-high system this is not treated as a bounded shortfall."
+  },
+
+  "FND-023": {
+    "requirement_id": "REQ-344",
+    "severity": "low",
+    "title": "Audit procedures still written to the original 74-control scope in the Configuration Repository (AU-1)",
+    "description": "The approval record in EVD-242 shows the audit policy re-approved within the current annual cycle, signed, numbered and disseminated in LRU-020 to every WS-X90 platform role holder on the list. Read next to it, the procedure half of the set still describes the audit scope as it stood before the effective control set reached 546 controls and is silent on the correlation and reviewer-queue behaviour now running on LRU-018. REQ-344 binds policy and procedures together and calls for both to be re-approved after a change to the audit pipeline, so an approved policy sitting over stale procedures leaves the objective short by half. The pipeline itself was observed working throughout, so what is defective is the written direction rather than anything the platform does."
+  },
+
+  "FND-024": {
+    "requirement_id": "REQ-349",
+    "severity": "moderate",
+    "title": "Maintenance session transcripts sat outside the correlation key space on the Security Log Collector (AU-6(3))",
+    "description": "In the walkthrough recorded in EVD-247, a seeded configuration change in LRU-020 and the platform audit records it produced in the copy taken from LRU-015 resolved to one correlated event keyed on actor identity and time, and a change with no matching audit record surfaced as unmatched rather than being dropped. Maintenance session transcripts lived in a third store the join did not read, so a change made during a maintenance session correlated to the change record and not to the session that carried it, and the analysis view could say what had changed without saying under whose hands. REQ-349 asks for one view across the repositories holding the change and its audit trail, and a join that omits one of them cannot build it. The transcript store was brought into the correlation key space during the window and the requirement retested to a pass, closing the finding."
+  },
+
+  "FND-025": {
+    "requirement_id": "REQ-360",
+    "severity": "critical",
+    "title": "Payload arm and release commands signed under a rotated key cannot be verified at all (AU-10)",
+    "description": "Every arm and release command in the mission run captured in EVD-253 carried a signature from LRU-003 binding the command, the operator identity and the LRU-011 interlock state, and a replay with an altered operator identity failed verification exactly as intended. Verification breaks on key history instead: no list of retired key identifiers has been published to LRU-018, so a validly signed command whose signing key has since rotated resolves as unknown-key and is filed among the records that genuinely cannot be trusted. REQ-360 exists so that whoever originated a payload command through LRU-010 cannot later disown it, and a signature nobody can resolve to a key offers no more attribution than no signature at all. The records this strands are arm and release commands, so the objective the platform currently cannot meet is the one covering its most consequential action, and the affected population grows with every rotation until the retired-key history is published."
+  },
+
+  "FND-026": {
+    "requirement_id": "REQ-364",
+    "severity": "low",
+    "title": "Switch-relayed audit records ordered on arrival rather than origin in the compiled trail (AU-12(1))",
+    "description": "The trail extract in EVD-255 covered every LRU in the reporting-component register for the sampled window, reproduced the known order of a seeded event sequence against the LRU-005 reference, and carried degraded-time markers through visibly instead of interleaving marked records in silence. Records relayed through LRU-009 were the exception: the switch passed them on without stamping a source time, so LRU-018 ordered them by the moment they arrived, which drifts outside the platform tolerance whenever the internal segment is congested. REQ-364 asks for one trail ordered on the platform time reference, and an arrival-ordered subset sitting inside it is a second ordering wearing the same column heading. A source-time stamp was added to the relay path and the retest reproduced the seeded order across every source, so this is recorded closed."
+  },
+
+  "FND-027": {
+    "requirement_id": "REQ-436",
+    "severity": "moderate",
+    "title": "Seven access control procedures in field packages carry no current owner signature (AC-1)",
+    "description": "The signed export in EVD-286 holds a single approved revision of the access control policy in LRU-020, an annual review record against it, and the out-of-cycle review triggered by the 2026-09-08 change to the effective control set, all as REQ-436 lays out. Seven of the fourteen procedures published alongside that policy were written against the previous control scope and carry no current owner signature, and LRU-017 will still assemble a technician procedure package containing them because the issue check tests the policy revision cited and not the signature state of each procedure inside. Unsigned direction therefore reaches the people performing the work, which is a materially different condition from stale direction resting in a repository. Reissue of the seven is the outstanding work, and the finding is carried on the packages already in the field rather than on the policy, which is current."
+  },
+
+  "FND-028": {
+    "requirement_id": "REQ-449",
+    "severity": "moderate",
+    "title": "UDP-bearing approved tunnel outlives a failed inspection past the five-second termination bound (AC-4(4))",
+    "description": "EVD-293 records all three approved tunnels presented to the LRU-007 inspection path in cleartext by LRU-003, and an encrypted flow whose key LRU-003 does not hold blocked outright rather than passed uninspected. Termination on a failed inspection measured inside the bound for the TCP-bearing tunnels and did not occur at all for the UDP-bearing one, where offending packets are discarded individually while the session itself stays established indefinitely. REQ-449 sets a five-second teardown on detection precisely so a flow that has already proved itself disallowed stops being available to try again, and dropping packet by packet leaves that door standing open. No content crosses the boundary meanwhile, which is what keeps the exposure contained, but the session state the requirement asks to be removed is still there."
+  },
+
+  "FND-029": {
+    "requirement_id": "REQ-454",
+    "severity": "moderate",
+    "title": "Unreconfirmed privileged assignments flagged on the Platform Management Controller but never reduced (AC-6(7))",
+    "description": "The signed worksheet in EVD-298 falls inside the 180-day interval and sets each holder's assignment beside their preceding 180 days of privileged activity drawn from LRU-018, so the review was a judgement against what people actually did rather than a signature against a role name. Two assignments emerged from that review unreconfirmed and both were still privileged when the assessor asked, because LRU-013 raises a flag on a non-reconfirmation and leaves the downgrade to somebody remembering to perform it. REQ-454 states the reduction as the outcome of the review rather than an action available afterwards, so an assignment that survives its own review through inattention undoes the reason for holding one. The review discipline itself is sound and evidenced, which confines the shortfall to the enforcement step at the end of it."
+  },
+
+  "FND-030": {
+    "requirement_id": "REQ-470",
+    "severity": "low",
+    "title": "Out-of-window remote privileged commands logged and then admitted by the Maintenance Access Gateway (AC-17(4))",
+    "description": "Two of the three admission checks REQ-470 names held under test: EVD-309 shows a command absent from the approved remote-privileged list refused at LRU-014 with its reason code, and an LRU-019 laptop failing device attestation unable to open a privileged session at all. The third did not hold, because the scheduled-window test was wired as advisory rather than as an admission decision, so a privileged command issued outside a maintenance window was written to the session log and then executed. A refusal that records itself and proceeds regardless is not a refusal, so the rule that a command failing any one of the three checks is rejected was unsatisfied on the window leg. Aurora Defense Systems promoted the window test to a blocking check during the assessment window and the retest showed the out-of-window command refused with its reason code, so the finding is closed."
+  },
+
+  "FND-031": {
+    "requirement_id": "REQ-599",
+    "severity": "critical",
+    "title": "Disconnected Maintenance Laptop still offers a password-only logon on the flightline (IA-2(2))",
+    "description": "The method inventory in EVD-372 shows LRU-017 offering no authentication path that does without a hardware credential and a PIN, and LRU-019 enforcing the same pair on every session while it is attached to the ground support network. Taken off that network the laptop falls back to a local password-only logon left in place as an availability concession, and REQ-599 forecloses it in terms: the credential-and-PIN pair extends to sessions established while the endpoint is disconnected, and no password-only fallback is to exist. That fallback is reachable in exactly the setting the platform is worked on most, by anyone holding the laptop at the aircraft with no path to the identity service, so the multi-factor property this control was selected to provide is not a property of the platform today. The offline credential verifier being built for the LRU-019 baseline is the only thing that closes it, and nothing compensates in the meantime."
+  },
+
+  "FND-032": {
+    "requirement_id": "REQ-604",
+    "severity": "moderate",
+    "title": "Timing Receiver port admitted to the mission VLAN on a one-sided certificate exchange (IA-3(1))",
+    "description": "The per-port export in EVD-376 confirms the behaviour REQ-604 turns on across the mission computing ports: a device presenting a valid certificate but a failed LRU-002 boot measurement stays in the quarantine VLAN, and LRU-001 refuses mission traffic sourced from any port whose state is not authenticated. The port serving the Timing Receiver is nonetheless carried as authenticated with a certificate subject recorded for one end of the link only, because that device validates the switch credential without presenting its own on reconnection, so LRU-009 admitted it to the mission VLAN on an exchange that ran in a single direction. The requirement is written around a mutual exchange because a port that has proved the switch to the device tells the switch nothing whatever about what is attached to it. Every other port is correct and the quarantine mechanism works, so this is one link rather than a broken mechanism, but it is the link distributing the reference the whole audit trail is ordered on."
+  },
+
+  "FND-033": {
+    "requirement_id": "REQ-609",
+    "severity": "moderate",
+    "title": "Compromised-password screening list refreshed ad hoc, so an accepted credential may already be public (IA-5(1))",
+    "description": "Storage and transport held under test in EVD-380: a raw read of the LRU-015 credential region returned salt and derivation output with nothing reversible in it, a packet capture of the path into LRU-003 carried no plaintext, and the composition rules rejected an eleven-character candidate, a twelve-character candidate missing a class, and a change leaving more than half the characters in position. What the assessor could not establish is that an accepted password is one worth accepting, because the compromised and commonly used list every candidate is screened against has been refreshed whenever somebody got to it rather than on the at-least-quarterly interval the parameter for this control sets, and the latest refresh sits well outside that interval. A candidate meeting every composition rule REQ-609 states and appearing on a list published since that refresh is accepted today without objection. The mechanism is sound and the remedy is a schedule, which bounds this, but the fielded consequence is that a public credential is a valid credential on WS-X90."
+  },
+
+  "FND-034": {
+    "requirement_id": "REQ-251",
+    "severity": "moderate",
+    "title": "Monitoring and boot-integrity enhancement procedures still marked draft in the signed SI set (SI-1)",
+    "description": "Edition 3 of the integrity policy set in EVD-206 is signed inside the last twelve months, names the official accountable for it, enumerates the SI controls it implements, and the LRU-017 release manifest cites the same version identifier the LRU-020 copy carries, so a fielded image traces to the policy edition it was built under. The procedures covering the monitoring and boot-integrity enhancements the expanded control set introduced are marked draft in that same edition, and the set names no event other than the annual date that would force a reissue, so the arrival of those enhancements triggered nothing. REQ-251 requires reissue after any change to the SI control allocation, which is exactly the change that occurred, leaving the objective unmet on its event-driven leg while its calendar leg is satisfied. The engineering behind those enhancements is fielded and assessed on its own objectives; what is missing is issued direction for operating it."
+  },
+
+  "FND-035": {
+    "requirement_id": "REQ-261",
+    "severity": "high",
+    "title": "Mission data sessions over the tactical radio never presented to platform monitoring (SI-4(10))",
+    "description": "The design record in EVD-209 has the management and telemetry session classes terminated at LRU-007 so their content reaches the monitoring path inside the gateway boundary, with session keys generated and held in LRU-003 and no plaintext content written to gateway persistent storage. Mission data sessions carried over the Tactical Data Radio fall outside that arrangement completely: they are neither terminated nor inspected, so monitoring sees flow-level metadata and nothing of what the platform's primary operational link is actually carrying. REQ-261 carves out no session class, and the decision on whether to terminate the mission link or formally accept metadata-only visibility remains open, so the objective is unmet rather than deliberately tailored away. That blind spot covers the highest-volume external path on a confidentiality-high system, which is why it is not recorded as a contained shortfall."
+  },
+
+  "FND-036": {
+    "requirement_id": "REQ-280",
+    "severity": "high",
+    "title": "Navigation, timing and payload firmware violations raise an alert without driving the restricted state (SI-7(5))",
+    "description": "An induced violation in the mission software set behaved as REQ-280 asks in EVD-213: LRU-002 put the platform into the restricted state with no operator action, mission functions were unavailable while it was held, and recovery from the last known-good image on LRU-016 demanded an authenticated technician instead of an automatic reimage. That automatic response is scoped to a single measurement domain. A violation reported by navigation, timing or payload firmware raises an alert and leaves the platform in whatever mode it was in, so a component that has already failed its own integrity check keeps contributing to the mission while somebody reads the alert. The requirement attaches the restricted state to an integrity violation in the platform rather than in one partition of it, and the three domains left out are the ones whose output the mission depends on most directly."
+  },
+
+  "FND-037": {
+    "requirement_id": "REQ-559",
+    "severity": "moderate",
+    "title": "Four of eleven configuration management procedures unsigned and flagged review-overdue (CM-1)",
+    "description": "Revision 4.0 in EVD-345 shows the CM policy and seven procedures signed, version-tagged and bound to the single official who owns them, with the engineering and cybersecurity dissemination list recorded against the publication and the review-overdue flag computing correctly in LRU-020 against the annual interval. That flag is set on four procedures — those covering automated change prohibition, automated security response, information location and signed components — which were drafted when the enhancements were added and never signed. REQ-559 requires every artifact in the set to carry a valid signature and name an accountable owner, so a repository correctly reporting four unsigned procedures is reporting the objective as unmet rather than satisfying it. The enforcement machinery is doing precisely what it should, which is why this is raised against the content of the set and not against the repository holding it."
+  },
+
+  "FND-038": {
+    "requirement_id": "REQ-568",
+    "severity": "moderate",
+    "title": "Post-campaign change review has no trigger and runs only when somebody remembers (CM-3(7))",
+    "description": "The reconciliation output in EVD-351 covers the September and October cycles and keeps its two exception classes apart, listing applied changes with no approved record separately from approved records with no applied change, with the post-incident review raised after the August integration incident present beside them. REQ-568 asks for the same review once a planned change campaign has been performed, and nothing opens one: LRU-020 records the campaign closing and no reconciliation against the LRU-018 event stream is scheduled off that event, so the review happens if the engineer running the campaign thinks to ask for it. A change campaign is when the applied set diverges furthest from the approved set in the shortest time, so the review with no trigger behind it is the review covering the widest divergence. The monthly cadence is being met and evidenced, which caps how long an unreviewed campaign can sit unnoticed."
+  },
+
+  "FND-039": {
+    "requirement_id": "REQ-583",
+    "severity": "low",
+    "title": "Four Internal Ethernet Switch ports reported unlisted hardware without refusing it a data path (CM-7(9))",
+    "description": "EVD-360 records an unlisted device refused a maintenance session at LRU-014 with its presented identity named, and refused a data path on eight of the twelve LRU-009 ports, the refusal reaching the platform log inside the thirty-second bound every time. On the four remaining ports detection ran and the report was raised while the data path stayed up, because those ports carry firmware predating the enforcement build and can act on a device identity only by reporting it. REQ-583 requires the unlisted device to be refused a path as well as reported, so a port that announces the problem and then carries the traffic delivers half of what is asked. The four ports were reflashed to the enforcement build inside the assessment window and the retest showed all twelve refusing, so this is recorded closed."
+  },
+
+  "FND-040": {
+    "requirement_id": "REQ-373",
+    "severity": "moderate",
+    "title": "Payload Telemetry Unit maintained on retrospective paperwork outside the work-order gate (MA-2(2))",
+    "description": "The workflow export in EVD-259 shows scheduling, dispatch and close-out each producing a state change on LRU-013 stamped with an actor identity, the work-order gate on LRU-016 refusing any action carrying no open order, and no manual override path anywhere in the configuration. Maintenance on the Payload Telemetry Unit does not travel that route: its records are typed in by hand after the work is finished, so no work order gated the action while it was happening and the thirty-day stale-record flag never examines them. REQ-373 treats the workflow as the thing that authorises a maintenance action rather than the thing that describes it afterwards, so a subsystem maintained on retrospective paperwork sits outside the requirement however complete that paperwork is. Everything inside the platform management subsystem is gated correctly, which makes this a coverage boundary between subsystems rather than a defect in the gate itself."
+  },
+
+  "FND-041": {
+    "requirement_id": "REQ-379",
+    "severity": "low",
+    "title": "Out-of-work-order privileged tool use discoverable only by query on the Security Log Collector (MA-3(5))",
+    "description": "Every privileged invocation in the sampled period reconciled one-to-one against the LRU-014 invocation register in EVD-262, each record naming the tool, the technician identity and the privilege level, so visibility of privileged tool use after the fact was complete. The extract carries no alert rows whatever, and the reason is that the rule REQ-379 asks for — an alert whenever a privileged invocation falls outside an open work order — had been specified for LRU-018 and not built, leaving out-of-order use something a person would find only by going to look for it. A record that exists and is never read detects nothing, which is the distinction the requirement draws between logging and alerting. The rule was implemented on the collector inside the assessment window and a seeded out-of-order invocation raised the alert on retest, closing the finding."
+  },
+
+  "FND-042": {
+    "requirement_id": "REQ-486",
+    "severity": "moderate",
+    "title": "Recovery exercise restored one partition, leaving the four-hour objective unproven for the article (CP-4)",
+    "description": "The exercise record in EVD-323 shows a restore run through LRU-016 from a sealed LRU-015 backup set, with the mission software partition coming back and passing its integrity check inside the elapsed time measured. The flight-configuration article was not released for test, so the platform management and payload interface partitions were left out of the run and have never been restored end to end, which also makes the measured duration a figure for part of the article rather than the whole of it. REQ-486 defines the exercise as restoring a representative platform article and judges it against a four-hour objective for that article, so a partial restore can neither pass nor fail against the objective it was measured for. Availability is categorised moderate and a corrective action is open with a named owner against the untested partitions, so what is exposed is demonstrated readiness rather than the recovery path."
+  },
+
+  "FND-043": {
+    "requirement_id": "REQ-498",
+    "severity": "low",
+    "title": "Primary and alternate bearers converge on one Internal Ethernet Switch port group (CP-8(2))",
+    "description": "The traces in EVD-325 were built from live interface and routing state rather than from a drawing, and they settle carrier-side disjointness cleanly: the LRU-007 primary and the LRU-008 alternate reach the demarcation over different transmission lines through different points of presence with no carrier element shared between them. On the platform they meet, both transiting the same LRU-009 port group, and REQ-498 fails a trace on any element appearing twice whichever side of the demarcation it sits on. The shared port group is the single point of failure the alternate path exists to remove, so the alternate is disjoint everywhere except the place that decides whether it helps. Availability is categorised moderate and the convergence is already recorded as an accepted single point of failure against a risk reference, which is why it is carried lightly while the radio path is re-homed."
+  },
+
+  "FND-044": {
+    "requirement_id": "REQ-121",
+    "severity": "moderate",
+    "title": "Expired acquisition procedures can still be cited in a live procurement package (SA-1)",
+    "description": "The revision index in EVD-120 carries signed release metadata for the acquisition policy and its supporting procedures, names the designated official on each issue, and records the dissemination acknowledgements taken at LRU-017 before an issue was marked current. Two things hold the objective short: the last full reissue was made before the tailored profile grew from 74 to 546 controls, so the procedures describe none of the acquisition actions the added supply chain and configuration enhancements call for, and LRU-020 stores a review date without acting on it, so an expired procedure can be cited in a live procurement package and nothing intervenes. REQ-121 asks for an annual reissue and for publication to record who received it, and the second of those is evidenced while the first is not. A stale procedure that downstream work can still consume is what separates this from the other policy shortfalls, where the direction is out of date but nothing reads it."
+  },
+
+  "FND-045": {
+    "requirement_id": "REQ-148",
+    "severity": "high",
+    "title": "Payload Safety Interlock carries an asserted trustworthiness basis with no supplier assurance case (SA-8(9))",
+    "description": "The dependency map at revision B in EVD-130 resolves every security-decision dependency in the mission computing chain to a component with a recorded basis: LRU-002 to its hardware root of trust and reviewed verification path, LRU-003 to its module validation and reviewed key release precondition. LRU-011 stands in that map as the component payload authorization depends upon, and its basis is an assertion, because the supplier assurance case has not been delivered and nothing behind the entry has been reviewed. REQ-148 turns that entry into a rule — the interlock must refuse an authorization from a component whose declared basis is weaker than its own — and a rule cannot be evaluated while one side of the comparison is a placeholder. The component nobody can characterise is the one standing between a payload command and the payload itself, so the least understood dependency in the architecture carries the most consequence."
+  },
+
+  "FND-046": {
+    "requirement_id": "REQ-182",
+    "severity": "moderate",
+    "title": "Six LRUs fall back to a maintenance-record serial number for hardware identity at power-on (SA-10(3))",
+    "description": "EVD-142 shows LRU-013 reading the supplier-provisioned identity at power-on and raising a fault within one cycle for a substituted unit, the comparison anchored to the LRU-002 platform measurement so that a matched identity on an unmeasured platform is not accepted as valid. Six units across the navigation, timing and payload interface subsystems carry no identity part, their suppliers having been on contract before the requirement was placed, and for those the comparison falls back to a serial number read out of a maintenance record. A record-based check catches a substitution only when whoever performed it also updated the record, which is the single thing an adversary swapping hardware will not do. REQ-182 asks for the identity to be read from the unit itself, so this fallback is not a weaker form of the same check but a different check answering a different question."
+  },
+
+  "FND-047": {
+    "requirement_id": "REQ-508",
+    "severity": "moderate",
+    "title": "Ground-support telemetry exchange carrying traffic on an interim approval with no signed agreement (CA-3)",
+    "description": "The register in EVD-328 maps each exchange enabled in the LRU-007 policy set to a signed agreement identifier and shows the LRU-008 tactical data link covered by a current agreement recording its impact level and the party responsible for each control. One entry resolves instead to a dated interim approval: the ground-support telemetry exchange is enabled and carrying traffic while its agreement remains in draft. REQ-508 makes the signed agreement the precondition for enabling an exchange rather than a record to be caught up afterwards, so an interim approval with an expiry on it is a plan to comply and not compliance. The exchange is time-bounded and listed openly rather than hidden, and what nobody has yet signed for is the division of control responsibilities with the other party."
+  },
+
+  "FND-048": {
+    "requirement_id": "REQ-525",
+    "severity": "moderate",
+    "title": "Baseline scan ran to completion on a thirty-hour-old signature set without aborting (RA-5(2))",
+    "description": "The test run in EVD-333 drove LRU-017 against baseline 4.2.1 with signature sets aged six, twenty-three and thirty hours. The thirty-hour case completed and produced a clean report, because the workstation never compares the refresh timestamp on the LRU-020 mirrored set against the twenty-four-hour window the parameter for this control sets, and the abort path REQ-525 describes does not exist to be triggered. The signature identifier reached the scan log and not the report header, so a reviewer holding that report has no way to tell how old the set behind it was. A scan that silently runs stale returns an absence of findings indistinguishable from a clean result, which is what makes this more than a scheduling matter even though the weekly mirror refresh is working."
+  },
+
+  "FND-049": {
+    "requirement_id": "REQ-298",
+    "severity": "moderate",
+    "title": "Incident response procedures name no insider-threat branch or spillage roles after the scope expansion (IR-1)",
+    "description": "The manifest in EVD-231 shows the incident response policy and the WS-X90 procedure set held as signed revisions in LRU-020 with their approval dates and signatures, and the copy staged on LRU-017 matching the current repository digest, so ground support is working from the controlled copy. That procedure set has completed no review since the effective control set expanded, and it shows: no insider-threat branch is named and nobody is assigned the spillage roles the added incident response enhancements introduce, so two declarable incident classes have an escalation path in the control set and none in the direction people actually follow. REQ-298 calls for review at least annually and after any incident that changes the escalation chain, and widening that chain by two branches is the change no review has been run against. Published containment actions for the existing subsystems remain accurate, which keeps this short of the response capability itself."
+  },
+
+  "FND-050": {
+    "requirement_id": "REQ-319",
+    "severity": "moderate",
+    "title": "Two of four weakness reports reached the second recipient past the five-working-day bound (IR-6(2))",
+    "description": "All four cases worked since the scope expansion name the implicated baseline item on the LRU-018 incident record, so every weakness in EVD-235 is anchored to a specific LRU-020 configuration revision instead of being described in prose. Measured from the recorded containment timestamp, two of those four reports reached the second recipient REQ-319 names after five working days had elapsed, because that route is walked by hand while the first is dispatched automatically. The requirement sets one bound covering both recipients, so a report that is timely to one and late to the other is simply late. Four cases is a thin sample to reason from, and it is also every case the platform has produced since the scope grew."
+  },
+
+  "FND-051": {
+    "requirement_id": "REQ-392",
+    "severity": "high",
+    "title": "Protected bay access list transcribed by hand, so a facility removal leaves bay access standing (PE-3(1))",
+    "description": "The export in EVD-267 shows the bay reader list as a strict subset of the facility roster and shorter than it, a credential valid at the outer door refused at the bay reader, and every refusal in the preceding thirty days written to the reader log with its credential identifier and timestamp. That list is transcribed from the roster rather than derived from it, so removing somebody from the facility does not remove them from the bay, and the reader log is not exported for correlation, so nothing checks a bay entry against whether the holder still has platform access at all. REQ-392 asks for a second authorisation held separately from general facility access, and a hand-maintained list is separate in the wrong direction, because it can outlive the access it exists to narrow. Behind that door sit LRU-001, LRU-003 and LRU-015, so a stale entry is standing physical access to the key, configuration and recovery material the rest of the control set is built on."
+  },
+
+  "FND-052": {
+    "requirement_id": "REQ-330",
+    "severity": "low",
+    "title": "Personnel security procedure describes weaker gating than the Provisioning Workstation enforces (PS-1)",
+    "description": "The manifest in EVD-239 holds the signed personnel security policy in LRU-020 with a designated managing official and a dissemination record covering every provisioning role on LRU-017, so the distribution half of REQ-330 is intact. The approved revision predates the change made to national eligibility gating during the scope expansion and the at-least-annually review that would have caught it is overdue, so what LRU-017 enforces when an account is provisioned is stricter than what the published procedure tells the person provisioning it to expect. REQ-330 requires an update following any change to screening or eligibility gating, and that change happened without one. Nothing is under-protected, because the divergence runs the safe way with the machine stricter than the paper, and what is defective is that the two no longer agree."
+  }
+}

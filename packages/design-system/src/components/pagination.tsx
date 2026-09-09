@@ -1,108 +1,94 @@
-import { useLedgerLocale } from "../lib/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
+import type { ComponentProps } from "react";
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
+import { buttonVariants, type ButtonProps } from "./button";
 
-const pageButton =
-  "inline-flex h-control-small items-center justify-center rounded-medium font-body-small text-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:text-default focus-visible:outline-focused disabled:pointer-events-none disabled:text-disabled";
-
-export type PaginationProps = {
-  page: number;
-  pageCount: number;
-  onPageChange: (page: number) => void;
-  /** With `pageSize`, renders the row range on the left. */
-  total?: number | undefined;
-  pageSize?: number | undefined;
-  /** The nav's accessible name. Two paginated tables on one page need different ones. */
-  label?: string | undefined;
-  className?: string | undefined;
-};
-
-/** Which page of a long table you are on, and the way to the others. Pages are 1-based. */
-export function Pagination({
-  page,
-  pageCount,
-  onPageChange,
-  total,
-  pageSize,
-  label,
-  className,
-}: PaginationProps) {
-  const { t, formatNumber } = useLedgerLocale();
-  const pages = visiblePages(page, pageCount);
-  const from = total !== undefined && pageSize ? (page - 1) * pageSize + 1 : null;
-  const to = total !== undefined && pageSize ? Math.min(page * pageSize, total) : null;
-  const num = formatNumber;
+export type PaginationProps = ComponentProps<"nav">;
+export function Pagination({ className, ...props }: PaginationProps) {
+  const { t } = useLedgerLocale();
   return (
     <nav
-      aria-label={label ?? t("pagination")}
-      className={cn("flex flex-wrap items-center gap-150 font-body-small text-subtle", className)}
-    >
-      {from !== null && to !== null && total !== undefined ? (
-        <span className="tabular-nums">
-          {total === 0
-            ? t("zeroRows")
-            : t("rowRange", { from: num(from), to: num(to), total: num(total) })}
-        </span>
-      ) : null}
-      <span className="ms-auto flex items-center gap-025">
-        <button
-          type="button"
-          aria-label={t("previousPage")}
-          disabled={page <= 1}
-          onClick={() => onPageChange(page - 1)}
-          className={cn(pageButton, "size-control-small")}
-        >
-          <ChevronLeft className="size-icon-small" />
-        </button>
-        {pages.map((p, i) =>
-          p === "gap" ? (
-            <span key={`gap-${i}`} aria-hidden className="w-300 text-center">
-              …
-            </span>
-          ) : (
-            <button
-              key={p}
-              type="button"
-              aria-label={t("pageLabel", { page: num(p) })}
-              aria-current={p === page ? "page" : undefined}
-              onClick={() => onPageChange(p)}
-              className={cn(
-                pageButton,
-                "min-w-control-small px-075 tabular-nums",
-                p === page && "bg-neutral font-medium text-default",
-              )}
-            >
-              {num(p)}
-            </button>
-          ),
-        )}
-        <button
-          type="button"
-          aria-label={t("nextPage")}
-          disabled={page >= pageCount}
-          onClick={() => onPageChange(page + 1)}
-          className={cn(pageButton, "size-control-small")}
-        >
-          <ChevronRight className="size-icon-small" />
-        </button>
-      </span>
-    </nav>
+      role="navigation"
+      aria-label={t("pagination")}
+      data-slot="pagination"
+      className={cn("mx-auto flex w-full justify-center", className)}
+      {...props}
+    />
   );
 }
-
-/** First, last, the current page and its neighbours; gaps where pages are skipped. */
-function visiblePages(page: number, count: number): (number | "gap")[] {
-  if (count <= 7) return Array.from({ length: count }, (_, i) => i + 1);
-  const around = new Set([1, count, page - 1, page, page + 1]);
-  if (page <= 3) [2, 3, 4].forEach((p) => around.add(p));
-  if (page >= count - 2) [count - 3, count - 2, count - 1].forEach((p) => around.add(p));
-  const sorted = [...around].filter((p) => p >= 1 && p <= count).sort((a, b) => a - b);
-  const out: (number | "gap")[] = [];
-  sorted.forEach((p, i) => {
-    const prev = sorted[i - 1];
-    if (prev !== undefined && p - prev > 1) out.push("gap");
-    out.push(p);
-  });
-  return out;
+export type PaginationContentProps = ComponentProps<"ul">;
+export function PaginationContent({ className, ...props }: PaginationContentProps) {
+  return (
+    <ul
+      data-slot="pagination-content"
+      className={cn("flex list-none items-center gap-025 p-0", className)}
+      {...props}
+    />
+  );
+}
+export type PaginationItemProps = ComponentProps<"li">;
+export function PaginationItem(props: PaginationItemProps) {
+  return <li data-slot="pagination-item" {...props} />;
+}
+export type PaginationLinkProps = ComponentProps<"a"> &
+  Pick<ButtonProps, "size"> & { isActive?: boolean | undefined };
+export function PaginationLink({
+  className,
+  isActive,
+  size = "small",
+  ...props
+}: PaginationLinkProps) {
+  // Base UI 1.7 Button imposes role=button and Space activation on rendered anchors.
+  // Navigation keeps native link semantics and shares only Button's styling recipe.
+  return (
+    <a
+      aria-current={isActive ? "page" : undefined}
+      data-slot="pagination-link"
+      data-active={isActive}
+      className={buttonVariants({
+        variant: isActive ? "secondary" : "subtle",
+        size,
+        className: cn("min-w-control-small px-075 tabular-nums", className),
+      })}
+      {...props}
+    />
+  );
+}
+export type PaginationPreviousProps = PaginationLinkProps & { text?: string | undefined };
+export function PaginationPrevious({ className, text, ...props }: PaginationPreviousProps) {
+  const { t } = useLedgerLocale();
+  return (
+    <PaginationLink aria-label={t("previousPage")} className={cn("gap-075", className)} {...props}>
+      <ChevronLeft
+        aria-hidden
+        data-icon="inline-start"
+        className="size-icon-small rtl:rotate-180"
+      />
+      <span className="hidden sm:block">{text ?? t("previous")}</span>
+    </PaginationLink>
+  );
+}
+export type PaginationNextProps = PaginationLinkProps & { text?: string | undefined };
+export function PaginationNext({ className, text, ...props }: PaginationNextProps) {
+  const { t } = useLedgerLocale();
+  return (
+    <PaginationLink aria-label={t("nextPage")} className={cn("gap-075", className)} {...props}>
+      <span className="hidden sm:block">{text ?? t("next")}</span>
+      <ChevronRight aria-hidden data-icon="inline-end" className="size-icon-small rtl:rotate-180" />
+    </PaginationLink>
+  );
+}
+export type PaginationEllipsisProps = ComponentProps<"span">;
+export function PaginationEllipsis({ className, ...props }: PaginationEllipsisProps) {
+  return (
+    <span
+      aria-hidden
+      data-slot="pagination-ellipsis"
+      className={cn("flex size-control-small items-center justify-center text-subtle", className)}
+      {...props}
+    >
+      <MoreHorizontal className="size-icon-small" />
+    </span>
+  );
 }

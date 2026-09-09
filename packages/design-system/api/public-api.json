@@ -454,6 +454,14 @@
       "target": "\"src/components/calendar\".Calendar",
       "kind": "value"
     },
+    ".#CalendarDayButton": {
+      "target": "\"src/components/calendar\".CalendarDayButton",
+      "kind": "value"
+    },
+    ".#CalendarDayButtonProps": {
+      "target": "\"src/components/calendar\".CalendarDayButtonProps",
+      "kind": "type"
+    },
     ".#CalendarProps": {
       "target": "\"src/components/calendar\".CalendarProps",
       "kind": "type"
@@ -1110,8 +1118,88 @@
       "target": "\"src/components/drawer\".Drawer",
       "kind": "value"
     },
+    ".#DrawerClose": {
+      "target": "\"src/components/drawer\".DrawerClose",
+      "kind": "value"
+    },
+    ".#DrawerCloseProps": {
+      "target": "\"src/components/drawer\".DrawerCloseProps",
+      "kind": "type"
+    },
+    ".#DrawerContent": {
+      "target": "\"src/components/drawer\".DrawerContent",
+      "kind": "value"
+    },
+    ".#DrawerContentProps": {
+      "target": "\"src/components/drawer\".DrawerContentProps",
+      "kind": "type"
+    },
+    ".#DrawerDescription": {
+      "target": "\"src/components/drawer\".DrawerDescription",
+      "kind": "value"
+    },
+    ".#DrawerDescriptionProps": {
+      "target": "\"src/components/drawer\".DrawerDescriptionProps",
+      "kind": "type"
+    },
+    ".#DrawerFooter": {
+      "target": "\"src/components/drawer\".DrawerFooter",
+      "kind": "value"
+    },
+    ".#DrawerFooterProps": {
+      "target": "\"src/components/drawer\".DrawerFooterProps",
+      "kind": "type"
+    },
+    ".#DrawerHeader": {
+      "target": "\"src/components/drawer\".DrawerHeader",
+      "kind": "value"
+    },
+    ".#DrawerHeaderProps": {
+      "target": "\"src/components/drawer\".DrawerHeaderProps",
+      "kind": "type"
+    },
+    ".#DrawerOverlay": {
+      "target": "\"src/components/drawer\".DrawerOverlay",
+      "kind": "value"
+    },
+    ".#DrawerOverlayProps": {
+      "target": "\"src/components/drawer\".DrawerOverlayProps",
+      "kind": "type"
+    },
+    ".#DrawerPortal": {
+      "target": "\"src/components/drawer\".DrawerPortal",
+      "kind": "value"
+    },
+    ".#DrawerPortalProps": {
+      "target": "\"src/components/drawer\".DrawerPortalProps",
+      "kind": "type"
+    },
     ".#DrawerProps": {
       "target": "\"src/components/drawer\".DrawerProps",
+      "kind": "type"
+    },
+    ".#DrawerSwipeHandle": {
+      "target": "\"src/components/drawer\".DrawerSwipeHandle",
+      "kind": "value"
+    },
+    ".#DrawerSwipeHandleProps": {
+      "target": "\"src/components/drawer\".DrawerSwipeHandleProps",
+      "kind": "type"
+    },
+    ".#DrawerTitle": {
+      "target": "\"src/components/drawer\".DrawerTitle",
+      "kind": "value"
+    },
+    ".#DrawerTitleProps": {
+      "target": "\"src/components/drawer\".DrawerTitleProps",
+      "kind": "type"
+    },
+    ".#DrawerTrigger": {
+      "target": "\"src/components/drawer\".DrawerTrigger",
+      "kind": "value"
+    },
+    ".#DrawerTriggerProps": {
+      "target": "\"src/components/drawer\".DrawerTriggerProps",
       "kind": "type"
     },
     ".#DropdownMenu": {
@@ -1706,6 +1794,54 @@
       "target": "\"src/components/pagination\".Pagination",
       "kind": "value"
     },
+    ".#PaginationContent": {
+      "target": "\"src/components/pagination\".PaginationContent",
+      "kind": "value"
+    },
+    ".#PaginationContentProps": {
+      "target": "\"src/components/pagination\".PaginationContentProps",
+      "kind": "type"
+    },
+    ".#PaginationEllipsis": {
+      "target": "\"src/components/pagination\".PaginationEllipsis",
+      "kind": "value"
+    },
+    ".#PaginationEllipsisProps": {
+      "target": "\"src/components/pagination\".PaginationEllipsisProps",
+      "kind": "type"
+    },
+    ".#PaginationItem": {
+      "target": "\"src/components/pagination\".PaginationItem",
+      "kind": "value"
+    },
+    ".#PaginationItemProps": {
+      "target": "\"src/components/pagination\".PaginationItemProps",
+      "kind": "type"
+    },
+    ".#PaginationLink": {
+      "target": "\"src/components/pagination\".PaginationLink",
+      "kind": "value"
+    },
+    ".#PaginationLinkProps": {
+      "target": "\"src/components/pagination\".PaginationLinkProps",
+      "kind": "type"
+    },
+    ".#PaginationNext": {
+      "target": "\"src/components/pagination\".PaginationNext",
+      "kind": "value"
+    },
+    ".#PaginationNextProps": {
+      "target": "\"src/components/pagination\".PaginationNextProps",
+      "kind": "type"
+    },
+    ".#PaginationPrevious": {
+      "target": "\"src/components/pagination\".PaginationPrevious",
+      "kind": "value"
+    },
+    ".#PaginationPreviousProps": {
+      "target": "\"src/components/pagination\".PaginationPreviousProps",
+      "kind": "type"
+    },
     ".#PaginationProps": {
       "target": "\"src/components/pagination\".PaginationProps",
       "kind": "type"
@@ -1962,20 +2098,28 @@
       "target": "\"src/patterns/data-table/view-store\".resetView",
       "kind": "value"
     },
-    ".#Resizable": {
-      "target": "\"src/components/resizable\".Resizable",
+    ".#ResizableHandle": {
+      "target": "\"src/components/resizable\".ResizableHandle",
       "kind": "value"
     },
     ".#ResizableHandleProps": {
       "target": "\"src/components/resizable\".ResizableHandleProps",
       "kind": "type"
     },
-    ".#ResizablePanelProps": {
-      "target": "\"src/components/resizable\".ResizablePanelProps",
+    ".#ResizablePanel": {
+      "target": "\"src/components/resizable\".ResizablePanel",
+      "kind": "value"
+    },
+    ".#ResizablePanelGroup": {
+      "target": "\"src/components/resizable\".ResizablePanelGroup",
+      "kind": "value"
+    },
+    ".#ResizablePanelGroupProps": {
+      "target": "\"src/components/resizable\".ResizablePanelGroupProps",
       "kind": "type"
     },
-    ".#ResizableProps": {
-      "target": "\"src/components/resizable\".ResizableProps",
+    ".#ResizablePanelProps": {
+      "target": "\"src/components/resizable\".ResizablePanelProps",
       "kind": "type"
     },
     ".#ResponsiveTemplate": {
@@ -3285,13 +3429,25 @@
     "\"src/components/calendar\".Calendar": [
       {
         "source": "src/components/calendar.d.ts",
-        "declaration": "export declare function Calendar({ className, classNames, formatters, labels, showOutsideDays, ...props }: CalendarProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Calendar({ className, classNames, formatters, labels, components, locale, captionLayout, buttonVariant, showOutsideDays, ...props }: CalendarProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/calendar\".CalendarDayButton": [
+      {
+        "source": "src/components/calendar.d.ts",
+        "declaration": "export declare function CalendarDayButton({ className, day, modifiers, ...props }: CalendarDayButtonProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/calendar\".CalendarDayButtonProps": [
+      {
+        "source": "src/components/calendar.d.ts",
+        "declaration": "export type CalendarDayButtonProps = ComponentProps<typeof DayButton>;"
       }
     ],
     "\"src/components/calendar\".CalendarProps": [
       {
         "source": "src/components/calendar.d.ts",
-        "declaration": "export type CalendarProps = ComponentProps<typeof DayPicker>;"
+        "declaration": "export type CalendarProps = ComponentProps<typeof DayPicker> & {\n    buttonVariant?: ButtonProps[\"variant\"];\n};"
       }
     ],
     "\"src/components/chart/_shared\".categoricalTone": [
@@ -4113,13 +4269,133 @@
     "\"src/components/drawer\".Drawer": [
       {
         "source": "src/components/drawer.d.ts",
-        "declaration": "export declare function Drawer({ open, returnFocusRef, onClose, title, description, footer, children, className, }: DrawerProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Drawer<Payload = unknown>({ modal, showSwipeHandle, snapPoints, swipeDirection, ...props }: DrawerProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerClose": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerClose(props: DrawerCloseProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerCloseProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerCloseProps = Primitive.Close.Props;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerContent": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerContent({ className, children, dir, ...props }: DrawerContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerContentProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerContentProps = Primitive.Popup.Props;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerDescription": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerDescription({ className, ...props }: DrawerDescriptionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerDescriptionProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerDescriptionProps = Primitive.Description.Props;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerFooter": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerFooter({ className, ...props }: DrawerFooterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerFooterProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerFooterProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerHeader": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerHeader({ className, ...props }: DrawerHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerHeaderProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerHeaderProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerOverlay": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerOverlay({ className, ...props }: DrawerOverlayProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerOverlayProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerOverlayProps = Primitive.Backdrop.Props;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerPortal": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerPortal(props: DrawerPortalProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerPortalProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerPortalProps = Primitive.Portal.Props;"
       }
     ],
     "\"src/components/drawer\".DrawerProps": [
       {
         "source": "src/components/drawer.d.ts",
-        "declaration": "export type DrawerProps = {\n    open: boolean;\n    returnFocusRef?: RefObject<HTMLElement | null> | undefined;\n    onClose: () => void;\n    title: ReactNode;\n    description?: ReactNode;\n    footer?: ReactNode;\n    children: ReactNode;\n    className?: string | undefined;\n};"
+        "declaration": "export type DrawerProps<Payload = unknown> = Primitive.Root.Props<Payload> & {\n    showSwipeHandle?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/drawer\".DrawerSwipeHandle": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerSwipeHandle({ className, ...props }: DrawerSwipeHandleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerSwipeHandleProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerSwipeHandleProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerTitle": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerTitle({ className, ...props }: DrawerTitleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerTitleProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerTitleProps = Primitive.Title.Props;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerTrigger": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export declare function DrawerTrigger<Payload = unknown>(props: DrawerTriggerProps<Payload>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/drawer\".DrawerTriggerProps": [
+      {
+        "source": "src/components/drawer.d.ts",
+        "declaration": "export type DrawerTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;"
       }
     ],
     "\"src/components/dropdown-menu\".DropdownMenu": [
@@ -4695,13 +4971,85 @@
     "\"src/components/pagination\".Pagination": [
       {
         "source": "src/components/pagination.d.ts",
-        "declaration": "export declare function Pagination({ page, pageCount, onPageChange, total, pageSize, label, className, }: PaginationProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Pagination({ className, ...props }: PaginationProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationContent": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export declare function PaginationContent({ className, ...props }: PaginationContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationContentProps": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export type PaginationContentProps = ComponentProps<\"ul\">;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationEllipsis": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export declare function PaginationEllipsis({ className, ...props }: PaginationEllipsisProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationEllipsisProps": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export type PaginationEllipsisProps = ComponentProps<\"span\">;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationItem": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export declare function PaginationItem(props: PaginationItemProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationItemProps": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export type PaginationItemProps = ComponentProps<\"li\">;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationLink": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export declare function PaginationLink({ className, isActive, size, ...props }: PaginationLinkProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationLinkProps": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export type PaginationLinkProps = ComponentProps<\"a\"> & Pick<ButtonProps, \"size\"> & {\n    isActive?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/pagination\".PaginationNext": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export declare function PaginationNext({ className, text, ...props }: PaginationNextProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationNextProps": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export type PaginationNextProps = PaginationLinkProps & {\n    text?: string | undefined;\n};"
+      }
+    ],
+    "\"src/components/pagination\".PaginationPrevious": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export declare function PaginationPrevious({ className, text, ...props }: PaginationPreviousProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/pagination\".PaginationPreviousProps": [
+      {
+        "source": "src/components/pagination.d.ts",
+        "declaration": "export type PaginationPreviousProps = PaginationLinkProps & {\n    text?: string | undefined;\n};"
       }
     ],
     "\"src/components/pagination\".PaginationProps": [
       {
         "source": "src/components/pagination.d.ts",
-        "declaration": "export type PaginationProps = {\n    page: number;\n    pageCount: number;\n    onPageChange: (page: number) => void;\n    total?: number | undefined;\n    pageSize?: number | undefined;\n    label?: string | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type PaginationProps = ComponentProps<\"nav\">;"
       }
     ],
     "\"src/components/popover\".Popover": [
@@ -4896,28 +5244,40 @@
         "declaration": "export type RadioGroupProps<Value = unknown> = RadioGroupPrimitive.Props<Value>;"
       }
     ],
-    "\"src/components/resizable\".Resizable": [
+    "\"src/components/resizable\".ResizableHandle": [
       {
         "source": "src/components/resizable.d.ts",
-        "declaration": "Resizable: typeof ResizableRoot & {\n    Panel: typeof ResizablePanel;\n    Handle: typeof ResizableHandle;\n}"
+        "declaration": "export declare function ResizableHandle({ className, withHandle, children, ...props }: ResizableHandleProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/resizable\".ResizableHandleProps": [
       {
         "source": "src/components/resizable.d.ts",
-        "declaration": "export type ResizableHandleProps = {\n    label?: string | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type ResizableHandleProps = Primitive.SeparatorProps & {\n    withHandle?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/resizable\".ResizablePanel": [
+      {
+        "source": "src/components/resizable.d.ts",
+        "declaration": "export declare function ResizablePanel({ className, ...props }: ResizablePanelProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/resizable\".ResizablePanelGroup": [
+      {
+        "source": "src/components/resizable.d.ts",
+        "declaration": "export declare function ResizablePanelGroup({ className, ...props }: ResizablePanelGroupProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/resizable\".ResizablePanelGroupProps": [
+      {
+        "source": "src/components/resizable.d.ts",
+        "declaration": "export type ResizablePanelGroupProps = Primitive.GroupProps;"
       }
     ],
     "\"src/components/resizable\".ResizablePanelProps": [
       {
         "source": "src/components/resizable.d.ts",
-        "declaration": "export type ResizablePanelProps = {\n    defaultSize?: Size | undefined;\n    minSize?: Size | undefined;\n    maxSize?: Size | undefined;\n    collapsible?: boolean | undefined;\n    id?: string | undefined;\n    onResize?: ((size: PanelSize) => void) | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/components/resizable\".ResizableProps": [
-      {
-        "source": "src/components/resizable.d.ts",
-        "declaration": "export type ResizableProps = {\n    orientation?: Orientation | undefined;\n    persist?: string | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
+        "declaration": "export type ResizablePanelProps = Primitive.PanelProps;"
       }
     ],
     "\"src/components/scroll-area\".ScrollArea": [
@@ -7182,36 +7542,6 @@
         "declaration": "declare function KbdRoot({ label, className, ...props }: KbdProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/components/resizable.d.ts#Orientation": [
-      {
-        "source": "src/components/resizable.d.ts",
-        "declaration": "type Orientation = \"horizontal\" | \"vertical\";"
-      }
-    ],
-    "src/components/resizable.d.ts#ResizableHandle": [
-      {
-        "source": "src/components/resizable.d.ts",
-        "declaration": "declare function ResizableHandle({ label, className }: ResizableHandleProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/resizable.d.ts#ResizablePanel": [
-      {
-        "source": "src/components/resizable.d.ts",
-        "declaration": "declare function ResizablePanel({ defaultSize, minSize, maxSize, collapsible, id, onResize, className, children, }: ResizablePanelProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/resizable.d.ts#ResizableRoot": [
-      {
-        "source": "src/components/resizable.d.ts",
-        "declaration": "declare function ResizableRoot({ orientation, persist, className, children, }: ResizableProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/resizable.d.ts#Size": [
-      {
-        "source": "src/components/resizable.d.ts",
-        "declaration": "type Size = number | string;"
-      }
-    ],
     "src/components/stat.d.ts#StatRoot": [
       {
         "source": "src/components/stat.d.ts",
@@ -7712,7 +8042,7 @@
     ]
   },
   "dependencyContracts": {
-    "@base-ui/react": "6552988e2d050e41dc3cff5b762d1aba82d294a6548d4ae8c3e6071406ad5849",
+    "@base-ui/react": "70cedbbb41c8dbcbacda3a34a09813d6bb34dcf02dc44463eeee186cb28c5c48",
     "@base-ui/utils": "a71988b4234a15dd1dcecb2aaaac6ab8c6472d75cd26993efe45671a8247777a",
     "@floating-ui/core": "581cec84f04c06ef6908cd1af8471390d1d96893d63abdaf0391ef43ae0a1815",
     "@floating-ui/dom": "82afab4c16f6bedc49dfed4eec228766546f4e0a8aed010cab33ad05aeed4568",
@@ -7727,7 +8057,7 @@
     "cmdk": "110f023bcf23f68085e2b35896923bd265dbe60929c9a22959bd4f42bbdae30d",
     "date-fns": "96b0d61772667b309833ec24aedc6b4faf9ab3d6f19932099e77bd01a97ddc34",
     "react-day-picker": "e12857af386f71dd3352ece9f674d271121cf2be66fb2252cdb12885eab54f94",
-    "react-resizable-panels": "d8c9a2e4e3b28654bd1f885445a7f383169b548ee7220d122dcffb1b7c29312d",
+    "react-resizable-panels": "a6cd8fccea2a811f41f264815061c441369f333a3ff1b5bed999360554479c00",
     "sonner": "794ba26cf92cf6d76cc31fd7dd57e2394acab1b719312a8fbc87355510bdb73d"
   }
 }

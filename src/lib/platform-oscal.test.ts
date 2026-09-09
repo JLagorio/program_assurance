@@ -20,7 +20,14 @@ import {
   platformExportSnapshot,
   type PlatformExportSnapshot,
 } from "./platform-oscal";
-import { oscalSsp, oscalPackage, type JsonObject, type JsonValue } from "./oscal";
+import {
+  oscalAssessmentPlan,
+  oscalPackage,
+  oscalSsp,
+  oscalStamp,
+  type JsonObject,
+  type JsonValue,
+} from "./oscal";
 
 const obj = (value: JsonValue | undefined) => value as JsonObject;
 const rows = (value: JsonValue | undefined) => value as JsonObject[];
@@ -89,11 +96,12 @@ describe("native platform controls and SSP", () => {
     expect(resolveDraft(draft).total).toBe(total);
     expect(controlMatrix("PRG-1041").length).toBeGreaterThan(74);
   });
-  it("assembles the real 225 component contributions with source UUIDs and no inferred status", () => {
+  it("assembles the real 1309 component contributions with source UUIDs and no inferred status", () => {
     const value = platformExportSnapshot();
     const exported = exportedRequirements(value);
-    // Every selected control is exported; only the 74 with an authored implementation
-    // carry an aggregate claim or component contributions. Nothing is invented for the rest.
+    // Every selected control is exported, and every one now carries an authored
+    // implementation, so the aggregate claim and the component contributions are
+    // present on all 546. The counts are read from the seed, not hand-listed.
     expect(exported).toHaveLength(platformSeed.profiles[0]!.effective_control_ids.length);
     expect(
       exported.filter((item) =>
@@ -103,7 +111,7 @@ describe("native platform controls and SSP", () => {
     expect(exported.filter((item) => item["by-components"] !== undefined)).toHaveLength(
       platformSeed.control_implementations.length,
     );
-    expect(exported.flatMap((item) => rows(item["by-components"]) ?? [])).toHaveLength(225);
+    expect(exported.flatMap((item) => rows(item["by-components"]) ?? [])).toHaveLength(1309);
     const aggregate = platformSeed.control_implementations.find(
       (item) => item.control_id === "AC-2",
     )!;
@@ -211,12 +219,15 @@ describe("native platform controls and SSP", () => {
         "plan-of-action-and-milestones"
       ],
     );
-    expect(rows(poam["poam-items"])).toHaveLength(16);
+    expect(rows(poam["poam-items"])).toHaveLength(40);
     const tasks = rows(poam["risks"])
       .flatMap((risk) => rows(risk["remediations"]) ?? [])
       .flatMap((remediation) => rows(remediation["tasks"]) ?? []);
-    expect(tasks).toHaveLength(48);
-    expect(tasks.every((task) => task["timing"] === undefined)).toBe(true);
+    expect(tasks).toHaveLength(129);
+    // No timing is invented for the 48 milestones the first campaign left undated; the
+    // 81 the second campaign scheduled export theirs.
+    expect(tasks.filter((task) => task["timing"] === undefined)).toHaveLength(48);
+    expect(tasks.filter((task) => task["timing"] !== undefined)).toHaveLength(81);
     expect(new Set(rows(poam["poam-items"]).map((item) => item["uuid"]))).toEqual(
       new Set(platformSeed.poam_items.map((item) => item.uuid)),
     );
@@ -404,6 +415,57 @@ describe("native platform controls and SSP", () => {
       }
     } finally {
       vi.unstubAllGlobals();
+    }
+  });
+});
+
+/**
+ * `oscalStamp` is the single date parser every OSCAL export runs its timestamps
+ * through, and it returns null so a caller can omit a field rather than emit a
+ * malformed one. That contract only holds while both branches are anchored: an
+ * ISO branch anchored at the start alone would read the date out of a value
+ * whose tail says it is not a timestamp, and hand back a stamp that looks
+ * authoritative.
+ */
+describe("oscalStamp reads a date only when the whole value is one", () => {
+  it("reads both spellings the datasets actually carry", () => {
+    expect(oscalStamp("Aug 27, 2026")).toBe("2026-08-27T00:00:00-04:00");
+    expect(oscalStamp("Aug 27, 2026 04:10")).toBe("2026-08-27T04:10:00-04:00");
+    expect(oscalStamp("Jan 04, 2027")).toBe("2027-01-04T00:00:00-05:00");
+    // Imported records carry ISO dates and full ISO timestamps.
+    expect(oscalStamp("2026-10-03")).toBe("2026-10-03T00:00:00-04:00");
+    expect(oscalStamp("2026-10-03 14:30")).toBe("2026-10-03T14:30:00-04:00");
+    expect(oscalStamp("2026-10-03T14:30")).toBe("2026-10-03T14:30:00-04:00");
+    expect(oscalStamp("2026-10-03T14:30:00")).toBe("2026-10-03T14:30:00-04:00");
+    // One that already names its own offset is a valid OSCAL stamp as it stands.
+    expect(oscalStamp("2026-10-16T14:00:00Z")).toBe("2026-10-16T14:00:00Z");
+    expect(oscalStamp("2027-01-04T09:00:00-05:00")).toBe("2027-01-04T09:00:00-05:00");
+  });
+
+  it("returns null for a value whose tail is not part of the date", () => {
+    // The regression this pins: a leading ISO date followed by anything else
+    // must not parse to a confident timestamp for the part the parser liked.
+    expect(oscalStamp("2026-10-03 draft")).toBeNull();
+    expect(oscalStamp("2026-10-03 (estimated)")).toBeNull();
+    expect(oscalStamp("2026-10-03T14:30 pending review")).toBeNull();
+    expect(oscalStamp("2026-10-03xyz")).toBeNull();
+    // The same rule the display branch has always enforced.
+    expect(oscalStamp("Aug 27, 2026 tbd")).toBeNull();
+    // And the values that never were dates.
+    expect(oscalStamp("—")).toBeNull();
+    expect(oscalStamp("")).toBeNull();
+    expect(oscalStamp("2026-13-03")).toBeNull();
+  });
+
+  it("keeps every campaign window in the export dated", () => {
+    // Campaigns carry "Aug 04" on the demo programs and "2026-08-03" on the
+    // imported ones; both must reach the assessment plan as a real timestamp
+    // rather than falling back to the export clock.
+    const plan = JSON.stringify(oscalAssessmentPlan("PRG-1090").json);
+    expect(plan).not.toContain("2026-08-03, 2026");
+    for (const assessment of platformSeed.assessments) {
+      expect(plan, assessment.id).toContain(`${assessment.planned_start.slice(0, 10)}T00:00:00`);
+      expect(plan, assessment.id).toContain(`${assessment.planned_end.slice(0, 10)}T00:00:00`);
     }
   });
 });

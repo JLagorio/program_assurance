@@ -21,7 +21,7 @@ import {
 } from "../../components/dropdown-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../../components/hover-card";
 import { Id } from "../../components/id";
-import { Pagination } from "../../components/pagination";
+import { TablePagination } from "./pagination";
 import { Skeleton } from "../../components/skeleton";
 import { PreviewButton, Table } from "../../components/table";
 import { cn } from "../../lib/cn";
@@ -904,7 +904,7 @@ function DataTableRoot<TData extends RowData>({
         </Table>
       </DragContext>
       {pageSize !== undefined && !groupBy && state !== "loading" ? (
-        <Pagination
+        <TablePagination
           page={table.state.pagination.pageIndex + 1}
           pageCount={Math.max(1, table.getPageCount())}
           onPageChange={(p) => table.setPageIndex(p - 1)}

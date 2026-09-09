@@ -30,22 +30,32 @@ it("loads WS-X90 through the existing program restore path and keeps native edit
   const { stageOf } = await import("./stages");
   const { programState, daysUntil } = await import("./program-stage");
   const id = platformProgram.id;
-  expect(requirementsForProgram(id)).toHaveLength(120);
-  expect(requirementsForProgram(id).flatMap((row) => allocationsFor(row.id))).toHaveLength(240);
+  expect(requirementsForProgram(id)).toHaveLength(640);
+  expect(requirementsForProgram(id).flatMap((row) => allocationsFor(row.id))).toHaveLength(1326);
   expect(assets.filter((asset) => asset.program === id)).toHaveLength(20);
   expect(
     controlMatrix(id)
       .map((row) => row.id)
       .sort(),
   ).toEqual([...platformSeed.profiles[0]!.effective_control_ids].sort());
-  expect(evidenceForProgram(id)).toHaveLength(90);
-  expect(programFindings(id)).toHaveLength(16);
-  expect(poamsForProgram(id)).toHaveLength(16);
-  expect(rtm(id).rows).toHaveLength(120);
-  expect(Object.values(programCoverage(id)).reduce((total, count) => total + count, 0)).toBe(120);
+  expect(evidenceForProgram(id)).toHaveLength(368);
+  expect(programFindings(id)).toHaveLength(52);
+  expect(poamsForProgram(id)).toHaveLength(40);
+  // One row per requirement and objective: 640 requirements, six of which carry a
+  // retest objective as well as the original determination.
+  expect(rtm(id).rows).toHaveLength(646);
+  expect(Object.values(programCoverage(id)).reduce((total, count) => total + count, 0)).toBe(646);
   const milestones = scheduleForProgram(id).filter((row) => row.kind === "POA&M milestone");
-  expect(milestones).toHaveLength(48);
-  expect(milestones.every((row) => row.due === null && row.dates === "Unscheduled")).toBe(true);
+  expect(milestones).toHaveLength(129);
+  // The first campaign supplied no milestone dates and none are invented for it; the
+  // second campaign's POA&M items are scheduled. The unscheduled half is what the
+  // "undated-milestone" warning counts.
+  const unscheduled = milestones.filter((row) => row.due === null);
+  expect(unscheduled).toHaveLength(48);
+  expect(unscheduled.every((row) => row.dates === "Unscheduled")).toBe(true);
+  const scheduled = milestones.filter((row) => row.due !== null);
+  expect(scheduled).toHaveLength(81);
+  expect(scheduled.every((row) => row.dates !== "Unscheduled")).toBe(true);
   expect(scheduleForProgram(id).filter((row) => row.track === "Acquisition")).toHaveLength(0);
   expect(stageOf(id)).toBe("Assess");
   expect(programState(platformProgram).currentStage).toBe("Assess");
@@ -77,6 +87,6 @@ it("loads WS-X90 through the existing program restore path and keeps native edit
     schedule.scheduleForProgram(id).find((row) => row.sourceId === `${poam.id}/${milestone.id}`)
       ?.due,
   ).toBe("2026-10-01");
-  expect(requirements.requirementsForProgram(id)).toHaveLength(120);
+  expect(requirements.requirementsForProgram(id)).toHaveLength(640);
   expect(findings.programFindings("PRG-1041").some((row) => row.id === finding.id)).toBe(false);
 });

@@ -1,127 +1,52 @@
-import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-
-import { Resizable } from "../../components";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../../components";
 import * as Stories from "./Resizable.stories";
 
 <Meta of={Stories} />
 
 # Resizable
 
-Panes a reader sizes for themselves: a list beside the record it opens, a tree beside the record beside its preview, a log under a form. **Resizable** is the group, **Resizable.Panel** a pane, **Resizable.Handle** the hairline between two panes that the reader drags or moves with the keys. Sizes are shares of the group.
-
-It is for a trade the reader makes between two things they look at together. A page's sections stack and the page scrolls; a rail the reader only hides is the shell's Panel with its toggle; a rule that divides is a [Separator](?path=/docs/components-separator--docs).
-
-<Canvas of={Stories.Panes} />
+User-sized panes following [shadcn’s Resizable source](https://ui.shadcn.com/docs/components/base/resizable), built on react-resizable-panels. A plain dividing rule is a Separator.
 
 ## Anatomy
 
-| Part   | What it is                                                                                                                                                                              |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Group  | `Resizable`: a flex row, or a column when `vertical`, filling its container. The container sets the height; the group has none of its own.                                               |
-| Panel  | `Resizable.Panel`: one pane, clipping its content. A list inside is a [ScrollArea](?path=/docs/components-scrollarea--docs), so the pane scrolls and the page does not.                 |
-| Handle | `Resizable.Handle`: a 1px rule in `color.border` with an 8px hit area either side. Under the pointer and on focus it turns `color.border.brand`. A `separator` with the pane's size.     |
+```tsx
+<ResizablePanelGroup>
+  <ResizablePanel defaultSize="30%" minSize="20%">
+    List
+  </ResizablePanel>
+  <ResizableHandle aria-label="Resize the list" withHandle />
+  <ResizablePanel>Detail</ResizablePanel>
+</ResizablePanelGroup>
+```
 
-## Variants
+Give the group a sized parent. Panels clip their contents; put ScrollArea inside a scrolling pane. `withHandle` adds a visible grip.
 
-By orientation. **Horizontal**, the default: panes side by side, the handle a vertical hairline, Left and Right move it. **Vertical**: panes stacked, the handle horizontal, Up and Down. Two panes, or three with two handles; past three the reader is managing a layout rather than reading.
+<Canvas of={Stories.Panes} />
+
+## Variants and states
+
+`orientation="vertical"` stacks panes. Native panel props include minimum/maximum sizes, collapse behavior and resize callbacks. The library owns layout, pointer resizing and keyboard behavior.
 
 <Canvas of={Stories.Vertical} />
-
-Where it lives: the [PreviewSplit](?path=/docs/patterns-previewsplit--docs), an index beside its preview rail, is a Resizable with the list at a floor of 55% and the rail between 18% and 45%. The shell's SideNav and Panel have their own splitters and are not this.
-
-## Sizes
-
-None of the group's own: it fills its container, and the container says how tall. A pane's `defaultSize`, `minSize` and `maxSize` are shares of the group in percent as numbers, or strings with a unit ("240px") for a pane that must hold a fixed width. Unsaid, the panes share the group equally. The handle is 1px; its hit area is `space.100` either side.
-
-## States
-
-| State      | Look                                                                                                                             |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Rest       | The hairline, `color.border`.                                                                                                    |
-| Hover      | `color.border.brand` and the resize cursor, in `motion.duration.fast`.                                                           |
-| Dragging   | `color.border.brand` while the pointer is down; the panes follow it within their floors and ceilings.                            |
-| Focus      | `color.border.brand`, so the keyboard reader sees which handle the arrows move. The kit's outline is not drawn on a 1px rule.    |
-| Collapsed  | A `collapsible` pane at nothing; its handle stays, and Enter on it brings the pane before it back to its floor.                  |
-
-<Canvas of={Stories.ResizableMatrix} />
-
-## Modifiers
-
-- **`orientation`**, as in Variants.
-- **`defaultSize`, `minSize`, `maxSize`** on a Panel, as in Sizes. A floor keeps a list readable; a ceiling keeps a rail a rail.
-- **`collapsible`** on a Panel: dragged under its floor it folds to nothing, and Enter on the handle after it folds and unfolds it. Enter works on the pane before the handle only, so a pane that folds by key comes first: a tree, a list. A rail after the handle folds by drag.
-- **`persist`** on the group: a key under which the reader's sizes are kept, one per split, so it opens as they left it. Give each Panel an `id` so the sizes find their panes. The shell keeps its widths the same way.
-- **`onResize`** on a Panel: called as it resizes, with its share and its pixels, for a pane that lays itself out by width.
-- **`label`** on a Handle: its accessible name, "Resize" unsaid; say what it sizes when a page has two.
-
 <Canvas of={Stories.Collapsible} />
+
+Persist layouts where the composition needs it. Use the upstream `useDefaultLayout` hook, stable group/panel IDs and the hook’s `defaultLayout`/`onLayoutChanged` pair. Preserve an existing ID to read its saved layouts. Supply server-safe storage when rendering the hook on the server; the story demonstrates this explicitly.
 
 <Canvas of={Stories.Persisted} />
 
-## Content
-
-- **Two things the reader looks at together:** a list and the row it opens, a tree and the record, a form and its log. Never two sections of one record.
-- **The list has a floor** that keeps its names readable, and the rail a ceiling that keeps it a rail.
-- **Defaults favour the reading pane:** the list at a third, the rail at a quarter.
-- **A pane's content scrolls inside the pane,** in a ScrollArea. The page never scrolls because a pane grew.
-- **Persist a split the reader returns to** (an index they work in), not one they see once (a dialog).
-
-## Style
-
-| Element | Token                                                                                                  |
-| ------- | ------------------------------------------------------------------------------------------------------ |
-| Handle  | 1px `color.border` · `color.border.brand` hovered, dragging, focused · `motion.duration.fast` on `motion.easing.standard` |
-| Hit     | `space.100` either side of the rule                                                                     |
-| Cursor  | `col-resize`, `row-resize` when vertical                                                                |
-| Panes   | No paint of their own; the content's. A frame around the group is the caller's border and radius.       |
-
 ## Accessibility
 
-- **The handle is a `separator`** with `aria-valuenow`, `aria-valuemin` and `aria-valuemax` for the pane before it, `aria-orientation`, and `aria-controls` to the panes; its name is `label`. The library sets the values.
-- **Keyboard:** Tab reaches each handle. Left and Right (Up and Down when vertical) move it by 5%; Home and End take the pane to its floor and its ceiling; Enter folds and unfolds a `collapsible` pane before the handle; F6 and Shift+F6 move between the handles of one group. A double-click puts the pane back to its default.
-- **Focus shows in the brand colour** on the rule, since an outline around a 1px line is the line.
-- **The panes are ordinary content:** a ScrollArea inside is a tab stop named by its label, so a keyboard reader scrolls a list without a pointer.
-- **The a11y gate** checks the roles, the names and the values in the matrix; the keys are the library's and are checked by hand.
+The handle is a focusable separator with the orientation of the rule: a horizontal group has a vertical separator. Arrow keys resize; Home/End reach bounds; Enter toggles a collapsible panel. Name handles with `aria-label`, especially when several splits are present. Group and Panel expose native `elementRef`, `groupRef` and `panelRef` instead of translating them into a generic ref.
 
 ## Props
 
-<ArgTypes of={Resizable} />
+Replace `Resizable` with `ResizablePanelGroup`, `.Panel` with `ResizablePanel`, and `.Handle` with `ResizableHandle`. Replace handle `label` with `aria-label`; move `persist` into the native hook at the caller. **Numeric sizes now mean pixels.** Change old percentage numbers such as `minSize={20}` to `minSize="20%"`. Existing PreviewSplit proportions are preserved.
 
-The parts, by hand until the generated tables reach a part.
-
-### Resizable.Panel
-
-| Prop          | Type                                       | What it is                                                             |
-| ------------- | ------------------------------------------ | ---------------------------------------------------------------------- |
-| `defaultSize` | `number \| string`                         | The share at first, in percent; a string carries its unit.             |
-| `minSize`     | `number \| string`                         | The floor.                                                             |
-| `maxSize`     | `number \| string`                         | The ceiling.                                                           |
-| `collapsible` | `boolean`                                  | Folds to nothing under the floor; Enter on the handle after it folds and unfolds. |
-| `id`          | `string`                                   | The pane's name for a persisted split.                                  |
-| `onResize`    | `(size: { asPercentage, inPixels }) => void` | Called as it resizes.                                                |
-| `className`   | `string`                                   | Layout only.                                                           |
-| `children`    | `ReactNode`                                | The pane's content, in a ScrollArea when it is a list.                 |
-
-### Resizable.Handle
-
-| Prop        | Type     | What it is                                                     |
-| ----------- | -------- | -------------------------------------------------------------- |
-| `label`     | `string` | The accessible name. "Resize" unsaid.                          |
-| `className` | `string` | Layout only.                                                   |
-
-### Playground
-
-<Canvas of={Stories.Playground} />
-
-<Controls of={Stories.Playground} />
+<ArgTypes of={ResizablePanelGroup} />
+<ArgTypes of={ResizablePanel} />
+<ArgTypes of={ResizableHandle} />
 
 ## Related
 
-- [PreviewSplit](?path=/docs/patterns-previewsplit--docs): an index beside its preview, on a Resizable.
-- [ScrollArea](?path=/docs/components-scrollarea--docs): what a pane's list scrolls in.
-- [Separator](?path=/docs/components-separator--docs): a rule that does not move.
-- [Shell](?path=/docs/shell-shell--docs): the SideNav's and the Panel's own splitters.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+[PreviewSplit](?path=/docs/patterns-previewsplit--docs), [ScrollArea](?path=/docs/components-scrollarea--docs), [Separator](?path=/docs/components-separator--docs).
