@@ -1,12 +1,3 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-
-import { Shell } from "@/components/app/shell";
-import {
-  allocationFor,
-  personById,
-  workstreamsForPerson,
-  workstreamStatusTone,
-} from "@/lib/people";
 import {
   Badge,
   BreadcrumbItem,
@@ -23,6 +14,14 @@ import {
   Table,
   TextLink,
 } from "@ledger/design-system";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Shell } from "@/components/app/shell";
+import {
+  allocationFor,
+  personById,
+  workstreamsForPerson,
+  workstreamStatusTone,
+} from "@/lib/people";
 
 export const Route = createFileRoute("/people/$personId")({
   loader: ({ params }) => {

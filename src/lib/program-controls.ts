@@ -7,7 +7,11 @@ import {
   type ControlWork,
   type ImplementationState,
 } from "@/lib/control-work";
-import { evidenceForTarget } from "@/lib/evidence-catalog";
+import {
+  evidenceForProgram,
+  evidenceForTarget,
+  type EvidenceArtifact,
+} from "@/lib/evidence-catalog";
 import { assetById, findingProgram, findings, isDeficiency, type Finding } from "@/lib/findings";
 import { closestProgramScope, programElementIds, resolveProgramElement } from "@/lib/program-scope";
 import { allocationsFor, requirementsForControl } from "@/lib/requirements";
@@ -153,6 +157,22 @@ export function programControlRows(programId: string, elementId?: string): Progr
   const scopes = programControlScopes(programId, element?.id);
   const closest = closestProgramScope(programId, element?.id);
   const sets = scopes.map((scope) => controlSetFor(scope.id)).filter((set) => set !== null);
+  // Membership is asked once per control per scope; a resolved set is hundreds of
+  // controls long, so index it rather than rescanning the array each time.
+  const setControlIds = sets.map((set) => new Set(set.controls.map((row) => row.control.id)));
+  // evidenceForTarget rebuilds the merged catalog on every call, and this loop would
+  // ask it once per control per scope. Index the control links once instead: same
+  // answer, one pass over the catalog rather than hundreds.
+  const evidenceByControlScope = new Map<string, EvidenceArtifact[]>();
+  for (const artifact of evidenceForProgram(programId))
+    for (const link of artifact.links) {
+      if (link.kind !== "control" || !link.scopeId) continue;
+      const key = `${link.id}\u0000${link.scopeId}`;
+      const bucket = evidenceByControlScope.get(key);
+      if (bucket) {
+        if (!bucket.includes(artifact)) bucket.push(artifact);
+      } else evidenceByControlScope.set(key, [artifact]);
+    }
   const base = new Map(controlMatrix(programId).map((row) => [row.id, row]));
   const controlIds = [...new Set(sets.flatMap((set) => set.controls.map((row) => row.control.id)))];
   // Programs not modeled with assessment scopes retain their existing native matrix.
@@ -162,7 +182,7 @@ export function programControlRows(programId: string, elementId?: string): Progr
     const record = base.get(id);
     if (!record) return [];
     const applicable = sets
-      .filter((set) => set.controls.some((row) => row.control.id === id))
+      .filter((_, index) => setControlIds[index]!.has(id))
       .map((set) => set.scope);
     const scopedWork = work.filter(
       (item) =>
@@ -195,7 +215,7 @@ export function programControlRows(programId: string, elementId?: string): Progr
     );
     const evidenceIds = new Set(
       applicable.flatMap((scope) =>
-        evidenceForTarget(programId, "control", id, scope.id)
+        (evidenceByControlScope.get(`${id}\u0000${scope.id}`) ?? [])
           .filter(
             (artifact) =>
               !inheritedScope ||

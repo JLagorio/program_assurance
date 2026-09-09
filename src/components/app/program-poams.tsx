@@ -1,4 +1,10 @@
 import {
+  FieldLabel,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Block,
   Box,
@@ -11,7 +17,6 @@ import {
   Id,
   Inline,
   Input,
-  NativeSelect,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -41,7 +46,6 @@ import { currentSession } from "@/lib/control-work";
 import { isDeficiency, programFindings } from "@/lib/findings";
 import { findingsForPoam, poamsForProgram, type PoamItem } from "@/lib/register";
 import { statusTone } from "@/lib/spine";
-
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useCallback, useId, useMemo, useState } from "react";
@@ -207,6 +211,8 @@ export function NewPoamSheet({
   onClose: () => void;
   onCreated: (item: PoamItem) => void;
 }) {
+  const fieldId = useId();
+
   useAssuranceVersion();
   const formId = useId();
   const members = programFindings(programId).filter((finding) => findingIds.includes(finding.id));
@@ -224,6 +230,17 @@ export function NewPoamSheet({
   const eligible = programFindings(programId).filter(
     (finding) => !finding.poam && isDeficiency(finding),
   );
+  const findingItems = [
+    { value: "", label: "Link a finding after creating the plan" },
+    ...eligible.map((finding) => ({
+      value: finding.id,
+      label: (
+        <>
+          {finding.id} · {finding.title}
+        </>
+      ),
+    })),
+  ];
   return (
     <Sheet
       open={true}
@@ -276,33 +293,93 @@ export function NewPoamSheet({
                   {error}
                 </p>
               ) : null}
-              <Field label="Remediation title" isRequired>
-                <Input value={draft.title} onChange={(event) => set("title", event.target.value)} />
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-remediation-title-1-label`}
+                  htmlFor={`${fieldId}-remediation-title-1`}
+                >
+                  {"Remediation title"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
+                <Input
+                  id={`${fieldId}-remediation-title-1`}
+                  aria-labelledby={`${fieldId}-remediation-title-1-label`}
+                  aria-required={true}
+                  value={draft.title}
+                  onChange={(event) => set("title", event.target.value)}
+                />
               </Field>
-              <Field label="Remediation plan" isRequired>
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-remediation-plan-2-label`}
+                  htmlFor={`${fieldId}-remediation-plan-2`}
+                >
+                  {"Remediation plan"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
                 <Textarea
+                  id={`${fieldId}-remediation-plan-2`}
+                  aria-labelledby={`${fieldId}-remediation-plan-2-label`}
+                  aria-required={true}
                   rows={5}
                   value={draft.remediation}
                   onChange={(event) => set("remediation", event.target.value)}
                 />
               </Field>
               <Grid templateColumns="1fr 1fr" gap="space.150">
-                <Field label="Owner" isRequired>
+                <Field>
+                  <FieldLabel id={`${fieldId}-owner-3-label`} htmlFor={`${fieldId}-owner-3`}>
+                    {"Owner"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-owner-3`}
+                    aria-labelledby={`${fieldId}-owner-3-label`}
+                    aria-required={true}
                     value={draft.owner}
                     onChange={(event) => set("owner", event.target.value)}
                   />
                 </Field>
-                <Field label="Completion date" isRequired>
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-completion-date-4-label`}
+                    htmlFor={`${fieldId}-completion-date-4`}
+                  >
+                    {"Completion date"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-completion-date-4`}
+                    aria-labelledby={`${fieldId}-completion-date-4-label`}
+                    aria-required={true}
                     type="date"
                     value={draft.due}
                     onChange={(event) => set("due", event.target.value)}
                   />
                 </Field>
               </Grid>
-              <Field label="Resources required">
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-resources-required-5-label`}
+                  htmlFor={`${fieldId}-resources-required-5`}
+                >
+                  {"Resources required"}
+                </FieldLabel>
                 <Input
+                  id={`${fieldId}-resources-required-5`}
+                  aria-labelledby={`${fieldId}-resources-required-5-label`}
                   value={draft.resources}
                   onChange={(event) => set("resources", event.target.value)}
                 />
@@ -316,18 +393,36 @@ export function NewPoamSheet({
                   ))}
                 </Block>
               ) : (
-                <Field label="Finding to remediate">
-                  <NativeSelect
-                    value={draft.finding}
-                    onChange={(event) => set("finding", event.target.value)}
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-finding-to-remediate-6-label`}
+                    htmlFor={`${fieldId}-finding-to-remediate-6`}
                   >
-                    <option value="">Link a finding after creating the plan</option>
-                    {eligible.map((finding) => (
-                      <option key={finding.id} value={finding.id}>
-                        {finding.id} · {finding.title}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    {"Finding to remediate"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={findingItems}
+                    value={draft.finding}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return set("finding", value);
+                    }}
+                  >
+                    <SelectTrigger
+                      id={`${fieldId}-finding-to-remediate-6`}
+                      aria-labelledby={`${fieldId}-finding-to-remediate-6-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-finding-to-remediate-6-label`}>
+                      {findingItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
               )}
             </Stack>
@@ -385,6 +480,8 @@ export function PoamRecordSheet({
 }
 
 function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) {
+  const fieldId = useId();
+
   const formId = useId();
   const [draft, setDraft] = useState({
     title: item.title,
@@ -416,6 +513,21 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
       setError(errorMessage(failure));
     }
   };
+  const statusItems = ["Ongoing", "Overdue", "Completed", "Risk accepted"].map((value) => ({
+    value: value,
+    label: value,
+  }));
+  const linkIdItems = [
+    { value: "", label: "Select an unassigned finding" },
+    ...eligible.map((finding) => ({
+      value: finding.id,
+      label: (
+        <>
+          {finding.id} · {finding.title}
+        </>
+      ),
+    })),
+  ];
   return (
     <>
       <Sheet
@@ -468,55 +580,136 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
                     {error}
                   </p>
                 ) : null}
-                <Field label="Remediation title" isRequired>
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-remediation-title-7-label`}
+                    htmlFor={`${fieldId}-remediation-title-7`}
+                  >
+                    {"Remediation title"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-remediation-title-7`}
+                    aria-labelledby={`${fieldId}-remediation-title-7-label`}
+                    aria-required={true}
                     value={draft.title}
                     onChange={(event) => set("title", event.target.value)}
                   />
                 </Field>
-                <Field label="Remediation plan" isRequired>
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-remediation-plan-8-label`}
+                    htmlFor={`${fieldId}-remediation-plan-8`}
+                  >
+                    {"Remediation plan"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
                   <Textarea
+                    id={`${fieldId}-remediation-plan-8`}
+                    aria-labelledby={`${fieldId}-remediation-plan-8-label`}
+                    aria-required={true}
                     rows={4}
                     value={draft.remediation}
                     onChange={(event) => set("remediation", event.target.value)}
                   />
                 </Field>
                 <Grid templateColumns="1fr 1fr" gap="space.150">
-                  <Field label="Owner" isRequired>
+                  <Field>
+                    <FieldLabel id={`${fieldId}-owner-9-label`} htmlFor={`${fieldId}-owner-9`}>
+                      {"Owner"}
+                      <span aria-hidden="true" className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    </FieldLabel>
                     <Input
+                      id={`${fieldId}-owner-9`}
+                      aria-labelledby={`${fieldId}-owner-9-label`}
+                      aria-required={true}
                       value={draft.owner}
                       onChange={(event) => set("owner", event.target.value)}
                     />
                   </Field>
-                  <Field label="Completion date" isRequired>
+                  <Field>
+                    <FieldLabel
+                      id={`${fieldId}-completion-date-10-label`}
+                      htmlFor={`${fieldId}-completion-date-10`}
+                    >
+                      {"Completion date"}
+                      <span aria-hidden="true" className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    </FieldLabel>
                     <Input
+                      id={`${fieldId}-completion-date-10`}
+                      aria-labelledby={`${fieldId}-completion-date-10-label`}
+                      aria-required={true}
                       type="date"
                       value={draft.scheduledCompletion}
                       onChange={(event) => set("scheduledCompletion", event.target.value)}
                     />
                   </Field>
-                  <Field label="Status">
-                    <NativeSelect
+                  <Field>
+                    <FieldLabel id={`${fieldId}-status-11-label`} htmlFor={`${fieldId}-status-11`}>
+                      {"Status"}
+                    </FieldLabel>
+                    <Select<string>
+                      items={statusItems}
                       value={statusEdited ? draft.status : item.status}
-                      onChange={(event) => {
-                        set("status", event.target.value as PoamItem["status"]);
+                      onValueChange={(value) => {
+                        if (value === null) return;
+                        set("status", value as PoamItem["status"]);
                         setStatusEdited(true);
                       }}
                     >
-                      {["Ongoing", "Overdue", "Completed", "Risk accepted"].map((value) => (
-                        <option key={value}>{value}</option>
-                      ))}
-                    </NativeSelect>
+                      <SelectTrigger
+                        id={`${fieldId}-status-11`}
+                        aria-labelledby={`${fieldId}-status-11-label`}
+                        className="w-full"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent aria-labelledby={`${fieldId}-status-11-label`}>
+                        {statusItems.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Field>
-                  <Field label="Resources required">
+                  <Field>
+                    <FieldLabel
+                      id={`${fieldId}-resources-required-12-label`}
+                      htmlFor={`${fieldId}-resources-required-12`}
+                    >
+                      {"Resources required"}
+                    </FieldLabel>
                     <Input
+                      id={`${fieldId}-resources-required-12`}
+                      aria-labelledby={`${fieldId}-resources-required-12-label`}
                       value={draft.resources}
                       onChange={(event) => set("resources", event.target.value)}
                     />
                   </Field>
                 </Grid>
-                <Field label="Progress note">
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-progress-note-13-label`}
+                    htmlFor={`${fieldId}-progress-note-13`}
+                  >
+                    {"Progress note"}
+                  </FieldLabel>
                   <Textarea
+                    id={`${fieldId}-progress-note-13`}
+                    aria-labelledby={`${fieldId}-progress-note-13-label`}
                     rows={3}
                     value={draft.milestoneNote}
                     onChange={(event) => set("milestoneNote", event.target.value)}
@@ -597,18 +790,36 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
                   )}
                   {item.status !== "Completed" ? (
                     <Inline space="space.100" alignBlock="end" className="pt-150">
-                      <Field label="Attach finding" className="min-w-0 flex-1">
-                        <NativeSelect
-                          value={linkId}
-                          onChange={(event) => setLinkId(event.target.value)}
+                      <Field className="min-w-0 flex-1">
+                        <FieldLabel
+                          id={`${fieldId}-attach-finding-14-label`}
+                          htmlFor={`${fieldId}-attach-finding-14`}
                         >
-                          <option value="">Select an unassigned finding</option>
-                          {eligible.map((finding) => (
-                            <option key={finding.id} value={finding.id}>
-                              {finding.id} · {finding.title}
-                            </option>
-                          ))}
-                        </NativeSelect>
+                          {"Attach finding"}
+                        </FieldLabel>
+                        <Select<string>
+                          items={linkIdItems}
+                          value={linkId}
+                          onValueChange={(value) => {
+                            if (value === null) return;
+                            return setLinkId(value);
+                          }}
+                        >
+                          <SelectTrigger
+                            id={`${fieldId}-attach-finding-14`}
+                            aria-labelledby={`${fieldId}-attach-finding-14-label`}
+                            className="w-full"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent aria-labelledby={`${fieldId}-attach-finding-14-label`}>
+                            {linkIdItems.map((item) => (
+                              <SelectItem key={item.value} value={item.value}>
+                                {item.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </Field>
                       <Button
                         type="button"
@@ -678,14 +889,30 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
                   )}
                   <Stack space="space.100" className="pt-150">
                     <Grid templateColumns="2fr 1fr" gap="space.100">
-                      <Field label="New milestone">
+                      <Field>
+                        <FieldLabel
+                          id={`${fieldId}-new-milestone-15-label`}
+                          htmlFor={`${fieldId}-new-milestone-15`}
+                        >
+                          {"New milestone"}
+                        </FieldLabel>
                         <Input
+                          id={`${fieldId}-new-milestone-15`}
+                          aria-labelledby={`${fieldId}-new-milestone-15-label`}
                           value={milestoneTitle}
                           onChange={(event) => setMilestoneTitle(event.target.value)}
                         />
                       </Field>
-                      <Field label="Target date">
+                      <Field>
+                        <FieldLabel
+                          id={`${fieldId}-target-date-16-label`}
+                          htmlFor={`${fieldId}-target-date-16`}
+                        >
+                          {"Target date"}
+                        </FieldLabel>
                         <Input
+                          id={`${fieldId}-target-date-16`}
+                          aria-labelledby={`${fieldId}-target-date-16-label`}
                           type="date"
                           value={milestoneDate}
                           onChange={(event) => setMilestoneDate(event.target.value)}

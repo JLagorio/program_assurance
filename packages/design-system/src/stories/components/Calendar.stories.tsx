@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { DateRange } from "react-day-picker";
 
-import { Calendar, DatePicker, Field } from "../../components";
+import { FieldLabel, FieldSet, FieldLegend, Calendar, DatePicker, Field } from "../../components";
 import { Inline, Stack } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -65,52 +65,69 @@ export const CalendarRange: Story = { render: () => <Range /> };
 export const Dont: Story = {
   // Independent calendar examples repeat the library navigation landmark.
   parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <div style={{ width: 220 }}>
-            <Field label="Scheduled completion">
-              <DatePicker defaultValue="2026-09-18" />
-            </Field>
-          </div>
-        }
-        doText="One day in a form is a DatePicker; the month opens when asked."
-        dont={
-          <div style={{ width: 300 }}>
-            <Field label="Scheduled completion">
-              <Calendar
-                mode="single"
-                selected={new Date(2026, 8, 18)}
-                defaultMonth={new Date(2026, 8, 1)}
-              />
-            </Field>
-          </div>
-        }
-        dontText="A month grid inline for one field. It takes the room of six."
-      />
-      <Pair
-        do={
-          <Calendar
-            mode="range"
-            selected={{ from: new Date(2026, 8, 28), to: new Date(2026, 9, 9) }}
-            defaultMonth={new Date(2026, 8, 1)}
-            numberOfMonths={2}
-          />
-        }
-        doText="Two months for a range that may cross one."
-        dont={
-          <Calendar
-            mode="single"
-            selected={new Date(2026, 8, 18)}
-            defaultMonth={new Date(2026, 8, 1)}
-            numberOfMonths={2}
-          />
-        }
-        dontText="Two months for one day. The second month is noise."
-      />
-    </Stack>
-  ),
+  render: function FieldExample() {
+    const fieldId = useId();
+    return (
+      <Stack space="space.400">
+        <Pair
+          do={
+            <div style={{ width: 220 }}>
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-scheduled-completion-1-label`}
+                  htmlFor={`${fieldId}-scheduled-completion-1`}
+                >
+                  {"Scheduled completion"}
+                </FieldLabel>
+                <DatePicker
+                  id={`${fieldId}-scheduled-completion-1`}
+                  aria-labelledby={`${fieldId}-scheduled-completion-1-label`}
+                  defaultValue="2026-09-18"
+                />
+              </Field>
+            </div>
+          }
+          doText="One day in a form is a DatePicker; the month opens when asked."
+          dont={
+            <div style={{ width: 300 }}>
+              <FieldSet aria-labelledby={`${fieldId}-scheduled-completion-2-label`}>
+                <FieldLegend id={`${fieldId}-scheduled-completion-2-label`} variant="label">
+                  {"Scheduled completion"}
+                </FieldLegend>
+                <Calendar
+                  aria-labelledby={`${fieldId}-scheduled-completion-2-label`}
+                  mode="single"
+                  selected={new Date(2026, 8, 18)}
+                  defaultMonth={new Date(2026, 8, 1)}
+                />
+              </FieldSet>
+            </div>
+          }
+          dontText="A month grid inline for one field. It takes the room of six."
+        />
+        <Pair
+          do={
+            <Calendar
+              mode="range"
+              selected={{ from: new Date(2026, 8, 28), to: new Date(2026, 9, 9) }}
+              defaultMonth={new Date(2026, 8, 1)}
+              numberOfMonths={2}
+            />
+          }
+          doText="Two months for a range that may cross one."
+          dont={
+            <Calendar
+              mode="single"
+              selected={new Date(2026, 8, 18)}
+              defaultMonth={new Date(2026, 8, 1)}
+              numberOfMonths={2}
+            />
+          }
+          dontText="Two months for one day. The second month is noise."
+        />
+      </Stack>
+    );
+  },
 };
 
 export const Playground: Story = {};

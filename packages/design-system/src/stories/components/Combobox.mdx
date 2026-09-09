@@ -1,128 +1,66 @@
-import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-import { Combobox } from "../../components";
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
 import * as Stories from "./Combobox.stories";
 
 <Meta of={Stories} />
 
 # Combobox
 
-Search and choose from a list. Powered by Base UI, using Ledger's field, surface, typography and motion tokens. Owner: Ledger maintainers. Compound parts are experimental; the existing `options/value/onChange` shorthand remains supported.
+Search and select predefined values using shadcn's Base UI Combobox composition. Root owns selection, filtering, popup state and form serialization. ComboboxInput composes the shared InputGroup and its trigger/clear controls.
 
 ## Anatomy
 
-`Combobox.Root` owns selection, query, filtering, popup state and form serialization. It renders no wrapper element. The shorthand searches directly in its editable field; its popup contains only the filtered options.
-
-| Part                            | Responsibility                                                                |
-| ------------------------------- | ----------------------------------------------------------------------------- |
-| Input                           | Native editable input, with Ledger Field bindings and an input ref.           |
-| InputGroup                      | Optional shared border for Input, Trigger and Clear.                          |
-| Trigger                         | Optional button to open the list; accepts Base UI `render` composition.       |
-| Clear                           | Clears selection and query; default accessible name comes from Ledger locale. |
-| Content                         | Portal, collision-aware positioner and popup. Props/ref reach the popup.      |
-| List                            | Scrollable listbox; its render function receives filtered items.              |
-| Item                            | Selectable option, disabled/highlighted treatment and selected checkmark.     |
-| Empty / Status                  | Persistent polite live regions for empty results and asynchronous status.     |
-| Group / GroupLabel / Collection | Named groups and their filtered items.                                        |
-| Separator                       | A separator between groups.                                                   |
-| Value                           | Render the selected value or values without a wrapper.                        |
-| Chips / Chip / ChipRemove       | Multiple-selection layout and keyboard-aware removal.                         |
-
 ```tsx
-<Combobox.Root<string> items={frameworks}>
-  <Combobox.InputGroup>
-    <Combobox.Input aria-label="Framework" placeholder="Choose a framework" />
-    <Combobox.Clear aria-label="Clear framework" />
-    <Combobox.Trigger aria-label="Show frameworks" />
-  </Combobox.InputGroup>
-  <Combobox.Content>
-    <Combobox.Empty>No frameworks found.</Combobox.Empty>
-    <Combobox.List aria-label="Frameworks">
-      {(item: string) => (
-        <Combobox.Item key={item} value={item}>
-          {item}
-        </Combobox.Item>
-      )}
-    </Combobox.List>
-  </Combobox.Content>
-</Combobox.Root>
+const frameworks = ["React", "Vue", "Svelte"];
+
+<Field>
+  <FieldLabel htmlFor="combobox">Framework</FieldLabel>
+  <Combobox items={frameworks}>
+    <ComboboxInput id="combobox" placeholder="Choose a framework" showClear />
+    <ComboboxContent>
+      <ComboboxEmpty>No frameworks found.</ComboboxEmpty>
+      <ComboboxList>
+        {(item: string) => (
+          <ComboboxItem key={item} value={item}>
+            {item}
+          </ComboboxItem>
+        )}
+      </ComboboxList>
+    </ComboboxContent>
+  </Combobox>
+</Field>;
 ```
 
+Root renders no DOM wrapper. Content includes Portal, Positioner and Popup. List renders filtered items. Group, Label, Collection and Separator compose categorized results.
+
+## Variants and states
+
 <Canvas of={Stories.Searchable} />
+<Canvas of={Stories.Groups} />
 
-## Variants
-
-Use the shorthand for a searchable single selection, or compose Root and its parts for custom content and multiple selections with chips. Typing, searching and displaying the selection happen in the same field.
-
-Use NativeSelect for a short list of plain words, Select for a short list with custom option content, and Combobox when searching helps. Creating a new record remains application-owned; accepting arbitrary text is a separate decision.
+For multiple selection, use an array value with ComboboxChips, ComboboxValue, ComboboxChip and ComboboxChipsInput. Chips include removal controls unless `showRemove={false}`. Use `useComboboxAnchor()` to anchor the popup to the whole chips container.
 
 <Canvas of={Stories.Multiple} />
 
-## Sizes
+For remote results, own loading/query state and pass `filter={null}` when the server filters. ComboboxStatus presents loading feedback outside the list of options. Disabled options cannot be selected; read-only selection stays submitted without allowing changes.
 
-Input and the shorthand support `medium` (32px, default) and `small` (28px). InputGroup follows its input. Chips wrap as selections grow. Content matches the input/group/trigger width and fits the available viewport; List scrolls up to the panel-height token. Use Content's `anchor` to anchor a custom chips layout. The shorthand retains numeric `width` for both input group and popup; it overrides `style.width`. Shorthand `className` and `style` target the group, while other native props and the ref target its input.
-
-<Canvas of={Stories.Sizes} />
-
-## States
-
-Root supports controlled `value/onValueChange`, uncontrolled `defaultValue`, controlled or uncontrolled `open`, and independent `inputValue/onInputValueChange`. Single values may be `null`; `multiple` uses arrays. Keep each state consistently controlled or uncontrolled. With the shorthand, selection remains controlled and its callback reports option values as strings and an empty string when cleared. Typed search text is independent of the selected form value.
-
-`disabled` prevents interaction and omits the form value. Root `readOnly` preserves the value for submission while blocking edits. Disabled items remain discoverable but cannot be selected. Field errors bind to Input; Field's `isRequired` is an ARIA indication, while Root's `required` enables native validation.
-
-For remote results, pass caller-owned `items`, set `filter={null}` to avoid filtering twice, and control the query. Keep Status mounted and update its children with loading, error or result text. Clear Empty's children while loading. The caller owns requests, cancellation and stale-response handling.
-
-<Canvas of={Stories.ComboboxMatrix} />
 <Canvas of={Stories.AsyncResults} />
-
-## Modifiers
-
-- Root `autoHighlight` highlights a match after typing. `filter`, `filteredItems`, `limit` and `locale` configure matching; Ledger's locale is the default.
-- Object items use `itemToStringLabel` for display and `itemToStringValue` for submission. Use `isItemEqualToValue` with stable IDs when objects are recreated. Labels need not be unique.
-- Root `name` and `form` bind the hidden native form control. Multiple selections produce repeated entries under the same name. Uncontrolled selection restores `defaultValue` on native form reset; controlled selection stays caller-owned.
-- Root `dir` defaults to LedgerProvider and configures Base UI's direction handling and portaled content.
-- DOM parts forward native attributes, event handlers, refs and Base UI `render`, `className(state)` and `style(state)` callbacks. Root and Value are not DOM nodes. Base UI Item owns its generated ID; its public API does not expose an `id` override.
-- Content `portalContainer` overrides portal placement. By default, an enclosing dialog owns the portal so focus and outside-click handling cooperate with Ledger's existing Radix overlays. `keepMounted` retains hidden, inert content.
-
-<Canvas of={Stories.Groups} />
-<Canvas of={Stories.NativeForms} />
-
-## Content
-
-Use a noun for the field label and a specific placeholder. Options may include supporting text, an icon or other noninteractive content. Keep each option one choice; avoid buttons or editable controls inside it. Give icon-only Trigger and ChipRemove controls accessible names that include their purpose or target.
-
-The shorthand keeps `keywords` for aliases and IDs and `meta` for short supporting text. Its search matches labels, values and keywords using Base UI's locale-aware substring matching. It no longer uses cmdk's fuzzy ranking.
-
-## Style
-
-Ledger tokens replace the installed shadcn component's colors, sizes and motion. Popup colors follow the active Ledger theme. Trigger and Clear are explicit parts, so Input's native props and ref always target the actual input. Chip removal is explicit as well; no application action or extra workflow wrapper is imposed.
 
 ## Accessibility
 
-Base UI owns combobox/listbox relationships, active-option navigation, selection, focus and chip keyboard behavior. Ledger Field names and describes the editable input; the list inherits the Field label without duplicating its control ID. Outside Field, name Input and List explicitly. A generic localized list name is the fallback.
-
-Arrow keys navigate options; Enter selects. An open list closes on Escape. Base UI's editable input clears selection on Escape when the list is already closed; in a surrounding dialog, the next Escape can close the dialog. Backspace in an empty chips input removes the last selection. A filtered multi-selection closes the list after selecting; an unfiltered multi-selection keeps it open.
-
-Keep Empty and Status mounted: changing their children allows polite announcements. Avoid applying `hidden`, `display: none` or `aria-hidden` to those live regions. Normal popup closure unmounts them; retained closed popups remain inaccessible through Base UI's hidden/inert handling.
+Connect FieldLabel to ComboboxInput with `htmlFor`/`id`; put description IDs, invalid state and required announcements on the editable input. Root’s `required` enables native constraint validation separately. Typing filters, arrows highlight, Enter selects, and Escape closes the popup before the surrounding dialog. Base UI controls focus and nested popup behavior.
 
 <Canvas of={Stories.InDialog} />
 
 ## Props
 
-<ArgTypes of={Combobox} />
+`ComboboxProps<Value, Multiple>` is the generic Base UI root contract, with Ledger locale/direction defaults. Root's `value` is one value/null or an array; `onValueChange(value, details)` supports cancellation. Use `name`, `form`, `inputRef`, serialization and equality callbacks on Root. The installed Base UI version is 1.7; reset controlled selections in the owning form's `onReset`.
 
-The table describes the shorthand. Its ref and native event targets are now `HTMLInputElement`; migrate former button refs accordingly. Use `placeholder` for the editable field; deprecated `searchPlaceholder` is only a fallback when `placeholder` is omitted. `ComboboxRootProps<Value, Multiple>` describes the generic compound root; every styled part has an exported props type. Use explicit generics for reliable object and multi-value callback types. Root does not accept arbitrary DOM props or a DOM ref.
+ComboboxInput forwards native input refs, events, render composition, classes and styles; Ledger retains small/medium sizing. `showTrigger` defaults true and `showClear` defaults false. Its children follow the control addons. Content forwards popup props plus positioning, `portalContainer` and `keepMounted`; the latter two preserve existing advanced integrations. Clear, ChipRemove and Status are additional flat native parts.
 
-### Playground
+Replace `Combobox options/onChange` and `Combobox.Root` with the single root API. Move placeholder, ref, blur and input ARIA to ComboboxInput. Replace the old separate InputGroup/Trigger composition with ComboboxInput, and use ComboboxChipsInput inside chips. Layout owns widths. NativeSelect has been removed; use Select for choices that do not need search.
 
-<Canvas of={Stories.Playground} />
-<Controls of={Stories.Playground} />
+<Canvas of={Stories.NativeForms} />
 
 ## Related
 
-[NativeSelect](?path=/docs/components-nativeselect--docs), [Select](?path=/docs/components-select--docs), [Field](?path=/docs/components-field--docs), [Forms](?path=/docs/patterns-forms--docs). References: [installed shadcn Base UI design](https://ui.shadcn.com/docs/components/base/combobox), [Base UI Combobox](https://base-ui.com/react/components/combobox).
-
-## Don't
-
-Do not use `asChild` on the new Base UI parts; use `render`. Do not serialize object labels when a stable ID is required. Do not keep a second hidden input alongside Root's form control. Do not add a separate picker pattern merely to arrange these parts.
-
-<Canvas of={Stories.Dont} />
+[Select](?path=/docs/components-select--docs) · [InputGroup](?path=/docs/components-inputgroup--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [shadcn Combobox](https://ui.shadcn.com/docs/components/base/combobox) · [Base UI Combobox](https://base-ui.com/react/components/combobox)

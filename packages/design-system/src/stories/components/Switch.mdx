@@ -11,7 +11,7 @@ An on/off setting built on Base UI with the shadcn composition API. The thumb is
 
 ```tsx
 <label className="inline-flex items-center gap-100">
-  <Switch defaultChecked />
+  <Switch id="switch" aria-describedby="switch-help" defaultChecked />
   Notify the owner
 </label>
 ```
@@ -20,10 +20,10 @@ An on/off setting built on Base UI with the shadcn composition API. The thumb is
 
 ## Sizes and state
 
-| Size | Track | Thumb |
-| --- | --- | --- |
-| `default` | 32 × 20px | 16px |
-| `sm` | 24 × 16px | 12px |
+| Size      | Track     | Thumb |
+| --------- | --------- | ----- |
+| `default` | 32 × 20px | 16px  |
+| `sm`      | 24 × 16px | 12px  |
 
 These dimensions use Ledger spacing tokens. The thumb moves toward the inline end when checked, follows RTL direction, and stops animating when reduced motion is requested.
 
@@ -31,15 +31,17 @@ Use `defaultChecked` for local state or `checked` and `onCheckedChange(checked, 
 
 ## Labels, Field and forms
 
-A wrapping `<label>` or a sibling `<label htmlFor={id}>` names the setting and toggles it when clicked. Keep the name stable across on/off states. [Field](?path=/docs/components-field--docs) supplies the label, hint/error description and required/invalid ARIA wiring:
+A wrapping `<label>` or a sibling `<label htmlFor={id}>` names the setting and toggles it when clicked. Keep the name stable across on/off states. [Field](?path=/docs/components-field--docs) provides label and message parts. Associate them with the control using native IDs and ARIA:
 
 ```tsx
-<Field label="Notify the owner" hint="Send an email when a finding changes status.">
+<Field>
+  <FieldLabel htmlFor="switch">Notify the owner</FieldLabel>
   <Switch checked={notify} onCheckedChange={setNotify} />
+  <FieldDescription id="switch-help">Send an email when a finding changes status.</FieldDescription>
 </Field>
 ```
 
-`name`, `value`, `uncheckedValue`, `form` and `required` configure the hidden checkbox used for native submission and validation. Without `uncheckedValue`, an unchecked switch contributes no entry. `Field isRequired` marks the control for assistive technology; use Switch's native `required` when browser validation is intended.
+`name`, `value`, `uncheckedValue`, `form` and `required` configure the hidden checkbox used for native submission and validation. Without `uncheckedValue`, an unchecked switch contributes no entry. `aria-required` on Switch describes the requirement; use Switch's native `required` when browser validation is intended.
 
 In installed Base UI 1.7, native form reset is caller-owned: restore controlled `checked` state in the form's `onReset` handler.
 

@@ -1,16 +1,12 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
-
 import {
+  InputGroupAddon,
+  InputGroupInput,
   Badge,
   Button,
   Empty,
   Id,
   Indicator,
   Inline,
-  Input,
   InputGroup,
   Inspector,
   KeyValue,
@@ -27,6 +23,10 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@ledger/design-system";
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { Search } from "lucide-react";
 import { Shell } from "@/components/app/shell";
 import {
   benchmarkById,
@@ -132,14 +132,15 @@ function Catalog() {
           <TabsContent value={tab} className="contents">
             {tab !== "Overlays" ? (
               <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
-                <InputGroup leading={<Search />}>
-                  <Input
+                <InputGroup>
+                  <InputGroupInput
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     placeholder={tab === "Controls" ? "Search controls" : "Search CCIs"}
                     aria-label="Search"
                     style={{ width: 240, maxWidth: "100%" }}
                   />
+                  <InputGroupAddon>{<Search />}</InputGroupAddon>
                 </InputGroup>
                 <ToggleGroup
                   aria-label="Family"

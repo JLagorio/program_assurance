@@ -61,6 +61,12 @@ beforeAll(() => {
 describe("native platform controls and SSP", () => {
   it("resolves the exact imported profile and ordered overlays in every native surface", () => {
     const profile = platformSeed.profiles[0]!;
+    // The seed's control layer is resolved by scripts/gen-wsx90-seed.mjs, so the
+    // expectations are read off the profile rather than pinned to a magic number:
+    // what is being checked is that the native surfaces reproduce the resolution.
+    const effective = new Set(profile.effective_control_ids);
+    const starting = new Set(profile.starting_selection);
+    const total = profile.effective_control_ids.length;
     const root = controlSetFor(platformRootScopeId)!;
     expect(root.controls.map((row) => row.control.id).sort()).toEqual(
       [...profile.effective_control_ids].sort(),
@@ -68,21 +74,35 @@ describe("native platform controls and SSP", () => {
     expect(root.overlays.map((item) => item.id)).toEqual(
       profile.overlays.map((item) => item.overlay_id),
     );
-    expect(root.removed.map((row) => row.control.id).sort()).toEqual(["AC-18", "AC-20"]);
-    expect(root.added).toHaveLength(8);
-    expect(controlMatrix("PRG-1090")).toHaveLength(74);
-    expect(resolveDraft(inForceRevision(platformRootScopeId)!)).toMatchObject({ total: 74 });
+    expect(root.removed.map((row) => row.control.id).sort()).toEqual(
+      profile.starting_selection.filter((id) => !effective.has(id)).sort(),
+    );
+    expect(root.added).toHaveLength(
+      profile.effective_control_ids.filter((id) => !starting.has(id)).length,
+    );
+    expect(controlMatrix("PRG-1090")).toHaveLength(total);
+    expect(resolveDraft(inForceRevision(platformRootScopeId)!)).toMatchObject({ total });
     const child = controlSetFor(platformScopeId("LRU-001"))!;
-    expect(child.total).toBe(74);
+    expect(child.total).toBe(total);
     expect(child.scope.selectionSource?.parentScope).toBe(platformScopeId("SUB-01"));
     const draft = proposeRevision(child.scope.id, "Review component selection")!;
-    expect(resolveDraft(draft).total).toBe(74);
+    expect(resolveDraft(draft).total).toBe(total);
     expect(controlMatrix("PRG-1041").length).toBeGreaterThan(74);
   });
   it("assembles the real 225 component contributions with source UUIDs and no inferred status", () => {
     const value = platformExportSnapshot();
     const exported = exportedRequirements(value);
-    expect(exported).toHaveLength(74);
+    // Every selected control is exported; only the 74 with an authored implementation
+    // carry an aggregate claim or component contributions. Nothing is invented for the rest.
+    expect(exported).toHaveLength(platformSeed.profiles[0]!.effective_control_ids.length);
+    expect(
+      exported.filter((item) =>
+        rows(item["props"]).some((entry) => entry["name"] === "source-aggregate-status"),
+      ),
+    ).toHaveLength(platformSeed.control_implementations.length);
+    expect(exported.filter((item) => item["by-components"] !== undefined)).toHaveLength(
+      platformSeed.control_implementations.length,
+    );
     expect(exported.flatMap((item) => rows(item["by-components"]) ?? [])).toHaveLength(225);
     const aggregate = platformSeed.control_implementations.find(
       (item) => item.control_id === "AC-2",

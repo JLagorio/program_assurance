@@ -2,6 +2,10 @@
 
 Ledger, the product design system: tokens, primitives, components, patterns, shapes, the shell and the colour mode, shipped as one package for React 19 and Tailwind 4. The layer rules and what goes where are in `docs/guides/component-library.md`. The version policy is in `CHANGELOG.md`. The token architecture is `docs/superpowers/specs/2026-09-02-token-architecture.md`.
 
+Avatar, InputGroup and Combobox use flat shadcn Base UI composition. Input wraps Base UI;
+Textarea remains native. NativeSelect is removed; use Select or Combobox. See the
+[component contracts](../../docs/guides/component-library.md#component-contracts) for migration direction.
+
 ## Map
 
 | Path               | What is there                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -105,13 +109,13 @@ Breadcrumb has seven composable exports and uses Base UI `render` for links. Bad
 
 Semantic axes keep clear meanings: `tone` communicates status, `variant` chooses treatment and `size` chooses density. Native DOM names retain their meanings. Extend components deliberately instead of creating parallel standard and product versions of the same control.
 
-DOM attributes and refs belong on the element that consumers must label, submit, focus, measure or integrate. Standard parts preserve their native targets and composition affordances; patterns document any narrower contract. Custom Field controls call `useFieldControl`. A `BreadcrumbLink render={<Link to="/records" />}` child must accept its merged props and ref. Button and IconButton share Base UI action behavior; navigation uses `buttonVariants` on a real anchor or router Link. See the [Button page](src/stories/components/Button.mdx) for loading, render composition and migration examples.
+DOM attributes and refs belong on the element that consumers must label, submit, focus, measure or integrate. Standard parts preserve their native targets and composition affordances; patterns document any narrower contract. Field composes native label/message parts; custom controls forward IDs, ARIA and refs. A `BreadcrumbLink render={<Link to="/records" />}` child must accept its merged props and ref. Button and IconButton share Base UI action behavior; navigation uses `buttonVariants` on a real anchor or router Link. See the [Button page](src/stories/components/Button.mdx) for loading, render composition and migration examples.
 
-[Switch](src/stories/components/Switch.mdx) uses shadcn's Base UI control with externally composed labels and descriptions. Its default root ref targets the visible span; `id` and `inputRef` target the hidden checkbox. Field binding is preserved.
+[Switch](src/stories/components/Switch.mdx) uses shadcn's Base UI control with externally composed labels and descriptions. Its default root ref targets the visible span; `id` and `inputRef` target the hidden checkbox. Labels and descriptions use native IDs and ARIA.
 
-[RadioGroup](src/stories/components/RadioGroup.mdx) uses flat `RadioGroupItem` exports, external labels/descriptions and CSS layout. It preserves Field group binding and Base UI's generic selection, native form and keyboard contracts.
+[RadioGroup](src/stories/components/RadioGroup.mdx) uses flat `RadioGroupItem` exports, external labels/descriptions and CSS layout. It uses explicit group names and descriptions with Base UI's generic selection, native form and keyboard contracts.
 
-[Checkbox](src/stories/components/Checkbox.mdx) uses external labels/descriptions and boolean `checked` with a separate `indeterminate` prop. Table.Selection uses the same state split. Field binding and Ledger's check/minus indicators remain, with Base UI handling native input and keyboard behavior.
+[Checkbox](src/stories/components/Checkbox.mdx) uses external labels/descriptions and boolean `checked` with a separate `indeterminate` prop. Table.Selection uses the same state split. Explicit label/message associations and Ledger's check/minus indicators remain, with Base UI handling native input and keyboard behavior.
 
 [HoverCard](src/stories/components/HoverCard.mdx) composes `HoverCardTrigger` and `HoverCardContent` over Base UI PreviewCard. Triggers preserve native links and accept `render`; timing belongs on the trigger and placement/width on the content. Ledger locale supplies positioning direction.
 
@@ -121,7 +125,7 @@ DOM attributes and refs belong on the element that consumers must label, submit,
 
 [DropdownMenu](src/stories/components/DropdownMenu.mdx) uses flat Base UI parts for actions, checkbox/radio choices and submenus. Actions close by default; choices stay open unless `closeOnClick` is set. Use LinkItem for native/router links. Content owns placement, native styles and final focus; grouped labels belong inside Group or RadioGroup.
 
-[Select](src/stories/components/Select.mdx) uses flat Base UI parts. Root owns values and form props; Trigger owns Field binding, native button props and `default`/`sm` sizing; Value owns the placeholder and display; Content owns placement. Supply labels through `items` or Value. Single values may be null, multiple values are arrays, and form reset is caller-owned.
+[Select](src/stories/components/Select.mdx) uses flat Base UI parts. Root owns values and form props; Trigger owns explicit label/message associations, native button props and `default`/`sm` sizing; Value owns the placeholder and display; Content owns placement. Supply labels through `items` or Value. Single values may be null, multiple values are arrays, and form reset is caller-owned.
 
 [Tabs](src/stories/components/Tabs.mdx) uses flat Root, List, Trigger and Content parts with shadcn default/line list variants. List owns `activateOnFocus` (manual by default); Root owns orientation and controlled values. Compose counts as children and native/router links through `render` with `nativeButton={false}`.
 
@@ -146,3 +150,5 @@ Tokens and layout implement the design; keyboard operation, understandable copy,
 Shared patterns describe reusable presentation and interaction. `Composer` owns drafting, keyboard suggestions and recoverable submission; its adapter supplies option identities, filtering and exact insertion text. `TaskRow` owns a completion row with caller-rendered owner, date and status content. `Timeline.Item` already supplies the reusable feed item, so no second shared wrapper is needed.
 
 The application keeps `Activity` and `Task` wrappers, event taxonomies, waiting/blocked states, overdue decisions, people lookups and mention serialization (`src/lib/mentions.ts`). Those wrappers and `parseMentions` are not package exports. Patterns/Composer, Patterns/TaskRow and Components/Timeline demonstrate the reusable behaviors; product workflows stay in the application. These new patterns are experimental; no release is implied.
+
+Field, Alert and ButtonGroup follow shadcn's Base UI source with flat native parts. Field uses explicit label/message associations and TanStack-owned validation; Alert composes its content; ButtonGroup adds native props, orientation and Text/Separator parts. See [Field](src/stories/components/Field.mdx) for migration.

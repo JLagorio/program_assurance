@@ -6,7 +6,7 @@ import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { useOverlayContainer } from "./_overlay-focus";
-import { controlBase, controlHeight, useFieldControl } from "./controls";
+import { controlBase, controlHeight } from "./controls";
 import {
   menuItem,
   menuItemDisabled,
@@ -41,21 +41,11 @@ export function SelectTrigger({
   children,
   ...props
 }: SelectTriggerProps) {
-  const bound = useFieldControl(props);
-  // Leave upstream Root/Field announcements intact when Ledger has no binding to add.
-  for (const key of [
-    "aria-required",
-    "aria-invalid",
-    "aria-labelledby",
-    "aria-describedby",
-  ] as const) {
-    if (bound[key] === undefined) delete bound[key];
-  }
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
-      {...bound}
+      {...props}
       className={classes(
         cn(
           controlBase,
@@ -105,10 +95,6 @@ export function SelectContent({
   const inheritedDirection = useDirection();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
   const portal = useOverlayContainer();
-  const listName = useFieldControl({
-    "aria-label": props["aria-label"],
-    "aria-labelledby": props["aria-labelledby"],
-  });
   const defaults = {
     width: "var(--anchor-width)",
     minWidth: 144,
@@ -150,8 +136,8 @@ export function SelectContent({
             <SelectScrollUpButton />
             <SelectPrimitive.List
               className="min-h-0 overflow-y-auto overscroll-contain"
-              aria-label={listName["aria-label"]}
-              aria-labelledby={listName["aria-labelledby"]}
+              aria-label={props["aria-label"]}
+              aria-labelledby={props["aria-labelledby"]}
             >
               {children}
             </SelectPrimitive.List>

@@ -1,6 +1,12 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
-import { useRecordForm } from "@/lib/record-form";
 import {
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Box,
   Button,
@@ -18,16 +24,16 @@ import {
   Indicator,
   Input,
   KeyValue,
-  NativeSelect,
   Section,
   Stack,
   Table,
   Textarea,
 } from "@ledger/design-system";
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { useRecordForm } from "@/lib/record-form";
 import { Link } from "@tanstack/react-router";
 import { Check, Plus, RefreshCw, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type SetStateAction } from "react";
-
+import { useId, useCallback, useEffect, useMemo, useState, type SetStateAction } from "react";
 import {
   artifactShort,
   artifactTone,
@@ -122,6 +128,10 @@ export function DigitalThreadSection({
     setCreatingRule(false);
   }
 
+  const statusItems = statusFilters.map((s) => ({
+    value: s,
+    label: s === "All" ? "All statuses" : s,
+  }));
   return (
     <>
       <Stack space="space.300">
@@ -283,19 +293,30 @@ export function DigitalThreadSection({
           title="Living technical evidence"
           description={`${mappedControls} controls carry engineering evidence · ${pending} artifacts awaiting security-engineer acceptance.`}
           action={
-            <NativeSelect
-              aria-label="Evidence status"
+            <Select<string>
+              items={statusItems}
               value={status}
-              onChange={(e) => setStatus(e.target.value as (typeof statusFilters)[number])}
-              size="small"
-              style={{ width: 152 }}
+              onValueChange={(value) => {
+                if (value === null) return;
+                return setStatus(value as (typeof statusFilters)[number]);
+              }}
             >
-              {statusFilters.map((s) => (
-                <option key={s} value={s}>
-                  {s === "All" ? "All statuses" : s}
-                </option>
-              ))}
-            </NativeSelect>
+              <SelectTrigger
+                className="w-full"
+                aria-label="Evidence status"
+                size="sm"
+                style={{ width: 152 }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statusItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           }
         >
           <Table className="table-fixed">
@@ -389,6 +410,8 @@ function RuleModal({
   onClose: () => void;
   onSave: (r: MappingRule) => void;
 }) {
+  const fieldId = useId();
+
   const { form, values, setValue, formId, formRef } = useRecordForm(
     {
       draft: rule as MappingRule | null,
@@ -416,6 +439,10 @@ function RuleModal({
     .map((c) => c.trim())
     .filter(Boolean);
 
+  const enabledEnabledDisabledItems = [
+    { value: "Enabled", label: "Enabled" },
+    { value: "Disabled", label: "Disabled" },
+  ];
   return (
     <Dialog
       open={true}
@@ -453,173 +480,344 @@ function RuleModal({
               >
                 <Stack space="space.150">
                   <form.Field name="draft.name">
-                    {(field) => (
-                      <Field
-                        isRequired
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label="Rule name"
-                      >
-                        <Input
-                          value={field.state.value ?? ""}
-                          placeholder="Multifactor authentication"
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError1 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError1)}>
+                          <FieldLabel
+                            id={`${fieldId}-rule-name-1-label`}
+                            htmlFor={`${fieldId}-rule-name-1`}
+                          >
+                            {"Rule name"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
+                          <Input
+                            id={`${fieldId}-rule-name-1`}
+                            aria-labelledby={`${fieldId}-rule-name-1-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError1)}
+                            aria-describedby={
+                              fieldError1 ? `${fieldId}-rule-name-1-message` : undefined
+                            }
+                            value={field.state.value ?? ""}
+                            placeholder="Multifactor authentication"
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError1 ? (
+                            <FieldError id={`${fieldId}-rule-name-1-message`}>
+                              {fieldError1}
+                            </FieldError>
+                          ) : null}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <Grid
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
                     <form.Field name="draft.source">
-                      {(field) => (
-                        <Field
-                          label="Source tool"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={draft.source}
-                            onChange={(e) => {
-                              const source = e.target.value as ConnectorKind;
-                              setDraft({
-                                ...draft,
-                                source,
-                                signal: connectorSignals[source][0] ?? "Label",
-                              });
-                            }}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {(Object.keys(connectorSignals) as ConnectorKind[]).map((k) => (
-                              <option key={k} value={k}>
-                                {k}
-                              </option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const sourceItems = (Object.keys(connectorSignals) as ConnectorKind[]).map(
+                          (k) => ({
+                            value: k,
+                            label: k,
+                          }),
+                        );
+                        const fieldError2 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError2)}>
+                            <FieldLabel
+                              id={`${fieldId}-source-tool-2-label`}
+                              htmlFor={`${fieldId}-source-tool-2`}
+                            >
+                              {"Source tool"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={sourceItems}
+                              value={draft.source}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                const source = value as ConnectorKind;
+                                setDraft({
+                                  ...draft,
+                                  source,
+                                  signal: connectorSignals[source][0] ?? "Label",
+                                });
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-source-tool-2`}
+                                aria-labelledby={`${fieldId}-source-tool-2-label`}
+                                aria-invalid={Boolean(fieldError2)}
+                                aria-describedby={
+                                  fieldError2 ? `${fieldId}-source-tool-2-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-source-tool-2-label`}>
+                                {sourceItems.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError2 ? (
+                              <FieldError id={`${fieldId}-source-tool-2-message`}>
+                                {fieldError2}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="draft.signal">
-                      {(field) => (
-                        <Field
-                          isRequired
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                          label="Signal"
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) =>
-                              field.handleChange(e.target.value as MappingRuleSignal)
-                            }
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {connectorSignals[draft.source].map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems = connectorSignals[draft.source].map((s) => ({
+                          value: s,
+                          label: s,
+                        }));
+                        const fieldError3 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError3)}>
+                            <FieldLabel
+                              id={`${fieldId}-signal-3-label`}
+                              htmlFor={`${fieldId}-signal-3`}
+                            >
+                              {"Signal"}
+                              <span aria-hidden="true" className="text-danger">
+                                {" "}
+                                *
+                              </span>
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as MappingRuleSignal);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-signal-3`}
+                                aria-labelledby={`${fieldId}-signal-3-label`}
+                                aria-required={true}
+                                aria-invalid={Boolean(fieldError3)}
+                                aria-describedby={
+                                  fieldError3 ? `${fieldId}-signal-3-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-signal-3-label`}>
+                                {valueItems.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError3 ? (
+                              <FieldError id={`${fieldId}-signal-3-message`}>
+                                {fieldError3}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
                   <form.Field name="draft.match">
-                    {(field) => (
-                      <Field
-                        label="Match expression"
-                        hint="JQL fragment, path glob, commit trailer or stereotype."
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                      >
-                        <Input
-                          value={field.state.value ?? ""}
-                          placeholder="sec:mfa OR component = Identity"
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError4 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError4)}>
+                          <FieldLabel
+                            id={`${fieldId}-match-expression-4-label`}
+                            htmlFor={`${fieldId}-match-expression-4`}
+                          >
+                            {"Match expression"}
+                          </FieldLabel>
+                          <Input
+                            id={`${fieldId}-match-expression-4`}
+                            aria-labelledby={`${fieldId}-match-expression-4-label`}
+                            aria-invalid={Boolean(fieldError4)}
+                            aria-describedby={`${fieldId}-match-expression-4-message`}
+                            value={field.state.value ?? ""}
+                            placeholder="sec:mfa OR component = Identity"
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError4 ? (
+                            <FieldError id={`${fieldId}-match-expression-4-message`}>
+                              {fieldError4}
+                            </FieldError>
+                          ) : (
+                            <FieldDescription id={`${fieldId}-match-expression-4-message`}>
+                              {"JQL fragment, path glob, commit trailer or stereotype."}
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <form.Field name="controls">
-                    {(field) => (
-                      <Field
-                        isRequired
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label="Mapped controls"
-                        hint="Comma separated NIST SP 800-53 Rev. 5 control IDs."
-                      >
-                        <Input
-                          value={field.state.value ?? ""}
-                          placeholder="IA-2, IA-2(1)"
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError5 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError5)}>
+                          <FieldLabel
+                            id={`${fieldId}-mapped-controls-5-label`}
+                            htmlFor={`${fieldId}-mapped-controls-5`}
+                          >
+                            {"Mapped controls"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
+                          <Input
+                            id={`${fieldId}-mapped-controls-5`}
+                            aria-labelledby={`${fieldId}-mapped-controls-5-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError5)}
+                            aria-describedby={`${fieldId}-mapped-controls-5-message`}
+                            value={field.state.value ?? ""}
+                            placeholder="IA-2, IA-2(1)"
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError5 ? (
+                            <FieldError id={`${fieldId}-mapped-controls-5-message`}>
+                              {fieldError5}
+                            </FieldError>
+                          ) : (
+                            <FieldDescription id={`${fieldId}-mapped-controls-5-message`}>
+                              {"Comma separated NIST SP 800-53 Rev. 5 control IDs."}
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <Grid
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
                     <form.Field name="draft.confidence">
-                      {(field) => (
-                        <Field
-                          label="Confidence"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) =>
-                              field.handleChange(e.target.value as MappingRule["confidence"])
-                            }
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            <option>High</option>
-                            <option>Medium</option>
-                            <option>Low</option>
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems2 = [
+                          { value: "High", label: "High" },
+                          { value: "Medium", label: "Medium" },
+                          { value: "Low", label: "Low" },
+                        ];
+                        const fieldError6 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError6)}>
+                            <FieldLabel
+                              id={`${fieldId}-confidence-6-label`}
+                              htmlFor={`${fieldId}-confidence-6`}
+                            >
+                              {"Confidence"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems2}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as MappingRule["confidence"]);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-confidence-6`}
+                                aria-labelledby={`${fieldId}-confidence-6-label`}
+                                aria-invalid={Boolean(fieldError6)}
+                                aria-describedby={
+                                  fieldError6 ? `${fieldId}-confidence-6-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-confidence-6-label`}>
+                                {valueItems2.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError6 ? (
+                              <FieldError id={`${fieldId}-confidence-6-message`}>
+                                {fieldError6}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
-                    <Field label="State">
-                      <NativeSelect
+                    <Field>
+                      <FieldLabel id={`${fieldId}-state-7-label`} htmlFor={`${fieldId}-state-7`}>
+                        {"State"}
+                      </FieldLabel>
+                      <Select<string>
+                        items={enabledEnabledDisabledItems}
                         value={draft.enabled ? "Enabled" : "Disabled"}
-                        onChange={(e) =>
-                          setDraft({ ...draft, enabled: e.target.value === "Enabled" })
-                        }
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return setDraft({ ...draft, enabled: value === "Enabled" });
+                        }}
                       >
-                        <option>Enabled</option>
-                        <option>Disabled</option>
-                      </NativeSelect>
+                        <SelectTrigger
+                          id={`${fieldId}-state-7`}
+                          aria-labelledby={`${fieldId}-state-7-label`}
+                          className="w-full"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent aria-labelledby={`${fieldId}-state-7-label`}>
+                          {enabledEnabledDisabledItems.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </Field>
                   </Grid>
                 </Stack>
@@ -668,6 +866,8 @@ function EvidenceModal({
   onClose: () => void;
   onStatus: (id: string, next: EvidenceStatus) => void;
 }) {
+  const fieldId = useId();
+
   const { form, values, formId, formRef } = useRecordForm(
     {
       statement: evidence?.statement ?? "",
@@ -681,6 +881,12 @@ function EvidenceModal({
   }, [evidence, form]);
   if (!evidence) return null;
 
+  const statusItems2 = [
+    { value: "Auto-mapped", label: "Auto-mapped" },
+    { value: "Needs review", label: "Needs review" },
+    { value: "Accepted", label: "Accepted" },
+    { value: "Rejected", label: "Rejected" },
+  ];
   return (
     <Dialog
       open={true}
@@ -716,44 +922,98 @@ function EvidenceModal({
               >
                 <Stack space="space.150">
                   <form.Field name="statement">
-                    {(field) => (
-                      <Field
-                        isRequired
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label="Generated implementation statement"
-                        hint="Drafted from the artifact and edited by the product security engineer before it enters the SSP."
-                      >
-                        <Textarea
-                          rows={5}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                          value={field.state.value ?? ""}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError8 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError8)}>
+                          <FieldLabel
+                            id={`${fieldId}-generated-implementation-statement-8-label`}
+                            htmlFor={`${fieldId}-generated-implementation-statement-8`}
+                          >
+                            {"Generated implementation statement"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
+                          <Textarea
+                            id={`${fieldId}-generated-implementation-statement-8`}
+                            aria-labelledby={`${fieldId}-generated-implementation-statement-8-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError8)}
+                            aria-describedby={`${fieldId}-generated-implementation-statement-8-message`}
+                            rows={5}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                          />
+                          {fieldError8 ? (
+                            <FieldError
+                              id={`${fieldId}-generated-implementation-statement-8-message`}
+                            >
+                              {fieldError8}
+                            </FieldError>
+                          ) : (
+                            <FieldDescription
+                              id={`${fieldId}-generated-implementation-statement-8-message`}
+                            >
+                              {
+                                "Drafted from the artifact and edited by the product security engineer before it enters the SSP."
+                              }
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <Grid
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
-                    <Field label="Status">
-                      <NativeSelect
+                    <Field>
+                      <FieldLabel id={`${fieldId}-status-9-label`} htmlFor={`${fieldId}-status-9`}>
+                        {"Status"}
+                      </FieldLabel>
+                      <Select<string>
+                        items={statusItems2}
                         value={evidence.status}
-                        onChange={(e) => onStatus(evidence.id, e.target.value as EvidenceStatus)}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return onStatus(evidence.id, value as EvidenceStatus);
+                        }}
                       >
-                        <option>Auto-mapped</option>
-                        <option>Needs review</option>
-                        <option>Accepted</option>
-                        <option>Rejected</option>
-                      </NativeSelect>
+                        <SelectTrigger
+                          id={`${fieldId}-status-9`}
+                          aria-labelledby={`${fieldId}-status-9-label`}
+                          className="w-full"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent aria-labelledby={`${fieldId}-status-9-label`}>
+                          {statusItems2.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </Field>
-                    <Field label="Reviewer">
-                      <Input defaultValue={evidence.reviewer ?? "Sarah Chen"} />
+                    <Field>
+                      <FieldLabel
+                        id={`${fieldId}-reviewer-10-label`}
+                        htmlFor={`${fieldId}-reviewer-10`}
+                      >
+                        {"Reviewer"}
+                      </FieldLabel>
+                      <Input
+                        id={`${fieldId}-reviewer-10`}
+                        aria-labelledby={`${fieldId}-reviewer-10-label`}
+                        defaultValue={evidence.reviewer ?? "Sarah Chen"}
+                      />
                     </Field>
                   </Grid>
                 </Stack>

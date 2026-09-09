@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState, type ComponentProps } from "react";
 import { cn } from "../lib/cn";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
-import { controlBase, controlHeight, useFieldControl, type ControlSize } from "./controls";
+import { controlBase, controlHeight, type ControlSize } from "./controls";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 type DatePickerOwnProps = {
@@ -32,13 +32,13 @@ type DatePickerOwnProps = {
   defaultOpen?: boolean | undefined;
   /** Layout only. */
   className?: string | undefined;
-  /** The name, when there is no Field around it. */
+  /** The name when there is no visible label. */
   "aria-label"?: string | undefined;
-  /** Set by the Field from `error`; the border turns. */
+  /** Set when form validation fails; the border turns. */
   "aria-invalid"?: boolean | undefined;
-  /** Accepted from the Field and not rendered: a button may not carry `aria-required`. The asterisk and the form's check say required. */
+  /** Accepted and not rendered: a button may not carry `aria-required`. The asterisk and the form's check say required. */
   "aria-required"?: boolean | undefined;
-  /** Set by the Field: the hint or the error is the control's description. */
+  /** IDs of the hint or error describing the control. */
   "aria-describedby"?: string | undefined;
 };
 
@@ -66,14 +66,14 @@ export function DatePicker({
 }: DatePickerProps) {
   const { t, formatCalendarDate } = useLedgerLocale();
   const generatedId = useId();
-  const field = useFieldControl({
+  const field = {
     ...triggerProps,
     id,
     "aria-label": ariaLabel,
     "aria-labelledby": ariaLabelledby,
     "aria-invalid": ariaInvalid,
     "aria-describedby": ariaDescribedby,
-  });
+  };
   const triggerId = field.id ?? generatedId;
   const input = useRef<HTMLInputElement>(null);
   const [inner, setInner] = useState(defaultValue ?? "");

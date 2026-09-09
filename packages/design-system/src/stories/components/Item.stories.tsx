@@ -1,8 +1,17 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-
+import {
+  avatarHue,
+  AvatarFallback,
+  avatarInitials,
+  Badge,
+  Avatar,
+  Button,
+  Dot,
+  IconButton,
+  Item,
+  Table,
+} from "../../components";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
-
-import { Badge, Avatar, Button, Dot, IconButton, Item, Table } from "../../components";
 import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -46,7 +55,16 @@ export const ItemMatrix: Story = {
           meta="Sep 04"
         />
         <Item
-          leading={<Avatar name="Priya Natarajan" size="xsmall" isDecorative />}
+          leading={
+            <Avatar
+              size="xsmall"
+              aria-hidden="true"
+              hue={avatarHue("Priya Natarajan")}
+              title={"Priya Natarajan"}
+            >
+              <AvatarFallback>{avatarInitials("Priya Natarajan", 1)}</AvatarFallback>
+            </Avatar>
+          }
           id="MS-E"
           title="Leading avatar"
           description="Marks land at one x whatever they are."
@@ -180,7 +198,16 @@ export const Lists: Story = {
       </Item.Group>
       <Item.Group>
         <Item
-          leading={<Avatar name="Priya Natarajan" size="xsmall" isDecorative />}
+          leading={
+            <Avatar
+              size="xsmall"
+              aria-hidden="true"
+              hue={avatarHue("Priya Natarajan")}
+              title={"Priya Natarajan"}
+            >
+              <AvatarFallback>{avatarInitials("Priya Natarajan", 1)}</AvatarFallback>
+            </Avatar>
+          }
           title="Priya requested a walkthrough"
           description="Wants to see the payables run end to end before signing off."
           trailing="Yesterday"

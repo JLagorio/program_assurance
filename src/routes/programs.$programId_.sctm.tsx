@@ -1,4 +1,9 @@
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Box,
   BreadcrumbItem,
@@ -9,7 +14,6 @@ import {
   Eyebrow,
   Id,
   Inline,
-  NativeSelect,
   Panel,
   Progress,
   ProgressValue,
@@ -26,7 +30,6 @@ import {
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { FileDown } from "lucide-react";
 import { useMemo, useState } from "react";
-
 import { SctmRail, SctmSummary, SctmTable } from "@/components/app/sctm";
 import { Shell } from "@/components/app/shell";
 import { controlMatrix } from "@/lib/control-matrix";
@@ -39,7 +42,6 @@ import {
   type RowCurrency,
   type SctmRow,
 } from "@/lib/sctm";
-
 import { cn } from "@ledger/design-system/cn";
 
 const sctmTabs = ["Matrix", "Coverage", "Gaps"] as const;
@@ -254,6 +256,20 @@ function ProgramSctm() {
     Gaps: sctm.gaps,
   };
 
+  const activeFamilyItems = familyStats.map((f) => ({
+    value: f.id,
+    label: (
+      <>
+        {f.id}— {f.name}({f.rows})
+      </>
+    ),
+  }));
+  const currencyItems = [
+    { value: "", label: <>Any currency ({sctm.counts.total})</> },
+    { value: "Current", label: <>Current ({currentRows})</> },
+    { value: "Invalidated", label: <>Invalidated ({sctm.counts.invalidated})</> },
+    { value: "Suspect", label: <>Suspect ({sctm.counts.suspect})</> },
+  ];
   return (
     <Shell>
       <>
@@ -330,20 +346,30 @@ function ProgramSctm() {
                   </span>
                 }
               >
-                <NativeSelect
-                  aria-label="Control family"
+                <Select<string>
+                  items={activeFamilyItems}
                   value={activeFamily}
                   disabled={allFamilies}
-                  onChange={(e) => refilter(() => setFamily(e.target.value))}
-                  className="h-control-small font-body"
-                  style={{ width: 248, maxWidth: "100%" }}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return refilter(() => setFamily(value));
+                  }}
                 >
-                  {familyStats.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.id} — {f.name} ({f.rows})
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    className={"w-full " + "h-control-small font-body"}
+                    aria-label="Control family"
+                    style={{ width: 248, maxWidth: "100%" }}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeFamilyItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button
                   size="small"
                   variant={allFamilies ? "primary" : "secondary"}
@@ -351,24 +377,33 @@ function ProgramSctm() {
                 >
                   {allFamilies ? "Show one family" : "Show all families"}
                 </Button>
-                <NativeSelect
-                  aria-label="Link currency"
+                <Select<string>
+                  items={currencyItems}
                   value={currency ?? ""}
-                  onChange={(e) =>
-                    refilter(() => {
-                      const next = (e.target.value || null) as RowCurrency | null;
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return refilter(() => {
+                      const next = (value || null) as RowCurrency | null;
                       setCurrency(next);
                       if (next !== null) setAllFamilies(true);
-                    })
-                  }
-                  className="h-control-small font-body"
-                  style={{ width: 208, maxWidth: "100%" }}
+                    });
+                  }}
                 >
-                  <option value="">Any currency ({sctm.counts.total})</option>
-                  <option value="Current">Current ({currentRows})</option>
-                  <option value="Invalidated">Invalidated ({sctm.counts.invalidated})</option>
-                  <option value="Suspect">Suspect ({sctm.counts.suspect})</option>
-                </NativeSelect>
+                  <SelectTrigger
+                    className={"w-full " + "h-control-small font-body"}
+                    aria-label="Link currency"
+                    style={{ width: 208, maxWidth: "100%" }}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencyItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Toolbar>
 
               {currency !== null ? (

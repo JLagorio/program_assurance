@@ -1,4 +1,10 @@
 import {
+  FieldLabel,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Box,
   Button,
@@ -16,7 +22,6 @@ import {
   Inline,
   Input,
   KeyValue,
-  NativeSelect,
   Section,
   Stack,
   Table,
@@ -29,11 +34,9 @@ import {
   type Tone,
   useDataTable,
 } from "@ledger/design-system";
-
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-
+import { useId, useCallback, useEffect, useMemo, useState } from "react";
 import { ProgramTasks } from "@/components/app/tasks-section";
 import {
   updateAssessmentSchedule,
@@ -277,6 +280,8 @@ function MilestoneEditor({
   actor: string;
   onClose: () => void;
 }) {
+  const fieldId = useId();
+
   const [draft, setDraft] = useState(milestone);
   const [error, setError] = useState("");
   const set = <K extends keyof ProgramGate>(key: K, value: ProgramGate[K]) =>
@@ -284,6 +289,38 @@ function MilestoneEditor({
   const gates = programScheduleMilestones(programId).filter((gate) => gate.id !== milestone.id);
   const workstreams = workstreamsForProgram(programId);
   const formId = `milestone-${milestone.id}`;
+  const kindItems = ["Milestone decision", "Engineering review", "RMF action", "Operational"].map(
+    (kind) => ({
+      value: kind,
+      label: kind,
+    }),
+  );
+  const statusItems = Object.keys(gateStatusTone).map((status) => ({
+    value: status,
+    label: status,
+  }));
+  const selectionItems = [
+    { value: "", label: "No workstream" },
+    ...workstreams.map((stream) => ({
+      value: stream.id,
+      label: (
+        <>
+          {stream.id}— {stream.title}
+        </>
+      ),
+    })),
+  ];
+  const selectionItems2 = [
+    { value: "", label: "No dependency" },
+    ...gates.map((gate) => ({
+      value: gate.id,
+      label: (
+        <>
+          {gate.id}— {gate.name}
+        </>
+      ),
+    })),
+  ];
   return (
     <Dialog
       open={true}
@@ -320,35 +357,80 @@ function MilestoneEditor({
                   {error}
                 </p>
               ) : null}
-              <Field label="Milestone name" isRequired>
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-milestone-name-1-label`}
+                  htmlFor={`${fieldId}-milestone-name-1`}
+                >
+                  {"Milestone name"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
                 <Input
+                  id={`${fieldId}-milestone-name-1`}
+                  aria-labelledby={`${fieldId}-milestone-name-1-label`}
+                  aria-required={true}
                   required
                   value={draft.name}
                   onChange={(event) => set("name", event.target.value)}
                 />
               </Field>
               <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap="space.150">
-                <Field label="Track / type">
-                  <NativeSelect
-                    value={draft.kind}
-                    onChange={(event) => set("kind", event.target.value as ProgramGate["kind"])}
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-track-type-2-label`}
+                    htmlFor={`${fieldId}-track-type-2`}
                   >
-                    {["Milestone decision", "Engineering review", "RMF action", "Operational"].map(
-                      (kind) => (
-                        <option key={kind}>{kind}</option>
-                      ),
-                    )}
-                  </NativeSelect>
+                    {"Track / type"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={kindItems}
+                    value={draft.kind}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return set("kind", value as ProgramGate["kind"]);
+                    }}
+                  >
+                    <SelectTrigger
+                      id={`${fieldId}-track-type-2`}
+                      aria-labelledby={`${fieldId}-track-type-2-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-track-type-2-label`}>
+                      {kindItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
-                <Field label="Phase">
+                <Field>
+                  <FieldLabel id={`${fieldId}-phase-3-label`} htmlFor={`${fieldId}-phase-3`}>
+                    {"Phase"}
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-phase-3`}
+                    aria-labelledby={`${fieldId}-phase-3-label`}
                     placeholder="e.g. Engineering & manufacturing development"
                     value={draft.phase}
                     onChange={(event) => set("phase", event.target.value)}
                   />
                 </Field>
-                <Field label="Owner / team">
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-owner-team-4-label`}
+                    htmlFor={`${fieldId}-owner-team-4`}
+                  >
+                    {"Owner / team"}
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-owner-team-4`}
+                    aria-labelledby={`${fieldId}-owner-team-4-label`}
                     list={`owners-${programId}`}
                     value={draft.owner}
                     onChange={(event) => set("owner", event.target.value)}
@@ -359,77 +441,171 @@ function MilestoneEditor({
                     ))}
                   </datalist>
                 </Field>
-                <Field label="Status">
-                  <NativeSelect
+                <Field>
+                  <FieldLabel id={`${fieldId}-status-5-label`} htmlFor={`${fieldId}-status-5`}>
+                    {"Status"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={statusItems}
                     value={draft.status}
-                    onChange={(event) => set("status", event.target.value as ProgramGate["status"])}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return set("status", value as ProgramGate["status"]);
+                    }}
                   >
-                    {Object.keys(gateStatusTone).map((status) => (
-                      <option key={status}>{status}</option>
-                    ))}
-                  </NativeSelect>
+                    <SelectTrigger
+                      id={`${fieldId}-status-5`}
+                      aria-labelledby={`${fieldId}-status-5-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-status-5-label`}>
+                      {statusItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
-                <Field label="Planned date">
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-planned-date-6-label`}
+                    htmlFor={`${fieldId}-planned-date-6`}
+                  >
+                    {"Planned date"}
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-planned-date-6`}
+                    aria-labelledby={`${fieldId}-planned-date-6-label`}
                     type="date"
                     value={scheduleDate(draft.planned) ?? ""}
                     onChange={(event) => set("planned", event.target.value)}
                   />
                 </Field>
-                <Field label="Actual date" isRequired={draft.status === "Complete"}>
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-actual-date-7-label`}
+                    htmlFor={`${fieldId}-actual-date-7`}
+                  >
+                    {"Actual date"}
+                    {draft.status === "Complete" ? (
+                      <span aria-hidden="true" className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    ) : null}
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-actual-date-7`}
+                    aria-labelledby={`${fieldId}-actual-date-7-label`}
+                    aria-required={draft.status === "Complete"}
                     type="date"
                     required={draft.status === "Complete"}
                     value={scheduleDate(draft.actual) ?? ""}
                     onChange={(event) => set("actual", event.target.value)}
                   />
                 </Field>
-                <Field label="Workstream">
-                  <NativeSelect
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-workstream-8-label`}
+                    htmlFor={`${fieldId}-workstream-8`}
+                  >
+                    {"Workstream"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={selectionItems}
                     value={draft.workstreams?.[0] ?? ""}
-                    onChange={(event) =>
-                      set("workstreams", event.target.value ? [event.target.value] : [])
-                    }
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return set("workstreams", value ? [value] : []);
+                    }}
                   >
-                    <option value="">No workstream</option>
-                    {workstreams.map((stream) => (
-                      <option key={stream.id} value={stream.id}>
-                        {stream.id} — {stream.title}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    <SelectTrigger
+                      id={`${fieldId}-workstream-8`}
+                      aria-labelledby={`${fieldId}-workstream-8-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-workstream-8-label`}>
+                      {selectionItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
-                <Field label="Depends on milestone">
-                  <NativeSelect
-                    value={draft.dependsOn?.[0] ?? ""}
-                    onChange={(event) =>
-                      set("dependsOn", event.target.value ? [event.target.value] : [])
-                    }
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-depends-on-milestone-9-label`}
+                    htmlFor={`${fieldId}-depends-on-milestone-9`}
                   >
-                    <option value="">No dependency</option>
-                    {gates.map((gate) => (
-                      <option key={gate.id} value={gate.id}>
-                        {gate.id} — {gate.name}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    {"Depends on milestone"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={selectionItems2}
+                    value={draft.dependsOn?.[0] ?? ""}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return set("dependsOn", value ? [value] : []);
+                    }}
+                  >
+                    <SelectTrigger
+                      id={`${fieldId}-depends-on-milestone-9`}
+                      aria-labelledby={`${fieldId}-depends-on-milestone-9-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-depends-on-milestone-9-label`}>
+                      {selectionItems2.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
               </Grid>
-              <Field label="Required deliverable / readiness criterion">
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-required-deliverable-readiness-criterion-10-label`}
+                  htmlFor={`${fieldId}-required-deliverable-readiness-criterion-10`}
+                >
+                  {"Required deliverable / readiness criterion"}
+                </FieldLabel>
                 <Textarea
+                  id={`${fieldId}-required-deliverable-readiness-criterion-10`}
+                  aria-labelledby={`${fieldId}-required-deliverable-readiness-criterion-10-label`}
                   value={draft.cyberGate}
                   onChange={(event) => set("cyberGate", event.target.value)}
                 />
               </Field>
-              <Field label="Deliverable reference">
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-deliverable-reference-11-label`}
+                  htmlFor={`${fieldId}-deliverable-reference-11`}
+                >
+                  {"Deliverable reference"}
+                </FieldLabel>
                 <Input
+                  id={`${fieldId}-deliverable-reference-11`}
+                  aria-labelledby={`${fieldId}-deliverable-reference-11-label`}
                   placeholder="Document or record reference"
                   value={draft.artifact === "—" ? "" : draft.artifact}
                   onChange={(event) => set("artifact", event.target.value)}
                 />
               </Field>
-              <Field label="Notes">
+              <Field>
+                <FieldLabel id={`${fieldId}-notes-12-label`} htmlFor={`${fieldId}-notes-12`}>
+                  {"Notes"}
+                </FieldLabel>
                 <Textarea
+                  id={`${fieldId}-notes-12`}
+                  aria-labelledby={`${fieldId}-notes-12-label`}
                   value={draft.description}
                   onChange={(event) => set("description", event.target.value)}
                 />
@@ -543,6 +719,8 @@ function ScheduleDetail({
   onOpenPoam?: ((id: string) => void) | undefined;
   onOpenAssessment?: ((id: string) => void) | undefined;
 }) {
+  const fieldId = useId();
+
   const canEditSchedule = row.kind === "Assessment" || row.kind === "Test event";
   const [editing, setEditing] = useState(false);
   const [schedule, setSchedule] = useState({
@@ -652,8 +830,21 @@ function ScheduleDetail({
                       {error}
                     </p>
                   ) : null}
-                  <Field label="Owner / team" isRequired>
+                  <Field>
+                    <FieldLabel
+                      id={`${fieldId}-owner-team-13-label`}
+                      htmlFor={`${fieldId}-owner-team-13`}
+                    >
+                      {"Owner / team"}
+                      <span aria-hidden="true" className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    </FieldLabel>
                     <Input
+                      id={`${fieldId}-owner-team-13`}
+                      aria-labelledby={`${fieldId}-owner-team-13-label`}
+                      aria-required={true}
                       required
                       value={schedule.owner}
                       onChange={(event) =>
@@ -665,8 +856,21 @@ function ScheduleDetail({
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
-                    <Field label="Start date" isRequired>
+                    <Field>
+                      <FieldLabel
+                        id={`${fieldId}-start-date-14-label`}
+                        htmlFor={`${fieldId}-start-date-14`}
+                      >
+                        {"Start date"}
+                        <span aria-hidden="true" className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </FieldLabel>
                       <Input
+                        id={`${fieldId}-start-date-14`}
+                        aria-labelledby={`${fieldId}-start-date-14-label`}
+                        aria-required={true}
                         type="date"
                         required
                         value={schedule.start}
@@ -675,8 +879,21 @@ function ScheduleDetail({
                         }
                       />
                     </Field>
-                    <Field label="End date" isRequired>
+                    <Field>
+                      <FieldLabel
+                        id={`${fieldId}-end-date-15-label`}
+                        htmlFor={`${fieldId}-end-date-15`}
+                      >
+                        {"End date"}
+                        <span aria-hidden="true" className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </FieldLabel>
                       <Input
+                        id={`${fieldId}-end-date-15`}
+                        aria-labelledby={`${fieldId}-end-date-15-label`}
+                        aria-required={true}
                         type="date"
                         required
                         min={schedule.start || undefined}

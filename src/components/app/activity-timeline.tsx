@@ -1,4 +1,7 @@
 import {
+  avatarHue,
+  AvatarFallback,
+  avatarInitials,
   Avatar,
   Box,
   Button,
@@ -21,11 +24,9 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@ledger/design-system";
-
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Circle } from "lucide-react";
 import { useMemo, useState } from "react";
-
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
 import {
   absoluteStamp,
@@ -38,7 +39,6 @@ import {
   relativeStamp,
   type ActivityEvent,
 } from "@/lib/program-activity";
-
 import { cn } from "@ledger/design-system/cn";
 
 const toneRing: Record<string, string> = {
@@ -156,7 +156,15 @@ export function ActivityTimeline({
                     key={e.id}
                     marker={
                       <span className="relative">
-                        <Avatar name={e.actor} size="xsmall" />
+                        <Avatar
+                          size="xsmall"
+                          role="img"
+                          aria-label={e.actor}
+                          hue={avatarHue(e.actor)}
+                          title={e.actor}
+                        >
+                          <AvatarFallback>{avatarInitials(e.actor, 1)}</AvatarFallback>
+                        </Avatar>
                         <span
                           className={cn(
                             "absolute -bottom-025 -right-025 rounded-full outline-focused",

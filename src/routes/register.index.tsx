@@ -1,10 +1,34 @@
+import {
+  InputGroupAddon,
+  InputGroupInput,
+  Badge,
+  Button,
+  Count,
+  Empty,
+  Id,
+  IndexPage,
+  Indicator,
+  Inline,
+  InputGroup,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  PreviewRail,
+  PreviewSplit,
+  Progress,
+  Table,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+} from "@ledger/design-system";
 import { downloadText } from "@/components/app/export";
 import { UnavailableAction } from "@/components/app/unavailable-action";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Download, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-
 import { Shell } from "@/components/app/shell";
 import { assetById } from "@/lib/findings";
 import {
@@ -21,30 +45,6 @@ import {
   type RegisterRisk,
 } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
-import {
-  Badge,
-  Button,
-  Count,
-  Empty,
-  Id,
-  IndexPage,
-  Indicator,
-  Inline,
-  Input,
-  InputGroup,
-  Inspector,
-  KeyValue,
-  PageHeader,
-  PreviewRail,
-  PreviewSplit,
-  Progress,
-  Table,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  TextLink,
-} from "@ledger/design-system";
 
 export const Route = createFileRoute("/register/")({
   head: () => ({
@@ -155,14 +155,15 @@ function RegisterPage() {
           <TabsContent value={tab} className="contents">
             {tab === "POA&M" ? (
               <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
-                <InputGroup leading={<Search />}>
-                  <Input
+                <InputGroup>
+                  <InputGroupInput
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="Search POA&M items, owners"
                     aria-label="Search"
                     style={{ width: 240, maxWidth: "100%" }}
                   />
+                  <InputGroupAddon>{<Search />}</InputGroupAddon>
                 </InputGroup>
               </Inline>
             ) : null}

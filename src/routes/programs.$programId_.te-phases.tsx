@@ -1,7 +1,9 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
-
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbSeparator,
@@ -14,7 +16,6 @@ import {
   Inline,
   Inspector,
   KeyValue,
-  NativeSelect,
   Panel,
   RecordHeader,
   Section,
@@ -27,6 +28,8 @@ import {
   TextLink,
   Toolbar,
 } from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { Shell } from "@/components/app/shell";
 import {
   AttackChain,
@@ -382,6 +385,18 @@ function ProgramTePhases() {
       </Inspector.Group>
     ) : null;
 
+  const idItems = phases.map((p) => {
+    const r = readiness.get(p.id);
+    return {
+      value: p.id,
+      label: (
+        <>
+          {p.id}— {p.short}— {p.kind}— {p.state}
+          {r ? ` — entry ${r.entryMet}/${r.entryTotal}, exit ${r.exitMet}/${r.exitTotal}` : ""}
+        </>
+      ),
+    };
+  });
   return (
     <Shell>
       <>
@@ -570,28 +585,30 @@ function ProgramTePhases() {
                     }
                   >
                     <span className="font-body-small text-subtle">Phase</span>
-                    <NativeSelect
+                    <Select<string>
+                      items={idItems}
                       value={selectedPhase.id}
-                      onChange={(e) => {
-                        const next = e.target.value;
+                      onValueChange={(value) => {
+                        if (value === null) return;
+                        const next = value;
                         if (isPhaseId(next)) selectPhase(next);
                       }}
-                      aria-label="Phase"
-                      className="h-control-small font-body"
-                      style={{ width: 560, maxWidth: "100%" }}
                     >
-                      {phases.map((p) => {
-                        const r = readiness.get(p.id);
-                        return (
-                          <option key={p.id} value={p.id}>
-                            {p.id} — {p.short} — {p.kind} — {p.state}
-                            {r
-                              ? ` — entry ${r.entryMet}/${r.entryTotal}, exit ${r.exitMet}/${r.exitTotal}`
-                              : ""}
-                          </option>
-                        );
-                      })}
-                    </NativeSelect>
+                      <SelectTrigger
+                        className={"w-full " + "h-control-small font-body"}
+                        aria-label="Phase"
+                        style={{ width: 560, maxWidth: "100%" }}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {idItems.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Toolbar>
 
                   <Section

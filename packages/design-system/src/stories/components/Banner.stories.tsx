@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Alert, Banner } from "../../components";
+import { AlertTitle, Dot, Alert, Banner } from "../../components";
 import { Stack } from "../../primitives";
 import { Matrix } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -71,7 +71,14 @@ export const Dont: Story = {
       <Pair
         do={
           <div style={{ width: 480 }}>
-            <Alert tone="success" title="Snapshot submitted" />
+            <Alert tone="success" role="status">
+              <AlertTitle>
+                <span aria-hidden="true" className="flex h-250 shrink-0 items-center">
+                  <Dot tone={"success"} />
+                </span>
+                <span className="min-w-0 break-words">{"Snapshot submitted"}</span>
+              </AlertTitle>
+            </Alert>
           </div>
         }
         doText="Feedback after an act is a toast or an Alert; it says what happened."

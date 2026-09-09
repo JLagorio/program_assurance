@@ -1,15 +1,44 @@
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Count,
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+  Badge,
+  Box,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  Button,
+  Editable,
+  Gates,
+  Id,
+  Indicator,
+  Inspector,
+  KeyValue,
+  Person,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Table,
+  TextLink,
+} from "@ledger/design-system";
+import {
   controlAllocationCount,
   controlRequirementsInElement,
   programControlRows,
 } from "@/lib/program-controls";
 import { resolveProgramElement } from "@/lib/program-scope";
 import { controlEvidence } from "@/lib/control-evidence";
-import { Count } from "@ledger/design-system";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-
 import {
   ControlActions,
   Determination,
@@ -28,32 +57,6 @@ import { RecordActivity } from "@/components/app/record-activity";
 import { ControlRequirementTable } from "@/components/app/requirements";
 import { Shell } from "@/components/app/shell";
 import { TasksSection } from "@/components/app/tasks-section";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-  Badge,
-  Box,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Button,
-  Editable,
-  Gates,
-  Id,
-  Indicator,
-  Inspector,
-  KeyValue,
-  NativeSelect,
-  Person,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Stack,
-  Table,
-  TextLink,
-} from "@ledger/design-system";
 import { controlDetail } from "@/lib/control-detail";
 import {
   assessmentTone,
@@ -61,7 +64,6 @@ import {
   currentSession,
   gatesFor,
   implementationTone,
-  linkEvidence,
   preferredScope,
   useWorkVersion,
   workFor,
@@ -97,8 +99,11 @@ export const Route = createFileRoute("/programs/$programId_/controls/$controlId"
   loader: async ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
     if (!program) throw notFound();
-    const { controlText } = await import("@/lib/nist-control-text");
-    return { program, text: controlText[params.controlId] ?? null };
+    // One control, so one family chunk: `loadControlText` fetches only the
+    // family the id belongs to, not all 20. The screens that render the whole
+    // catalog (SCTM, ConMon, baseline) import `@/lib/nist-control-text` instead.
+    const { loadControlText } = await import("@/lib/nist-control-text/registry");
+    return { program, text: await loadControlText(params.controlId) };
   },
   head: ({ params }) => ({
     meta: [
@@ -219,6 +224,7 @@ function ControlRecord() {
   const people = mentionablePeople(programId).map((p) => p.name);
   const ownerOptions = [...new Set([...(work.owner ? [work.owner] : []), me, ...people])];
 
+  const scopeIdItems = scopes.map((sc) => ({ value: sc.id, label: sc.name }));
   const rail = (
     <>
       <Inspector.Group title="Details">
@@ -242,28 +248,36 @@ function ControlRecord() {
           />
         </KeyValue>
         <KeyValue label="Scope">
-          <NativeSelect
-            size="small"
-            className="font-body-small"
+          <Select<string>
+            items={scopeIdItems}
             value={scopeId}
-            onChange={(event) => {
-              setScopeId(event.target.value);
+            onValueChange={(value) => {
+              if (value === null) return;
+              setScopeId(value);
               void navigate({
                 search: (previous) => ({
                   ...previous,
-                  scope: event.target.value,
+                  scope: value,
                   element: originElementId,
                 }),
               });
             }}
-            aria-label="Assessment scope"
           >
-            {scopes.map((sc) => (
-              <option key={sc.id} value={sc.id}>
-                {sc.name}
-              </option>
-            ))}
-          </NativeSelect>
+            <SelectTrigger
+              className={"w-full " + "font-body-small"}
+              size="sm"
+              aria-label="Assessment scope"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {scopeIdItems.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </KeyValue>
         <KeyValue label="Implementation">
           <Badge

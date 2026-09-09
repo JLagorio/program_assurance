@@ -34,9 +34,9 @@ Tab enters and leaves the group as one stop. All four arrow keys move focus and 
 
 ## Labels, Field and forms
 
-Name the group with `aria-label`, `aria-labelledby`, or [Field](?path=/docs/components-field--docs) with `isGroup`. A wrapping label or a sibling label with `htmlFor` names each item and selects it when clicked. Put descriptions in ordinary elements and reference them with the item's `aria-describedby`.
+Name the group with `aria-label` or `aria-labelledby`, which can point to a [FieldLegend](?path=/docs/components-field--docs) inside FieldSet. A wrapping label or a sibling label with `htmlFor` names each item and selects it when clicked. Put descriptions in ordinary elements and reference them with the item's `aria-describedby`.
 
-Field supplies the group's legend, hint/error description, `aria-invalid` and `aria-required`. Pass `aria-invalid` to individual items when their indicators should show the error treatment. Native `required` on RadioGroup makes its hidden radio inputs participate in browser validation; `Field isRequired` supplies the accessible required state.
+Compose FieldSet/FieldLegend and reference description/error IDs on the group with `aria-describedby`. Pass `aria-invalid` and `aria-required` explicitly. Pass `aria-invalid` to individual items when their indicators should show the error treatment. Native `required` on RadioGroup makes its hidden radio inputs participate in browser validation; `aria-required` supplies the accessible required state.
 
 `name` and `form` associate the hidden inputs with native submission. The selected item's value is submitted. Native form reset is caller-owned in Base UI 1.7: restore controlled `value` in the form's `onReset` handler.
 
@@ -64,4 +64,4 @@ Replace `RadioGroup.Item` with `RadioGroupItem`. Move label children and `descri
 
 ## Related
 
-[Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Checkbox](?path=/docs/components-checkbox--docs) · [NativeSelect](?path=/docs/components-nativeselect--docs) · [shadcn Radio Group](https://ui.shadcn.com/docs/components/base/radio-group) · [Base UI Radio](https://base-ui.com/react/components/radio)
+[Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Checkbox](?path=/docs/components-checkbox--docs) · [shadcn Radio Group](https://ui.shadcn.com/docs/components/base/radio-group) · [Base UI Radio](https://base-ui.com/react/components/radio)

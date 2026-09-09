@@ -1,4 +1,12 @@
 import {
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Block,
   Box,
@@ -18,7 +26,6 @@ import {
   Id,
   Inline,
   Input,
-  NativeSelect,
   PreviewSheet,
   Stack,
   Text,
@@ -66,10 +73,9 @@ import {
   type StepResult,
   type TestRun,
 } from "@/lib/test-execution";
-
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useId, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ZodError } from "zod";
 
 const presets: Preset[] = [
@@ -101,6 +107,8 @@ export function ProgramAssessments({
   onRunChange?: ((id: string | null) => void) | undefined;
   onRaiseFinding?: ((assessmentId: string) => void) | undefined;
 }) {
+  const fieldId = useId();
+
   const version = useAssessmentsVersion();
   const runLog = useTestRuns();
   useVerificationVersion();
@@ -209,6 +217,15 @@ export function ProgramAssessments({
       New assessment
     </Button>
   );
+  const idItems = assessmentRuns.map((r) => ({
+    value: r.id,
+    label: (
+      <>
+        {r.id} · {r.build} · {r.state}
+        {r.retestOf ? ` · retest of ${r.retestOf}` : ""}
+      </>
+    ),
+  }));
   return (
     <>
       <DataTable
@@ -344,15 +361,36 @@ export function ProgramAssessments({
             ) : null}
             {run ? (
               <>
-                <Field label="Run history">
-                  <NativeSelect value={run.id} onChange={(e) => setRunId(e.target.value)}>
-                    {assessmentRuns.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.id} · {r.build} · {r.state}
-                        {r.retestOf ? ` · retest of ${r.retestOf}` : ""}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-run-history-1-label`}
+                    htmlFor={`${fieldId}-run-history-1`}
+                  >
+                    {"Run history"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={idItems}
+                    value={run.id}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return setRunId(value);
+                    }}
+                  >
+                    <SelectTrigger
+                      id={`${fieldId}-run-history-1`}
+                      aria-labelledby={`${fieldId}-run-history-1-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-run-history-1-label`}>
+                      {idItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
                 <div ref={runRecordRef}>
                   <RunRecordView
@@ -444,6 +482,8 @@ function NewAssessmentDialog({
   onClose: () => void;
   onCreated: (campaign: Campaign) => void;
 }) {
+  const fieldId = useId();
+
   useRequirementsVersion();
   const { form, values, formId, formRef } = useRecordForm(
     {
@@ -480,6 +520,22 @@ function NewAssessmentDialog({
     { name: "start", label: "Start date" },
     { name: "end", label: "End date" },
   ] as const;
+  const requirementItems = [
+    { value: "", label: "No linked requirement" },
+    ...requirementsForProgram(programId).map((r) => ({
+      value: r.id,
+      label: (
+        <>
+          {r.id} · {r.text}
+        </>
+      ),
+    })),
+  ];
+  const assetItems = [
+    { value: "", label: "Program scope" },
+    ...assets.filter((a) => a.program === programId).map((a) => ({ value: a.id, label: a.name })),
+  ];
+  const methodItems = ["Examine", "Interview", "Test"].map((m) => ({ value: m, label: m }));
   return (
     <Dialog
       open={true}
@@ -521,78 +577,160 @@ function NewAssessmentDialog({
             <Stack space="space.150">
               {specs.map(({ name, label }) => (
                 <form.Field key={name} name={name}>
-                  {(field) => (
-                    <Field
-                      label={label}
-                      isRequired
-                      error={
-                        field.state.meta.errors.length
-                          ? field.state.meta.errors.join(" ")
-                          : undefined
-                      }
-                    >
-                      {["scope", "objective", "action", "expected"].includes(name) ? (
-                        <Textarea
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          name={name}
-                          rows={2}
-                        />
-                      ) : (
-                        <Input
-                          type={name === "start" || name === "end" ? "date" : "text"}
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          name={name}
-                        />
-                      )}
-                    </Field>
-                  )}
+                  {(field) => {
+                    const fieldError2 = field.state.meta.errors.length
+                      ? field.state.meta.errors.join(" ")
+                      : undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError2)}>
+                        <FieldLabel
+                          id={`${fieldId}-field-2-${encodeURIComponent(String(name))}-label`}
+                          htmlFor={`${fieldId}-field-2-${encodeURIComponent(String(name))}`}
+                        >
+                          {label}
+                          <span aria-hidden="true" className="text-danger">
+                            {" "}
+                            *
+                          </span>
+                        </FieldLabel>
+                        {["scope", "objective", "action", "expected"].includes(name) ? (
+                          <Textarea
+                            id={`${fieldId}-field-2-${encodeURIComponent(String(name))}`}
+                            aria-labelledby={`${fieldId}-field-2-${encodeURIComponent(String(name))}-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError2)}
+                            aria-describedby={
+                              fieldError2
+                                ? `${fieldId}-field-2-${encodeURIComponent(String(name))}-message`
+                                : undefined
+                            }
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            onBlur={field.handleBlur}
+                            name={name}
+                            rows={2}
+                          />
+                        ) : (
+                          <Input
+                            id={`${fieldId}-field-2-${encodeURIComponent(String(name))}`}
+                            aria-labelledby={`${fieldId}-field-2-${encodeURIComponent(String(name))}-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError2)}
+                            aria-describedby={
+                              fieldError2
+                                ? `${fieldId}-field-2-${encodeURIComponent(String(name))}-message`
+                                : undefined
+                            }
+                            type={name === "start" || name === "end" ? "date" : "text"}
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            onBlur={field.handleBlur}
+                            name={name}
+                          />
+                        )}
+                        {fieldError2 ? (
+                          <FieldError
+                            id={`${fieldId}-field-2-${encodeURIComponent(String(name))}-message`}
+                          >
+                            {fieldError2}
+                          </FieldError>
+                        ) : null}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
               ))}
               <Grid templateColumns={{ sm: "1fr 1fr" }} gap="space.150">
-                <Field label="Requirement">
-                  <NativeSelect
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-requirement-3-label`}
+                    htmlFor={`${fieldId}-requirement-3`}
+                  >
+                    {"Requirement"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={requirementItems}
                     value={values.requirement}
-                    onChange={(e) => form.setFieldValue("requirement", e.target.value)}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return form.setFieldValue("requirement", value);
+                    }}
                   >
-                    <option value="">No linked requirement</option>
-                    {requirementsForProgram(programId).map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.id} · {r.text}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-                <Field label="Assessment subject">
-                  <NativeSelect
-                    value={values.asset}
-                    onChange={(e) => form.setFieldValue("asset", e.target.value)}
-                  >
-                    <option value="">Program scope</option>
-                    {assets
-                      .filter((a) => a.program === programId)
-                      .map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name}
-                        </option>
+                    <SelectTrigger
+                      id={`${fieldId}-requirement-3`}
+                      aria-labelledby={`${fieldId}-requirement-3-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-requirement-3-label`}>
+                      {requirementItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
                       ))}
-                  </NativeSelect>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-assessment-subject-4-label`}
+                    htmlFor={`${fieldId}-assessment-subject-4`}
+                  >
+                    {"Assessment subject"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={assetItems}
+                    value={values.asset}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return form.setFieldValue("asset", value);
+                    }}
+                  >
+                    <SelectTrigger
+                      id={`${fieldId}-assessment-subject-4`}
+                      aria-labelledby={`${fieldId}-assessment-subject-4-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-assessment-subject-4-label`}>
+                      {assetItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
               </Grid>
-              <Field label="Method">
-                <NativeSelect
+              <Field>
+                <FieldLabel id={`${fieldId}-method-5-label`} htmlFor={`${fieldId}-method-5`}>
+                  {"Method"}
+                </FieldLabel>
+                <Select<string>
+                  items={methodItems}
                   value={values.method}
-                  onChange={(e) =>
-                    form.setFieldValue("method", e.target.value as NewAssessment["method"])
-                  }
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return form.setFieldValue("method", value as NewAssessment["method"]);
+                  }}
                 >
-                  {["Examine", "Interview", "Test"].map((m) => (
-                    <option key={m}>{m}</option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-method-5`}
+                    aria-labelledby={`${fieldId}-method-5-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-method-5-label`}>
+                    {methodItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
             </Stack>
           </form>
@@ -621,6 +759,8 @@ function StartRunDialog({
   onClose: () => void;
   onStarted: (run: TestRun) => void;
 }) {
+  const fieldId = useId();
+
   const procedures = proceduresForCampaign(campaign.id);
   const { form, values, formId, formRef } = useRecordForm(
     {
@@ -682,40 +822,103 @@ function StartRunDialog({
           >
             <Stack space="space.150">
               <form.Field name="procedure">
-                {(field) => (
-                  <Field
-                    label="Procedure"
-                    isRequired
-                    error={field.state.meta.errors.join(" ") || undefined}
-                  >
-                    <NativeSelect
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                    >
-                      {procedures.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.id} · {p.title}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </Field>
-                )}
+                {(field) => {
+                  const valueItems = procedures.map((p) => ({
+                    value: p.id,
+                    label: (
+                      <>
+                        {p.id} · {p.title}
+                      </>
+                    ),
+                  }));
+                  const fieldError6 = field.state.meta.errors.join(" ") || undefined;
+                  return (
+                    <Field data-invalid={Boolean(fieldError6)}>
+                      <FieldLabel
+                        id={`${fieldId}-procedure-6-label`}
+                        htmlFor={`${fieldId}-procedure-6`}
+                      >
+                        {"Procedure"}
+                        <span aria-hidden="true" className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Select<string>
+                        items={valueItems}
+                        value={field.state.value}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return field.handleChange(value);
+                        }}
+                      >
+                        <SelectTrigger
+                          id={`${fieldId}-procedure-6`}
+                          aria-labelledby={`${fieldId}-procedure-6-label`}
+                          aria-required={true}
+                          aria-invalid={Boolean(fieldError6)}
+                          aria-describedby={
+                            fieldError6 ? `${fieldId}-procedure-6-message` : undefined
+                          }
+                          className="w-full"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent aria-labelledby={`${fieldId}-procedure-6-label`}>
+                          {valueItems.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldError6 ? (
+                        <FieldError id={`${fieldId}-procedure-6-message`}>{fieldError6}</FieldError>
+                      ) : null}
+                    </Field>
+                  );
+                }}
               </form.Field>
               {(["operator", "build"] as const).map((name) => (
                 <form.Field key={name} name={name}>
-                  {(field) => (
-                    <Field
-                      label={name === "operator" ? "Operator" : "Tested build or configuration"}
-                      isRequired
-                      error={field.state.meta.errors.join(" ") || undefined}
-                    >
-                      <Input
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                    </Field>
-                  )}
+                  {(field) => {
+                    const fieldError7 = field.state.meta.errors.join(" ") || undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError7)}>
+                        <FieldLabel
+                          id={`${fieldId}-field-7-${encodeURIComponent(String(name))}-label`}
+                          htmlFor={`${fieldId}-field-7-${encodeURIComponent(String(name))}`}
+                        >
+                          {name === "operator" ? "Operator" : "Tested build or configuration"}
+                          <span aria-hidden="true" className="text-danger">
+                            {" "}
+                            *
+                          </span>
+                        </FieldLabel>
+                        <Input
+                          id={`${fieldId}-field-7-${encodeURIComponent(String(name))}`}
+                          aria-labelledby={`${fieldId}-field-7-${encodeURIComponent(String(name))}-label`}
+                          aria-required={true}
+                          aria-invalid={Boolean(fieldError7)}
+                          aria-describedby={
+                            fieldError7
+                              ? `${fieldId}-field-7-${encodeURIComponent(String(name))}-message`
+                              : undefined
+                          }
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                        />
+                        {fieldError7 ? (
+                          <FieldError
+                            id={`${fieldId}-field-7-${encodeURIComponent(String(name))}-message`}
+                          >
+                            {fieldError7}
+                          </FieldError>
+                        ) : null}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
               ))}
             </Stack>
@@ -745,6 +948,8 @@ function RecordStepDialog({
   stepId: string;
   onClose: () => void;
 }) {
+  const fieldId = useId();
+
   useEvidenceVersion();
   const existing = run.records.find((r) => r.step === stepId);
   const { form, values, formId, formRef } = useRecordForm(
@@ -756,6 +961,7 @@ function RecordStepDialog({
     (v) => ({ observed: v.observed, evidence: v.evidence }),
   );
   const available = evidenceForProgram(programId);
+  const resultItems = ["Pass", "Fail", "Inconclusive"].map((v) => ({ value: v, label: v }));
   return (
     <Dialog
       open={true}
@@ -801,57 +1007,142 @@ function RecordStepDialog({
             }}
           >
             <Stack space="space.150">
-              <Field label="Result">
-                <NativeSelect
+              <Field>
+                <FieldLabel id={`${fieldId}-result-8-label`} htmlFor={`${fieldId}-result-8`}>
+                  {"Result"}
+                </FieldLabel>
+                <Select<string>
+                  items={resultItems}
                   value={values.result}
-                  onChange={(e) => form.setFieldValue("result", e.target.value as StepResult)}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return form.setFieldValue("result", value as StepResult);
+                  }}
                 >
-                  {["Pass", "Fail", "Inconclusive"].map((v) => (
-                    <option key={v}>{v}</option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-result-8`}
+                    aria-labelledby={`${fieldId}-result-8-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-result-8-label`}>
+                    {resultItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
               <form.Field name="observed">
-                {(field) => (
-                  <Field
-                    label="What was observed"
-                    isRequired
-                    error={field.state.meta.errors.join(" ") || undefined}
-                  >
-                    <Textarea
-                      rows={4}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                  </Field>
-                )}
+                {(field) => {
+                  const fieldError9 = field.state.meta.errors.join(" ") || undefined;
+                  return (
+                    <Field data-invalid={Boolean(fieldError9)}>
+                      <FieldLabel
+                        id={`${fieldId}-what-was-observed-9-label`}
+                        htmlFor={`${fieldId}-what-was-observed-9`}
+                      >
+                        {"What was observed"}
+                        <span aria-hidden="true" className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Textarea
+                        id={`${fieldId}-what-was-observed-9`}
+                        aria-labelledby={`${fieldId}-what-was-observed-9-label`}
+                        aria-required={true}
+                        aria-invalid={Boolean(fieldError9)}
+                        aria-describedby={
+                          fieldError9 ? `${fieldId}-what-was-observed-9-message` : undefined
+                        }
+                        rows={4}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                      />
+                      {fieldError9 ? (
+                        <FieldError id={`${fieldId}-what-was-observed-9-message`}>
+                          {fieldError9}
+                        </FieldError>
+                      ) : null}
+                    </Field>
+                  );
+                }}
               </form.Field>
               <form.Field name="evidence">
-                {(field) => (
-                  <Field
-                    label="Supporting evidence"
-                    isRequired
-                    hint={
-                      available.length
-                        ? undefined
-                        : "Add an artifact in the program's Evidence tab first."
-                    }
-                    error={field.state.meta.errors.join(" ") || undefined}
-                  >
-                    <NativeSelect
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                    >
-                      <option value="">Choose evidence</option>
-                      {available.map((a) => (
-                        <option key={a.id} value={a.id}>
+                {(field) => {
+                  const valueItems2 = [
+                    { value: "", label: "Choose evidence" },
+                    ...available.map((a) => ({
+                      value: a.id,
+                      label: (
+                        <>
                           {a.id} · {a.label}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </Field>
-                )}
+                        </>
+                      ),
+                    })),
+                  ];
+                  const fieldError10 = field.state.meta.errors.join(" ") || undefined;
+                  const fieldHint10 = available.length
+                    ? undefined
+                    : "Add an artifact in the program's Evidence tab first.";
+                  return (
+                    <Field data-invalid={Boolean(fieldError10)}>
+                      <FieldLabel
+                        id={`${fieldId}-supporting-evidence-10-label`}
+                        htmlFor={`${fieldId}-supporting-evidence-10`}
+                      >
+                        {"Supporting evidence"}
+                        <span aria-hidden="true" className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Select<string>
+                        items={valueItems2}
+                        value={field.state.value}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return field.handleChange(value);
+                        }}
+                      >
+                        <SelectTrigger
+                          id={`${fieldId}-supporting-evidence-10`}
+                          aria-labelledby={`${fieldId}-supporting-evidence-10-label`}
+                          aria-required={true}
+                          aria-invalid={Boolean(fieldError10)}
+                          aria-describedby={
+                            fieldError10 || fieldHint10
+                              ? `${fieldId}-supporting-evidence-10-message`
+                              : undefined
+                          }
+                          className="w-full"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent aria-labelledby={`${fieldId}-supporting-evidence-10-label`}>
+                          {valueItems2.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldError10 ? (
+                        <FieldError id={`${fieldId}-supporting-evidence-10-message`}>
+                          {fieldError10}
+                        </FieldError>
+                      ) : fieldHint10 ? (
+                        <FieldDescription id={`${fieldId}-supporting-evidence-10-message`}>
+                          {fieldHint10}
+                        </FieldDescription>
+                      ) : null}
+                    </Field>
+                  );
+                }}
               </form.Field>
             </Stack>
           </form>

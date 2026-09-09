@@ -1,19 +1,9 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
-
 import {
-  BuildRail,
-  BuildTable,
-  ChangeRail,
-  ChangeTable,
-  ImpactView,
-  ParameterTable,
-  PinDiffTable,
-  RetestQueueTable,
-  RetestSummary,
-  UnrecordedChangeNotice,
-} from "@/components/app/baselines";
-import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Box,
   BreadcrumbItem,
@@ -22,7 +12,6 @@ import {
   Empty,
   Grid,
   Inline,
-  NativeSelect,
   Panel,
   RecordHeader,
   Section,
@@ -35,6 +24,20 @@ import {
   TextLink,
   Toolbar,
 } from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
+import {
+  BuildRail,
+  BuildTable,
+  ChangeRail,
+  ChangeTable,
+  ImpactView,
+  ParameterTable,
+  PinDiffTable,
+  RetestQueueTable,
+  RetestSummary,
+  UnrecordedChangeNotice,
+} from "@/components/app/baselines";
 import { Shell } from "@/components/app/shell";
 import {
   acknowledgeChange,
@@ -247,6 +250,16 @@ function ProgramBaseline() {
       <BuildRail build={selectedBuild} deltas={diff.length} unrecorded={unrecorded.length} />
     ) : null;
 
+  const idItems = changes.map((c) => ({
+    value: c.id,
+    label: (
+      <>
+        {c.id}— {c.kind}— {c.subject}— {c.impact}
+        {impacts.get(c.id)?.contained ? " (contained)" : " (cascaded)"}
+        {c.acknowledged ? " · acknowledged" : ""}
+      </>
+    ),
+  }));
   const picker =
     tab === "Impact" && change ? (
       <Toolbar
@@ -258,21 +271,29 @@ function ProgramBaseline() {
         }
       >
         <span className="font-body-small text-subtle">Change</span>
-        <NativeSelect
+        <Select<string>
+          items={idItems}
           value={change.id}
-          onChange={(e) => selectChange(e.target.value)}
-          aria-label="Change record"
-          className="h-control-small font-body"
-          style={{ width: 520, maxWidth: "100%" }}
+          onValueChange={(value) => {
+            if (value === null) return;
+            return selectChange(value);
+          }}
         >
-          {changes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.id} — {c.kind} — {c.subject} — {c.impact}
-              {impacts.get(c.id)?.contained ? " (contained)" : " (cascaded)"}
-              {c.acknowledged ? " · acknowledged" : ""}
-            </option>
-          ))}
-        </NativeSelect>
+          <SelectTrigger
+            className={"w-full " + "h-control-small font-body"}
+            aria-label="Change record"
+            style={{ width: 520, maxWidth: "100%" }}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {idItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Toolbar>
     ) : null;
 

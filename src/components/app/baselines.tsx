@@ -19,6 +19,9 @@ import {
   type TouchedNode,
 } from "@/lib/baselines";
 import {
+  AlertTitle,
+  Dot,
+  AlertDescription,
   Absent,
   Alert,
   Badge,
@@ -346,42 +349,60 @@ export function UnrecordedChangeNotice({
 }) {
   if (rows.length === 0) return null;
   return (
-    <Alert
-      tone="danger"
-      title={
-        <>
-          CM-3 — {rows.length} configuration item{rows.length === 1 ? "" : "s"} moved with no change
-          record
-        </>
-      }
-    >
-      <p className="font-body-small">
-        {rows.length === 1 ? "This pin" : "These pins"} differ{rows.length === 1 ? "s" : ""} between{" "}
-        {from} and {to} and no <Id>CHG-</Id> was ever filed against{" "}
-        {rows.length === 1 ? "it" : "them"}. The movement was not proposed, so it was not analysed
-        under CM-3(2), so it was not approved by the change control board — and no security impact
-        verdict exists to say whether the determinations allocated to{" "}
-        {rows.length === 1 ? "this component" : "these components"} survive it. This is a finding
-        against the configuration management process itself, not a row in the diff.
-      </p>
-      <Stack className="pt-100" as="ul" space="space.075">
-        {rows.map((row) => (
-          <li key={`${row.node}|${row.label}`} className="font-body-small">
-            <Inline as="span" space="space.075" rowSpace="space.050" alignBlock="center" shouldWrap>
-              {row.node === "—" ? null : <Id className="text-danger">{row.node}</Id>}
-              <span className="font-medium">
-                {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
-              </span>
-              <Badge variant="secondary" tone="neutral" size="xsmall">
-                {row.kind}
-              </Badge>
-              <span className="text-subtle line-through">{row.from}</span>
-              <ArrowRight className="text-subtle size-150" />
-              <span className="font-medium">{row.to}</span>
-            </Inline>
-          </li>
-        ))}
-      </Stack>
+    <Alert tone="danger" role="alert">
+      {<>
+        CM-3 — {rows.length} configuration item{rows.length === 1 ? "" : "s"} moved with no change
+        record
+      </> ? (
+        <AlertTitle>
+          <span aria-hidden="true" className="flex h-250 shrink-0 items-center">
+            <Dot tone={"danger"} />
+          </span>
+          <span className="min-w-0 break-words">
+            {
+              <>
+                CM-3 — {rows.length} configuration item{rows.length === 1 ? "" : "s"} moved with no
+                change record
+              </>
+            }
+          </span>
+        </AlertTitle>
+      ) : null}
+      <AlertDescription>
+        <p className="font-body-small">
+          {rows.length === 1 ? "This pin" : "These pins"} differ{rows.length === 1 ? "s" : ""}{" "}
+          between {from} and {to} and no <Id>CHG-</Id> was ever filed against{" "}
+          {rows.length === 1 ? "it" : "them"}. The movement was not proposed, so it was not analysed
+          under CM-3(2), so it was not approved by the change control board — and no security impact
+          verdict exists to say whether the determinations allocated to{" "}
+          {rows.length === 1 ? "this component" : "these components"} survive it. This is a finding
+          against the configuration management process itself, not a row in the diff.
+        </p>
+        <Stack className="pt-100" as="ul" space="space.075">
+          {rows.map((row) => (
+            <li key={`${row.node}|${row.label}`} className="font-body-small">
+              <Inline
+                as="span"
+                space="space.075"
+                rowSpace="space.050"
+                alignBlock="center"
+                shouldWrap
+              >
+                {row.node === "—" ? null : <Id className="text-danger">{row.node}</Id>}
+                <span className="font-medium">
+                  {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
+                </span>
+                <Badge variant="secondary" tone="neutral" size="xsmall">
+                  {row.kind}
+                </Badge>
+                <span className="text-subtle line-through">{row.from}</span>
+                <ArrowRight className="text-subtle size-150" />
+                <span className="font-medium">{row.to}</span>
+              </Inline>
+            </li>
+          ))}
+        </Stack>
+      </AlertDescription>
     </Alert>
   );
 }

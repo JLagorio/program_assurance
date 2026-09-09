@@ -1,9 +1,14 @@
-import { revalidateLogic, useForm } from "@tanstack/react-form";
-import { z } from "zod";
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useRef, useState } from "react";
-
 import {
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldSet,
+  FieldLegend,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxList,
+  ComboboxItem,
   Button,
   Checkbox,
   Combobox,
@@ -12,8 +17,6 @@ import {
   Field,
   Input,
   InputGroup,
-  useFieldControl,
-  NativeSelect,
   RadioGroup,
   RadioGroupItem,
   Select,
@@ -28,6 +31,10 @@ import {
   Textarea,
   useRequired,
 } from "../../components";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
+import { z } from "zod";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
+import { useId, useRef, useState } from "react";
 import { Grid, Inline, Stack, Text } from "../../primitives";
 
 const meta = {
@@ -48,6 +55,8 @@ const controlSchema = z.object({
 });
 
 function ControlForm() {
+  const fieldId = useId();
+
   const formRef = useRef<HTMLFormElement>(null);
   const [saved, setSaved] = useState<z.infer<typeof controlSchema> | null>(null);
   const form = useForm({
@@ -78,83 +87,141 @@ function ControlForm() {
         <form.Field name="title">
           {(field) => {
             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+            const fieldError1 = isInvalid
+              ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
+              : undefined;
             return (
-              <Field
-                label="Control name"
-                hint="How it appears in the register."
-                isRequired
-                error={
-                  isInvalid
-                    ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
-                    : undefined
-                }
-              >
+              <Field data-invalid={Boolean(fieldError1)}>
+                <FieldLabel
+                  id={`${fieldId}-control-name-1-label`}
+                  htmlFor={`${fieldId}-control-name-1`}
+                >
+                  {"Control name"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
                 <Input
+                  id={`${fieldId}-control-name-1`}
+                  aria-labelledby={`${fieldId}-control-name-1-label`}
+                  aria-required={true}
+                  aria-describedby={`${fieldId}-control-name-1-message`}
                   name={field.name}
                   value={field.state.value}
                   required
                   onBlur={field.handleBlur}
                   onChange={(event) => field.handleChange(event.target.value)}
-                  aria-invalid={isInvalid}
+                  aria-invalid={Boolean(fieldError1) || isInvalid}
                   placeholder="Segregation of duties, payables"
                 />
+                {Boolean(fieldError1) ? (
+                  <FieldError id={`${fieldId}-control-name-1-message`}>{fieldError1}</FieldError>
+                ) : (
+                  <FieldDescription id={`${fieldId}-control-name-1-message`}>
+                    {"How it appears in the register."}
+                  </FieldDescription>
+                )}
               </Field>
             );
           }}
         </form.Field>
         <form.Field name="owner">
-          {(field) => (
-            <Field label="Owner">
-              <NativeSelect
-                name={field.name}
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={(event) => field.handleChange(event.target.value)}
-              >
-                <option value="">Choose an owner</option>
-                <option value="dana">Dana Whitfield</option>
-                <option value="priya">Priya Natarajan</option>
-                <option value="marcus">Marcus Oyelaran</option>
-              </NativeSelect>
-            </Field>
-          )}
+          {(field) => {
+            const valueItems = [
+              { value: "", label: "Choose an owner" },
+              { value: "dana", label: "Dana Whitfield" },
+              { value: "priya", label: "Priya Natarajan" },
+              { value: "marcus", label: "Marcus Oyelaran" },
+            ];
+            return (
+              <Field>
+                <FieldLabel id={`${fieldId}-owner-2-label`} htmlFor={`${fieldId}-owner-2`}>
+                  {"Owner"}
+                </FieldLabel>
+                <Select<string>
+                  items={valueItems}
+                  name={field.name}
+                  value={field.state.value}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return field.handleChange(value);
+                  }}
+                >
+                  <SelectTrigger
+                    id={`${fieldId}-owner-2`}
+                    aria-labelledby={`${fieldId}-owner-2-label`}
+                    className="w-full"
+                    onBlur={field.handleBlur}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-owner-2-label`}>
+                    {valueItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            );
+          }}
         </form.Field>
         <form.Field name="rationale">
           {(field) => {
             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+            const fieldError3 = isInvalid
+              ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
+              : undefined;
             return (
-              <Field
-                label="Rationale"
-                isRequired
-                error={
-                  isInvalid
-                    ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
-                    : undefined
-                }
-              >
+              <Field data-invalid={Boolean(fieldError3)}>
+                <FieldLabel id={`${fieldId}-rationale-3-label`} htmlFor={`${fieldId}-rationale-3`}>
+                  {"Rationale"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
                 <Textarea
+                  id={`${fieldId}-rationale-3`}
+                  aria-labelledby={`${fieldId}-rationale-3-label`}
+                  aria-required={true}
+                  aria-describedby={fieldError3 ? `${fieldId}-rationale-3-message` : undefined}
                   name={field.name}
                   value={field.state.value}
                   rows={3}
                   required
                   onBlur={field.handleBlur}
                   onChange={(event) => field.handleChange(event.target.value)}
-                  aria-invalid={isInvalid}
+                  aria-invalid={Boolean(fieldError3) || isInvalid}
                   placeholder="Why this control exists and what it prevents."
                 />
+                {Boolean(fieldError3) ? (
+                  <FieldError id={`${fieldId}-rationale-3-message`}>{fieldError3}</FieldError>
+                ) : null}
               </Field>
             );
           }}
         </form.Field>
         <form.Field name="reference">
           {(field) => (
-            <Field label="Reference" hint="Read only until the assessment closes.">
+            <Field>
+              <FieldLabel id={`${fieldId}-reference-4-label`} htmlFor={`${fieldId}-reference-4`}>
+                {"Reference"}
+              </FieldLabel>
               <Input
+                id={`${fieldId}-reference-4`}
+                aria-labelledby={`${fieldId}-reference-4-label`}
+                aria-describedby={`${fieldId}-reference-4-message`}
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 readOnly
               />
+              <FieldDescription id={`${fieldId}-reference-4-message`}>
+                {"Read only until the assessment closes."}
+              </FieldDescription>
             </Field>
           )}
         </form.Field>
@@ -208,7 +275,12 @@ export const Fields: Story = {
     await expect(canvas.queryByRole("status", { name: "Saved control" })).not.toBeInTheDocument();
     await userEvent.type(title, "Separate payment approvals");
     await waitFor(() => expect(title).not.toHaveAttribute("aria-invalid", "true"));
-    await userEvent.selectOptions(canvas.getByRole("combobox", { name: "Owner" }), "priya");
+    await userEvent.click(canvas.getByRole("combobox", { name: "Owner" }));
+    await userEvent.click(
+      await within(canvasElement.ownerDocument.body).findByRole("option", {
+        name: "Priya Natarajan",
+      }),
+    );
     await userEvent.type(rationale, "Prevents a single person from approving their own payments.");
     // Enter in a single-line field submits the native form.
     await userEvent.click(title);
@@ -223,7 +295,10 @@ export const Fields: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Reset" }));
     await expect(title).toHaveValue("");
     await expect(rationale).toHaveValue("");
-    await expect(canvas.getByRole("combobox", { name: "Owner" })).toHaveValue("");
+    await expect(canvas.getByRole("combobox", { name: "Owner" })).toHaveTextContent(
+      "Choose an owner",
+    );
+    await expect(new FormData(canvasElement.querySelector("form")!).get("owner")).toBe("");
     await expect(canvas.getByRole("textbox", { name: "Reference" })).toHaveValue("CTRL-0412");
     await expect(canvas.queryAllByRole("alert")).toHaveLength(0);
     await expect(canvas.queryByRole("status", { name: "Saved control" })).not.toBeInTheDocument();
@@ -238,13 +313,19 @@ const people = [
 ];
 
 function PickerFields() {
+  const fieldId = useId();
+
   const [owner, setOwner] = useState<string | undefined>("priya");
   const [status, setStatus] = useState("review");
   const [due, setDue] = useState("2026-09-14");
+  const ownerItems = people;
   return (
     <div style={{ width: 360 }}>
       <Stack space="space.200">
-        <Field label="Status" hint="A Select: the options carry their Dot.">
+        <Field>
+          <FieldLabel id={`${fieldId}-status-5-label`} htmlFor={`${fieldId}-status-5`}>
+            {"Status"}
+          </FieldLabel>
           <Select
             items={{
               draft: (
@@ -273,10 +354,19 @@ function PickerFields() {
               if (value !== null) setStatus(value);
             }}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger
+              id={`${fieldId}-status-5`}
+              aria-labelledby={`${fieldId}-status-5-label`}
+              aria-describedby={`${fieldId}-status-5-message`}
+              className="w-full"
+            >
               <SelectValue />
             </SelectTrigger>
-            <SelectContent align="start" alignItemWithTrigger={false}>
+            <SelectContent
+              aria-labelledby={`${fieldId}-status-5-label`}
+              align="start"
+              alignItemWithTrigger={false}
+            >
               <SelectGroup>
                 <SelectLabel>Open</SelectLabel>
                 <SelectItem value="draft" label="Draft">
@@ -295,18 +385,69 @@ function PickerFields() {
               </SelectItem>
             </SelectContent>
           </Select>
+          <FieldDescription id={`${fieldId}-status-5-message`}>
+            {"A Select: the options carry their Dot."}
+          </FieldDescription>
         </Field>
-        <Field label="Owner" hint="A Combobox: a list worth searching.">
-          <Combobox
-            options={people}
-            value={owner}
-            onChange={setOwner}
-            placeholder="Choose an owner"
-            searchPlaceholder="Search people…"
+        <Field>
+          <FieldLabel id={`${fieldId}-owner-6-label`} htmlFor={`${fieldId}-owner-6`}>
+            {"Owner"}
+          </FieldLabel>
+          <Combobox<(typeof ownerItems)[number]>
+            items={ownerItems}
+
+            isItemEqualToValue={(item, selected) => item.value === selected.value}
+            filter={(item, query) =>
+              [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                .join(" ")
+                .toLocaleLowerCase()
+                .includes(query.toLocaleLowerCase())
+            }
+            value={ownerItems.find((item) => item.value === owner) ?? null}
+            onValueChange={(item) => setOwner(item?.value ?? "")}
+          >
+            <ComboboxInput
+              id={`${fieldId}-owner-6`}
+              aria-labelledby={`${fieldId}-owner-6-label`}
+              aria-describedby={`${fieldId}-owner-6-message`}
+              placeholder="Choose an owner"
+            />
+            <ComboboxContent>
+              <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+              <ComboboxList aria-labelledby={`${fieldId}-owner-6-label`}>
+                {(item) => (
+                  <ComboboxItem
+                    key={item.value}
+                    value={item}
+                    disabled={"disabled" in item && Boolean(item.disabled)}
+                  >
+                    <span className="min-w-0 flex-1">{item.label}</span>
+                    {"meta" in item && item.meta ? (
+                      <span className="text-subtle font-body-small">{String(item.meta)}</span>
+                    ) : null}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          <FieldDescription id={`${fieldId}-owner-6-message`}>
+            {"A Combobox: a list worth searching."}
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel id={`${fieldId}-due-7-label`} htmlFor={`${fieldId}-due-7`}>
+            {"Due"}
+          </FieldLabel>
+          <DatePicker
+            id={`${fieldId}-due-7`}
+            aria-labelledby={`${fieldId}-due-7-label`}
+            aria-describedby={`${fieldId}-due-7-message`}
+            value={due}
+            onChange={setDue}
           />
-        </Field>
-        <Field label="Due" hint="A DatePicker: one day, held as an ISO date.">
-          <DatePicker value={due} onChange={setDue} />
+          <FieldDescription id={`${fieldId}-due-7-message`}>
+            {"A DatePicker: one day, held as an ISO date."}
+          </FieldDescription>
         </Field>
       </Stack>
     </div>
@@ -317,30 +458,60 @@ function PickerFields() {
 export const Pickers: Story = { render: () => <PickerFields /> };
 
 function ChoiceFields() {
+  const fieldId = useId();
+
   const [p, setP] = useState({ pii: true, cross: false, safety: false });
   const [frequency, setFrequency] = useState("quarterly");
   const [notify, setNotify] = useState(true);
   return (
     <div style={{ width: 420 }}>
       <Stack space="space.300">
-        <Field label="Parameters" isGroup hint="Each one adds controls to the baseline.">
+        <FieldSet
+          aria-labelledby={`${fieldId}-parameters-8-label`}
+          aria-describedby={`${fieldId}-parameters-8-message`}
+        >
+          <FieldLegend id={`${fieldId}-parameters-8-label`} variant="label">
+            {"Parameters"}
+          </FieldLegend>
           <Stack space="space.100">
             <label className="inline-flex items-center gap-100">
-              <Checkbox checked={p.pii} onCheckedChange={(v) => setP({ ...p, pii: v })} />
+              <Checkbox
+                aria-describedby={`${fieldId}-parameters-8-message`}
+                checked={p.pii}
+                onCheckedChange={(v) => setP({ ...p, pii: v })}
+              />
               Handles PII
             </label>
             <label className="inline-flex items-center gap-100">
-              <Checkbox checked={p.cross} onCheckedChange={(v) => setP({ ...p, cross: v })} />
+              <Checkbox
+                aria-describedby={`${fieldId}-parameters-8-message`}
+                checked={p.cross}
+                onCheckedChange={(v) => setP({ ...p, cross: v })}
+              />
               Cross-domain
             </label>
             <label className="inline-flex items-center gap-100">
-              <Checkbox checked={p.safety} onCheckedChange={(v) => setP({ ...p, safety: v })} />
+              <Checkbox
+                aria-describedby={`${fieldId}-parameters-8-message`}
+                checked={p.safety}
+                onCheckedChange={(v) => setP({ ...p, safety: v })}
+              />
               Safety-critical
             </label>
           </Stack>
-        </Field>
-        <Field label="Frequency" isGroup>
-          <RadioGroup value={frequency} onValueChange={setFrequency}>
+          <FieldDescription id={`${fieldId}-parameters-8-message`}>
+            {"Each one adds controls to the baseline."}
+          </FieldDescription>
+        </FieldSet>
+        <FieldSet aria-labelledby={`${fieldId}-frequency-9-label`}>
+          <FieldLegend id={`${fieldId}-frequency-9-label`} variant="label">
+            {"Frequency"}
+          </FieldLegend>
+          <RadioGroup
+            aria-labelledby={`${fieldId}-frequency-9-label`}
+            value={frequency}
+            onValueChange={setFrequency}
+          >
             <label className="inline-flex items-center gap-100">
               <RadioGroupItem value="monthly" />
               Monthly
@@ -354,72 +525,184 @@ function ChoiceFields() {
               Annually
             </label>
           </RadioGroup>
-        </Field>
-        <Field
-          label="Notify the owner on status change"
-          hint="Send an email when a finding changes status."
-        >
-          <Switch checked={notify} onCheckedChange={setNotify} />
+        </FieldSet>
+        <Field>
+          <FieldLabel
+            id={`${fieldId}-notify-the-owner-on-status-change-10-label`}
+            htmlFor={`${fieldId}-notify-the-owner-on-status-change-10`}
+          >
+            {"Notify the owner on status change"}
+          </FieldLabel>
+          <Switch
+            id={`${fieldId}-notify-the-owner-on-status-change-10`}
+            aria-labelledby={`${fieldId}-notify-the-owner-on-status-change-10-label`}
+            aria-describedby={`${fieldId}-notify-the-owner-on-status-change-10-message`}
+            checked={notify}
+            onCheckedChange={setNotify}
+          />
+          <FieldDescription id={`${fieldId}-notify-the-owner-on-status-change-10-message`}>
+            {"Send an email when a finding changes status."}
+          </FieldDescription>
         </Field>
       </Stack>
     </div>
   );
 }
 
-/** The choice controls: a Checkbox group and a RadioGroup in Fields with `isGroup`; a Switch uses Field for its external label and hint. */
+/** The choice controls: a Checkbox group and a RadioGroup in FieldSets; a Switch uses Field for its external label and hint. */
 export const Choices: Story = { render: () => <ChoiceFields /> };
 
 /** A form on a six-column Grid: each field as wide as its answer, a description across the row, the buttons at the end. */
 export const Layout: Story = {
-  render: () => (
-    <div style={{ width: 640 }}>
-      <Stack space="space.300">
-        <Grid templateColumns="repeat(6, minmax(0, 1fr))" columnGap="space.200" rowGap="space.200">
-          <div style={{ gridColumn: "span 2" }}>
-            <Field label="Acronym" isRequired hint="Up to eight characters.">
-              <Input defaultValue="ATLAS" maxLength={8} />
-            </Field>
-          </div>
-          <div style={{ gridColumn: "span 4" }}>
-            <Field label="Program name" isRequired>
-              <Input defaultValue="Atlas payments platform" />
-            </Field>
-          </div>
-          <div style={{ gridColumn: "span 3" }}>
-            <Field label="Owner">
-              <Combobox
-                options={people}
-                value="priya"
-                onChange={() => undefined}
-                placeholder="Choose an owner"
-              />
-            </Field>
-          </div>
-          <div style={{ gridColumn: "span 3" }}>
-            <Field label="Authorization due">
-              <DatePicker defaultValue="2026-12-18" />
-            </Field>
-          </div>
-          <div style={{ gridColumn: "span 6" }}>
-            <Field label="Description" hint="What the system does for the mission.">
-              <Textarea
-                rows={3}
-                placeholder="Cardholder and settlement processing for the Atlas platform."
-              />
-            </Field>
-          </div>
-        </Grid>
-        <Inline space="space.100" alignInline="end">
-          <Button variant="subtle">Cancel</Button>
-          <Button variant="primary">Create program</Button>
-        </Inline>
-      </Stack>
-    </div>
-  ),
+  render: function FieldExample() {
+    const fieldId = useId();
+
+    const priyaItems = people;
+    return (
+      <div style={{ width: 640 }}>
+        <Stack space="space.300">
+          <Grid
+            templateColumns="repeat(6, minmax(0, 1fr))"
+            columnGap="space.200"
+            rowGap="space.200"
+          >
+            <div style={{ gridColumn: "span 2" }}>
+              <Field>
+                <FieldLabel id={`${fieldId}-acronym-11-label`} htmlFor={`${fieldId}-acronym-11`}>
+                  {"Acronym"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
+                <Input
+                  id={`${fieldId}-acronym-11`}
+                  aria-labelledby={`${fieldId}-acronym-11-label`}
+                  aria-required={true}
+                  aria-describedby={`${fieldId}-acronym-11-message`}
+                  defaultValue="ATLAS"
+                  maxLength={8}
+                />
+                <FieldDescription id={`${fieldId}-acronym-11-message`}>
+                  {"Up to eight characters."}
+                </FieldDescription>
+              </Field>
+            </div>
+            <div style={{ gridColumn: "span 4" }}>
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-program-name-12-label`}
+                  htmlFor={`${fieldId}-program-name-12`}
+                >
+                  {"Program name"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
+                <Input
+                  id={`${fieldId}-program-name-12`}
+                  aria-labelledby={`${fieldId}-program-name-12-label`}
+                  aria-required={true}
+                  defaultValue="Atlas payments platform"
+                />
+              </Field>
+            </div>
+            <div style={{ gridColumn: "span 3" }}>
+              <Field>
+                <FieldLabel id={`${fieldId}-owner-13-label`} htmlFor={`${fieldId}-owner-13`}>
+                  {"Owner"}
+                </FieldLabel>
+                <Combobox<(typeof priyaItems)[number]>
+                  items={priyaItems}
+
+                  isItemEqualToValue={(item, selected) => item.value === selected.value}
+                  filter={(item, query) =>
+                    [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                      .join(" ")
+                      .toLocaleLowerCase()
+                      .includes(query.toLocaleLowerCase())
+                  }
+                  value={priyaItems.find((item) => item.value === "priya") ?? null}
+                  onValueChange={(item) => {
+                    return undefined;
+                  }}
+                >
+                  <ComboboxInput
+                    id={`${fieldId}-owner-13`}
+                    aria-labelledby={`${fieldId}-owner-13-label`}
+                    placeholder="Choose an owner"
+                  />
+                  <ComboboxContent>
+                    <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+                    <ComboboxList aria-labelledby={`${fieldId}-owner-13-label`}>
+                      {(item) => (
+                        <ComboboxItem
+                          key={item.value}
+                          value={item}
+                          disabled={"disabled" in item && Boolean(item.disabled)}
+                        >
+                          <span className="min-w-0 flex-1">{item.label}</span>
+                          {"meta" in item && item.meta ? (
+                            <span className="text-subtle font-body-small">{String(item.meta)}</span>
+                          ) : null}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </Field>
+            </div>
+            <div style={{ gridColumn: "span 3" }}>
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-authorization-due-14-label`}
+                  htmlFor={`${fieldId}-authorization-due-14`}
+                >
+                  {"Authorization due"}
+                </FieldLabel>
+                <DatePicker
+                  id={`${fieldId}-authorization-due-14`}
+                  aria-labelledby={`${fieldId}-authorization-due-14-label`}
+                  defaultValue="2026-12-18"
+                />
+              </Field>
+            </div>
+            <div style={{ gridColumn: "span 6" }}>
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-description-15-label`}
+                  htmlFor={`${fieldId}-description-15`}
+                >
+                  {"Description"}
+                </FieldLabel>
+                <Textarea
+                  id={`${fieldId}-description-15`}
+                  aria-labelledby={`${fieldId}-description-15-label`}
+                  aria-describedby={`${fieldId}-description-15-message`}
+                  rows={3}
+                  placeholder="Cardholder and settlement processing for the Atlas platform."
+                />
+                <FieldDescription id={`${fieldId}-description-15-message`}>
+                  {"What the system does for the mission."}
+                </FieldDescription>
+              </Field>
+            </div>
+          </Grid>
+          <Inline space="space.100" alignInline="end">
+            <Button variant="subtle">Cancel</Button>
+            <Button variant="primary">Create program</Button>
+          </Inline>
+        </Stack>
+      </div>
+    );
+  },
 };
 
 /** Submit-only validation; incomplete fields keep the submit button available. */
 function RequiredForm() {
+  const fieldId = useId();
+
   const [saved, setSaved] = useState(false);
   const schema = z.object({
     title: z.string().trim().min(1, "Enter a title."),
@@ -443,25 +726,49 @@ function RequiredForm() {
       <Stack space="space.200">
         {(["title", "owner"] as const).map((name) => (
           <form.Field key={name} name={name}>
-            {(field) => (
-              <Field
-                label={name === "title" ? "Title" : "Owner"}
-                isRequired
-                error={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                    ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
-                    : undefined
-                }
-              >
-                <Input
-                  name={field.name}
-                  value={field.state.value}
-                  required
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                />
-              </Field>
-            )}
+            {(field) => {
+              const fieldError16 =
+                field.state.meta.isTouched && !field.state.meta.isValid
+                  ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
+                  : undefined;
+              return (
+                <Field data-invalid={Boolean(fieldError16)}>
+                  <FieldLabel
+                    id={`${fieldId}-field-16-${encodeURIComponent(String(name))}-label`}
+                    htmlFor={`${fieldId}-field-16-${encodeURIComponent(String(name))}`}
+                  >
+                    {name === "title" ? "Title" : "Owner"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
+                  <Input
+                    id={`${fieldId}-field-16-${encodeURIComponent(String(name))}`}
+                    aria-labelledby={`${fieldId}-field-16-${encodeURIComponent(String(name))}-label`}
+                    aria-required={true}
+                    aria-invalid={Boolean(fieldError16)}
+                    aria-describedby={
+                      fieldError16
+                        ? `${fieldId}-field-16-${encodeURIComponent(String(name))}-message`
+                        : undefined
+                    }
+                    name={field.name}
+                    value={field.state.value}
+                    required
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                  />
+                  {Boolean(fieldError16) ? (
+                    <FieldError
+                      id={`${fieldId}-field-16-${encodeURIComponent(String(name))}-message`}
+                    >
+                      {fieldError16}
+                    </FieldError>
+                  ) : null}
+                </Field>
+              );
+            }}
           </form.Field>
         ))}
         <Inline space="space.100" alignBlock="center" alignInline="end">
@@ -489,17 +796,15 @@ export const RequiredOnSubmit: Story = {
   render: () => <RequiredForm />,
 };
 
-function BoundCustomControl(props: { value: string; onChange: (value: string) => void }) {
-  const binding = useFieldControl({});
-  return (
-    <input
-      {...binding}
-      value={props.value}
-      onChange={(event) => props.onChange(event.target.value)}
-    />
-  );
+function BoundCustomControl({
+  onChange,
+  ...props
+}: Omit<React.ComponentProps<"input">, "onChange"> & { onChange: (value: string) => void }) {
+  return <input {...props} onChange={(event) => onChange(event.target.value)} />;
 }
 function RecoveryDemo() {
+  const fieldId = useId();
+
   const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -508,6 +813,8 @@ function RecoveryDemo() {
     formRef,
     validate: { email: (value) => (value.includes("@") ? null : "Enter an email address.") },
   });
+  const fieldError17 = validation.errorFor("name");
+  const fieldError18 = validation.errorFor("email");
   return (
     <form
       ref={formRef}
@@ -517,25 +824,78 @@ function RecoveryDemo() {
         validation.check();
       }}
     >
-      <Field label="Name" hint="Use the full name." isRequired error={validation.errorFor("name")}>
+      <Field data-invalid={Boolean(fieldError17)}>
+        <FieldLabel id={`${fieldId}-name-17-label`} htmlFor={`${fieldId}-name-17`}>
+          {"Name"}
+          <span aria-hidden="true" className="text-danger">
+            {" "}
+            *
+          </span>
+        </FieldLabel>
         <div data-testid="field-wrapper">
           <InputGroup>
-            <Input name="name" value={name} onChange={(event) => setName(event.target.value)} />
+            <Input
+              id={`${fieldId}-name-17`}
+              aria-labelledby={`${fieldId}-name-17-label`}
+              aria-required={true}
+              aria-invalid={Boolean(fieldError17)}
+              aria-describedby={`${fieldId}-name-17-message`}
+              name="name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
           </InputGroup>
         </div>
+        {Boolean(fieldError17) ? (
+          <FieldError id={`${fieldId}-name-17-message`}>{fieldError17}</FieldError>
+        ) : (
+          <FieldDescription id={`${fieldId}-name-17-message`}>
+            {"Use the full name."}
+          </FieldDescription>
+        )}
       </Field>
-      <Field label="Email" isRequired error={validation.errorFor("email")}>
+      <Field data-invalid={Boolean(fieldError18)}>
+        <FieldLabel id={`${fieldId}-email-18-label`} htmlFor={`${fieldId}-email-18`}>
+          {"Email"}
+          <span aria-hidden="true" className="text-danger">
+            {" "}
+            *
+          </span>
+        </FieldLabel>
         <>
           <Input
+            id={`${fieldId}-email-18`}
+            aria-labelledby={`${fieldId}-email-18-label`}
+            aria-required={true}
+            aria-invalid={Boolean(fieldError18)}
+            aria-describedby={fieldError18 ? `${fieldId}-email-18-message` : undefined}
             name="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             onBlur={() => validation.touch("email")}
           />
         </>
+        {Boolean(fieldError18) ? (
+          <FieldError id={`${fieldId}-email-18-message`}>{fieldError18}</FieldError>
+        ) : null}
       </Field>
-      <Field label="Custom identifier" hint="The control opts into the binding context.">
-        <BoundCustomControl value={custom} onChange={setCustom} />
+      <Field>
+        <FieldLabel
+          id={`${fieldId}-custom-identifier-19-label`}
+          htmlFor={`${fieldId}-custom-identifier-19`}
+        >
+          {"Custom identifier"}
+        </FieldLabel>
+        <BoundCustomControl
+          id={`${fieldId}-custom-identifier-19`}
+          aria-labelledby={`${fieldId}-custom-identifier-19-label`}
+          aria-describedby={`${fieldId}-custom-identifier-19-message`}
+          value={custom}
+          onChange={setCustom}
+        />
+        <FieldDescription id={`${fieldId}-custom-identifier-19-message`}>
+          {"Native props reach the input through a custom component."}
+        </FieldDescription>
       </Field>
       {Object.keys(validation.errors).length ? (
         <div role="alert">
@@ -570,7 +930,7 @@ export const ValidationRecovery: Story = {
     await expect(name).toHaveFocus();
     await expect(
       canvas.getByRole("textbox", { name: "Custom identifier" }),
-    ).toHaveAccessibleDescription("The control opts into the binding context.");
+    ).toHaveAccessibleDescription("Native props reach the input through a custom component.");
     await userEvent.click(canvas.getByRole("button", { name: "Save details" }));
     await expect(name).toHaveFocus();
     await expect(name).toHaveAttribute("aria-invalid", "true");
@@ -587,12 +947,17 @@ export const ValidationRecovery: Story = {
 };
 
 function CompositeDemo() {
+  const fieldId = useId();
+
   const formRef = useRef<HTMLFormElement>(null);
   const selectRef = useRef<HTMLButtonElement>(null);
   const comboRef = useRef<HTMLInputElement>(null);
   const [owner, setOwner] = useState("");
   const [blurred, setBlurred] = useState(false);
   const validation = useRequired({ owner }, undefined, { formRef });
+  const ownerItems2 = [{ value: "alice", label: "Alice" }];
+  const aliceItems = [{ value: "alice", label: "Alice" }];
+  const fieldError21 = validation.errorFor("owner");
   return (
     <>
       <form
@@ -603,9 +968,14 @@ function CompositeDemo() {
           validation.check();
         }}
       >
-        <Field label="Status">
+        <Field>
+          <FieldLabel id={`${fieldId}-status-20-label`} htmlFor={`${fieldId}-status-20`}>
+            {"Status"}
+          </FieldLabel>
           <Select items={{ open: "Open" }} name="status" defaultValue="open">
             <SelectTrigger
+              id={`${fieldId}-status-20`}
+              aria-labelledby={`${fieldId}-status-20-label`}
               className="w-full"
               ref={selectRef}
               data-testid="status-trigger"
@@ -613,19 +983,61 @@ function CompositeDemo() {
             >
               <SelectValue />
             </SelectTrigger>
-            <SelectContent align="start" alignItemWithTrigger={false}>
+            <SelectContent
+              aria-labelledby={`${fieldId}-status-20-label`}
+              align="start"
+              alignItemWithTrigger={false}
+            >
               <SelectItem value="open">Open</SelectItem>
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Owner" error={validation.errorFor("owner")}>
-          <Combobox
-            ref={comboRef}
+        <Field data-invalid={Boolean(fieldError21)}>
+          <FieldLabel id={`${fieldId}-owner-21-label`} htmlFor={`${fieldId}-owner-21`}>
+            {"Owner"}
+          </FieldLabel>
+          <Combobox<(typeof ownerItems2)[number]>
+            items={ownerItems2}
+
+            isItemEqualToValue={(item, selected) => item.value === selected.value}
+            filter={(item, query) =>
+              [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                .join(" ")
+                .toLocaleLowerCase()
+                .includes(query.toLocaleLowerCase())
+            }
             name="owner"
-            value={owner}
-            onChange={setOwner}
-            options={[{ value: "alice", label: "Alice" }]}
-          />
+            value={ownerItems2.find((item) => item.value === owner) ?? null}
+            onValueChange={(item) => setOwner(item?.value ?? "")}
+          >
+            <ComboboxInput
+              id={`${fieldId}-owner-21`}
+              aria-labelledby={`${fieldId}-owner-21-label`}
+              aria-invalid={Boolean(fieldError21)}
+              aria-describedby={fieldError21 ? `${fieldId}-owner-21-message` : undefined}
+              ref={comboRef}
+            />
+            <ComboboxContent>
+              <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+              <ComboboxList aria-labelledby={`${fieldId}-owner-21-label`}>
+                {(item) => (
+                  <ComboboxItem
+                    key={item.value}
+                    value={item}
+                    disabled={"disabled" in item && Boolean(item.disabled)}
+                  >
+                    <span className="min-w-0 flex-1">{item.label}</span>
+                    {"meta" in item && item.meta ? (
+                      <span className="text-subtle font-body-small">{String(item.meta)}</span>
+                    ) : null}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          {Boolean(fieldError21) ? (
+            <FieldError id={`${fieldId}-owner-21-message`}>{fieldError21}</FieldError>
+          ) : null}
         </Field>
         <Button type="submit">Validate owner</Button>
         <Button onClick={() => selectRef.current?.focus()}>Focus status ref</Button>
@@ -633,14 +1045,40 @@ function CompositeDemo() {
         <Button onClick={() => setOwner("alice")}>Assign Alice</Button>
         <output aria-label="Status touched">{String(blurred)}</output>
       </form>
-      <Combobox
-        aria-label="External owner"
+      <Combobox<(typeof aliceItems)[number]>
+        items={aliceItems}
+
+        isItemEqualToValue={(item, selected) => item.value === selected.value}
+        filter={(item, query) =>
+          [item.label, item.value, "keywords" in item ? item.keywords : ""]
+            .join(" ")
+            .toLocaleLowerCase()
+            .includes(query.toLocaleLowerCase())
+        }
         name="external"
         form="composite-controls-form"
-        value="alice"
-        onChange={() => {}}
-        options={[{ value: "alice", label: "Alice" }]}
-      />
+        value={aliceItems.find((item) => item.value === "alice") ?? null}
+        onValueChange={(item) => {}}
+      >
+        <ComboboxInput aria-label="External owner" />
+        <ComboboxContent>
+          <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+          <ComboboxList>
+            {(item) => (
+              <ComboboxItem
+                key={item.value}
+                value={item}
+                disabled={"disabled" in item && Boolean(item.disabled)}
+              >
+                <span className="min-w-0 flex-1">{item.label}</span>
+                {"meta" in item && item.meta ? (
+                  <span className="text-subtle font-body-small">{String(item.meta)}</span>
+                ) : null}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
     </>
   );
 }

@@ -1,6 +1,9 @@
-import { ChevronDown } from "lucide-react";
 import {
   Avatar,
+  AvatarFallback,
+  AvatarGroupCount,
+  avatarInitials,
+  AvatarGroup,
   Badge,
   Collapsible,
   CollapsibleContent,
@@ -8,9 +11,8 @@ import {
   Person,
   Stepper,
 } from "../../components";
-
-import type { Meta, StoryObj } from "@storybook/react-vite";
-
+import { ChevronDown } from "lucide-react";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -189,10 +191,16 @@ export const Milestones: Story = {
                     out.
                   </Text>
                   <Inline space="space.100" alignBlock="center" spread="space-between">
-                    <Avatar.Stack
-                      names={["Nina Patel", "Owen Fox", "Sam Lee", "Ira Wells"]}
-                      max={2}
-                    />
+                    <AvatarGroup role="group" aria-label="Reviewers">
+                      {["Nina Patel", "Owen Fox", "Sam Lee", "Ira Wells"]
+                        .slice(0, 2)
+                        .map((name) => (
+                          <Avatar key={name} role="img" aria-label={name}>
+                            <AvatarFallback>{avatarInitials(name)}</AvatarFallback>
+                          </Avatar>
+                        ))}
+                      <AvatarGroupCount>+2</AvatarGroupCount>
+                    </AvatarGroup>
                     <Inline space="space.100" alignBlock="center">
                       <Text size="xsmall" color="color.text.subtle">
                         3 comments

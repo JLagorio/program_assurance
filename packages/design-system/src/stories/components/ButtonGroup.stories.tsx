@@ -1,39 +1,33 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import {
-  AlignCenter,
-  AlignLeft,
-  AlignRight,
-  ChevronDown,
-  Download,
-  Redo,
-  Undo,
-} from "lucide-react";
-
+import { useId, useRef, useState } from "react";
+import { ChevronDown, Download, Minus, Plus } from "lucide-react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   Button,
   ButtonGroup,
+  ButtonGroupSeparator,
+  ButtonGroupText,
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   IconButton,
-  ToggleGroup,
-  ToggleGroupItem,
+  Input,
 } from "../../components";
-import { Inline, Stack } from "../../primitives";
-import { Matrix, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import { Stack } from "../../primitives";
+import { Matrix } from "../_lib/matrix";
 
 const meta = {
   title: "Components/ButtonGroup",
   component: ButtonGroup,
   parameters: { layout: "padded" },
   args: {
-    label: "Approve",
+    "aria-label": "Export",
+    orientation: "horizontal",
     children: (
       <>
-        <Button>Approve</Button>
-        <IconButton label="More" size="medium" icon={<ChevronDown />} />
+        <Button>Export</Button>
+        <Button>Print</Button>
       </>
     ),
   },
@@ -41,151 +35,111 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Groups by variant and size with a disabled member; a split button with its menu; icon buttons; a primary split. */
-export const ButtonGroupMatrix: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Matrix
-        rows={["secondary", "subtle"] as const}
-        cols={["small", "medium"] as const}
-        render={(variant, size) => (
-          <ButtonGroup label="Export">
-            <Button variant={variant} size={size}>
-              Export
-            </Button>
-            <Button variant={variant} size={size} disabled={size === "medium"}>
-              Print
-            </Button>
-            <IconButton label="More" variant={variant} size={size} icon={<ChevronDown />} />
-          </ButtonGroup>
-        )}
-      />
-      <Specimens title="A split button, icon buttons, a primary split">
-        <ButtonGroup label="Export">
-          <Button size="small" iconBefore={<Download />}>
-            Export
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<IconButton label="Export as" size="small" icon={<ChevronDown />} />}
-            />
-            <DropdownMenuContent align="end" style={{ width: 200 }}>
-              <DropdownMenuItem onClick={() => {}}>CSV</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {}}>PDF</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {}}>OSCAL JSON</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </ButtonGroup>
-        <ButtonGroup label="Align">
-          <IconButton label="Align left" icon={<AlignLeft />} />
-          <IconButton label="Align centre" icon={<AlignCenter />} />
-          <IconButton label="Align right" icon={<AlignRight />} />
-        </ButtonGroup>
-        <ButtonGroup label="History">
-          <IconButton label="Undo" icon={<Undo />} />
-          <IconButton label="Redo" icon={<Redo />} disabled />
-        </ButtonGroup>
-        <ButtonGroup label="Approve">
-          <Button variant="primary">Approve tailored baseline</Button>
-          <IconButton label="More" variant="primary" size="medium" icon={<ChevronDown />} />
-        </ButtonGroup>
-      </Specimens>
-    </Stack>
-  ),
-};
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <ToggleGroup aria-label="Period" defaultValue={["week"]}>
-            <ToggleGroupItem value="day">Day</ToggleGroupItem>
-            <ToggleGroupItem value="week">Week</ToggleGroupItem>
-            <ToggleGroupItem value="month">Month</ToggleGroupItem>
-          </ToggleGroup>
-        }
-        doText="A choice among views is a ToggleGroup."
-        dont={
-          <ButtonGroup>
-            <Button size="small">Day</Button>
-            <Button size="small" isSelected>
-              Week
-            </Button>
-            <Button size="small">Month</Button>
-          </ButtonGroup>
-        }
-        dontText="Selected buttons joined into a segmented control. Buttons act; nothing here acts, one is chosen."
-      />
-      <Pair
-        do={
-          <ButtonGroup label="Export">
-            <Button size="small">Export</Button>
-            <IconButton label="Export as" size="small" icon={<ChevronDown />} />
-          </ButtonGroup>
-        }
-        doText="One size, one variant: the group is one control."
-        dont={
-          <ButtonGroup>
-            <Button variant="primary">Export</Button>
-            <Button size="small" variant="subtle">
-              Print
-            </Button>
-            <IconButton label="More" icon={<ChevronDown />} />
-          </ButtonGroup>
-        }
-        dontText="Three sizes and variants joined. The corners meet but nothing else does."
-      />
-      <Pair
-        do={
-          <Inline space="space.100">
-            <Button variant="primary">Approve</Button>
-            <Button>Reject</Button>
-          </Inline>
-        }
-        doText="Actions that are not one control stand apart: an Inline with space.100, the primary first."
-        dont={
-          <ButtonGroup>
-            <Button variant="primary">Approve</Button>
-            <Button variant="primary">Reject</Button>
-          </ButtonGroup>
-        }
-        dontText="Two decisions joined as one, both primary. One high-emphasis button in a group."
-      />
-      <Pair
-        do={
-          <ButtonGroup label="Record">
-            <Button size="small">Edit</Button>
-            <Button size="small">Duplicate</Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<IconButton label="More" size="small" icon={<ChevronDown />} />}
-              />
-              <DropdownMenuContent align="end" style={{ width: 200 }}>
-                <DropdownMenuItem onClick={() => {}}>Move</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {}}>Export</DropdownMenuItem>
-                <DropdownMenuItem variant="destructive" onClick={() => {}}>
-                  Archive
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </ButtonGroup>
-        }
-        doText="Two or three, and a menu for the rest."
-        dont={
-          <ButtonGroup>
-            <Button size="small">Edit</Button>
-            <Button size="small">Duplicate</Button>
-            <Button size="small">Move</Button>
-            <Button size="small">Export</Button>
-            <Button size="small">Archive</Button>
-          </ButtonGroup>
-        }
-        dontText="Five joined. Past three the group is a toolbar, and the reader scans a row of equal words for the one that matters."
-      />
-    </Stack>
-  ),
-};
-
 export const Playground: Story = {};
+
+export const Orientations: Story = {
+  render: () => (
+    <Matrix
+      rows={["horizontal", "vertical"] as const}
+      cols={["small", "medium"] as const}
+      render={(orientation, size) => (
+        <ButtonGroup orientation={orientation} aria-label="Export">
+          <Button size={size}>Export</Button>
+          <ButtonGroupSeparator
+            orientation={orientation === "horizontal" ? "vertical" : "horizontal"}
+            isDecorative
+          />
+          <Button size={size}>Print</Button>
+          <Button size={size} disabled>
+            Archive
+          </Button>
+        </ButtonGroup>
+      )}
+    />
+  ),
+};
+
+function CompositionDemo() {
+  const id = useId();
+  const groupRef = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLLabelElement>(null);
+  const separatorRef = useRef<HTMLDivElement>(null);
+  const [download, setDownload] = useState("");
+  const [labelClicked, setLabelClicked] = useState(false);
+  const [renderClicked, setRenderClicked] = useState(false);
+  const [zoom, setZoom] = useState(100);
+  return (
+    <Stack space="space.200">
+      <ButtonGroup aria-label="Export">
+        <Button iconBefore={<Download />} onClick={() => setDownload("CSV")}>
+          Export
+        </Button>
+        <ButtonGroupSeparator isDecorative />
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<IconButton label="Export as" size="medium" icon={<ChevronDown />} />}
+          />
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setDownload("CSV")}>CSV</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setDownload("PDF")}>PDF</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </ButtonGroup>
+      <ButtonGroup ref={groupRef} aria-label="Retention" data-testid="retention-group">
+        <ButtonGroupText
+          render={<label ref={labelRef} htmlFor={id} onClick={() => setRenderClicked(true)} />}
+          onClick={() => setLabelClicked(true)}
+        >
+          Days
+        </ButtonGroupText>
+        <Input id={id} type="number" min={1} defaultValue={30} className="w-800" />
+        <ButtonGroupSeparator ref={separatorRef} isDecorative />
+        <Button
+          onClick={() => {
+            if (groupRef.current && labelRef.current?.htmlFor === id && separatorRef.current)
+              setDownload("Retention saved");
+          }}
+        >
+          Save
+        </Button>
+      </ButtonGroup>
+      <ButtonGroup orientation="vertical" aria-label="Zoom">
+        <IconButton label="Zoom in" icon={<Plus />} onClick={() => setZoom(zoom + 10)} />
+        <ButtonGroupText aria-live="polite">{zoom}%</ButtonGroupText>
+        <IconButton
+          label="Zoom out"
+          icon={<Minus />}
+          disabled={zoom <= 100}
+          onClick={() => setZoom(zoom - 10)}
+        />
+      </ButtonGroup>
+      <p role="status">{download || "Choose an export format."}</p>
+      <span hidden data-testid="label-events">
+        {String(labelClicked && renderClicked)}
+      </span>
+    </Stack>
+  );
+}
+
+export const Composition: Story = {
+  render: () => <CompositionDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Export as" }));
+    await userEvent.click(await screen.findByRole("menuitem", { name: "PDF" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("PDF");
+    await waitFor(() =>
+      expect(screen.queryByRole("menu", { hidden: true })).not.toBeInTheDocument(),
+    );
+    await userEvent.click(canvas.getByText("Days"));
+    await expect(canvas.getByRole("spinbutton", { name: "Days" })).toHaveFocus();
+    await expect(canvas.getByTestId("label-events")).toHaveTextContent("true");
+    await userEvent.click(canvas.getByRole("button", { name: "Save" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("Retention saved");
+    await expect(canvas.getByRole("button", { name: "Zoom out" })).toBeDisabled();
+    await userEvent.click(canvas.getByRole("button", { name: "Zoom in" }));
+    await expect(canvas.getByText("110%")).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Zoom out" })).toBeEnabled();
+  },
+};

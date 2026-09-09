@@ -1,8 +1,11 @@
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { createRef, useState } from "react";
+import { useId, createRef, useState } from "react";
 import { expect, fireEvent, fn, userEvent, waitFor, within } from "storybook/test";
 import {
+  FieldLabel,
+  FieldDescription,
+  FieldError,
   Button,
   Dialog,
   DialogContent,
@@ -91,50 +94,85 @@ const changed = fn();
 /** Default selected-item alignment, grouped choices and the native trigger contract. */
 export const SelectMatrix: Story = {
   name: "Choices",
-  render: () => (
-    <Stack space="space.200" className="pt-600">
-      <Field label="Status" hint="The same status mark used on the record.">
-        <Select items={statuses} defaultValue="review" onValueChange={changed}>
-          <SelectTrigger
-            ref={triggerRef}
-            style={(s) => ({ width: 240, outlineOffset: s.open ? 4 : 0 })}
-            className={(s) => (s.open ? "font-medium" : "font-regular")}
-            render={<button ref={renderedRef} data-native-target="status" />}
+  render: function FieldExample() {
+    const fieldId = useId();
+    return (
+      <Stack space="space.200" className="pt-600">
+        <Field>
+          <FieldLabel id={`${fieldId}-status-1-label`} htmlFor={`${fieldId}-status-1`}>
+            {"Status"}
+          </FieldLabel>
+          <Select items={statuses} defaultValue="review" onValueChange={changed}>
+            <SelectTrigger
+              id={`${fieldId}-status-1`}
+              aria-labelledby={`${fieldId}-status-1-label`}
+              aria-describedby={`${fieldId}-status-1-message`}
+              ref={triggerRef}
+              style={(s) => ({ width: 240, outlineOffset: s.open ? 4 : 0 })}
+              className={(s) => (s.open ? "font-medium" : "font-regular")}
+              render={<button ref={renderedRef} data-native-target="status" />}
+            >
+              <SelectValue ref={valueRef} placeholder="Choose a status" />
+            </SelectTrigger>
+            <SelectContent
+              aria-labelledby={`${fieldId}-status-1-label`}
+              ref={popupRef}
+              style={(s) => ({ outlineOffset: s.open ? 4 : 0 })}
+            >
+              <SelectGroup>
+                <SelectLabel>Workflow</SelectLabel>
+                <StatusItems />
+              </SelectGroup>
+              <SelectSeparator />
+              <SelectItem value={null}>No status</SelectItem>
+            </SelectContent>
+          </Select>
+          <FieldDescription id={`${fieldId}-status-1-message`}>
+            {"The same status mark used on the record."}
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel
+            id={`${fieldId}-unavailable-status-2-label`}
+            htmlFor={`${fieldId}-unavailable-status-2`}
           >
-            <SelectValue ref={valueRef} placeholder="Choose a status" />
-          </SelectTrigger>
-          <SelectContent ref={popupRef} style={(s) => ({ outlineOffset: s.open ? 4 : 0 })}>
-            <SelectGroup>
-              <SelectLabel>Workflow</SelectLabel>
+            {"Unavailable status"}
+          </FieldLabel>
+          <Select disabled items={statuses} defaultValue="draft">
+            <SelectTrigger
+              id={`${fieldId}-unavailable-status-2`}
+              aria-labelledby={`${fieldId}-unavailable-status-2-label`}
+              size="sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent aria-labelledby={`${fieldId}-unavailable-status-2-label`}>
               <StatusItems />
-            </SelectGroup>
-            <SelectSeparator />
-            <SelectItem value={null}>No status</SelectItem>
-          </SelectContent>
-        </Select>
-      </Field>
-      <Field label="Unavailable status">
-        <Select disabled items={statuses} defaultValue="draft">
-          <SelectTrigger size="sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <StatusItems />
-          </SelectContent>
-        </Select>
-      </Field>
-      <Field label="Locked status">
-        <Select readOnly items={statuses} defaultValue="approved">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <StatusItems />
-          </SelectContent>
-        </Select>
-      </Field>
-    </Stack>
-  ),
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field>
+          <FieldLabel
+            id={`${fieldId}-locked-status-3-label`}
+            htmlFor={`${fieldId}-locked-status-3`}
+          >
+            {"Locked status"}
+          </FieldLabel>
+          <Select readOnly items={statuses} defaultValue="approved">
+            <SelectTrigger
+              id={`${fieldId}-locked-status-3`}
+              aria-labelledby={`${fieldId}-locked-status-3-label`}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent aria-labelledby={`${fieldId}-locked-status-3-label`}>
+              <StatusItems />
+            </SelectContent>
+          </Select>
+        </Field>
+      </Stack>
+    );
+  },
   play: async ({ canvasElement }) => {
     const doc = canvasElement.ownerDocument,
       canvas = within(canvasElement),
@@ -199,11 +237,14 @@ const owners = [
   { id: 2, name: "Priya Raghavan" },
 ];
 function FormDemo() {
+  const fieldId = useId();
+
   const [status, setStatus] = useState<string | null>(null);
   const [channels, setChannels] = useState<number[]>([1]);
   const [owner, setOwner] = useState<(typeof owners)[number] | null>({ ...owners[0]! });
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState("");
+  const fieldError4 = error ? "Choose a status before saving." : undefined;
   return (
     <form
       aria-label="Record preferences"
@@ -222,12 +263,14 @@ function FormDemo() {
       }}
     >
       <Stack space="space.200">
-        <Field
-          label="Status"
-          isRequired
-          hint="Choose a workflow status."
-          error={error ? "Choose a status before saving." : undefined}
-        >
+        <Field data-invalid={Boolean(fieldError4)}>
+          <FieldLabel id={`${fieldId}-status-4-label`} htmlFor={`${fieldId}-status-4`}>
+            {"Status"}
+            <span aria-hidden="true" className="text-danger">
+              {" "}
+              *
+            </span>
+          </FieldLabel>
           <Select
             name="status"
             required
@@ -241,15 +284,38 @@ function FormDemo() {
               }
             }}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger
+              id={`${fieldId}-status-4`}
+              aria-labelledby={`${fieldId}-status-4-label`}
+              aria-required={true}
+              aria-invalid={Boolean(fieldError4)}
+              aria-describedby={`${fieldId}-status-4-message`}
+              className="w-full"
+            >
               <SelectValue placeholder="Choose a status" />
             </SelectTrigger>
-            <SelectContent alignItemWithTrigger={false}>
+            <SelectContent
+              aria-labelledby={`${fieldId}-status-4-label`}
+              alignItemWithTrigger={false}
+            >
               <StatusItems />
             </SelectContent>
           </Select>
+          {Boolean(fieldError4) ? (
+            <FieldError id={`${fieldId}-status-4-message`}>{fieldError4}</FieldError>
+          ) : (
+            <FieldDescription id={`${fieldId}-status-4-message`}>
+              {"Choose a workflow status."}
+            </FieldDescription>
+          )}
         </Field>
-        <Field label="Delivery channels">
+        <Field>
+          <FieldLabel
+            id={`${fieldId}-delivery-channels-5-label`}
+            htmlFor={`${fieldId}-delivery-channels-5`}
+          >
+            {"Delivery channels"}
+          </FieldLabel>
           <Select<number, true>
             multiple
             name="channel"
@@ -257,16 +323,26 @@ function FormDemo() {
             value={channels}
             onValueChange={setChannels}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger
+              id={`${fieldId}-delivery-channels-5`}
+              aria-labelledby={`${fieldId}-delivery-channels-5-label`}
+              className="w-full"
+            >
               <SelectValue placeholder="Choose channels" />
             </SelectTrigger>
-            <SelectContent alignItemWithTrigger={false}>
+            <SelectContent
+              aria-labelledby={`${fieldId}-delivery-channels-5-label`}
+              alignItemWithTrigger={false}
+            >
               <SelectItem value={1}>Email</SelectItem>
               <SelectItem value={2}>In app</SelectItem>
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Owner">
+        <Field>
+          <FieldLabel id={`${fieldId}-owner-6-label`} htmlFor={`${fieldId}-owner-6`}>
+            {"Owner"}
+          </FieldLabel>
           <Select
             name="owner"
             value={owner}
@@ -275,10 +351,17 @@ function FormDemo() {
             itemToStringValue={(v) => String(v.id)}
             isItemEqualToValue={(a, b) => a.id === b.id}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger
+              id={`${fieldId}-owner-6`}
+              aria-labelledby={`${fieldId}-owner-6-label`}
+              className="w-full"
+            >
               <SelectValue placeholder="Choose an owner" />
             </SelectTrigger>
-            <SelectContent alignItemWithTrigger={false}>
+            <SelectContent
+              aria-labelledby={`${fieldId}-owner-6-label`}
+              alignItemWithTrigger={false}
+            >
               {owners.map((o) => (
                 <SelectItem key={o.id} value={o}>
                   {o.name}
@@ -344,60 +427,88 @@ export const InField: Story = {
 
 /** Custom scroll-arrow composition for a bounded, grouped list in RTL. */
 export const Scrolling: Story = {
-  render: () => (
-    <LedgerProvider direction="rtl">
-      <div className="p-600">
-        <Field label="Retention period">
-          <Select<number>
-            defaultValue={12}
-            items={Object.fromEntries(
-              Array.from({ length: 30 }, (_, i) => [i + 1, `${i + 1} months`]),
-            )}
-          >
-            <SelectTrigger size="sm" style={{ width: 200 }}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectPrimitive.Portal>
-              <SelectPrimitive.Positioner sideOffset={4} alignItemWithTrigger={false}>
-                <SelectPrimitive.Popup
-                  className={menuSurface}
-                  dir="rtl"
-                  style={{ width: 200, maxHeight: 180 }}
-                >
-                  <SelectScrollUpButton data-testid="scroll-up" />
-                  <SelectPrimitive.List
-                    aria-label="Retention period"
-                    style={{ maxHeight: 140, overflowY: "auto" }}
+  render: function FieldExample() {
+    const fieldId = useId();
+    return (
+      <LedgerProvider direction="rtl">
+        <div className="p-600">
+          <Field>
+            <FieldLabel
+              id={`${fieldId}-retention-period-7-label`}
+              htmlFor={`${fieldId}-retention-period-7`}
+            >
+              {"Retention period"}
+            </FieldLabel>
+            <Select<number>
+              defaultValue={12}
+              items={Object.fromEntries(
+                Array.from({ length: 30 }, (_, i) => [i + 1, `${i + 1} months`]),
+              )}
+            >
+              <SelectTrigger
+                id={`${fieldId}-retention-period-7`}
+                aria-labelledby={`${fieldId}-retention-period-7-label`}
+                size="sm"
+                style={{ width: 200 }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectPrimitive.Portal>
+                <SelectPrimitive.Positioner sideOffset={4} alignItemWithTrigger={false}>
+                  <SelectPrimitive.Popup
+                    className={menuSurface}
+                    dir="rtl"
+                    style={{ width: 200, maxHeight: 180 }}
                   >
-                    {Array.from({ length: 30 }, (_, i) => (
-                      <SelectItem key={i} value={i + 1}>
-                        {i + 1} months
-                      </SelectItem>
-                    ))}
-                  </SelectPrimitive.List>
-                  <SelectScrollDownButton data-testid="scroll-down" />
-                </SelectPrimitive.Popup>
-              </SelectPrimitive.Positioner>
-            </SelectPrimitive.Portal>
-          </Select>
-        </Field>
-        <Field label="Standard retention">
-          <Select<number> defaultValue={12}>
-            <SelectTrigger style={{ width: 200 }}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent alignItemWithTrigger={false} style={{ maxHeight: 180 }}>
-              {Array.from({ length: 30 }, (_, i) => (
-                <SelectItem key={i} value={i + 1}>
-                  {i + 1}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-    </LedgerProvider>
-  ),
+                    <SelectScrollUpButton data-testid="scroll-up" />
+                    <SelectPrimitive.List
+                      aria-label="Retention period"
+                      style={{ maxHeight: 140, overflowY: "auto" }}
+                    >
+                      {Array.from({ length: 30 }, (_, i) => (
+                        <SelectItem key={i} value={i + 1}>
+                          {i + 1} months
+                        </SelectItem>
+                      ))}
+                    </SelectPrimitive.List>
+                    <SelectScrollDownButton data-testid="scroll-down" />
+                  </SelectPrimitive.Popup>
+                </SelectPrimitive.Positioner>
+              </SelectPrimitive.Portal>
+            </Select>
+          </Field>
+          <Field>
+            <FieldLabel
+              id={`${fieldId}-standard-retention-8-label`}
+              htmlFor={`${fieldId}-standard-retention-8`}
+            >
+              {"Standard retention"}
+            </FieldLabel>
+            <Select<number> defaultValue={12}>
+              <SelectTrigger
+                id={`${fieldId}-standard-retention-8`}
+                aria-labelledby={`${fieldId}-standard-retention-8-label`}
+                style={{ width: 200 }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent
+                aria-labelledby={`${fieldId}-standard-retention-8-label`}
+                alignItemWithTrigger={false}
+                style={{ maxHeight: 180 }}
+              >
+                {Array.from({ length: 30 }, (_, i) => (
+                  <SelectItem key={i} value={i + 1}>
+                    {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </div>
+      </LedgerProvider>
+    );
+  },
   play: async ({ canvasElement }) => {
     const doc = canvasElement.ownerDocument,
       canvas = within(canvasElement),
@@ -434,6 +545,8 @@ export const Scrolling: Story = {
 };
 
 function DialogDemo() {
+  const fieldId = useId();
+
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -451,15 +564,30 @@ function DialogDemo() {
             <DialogTitle>Record status</DialogTitle>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
-            <Field label="Status" hint="Choose the next workflow status.">
+            <Field>
+              <FieldLabel id={`${fieldId}-status-9-label`} htmlFor={`${fieldId}-status-9`}>
+                {"Status"}
+              </FieldLabel>
               <Select items={statuses} defaultValue="review">
-                <SelectTrigger className="w-full">
+                <SelectTrigger
+                  id={`${fieldId}-status-9`}
+                  aria-labelledby={`${fieldId}-status-9-label`}
+                  aria-describedby={`${fieldId}-status-9-message`}
+                  className="w-full"
+                >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent align="start" alignItemWithTrigger={false}>
+                <SelectContent
+                  aria-labelledby={`${fieldId}-status-9-label`}
+                  align="start"
+                  alignItemWithTrigger={false}
+                >
                   <StatusItems />
                 </SelectContent>
               </Select>
+              <FieldDescription id={`${fieldId}-status-9-message`}>
+                {"Choose the next workflow status."}
+              </FieldDescription>
             </Field>
           </div>
         </DialogContent>

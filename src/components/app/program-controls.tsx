@@ -1,3 +1,22 @@
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Badge,
+  Block,
+  Button,
+  DataTable,
+  Fact,
+  Inline,
+  PreviewSheet,
+  Stack,
+  Table,
+  TextLink,
+  defineColumns,
+  useDataTable,
+} from "@ledger/design-system";
 import { Funnel } from "@/components/app/control-board";
 import {
   ControlActions,
@@ -28,21 +47,6 @@ import { closestProgramScope, programElementIds } from "@/lib/program-scope";
 import { useRequirementsVersion } from "@/lib/requirements";
 import { scopeById, useScopesVersion } from "@/lib/scopes";
 import { useControlText, useSctm } from "@/lib/sctm";
-import {
-  Badge,
-  Block,
-  Button,
-  DataTable,
-  Fact,
-  Inline,
-  NativeSelect,
-  PreviewSheet,
-  Stack,
-  Table,
-  TextLink,
-  defineColumns,
-  useDataTable,
-} from "@ledger/design-system";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -332,6 +336,10 @@ function ControlPreview({
       : "No allocated requirement",
   };
   const changed = () => refresh((version) => version + 1);
+  const scopeIdItems = row.scopeIds.map((id) => ({
+    value: id,
+    label: scopeById.get(id)?.name ?? id,
+  }));
   return (
     <>
       <PreviewSheet
@@ -358,17 +366,25 @@ function ControlPreview({
           <>
             <Fact label="Applies to">
               {row.scopeIds.length > 1 ? (
-                <NativeSelect
-                  aria-label="Control scope"
+                <Select<string>
+                  items={scopeIdItems}
                   value={scopeId}
-                  onChange={(event) => setScopeId(event.target.value)}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return setScopeId(value);
+                  }}
                 >
-                  {row.scopeIds.map((id) => (
-                    <option key={id} value={id}>
-                      {scopeById.get(id)?.name ?? id}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger className="w-full" aria-label="Control scope">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {scopeIdItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               ) : (
                 (scope?.name ?? row.appliesTo)
               )}

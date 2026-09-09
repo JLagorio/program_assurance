@@ -1,86 +1,53 @@
-import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-
-import { ButtonGroup } from "../../components";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ButtonGroup, ButtonGroupText, ButtonGroupSeparator } from "../../components";
 import * as Stories from "./ButtonGroup.stories";
 
 <Meta of={Stories} />
 
 # ButtonGroup
 
-Buttons that are one control, joined: the corners meet and a hairline sits between. A split button, a pair of icon actions, undo and redo. Buttons spaced apart or grouped by importance are an [Inline](?path=/docs/primitives-inline--docs) here. A group that selects among them is a [ToggleGroup](?path=/docs/components-togglegroup--docs).
-
-<Canvas of={Stories.ButtonGroupMatrix} />
+Join related actions, split buttons or controls. Each child keeps its own behavior and accessible name.
 
 ## Anatomy
 
-| Part    | What it is                                                                                               |
-| ------- | -------------------------------------------------------------------------------------------------------- |
-| Buttons | Two or three Buttons or IconButtons of one size and one variant. The group draws nothing of its own.     |
-| Join    | The inner corners squared, `radius.medium` on the outer two, `color.border` hairline between.            |
-| Name    | `label`, when the buttons do not say it: "Export", "Align". A group is a landmark a screen reader lists. |
+```tsx
+<ButtonGroup aria-label="Export">
+  <Button>Export</Button>
+  <ButtonGroupSeparator isDecorative />
+  <Button>Print</Button>
+</ButtonGroup>
+```
 
-## Variants
+ButtonGroup joins the outer corners of children with `data-slot` attributes. ButtonGroupText adds a label, value or prefix. ButtonGroupSeparator adds a visible rule. Nested groups may separate related sets of actions.
 
-| Group        | Use                                                                                                        |
-| ------------ | ---------------------------------------------------------------------------------------------------------- |
-| Split        | A Button and an IconButton with a chevron opening a menu of the other ways to do it: Export and Export as. |
-| Icon actions | IconButtons that belong together: align left, centre, right; undo and redo.                                |
-| Actions      | Two or three Buttons of one variant that act on one thing: Export and Print.                               |
+<Canvas of={Stories.Composition} />
 
-Not built, and why: a spaced group, because two actions with space between are an Inline with `space.100`; a selection mode, because a choice is a ToggleGroup; a vertical group, because stacked buttons are a menu.
+## Variants and states
 
-## Sizes
+`orientation` accepts `horizontal` (default) or `vertical`. Horizontal joins use logical edges in RTL. Child controls choose their size, disabled state and loading behavior. The separator's orientation describes its own line; use a horizontal separator between vertically stacked controls.
 
-The group has no size: it is as tall as its buttons, and every button in it is one size. `small` in a toolbar or a row, `medium` on a page header. Never mix sizes in a group.
-
-## States
-
-The group has no state. Each button keeps its own: one may be disabled, one may be loading, one may be selected when it is also a state. The hover and focus of a member rise above the hairline so the outline is whole.
-
-## Modifiers
-
-- **`label`** names the group.
-- **`children`**: the buttons.
-
-## Content
-
-- **Two or three.** Past three the rest go behind the last one's menu.
-- **One size, one variant**, so the group reads as one control.
-- **The first is the main way**, the chevron the other ways: Export, then Export as.
-- **Never two primaries** in one group: one high-emphasis button among medium ones.
-
-## Style
-
-| Element | Token                                                             |
-| ------- | ----------------------------------------------------------------- |
-| Corners | `radius.medium` on the outer edges; none inside                   |
-| Join    | `color.border`, 1px, on the start of every button after the first |
-| Members | the Button's and IconButton's own tokens, unchanged               |
+<Canvas of={Stories.Orientations} />
 
 ## Accessibility
 
-- **A `role="group"`** named by `label`, so a screen reader can list it and enter it as one thing.
-- **Every button is its own stop**, named as it always is: the IconButton's `label`, the Button's text.
-- **The split's chevron is named for what it opens**: "Export as", not "More".
-- **Focus rises above the join**: a member on focus gets a higher stacking order so its outline is not cut by the neighbour.
+Name the group with `aria-label` or `aria-labelledby`. Each enabled control remains in the normal tab order. A group does not add arrow-key navigation or selection behavior. Use ToggleGroup for a selection among options. Decorative separators may use `isDecorative`.
+
+ButtonGroupText supports Base UI `render`, including a native label with `htmlFor`. Rendered elements must accept merged attributes, events and refs.
 
 ## Props
 
 <ArgTypes of={ButtonGroup} />
+<ArgTypes of={ButtonGroupText} />
+<ArgTypes of={ButtonGroupSeparator} />
 
-### Playground
+The root forwards native div attributes and refs. Text uses Base UI useRender/mergeProps; Separator uses the existing Base UI Separator. `buttonGroupVariants` exports the same orientation classes for composition.
 
-<Canvas of={Stories.Playground} />
+### Migration
 
-<Controls of={Stories.Playground} />
+Rename `label` to `aria-label`. Compose text and separators with the flat exports. The root is now a div and accepts native props, refs and orientation.
 
 ## Related
 
-- [Button](?path=/docs/components-button--docs) and [IconButton](?path=/docs/components-iconbutton--docs): the members.
-- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): behind a split's chevron.
-- [ToggleGroup](?path=/docs/components-togglegroup--docs): a choice among views.
-- [Inline](?path=/docs/primitives-inline--docs): actions that stand apart.
+[Button](?path=/docs/components-button--docs), [DropdownMenu](?path=/docs/components-dropdownmenu--docs), [ToggleGroup](?path=/docs/components-togglegroup--docs), [InputGroup](?path=/docs/components-inputgroup--docs).
 
-## Don't
-
-<Canvas of={Stories.Dont} />
+Sources: [shadcn ButtonGroup](https://ui.shadcn.com/docs/components/base/button-group), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/button-group.tsx).

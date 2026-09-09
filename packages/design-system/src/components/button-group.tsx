@@ -1,31 +1,72 @@
-import type { ReactNode } from "react";
-
+import type { ComponentProps } from "react";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import { cva, type VariantProps } from "class-variance-authority";
+import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
+import { Separator } from "./separator";
 
-/* Buttons that are one control read as one: the corners meeting and a hairline between. Spaced actions are an Inline; a choice among views
-   is a ToggleGroup. */
+export const buttonGroupVariants = cva(
+  "flex w-fit items-stretch *:focus-visible:relative *:focus-visible:z-10 has-[>[data-slot=button-group]]:gap-100 [&>[data-slot=select-trigger]:not([class*='w-'])]:w-fit [&>input]:flex-1",
+  {
+    variants: {
+      orientation: {
+        horizontal:
+          "*:data-slot:rounded-e-none [&>[data-slot]:not(:has(~[data-slot]))]:rounded-e-medium! [&>[data-slot]~[data-slot]]:rounded-s-none [&>[data-slot]~[data-slot]]:border-s-0",
+        vertical:
+          "flex-col [&>[data-slot]]:w-full *:data-slot:rounded-b-none [&>[data-slot]:not(:has(~[data-slot]))]:rounded-b-medium! [&>[data-slot]~[data-slot]]:rounded-t-none [&>[data-slot]~[data-slot]]:border-t-0",
+      },
+    },
+    defaultVariants: { orientation: "horizontal" },
+  },
+);
 
-export type ButtonGroupProps = {
-  /** The group's name, when it is not clear from the buttons: "Export", "Approve". */
-  label?: string | undefined;
-  /** Buttons or IconButtons of one size and one variant. Two or three; a fourth is a menu. */
-  children: ReactNode;
-  className?: string | undefined;
-};
-
-/** Buttons that belong together read as one control: the corners join and a hairline sits between. A split button is a Button and an IconButton with a chevron. */
-export function ButtonGroup({ label, children, className }: ButtonGroupProps) {
+export type ButtonGroupProps = ComponentProps<"div"> & VariantProps<typeof buttonGroupVariants>;
+export function ButtonGroup({ className, orientation = "horizontal", ...props }: ButtonGroupProps) {
   return (
-    <span
+    <div
       role="group"
-      aria-label={label}
-      className={cn(
-        "inline-flex items-stretch",
-        "[&>*]:rounded-none [&>*:first-child]:rounded-s-medium [&>*:last-child]:rounded-e-medium [&>*+*]:border-s [&>*+*]:border-default [&>*]:relative [&>*:hover]:z-10 [&>*:focus-visible]:z-10",
+      data-slot="button-group"
+      data-orientation={orientation}
+      className={cn(buttonGroupVariants({ orientation }), className)}
+      {...props}
+    />
+  );
+}
+
+export type ButtonGroupTextProps = useRender.ComponentProps<"div">;
+export function ButtonGroupText({ className, render, ...props }: ButtonGroupTextProps) {
+  return useRender({
+    defaultTagName: "div",
+    props: mergeProps<"div">(
+      {
+        className: cn(
+          "flex items-center gap-100 rounded-medium border border-input bg-surface-sunken px-150 font-body-small font-medium text-subtle [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-icon-medium",
+          className,
+        ),
+      },
+      props,
+    ),
+    render,
+    state: { slot: "button-group-text" },
+  });
+}
+
+export type ButtonGroupSeparatorProps = ComponentProps<typeof Separator>;
+export function ButtonGroupSeparator({
+  className,
+  orientation = "vertical",
+  ...props
+}: ButtonGroupSeparatorProps) {
+  return (
+    <Separator
+      data-slot="button-group-separator"
+      orientation={orientation}
+      className={classes(
+        "relative self-stretch data-horizontal:w-auto data-horizontal:border-t! data-vertical:h-auto data-vertical:border-s!",
         className,
       )}
-    >
-      {children}
-    </span>
+      {...props}
+    />
   );
 }

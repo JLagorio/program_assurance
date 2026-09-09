@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
-
 import {
+  avatarHue,
+  AvatarFallback,
+  avatarInitials,
   Badge,
   Avatar,
   Button,
@@ -16,6 +16,8 @@ import {
   Table,
   TextLink,
 } from "../../components";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
+import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
 import { Card, Related } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -67,13 +69,31 @@ const risks = (
 const people = (
   <>
     <Item
-      leading={<Avatar name="Dana Whitfield" size="xsmall" isDecorative />}
+      leading={
+        <Avatar
+          size="xsmall"
+          aria-hidden="true"
+          hue={avatarHue("Dana Whitfield")}
+          title={"Dana Whitfield"}
+        >
+          <AvatarFallback>{avatarInitials("Dana Whitfield", 1)}</AvatarFallback>
+        </Avatar>
+      }
       title="Dana Whitfield"
       meta="Assessor"
       link={<a href="#dana" />}
     />
     <Item
-      leading={<Avatar name="Marcus Ryde" size="xsmall" isDecorative />}
+      leading={
+        <Avatar
+          size="xsmall"
+          aria-hidden="true"
+          hue={avatarHue("Marcus Ryde")}
+          title={"Marcus Ryde"}
+        >
+          <AvatarFallback>{avatarInitials("Marcus Ryde", 1)}</AvatarFallback>
+        </Avatar>
+      }
       title="Marcus Ryde"
       meta="ISSO"
       link={<a href="#marcus" />}
@@ -166,7 +186,18 @@ const systems = [
 const systemCards = systems.map((s) => (
   <Related.Card
     key={s.name}
-    leading={<Avatar name={s.name} shape="square" variant="tinted" size="medium" isDecorative />}
+    leading={
+      <Avatar
+        shape="square"
+        variant="tinted"
+        size="medium"
+        aria-hidden="true"
+        hue={avatarHue(s.name)}
+        title={s.name}
+      >
+        <AvatarFallback>{avatarInitials(s.name, 2)}</AvatarFallback>
+      </Avatar>
+    }
     title={s.name}
     link={<a href={`#${s.name}`} />}
     meta={s.meta}
@@ -192,7 +223,11 @@ const teamCards = [
 ].map((p) => (
   <Related.Card
     key={p.name}
-    leading={<Avatar name={p.name} size="medium" isDecorative />}
+    leading={
+      <Avatar size="medium" aria-hidden="true" hue={avatarHue(p.name)} title={p.name}>
+        <AvatarFallback>{avatarInitials(p.name, 2)}</AvatarFallback>
+      </Avatar>
+    }
     title={p.name}
     link={<a href={`#${p.name}`} />}
     meta={p.role}
@@ -367,12 +402,15 @@ export const Dont: Story = {
                 key={s.name}
                 leading={
                   <Avatar
-                    name={s.name}
                     shape="square"
                     variant="tinted"
                     size="medium"
-                    isDecorative
-                  />
+                    aria-hidden="true"
+                    hue={avatarHue(s.name)}
+                    title={s.name}
+                  >
+                    <AvatarFallback>{avatarInitials(s.name, 2)}</AvatarFallback>
+                  </Avatar>
                 }
                 title={s.name}
                 meta={s.meta}

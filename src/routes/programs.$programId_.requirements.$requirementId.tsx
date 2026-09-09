@@ -1,4 +1,9 @@
 import {
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxList,
+  ComboboxItem,
   Badge,
   Block,
   Box,
@@ -32,7 +37,6 @@ import {
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
-
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
 import { LinkControlsSheet } from "@/components/app/link-controls";
 import { RequirementEvidence } from "@/components/app/program-evidence";
@@ -186,6 +190,10 @@ function RequirementRecord() {
     navigate({ search: { tab: next, element: elementId }, replace: true });
   const me = currentSession().name;
 
+  const choiceItems = candidates.map((o) => ({
+    value: o.id,
+    label: `${o.id} · ${o.statement}`,
+  }));
   return (
     <Shell>
       <>
@@ -497,18 +505,48 @@ function RequirementRecord() {
                 title="Assessment result"
                 action={
                   candidates.length ? (
-                    <Combobox
-                      aria-label="Link an assessment objective"
-                      value=""
-                      onChange={(id) => linkVerification(requirement.id, id, currentSession().name)}
-                      options={candidates.map((o) => ({
-                        value: o.id,
-                        label: `${o.id} · ${o.statement}`,
-                      }))}
-                      placeholder="Link an assessment objective…"
-                      searchPlaceholder="Search objectives…"
-                      width={260}
-                    />
+                    <div style={{ width: 260, maxWidth: "100%" }}>
+                      <Combobox<(typeof choiceItems)[number]>
+                        items={choiceItems}
+
+                        isItemEqualToValue={(item, selected) => item.value === selected.value}
+                        filter={(item, query) =>
+                          [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                            .join(" ")
+                            .toLocaleLowerCase()
+                            .includes(query.toLocaleLowerCase())
+                        }
+                        value={choiceItems.find((item) => item.value === "") ?? null}
+                        onValueChange={(item) => {
+                          const id = item?.value ?? "";
+                          return linkVerification(requirement.id, id, currentSession().name);
+                        }}
+                      >
+                        <ComboboxInput
+                          aria-label="Link an assessment objective"
+                          placeholder="Link an assessment objective…"
+                        />
+                        <ComboboxContent>
+                          <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+                          <ComboboxList>
+                            {(item) => (
+                              <ComboboxItem
+                                key={item.value}
+                                value={item}
+                                disabled={"disabled" in item && Boolean(item.disabled)}
+                              >
+                                <span className="min-w-0 flex-1">{item.label}</span>
+                                {"meta" in item && item.meta ? (
+                                  <span className="text-subtle font-body-small">
+                                    {String(item.meta)}
+                                  </span>
+                                ) : null}
+                              </ComboboxItem>
+                            )}
+                          </ComboboxList>
+                        </ComboboxContent>
+                      </Combobox>
+                    </div>
                   ) : null
                 }
               >

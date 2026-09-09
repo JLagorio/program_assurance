@@ -1,16 +1,27 @@
-import { useRecordForm } from "@/lib/record-form";
 import {
+  FieldLabel,
+  FieldError,
+  FieldTitle,
+  FieldDescription,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Absent,
   Badge,
   Box,
   Button,
   DataTable,
   defineColumns,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Field,
   Indicator,
   Inline,
   Input,
-  NativeSelect,
   ProgressStacked,
   Sheet,
   SheetContent,
@@ -25,9 +36,18 @@ import {
   toast,
   useDataTable,
 } from "@ledger/design-system";
+import { useRecordForm } from "@/lib/record-form";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from "react";
-
+import { ChevronDown } from "lucide-react";
+import {
+  useId,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type SetStateAction,
+} from "react";
 import {
   childrenOf,
   descendantsOf,
@@ -52,7 +72,6 @@ import {
 import { useWorkVersion, workForScope } from "@/lib/control-work";
 import { programControlRows, programControlScopes } from "@/lib/program-controls";
 import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
-
 import { suspectAllocationsUnder, useLinkCurrencyVersion } from "@/lib/link-currency";
 import { allocationsOn, derivedControlTrace, useRequirementsVersion } from "@/lib/requirements";
 import {
@@ -337,40 +356,9 @@ export function SystemTree({
               </Link>
             ) : null,
         }),
-        c.custom("edit", {
-          header: "",
-          width: 136,
-          hideable: false,
-          cell: (r) => (
-            <Inline space="space.050" alignBlock="center">
-              <Button
-                size="small"
-                variant="subtle"
-                aria-label={`Edit ${r.node.name}`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setEditing(r.node);
-                }}
-              >
-                Edit
-              </Button>
-              {r.node.parent ? (
-                <Button
-                  size="small"
-                  variant="subtle"
-                  aria-label={`Move ${r.node.name}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setMoving(r.node);
-                  }}
-                >
-                  Move
-                </Button>
-              ) : null}
-            </Inline>
-          ),
-        }),
         c.actions((r) => [
+          { label: "Edit", onSelect: () => setEditing(r.node) },
+          ...(r.node.parent ? [{ label: "Move", onSelect: () => setMoving(r.node) }] : []),
           {
             label: "View controls",
             onSelect: () =>
@@ -469,33 +457,44 @@ export function SystemTree({
         onRowClick={(r) => setStack([r.node.id])}
         toolbar={
           <Inline space="space.100" alignBlock="center" shouldWrap className="w-full">
-            <Button
-              size="small"
-              variant="primary"
-              disabled={!nodes.some((node) => node.parent === null)}
-              onClick={() => {
-                const parent = nodes.find((node) => node.parent === null);
-                if (parent) setAdding({ parent, kind: "Subsystem" });
-              }}
-            >
-              Add subsystem
-            </Button>
-            <Button
-              size="small"
-              variant="secondary"
-              disabled={!nodes.length}
-              onClick={() => {
-                const parent =
-                  nodes.find((node) => node.kind === "Subsystem") ??
-                  nodes.find((node) => node.parent === null);
-                if (parent) setAdding({ parent, kind: "Chassis" });
-              }}
-            >
-              Add component
-            </Button>
             <Inline className="ml-auto" space="space.100" alignBlock="center">
               <DataTable.Columns table={table} />
               <DataTable.Settings table={table} />
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      size="small"
+                      variant="primary"
+                      iconAfter={<ChevronDown />}
+                      disabled={!nodes.length}
+                    >
+                      Add
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end" style={{ width: 200 }}>
+                  <DropdownMenuItem
+                    disabled={!nodes.some((node) => node.parent === null)}
+                    onClick={() => {
+                      const parent = nodes.find((node) => node.parent === null);
+                      if (parent) setAdding({ parent, kind: "Subsystem" });
+                    }}
+                  >
+                    Add subsystem
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const parent =
+                        nodes.find((node) => node.kind === "Subsystem") ??
+                        nodes.find((node) => node.parent === null);
+                      if (parent) setAdding({ parent, kind: "Chassis" });
+                    }}
+                  >
+                    Add component
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </Inline>
           </Inline>
         }
@@ -646,6 +645,8 @@ function EditNodeSheet({
   programId: string;
   onClose: () => void;
 }) {
+  const fieldId = useId();
+
   const [error, setError] = useState<string | null>(null);
   const { form, values, formId, formRef, isSubmitting } = useRecordForm(
     { name: node.name, supplier: node.supplier, version: node.version, note: node.note },
@@ -701,34 +702,68 @@ function EditNodeSheet({
               ) : null}
               {(["name", "supplier", "version", "note"] as const).map((key) => (
                 <form.Field key={key} name={key}>
-                  {(field) => (
-                    <Field
-                      label={key[0]!.toUpperCase() + key.slice(1)}
-                      isRequired={key === "name"}
-                      error={
-                        field.state.meta.isTouched && !field.state.meta.isValid
-                          ? [...new Set(field.state.meta.errors)].join(" ")
-                          : undefined
-                      }
-                    >
-                      {key === "note" ? (
-                        <Textarea
-                          name={field.name}
-                          value={field.state.value}
-                          onChange={(event) => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                        />
-                      ) : (
-                        <Input
-                          autoFocus={key === "name"}
-                          name={field.name}
-                          value={field.state.value}
-                          onChange={(event) => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                        />
-                      )}
-                    </Field>
-                  )}
+                  {(field) => {
+                    const fieldError1 =
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError1)}>
+                        <FieldLabel
+                          id={`${fieldId}-field-1-${encodeURIComponent(String(key))}-label`}
+                          htmlFor={`${fieldId}-field-1-${encodeURIComponent(String(key))}`}
+                        >
+                          {key[0]!.toUpperCase() + key.slice(1)}
+                          {key === "name" ? (
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          ) : null}
+                        </FieldLabel>
+                        {key === "note" ? (
+                          <Textarea
+                            id={`${fieldId}-field-1-${encodeURIComponent(String(key))}`}
+                            aria-labelledby={`${fieldId}-field-1-${encodeURIComponent(String(key))}-label`}
+                            aria-invalid={Boolean(fieldError1)}
+                            aria-describedby={
+                              fieldError1
+                                ? `${fieldId}-field-1-${encodeURIComponent(String(key))}-message`
+                                : undefined
+                            }
+                            name={field.name}
+                            value={field.state.value}
+                            onChange={(event) => field.handleChange(event.target.value)}
+                            onBlur={field.handleBlur}
+                          />
+                        ) : (
+                          <Input
+                            id={`${fieldId}-field-1-${encodeURIComponent(String(key))}`}
+                            aria-labelledby={`${fieldId}-field-1-${encodeURIComponent(String(key))}-label`}
+                            aria-required={key === "name"}
+                            aria-invalid={Boolean(fieldError1)}
+                            aria-describedby={
+                              fieldError1
+                                ? `${fieldId}-field-1-${encodeURIComponent(String(key))}-message`
+                                : undefined
+                            }
+                            autoFocus={key === "name"}
+                            name={field.name}
+                            value={field.state.value}
+                            onChange={(event) => field.handleChange(event.target.value)}
+                            onBlur={field.handleBlur}
+                          />
+                        )}
+                        {fieldError1 ? (
+                          <FieldError
+                            id={`${fieldId}-field-1-${encodeURIComponent(String(key))}-message`}
+                          >
+                            {fieldError1}
+                          </FieldError>
+                        ) : null}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
               ))}
             </Stack>
@@ -758,6 +793,8 @@ function MoveNodeSheet({
   onClose: () => void;
   onMoved: (parentId: string) => void;
 }) {
+  const fieldId = useId();
+
   const nodes = useCompositionGraph(programId);
   const parents = validCompositionParents(node.id).filter((parent) => parent.program === programId);
   const [error, setError] = useState<string | null>(null);
@@ -810,23 +847,56 @@ function MoveNodeSheet({
                 </Text>
               ) : null}
               <form.Field name="parentId">
-                {(field) => (
-                  <Field label="New parent" isRequired>
-                    <NativeSelect
-                      aria-label="New parent"
-                      name={field.name}
-                      value={field.state.value}
-                      onChange={(event) => field.handleChange(event.target.value)}
-                      onBlur={field.handleBlur}
-                    >
-                      {parents.map((parent) => (
-                        <option key={parent.id} value={parent.id}>
-                          {parent.name} · {parent.kind}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </Field>
-                )}
+                {(field) => {
+                  const valueItems = parents.map((parent) => ({
+                    value: parent.id,
+                    label: (
+                      <>
+                        {parent.name} · {parent.kind}
+                      </>
+                    ),
+                  }));
+                  return (
+                    <Field>
+                      <FieldLabel
+                        id={`${fieldId}-new-parent-2-label`}
+                        htmlFor={`${fieldId}-new-parent-2`}
+                      >
+                        {"New parent"}
+                        <span aria-hidden="true" className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Select<string>
+                        items={valueItems}
+                        name={field.name}
+                        value={field.state.value}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return field.handleChange(value);
+                        }}
+                      >
+                        <SelectTrigger
+                          id={`${fieldId}-new-parent-2`}
+                          aria-required={true}
+                          className="w-full"
+                          aria-label="New parent"
+                          onBlur={field.handleBlur}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent aria-labelledby={`${fieldId}-new-parent-2-label`}>
+                          {valueItems.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  );
+                }}
               </form.Field>
             </Stack>
           </form>
@@ -875,6 +945,8 @@ export function AddNodeSheet({
   initialKind?: NodeKind;
   onCreated?: (node: CompositionNode) => void;
 }) {
+  const fieldId = useId();
+
   const nodes = useCompositionGraph(programId);
   const [error, setError] = useState<string | null>(null);
   const { form, values, setValue, formId, formRef } = useRecordForm(
@@ -950,6 +1022,7 @@ export function AddNodeSheet({
     });
   };
 
+  const fieldHint8 = basisScope ? "Review and tailor the draft on the Control set tab." : undefined;
   return (
     <Sheet
       open={open}
@@ -982,133 +1055,230 @@ export function AddNodeSheet({
                 </Text>
               ) : null}
               <form.Field name="parentId">
-                {(field) => (
-                  <Field
-                    label="Parent"
-                    isRequired
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? [...new Set(field.state.meta.errors)].join(" ")
-                        : undefined
-                    }
-                  >
-                    <NativeSelect
-                      value={field.state.value}
-                      onChange={(event) => field.handleChange(event.target.value)}
-                      aria-label="Parent"
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                    >
-                      {nodes.map((node) => (
-                        <option key={node.id} value={node.id}>
-                          {node.name} · {node.kind}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </Field>
-                )}
+                {(field) => {
+                  const valueItems2 = nodes.map((node) => ({
+                    value: node.id,
+                    label: (
+                      <>
+                        {node.name} · {node.kind}
+                      </>
+                    ),
+                  }));
+                  const fieldError3 =
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined;
+                  return (
+                    <Field data-invalid={Boolean(fieldError3)}>
+                      <FieldLabel id={`${fieldId}-parent-3-label`} htmlFor={`${fieldId}-parent-3`}>
+                        {"Parent"}
+                        <span aria-hidden="true" className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Select<string>
+                        items={valueItems2}
+                        value={field.state.value}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return field.handleChange(value);
+                        }}
+                        name={field.name}
+                      >
+                        <SelectTrigger
+                          id={`${fieldId}-parent-3`}
+                          aria-required={true}
+                          aria-invalid={Boolean(fieldError3)}
+                          aria-describedby={fieldError3 ? `${fieldId}-parent-3-message` : undefined}
+                          className="w-full"
+                          aria-label="Parent"
+                          onBlur={field.handleBlur}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent aria-labelledby={`${fieldId}-parent-3-label`}>
+                          {valueItems2.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldError3 ? (
+                        <FieldError id={`${fieldId}-parent-3-message`}>{fieldError3}</FieldError>
+                      ) : null}
+                    </Field>
+                  );
+                }}
               </form.Field>
               <form.Field name="kind">
-                {(field) => (
-                  <Field
-                    label="Kind"
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? [...new Set(field.state.meta.errors)].join(" ")
-                        : undefined
-                    }
-                  >
-                    <NativeSelect
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value as NodeKind)}
-                      aria-label="Kind"
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                    >
-                      {addableKinds.map((k) => (
-                        <option key={k.kind} value={k.kind}>
-                          {k.kind} · {k.class}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </Field>
-                )}
+                {(field) => {
+                  const valueItems3 = addableKinds.map((k) => ({
+                    value: k.kind,
+                    label: (
+                      <>
+                        {k.kind} · {k.class}
+                      </>
+                    ),
+                  }));
+                  const fieldError4 =
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined;
+                  return (
+                    <Field data-invalid={Boolean(fieldError4)}>
+                      <FieldLabel id={`${fieldId}-kind-4-label`} htmlFor={`${fieldId}-kind-4`}>
+                        {"Kind"}
+                      </FieldLabel>
+                      <Select<string>
+                        items={valueItems3}
+                        value={field.state.value}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return field.handleChange(value as NodeKind);
+                        }}
+                        name={field.name}
+                      >
+                        <SelectTrigger
+                          id={`${fieldId}-kind-4`}
+                          aria-invalid={Boolean(fieldError4)}
+                          aria-describedby={fieldError4 ? `${fieldId}-kind-4-message` : undefined}
+                          className="w-full"
+                          aria-label="Kind"
+                          onBlur={field.handleBlur}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent aria-labelledby={`${fieldId}-kind-4-label`}>
+                          {valueItems3.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldError4 ? (
+                        <FieldError id={`${fieldId}-kind-4-message`}>{fieldError4}</FieldError>
+                      ) : null}
+                    </Field>
+                  );
+                }}
               </form.Field>
               <form.Field name="name">
-                {(field) => (
-                  <Field
-                    isRequired
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? [...new Set(field.state.meta.errors)].join(" ")
-                        : undefined
-                    }
-                    label="Name"
-                  >
-                    <Input
-                      autoFocus
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder={isScope ? "Flight computer" : "Mission data bus controller"}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                    />
-                  </Field>
-                )}
-              </form.Field>
-              <form.Field name="note">
-                {(field) => (
-                  <Field
-                    label={isScope ? "Function" : "Note"}
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? [...new Set(field.state.meta.errors)].join(" ")
-                        : undefined
-                    }
-                  >
-                    <Textarea
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Flight control laws, actuator command, and the mission data bus."
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                    />
-                  </Field>
-                )}
-              </form.Field>
-              {basisScope ? (
-                <form.Field name="owner">
-                  {(field) => (
-                    <Field
-                      label="Owner"
-                      error={
-                        field.state.meta.isTouched && !field.state.meta.isValid
-                          ? [...new Set(field.state.meta.errors)].join(" ")
-                          : undefined
-                      }
-                    >
+                {(field) => {
+                  const fieldError5 =
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined;
+                  return (
+                    <Field data-invalid={Boolean(fieldError5)}>
+                      <FieldLabel id={`${fieldId}-name-5-label`} htmlFor={`${fieldId}-name-5`}>
+                        {"Name"}
+                        <span aria-hidden="true" className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </FieldLabel>
                       <Input
+                        id={`${fieldId}-name-5`}
+                        aria-labelledby={`${fieldId}-name-5-label`}
+                        aria-required={true}
+                        aria-invalid={Boolean(fieldError5)}
+                        aria-describedby={fieldError5 ? `${fieldId}-name-5-message` : undefined}
+                        autoFocus
                         value={field.state.value}
-                        onChange={(event) => field.handleChange(event.target.value)}
-                        placeholder="Name or team"
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder={isScope ? "Flight computer" : "Mission data bus controller"}
                         name={field.name}
                         onBlur={field.handleBlur}
                       />
+                      {fieldError5 ? (
+                        <FieldError id={`${fieldId}-name-5-message`}>{fieldError5}</FieldError>
+                      ) : null}
                     </Field>
-                  )}
+                  );
+                }}
+              </form.Field>
+              <form.Field name="note">
+                {(field) => {
+                  const fieldError6 =
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined;
+                  return (
+                    <Field data-invalid={Boolean(fieldError6)}>
+                      <FieldLabel id={`${fieldId}-field-6-label`} htmlFor={`${fieldId}-field-6`}>
+                        {isScope ? "Function" : "Note"}
+                      </FieldLabel>
+                      <Textarea
+                        id={`${fieldId}-field-6`}
+                        aria-labelledby={`${fieldId}-field-6-label`}
+                        aria-invalid={Boolean(fieldError6)}
+                        aria-describedby={fieldError6 ? `${fieldId}-field-6-message` : undefined}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="Flight control laws, actuator command, and the mission data bus."
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                      {fieldError6 ? (
+                        <FieldError id={`${fieldId}-field-6-message`}>{fieldError6}</FieldError>
+                      ) : null}
+                    </Field>
+                  );
+                }}
+              </form.Field>
+              {basisScope ? (
+                <form.Field name="owner">
+                  {(field) => {
+                    const fieldError7 =
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError7)}>
+                        <FieldLabel id={`${fieldId}-owner-7-label`} htmlFor={`${fieldId}-owner-7`}>
+                          {"Owner"}
+                        </FieldLabel>
+                        <Input
+                          id={`${fieldId}-owner-7`}
+                          aria-labelledby={`${fieldId}-owner-7-label`}
+                          aria-invalid={Boolean(fieldError7)}
+                          aria-describedby={fieldError7 ? `${fieldId}-owner-7-message` : undefined}
+                          value={field.state.value}
+                          onChange={(event) => field.handleChange(event.target.value)}
+                          placeholder="Name or team"
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                        {fieldError7 ? (
+                          <FieldError id={`${fieldId}-owner-7-message`}>{fieldError7}</FieldError>
+                        ) : null}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
               ) : null}
               <Field
-                label="Starting control set"
-                hint={
-                  basisScope ? "Review and tailor the draft on the Control set tab." : undefined
+                aria-labelledby={`${fieldId}-starting-control-set-8-label`}
+                aria-describedby={
+                  fieldHint8 ? `${fieldId}-starting-control-set-8-message` : undefined
                 }
               >
+                <FieldTitle id={`${fieldId}-starting-control-set-8-label`}>
+                  {"Starting control set"}
+                </FieldTitle>
                 <Text>
                   {basisScope
                     ? `${basisScope.name} · ${controlSetFor(basisScope.id)?.total ?? 0} controls`
                     : "No parent control set"}
                 </Text>
+                {fieldHint8 ? (
+                  <FieldDescription id={`${fieldId}-starting-control-set-8-message`}>
+                    {fieldHint8}
+                  </FieldDescription>
+                ) : null}
               </Field>
             </Stack>
           </form>

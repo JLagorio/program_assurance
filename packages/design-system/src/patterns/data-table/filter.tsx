@@ -1,13 +1,13 @@
+import { InputGroupAddon, InputGroupInput, InputGroup } from "../../components/input-group";
 import { useLedgerLocale } from "../../lib/locale";
-import type { ColumnFiltersState, RowData } from "@tanstack/react-table";
+import { type ColumnFiltersState, type RowData } from "@tanstack/react-table";
 import { ChevronDown, ListFilter, Search as SearchIcon } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
-
 import { Count } from "../../components/badge";
 import { Button } from "../../components/button";
 import { Checkbox } from "../../components/checkbox";
 import { FilterChip } from "../../components/chip";
-import { Input } from "../../components/controls";
+import { Input } from "../../components/input";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -16,10 +16,9 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuShortcut,
 } from "../../components/dropdown-menu";
-import { InputGroup } from "../../components/input-group";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "../../components/popover";
 import { ToggleGroup, ToggleGroupItem } from "../../components/toggle-group";
-import type { DataTableInstance } from "./use-data-table";
+import { type DataTableInstance } from "./use-data-table";
 
 /*
  * Filters share one toolbar popover, or appear as individual chips. Their fields are built
@@ -330,14 +329,15 @@ export function Search<TData extends RowData>({
   const { t } = useLedgerLocale();
 
   return (
-    <InputGroup leading={<SearchIcon />} width={width}>
-      <Input
+    <InputGroup style={{ width: width, maxWidth: "100%" }}>
+      <InputGroupInput
         value={String(table.state.globalFilter ?? "")}
         onChange={(e) => table.setGlobalFilter(e.target.value)}
         placeholder={placeholder ?? t("search")}
         aria-label={placeholder ?? t("search")}
         className="h-control-small"
       />
+      <InputGroupAddon>{<SearchIcon />}</InputGroupAddon>
     </InputGroup>
   );
 }

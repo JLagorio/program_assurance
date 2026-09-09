@@ -1,8 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { createRef, useState } from "react";
+import { useId, createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, Field, Switch, Table } from "../../components";
+import {
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  Button,
+  Field,
+  Switch,
+  Table,
+} from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
 import { Matrix as Grid, Specimens } from "../_lib/matrix";
@@ -104,10 +112,13 @@ const rootRef = createRef<HTMLElement>();
 const inputRef = createRef<HTMLInputElement>();
 
 function SettingsDemo() {
+  const fieldId = useId();
+
   const [notify, setNotify] = useState(true);
   const [pack, setPack] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [saved, setSaved] = useState("Changes have not been saved.");
+  const fieldError1 = sharing ? undefined : "Enable sharing before sending the package.";
   return (
     <Stack space="space.300" className="max-w-layout-measure">
       <form
@@ -153,14 +164,30 @@ function SettingsDemo() {
           <Text role="status">{saved}</Text>
         </Stack>
       </form>
-      <Field
-        label="External sharing"
-        controlId="external-sharing"
-        hint="Only approved partners can access the package."
-        error={sharing ? undefined : "Enable sharing before sending the package."}
-        isRequired
-      >
-        <Switch checked={sharing} onCheckedChange={setSharing} />
+      <Field data-invalid={Boolean(fieldError1)}>
+        <FieldLabel id={`${fieldId}-external-sharing-1-label`} htmlFor={"external-sharing"}>
+          {"External sharing"}
+          <span aria-hidden="true" className="text-danger">
+            {" "}
+            *
+          </span>
+        </FieldLabel>
+        <Switch
+          id={"external-sharing"}
+          aria-labelledby={`${fieldId}-external-sharing-1-label`}
+          aria-required={true}
+          aria-invalid={Boolean(fieldError1)}
+          aria-describedby={`${fieldId}-external-sharing-1-message`}
+          checked={sharing}
+          onCheckedChange={setSharing}
+        />
+        {Boolean(fieldError1) ? (
+          <FieldError id={`${fieldId}-external-sharing-1-message`}>{fieldError1}</FieldError>
+        ) : (
+          <FieldDescription id={`${fieldId}-external-sharing-1-message`}>
+            {"Only approved partners can access the package."}
+          </FieldDescription>
+        )}
       </Field>
     </Stack>
   );

@@ -20,7 +20,12 @@
     "ds:api:update": "node scripts/ds-api-check.mjs --update",
     "ds:api:matrix": "node scripts/ds-api-matrix.mjs",
     "test:api": "node --test scripts/tests/ds-api-check.test.mjs",
-    "test:app": "vitest run --config vitest.app.config.ts"
+    "test:app": "vitest run --config vitest.app.config.ts",
+    "gen:nist": "node scripts/gen-nist-catalog.mjs",
+    "gen:cci": "node scripts/gen-cci-catalog.mjs",
+    "gen:cnssi": "node scripts/gen-cnssi-baselines.mjs",
+    "gen:seed": "node scripts/gen-wsx90-seed.mjs",
+    "gen:reference": "npm run gen:nist && npm run gen:cci && npm run gen:cnssi && npm run gen:seed"
   },
   "overrides": {
     "rolldown": "1.2.1"

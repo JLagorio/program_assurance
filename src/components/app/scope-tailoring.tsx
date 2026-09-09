@@ -1,4 +1,6 @@
 import {
+  FieldLabel,
+  FieldDescription,
   Badge,
   Block,
   Box,
@@ -14,7 +16,6 @@ import {
   Id,
   Indicator,
   Inline,
-  NativeSelect,
   Select,
   SelectContent,
   SelectItem,
@@ -28,19 +29,8 @@ import {
   ToggleGroupItem,
 } from "@ledger/design-system";
 import { ChevronDown } from "lucide-react";
-/**
- * One scope's categorization and tailoring, edited in place.
- *
- * The same pane serves the create flow (a draft scope that is not registered
- * yet) and the change flow (a draft revision on a scope that is). Everything
- * it edits is the `§5.3` decision record: the triad and environment, one
- * decision per overlay, and one decision per hand-tailored control — each
- * carrying its rationale where it disagrees with the engine.
- */
-
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { TailorControlsSheet } from "./tailor-picker";
-
 import {
   contestedOverlays,
   decideOverlay,
@@ -54,7 +44,7 @@ import {
   type TailoringDecision,
   type TailoringSource,
 } from "@/lib/control-set";
-import type { ImpactLevel } from "@/lib/grc-data";
+import { type ImpactLevel } from "@/lib/grc-data";
 import { nistControls } from "@/lib/nist-catalog";
 import { objectives, type Objective, type Triad } from "@/lib/scopes";
 import {
@@ -67,6 +57,16 @@ import {
   systemClasses,
   type SystemParameters,
 } from "@/lib/tailoring";
+
+/**
+ * One scope's categorization and tailoring, edited in place.
+ *
+ * The same pane serves the create flow (a draft scope that is not registered
+ * yet) and the change flow (a draft revision on a scope that is). Everything
+ * it edits is the `§5.3` decision record: the triad and environment, one
+ * decision per overlay, and one decision per hand-tailored control — each
+ * carrying its rationale where it disagrees with the engine.
+ */
 
 const impactTone = { Low: "neutral", Moderate: "warning", High: "danger" } as const;
 
@@ -98,6 +98,8 @@ export function ScopeTailoringPane({
   sections?: TailoringSection[];
   onChange: (patch: Partial<RevisionDraft>) => void;
 }) {
+  const fieldId = useId();
+
   const show = (s: TailoringSection) => sections.includes(s);
   const [tailoring, setTailoring] = useState(false);
   const locked = readOnly || (inherits?.on ?? false);
@@ -123,6 +125,8 @@ export function ScopeTailoringPane({
   const removeDecision = (control: string) =>
     onChange({ tailoring: draft.tailoring.filter((t) => t.control !== control) });
 
+  const systemClassItems = systemClasses.map((c) => ({ value: c, label: c }));
+  const hostingItems = hostingOptions.map((c) => ({ value: c, label: c }));
   return (
     <Stack space="space.050">
       {show("categorization") ? (
@@ -194,16 +198,25 @@ export function ScopeTailoringPane({
           </div>
           {below.length > 0 ? (
             <Box paddingBlockStart="space.150">
-              <Field
-                label="Separation basis"
-                hint="A lower categorization is earned with a demonstrated boundary, not asserted."
-              >
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-separation-basis-1-label`}
+                  htmlFor={`${fieldId}-separation-basis-1`}
+                >
+                  {"Separation basis"}
+                </FieldLabel>
                 <Textarea
+                  id={`${fieldId}-separation-basis-1`}
+                  aria-labelledby={`${fieldId}-separation-basis-1-label`}
+                  aria-describedby={`${fieldId}-separation-basis-1-message`}
                   value={draft.separationBasis}
                   onChange={(e) => onChange({ separationBasis: e.target.value })}
                   disabled={readOnly}
                   placeholder="Loss of this element degrades but does not halt the mission because…"
                 />
+                <FieldDescription id={`${fieldId}-separation-basis-1-message`}>
+                  {"A lower categorization is earned with a demonstrated boundary, not asserted."}
+                </FieldDescription>
               </Field>
             </Box>
           ) : null}
@@ -246,49 +259,92 @@ export function ScopeTailoringPane({
                 gap="space.150"
                 templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
               >
-                <Field label="System class">
-                  <NativeSelect
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-system-class-2-label`}
+                    htmlFor={`${fieldId}-system-class-2`}
+                  >
+                    {"System class"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={systemClassItems}
                     value={p.systemClass}
-                    onChange={(e) =>
-                      setParameters({
-                        systemClass: e.target.value as SystemParameters["systemClass"],
-                      })
-                    }
-                    aria-label="System class"
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return setParameters({
+                        systemClass: value as SystemParameters["systemClass"],
+                      });
+                    }}
                   >
-                    {systemClasses.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    <SelectTrigger
+                      id={`${fieldId}-system-class-2`}
+                      className="w-full"
+                      aria-label="System class"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-system-class-2-label`}>
+                      {systemClassItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
-                <Field label="Hosting">
-                  <NativeSelect
+                <Field>
+                  <FieldLabel id={`${fieldId}-hosting-3-label`} htmlFor={`${fieldId}-hosting-3`}>
+                    {"Hosting"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={hostingItems}
                     value={p.hosting}
-                    onChange={(e) =>
-                      setParameters({ hosting: e.target.value as SystemParameters["hosting"] })
-                    }
-                    aria-label="Hosting"
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return setParameters({ hosting: value as SystemParameters["hosting"] });
+                    }}
                   >
-                    {hostingOptions.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    <SelectTrigger
+                      id={`${fieldId}-hosting-3`}
+                      className="w-full"
+                      aria-label="Hosting"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-hosting-3-label`}>
+                      {hostingItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
-                <Field label="Classification">
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-classification-4-label`}
+                    htmlFor={`${fieldId}-classification-4`}
+                  >
+                    {"Classification"}
+                  </FieldLabel>
                   <Select<SystemParameters["classification"]>
                     value={p.classification}
                     onValueChange={(value) => {
                       if (value !== null) setParameters({ classification: value });
                     }}
                   >
-                    <SelectTrigger className="w-full" aria-label="Classification">
+                    <SelectTrigger
+                      id={`${fieldId}-classification-4`}
+                      className="w-full"
+                      aria-label="Classification"
+                    >
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent align="start" alignItemWithTrigger={false}>
+                    <SelectContent
+                      aria-labelledby={`${fieldId}-classification-4-label`}
+                      align="start"
+                      alignItemWithTrigger={false}
+                    >
                       {classifications.map((c) => (
                         <SelectItem key={c} value={c}>
                           {c}
@@ -297,17 +353,31 @@ export function ScopeTailoringPane({
                     </SelectContent>
                   </Select>
                 </Field>
-                <Field label="Connectivity">
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-connectivity-5-label`}
+                    htmlFor={`${fieldId}-connectivity-5`}
+                  >
+                    {"Connectivity"}
+                  </FieldLabel>
                   <Select<SystemParameters["connectivity"]>
                     value={p.connectivity}
                     onValueChange={(value) => {
                       if (value !== null) setParameters({ connectivity: value });
                     }}
                   >
-                    <SelectTrigger className="w-full" aria-label="Connectivity">
+                    <SelectTrigger
+                      id={`${fieldId}-connectivity-5`}
+                      className="w-full"
+                      aria-label="Connectivity"
+                    >
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent align="start" alignItemWithTrigger={false}>
+                    <SelectContent
+                      aria-labelledby={`${fieldId}-connectivity-5-label`}
+                      align="start"
+                      alignItemWithTrigger={false}
+                    >
                       {connectivityOptions.map((c) => (
                         <SelectItem key={c} value={c}>
                           {c}
@@ -368,6 +438,7 @@ export function ScopeTailoringPane({
                 const params = overlay.controls.filter((c) => c.action === "Parameter set").length;
                 const disagrees = d.applied !== d.recommended;
                 const option = options.find((o) => o.overlay.id === d.overlay);
+                const fieldHint6 = d.rationale.trim() ? undefined : "Needs a reason before submit";
                 return [
                   <Table.Row key={d.overlay}>
                     <Table.Cell>
@@ -407,15 +478,23 @@ export function ScopeTailoringPane({
                     <Table.Row key={`${d.overlay}-why`}>
                       <Table.Cell />
                       <Table.Cell colSpan={4} className="whitespace-normal py-100 align-top">
-                        <Field
-                          label={
-                            d.applied
+                        <Field>
+                          <FieldLabel
+                            id={`${fieldId}-field-6-${`${d.overlay}-why`}-label`}
+                            htmlFor={`${fieldId}-field-6-${`${d.overlay}-why`}`}
+                          >
+                            {d.applied
                               ? "Why apply an overlay the parameters do not call for"
-                              : "Why decline a recommended overlay"
-                          }
-                          hint={d.rationale.trim() ? undefined : "Needs a reason before submit"}
-                        >
+                              : "Why decline a recommended overlay"}
+                          </FieldLabel>
                           <Textarea
+                            id={`${fieldId}-field-6-${`${d.overlay}-why`}`}
+                            aria-labelledby={`${fieldId}-field-6-${`${d.overlay}-why`}-label`}
+                            aria-describedby={
+                              fieldHint6
+                                ? `${fieldId}-field-6-${`${d.overlay}-why`}-message`
+                                : undefined
+                            }
                             value={d.rationale}
                             disabled={readOnly}
                             onChange={(e) =>
@@ -431,6 +510,13 @@ export function ScopeTailoringPane({
                                 : "The obligation the overlay adds is met elsewhere in the boundary…"
                             }
                           />
+                          {fieldHint6 ? (
+                            <FieldDescription
+                              id={`${fieldId}-field-6-${`${d.overlay}-why`}-message`}
+                            >
+                              {fieldHint6}
+                            </FieldDescription>
+                          ) : null}
                         </Field>
                       </Table.Cell>
                     </Table.Row>
@@ -490,6 +576,9 @@ export function ScopeTailoringPane({
                   <tbody>
                     {draft.tailoring.map((t) => {
                       const control = nistControls.find((c) => c.id === t.control);
+                      const fieldHint7 = t.rationale.trim()
+                        ? undefined
+                        : "Needs a reason before submit";
                       return [
                         <Table.Row key={t.control}>
                           <Table.Cell>
@@ -551,17 +640,23 @@ export function ScopeTailoringPane({
                             {readOnly ? (
                               <span className="">{t.rationale || "—"}</span>
                             ) : (
-                              <Field
-                                label={
-                                  t.decision === "excluded"
+                              <Field>
+                                <FieldLabel
+                                  id={`${fieldId}-field-7-${`${t.control}-why`}-label`}
+                                  htmlFor={`${fieldId}-field-7-${`${t.control}-why`}`}
+                                >
+                                  {t.decision === "excluded"
                                     ? "Why this scope does not owe it"
-                                    : "Why this scope owes it after all"
-                                }
-                                hint={
-                                  t.rationale.trim() ? undefined : "Needs a reason before submit"
-                                }
-                              >
+                                    : "Why this scope owes it after all"}
+                                </FieldLabel>
                                 <Textarea
+                                  id={`${fieldId}-field-7-${`${t.control}-why`}`}
+                                  aria-labelledby={`${fieldId}-field-7-${`${t.control}-why`}-label`}
+                                  aria-describedby={
+                                    fieldHint7
+                                      ? `${fieldId}-field-7-${`${t.control}-why`}-message`
+                                      : undefined
+                                  }
                                   value={t.rationale}
                                   onChange={(e) =>
                                     patchDecision(t.control, { rationale: e.target.value })
@@ -569,6 +664,13 @@ export function ScopeTailoringPane({
                                   placeholder="Why this scope does not owe it, or why it owes it after all…"
                                   style={{ minHeight: 48 }}
                                 />
+                                {fieldHint7 ? (
+                                  <FieldDescription
+                                    id={`${fieldId}-field-7-${`${t.control}-why`}-message`}
+                                  >
+                                    {fieldHint7}
+                                  </FieldDescription>
+                                ) : null}
                               </Field>
                             )}
                           </Table.Cell>

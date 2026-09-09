@@ -1,5 +1,6 @@
+import { InputGroupAddon, InputGroupInput, InputGroup } from "../components/input-group";
 import { ChevronLeft, Search } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
   Sheet,
   SheetContent,
@@ -8,10 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "../components/sheet";
-
 import { Button } from "../components/button";
-import { Input } from "../components/controls";
-import { InputGroup } from "../components/input-group";
 
 /**
  * Choosing many from hundreds: the association panel. A Sheet whose toolbar is a search field and the
@@ -111,14 +109,15 @@ export function PickerSheet({
               {search || filters ? (
                 <div className="flex flex-wrap items-center gap-100">
                   {search ? (
-                    <InputGroup leading={<Search />} width={240}>
-                      <Input
+                    <InputGroup style={{ width: 240, maxWidth: "100%" }}>
+                      <InputGroupInput
                         value={search.value}
                         onChange={(e) => search.onChange(e.target.value)}
                         placeholder={search.placeholder ?? "Search"}
                         aria-label={search.placeholder ?? "Search"}
                         className="h-control-small"
                       />
+                      <InputGroupAddon>{<Search />}</InputGroupAddon>
                     </InputGroup>
                   ) : null}
                   {filters}

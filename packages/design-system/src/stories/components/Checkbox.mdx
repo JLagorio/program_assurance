@@ -34,7 +34,7 @@ The existing Base UI `CheckboxGroup` can also own the selected values and derive
 
 A wrapping label names the checkbox and toggles it when clicked. A sibling label uses `htmlFor` with the checkbox's `id`. Use `aria-label` for a control with no visible label. Put supporting text in an element referenced by `aria-describedby`.
 
-[Field](?path=/docs/components-field--docs) supplies a single checkbox's label, hint/error, `aria-invalid` and `aria-required`. For several checkboxes, use `Field isGroup` for the legend and give each choice its own label. The group description and error are shared; requiring the group does not require every checkbox. Native `required` is a separate prop for browser validation.
+Compose [Field](?path=/docs/components-field--docs) with FieldLabel and FieldDescription/FieldError. Associate the checkbox through `htmlFor`/`id` and `aria-describedby`; pass `aria-invalid` and `aria-required` explicitly. For several checkboxes, use FieldSet/FieldLegend and give each choice its own label. Requiring the group does not require every checkbox. Native `required` enables browser validation.
 
 `name`, `value` and `form` control native submission. A checked checkbox submits its value (or `on` when omitted); an unchecked checkbox is omitted unless `uncheckedValue` is supplied. Native form reset is caller-owned in Base UI 1.7: restore controlled `checked` state in `onReset`.
 
@@ -48,7 +48,7 @@ Each enabled checkbox is a Tab stop. Space toggles it. Enter does not toggle it;
 
 ## Migration
 
-Move label children into an external label and replace `description` with supporting content linked by `aria-describedby` or a Field hint. Replace `checked="indeterminate"` with `checked={false} indeterminate`; callbacks now receive a boolean and cancellable event details. Use `render` for composition. The root follows Base UI's default span and input structure.
+Move label children into an external label and replace `description` with supporting content linked by `aria-describedby` or FieldDescription. Replace `checked="indeterminate"` with `checked={false} indeterminate`; callbacks now receive a boolean and cancellable event details. Use `render` for composition. The root follows Base UI's default span and input structure.
 
 ## Props
 

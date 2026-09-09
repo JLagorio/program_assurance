@@ -1,7 +1,9 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbSeparator,
@@ -9,7 +11,6 @@ import {
   Box,
   Empty,
   Inline,
-  NativeSelect,
   Panel,
   RecordHeader,
   Section,
@@ -21,6 +22,8 @@ import {
   TextLink,
   Toolbar,
 } from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Shell } from "@/components/app/shell";
 import {
   DedupRail,
@@ -183,6 +186,14 @@ function ProgramIngestion() {
     0,
   );
 
+  const idItems = scans.map((s) => ({
+    value: s.id,
+    label: (
+      <>
+        {s.id}— {s.format}— {s.file}
+      </>
+    ),
+  }));
   const picker =
     scan && tab !== "Scans" ? (
       <Toolbar
@@ -198,19 +209,29 @@ function ProgramIngestion() {
         }
       >
         <span className="font-body-small text-subtle">Run</span>
-        <NativeSelect
+        <Select<string>
+          items={idItems}
           value={scan.id}
-          onChange={(e) => selectScan(e.target.value)}
-          aria-label="Scan run"
-          className="h-control-small font-body"
-          style={{ width: 360, maxWidth: "100%" }}
+          onValueChange={(value) => {
+            if (value === null) return;
+            return selectScan(value);
+          }}
         >
-          {scans.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.id} — {s.format} — {s.file}
-            </option>
-          ))}
-        </NativeSelect>
+          <SelectTrigger
+            className={"w-full " + "h-control-small font-body"}
+            aria-label="Scan run"
+            style={{ width: 360, maxWidth: "100%" }}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {idItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Toolbar>
     ) : null;
 

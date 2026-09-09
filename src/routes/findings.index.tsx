@@ -1,10 +1,6 @@
-import { downloadText } from "@/components/app/export";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useAssuranceVersion } from "@/lib/assurance-record-store";
-import { Download, Search } from "lucide-react";
-
 import {
+  InputGroupAddon,
+  InputGroupInput,
   Badge,
   Button,
   Empty,
@@ -12,7 +8,6 @@ import {
   IndexPage,
   Indicator,
   Inline,
-  Input,
   InputGroup,
   Inspector,
   KeyValue,
@@ -29,6 +24,11 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@ledger/design-system";
+import { downloadText } from "@/components/app/export";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
+import { Download, Search } from "lucide-react";
 import { Shell } from "@/components/app/shell";
 import {
   assetById,
@@ -175,14 +175,15 @@ function FindingsPage() {
           <TabsContent value={tab} className="contents">
             {tab === "Findings" ? (
               <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
-                <InputGroup leading={<Search />}>
-                  <Input
+                <InputGroup>
+                  <InputGroupInput
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="Search findings, CCIs, assets"
                     aria-label="Search"
                     style={{ width: 240, maxWidth: "100%" }}
                   />
+                  <InputGroupAddon>{<Search />}</InputGroupAddon>
                 </InputGroup>
                 <ToggleGroup
                   aria-label="Scope"

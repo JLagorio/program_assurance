@@ -1,34 +1,11 @@
 import {
-  useCallback,
-  type SetStateAction,
-  useMemo,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
-import { useRecordForm } from "@/lib/record-form";
-/**
- * The control board: the SCTM as a working surface rather than an artifact.
- *
- * The toolbar's Metrics action reveals how far the baseline has gotten along
- * the canonical path. Every row below is one control, and the row IS its pipeline:
- * six segments, filled, empty, hatched or broken. Colour appears only where the
- * strip breaks; a control that is through carries no words at all, because
- * Satisfied is the absence of a badge. Selecting a row opens the control's work
- * beside the board, with the same six stages as the editor's spine — click a
- * stage, work that stage — and ends with why the control is here at all.
- *
- * Presentation over `buildBoard`. The only stores touched are the ones the
- * existing control record already writes to, through the same components.
- */
-
-import { Link } from "@tanstack/react-router";
-import { ChevronDown, ListFilter, X } from "lucide-react";
-
-import { nodeById } from "@/lib/composition";
-import { Determination, EvidenceBlock, GateList, Narrative } from "@/components/app/control-work";
-import { ControlRequirementTable } from "@/components/app/requirements";
-import {
+  FieldLabel,
+  FieldError,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Block,
   Box,
@@ -45,7 +22,6 @@ import {
   Grid,
   Id,
   Inline,
-  NativeSelect,
   Stack,
   Table,
   Textarea,
@@ -53,6 +29,21 @@ import {
   Toolbar,
   Eyebrow,
 } from "@ledger/design-system";
+import {
+  useId,
+  useCallback,
+  type SetStateAction,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
+import { useRecordForm } from "@/lib/record-form";
+import { Link } from "@tanstack/react-router";
+import { ChevronDown, ListFilter, X } from "lucide-react";
+import { nodeById } from "@/lib/composition";
+import { Determination, EvidenceBlock, GateList, Narrative } from "@/components/app/control-work";
+import { ControlRequirementTable } from "@/components/app/requirements";
 import {
   buildBoard,
   groupBoard,
@@ -81,6 +72,21 @@ import { allocationsFor, requirementsForControl } from "@/lib/requirements";
 import { determinationTone, rowCurrencyTone, useControlText, useSctm } from "@/lib/sctm";
 import { controlSetFor, scopesForProgram } from "@/lib/scopes";
 import { cn } from "@ledger/design-system/cn";
+
+/**
+ * The control board: the SCTM as a working surface rather than an artifact.
+ *
+ * The toolbar's Metrics action reveals how far the baseline has gotten along
+ * the canonical path. Every row below is one control, and the row IS its pipeline:
+ * six segments, filled, empty, hatched or broken. Colour appears only where the
+ * strip breaks; a control that is through carries no words at all, because
+ * Satisfied is the absence of a badge. Selecting a row opens the control's work
+ * beside the board, with the same six stages as the editor's spine — click a
+ * stage, work that stage — and ends with why the control is here at all.
+ *
+ * Presentation over `buildBoard`. The only stores touched are the ones the
+ * existing control record already writes to, through the same components.
+ */
 
 /* ── Stage strip ─────────────────────────────────────────────────────────── */
 
@@ -468,6 +474,8 @@ function BoardDetail({
   programId: string;
   onClose: () => void;
 }) {
+  const fieldId = useId();
+
   const [stage, setStage] = useState<StageKey>(control.stuckAt ?? "assessed");
   const scopes = useMemo(() => scopesForProgram(programId), [programId]);
   const scopeId = useMemo(
@@ -547,6 +555,10 @@ function BoardDetail({
   const first = owed[0] ?? control.rows[0]!;
   const whoCanChange = [...new Set(offers.flatMap((o) => o.def.roles))];
 
+  const ownerDraftItems = [
+    { value: "", label: "Choose a person" },
+    ...people.map((name) => ({ value: name, label: name })),
+  ];
   return (
     <aside className="rounded-medium border border-default bg-surface lg:sticky-rail lg:overflow-y-auto">
       <Inline
@@ -609,20 +621,29 @@ function BoardDetail({
             Nobody is accountable for {control.id}. Every later action needs an owner first.
           </Box>
           <Inline space="space.100" alignBlock="center">
-            <NativeSelect
-              aria-label="Owner"
+            <Select<string>
+              items={ownerDraftItems}
               value={ownerDraft}
-              onChange={(e) => setOwnerDraft(e.target.value)}
-              className="h-control-small font-body"
-              style={{ maxWidth: 260 }}
+              onValueChange={(value) => {
+                if (value === null) return;
+                return setOwnerDraft(value);
+              }}
             >
-              <option value="">Choose a person</option>
-              {people.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </NativeSelect>
+              <SelectTrigger
+                className={"w-full " + "h-control-small font-body"}
+                aria-label="Owner"
+                style={{ maxWidth: 260 }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ownerDraftItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button
               size="small"
               variant="primary"
@@ -707,25 +728,45 @@ function BoardDetail({
                     )}
                   </p>
                   <form.Field name="note">
-                    {(field) => (
-                      <Field
-                        isRequired={chosen?.def.note === "required"}
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label={chosen.def.note === "required" ? "Reason (required)" : "Note"}
-                      >
-                        <Textarea
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          rows={2}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError1 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError1)}>
+                          <FieldLabel
+                            id={`${fieldId}-field-1-label`}
+                            htmlFor={`${fieldId}-field-1`}
+                          >
+                            {chosen.def.note === "required" ? "Reason (required)" : "Note"}
+                            {chosen?.def.note === "required" ? (
+                              <span aria-hidden="true" className="text-danger">
+                                {" "}
+                                *
+                              </span>
+                            ) : null}
+                          </FieldLabel>
+                          <Textarea
+                            id={`${fieldId}-field-1`}
+                            aria-labelledby={`${fieldId}-field-1-label`}
+                            aria-required={chosen?.def.note === "required"}
+                            aria-invalid={Boolean(fieldError1)}
+                            aria-describedby={
+                              fieldError1 ? `${fieldId}-field-1-message` : undefined
+                            }
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            rows={2}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError1 ? (
+                            <FieldError id={`${fieldId}-field-1-message`}>{fieldError1}</FieldError>
+                          ) : null}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   {error ? <div className="font-body-small text-danger">{error}</div> : null}
                   <Inline space="space.100" alignInline="end">

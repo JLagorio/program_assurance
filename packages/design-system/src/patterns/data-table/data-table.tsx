@@ -11,7 +11,7 @@ import { ChevronRight, MoreHorizontal } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { memo, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 
-import { Alert } from "../../components/alert";
+import { AlertDescription, Alert } from "../../components/alert";
 import { IconButton } from "../../components/button";
 import {
   DropdownMenu,
@@ -767,7 +767,9 @@ function DataTableRoot<TData extends RowData>({
             colSpan={columnCount}
             className="h-auto max-w-none whitespace-normal px-150 py-150"
           >
-            <Alert tone="danger">{error ?? t("rowsError")}</Alert>
+            <Alert tone="danger" role="alert">
+              <AlertDescription>{error ?? t("rowsError")}</AlertDescription>
+            </Alert>
           </Table.Cell>
         </Table.Row>
       ) : null}

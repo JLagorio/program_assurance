@@ -1,4 +1,9 @@
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Box,
   Button,
@@ -6,7 +11,6 @@ import {
   Empty,
   Id,
   Inline,
-  NativeSelect,
   ProgressStacked,
   Section,
   Table,
@@ -15,7 +19,6 @@ import {
 } from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-
 import {
   controlStatuses,
   controlStatusTone,
@@ -25,7 +28,6 @@ import {
 } from "@/lib/control-matrix";
 import { coverageFromRows } from "@/lib/program-coverage";
 import { saveProgramField } from "@/lib/program-save";
-
 import { cn } from "@ledger/design-system/cn";
 
 const PAGE = 40;
@@ -102,6 +104,21 @@ export function ControlMatrixSection({
   const save = (id: string, field: string) => (next: string) =>
     saveProgramField({ programId, field: `${id} ${field}`, value: next });
 
+  const familyItems = [
+    { value: "All", label: "All families" },
+    ...families.map((f) => ({
+      value: f.id,
+      label: (
+        <>
+          {f.id}— {f.name}
+        </>
+      ),
+    })),
+  ];
+  const statusItems = [
+    { value: "All", label: "All statuses" },
+    ...controlStatuses.map((s) => ({ value: s, label: s })),
+  ];
   return (
     <Section
       title="Control matrix"
@@ -133,40 +150,54 @@ export function ControlMatrixSection({
           </Box>
         }
       >
-        <NativeSelect
-          aria-label="Control family"
+        <Select<string>
+          items={familyItems}
           value={family}
-          onChange={(e) => {
-            onFamily(e.target.value);
+          onValueChange={(value) => {
+            if (value === null) return;
+            onFamily(value);
             setLimit(PAGE);
           }}
-          className="h-control-small"
-          style={{ width: 188, maxWidth: "100%" }}
         >
-          <option value="All">All families</option>
-          {families.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.id} — {f.name}
-            </option>
-          ))}
-        </NativeSelect>
-        <NativeSelect
-          aria-label="Control status"
+          <SelectTrigger
+            className={"w-full " + "h-control-small"}
+            aria-label="Control family"
+            style={{ width: 188, maxWidth: "100%" }}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {familyItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select<string>
+          items={statusItems}
           value={status}
-          onChange={(e) => {
-            onStatus(e.target.value as ControlStatus | "All");
+          onValueChange={(value) => {
+            if (value === null) return;
+            onStatus(value as ControlStatus | "All");
             setLimit(PAGE);
           }}
-          className="h-control-small"
-          style={{ width: 176, maxWidth: "100%" }}
         >
-          <option value="All">All statuses</option>
-          {controlStatuses.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </NativeSelect>
+          <SelectTrigger
+            className={"w-full " + "h-control-small"}
+            aria-label="Control status"
+            style={{ width: 176, maxWidth: "100%" }}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {statusItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Toolbar>
 
       {filtered.length === 0 ? (

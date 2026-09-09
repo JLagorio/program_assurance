@@ -1,3 +1,37 @@
+import {
+  FieldLabel,
+  FieldDescription,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Badge,
+  Block,
+  Box,
+  Button,
+  DataTable,
+  defineColumns,
+  Fact,
+  Field,
+  Grid,
+  Id,
+  Inline,
+  Input,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  Stack,
+  Text,
+  Textarea,
+  TextLink,
+  toast,
+  useDataTable,
+  type Preset,
+} from "@ledger/design-system";
 import { EvidencePreview } from "@/components/app/program-evidence";
 import { NewPoamSheet, PoamRecordSheet } from "@/components/app/program-poams";
 import {
@@ -23,34 +57,6 @@ import {
 import { scopeById, scopesForProgram } from "@/lib/scopes";
 import { severityTone, statusTone, type FindingSeverity } from "@/lib/spine";
 import { resolvedObjectiveResult, runById } from "@/lib/test-execution";
-import {
-  Badge,
-  Block,
-  Box,
-  Button,
-  DataTable,
-  defineColumns,
-  Fact,
-  Field,
-  Grid,
-  Id,
-  Inline,
-  Input,
-  NativeSelect,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  Stack,
-  Text,
-  Textarea,
-  TextLink,
-  toast,
-  useDataTable,
-  type Preset,
-} from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useCallback, useId, useMemo, useState } from "react";
@@ -237,6 +243,8 @@ function NewFindingSheet({
   onClose: () => void;
   onCreated: (finding: Finding) => void;
 }) {
+  const fieldId = useId();
+
   useEvidenceVersion();
   useRequirementsVersion();
   const formId = useId();
@@ -289,6 +297,55 @@ function NewFindingSheet({
     setDraft((previous) => ({ ...previous, [key]: value }));
   const programAssets = assets.filter((asset) => asset.program === programId);
   const evidence = evidenceForProgram(programId);
+  const severityItems = ["CAT I", "CAT II", "CAT III"].map((value) => ({
+    value: value,
+    label: value,
+  }));
+  const scopeItems = [
+    { value: "", label: "Program-wide" },
+    ...scopesForProgram(programId).map((scope) => ({
+      value: scope.id,
+      label: scope.name,
+    })),
+  ];
+  const assetItems = [
+    { value: "", label: "No individual asset" },
+    ...programAssets.map((asset) => ({ value: asset.id, label: asset.name })),
+  ];
+  const requirementItems = [
+    { value: "", label: "No engineering requirement linked" },
+    ...requirementsForProgram(programId).map((requirement) => ({
+      value: requirement.id,
+      label: (
+        <>
+          {requirement.id} · {requirement.text}
+        </>
+      ),
+    })),
+  ];
+  const sourceItems = [
+    "Manual procedure",
+    "Test event",
+    "STIG checklist",
+    "ACAS scan",
+    "Code scan",
+  ].map((value) => ({ value: value, label: value }));
+  const methodItems = [
+    { value: "Examine", label: "Examine" },
+    { value: "Interview", label: "Interview" },
+    { value: "Test", label: "Test" },
+  ];
+  const evidenceItems = [
+    { value: "", label: "Evidence not yet attached" },
+    ...evidence.map((artifact) => ({
+      value: artifact.id,
+      label: (
+        <>
+          {artifact.id} · {artifact.label}
+        </>
+      ),
+    })),
+  ];
   return (
     <Sheet
       open={true}
@@ -342,83 +399,202 @@ function NewFindingSheet({
                 </p>
               ) : null}
               {assessment ? <Text size="small">Assessment: {assessment.name}</Text> : null}
-              <Field label="Finding title" isRequired>
-                <Input value={draft.title} onChange={(event) => set("title", event.target.value)} />
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-finding-title-1-label`}
+                  htmlFor={`${fieldId}-finding-title-1`}
+                >
+                  {"Finding title"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
+                <Input
+                  id={`${fieldId}-finding-title-1`}
+                  aria-labelledby={`${fieldId}-finding-title-1-label`}
+                  aria-required={true}
+                  value={draft.title}
+                  onChange={(event) => set("title", event.target.value)}
+                />
               </Field>
-              <Field
-                label="Observed condition"
-                isRequired
-                hint="Describe what failed and the requirement it fails to meet."
-              >
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-observed-condition-2-label`}
+                  htmlFor={`${fieldId}-observed-condition-2`}
+                >
+                  {"Observed condition"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
                 <Textarea
+                  id={`${fieldId}-observed-condition-2`}
+                  aria-labelledby={`${fieldId}-observed-condition-2-label`}
+                  aria-required={true}
+                  aria-describedby={`${fieldId}-observed-condition-2-message`}
                   rows={4}
                   value={draft.detail}
                   onChange={(event) => set("detail", event.target.value)}
                 />
+                <FieldDescription id={`${fieldId}-observed-condition-2-message`}>
+                  {"Describe what failed and the requirement it fails to meet."}
+                </FieldDescription>
               </Field>
               <Grid templateColumns="1fr 1fr" gap="space.150">
-                <Field label="Control" isRequired>
+                <Field>
+                  <FieldLabel id={`${fieldId}-control-3-label`} htmlFor={`${fieldId}-control-3`}>
+                    {"Control"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-control-3`}
+                    aria-labelledby={`${fieldId}-control-3-label`}
+                    aria-required={true}
                     placeholder="AC-2"
                     value={draft.control}
                     onChange={(event) => set("control", event.target.value)}
                   />
                 </Field>
-                <Field label="CCI (optional)">
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-cci-optional-4-label`}
+                    htmlFor={`${fieldId}-cci-optional-4`}
+                  >
+                    {"CCI (optional)"}
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-cci-optional-4`}
+                    aria-labelledby={`${fieldId}-cci-optional-4-label`}
                     placeholder="CCI-000016"
                     value={draft.cci}
                     onChange={(event) => set("cci", event.target.value)}
                   />
                 </Field>
-                <Field label="Severity">
-                  <NativeSelect
+                <Field>
+                  <FieldLabel id={`${fieldId}-severity-5-label`} htmlFor={`${fieldId}-severity-5`}>
+                    {"Severity"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={severityItems}
                     value={draft.severity}
-                    onChange={(event) => set("severity", event.target.value as FindingSeverity)}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return set("severity", value as FindingSeverity);
+                    }}
                   >
-                    {["CAT I", "CAT II", "CAT III"].map((value) => (
-                      <option key={value}>{value}</option>
-                    ))}
-                  </NativeSelect>
+                    <SelectTrigger
+                      id={`${fieldId}-severity-5`}
+                      aria-labelledby={`${fieldId}-severity-5-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-severity-5-label`}>
+                      {severityItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
-                <Field label="Owner" isRequired>
+                <Field>
+                  <FieldLabel id={`${fieldId}-owner-6-label`} htmlFor={`${fieldId}-owner-6`}>
+                    {"Owner"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-owner-6`}
+                    aria-labelledby={`${fieldId}-owner-6-label`}
+                    aria-required={true}
                     value={draft.owner}
                     onChange={(event) => set("owner", event.target.value)}
                   />
                 </Field>
-                <Field label="Assessment scope">
-                  <NativeSelect
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-assessment-scope-7-label`}
+                    htmlFor={`${fieldId}-assessment-scope-7`}
+                  >
+                    {"Assessment scope"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={scopeItems}
                     value={draft.scope}
-                    onChange={(event) => set("scope", event.target.value)}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return set("scope", value);
+                    }}
                   >
-                    <option value="">Program-wide</option>
-                    {scopesForProgram(programId).map((scope) => (
-                      <option key={scope.id} value={scope.id}>
-                        {scope.name}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    <SelectTrigger
+                      id={`${fieldId}-assessment-scope-7`}
+                      aria-labelledby={`${fieldId}-assessment-scope-7-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-assessment-scope-7-label`}>
+                      {scopeItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
-                <Field label="Affected asset">
-                  <NativeSelect
-                    value={draft.asset}
-                    onChange={(event) => set("asset", event.target.value)}
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-affected-asset-8-label`}
+                    htmlFor={`${fieldId}-affected-asset-8`}
                   >
-                    <option value="">No individual asset</option>
-                    {programAssets.map((asset) => (
-                      <option key={asset.id} value={asset.id}>
-                        {asset.name}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    {"Affected asset"}
+                  </FieldLabel>
+                  <Select<string>
+                    items={assetItems}
+                    value={draft.asset}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return set("asset", value);
+                    }}
+                  >
+                    <SelectTrigger
+                      id={`${fieldId}-affected-asset-8`}
+                      aria-labelledby={`${fieldId}-affected-asset-8-label`}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent aria-labelledby={`${fieldId}-affected-asset-8-label`}>
+                      {assetItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
               </Grid>
-              <Field label="Related requirement">
-                <NativeSelect
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-related-requirement-9-label`}
+                  htmlFor={`${fieldId}-related-requirement-9`}
+                >
+                  {"Related requirement"}
+                </FieldLabel>
+                <Select<string>
+                  items={requirementItems}
                   value={draft.requirement}
-                  onChange={(event) => {
-                    const requirementId = event.target.value;
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    const requirementId = value;
                     setDraft((previous) => ({
                       ...previous,
                       requirement: requirementId,
@@ -429,60 +605,126 @@ function NewFindingSheet({
                     }));
                   }}
                 >
-                  <option value="">No engineering requirement linked</option>
-                  {requirementsForProgram(programId).map((requirement) => (
-                    <option key={requirement.id} value={requirement.id}>
-                      {requirement.id} · {requirement.text}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-related-requirement-9`}
+                    aria-labelledby={`${fieldId}-related-requirement-9-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-related-requirement-9-label`}>
+                    {requirementItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
-              <Field label="Source">
-                <NativeSelect
+              <Field>
+                <FieldLabel id={`${fieldId}-source-10-label`} htmlFor={`${fieldId}-source-10`}>
+                  {"Source"}
+                </FieldLabel>
+                <Select<string>
+                  items={sourceItems}
                   value={draft.source}
-                  onChange={(event) => set("source", event.target.value as Finding["source"])}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return set("source", value as Finding["source"]);
+                  }}
                 >
-                  {[
-                    "Manual procedure",
-                    "Test event",
-                    "STIG checklist",
-                    "ACAS scan",
-                    "Code scan",
-                  ].map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-source-10`}
+                    aria-labelledby={`${fieldId}-source-10-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-source-10-label`}>
+                    {sourceItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
-              <Field label="Assessment method">
-                <NativeSelect
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-assessment-method-11-label`}
+                  htmlFor={`${fieldId}-assessment-method-11`}
+                >
+                  {"Assessment method"}
+                </FieldLabel>
+                <Select<string>
+                  items={methodItems}
                   value={draft.method}
-                  onChange={(event) =>
-                    set("method", event.target.value as Finding["assessment"]["method"])
-                  }
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return set("method", value as Finding["assessment"]["method"]);
+                  }}
                 >
-                  <option>Examine</option>
-                  <option>Interview</option>
-                  <option>Test</option>
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-assessment-method-11`}
+                    aria-labelledby={`${fieldId}-assessment-method-11-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-assessment-method-11-label`}>
+                    {methodItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
-              <Field
-                label="Supporting evidence"
-                hint="Add artifacts in the Evidence tab, then link them here."
-              >
-                <NativeSelect
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-supporting-evidence-12-label`}
+                  htmlFor={`${fieldId}-supporting-evidence-12`}
+                >
+                  {"Supporting evidence"}
+                </FieldLabel>
+                <Select<string>
+                  items={evidenceItems}
                   value={draft.evidence}
-                  onChange={(event) => set("evidence", event.target.value)}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return set("evidence", value);
+                  }}
                 >
-                  <option value="">Evidence not yet attached</option>
-                  {evidence.map((artifact) => (
-                    <option key={artifact.id} value={artifact.id}>
-                      {artifact.id} · {artifact.label}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-supporting-evidence-12`}
+                    aria-labelledby={`${fieldId}-supporting-evidence-12-label`}
+                    aria-describedby={`${fieldId}-supporting-evidence-12-message`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-supporting-evidence-12-label`}>
+                    {evidenceItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldDescription id={`${fieldId}-supporting-evidence-12-message`}>
+                  {"Add artifacts in the Evidence tab, then link them here."}
+                </FieldDescription>
               </Field>
-              <Field label="Recommended remediation">
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-recommended-remediation-13-label`}
+                  htmlFor={`${fieldId}-recommended-remediation-13`}
+                >
+                  {"Recommended remediation"}
+                </FieldLabel>
                 <Textarea
+                  id={`${fieldId}-recommended-remediation-13`}
+                  aria-labelledby={`${fieldId}-recommended-remediation-13-label`}
                   rows={3}
                   value={draft.recommendation}
                   onChange={(event) => set("recommendation", event.target.value)}
@@ -552,6 +794,8 @@ function FindingEditor({
   programId: string;
   onClose: () => void;
 }) {
+  const fieldId = useId();
+
   const formId = useId();
   const [error, setError] = useState("");
   const [owner, setOwner] = useState(finding.owner);
@@ -593,6 +837,43 @@ function FindingEditor({
       return false;
     }
   };
+  const lifecycleItems = [
+    "Open",
+    "Triaged",
+    "Remediating",
+    "Retest pending",
+    "Risk accepted",
+    "False positive",
+    ...(finding.lifecycle === "Closed" ? ["Closed"] : []),
+  ].map((value) => ({ value: value, label: value }));
+  const attachEvidenceItems = [
+    { value: "", label: "Select an artifact" },
+    ...artifacts
+      .filter((artifact) => !evidenceIds.includes(artifact.id))
+      .map((artifact) => ({
+        value: artifact.id,
+        label: (
+          <>
+            {artifact.id} · {artifact.label}
+          </>
+        ),
+      })),
+  ];
+  const resultItems = [
+    { value: "Passed", label: "Passed" },
+    { value: "Failed", label: "Failed" },
+  ];
+  const retestEvidenceItems = [
+    { value: "", label: "Select a supporting artifact" },
+    ...artifacts.map((artifact) => ({
+      value: artifact.id,
+      label: (
+        <>
+          {artifact.id} · {artifact.label}
+        </>
+      ),
+    })),
+  ];
   return (
     <>
       <Sheet
@@ -651,12 +932,41 @@ function FindingEditor({
                     {error}
                   </p>
                 ) : null}
-                <Field label="Finding title" isRequired>
-                  <Input value={title} onChange={(event) => setTitle(event.target.value)} />
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-finding-title-14-label`}
+                    htmlFor={`${fieldId}-finding-title-14`}
+                  >
+                    {"Finding title"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
+                  <Input
+                    id={`${fieldId}-finding-title-14`}
+                    aria-labelledby={`${fieldId}-finding-title-14-label`}
+                    aria-required={true}
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                  />
                 </Field>
                 <Block title="Observed condition">
-                  <Field label="Observed condition" isRequired>
+                  <Field>
+                    <FieldLabel
+                      id={`${fieldId}-observed-condition-15-label`}
+                      htmlFor={`${fieldId}-observed-condition-15`}
+                    >
+                      {"Observed condition"}
+                      <span aria-hidden="true" className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    </FieldLabel>
                     <Textarea
+                      id={`${fieldId}-observed-condition-15`}
+                      aria-labelledby={`${fieldId}-observed-condition-15-label`}
+                      aria-required={true}
                       rows={4}
                       value={detail}
                       onChange={(event) => setDetail(event.target.value)}
@@ -686,40 +996,77 @@ function FindingEditor({
                   </Inline>
                 </Block>
                 <Grid templateColumns="1fr 1fr" gap="space.150">
-                  <Field label="Owner" isRequired>
-                    <Input value={owner} onChange={(event) => setOwner(event.target.value)} />
+                  <Field>
+                    <FieldLabel id={`${fieldId}-owner-16-label`} htmlFor={`${fieldId}-owner-16`}>
+                      {"Owner"}
+                      <span aria-hidden="true" className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    </FieldLabel>
+                    <Input
+                      id={`${fieldId}-owner-16`}
+                      aria-labelledby={`${fieldId}-owner-16-label`}
+                      aria-required={true}
+                      value={owner}
+                      onChange={(event) => setOwner(event.target.value)}
+                    />
                   </Field>
-                  <Field label="Status">
-                    <NativeSelect
+                  <Field>
+                    <FieldLabel id={`${fieldId}-status-17-label`} htmlFor={`${fieldId}-status-17`}>
+                      {"Status"}
+                    </FieldLabel>
+                    <Select<string>
+                      items={lifecycleItems}
                       value={lifecycleEdited ? lifecycle : finding.lifecycle}
-                      onChange={(event) => {
-                        setLifecycle(event.target.value as Finding["lifecycle"]);
+                      onValueChange={(value) => {
+                        if (value === null) return;
+                        setLifecycle(value as Finding["lifecycle"]);
                         setLifecycleEdited(true);
                       }}
                     >
-                      {[
-                        "Open",
-                        "Triaged",
-                        "Remediating",
-                        "Retest pending",
-                        "Risk accepted",
-                        "False positive",
-                        ...(finding.lifecycle === "Closed" ? ["Closed"] : []),
-                      ].map((value) => (
-                        <option key={value}>{value}</option>
-                      ))}
-                    </NativeSelect>
+                      <SelectTrigger
+                        id={`${fieldId}-status-17`}
+                        aria-labelledby={`${fieldId}-status-17-label`}
+                        className="w-full"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent aria-labelledby={`${fieldId}-status-17-label`}>
+                        {lifecycleItems.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </Grid>
-                <Field label="Remediation recommendation">
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-remediation-recommendation-18-label`}
+                    htmlFor={`${fieldId}-remediation-recommendation-18`}
+                  >
+                    {"Remediation recommendation"}
+                  </FieldLabel>
                   <Textarea
+                    id={`${fieldId}-remediation-recommendation-18`}
+                    aria-labelledby={`${fieldId}-remediation-recommendation-18-label`}
                     rows={3}
                     value={recommendation}
                     onChange={(event) => setRecommendation(event.target.value)}
                   />
                 </Field>
-                <Field label="Mitigation / disposition rationale">
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-mitigation-disposition-rationale-19-label`}
+                    htmlFor={`${fieldId}-mitigation-disposition-rationale-19`}
+                  >
+                    {"Mitigation / disposition rationale"}
+                  </FieldLabel>
                   <Textarea
+                    id={`${fieldId}-mitigation-disposition-rationale-19`}
+                    aria-labelledby={`${fieldId}-mitigation-disposition-rationale-19-label`}
                     rows={3}
                     value={mitigation}
                     onChange={(event) => setMitigation(event.target.value)}
@@ -746,20 +1093,38 @@ function FindingEditor({
                     </Text>
                   )}
                   <Inline space="space.100" alignBlock="end" className="pt-150">
-                    <Field label="Attach supporting evidence" className="min-w-0 flex-1">
-                      <NativeSelect
-                        value={attachEvidence}
-                        onChange={(event) => setAttachEvidence(event.target.value)}
+                    <Field className="min-w-0 flex-1">
+                      <FieldLabel
+                        id={`${fieldId}-attach-supporting-evidence-20-label`}
+                        htmlFor={`${fieldId}-attach-supporting-evidence-20`}
                       >
-                        <option value="">Select an artifact</option>
-                        {artifacts
-                          .filter((artifact) => !evidenceIds.includes(artifact.id))
-                          .map((artifact) => (
-                            <option key={artifact.id} value={artifact.id}>
-                              {artifact.id} · {artifact.label}
-                            </option>
+                        {"Attach supporting evidence"}
+                      </FieldLabel>
+                      <Select<string>
+                        items={attachEvidenceItems}
+                        value={attachEvidence}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return setAttachEvidence(value);
+                        }}
+                      >
+                        <SelectTrigger
+                          id={`${fieldId}-attach-supporting-evidence-20`}
+                          aria-labelledby={`${fieldId}-attach-supporting-evidence-20-label`}
+                          className="w-full"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent
+                          aria-labelledby={`${fieldId}-attach-supporting-evidence-20-label`}
+                        >
+                          {attachEvidenceItems.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
                           ))}
-                      </NativeSelect>
+                        </SelectContent>
+                      </Select>
                     </Field>
                     <Button
                       type="button"
@@ -840,39 +1205,108 @@ function FindingEditor({
                   {retesting ? (
                     <Stack space="space.150" className="pt-150">
                       <Grid templateColumns="1fr 1fr" gap="space.150">
-                        <Field label="Retest result">
-                          <NativeSelect
-                            value={result}
-                            onChange={(event) =>
-                              setResult(event.target.value as "Passed" | "Failed")
-                            }
+                        <Field>
+                          <FieldLabel
+                            id={`${fieldId}-retest-result-21-label`}
+                            htmlFor={`${fieldId}-retest-result-21`}
                           >
-                            <option>Passed</option>
-                            <option>Failed</option>
-                          </NativeSelect>
+                            {"Retest result"}
+                          </FieldLabel>
+                          <Select<string>
+                            items={resultItems}
+                            value={result}
+                            onValueChange={(value) => {
+                              if (value === null) return;
+                              return setResult(value as "Passed" | "Failed");
+                            }}
+                          >
+                            <SelectTrigger
+                              id={`${fieldId}-retest-result-21`}
+                              aria-labelledby={`${fieldId}-retest-result-21-label`}
+                              className="w-full"
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent aria-labelledby={`${fieldId}-retest-result-21-label`}>
+                              {resultItems.map((item) => (
+                                <SelectItem key={item.value} value={item.value}>
+                                  {item.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </Field>
-                        <Field label="Assessor" isRequired>
+                        <Field>
+                          <FieldLabel
+                            id={`${fieldId}-assessor-22-label`}
+                            htmlFor={`${fieldId}-assessor-22`}
+                          >
+                            {"Assessor"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
                           <Input
+                            id={`${fieldId}-assessor-22`}
+                            aria-labelledby={`${fieldId}-assessor-22-label`}
+                            aria-required={true}
                             value={assessor}
                             onChange={(event) => setAssessor(event.target.value)}
                           />
                         </Field>
                       </Grid>
-                      <Field label="Retest evidence" isRequired>
-                        <NativeSelect
-                          value={retestEvidence}
-                          onChange={(event) => setRetestEvidence(event.target.value)}
+                      <Field>
+                        <FieldLabel
+                          id={`${fieldId}-retest-evidence-23-label`}
+                          htmlFor={`${fieldId}-retest-evidence-23`}
                         >
-                          <option value="">Select a supporting artifact</option>
-                          {artifacts.map((artifact) => (
-                            <option value={artifact.id} key={artifact.id}>
-                              {artifact.id} · {artifact.label}
-                            </option>
-                          ))}
-                        </NativeSelect>
+                          {"Retest evidence"}
+                          <span aria-hidden="true" className="text-danger">
+                            {" "}
+                            *
+                          </span>
+                        </FieldLabel>
+                        <Select<string>
+                          items={retestEvidenceItems}
+                          value={retestEvidence}
+                          onValueChange={(value) => {
+                            if (value === null) return;
+                            return setRetestEvidence(value);
+                          }}
+                        >
+                          <SelectTrigger
+                            id={`${fieldId}-retest-evidence-23`}
+                            aria-labelledby={`${fieldId}-retest-evidence-23-label`}
+                            aria-required={true}
+                            className="w-full"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent aria-labelledby={`${fieldId}-retest-evidence-23-label`}>
+                            {retestEvidenceItems.map((item) => (
+                              <SelectItem key={item.value} value={item.value}>
+                                {item.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </Field>
-                      <Field label="Retest determination" isRequired>
+                      <Field>
+                        <FieldLabel
+                          id={`${fieldId}-retest-determination-24-label`}
+                          htmlFor={`${fieldId}-retest-determination-24`}
+                        >
+                          {"Retest determination"}
+                          <span aria-hidden="true" className="text-danger">
+                            {" "}
+                            *
+                          </span>
+                        </FieldLabel>
                         <Textarea
+                          id={`${fieldId}-retest-determination-24`}
+                          aria-labelledby={`${fieldId}-retest-determination-24-label`}
+                          aria-required={true}
                           rows={3}
                           value={retestNote}
                           onChange={(event) => setRetestNote(event.target.value)}

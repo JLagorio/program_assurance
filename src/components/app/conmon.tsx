@@ -1,5 +1,19 @@
+import {
+  Absent,
+  Badge,
+  Box,
+  DataTable,
+  Empty,
+  Eyebrow,
+  Grid,
+  Id,
+  Inline,
+  Stack,
+  Table,
+  defineColumns,
+  useDataTable,
+} from "@ledger/design-system";
 import { useMemo, type ReactNode } from "react";
-
 import {
   alertSeverityTone,
   assessmentStatusTone,
@@ -18,21 +32,6 @@ import {
   type SlippageRow,
 } from "@/lib/conmon";
 import { statusTone } from "@/lib/spine";
-import {
-  Absent,
-  Badge,
-  Box,
-  DataTable,
-  Empty,
-  Eyebrow,
-  Grid,
-  Id,
-  Inline,
-  Stack,
-  Table,
-  defineColumns,
-  useDataTable,
-} from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */

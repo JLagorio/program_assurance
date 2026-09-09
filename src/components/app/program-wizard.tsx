@@ -1,4 +1,16 @@
 import {
+  FieldLabel,
+  FieldDescription,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxList,
+  ComboboxItem,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -20,7 +32,6 @@ import {
   Input,
   Inspector,
   KeyValue,
-  NativeSelect,
   PageHeader,
   RadioGroup,
   RadioGroupItem,
@@ -41,7 +52,6 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Trash2 } from "lucide-react";
 import { useId, useMemo, useReducer, useRef, useState } from "react";
-
 import {
   contestedOverlays,
   gatesFor,
@@ -51,7 +61,7 @@ import {
   type RevisionDraft,
 } from "@/lib/control-set";
 import { frameworks } from "@/lib/frameworks";
-import type { ImpactLevel, Program } from "@/lib/grc-data";
+import { type ImpactLevel, type Program } from "@/lib/grc-data";
 import {
   createProgramFromDraft,
   draftKey,
@@ -67,7 +77,6 @@ import {
 } from "@/lib/program-setup";
 import { objectives, type Triad } from "@/lib/scopes";
 import { overlayById } from "@/lib/tailoring";
-
 import { ControlSetSummary, RevisionGates, ScopeTailoringPane } from "./scope-tailoring";
 
 /* -------------------------------------------------------------- Reducer */
@@ -461,94 +470,210 @@ export function ProgramWizard() {
 /* ---------------------------------------------------------- Step: program */
 
 function ProgramStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Action) => void }) {
+  const fieldId = useId();
+
+  const authorizingOfficialItems = officials.map((o) => ({ value: o, label: o }));
+  const assessorItems = assessors.map((o) => ({ value: o, label: o }));
+  const environmentItems = environments.map((o) => ({ value: o, label: o }));
+  const ownerItems = people.map((p) => ({ value: p, label: p }));
   return (
     <Block title="Program">
       <Stack space="space.150">
         <Grid gap="space.150" templateColumns="minmax(0,1fr) 140px">
-          <Field isRequired label="Program name">
+          <Field>
+            <FieldLabel
+              id={`${fieldId}-program-name-1-label`}
+              htmlFor={`${fieldId}-program-name-1`}
+            >
+              {"Program name"}
+              <span aria-hidden="true" className="text-danger">
+                {" "}
+                *
+              </span>
+            </FieldLabel>
             <Input
+              id={`${fieldId}-program-name-1`}
+              aria-labelledby={`${fieldId}-program-name-1-label`}
+              aria-required={true}
               autoFocus
               value={draft.name}
               onChange={(e) => dispatch({ type: "field", patch: { name: e.target.value } })}
               placeholder="Autonomous aircraft"
             />
           </Field>
-          <Field label="Acronym" hint="Blank derives one from the name.">
+          <Field>
+            <FieldLabel id={`${fieldId}-acronym-2-label`} htmlFor={`${fieldId}-acronym-2`}>
+              {"Acronym"}
+            </FieldLabel>
             <Input
+              id={`${fieldId}-acronym-2`}
+              aria-labelledby={`${fieldId}-acronym-2-label`}
+              aria-describedby={`${fieldId}-acronym-2-message`}
               value={draft.acronym}
               onChange={(e) =>
                 dispatch({ type: "field", patch: { acronym: e.target.value.toUpperCase() } })
               }
               placeholder="AAC"
             />
+            <FieldDescription id={`${fieldId}-acronym-2-message`}>
+              {"Blank derives one from the name."}
+            </FieldDescription>
           </Field>
         </Grid>
-        <Field label="Mission" hint="One line: what the system does and for whom.">
+        <Field>
+          <FieldLabel id={`${fieldId}-mission-3-label`} htmlFor={`${fieldId}-mission-3`}>
+            {"Mission"}
+          </FieldLabel>
           <Input
+            id={`${fieldId}-mission-3`}
+            aria-labelledby={`${fieldId}-mission-3-label`}
+            aria-describedby={`${fieldId}-mission-3-message`}
             value={draft.mission}
             onChange={(e) => dispatch({ type: "field", patch: { mission: e.target.value } })}
             placeholder="Persistent ISR over the littoral, controlled from the ground segment."
           />
+          <FieldDescription id={`${fieldId}-mission-3-message`}>
+            {"One line: what the system does and for whom."}
+          </FieldDescription>
         </Field>
         <Grid
           gap="space.150"
           templateColumns={{ base: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" }}
         >
-          <Field label="System owner">
-            <Combobox
-              value={draft.owner}
-              onChange={(v) => dispatch({ type: "field", patch: { owner: v } })}
-              options={people.map((p) => ({ value: p, label: p }))}
-              placeholder="Choose an owner"
-              searchPlaceholder="Search people…"
-              className="w-full"
-            />
+          <Field>
+            <FieldLabel
+              id={`${fieldId}-system-owner-4-label`}
+              htmlFor={`${fieldId}-system-owner-4`}
+            >
+              {"System owner"}
+            </FieldLabel>
+            <div className={"w-full"}>
+              <Combobox<(typeof ownerItems)[number]>
+                items={ownerItems}
+
+                isItemEqualToValue={(item, selected) => item.value === selected.value}
+                filter={(item, query) =>
+                  [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                    .join(" ")
+                    .toLocaleLowerCase()
+                    .includes(query.toLocaleLowerCase())
+                }
+                value={ownerItems.find((item) => item.value === draft.owner) ?? null}
+                onValueChange={(item) => {
+                  const v = item?.value ?? "";
+                  return dispatch({ type: "field", patch: { owner: v } });
+                }}
+              >
+                <ComboboxInput
+                  id={`${fieldId}-system-owner-4`}
+                  aria-labelledby={`${fieldId}-system-owner-4-label`}
+                  placeholder="Choose an owner"
+                />
+                <ComboboxContent>
+                  <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+                  <ComboboxList aria-labelledby={`${fieldId}-system-owner-4-label`}>
+                    {(item) => (
+                      <ComboboxItem
+                        key={item.value}
+                        value={item}
+                        disabled={"disabled" in item && Boolean(item.disabled)}
+                      >
+                        <span className="min-w-0 flex-1">{item.label}</span>
+                        {"meta" in item && item.meta ? (
+                          <span className="text-subtle font-body-small">{String(item.meta)}</span>
+                        ) : null}
+                      </ComboboxItem>
+                    )}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
+            </div>
           </Field>
-          <Field label="Authorizing official">
-            <NativeSelect
+          <Field>
+            <FieldLabel
+              id={`${fieldId}-authorizing-official-5-label`}
+              htmlFor={`${fieldId}-authorizing-official-5`}
+            >
+              {"Authorizing official"}
+            </FieldLabel>
+            <Select<string>
+              items={authorizingOfficialItems}
               value={draft.authorizingOfficial}
-              onChange={(e) =>
-                dispatch({ type: "field", patch: { authorizingOfficial: e.target.value } })
-              }
-              aria-label="Authorizing official"
+              onValueChange={(value) => {
+                if (value === null) return;
+                return dispatch({ type: "field", patch: { authorizingOfficial: value } });
+              }}
             >
-              {officials.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </NativeSelect>
+              <SelectTrigger
+                id={`${fieldId}-authorizing-official-5`}
+                className="w-full"
+                aria-label="Authorizing official"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent aria-labelledby={`${fieldId}-authorizing-official-5-label`}>
+                {authorizingOfficialItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
-          <Field label="Assessor">
-            <NativeSelect
+          <Field>
+            <FieldLabel id={`${fieldId}-assessor-6-label`} htmlFor={`${fieldId}-assessor-6`}>
+              {"Assessor"}
+            </FieldLabel>
+            <Select<string>
+              items={assessorItems}
               value={draft.assessor}
-              onChange={(e) => dispatch({ type: "field", patch: { assessor: e.target.value } })}
-              aria-label="Assessor"
+              onValueChange={(value) => {
+                if (value === null) return;
+                return dispatch({ type: "field", patch: { assessor: value } });
+              }}
             >
-              {assessors.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </NativeSelect>
+              <SelectTrigger id={`${fieldId}-assessor-6`} className="w-full" aria-label="Assessor">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent aria-labelledby={`${fieldId}-assessor-6-label`}>
+                {assessorItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
-          <Field label="Environment">
-            <NativeSelect
+          <Field>
+            <FieldLabel id={`${fieldId}-environment-7-label`} htmlFor={`${fieldId}-environment-7`}>
+              {"Environment"}
+            </FieldLabel>
+            <Select<string>
+              items={environmentItems}
               value={draft.environment}
-              onChange={(e) =>
-                dispatch({
+              onValueChange={(value) => {
+                if (value === null) return;
+                return dispatch({
                   type: "field",
-                  patch: { environment: e.target.value as Program["environment"] },
-                })
-              }
-              aria-label="Environment"
+                  patch: { environment: value as Program["environment"] },
+                });
+              }}
             >
-              {environments.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </NativeSelect>
+              <SelectTrigger
+                id={`${fieldId}-environment-7`}
+                className="w-full"
+                aria-label="Environment"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent aria-labelledby={`${fieldId}-environment-7-label`}>
+                {environmentItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         </Grid>
       </Stack>
@@ -636,6 +761,8 @@ type Editing =
   { kind: "system"; key: string } | { kind: "subsystem"; systemKey: string; key: string } | null;
 
 function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Action) => void }) {
+  const fieldId = useId();
+
   const [editing, setEditing] = useState<Editing>(null);
   const [expanded, setExpanded] = useState<Set<string>>(
     () => new Set(draft.systems.map((s) => s.key)),
@@ -666,6 +793,7 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
       dispatch({ type: "subsystem.patch", systemKey: editing.systemKey, key: editing.key, patch });
   };
 
+  const ownerItems2 = people.map((p) => ({ value: p, label: p }));
   return (
     <Block
       title="Systems and subsystems"
@@ -806,8 +934,18 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
           <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
             {target ? (
               <Stack space="space.150">
-                <Field isRequired label="Name">
+                <Field>
+                  <FieldLabel id={`${fieldId}-name-8-label`} htmlFor={`${fieldId}-name-8`}>
+                    {"Name"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-name-8`}
+                    aria-labelledby={`${fieldId}-name-8-label`}
+                    aria-required={true}
                     autoFocus
                     value={target.record.name}
                     onChange={(e) => patchTarget({ name: e.target.value })}
@@ -816,22 +954,69 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
                     }
                   />
                 </Field>
-                <Field label="Function" hint="What it does for the mission.">
+                <Field>
+                  <FieldLabel id={`${fieldId}-function-9-label`} htmlFor={`${fieldId}-function-9`}>
+                    {"Function"}
+                  </FieldLabel>
                   <Textarea
+                    id={`${fieldId}-function-9`}
+                    aria-labelledby={`${fieldId}-function-9-label`}
+                    aria-describedby={`${fieldId}-function-9-message`}
                     value={target.record.function}
                     onChange={(e) => patchTarget({ function: e.target.value })}
                     placeholder="Terrain-following radar and collision avoidance."
                   />
+                  <FieldDescription id={`${fieldId}-function-9-message`}>
+                    {"What it does for the mission."}
+                  </FieldDescription>
                 </Field>
-                <Field label="Owner">
-                  <Combobox
-                    value={target.record.owner}
-                    onChange={(v) => patchTarget({ owner: v })}
-                    options={people.map((p) => ({ value: p, label: p }))}
-                    placeholder={`Inherits ${draft.owner}`}
-                    searchPlaceholder="Search people…"
-                    className="w-full"
-                  />
+                <Field>
+                  <FieldLabel id={`${fieldId}-owner-10-label`} htmlFor={`${fieldId}-owner-10`}>
+                    {"Owner"}
+                  </FieldLabel>
+                  <div className={"w-full"}>
+                    <Combobox<(typeof ownerItems2)[number]>
+                      items={ownerItems2}
+
+                      isItemEqualToValue={(item, selected) => item.value === selected.value}
+                      filter={(item, query) =>
+                        [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                          .join(" ")
+                          .toLocaleLowerCase()
+                          .includes(query.toLocaleLowerCase())
+                      }
+                      value={ownerItems2.find((item) => item.value === target.record.owner) ?? null}
+                      onValueChange={(item) => {
+                        const v = item?.value ?? "";
+                        return patchTarget({ owner: v });
+                      }}
+                    >
+                      <ComboboxInput
+                        id={`${fieldId}-owner-10`}
+                        aria-labelledby={`${fieldId}-owner-10-label`}
+                        placeholder={`Inherits ${draft.owner}`}
+                      />
+                      <ComboboxContent>
+                        <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+                        <ComboboxList aria-labelledby={`${fieldId}-owner-10-label`}>
+                          {(item) => (
+                            <ComboboxItem
+                              key={item.value}
+                              value={item}
+                              disabled={"disabled" in item && Boolean(item.disabled)}
+                            >
+                              <span className="min-w-0 flex-1">{item.label}</span>
+                              {"meta" in item && item.meta ? (
+                                <span className="text-subtle font-body-small">
+                                  {String(item.meta)}
+                                </span>
+                              ) : null}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                  </div>
                 </Field>
               </Stack>
             ) : null}

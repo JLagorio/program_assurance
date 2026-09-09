@@ -1,4 +1,24 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import {
+  avatarHue,
+  AvatarFallback,
+  avatarInitials,
+  InputGroupAddon,
+  InputGroupText,
+  InputGroupInput,
+  Badge,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  Avatar,
+  Banner,
+  Button,
+  Count,
+  Fact,
+  IconButton,
+  InputGroup,
+  TabsList,
+  TabsTrigger,
+} from "../../components";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
 import {
   Archive,
   Bell,
@@ -20,22 +40,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-
-import {
-  Badge,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  Avatar,
-  Banner,
-  Button,
-  Count,
-  Fact,
-  IconButton,
-  Input,
-  InputGroup,
-  TabsList,
-  TabsTrigger,
-} from "../../components";
 import { ModeSwitch } from "../../mode";
 import { PageHeader, RecordHeader, ShowPage } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
@@ -165,21 +169,23 @@ function Demo({
           </Shell.AppLogo>
         </Shell.TopNav.Start>
         <Shell.TopNav.Middle>
-          <InputGroup
-            leading={<Search />}
-            trailing={
-              <span className="flex items-center gap-025">
-                <CommandIcon className="size-100" />K
-              </span>
-            }
-            width={480}
-          >
-            <Input
+          <InputGroup style={{ width: 480, maxWidth: "100%" }}>
+            <InputGroupInput
               type="search"
               placeholder="Search risks, controls, evidence…"
               aria-label="Search"
               className="h-control-small"
             />
+            <InputGroupAddon>{<Search />}</InputGroupAddon>
+            <InputGroupAddon align="inline-end">
+              <InputGroupText>
+                {
+                  <span className="flex items-center gap-025">
+                    <CommandIcon className="size-100" />K
+                  </span>
+                }
+              </InputGroupText>
+            </InputGroupAddon>
           </InputGroup>
           <Button variant="primary" iconBefore={<Plus />}>
             Create
@@ -195,7 +201,17 @@ function Demo({
         </Shell.SideNav.Body>
         <Shell.SideNav.Footer>
           <Shell.Profile
-            avatar={<Avatar name="Sarah Chen" size="small" />}
+            avatar={
+              <Avatar
+                size="small"
+                role="img"
+                aria-label={"Sarah Chen"}
+                hue={avatarHue("Sarah Chen")}
+                title={"Sarah Chen"}
+              >
+                <AvatarFallback>{avatarInitials("Sarah Chen", 2)}</AvatarFallback>
+              </Avatar>
+            }
             name="Sarah Chen"
             role="Compliance lead"
             onClick={() => undefined}
@@ -384,7 +400,17 @@ export const ShellMatrix: Story = {
           <Shell.AppLogo
             name="Meridian"
             secondaryName="Northwind Corp"
-            mark={<Avatar name="Meridian" size="small" />}
+            mark={
+              <Avatar
+                size="small"
+                role="img"
+                aria-label={"Meridian"}
+                hue={avatarHue("Meridian")}
+                title={"Meridian"}
+              >
+                <AvatarFallback>{avatarInitials("Meridian", 2)}</AvatarFallback>
+              </Avatar>
+            }
           />
         </Inline>
       </Specimens>
@@ -394,7 +420,17 @@ export const ShellMatrix: Story = {
           <Shell.AppSwitcher />
           <Box className="w-layout-sidenav">
             <Shell.Profile
-              avatar={<Avatar name="Sarah Chen" size="small" />}
+              avatar={
+                <Avatar
+                  size="small"
+                  role="img"
+                  aria-label={"Sarah Chen"}
+                  hue={avatarHue("Sarah Chen")}
+                  title={"Sarah Chen"}
+                >
+                  <AvatarFallback>{avatarInitials("Sarah Chen", 2)}</AvatarFallback>
+                </Avatar>
+              }
               name="Sarah Chen"
               role="Compliance lead"
               onClick={() => undefined}
@@ -462,13 +498,14 @@ function RecordDemo() {
           </Shell.AppLogo>
         </Shell.TopNav.Start>
         <Shell.TopNav.Middle>
-          <InputGroup leading={<Search />} width={480}>
-            <Input
+          <InputGroup style={{ width: 480, maxWidth: "100%" }}>
+            <InputGroupInput
               type="search"
               placeholder="Search…"
               aria-label="Search"
               className="h-control-small"
             />
+            <InputGroupAddon>{<Search />}</InputGroupAddon>
           </InputGroup>
         </Shell.TopNav.Middle>
         <Shell.TopNav.End>

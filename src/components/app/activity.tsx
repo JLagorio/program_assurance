@@ -1,18 +1,7 @@
 import {
-  ArrowRightLeft,
-  CircleCheck,
-  FileText,
-  Link2,
-  ListChecks,
-  MessageSquare,
-  Milestone,
-  Plus,
-  Send,
-  UserRound,
-} from "lucide-react";
-import { cloneElement, useState, type ReactElement, type ReactNode } from "react";
-
-import {
+  avatarHue,
+  AvatarFallback,
+  avatarInitials,
   Box,
   Avatar,
   toneClasses,
@@ -25,6 +14,19 @@ import {
   type TimelineGroupProps,
   cn,
 } from "@ledger/design-system";
+import {
+  ArrowRightLeft,
+  CircleCheck,
+  FileText,
+  Link2,
+  ListChecks,
+  MessageSquare,
+  Milestone,
+  Plus,
+  Send,
+  UserRound,
+} from "lucide-react";
+import { cloneElement, useState, type ReactElement, type ReactNode } from "react";
 import { mentionPattern, parseMentions } from "@/lib/mentions";
 
 /* Everything that happened to a record, in one feed, and the way to add to it. The work happens
@@ -267,7 +269,19 @@ function ActivityItem({
   const k = kind ? kinds[kind] : null;
   return (
     <Timeline.Item
-      marker={actor ? <Avatar name={actor} size="small" variant="bold" isDecorative /> : undefined}
+      marker={
+        actor ? (
+          <Avatar
+            size="small"
+            variant="bold"
+            aria-hidden="true"
+            hue={avatarHue(actor)}
+            title={actor}
+          >
+            <AvatarFallback>{avatarInitials(actor, 2)}</AvatarFallback>
+          </Avatar>
+        ) : undefined
+      }
       icon={!actor && k ? cloneElement(k.icon, { "aria-hidden": true }) : undefined}
       tone={!actor && k ? k.tone : "neutral"}
       title={
@@ -388,7 +402,19 @@ function ActivityComposer({
           </Button>
         ) : undefined
       }
-      leading={actor ? <Avatar name={actor} size="small" variant="bold" isDecorative /> : undefined}
+      leading={
+        actor ? (
+          <Avatar
+            size="small"
+            variant="bold"
+            aria-hidden="true"
+            hue={avatarHue(actor)}
+            title={actor}
+          >
+            <AvatarFallback>{avatarInitials(actor, 2)}</AvatarFallback>
+          </Avatar>
+        ) : undefined
+      }
       value={text}
       onValueChange={change}
       autoFocus={autoFocus}
@@ -407,7 +433,16 @@ function ActivityComposer({
               id: person.name,
               label: person.name,
               insertText: `@[${person.name}] `,
-              leading: <Avatar name={person.name} size="xsmall" isDecorative />,
+              leading: (
+                <Avatar
+                  size="xsmall"
+                  aria-hidden="true"
+                  hue={avatarHue(person.name)}
+                  title={person.name}
+                >
+                  <AvatarFallback>{avatarInitials(person.name, 1)}</AvatarFallback>
+                </Avatar>
+              ),
               description: person.meta,
             })),
         };

@@ -1,8 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import { avatarHue, AvatarFallback, avatarInitials, Avatar, Button } from "../../components";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-
-import { Avatar, Button } from "../../components";
 import { Composer, type ComposerProps } from "../../patterns";
 import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
@@ -39,14 +38,33 @@ export const ComposerMatrix: Story = {
       <Composer
         label="Reply"
         defaultValue="Thanks for the update."
-        leading={<Avatar name="Sam Rivera" size="small" isDecorative />}
+        leading={
+          <Avatar
+            size="small"
+            aria-hidden="true"
+            hue={avatarHue("Sam Rivera")}
+            title={"Sam Rivera"}
+          >
+            <AvatarFallback>{avatarInitials("Sam Rivera", 2)}</AvatarFallback>
+          </Avatar>
+        }
         onSubmit={() => undefined}
       />
       <Composer
         label="Comment"
         submitLabel="Comment"
         defaultValue="Confirm the review cadence with Sam before Friday."
-        leading={<Avatar name="Sam Rivera" size="medium" variant="bold" isDecorative />}
+        leading={
+          <Avatar
+            size="medium"
+            variant="bold"
+            aria-hidden="true"
+            hue={avatarHue("Sam Rivera")}
+            title={"Sam Rivera"}
+          >
+            <AvatarFallback>{avatarInitials("Sam Rivera", 2)}</AvatarFallback>
+          </Avatar>
+        }
         actions={
           <Button size="small" variant="secondary">
             Task

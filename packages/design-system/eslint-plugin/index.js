@@ -185,7 +185,8 @@ const structural = [
   /^border(-(x|y|t|b|l|r|s|e))?$/, // 1px, the default width token
   /^border-(none|solid|dashed|dotted|double|hidden|collapse|separate)$/,
   /^divide-(x|y)(-reverse)?$/,
-  /^rounded-none$/,
+  /^rounded(-(t|b|l|r|s|e|tl|tr|bl|br|ss|se|es|ee))?-none$/, // zero-radius joins, including logical edges
+  /^@container(\/[\w-]+)?$/, // named containers for responsive component composition
   /^shadow-none$/,
   /^border(-(x|y|t|b|l|r|s|e))?-0$/,
   /^-?(m|mx|my|mt|mb|ml|mr|ms|me)-auto$/,
@@ -356,7 +357,7 @@ const LEGACY = {
   RailGroup: "Inspector.Group",
   CardHeader: "Card.Header",
   StackedBar: "ProgressStacked",
-  AvatarStack: "Avatar.Stack",
+  AvatarStack: "AvatarGroup",
   MenuItem: "DropdownMenu.Item",
   MenuLabel: "DropdownMenu.Label",
   RelatedCard: "Related",

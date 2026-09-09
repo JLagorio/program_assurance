@@ -418,7 +418,11 @@ export function buildControlTextIndex(
       discussion: [],
       params: [],
       related: [],
-      objectives: leafObjectives(full.objectives).map((o) => ({ label: o.label, prose: o.prose })),
+      objectives: leafObjectives(full.objectives).map((o) => ({
+        id: o.id,
+        label: o.label,
+        prose: o.prose,
+      })),
       methods: full.methods.map((m) => ({
         method: m.method,
         objects: m.method === "Test" ? m.objects : [],

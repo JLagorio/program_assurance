@@ -1,6 +1,5 @@
 import { Avatar as Primitive } from "@base-ui/react/avatar";
 import { createContext, useContext, type ComponentProps } from "react";
-
 import { token } from "../generated/tokens";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
@@ -12,7 +11,7 @@ import { toneClasses, type Tone } from "./badge";
    carry no meaning. Base UI's Avatar underneath tracks the photo: the initials hold the circle until
    it has loaded, and return if it fails. A Badge is a mark on the circle's corner, in a status tone. */
 
-function initials(name: string, count: 1 | 2) {
+export function avatarInitials(name: string, count: 1 | 2 = 2) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
   const first = parts[0]?.[0] ?? "";
@@ -71,7 +70,7 @@ const bold: Record<AvatarHue, string> = {
 };
 
 /** A stable hue from the name, so one person is the same colour everywhere they appear. */
-function hueOf(name: string): AvatarHue {
+export function avatarHue(name: string): AvatarHue {
   let h = 0;
   for (const ch of name) h = (h * 31 + (ch.codePointAt(0) ?? 0)) >>> 0;
   return hues[h % hues.length] ?? "blue";
@@ -83,62 +82,32 @@ const after = (hue: AvatarHue): AvatarHue => hues[(hues.indexOf(hue) + 1) % hues
 /** The neutral paint: the fill of a Badge with a hairline, so a person and a category read at the same weight. */
 const neutral = "border border-default bg-neutral text-subtle";
 
-/** What the root tells its parts: the name the initials come from and how many fit, the size for a Badge, the radius for a photo. */
-const RootContext = createContext<{
-  name: string;
-  initials: 1 | 2;
-  size: AvatarSize;
-  radius: string;
-} | null>(null);
-
-export type AvatarStackSize = "small" | "medium";
-
-/** What a stack tells the circles inside it: their size and treatment, and whether the group is already named. */
-const StackContext = createContext<{
-  size: AvatarStackSize;
-  variant: AvatarVariant;
-  named: boolean;
-} | null>(null);
+const GroupContext = createContext(false);
+const RootContext = createContext<{ size: AvatarSize; radius: string } | null>(null);
 
 /** A 2px ring in the surface colour, so overlapping circles stay circles. */
 const ring = { boxShadow: `0 0 0 2px ${token("elevation.surface")}` } as const;
 
-/** The neutral fill is a translucent wash, so in a stack it is laid over the opaque surface colour: the circle before shows through nothing. */
-const backed = {
-  backgroundColor: token("elevation.surface"),
-  backgroundImage: `linear-gradient(${token("color.background.neutral")}, ${token("color.background.neutral")})`,
-} as const;
-
-export type AvatarProps = ComponentProps<"span"> & {
-  /** The person's full name. The initials, the hue and the accessible name come from it. */
-  name: string;
-  /** A photo, as the shorthand for an `Avatar.Image`. The initials hold the circle until it loads, and return if it fails. */
-  src?: string | undefined;
-  /** `xsmall` is 16px and one initial, beside a name; `small` is 24px, the default, alone in a header or a stack; `medium` is 32px, in a comment or a card; `large` is 40px, in a profile row; `xlarge` is 64px, on a profile page. Inside a stack, the stack's size. */
+export type AvatarProps = Primitive.Root.Props & {
   size?: AvatarSize | undefined;
-  /** `neutral`, the default, is the grey mark: a person never reads as a status. `tinted`, `bold` and `gradient` take a hue from the name, stable per person, from the accent colours, which carry no meaning. Inside a stack, the stack's treatment. */
   variant?: AvatarVariant | undefined;
-  /** Pins the hue instead of drawing it from the name: a system's mark, a team's colour. */
   hue?: AvatarHue | undefined;
-  /** `circle` for a person, the default; `square` for a thing: a system, a program, a team. */
   shape?: "circle" | "square" | undefined;
-  /** The name is written beside it (Person) or the group is named (a labelled Avatar.Stack): hide the avatar from a screen reader so the name is read once. */
-  isDecorative?: boolean | undefined;
 };
 
 /** Native img props and ref, and Base UI's `onLoadingStatusChange`. Rendered only once the photo has loaded. */
 export type AvatarImageProps = Primitive.Image.Props;
-/** Native span props and ref, and Base UI's `delay`. Shown until the photo has loaded, and when it fails; the initials when it has no children. */
+/** Native span props and ref, and Base UI's `delay`. Shows caller-supplied initials or other fallback content while the photo loads or fails. */
 export type AvatarFallbackProps = Primitive.Fallback.Props;
-/** Native span props and ref target the +n circle. */
-export type AvatarCountProps = ComponentProps<"span">;
+/** Native div props and ref target the +n circle. */
+export type AvatarGroupCountProps = ComponentProps<"div">;
 /** Native span props and ref target the mark on the circle's corner. */
 export type AvatarBadgeProps = ComponentProps<"span"> & {
   /** What the mark says, in a status tone: `success` for present, `danger` for away, `neutral`, the default, for a mark that is not a status. */
   tone?: Tone | undefined;
 };
 
-function AvatarImage({ className, alt = "", ...props }: AvatarImageProps) {
+export function AvatarImage({ className, alt = "", ...props }: AvatarImageProps) {
   const root = useContext(RootContext);
   return (
     <Primitive.Image
@@ -150,7 +119,7 @@ function AvatarImage({ className, alt = "", ...props }: AvatarImageProps) {
   );
 }
 
-function AvatarFallback({ className, children, ...props }: AvatarFallbackProps) {
+export function AvatarFallback({ className, children, ...props }: AvatarFallbackProps) {
   const root = useContext(RootContext);
   return (
     <Primitive.Fallback
@@ -158,7 +127,7 @@ function AvatarFallback({ className, children, ...props }: AvatarFallbackProps) 
       className={classes(cn("flex size-full items-center justify-center", root?.radius), className)}
       {...props}
     >
-      {children ?? (root ? initials(root.name, root.initials) : null)}
+      {children}
     </Primitive.Fallback>
   );
 }
@@ -173,7 +142,7 @@ const badgeSizes: Record<AvatarSize, string> = {
 };
 
 /** A mark on the circle's corner: a dot in a status tone, or an icon in it from `medium` up. Ringed in the surface colour, so it reads as sitting on the circle. */
-function AvatarBadge({ tone = "neutral", className, style, ...props }: AvatarBadgeProps) {
+export function AvatarBadge({ tone = "neutral", className, style, ...props }: AvatarBadgeProps) {
   const root = useContext(RootContext);
   const size = root?.size ?? "small";
   return (
@@ -193,89 +162,89 @@ function AvatarBadge({ tone = "neutral", className, style, ...props }: AvatarBad
   );
 }
 
-/** Initials, or a photo, in a circle named by the full name. */
-function AvatarRoot({
-  name,
-  src,
-  size,
-  variant,
-  hue,
+/** Base UI image loading and composition, styled with Ledger sizes and accent treatments. */
+export function Avatar({
+  size = "small",
+  variant = "neutral",
+  hue = "blue",
   shape = "circle",
-  isDecorative,
   className,
   style,
-  children,
-  role,
-  title,
-  "aria-label": ariaLabel,
-  "aria-hidden": ariaHidden,
   ...props
 }: AvatarProps) {
-  const stack = useContext(StackContext);
-  const resolvedSize: AvatarSize = size ?? stack?.size ?? "small";
-  const resolvedVariant = variant ?? stack?.variant ?? "neutral";
-  const decorative = isDecorative ?? stack?.named ?? false;
-  const s = sizes[resolvedSize];
-  const h = hue ?? hueOf(name);
+  const grouped = useContext(GroupContext);
+  const s = sizes[size];
   const paint =
-    resolvedVariant === "tinted"
-      ? tinted[h]
-      : resolvedVariant === "bold"
-        ? bold[h]
-        : resolvedVariant === "gradient"
+    variant === "tinted"
+      ? tinted[hue]
+      : variant === "bold"
+        ? bold[hue]
+        : variant === "gradient"
           ? "text-inverse"
           : neutral;
-  const gradient =
-    resolvedVariant === "gradient"
-      ? {
-          backgroundImage: `linear-gradient(135deg, ${token(`color.background.accent.${h}.bolder`)}, ${token(`color.background.accent.${after(h)}.bolder`)})`,
-        }
-      : undefined;
   const radius = shape === "circle" ? "rounded-full" : s.square;
   return (
-    <RootContext.Provider value={{ name, initials: s.initials, size: resolvedSize, radius }}>
+    <RootContext.Provider value={{ size, radius }}>
       <Primitive.Root
         data-slot="avatar"
-        data-size={resolvedSize}
-        data-variant={resolvedVariant}
+        data-size={size}
+        data-variant={variant}
         data-shape={shape}
-        role={role ?? (decorative ? undefined : "img")}
-        aria-label={ariaLabel ?? (decorative ? undefined : name)}
-        aria-hidden={ariaHidden ?? (decorative || undefined)}
-        title={title ?? name}
-        style={(state) => {
-          const loaded = state.imageLoadingStatus === "loaded";
-          return {
-            ...(stack ? ring : undefined),
-            ...(stack && (loaded || resolvedVariant === "neutral") ? backed : undefined),
-            ...(loaded ? undefined : gradient),
-            ...style,
-          };
-        }}
         className={(state) =>
           cn(
-            // No overflow clipping: the photo and the fallback carry the radius, so a Badge can sit on the corner.
             "relative inline-flex shrink-0 select-none items-center justify-center",
             radius,
             s.box,
             s.type,
-            // A loaded photo sits on the neutral circle with its hairline; the treatment is the fallback's.
             state.imageLoadingStatus === "loaded" ? neutral : paint,
-            className,
+            typeof className === "function" ? className(state) : className,
           )
         }
+        style={(state) => ({
+          ...(grouped ? ring : {}),
+          ...(grouped && variant === "neutral"
+            ? { backgroundColor: token("elevation.surface.raised") }
+            : {}),
+          ...(variant === "gradient" && state.imageLoadingStatus !== "loaded"
+            ? {
+                backgroundImage: `linear-gradient(135deg, ${token(`color.background.accent.${hue}.bolder`)}, ${token(`color.background.accent.${after(hue)}.bolder`)})`,
+              }
+            : {}),
+          ...(typeof style === "function" ? style(state) : style),
+        })}
         {...props}
-      >
-        {children !== undefined ? (
-          children
-        ) : (
-          <>
-            {src ? <AvatarImage src={src} /> : null}
-            <AvatarFallback />
-          </>
-        )}
-      </Primitive.Root>
+      />
     </RootContext.Provider>
+  );
+}
+
+export type AvatarGroupProps = ComponentProps<"div">;
+export function AvatarGroup({ className, ...props }: AvatarGroupProps) {
+  return (
+    <GroupContext.Provider value={true}>
+      <div
+        data-slot="avatar-group"
+        className={cn(
+          // eslint-disable-next-line ledger/no-margin -- Overlap is the geometry of an avatar group.
+          "group/avatar-group flex items-center [&>*+*]:-ms-075",
+          className,
+        )}
+        {...props}
+      />
+    </GroupContext.Provider>
+  );
+}
+export function AvatarGroupCount({ className, style, ...props }: AvatarGroupCountProps) {
+  return (
+    <div
+      data-slot="avatar-group-count"
+      style={{ ...ring, ...style }}
+      className={cn(
+        "relative flex size-300 shrink-0 items-center justify-center rounded-full bg-surface-raised font-body-xsmall text-subtle group-has-[[data-size=medium]]/avatar-group:size-400 [&>svg]:size-icon-small",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 
@@ -288,117 +257,19 @@ export type PersonProps = Omit<ComponentProps<"span">, "children"> & {
   variant?: AvatarVariant | undefined;
 };
 
-/** An Avatar with the name beside it: how a person is written in a row, a fact or a rail. */
+/** A person's avatar and visible name, composed from the public parts. */
 export function Person({ name, src, variant, className, ...props }: PersonProps) {
   return (
-    <StackContext.Provider value={null}>
-      <span
-        data-slot="person"
-        className={cn("flex min-w-0 items-center gap-075", className)}
-        {...props}
-      >
-        <Avatar name={name} src={src} variant={variant} size="xsmall" isDecorative />
-        <span className="truncate">{name}</span>
-      </span>
-    </StackContext.Provider>
-  );
-}
-
-/** One person in a stack: a name, or a name with a photo. */
-export type AvatarStackPerson = string | { name: string; src?: string | undefined };
-
-export type AvatarStackProps = ComponentProps<"span"> & {
-  /** The people, in order, as the shorthand: the group is named by all of them. Omit it and compose Avatars and an `Avatar.Count` as children. */
-  names?: AvatarStackPerson[] | undefined;
-  /** How many avatars to show before the rest fold into a +n, 4 by default. Shorthand only. */
-  max?: number | undefined;
-  /** `small` is 24px, the default; `medium` is 32px, on a profile or a card. Every circle and the +n take it. */
-  size?: AvatarStackSize | undefined;
-  /** The colour treatment of every circle; `neutral` by default. */
-  variant?: AvatarVariant | undefined;
-};
-
-const stack: Record<AvatarStackSize, { overlap: string; more: string }> = {
-  small: { overlap: "-space-x-050", more: "size-300 font-body-xsmall font-medium" },
-  medium: { overlap: "-space-x-100", more: "size-400 font-body font-medium" },
-};
-
-/** The +n at the end of a stack: a neutral circle at the stack's size, holding what the caller writes in it. */
-function AvatarCount({ className, style, ...props }: AvatarCountProps) {
-  const inStack = useContext(StackContext);
-  const size = inStack?.size ?? "small";
-  return (
     <span
-      data-slot="avatar-count"
-      data-size={size}
-      style={inStack ? { ...ring, ...backed, ...style } : style}
-      className={cn(
-        "inline-flex shrink-0 select-none items-center justify-center rounded-full",
-        neutral,
-        inStack && "relative",
-        stack[size].more,
-        className,
-      )}
+      data-slot="person"
+      className={cn("flex min-w-0 items-center gap-075", className)}
       {...props}
-    />
+    >
+      <Avatar aria-hidden="true" size="xsmall" variant={variant} hue={avatarHue(name)}>
+        {src && <AvatarImage src={src} />}
+        <AvatarFallback>{avatarInitials(name, 1)}</AvatarFallback>
+      </Avatar>
+      <span className="truncate">{name}</span>
+    </span>
   );
 }
-
-/**
- * Up to `max` avatars overlapping, then a +n. With `names`, a group named by every name, so the +n
- * hides no one from a screen reader. With children, the caller composes the circles and the count
- * and names the group with `aria-label`; the circles inside a named group are decorative.
- */
-export function AvatarStack({
-  names,
-  max = 4,
-  size = "small",
-  variant = "neutral",
-  className,
-  children,
-  role,
-  "aria-label": ariaLabel,
-  "aria-labelledby": ariaLabelledBy,
-  ...props
-}: AvatarStackProps) {
-  const shorthand = children === undefined;
-  const people = (names ?? []).map((p) => (typeof p === "string" ? { name: p } : p));
-  const shown = people.slice(0, max);
-  const rest = people.length - shown.length;
-  const label =
-    ariaLabel ?? (shorthand && people.length ? people.map((p) => p.name).join(", ") : undefined);
-  const named = label !== undefined || ariaLabelledBy !== undefined;
-  return (
-    <StackContext.Provider value={{ size, variant, named }}>
-      <span
-        data-slot="avatar-stack"
-        data-size={size}
-        role={role ?? "group"}
-        aria-label={label}
-        aria-labelledby={ariaLabelledBy}
-        className={cn("flex items-center", stack[size].overlap, className)}
-        {...props}
-      >
-        {shorthand ? (
-          <>
-            {shown.map((p, i) => (
-              <Avatar key={`${i}-${p.name}`} name={p.name} src={p.src} />
-            ))}
-            {rest > 0 ? <AvatarCount aria-hidden>+{rest}</AvatarCount> : null}
-          </>
-        ) : (
-          children
-        )}
-      </span>
-    </StackContext.Provider>
-  );
-}
-
-/** A person's mark, on Base UI's Avatar: the shorthand `name`/`src`, or `Avatar.Image` and `Avatar.Fallback` composed, with an `Avatar.Badge` on the corner; `Avatar.Stack` for the people on a thing and `Avatar.Count` for the rest of them. Native span props and the ref target the root. */
-export const Avatar = Object.assign(AvatarRoot, {
-  Image: AvatarImage,
-  Fallback: AvatarFallback,
-  Badge: AvatarBadge,
-  Stack: AvatarStack,
-  Count: AvatarCount,
-});

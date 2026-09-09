@@ -1,4 +1,10 @@
 import {
+  FieldLabel,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,14 +25,11 @@ import {
   IconButton,
   Inline,
   Input,
-  NativeSelect,
   Stack,
   Stepper,
 } from "@ledger/design-system";
-
 import { Plus, Settings2, X } from "lucide-react";
-import { useRef, useState } from "react";
-
+import { useId, useRef, useState } from "react";
 import { currentSession } from "@/lib/control-work";
 import {
   applyStageSet,
@@ -128,6 +131,8 @@ function StagesDialog({
   stages: string[];
   actor: string;
 }) {
+  const fieldId = useId();
+
   const [draft, setDraft] = useState<string[]>(stages);
   const [was, setWas] = useState(stages);
   if (was !== stages) {
@@ -136,6 +141,10 @@ function StagesDialog({
   }
   const clean = draft.map((s) => s.trim()).filter(Boolean);
 
+  const selectionItems = [
+    { value: "", label: "Choose a template" },
+    ...stageSets.map((s) => ({ value: s.id, label: s.name })),
+  ];
   return (
     <Dialog
       open={open}
@@ -155,22 +164,34 @@ function StagesDialog({
         </DialogHeader>
         <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
           <Stack space="space.150">
-            <Field label="Start from">
-              <NativeSelect
+            <Field>
+              <FieldLabel id={`${fieldId}-start-from-1-label`} htmlFor={`${fieldId}-start-from-1`}>
+                {"Start from"}
+              </FieldLabel>
+              <Select<string>
+                items={selectionItems}
                 value=""
-                onChange={(e) => {
-                  const set = stageSets.find((s) => s.id === e.target.value);
+                onValueChange={(value) => {
+                  if (value === null) return;
+                  const set = stageSets.find((s) => s.id === value);
                   if (set) setDraft(set.stages);
                 }}
-                aria-label="Start from a template"
               >
-                <option value="">Choose a template</option>
-                {stageSets.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </NativeSelect>
+                <SelectTrigger
+                  id={`${fieldId}-start-from-1`}
+                  className="w-full"
+                  aria-label="Start from a template"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent aria-labelledby={`${fieldId}-start-from-1-label`}>
+                  {selectionItems.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Stack space="space.075">
               {draft.map((s, i) => (

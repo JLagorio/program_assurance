@@ -1,8 +1,16 @@
-import { AddEvidenceDialog, EvidencePreview } from "@/components/app/program-evidence";
-import { descendantsOf, nodeById } from "@/lib/composition";
-import { useRecordForm } from "@/lib/record-form";
-import { scopeById } from "@/lib/scopes";
 import {
+  FieldLabel,
+  FieldError,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxList,
+  ComboboxItem,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   ActionBar,
   ActionBarAction,
   Badge,
@@ -23,23 +31,17 @@ import {
   Grid,
   IconButton,
   Inline,
-  NativeSelect,
   Stack,
   Table,
   Textarea,
   TextLink,
 } from "@ledger/design-system";
+import { AddEvidenceDialog, EvidencePreview } from "@/components/app/program-evidence";
+import { descendantsOf, nodeById } from "@/lib/composition";
+import { useRecordForm } from "@/lib/record-form";
+import { scopeById } from "@/lib/scopes";
 import { Link } from "@tanstack/react-router";
-import { useCallback, useState, type SetStateAction } from "react";
-/**
- * The control work surface.
- *
- * Rebuilt on the shapes in `shapes.tsx` after an audit found this screen was
- * nineteen stacked Sections carrying 194 words of explanatory prose. The rule
- * here: the work is expanded, the reference is collapsed, the facts are in the
- * Inspector, and nothing carries a description.
- */
-
+import { useId, useCallback, useState, type SetStateAction } from "react";
 import { availableControlEvidence, controlEvidence } from "@/lib/control-evidence";
 import {
   activityFor,
@@ -63,9 +65,17 @@ import {
 } from "@/lib/control-work";
 import { linkArtifact, useEvidenceVersion, type EvidenceLink } from "@/lib/evidence-catalog";
 import { controlRequirementsInElement } from "@/lib/program-controls";
-
 import { cn } from "@ledger/design-system/cn";
 import { MoreHorizontal } from "lucide-react";
+
+/**
+ * The control work surface.
+ *
+ * Rebuilt on the shapes in `shapes.tsx` after an audit found this screen was
+ * nineteen stacked Sections carrying 194 words of explanatory prose. The rule
+ * here: the work is expanded, the reference is collapsed, the facts are in the
+ * Inspector, and nothing carries a description.
+ */
 
 /* ------------------------------------------------------------- Action bar */
 
@@ -86,6 +96,8 @@ export function ControlActionBar({
   tabs?: React.ReactNode;
   onChange: () => void;
 }) {
+  const fieldId = useId();
+
   const session = currentSession();
   const offers = offersFor(work, context, session.role);
   const [pending, setPending] = useState<string | null>(null);
@@ -189,24 +201,39 @@ export function ControlActionBar({
                   {session.name} · {session.role}
                 </Box>
                 <form.Field name="note">
-                  {(field) => (
-                    <Field
-                      isRequired={chosen?.def.note === "required"}
-                      error={
-                        field.state.meta.isTouched && !field.state.meta.isValid
-                          ? [...new Set(field.state.meta.errors)].join(" ")
-                          : undefined
-                      }
-                      label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
-                    >
-                      <Textarea
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        name={field.name}
-                        onBlur={field.handleBlur}
-                      />
-                    </Field>
-                  )}
+                  {(field) => {
+                    const fieldError1 =
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError1)}>
+                        <FieldLabel id={`${fieldId}-field-1-label`} htmlFor={`${fieldId}-field-1`}>
+                          {chosen?.def.note === "required" ? "Reason (required)" : "Note"}
+                          {chosen?.def.note === "required" ? (
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          ) : null}
+                        </FieldLabel>
+                        <Textarea
+                          id={`${fieldId}-field-1`}
+                          aria-labelledby={`${fieldId}-field-1-label`}
+                          aria-required={chosen?.def.note === "required"}
+                          aria-invalid={Boolean(fieldError1)}
+                          aria-describedby={fieldError1 ? `${fieldId}-field-1-message` : undefined}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                        {fieldError1 ? (
+                          <FieldError id={`${fieldId}-field-1-message`}>{fieldError1}</FieldError>
+                        ) : null}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
               </Grid>
             </form>
@@ -394,6 +421,8 @@ export function EvidenceBlock({
   onChange: () => void;
   elementId?: string | undefined;
 }) {
+  const fieldId = useId();
+
   useEvidenceVersion();
   const available = availableControlEvidence(work);
   const rows = controlEvidence(work);
@@ -436,6 +465,30 @@ export function EvidenceBlock({
     }
   };
 
+  const targetIdItems = [
+    {
+      value: "implementation",
+      label: (
+        <>
+          {work.control}implementation · {scopeById.get(work.scope)?.name}
+        </>
+      ),
+    },
+    ...requirements.map((requirement) => ({
+      value: requirement.id,
+      label: (
+        <>
+          {requirement.id} · {requirement.text}
+        </>
+      ),
+    })),
+  ];
+  const artifactIdItems = unlinked.map((artifact) => ({
+    value: artifact.id,
+    label: `${artifact.id} · ${artifact.label}`,
+    keywords: `${artifact.kind} ${artifact.provenance} ${artifact.owner}`,
+    meta: artifact.review,
+  }));
   return (
     <div>
       {rows.length ? (
@@ -560,34 +613,74 @@ export function EvidenceBlock({
           </DialogHeader>
           <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
             <Stack space="space.150">
-              <Field label="Supports">
-                <NativeSelect
+              <Field>
+                <FieldLabel id={`${fieldId}-supports-2-label`} htmlFor={`${fieldId}-supports-2`}>
+                  {"Supports"}
+                </FieldLabel>
+                <Select<string>
+                  items={targetIdItems}
                   value={targetId}
-                  onChange={(event) => chooseTarget(event.target.value)}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return chooseTarget(value);
+                  }}
                 >
-                  <option value="implementation">
-                    {work.control} implementation · {scopeById.get(work.scope)?.name}
-                  </option>
-                  {requirements.map((requirement) => (
-                    <option key={requirement.id} value={requirement.id}>
-                      {requirement.id} · {requirement.text}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-supports-2`}
+                    aria-labelledby={`${fieldId}-supports-2-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-supports-2-label`}>
+                    {targetIdItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
-              <Field label="Evidence">
-                <Combobox
-                  value={artifactId}
-                  onChange={setArtifactId}
-                  placeholder="Find an existing artifact"
-                  options={unlinked.map((artifact) => ({
-                    value: artifact.id,
-                    label: `${artifact.id} · ${artifact.label}`,
-                    keywords: `${artifact.kind} ${artifact.provenance} ${artifact.owner}`,
-                    meta: artifact.review,
-                  }))}
-                  empty="No matching evidence in this system scope."
-                />
+              <Field>
+                <FieldLabel id={`${fieldId}-evidence-3-label`} htmlFor={`${fieldId}-evidence-3`}>
+                  {"Evidence"}
+                </FieldLabel>
+                <Combobox<(typeof artifactIdItems)[number]>
+                  items={artifactIdItems}
+
+                  isItemEqualToValue={(item, selected) => item.value === selected.value}
+                  filter={(item, query) =>
+                    [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                      .join(" ")
+                      .toLocaleLowerCase()
+                      .includes(query.toLocaleLowerCase())
+                  }
+                  value={artifactIdItems.find((item) => item.value === artifactId) ?? null}
+                  onValueChange={(item) => setArtifactId(item?.value ?? "")}
+                >
+                  <ComboboxInput
+                    id={`${fieldId}-evidence-3`}
+                    aria-labelledby={`${fieldId}-evidence-3-label`}
+                    placeholder="Find an existing artifact"
+                  />
+                  <ComboboxContent>
+                    <ComboboxEmpty>{"No matching evidence in this system scope."}</ComboboxEmpty>
+                    <ComboboxList aria-labelledby={`${fieldId}-evidence-3-label`}>
+                      {(item) => (
+                        <ComboboxItem
+                          key={item.value}
+                          value={item}
+                          disabled={"disabled" in item && Boolean(item.disabled)}
+                        >
+                          <span className="min-w-0 flex-1">{item.label}</span>
+                          {"meta" in item && item.meta ? (
+                            <span className="text-subtle font-body-small">{String(item.meta)}</span>
+                          ) : null}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
               </Field>
               <Button
                 size="small"
@@ -741,34 +834,74 @@ export function History({ work }: { work: ControlWork }) {
 
 /** The two axes as Inspector controls, each refusing what its gates forbid. */
 export function AxisControls({ work, context }: { work: ControlWork; context: WorkContext }) {
+  const fieldId = useId();
+
   const session = currentSession();
   const canAssess = session.role === "Assessor";
+  const implementationItems = [
+    ...(work.implementationRecorded === false
+      ? [
+          {
+            value: "Unrecorded",
+            label: "Unrecorded",
+          },
+        ]
+      : []),
+    ...implementationStates.map((s) => ({ value: s, label: s })),
+  ];
+  const assessmentItems = assessmentStates.map((s) => ({ value: s, label: s }));
   return (
     <Stack space="space.100">
-      <Field label="Implementation">
-        <NativeSelect
+      <Field>
+        <FieldLabel
+          id={`${fieldId}-implementation-4-label`}
+          htmlFor={`${fieldId}-implementation-4`}
+        >
+          {"Implementation"}
+        </FieldLabel>
+        <Select<string>
+          items={implementationItems}
           value={work.implementationRecorded === false ? "Unrecorded" : work.implementation}
           disabled
-          aria-label="Implementation"
-          title="Changed through the actions above, so the gates apply"
         >
-          {work.implementationRecorded === false && <option>Unrecorded</option>}
-          {implementationStates.map((s) => (
-            <option key={s}>{s}</option>
-          ))}
-        </NativeSelect>
+          <SelectTrigger
+            id={`${fieldId}-implementation-4`}
+            className="w-full"
+            aria-label="Implementation"
+            title="Changed through the actions above, so the gates apply"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent aria-labelledby={`${fieldId}-implementation-4-label`}>
+            {implementationItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
-      <Field label="Assessment">
-        <NativeSelect
-          value={work.assessment}
-          disabled
-          aria-label="Assessment"
-          title={canAssess ? "Changed through the actions above" : "Assessor only"}
-        >
-          {assessmentStates.map((s) => (
-            <option key={s}>{s}</option>
-          ))}
-        </NativeSelect>
+      <Field>
+        <FieldLabel id={`${fieldId}-assessment-5-label`} htmlFor={`${fieldId}-assessment-5`}>
+          {"Assessment"}
+        </FieldLabel>
+        <Select<string> items={assessmentItems} value={work.assessment} disabled>
+          <SelectTrigger
+            id={`${fieldId}-assessment-5`}
+            className="w-full"
+            aria-label="Assessment"
+            title={canAssess ? "Changed through the actions above" : "Assessor only"}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent aria-labelledby={`${fieldId}-assessment-5-label`}>
+            {assessmentItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
       <Block title="Gates">
         <GateList work={work} context={context} />
@@ -795,6 +928,8 @@ export function ControlActions({
   onChange: () => void;
   extra?: React.ReactNode;
 }) {
+  const fieldId = useId();
+
   const session = currentSession();
   const offers = offersFor(work, context, session.role);
   const [pending, setPending] = useState<string | null>(null);
@@ -920,24 +1055,39 @@ export function ControlActions({
                   {session.name} · {session.role}
                 </Box>
                 <form.Field name="note">
-                  {(field) => (
-                    <Field
-                      isRequired={chosen?.def.note === "required"}
-                      error={
-                        field.state.meta.isTouched && !field.state.meta.isValid
-                          ? [...new Set(field.state.meta.errors)].join(" ")
-                          : undefined
-                      }
-                      label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
-                    >
-                      <Textarea
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        name={field.name}
-                        onBlur={field.handleBlur}
-                      />
-                    </Field>
-                  )}
+                  {(field) => {
+                    const fieldError6 =
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError6)}>
+                        <FieldLabel id={`${fieldId}-field-6-label`} htmlFor={`${fieldId}-field-6`}>
+                          {chosen?.def.note === "required" ? "Reason (required)" : "Note"}
+                          {chosen?.def.note === "required" ? (
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          ) : null}
+                        </FieldLabel>
+                        <Textarea
+                          id={`${fieldId}-field-6`}
+                          aria-labelledby={`${fieldId}-field-6-label`}
+                          aria-required={chosen?.def.note === "required"}
+                          aria-invalid={Boolean(fieldError6)}
+                          aria-describedby={fieldError6 ? `${fieldId}-field-6-message` : undefined}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                        {fieldError6 ? (
+                          <FieldError id={`${fieldId}-field-6-message`}>{fieldError6}</FieldError>
+                        ) : null}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
               </Grid>
             </form>

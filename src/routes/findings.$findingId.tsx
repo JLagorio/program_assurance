@@ -1,25 +1,3 @@
-import { useAssuranceVersion } from "@/lib/assurance-record-store";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Fragment, useMemo } from "react";
-
-import { TextBlock } from "@/components/app/control-text";
-import { RemediationPlanSection } from "@/components/app/remediation";
-import { Shell } from "@/components/app/shell";
-import { ccis } from "@/lib/catalog";
-import { useControlMatrix } from "@/lib/control-matrix";
-import {
-  assetById,
-  findingProgram,
-  findings,
-  findingsByCci,
-  isDeficiency,
-  isOpen,
-} from "@/lib/findings";
-import { controlTitle, nistControlById } from "@/lib/nist-catalog";
-import { poamById } from "@/lib/register";
-import { planForFinding } from "@/lib/remediation";
-import { bandTone, scoreFinding, type ScoreFactor } from "@/lib/risk-scoring";
-import { severityTone, statusTone } from "@/lib/spine";
 import {
   Badge,
   Box,
@@ -45,6 +23,27 @@ import {
   TabsTrigger,
   TextLink,
 } from "@ledger/design-system";
+import { useAssuranceVersion } from "@/lib/assurance-record-store";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Fragment, useMemo } from "react";
+import { TextBlock } from "@/components/app/control-text";
+import { RemediationPlanSection } from "@/components/app/remediation";
+import { Shell } from "@/components/app/shell";
+import { ccis } from "@/lib/catalog";
+import { useControlMatrix } from "@/lib/control-matrix";
+import {
+  assetById,
+  findingProgram,
+  findings,
+  findingsByCci,
+  isDeficiency,
+  isOpen,
+} from "@/lib/findings";
+import { controlTitle, nistControlById } from "@/lib/nist-catalog";
+import { poamById } from "@/lib/register";
+import { planForFinding } from "@/lib/remediation";
+import { bandTone, scoreFinding, type ScoreFactor } from "@/lib/risk-scoring";
+import { severityTone, statusTone } from "@/lib/spine";
 
 const findingTabs = ["Finding", "Assessment", "Remediation", "Residual risk"] as const;
 type FindingTab = (typeof findingTabs)[number];

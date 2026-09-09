@@ -5,14 +5,15 @@ import * as Stories from "./Select.stories";
 
 # Select
 
-Choose predefined values with shadcn's Base UI Select parts. Ledger supplies control geometry, menu styling, locale direction and Field integration. Use NativeSelect for native browser presentation and Combobox when the list needs filtering.
+Choose predefined values with shadcn's Base UI Select parts. Ledger supplies control geometry, menu styling, locale direction and Field integration. Use Combobox when the list needs filtering.
 
 ```tsx
 const statuses = { draft: "Draft", review: "In review" };
 
-<Field label="Status">
+<Field>
+  <FieldLabel htmlFor="select">Status</FieldLabel>
   <Select name="status" items={statuses} defaultValue="draft">
-    <SelectTrigger className="w-full">
+    <SelectTrigger id="select" className="w-full">
       <SelectValue placeholder="Choose a status" />
     </SelectTrigger>
     <SelectContent>
@@ -20,7 +21,7 @@ const statuses = { draft: "Draft", review: "In review" };
       <SelectItem value="review">In review</SelectItem>
     </SelectContent>
   </Select>
-</Field>
+</Field>;
 ```
 
 ## Composition and states
@@ -35,7 +36,7 @@ Supply Root's `items` label map/array, object-value label conversion, or Value's
 
 ## Forms and selection
 
-Field binds its label, hint/error, invalid state and required announcement to Trigger. Field's `isRequired` is descriptive; Root's `required` enables native constraint validation. Native form props (`name`, `form`, `autoComplete`, `inputRef`) belong on Root. Root's ID supplies the default trigger ID; an explicit Trigger ID takes precedence. `inputRef` targets the hidden form input.
+Connect FieldLabel to Trigger with `htmlFor`/`id`; put `aria-describedby`, `aria-invalid` and `aria-required` on Trigger. Root’s `required` enables native constraint validation. Native form props (`name`, `form`, `autoComplete`, `inputRef`) belong on Root. Root’s ID supplies the default trigger ID; an explicit Trigger ID takes precedence. `inputRef` targets the hidden form input.
 
 Single selection accepts a value or `null`; `onValueChange(value, details)` can reject a change with `details.cancel()`. Cancellation preserves the value, but an item activation still closes a single-select popup. Add a `null` item when the reader needs to clear from the list. Value's placeholder appears when no value is selected.
 
@@ -57,9 +58,9 @@ The inner List owns bounded scrolling so hover arrows work in both alignment mod
 
 ## Accessibility and dialogs
 
-Trigger is a native button with combobox semantics, expanded state and a listbox association. Options announce selected and disabled state. Enter, Space and ArrowDown open; arrows, Home and End move focus; typing matches labels; Enter/Space select. Closed single-select typeahead changes the selected value. Keep a visible Field label or an explicit accessible name on Trigger. Content names its list from Field; outside Field, also supply Content's `aria-label` or `aria-labelledby`. These name the listbox as well as passing through to Popup.
+Trigger is a native button with combobox semantics, expanded state and a listbox association. Options announce selected and disabled state. Enter, Space and ArrowDown open; arrows, Home and End move focus; typing matches labels; Enter/Space select. Closed single-select typeahead changes the selected value. Keep a visible Field label or an explicit accessible name on Trigger. Name Content’s list with `aria-label` or `aria-labelledby` when a specific list name is needed. These name the listbox as well as passing through to Popup.
 
-Content shares an enclosing Ledger dialog's portal boundary during the Radix migration. Escape dismisses Select before the dialog, returning focus to the trigger. Closing the dialog then returns to its opener.
+Base UI coordinates nested Select and Dialog popups; Vaul Drawer retains its own portal boundary. Escape dismisses Select before the dialog, returning focus to the trigger. Closing the dialog then returns to its opener.
 
 <Canvas of={Stories.Dialogs} />
 
@@ -71,4 +72,4 @@ The implementation follows [shadcn Select](https://ui.shadcn.com/docs/components
 
 ## Related
 
-[NativeSelect](?path=/docs/components-nativeselect--docs) · [Combobox](?path=/docs/components-combobox--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs)
+[Combobox](?path=/docs/components-combobox--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs)

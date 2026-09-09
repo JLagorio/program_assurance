@@ -114,14 +114,14 @@ use shadcn's Base UI API: composed `ToggleGroupItem` children, array selection,
 rules belong in the consuming screen or pattern's callback.
 [Switch](../../packages/design-system/src/stories/components/Switch.mdx#migration)
 uses shadcn's Base UI control with external labels and descriptions, `default`/`sm`
-sizes and native root/input refs. It continues to bind to Ledger Field.
+sizes and native root/input refs. Field labels and messages are associated with native IDs and ARIA.
 [RadioGroup](../../packages/design-system/src/stories/components/RadioGroup.mdx#migration)
 uses flat `RadioGroupItem` exports and external labels/descriptions; CSS controls layout.
-Field group binding and Base UI's native selection, form and keyboard behavior remain.
+Group labels and descriptions use explicit IDs; Base UI owns selection, form and keyboard behavior.
 [Checkbox](../../packages/design-system/src/stories/components/Checkbox.mdx#migration)
 uses external labels and descriptions, boolean `checked` and a separate `indeterminate`
 prop. Table.Selection uses the same state split; keep `checked={false}` while mixed so
-activation selects all. Field binding and Ledger's check/minus indicators remain.
+activation selects all. Explicit label/message associations and Ledger's check/minus indicators remain.
 [HoverCard](../../packages/design-system/src/stories/components/HoverCard.mdx#migration)
 composes `HoverCardTrigger` and `HoverCardContent` over Base UI PreviewCard. Timing belongs
 on the trigger; positioning and native popup styles belong on the content. Existing
@@ -146,6 +146,13 @@ Field labels and native events; Value owns display labels and the placeholder. U
 uses flat List, Trigger and Content parts. List owns default/line styling and
 `activateOnFocus`; counts and badges are children. Root owns orientation and values;
 ShowPage composes its existing root and body with `render`.
+[Avatar](../../packages/design-system/src/stories/components/Avatar.mdx) uses flat Image,
+Fallback, Badge, Group and GroupCount parts; callers own identity text and overflow.
+[Input](../../packages/design-system/src/stories/components/Input.mdx) wraps Base UI Input;
+Textarea stays native. Both accept explicit Field label/message associations. [InputGroup](../../packages/design-system/src/stories/components/InputGroup.mdx)
+composes controls, addons, text and accessible buttons. [Combobox](../../packages/design-system/src/stories/components/Combobox.mdx)
+uses one generic native root with flat parts and shares InputGroup. NativeSelect is removed;
+use Select for predefined choices and Combobox when search helps. Forms own controlled resets.
 The [migration handoff](design-system-migration-handoff.md) records the next family and
 integration constraints. Family pages own their detailed contracts.
 
@@ -287,3 +294,5 @@ Application record forms use `src/lib/record-form.ts`: `useRecordForm` configure
 ## Accordion and Collapsible
 
 Accordion coordinates a set of sections using explicit item values and root-owned selection. Collapsible owns one independent boolean toggle. Compose titles, counts, actions, borders and body spacing with their parts; no extra disclosure pattern is needed. Both expose native attributes and refs on their named parts. See [the migration guide](disclosure-migration.md) for the former title/count/Group API and current flat parts.
+
+Field, Alert and ButtonGroup follow shadcn's Base UI source with flat native parts. Field uses explicit label/message associations and TanStack-owned validation; Alert composes its content; ButtonGroup adds native props, orientation and Text/Separator parts. See [Field](../../packages/design-system/src/stories/components/Field.mdx) for migration.

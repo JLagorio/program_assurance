@@ -1,10 +1,8 @@
+import { InputGroupAddon, InputGroupInput, InputGroup } from "./input-group";
 import { useLedgerLocale } from "../lib/locale";
 import { Search } from "lucide-react";
-import type { ReactNode } from "react";
-
+import { type ReactNode } from "react";
 import { cn } from "../lib/cn";
-import { Input } from "./controls";
-import { InputGroup } from "./input-group";
 
 export type ToolbarProps = {
   /** The search field's value. With `onSearch`, the field is drawn at the start. */
@@ -33,8 +31,8 @@ export function Toolbar({
   return (
     <div className={cn("flex flex-wrap items-center gap-100 pb-100 pt-150", className)}>
       {onSearch ? (
-        <InputGroup leading={<Search />} width={200}>
-          <Input
+        <InputGroup style={{ width: 200, maxWidth: "100%" }}>
+          <InputGroupInput
             type="search"
             size="small"
             value={search ?? ""}
@@ -42,6 +40,7 @@ export function Toolbar({
             placeholder={placeholder ?? t("search")}
             aria-label={placeholder ?? t("search")}
           />
+          <InputGroupAddon>{<Search />}</InputGroupAddon>
         </InputGroup>
       ) : null}
       {children}

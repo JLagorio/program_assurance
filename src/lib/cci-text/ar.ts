@@ -1,0 +1,77 @@
+/**
+ * DISA CCI definitions — AR (a pre-Rev.-5 family; these CCIs cite no Rev. 5 control).
+ *
+ * Do not hand-edit — regenerate with: node scripts/gen-cci-catalog.mjs
+ *
+ * Loaded on demand by loadCciFamily("AR") in @/lib/cci-catalog. The index
+ * there carries every other field; this chunk is only the definition prose.
+ *
+ * Source: U_CCI_List_2024.xml (DISA CCI list 2024-01-10), via a public mirror of the
+ * DISA Cyber Exchange list. DISA CCI is a US Government work.
+ */
+
+export const cciDefinitions: Record<string, string> = {
+  "CCI-003397": "The organization appoints a Senior Agency Official for Privacy (SAOP)/Chief Privacy Officer (CPO) accountable for developing, implementing, and maintaining an organization-wide governance and privacy program to ensure compliance with all applicable laws and regulations regarding the collection, use, maintenance, sharing, and disposal of personally identifiable information (PII) by programs and information systems.",
+  "CCI-003401": "The organization monitors federal privacy laws and policy for changes that affect the privacy program.",
+  "CCI-003402": "The organization defines the allocation of budget resources sufficient to implement and operate the organization-wide privacy program.",
+  "CCI-003403": "The organization defines the allocation of staffing resources sufficient to implement and operate the organization-wide privacy program.",
+  "CCI-003404": "The organization allocates sufficient organization-defined budget resources to implement and operate the organization-wide privacy program.",
+  "CCI-003405": "The organization allocates sufficient organization-defined staffing resources to implement and operate the organization-wide privacy program.",
+  "CCI-003406": "The organization develops a strategic organizational privacy plan for implementing applicable privacy controls, policies, and procedures.",
+  "CCI-003407": "The organization develops operational privacy policies which govern the appropriate privacy and security controls for programs, information systems, or technologies involving personally identifiable information (PII).",
+  "CCI-003408": "The organization disseminates operational privacy policies which govern the appropriate privacy and security controls for programs, information systems, or technologies involving personally identifiable information (PII).",
+  "CCI-003409": "The organization implements operational privacy policies which govern the appropriate privacy and security controls for programs, information systems, or technologies involving personally identifiable information (PII).",
+  "CCI-003410": "The organization develops operational privacy procedures which govern the appropriate privacy and security controls for programs, information systems, or technologies involving personally identifiable information (PII).",
+  "CCI-003411": "The organization disseminates operational privacy procedures which govern the appropriate privacy and security controls for programs, information systems, or technologies involving personally identifiable information (PII).",
+  "CCI-003412": "The organization implements operational privacy procedures which govern the appropriate privacy and security controls for programs, information systems, or technologies involving personally identifiable information (PII).",
+  "CCI-003413": "The organization defines the frequency, minimally biennially, on which the privacy plan, policies, and procedures are to be updated.",
+  "CCI-003414": "The organization updates the privacy plan per organization-defined frequency.",
+  "CCI-003415": "The organization updates the privacy policies per organization-defined frequency.",
+  "CCI-003416": "The organization updates the privacy procedures per organization-defined frequency.",
+  "CCI-003417": "The organization documents a privacy risk management process which assesses the privacy risk to individuals.",
+  "CCI-003418": "The organization implements a privacy risk management process which assesses the privacy risk to individuals.",
+  "CCI-003419": "The organization's privacy risk management process assesses the privacy risk to individuals resulting from the collection of personally identifiable information (PII).",
+  "CCI-003420": "The organization's privacy risk management process assesses the privacy risk to individuals resulting from the sharing of personally identifiable information (PII).",
+  "CCI-003421": "The organization's privacy risk management process assesses the privacy risk to individuals resulting from the storing of personally identifiable information (PII).",
+  "CCI-003422": "The organization's privacy risk management process assesses the privacy risk to individuals resulting from the transmitting of personally identifiable information (PII).",
+  "CCI-003423": "The organization's privacy risk management process assesses the privacy risk to individuals resulting from the use of personally identifiable information (PII).",
+  "CCI-003424": "The organization's privacy risk management process assesses the privacy risk to individuals resulting from the disposal of personally identifiable information (PII).",
+  "CCI-003425": "The organization conducts Privacy Impact Assessments (PIAs) for information systems, programs, or other activities that pose a privacy risk in accordance with applicable law, OMB policy, or any existing organizational policies and procedures.",
+  "CCI-003426": "The organization establishes privacy roles for contractors.",
+  "CCI-003427": "The organization establishes privacy responsibilities for contractors.",
+  "CCI-003428": "The organization establishes access requirements for contractors.",
+  "CCI-003429": "The organization establishes privacy roles for service providers.",
+  "CCI-003430": "The organization establishes privacy responsibilities for service providers.",
+  "CCI-003431": "The organization establishes access requirements for service providers.",
+  "CCI-003432": "The organization includes privacy requirements in contracts.",
+  "CCI-003433": "The organization includes privacy requirements in other acquisition-related documents.",
+  "CCI-003434": "The organization defines the frequency for monitoring privacy controls and internal privacy policy to ensure effective implementation.",
+  "CCI-003435": "The organization defines the frequency for auditing privacy controls and internal privacy policy to ensure effective implementation.",
+  "CCI-003436": "The organization monitors privacy controls, per organization-defined frequency, to ensure effective implementation.",
+  "CCI-003437": "The organization monitors internal privacy policy to ensure effective implementation.",
+  "CCI-003438": "The organization audits privacy controls, per organization-defined frequency, to ensure effective implementation.",
+  "CCI-003439": "The organization audits internal privacy policy, per organization-defined frequency, to ensure effective implementation.",
+  "CCI-003440": "The organization develops a comprehensive training and awareness strategy aimed at ensuring that personnel understand privacy responsibilities and procedures.",
+  "CCI-003441": "The organization implements a comprehensive training and awareness strategy aimed at ensuring that personnel understand privacy responsibilities and procedures.",
+  "CCI-003442": "The organization updates a comprehensive training and awareness strategy aimed at ensuring that personnel understand privacy responsibilities and procedures.",
+  "CCI-003443": "The organization defines the frequency, minimally annually, for administering its basic privacy training.",
+  "CCI-003444": "The organization defines the frequency, minimally annually, for administering the targeted, role-based privacy training for personnel having responsibility for personally identifiable information (PII) or for activities that involve PII.",
+  "CCI-003445": "The organization administers basic privacy training per the organization-defined frequency.",
+  "CCI-003446": "The organization administers, per organization-defined frequency, targeted, role-based privacy training for personnel having responsibility for personally identifiable information (PII) or for activities that involve PII.",
+  "CCI-003447": "The organization defines the frequency, minimally annually, on which personnel certify acceptance of responsibilities for privacy requirements.",
+  "CCI-003448": "The organization ensures personnel certify (manually or electronically) acceptance of responsibilities for privacy requirements per organization-defined frequency.",
+  "CCI-003449": "The organization develops reports for the Office of Management and Budget (OMB), Congress, and other oversight bodies, as appropriate, to demonstrate accountability with specific statutory and regulatory privacy program mandates.",
+  "CCI-003450": "The organization disseminates reports to the Office of Management and Budget (OMB), Congress, and other oversight bodies, as appropriate, to demonstrate accountability with specific statutory and regulatory privacy program mandates.",
+  "CCI-003451": "The organization updates reports for the Office of Management and Budget (OMB), Congress, and other oversight bodies, as appropriate, to demonstrate accountability with specific statutory and regulatory privacy program mandates.",
+  "CCI-003452": "The organization develops reports for senior management and other personnel with responsibility for monitoring privacy program progress and compliance.",
+  "CCI-003453": "The organization disseminates reports to senior management and other personnel with responsibility for monitoring privacy program progress and compliance.",
+  "CCI-003454": "The organization updates reports for senior management and other personnel with responsibility for monitoring privacy program progress and compliance.",
+  "CCI-003455": "The organization designs information systems to support privacy by automating privacy controls.",
+  "CCI-003456": "The organization, as part of the accurate accounting of disclosures of Privacy Act information held in each system of records under its control, includes the date of each disclosure of a record.",
+  "CCI-003457": "The organization, as part of the accurate accounting of disclosures of Privacy Act information held in each system of records under its control, includes the nature of each disclosure of a record.",
+  "CCI-003458": "The organization, as part of the accurate accounting of disclosures of Privacy Act information held in each system of records under its control, includes the purpose of each disclosure of a record.",
+  "CCI-003459": "The organization keeps an accurate accounting of disclosures of Privacy Act information held in each system of records under its control.",
+  "CCI-003460": "The organization, as part of the accurate accounting of disclosures of Privacy Act information held in each system of records under its control, includes the name and address of the person or agency to which the disclosure was made.",
+  "CCI-003461": "The organization retains the accounting of disclosures for the life of the record or five years after the disclosure is made, whichever is longer.",
+  "CCI-003462": "The organization makes the accounting of disclosures available to the person named in the record upon request.",
+};

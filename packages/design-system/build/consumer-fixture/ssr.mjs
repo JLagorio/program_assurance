@@ -1,8 +1,18 @@
-import { migrationExamples } from "./migration-examples.js";
-import assert from "node:assert/strict";
-import { createElement } from "react";
-import { renderToString } from "react-dom/server";
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@ledger/design-system";
+import * as ledger from "@ledger/design-system";
+import {
+  ComboboxInput,
+  AvatarGroup,
+  AvatarImage,
+  AvatarFallback,
+  AvatarBadge,
+  AvatarGroupCount,
   Tabs,
   TabsList,
   TabsTrigger,
@@ -18,6 +28,9 @@ import {
   Combobox,
   Attachment,
   Alert,
+  AlertTitle,
+  AlertDescription,
+  AlertAction,
   Accordion,
   AccordionItem,
   AccordionTrigger,
@@ -72,10 +85,13 @@ import {
   LedgerProvider,
   toast,
 } from "@ledger/design-system";
-import * as ledger from "@ledger/design-system";
+import { migrationExamples } from "./migration-examples.js";
+import assert from "node:assert/strict";
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
 import { cn } from "@ledger/design-system/cn";
 
-for (const name of ["Activity", "Task", "parseMentions"])
+for (const name of ["Activity", "Task", "parseMentions", "NativeSelect"])
   assert.equal(name in ledger, false, name + " must remain application-owned");
 assert.equal(typeof Composer, "function");
 assert.equal(typeof TaskRow, "function");
@@ -253,11 +269,38 @@ for (const slot of ["breadcrumb-separator", "breadcrumb-ellipsis"]) {
   assert.match(tag, /aria-hidden="true"/);
 }
 assert.match(breadcrumbHtml, /aria-label="More parent pages"/);
+const inputGroupHtml = renderToString(
+  createElement(
+    InputGroup,
+    null,
+    createElement(InputGroupInput, { name: "query", defaultValue: "AC-2", "aria-label": "Search" }),
+    createElement(
+      InputGroupAddon,
+      { align: "inline-end" },
+      createElement(InputGroupButton, { "aria-label": "Clear search" }, "Clear"),
+    ),
+  ),
+);
+assert.match(inputGroupHtml, /data-slot="input-group-control"/);
+assert.match(inputGroupHtml, /name="query"/);
+assert.match(inputGroupHtml, /value="AC-2"/);
+assert.match(inputGroupHtml, /type="button"/);
+assert.match(inputGroupHtml, /data-align="inline-end"/);
+assert.doesNotMatch(inputGroupHtml, /aria-hidden="true"/);
+const textareaHtml = renderToString(
+  createElement(InputGroupTextarea, {
+    name: "note",
+    rows: 3,
+    defaultValue: "Review this evidence.",
+  }),
+);
+assert.match(textareaHtml, /<textarea[^>]*name="note"/);
+assert.match(textareaHtml, />Review this evidence[.]<\/textarea>/);
 const comboHtml = renderToString(
   createElement(
-    Combobox.Root,
+    Combobox,
     { items: ["React", "Vue"], defaultValue: "React", name: "framework" },
-    createElement(Combobox.Input, { "aria-label": "Framework" }),
+    createElement(ComboboxInput, { "aria-label": "Framework" }),
   ),
 );
 assert.match(comboHtml, /role="combobox"/);
@@ -265,23 +308,23 @@ assert.match(comboHtml, /name="framework"/);
 assert.match(comboHtml, /value="React"/);
 const avatarHtml = renderToString(
   createElement(
-    Avatar.Stack,
-    { "aria-label": "Packed reviewers" },
+    AvatarGroup,
+    { role: "group", "aria-label": "Packed reviewers" },
     createElement(
       Avatar,
-      { name: "Dana Whitlock", size: "medium", "aria-label": "Dana Whitlock, online" },
-      createElement(Avatar.Image, { src: "/dana.png" }),
-      createElement(Avatar.Fallback, null),
-      createElement(Avatar.Badge, { tone: "success" }),
+      { role: "img", size: "medium", "aria-label": "Dana Whitlock, online" },
+      createElement(AvatarImage, { src: "/dana.png" }),
+      createElement(AvatarFallback, null, "DW"),
+      createElement(AvatarBadge, { tone: "success" }),
     ),
-    createElement(Avatar.Count, null, "+2"),
+    createElement(AvatarGroupCount, null, "+2"),
   ),
 );
 assert.match(avatarHtml, /role="group"/);
 assert.match(avatarHtml, /data-slot="avatar-fallback"/);
 assert.match(avatarHtml, />DW</);
 assert.doesNotMatch(avatarHtml, /<img/);
-assert.match(avatarHtml, /data-slot="avatar-count"/);
+assert.match(avatarHtml, /data-slot="avatar-group-count"/);
 assert.match(avatarHtml, /data-slot="avatar-badge"/);
 assert.match(avatarHtml, /data-tone="success"/);
 const attachmentHtml = renderToString(
@@ -309,9 +352,9 @@ const html = renderToString(
       createElement(
         Alert,
         { role: "note", "aria-labelledby": "packed-alert-title" },
-        createElement(Alert.Title, { id: "packed-alert-title" }, "Packed callout"),
-        createElement(Alert.Description, null, "Packed description"),
-        createElement(Alert.Action, null, createElement(Button, null, "Review")),
+        createElement(AlertTitle, { id: "packed-alert-title" }, "Packed callout"),
+        createElement(AlertDescription, null, "Packed description"),
+        createElement(AlertAction, null, createElement(Button, null, "Review")),
       ),
       createElement(
         Accordion,
@@ -1233,3 +1276,60 @@ for (const attribute of [
 assert.match(migrationHtml, /width:50%/);
 assert.doesNotMatch(migrationHtml, /data-slot="(?:dialog|sheet|alert-dialog)-content"/);
 console.log("Packed modal, command, disclosure, progress and scroll-area SSR passed");
+
+const fieldHtml = renderToString(
+  createElement(
+    ledger.FieldSet,
+    { disabled: true },
+    createElement(ledger.FieldLegend, null, "Packed fields"),
+    createElement(
+      ledger.FieldGroup,
+      null,
+      createElement(
+        ledger.Field,
+        { orientation: "responsive", "data-invalid": true },
+        createElement(
+          ledger.FieldContent,
+          null,
+          createElement(ledger.FieldLabel, { htmlFor: "packed-field" }, "Owner"),
+          createElement(ledger.FieldDescription, { id: "packed-help" }, "Full name."),
+        ),
+        createElement(ledger.Input, {
+          id: "packed-field",
+          "aria-describedby": "packed-help",
+          "aria-invalid": true,
+        }),
+        createElement(ledger.FieldError, {
+          errors: [{ message: "Required." }, { message: "Required." }],
+        }),
+      ),
+      createElement(ledger.FieldSeparator, null, "Options"),
+      createElement(ledger.FieldTitle, null, "More fields"),
+    ),
+  ),
+);
+assert.match(fieldHtml, /<fieldset[^>]*disabled/);
+assert.match(fieldHtml, /for="packed-field"/);
+assert.match(fieldHtml, /aria-describedby="packed-help"/);
+assert.equal(fieldHtml.match(/Required\./g)?.length, 1);
+assert.equal(renderToString(createElement(ledger.FieldError, { errors: [undefined, {}] })), "");
+const buttonGroupHtml = renderToString(
+  createElement(
+    ledger.ButtonGroup,
+    { orientation: "vertical", "aria-label": "Actions" },
+    createElement(
+      ledger.ButtonGroupText,
+      { render: createElement("label", { htmlFor: "packed-field" }) },
+      "Owner",
+    ),
+    createElement(ledger.ButtonGroupSeparator, { orientation: "horizontal", isDecorative: true }),
+    createElement(ledger.Button, null, "Save"),
+  ),
+);
+assert.match(buttonGroupHtml, /data-orientation="vertical"/);
+assert.match(buttonGroupHtml, /<label[^>]*for="packed-field"/);
+assert.match(buttonGroupHtml, /data-slot="button-group-separator"/);
+assert.ok(ledger.buttonGroupVariants({ orientation: "vertical" }).includes("flex-col"));
+assert.equal("useFieldControl" in ledger, false);
+assert.equal("Title" in ledger.Alert, false);
+console.log("Packed Field, Alert and ButtonGroup composition passed");

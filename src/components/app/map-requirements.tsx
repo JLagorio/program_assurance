@@ -1,6 +1,16 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
-import { Badge, Field, Id, PickerSheet, Stack, Table, Text, Textarea } from "@ledger/design-system";
+import {
+  FieldLabel,
+  Badge,
+  Field,
+  Id,
+  PickerSheet,
+  Stack,
+  Table,
+  Text,
+  Textarea,
+} from "@ledger/design-system";
 
 import { record } from "@/lib/activity";
 import {
@@ -30,6 +40,8 @@ export function MapRequirementsSheet({
   actor: string;
   scopeName?: string | undefined;
 }) {
+  const fieldId = useId();
+
   const [query, setQuery] = useState("");
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [rationale, setRationale] = useState("");
@@ -103,8 +115,16 @@ export function MapRequirementsSheet({
         disabled: chosen.size === 0,
       }}
       toolbar={
-        <Field label="Relationship rationale">
+        <Field>
+          <FieldLabel
+            id={`${fieldId}-relationship-rationale-1-label`}
+            htmlFor={`${fieldId}-relationship-rationale-1`}
+          >
+            {"Relationship rationale"}
+          </FieldLabel>
           <Textarea
+            id={`${fieldId}-relationship-rationale-1`}
+            aria-labelledby={`${fieldId}-relationship-rationale-1-label`}
             value={rationale}
             onChange={(e) => setRationale(e.target.value)}
             placeholder="The signed boot chain covers the integrity verification objectives."

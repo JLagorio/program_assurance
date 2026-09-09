@@ -23,7 +23,7 @@ export function preserveNestedPopupEscape(event: KeyboardEvent) {
   const tooltip = target
     .closest('[role="dialog"], [role="alertdialog"]')
     ?.querySelector('[data-slot="tooltip-content"][data-open]');
-  const input = target.closest<HTMLInputElement>('input[data-slot="combobox-input"]');
+  const input = target.closest<HTMLInputElement>("input[data-combobox-input]");
   if (
     popup ||
     tooltip ||

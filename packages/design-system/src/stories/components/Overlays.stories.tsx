@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import {
+  FieldLabel,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -62,73 +63,89 @@ export default meta;
 type Story = StoryObj;
 
 export const Anchored: Story = {
-  render: () => (
-    <Inline space="space.300" alignBlock="center" shouldWrap>
-      <Tooltip>
-        <TooltipTrigger render={<Button>Tooltip</Button>} />
-        <TooltipContent>Schedule the next assessment</TooltipContent>
-      </Tooltip>
-      <Popover>
-        <PopoverTrigger render={<Button>Popover</Button>} />
-        <PopoverContent aria-label="A small task" style={{ width: 280 }}>
-          <Stack space="space.200">
-            <Field label="Reason">
-              <Input placeholder="Why this control is deferred" />
-            </Field>
-            <Inline space="space.100" alignInline="end">
-              <PopoverClose render={<Button variant="subtle" size="small" />}>Cancel</PopoverClose>
-              <PopoverClose render={<Button variant="primary" size="small" />}>Defer</PopoverClose>
-            </Inline>
-          </Stack>
-        </PopoverContent>
-      </Popover>
-      <HoverCard>
-        <HoverCardTrigger href="#CTRL-0412" className="text-brand hover:underline">
-          HoverCard on an id
-        </HoverCardTrigger>
-        <HoverCardContent>
-          <Stack space="space.050">
-            <Text weight="medium">CTRL-0412 Segregation of duties, payables</Text>
-            <Text size="small" color="color.text.subtle">
-              Owner Dana Whitfield · Verified 12 Aug 2026
-            </Text>
-            <Badge variant="secondary" tone="success" className="self-start">
-              Verified
-            </Badge>
-          </Stack>
-        </HoverCardContent>
-      </HoverCard>
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
-        <DropdownMenuContent style={{ width: 200 }}>
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Control</DropdownMenuLabel>
-            <DropdownMenuItem>
-              Edit<DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuCheckboxItem checked closeOnClick>
-              Pin to rail
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuItem>Duplicate</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>Archive</DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
-        />
-        <DropdownMenuContent align="end" style={{ width: 200 }}>
-          <DropdownMenuItem>Open in new tab</DropdownMenuItem>
-          <DropdownMenuItem>Copy link</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </Inline>
-  ),
+  render: function FieldExample() {
+    const fieldId = useId();
+    return (
+      <Inline space="space.300" alignBlock="center" shouldWrap>
+        <Tooltip>
+          <TooltipTrigger render={<Button>Tooltip</Button>} />
+          <TooltipContent>Schedule the next assessment</TooltipContent>
+        </Tooltip>
+        <Popover>
+          <PopoverTrigger render={<Button>Popover</Button>} />
+          <PopoverContent aria-label="A small task" style={{ width: 280 }}>
+            <Stack space="space.200">
+              <Field>
+                <FieldLabel id={`${fieldId}-reason-1-label`} htmlFor={`${fieldId}-reason-1`}>
+                  {"Reason"}
+                </FieldLabel>
+                <Input
+                  id={`${fieldId}-reason-1`}
+                  aria-labelledby={`${fieldId}-reason-1-label`}
+                  placeholder="Why this control is deferred"
+                />
+              </Field>
+              <Inline space="space.100" alignInline="end">
+                <PopoverClose render={<Button variant="subtle" size="small" />}>
+                  Cancel
+                </PopoverClose>
+                <PopoverClose render={<Button variant="primary" size="small" />}>
+                  Defer
+                </PopoverClose>
+              </Inline>
+            </Stack>
+          </PopoverContent>
+        </Popover>
+        <HoverCard>
+          <HoverCardTrigger href="#CTRL-0412" className="text-brand hover:underline">
+            HoverCard on an id
+          </HoverCardTrigger>
+          <HoverCardContent>
+            <Stack space="space.050">
+              <Text weight="medium">CTRL-0412 Segregation of duties, payables</Text>
+              <Text size="small" color="color.text.subtle">
+                Owner Dana Whitfield · Verified 12 Aug 2026
+              </Text>
+              <Badge variant="secondary" tone="success" className="self-start">
+                Verified
+              </Badge>
+            </Stack>
+          </HoverCardContent>
+        </HoverCard>
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
+          <DropdownMenuContent style={{ width: 200 }}>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Control</DropdownMenuLabel>
+              <DropdownMenuItem>
+                Edit<DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuCheckboxItem checked closeOnClick>
+                Pin to rail
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuItem>Duplicate</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled>Archive</DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
+          />
+          <DropdownMenuContent align="end" style={{ width: 200 }}>
+            <DropdownMenuItem>Open in new tab</DropdownMenuItem>
+            <DropdownMenuItem>Copy link</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </Inline>
+    );
+  },
 };
 
 function Modals() {
+  const fieldId = useId();
+
   const alertCancelRef = useRef<HTMLButtonElement>(null);
 
   const [dialog, setDialog] = useState(false);
@@ -164,11 +181,25 @@ function Modals() {
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
             <Stack space="space.200">
-              <Field label="Assessor">
-                <Input placeholder="Choose an assessor" />
+              <Field>
+                <FieldLabel id={`${fieldId}-assessor-2-label`} htmlFor={`${fieldId}-assessor-2`}>
+                  {"Assessor"}
+                </FieldLabel>
+                <Input
+                  id={`${fieldId}-assessor-2`}
+                  aria-labelledby={`${fieldId}-assessor-2-label`}
+                  placeholder="Choose an assessor"
+                />
               </Field>
-              <Field label="Notes">
-                <Textarea placeholder="Anything the assessor should know first." />
+              <Field>
+                <FieldLabel id={`${fieldId}-notes-3-label`} htmlFor={`${fieldId}-notes-3`}>
+                  {"Notes"}
+                </FieldLabel>
+                <Textarea
+                  id={`${fieldId}-notes-3`}
+                  aria-labelledby={`${fieldId}-notes-3-label`}
+                  placeholder="Anything the assessor should know first."
+                />
               </Field>
             </Stack>
           </div>

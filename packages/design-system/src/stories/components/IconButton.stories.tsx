@@ -93,7 +93,7 @@ export const InPlace: Story = {
         />
       </Specimens>
       <Specimens title="A joined action and its options">
-        <ButtonGroup label="Export">
+        <ButtonGroup aria-label="Export">
           <Button size="small" variant="primary">
             Export
           </Button>

@@ -36,7 +36,7 @@ import { ancestorsOf, nodeById } from "@/lib/composition";
 import { useSyncExternalStore } from "react";
 
 import type { ImpactLevel } from "@/lib/grc-data";
-import { nistControls, type NistControl } from "@/lib/nist-catalog";
+import { nistControls, nistControlById, type NistControl } from "@/lib/nist-catalog";
 import {
   computeTailoring,
   type Overlay,
@@ -394,6 +394,9 @@ export function resolveSelection(
 ): Selection {
   const { overlays, removedById, addedById } = deltas;
 
+  // An imported profile's starting selection is hundreds of ids and this loop runs
+  // once per scope in the tree, so membership has to be a hash lookup, not a scan.
+  const starting = source ? new Set(source.startingControlIds) : null;
   const controls: ScopeControl[] = [];
   const removed: ScopeControl[] = [];
   const byObjective: Record<Objective, number> = {
@@ -404,8 +407,7 @@ export function resolveSelection(
 
   for (const control of nistControls) {
     const selectedBy = source ? [] : selectingObjectives(control, triad);
-    if (source ? !source.startingControlIds.includes(control.id) : selectedBy.length === 0)
-      continue;
+    if (starting ? !starting.has(control.id) : selectedBy.length === 0) continue;
     const row: ScopeControl = {
       control,
       selectedBy,
@@ -425,7 +427,7 @@ export function resolveSelection(
   const added: ScopeControl[] = [];
   for (const [id, overlayControl] of addedById) {
     if (have.has(id)) continue;
-    const control = nistControls.find((c) => c.id === id);
+    const control = nistControlById.get(id);
     if (!control) continue;
     const row: ScopeControl = {
       control,

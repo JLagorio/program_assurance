@@ -4,6 +4,9 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, FileDown } from "lucide-react";
 
 import {
+  AlertTitle,
+  Dot,
+  AlertDescription,
   BreadcrumbItem,
   BreadcrumbLink,
   Alert,
@@ -131,12 +134,20 @@ function PackageRecord() {
         />
 
         {ready.gaps.length > 0 || ready.stale.length > 0 ? (
-          <Alert tone="warning" title={`${pkg.id} is not shippable`}>
-            {ready.gaps.length} of {ready.rows.length} in-scope CCIs have a traceability gap
-            {ready.stale.length > 0
-              ? ` and ${ready.stale.length} generated artifact${ready.stale.length === 1 ? " is" : "s are"} out of date with the snapshot`
-              : ""}
-            .
+          <Alert tone="warning" role="status">
+            <AlertTitle>
+              <span aria-hidden="true" className="flex h-250 shrink-0 items-center">
+                <Dot tone={"warning"} />
+              </span>
+              <span className="min-w-0 break-words">{`${pkg.id} is not shippable`}</span>
+            </AlertTitle>
+            <AlertDescription>
+              {ready.gaps.length} of {ready.rows.length} in-scope CCIs have a traceability gap
+              {ready.stale.length > 0
+                ? ` and ${ready.stale.length} generated artifact${ready.stale.length === 1 ? " is" : "s are"} out of date with the snapshot`
+                : ""}
+              .
+            </AlertDescription>
           </Alert>
         ) : null}
 
@@ -314,7 +325,9 @@ function PackageRecord() {
                 >
                   {preview.gap ? (
                     <Box paddingBlockEnd="space.150">
-                      <Alert tone="warning">{preview.gap}</Alert>
+                      <Alert tone="warning" role="status">
+                        <AlertDescription>{preview.gap}</AlertDescription>
+                      </Alert>
                     </Box>
                   ) : null}
                   <Inspector.Group title="Join keys">

@@ -4,20 +4,18 @@ import { RadioGroup as RadioGroupPrimitive } from "@base-ui/react/radio-group";
 
 import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
-import { useFieldControl } from "./controls";
 
 export type RadioGroupProps<Value = unknown> = RadioGroupPrimitive.Props<Value>;
 
 export function RadioGroup<Value = unknown>({ className, dir, ...props }: RadioGroupProps<Value>) {
   const { direction } = useLedgerLocale();
-  const bound = useFieldControl(props, true);
   return (
     <DirectionProvider direction={dir === "ltr" || dir === "rtl" ? dir : direction}>
       <RadioGroupPrimitive
         data-slot="radio-group"
         dir={dir ?? direction}
-        {...bound}
-        aria-required={bound["aria-required"] ?? (props.required || undefined)}
+        {...props}
+        aria-required={props["aria-required"] ?? (props.required || undefined)}
         className={classes("grid w-full gap-100", className)}
       />
     </DirectionProvider>

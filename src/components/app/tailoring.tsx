@@ -1,5 +1,12 @@
-import { useRecordForm } from "@/lib/record-form";
 import {
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -25,7 +32,6 @@ import {
   Id,
   Inline,
   Input,
-  NativeSelect,
   Section,
   Stack,
   Table,
@@ -33,10 +39,10 @@ import {
   Timeline,
   toast,
 } from "@ledger/design-system";
+import { useRecordForm } from "@/lib/record-form";
 import { Check, Pencil, Send, X } from "lucide-react";
-import { useCallback, useMemo, useRef, useState, type SetStateAction } from "react";
-
-import type { ImpactLevel } from "@/lib/grc-data";
+import { useId, useCallback, useMemo, useRef, useState, type SetStateAction } from "react";
+import { type ImpactLevel } from "@/lib/grc-data";
 import {
   approvalTone,
   classifications,
@@ -80,6 +86,8 @@ export function TailoringSection({
   programId: string;
   programOwner: string;
 }) {
+  const fieldId = useId();
+
   const alertCancelRef = useRef<HTMLButtonElement>(null);
 
   const [params, setParams] = useState<SystemParameters>(defaultParameters);
@@ -380,70 +388,154 @@ export function TailoringSection({
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
                   >
-                    {(["confidentiality", "integrity", "availability"] as const).map((k) => (
-                      <Field key={k} label={k.charAt(0).toUpperCase() + k.slice(1)}>
-                        <NativeSelect
-                          value={draft[k]}
-                          onChange={(e) =>
-                            setDraft({ ...draft, [k]: e.target.value as ImpactLevel })
-                          }
-                        >
-                          {impactLevels.map((l) => (
-                            <option key={l}>{l}</option>
-                          ))}
-                        </NativeSelect>
-                      </Field>
-                    ))}
+                    {(["confidentiality", "integrity", "availability"] as const).map((k) => {
+                      const draftkItems = impactLevels.map((l) => ({ value: l, label: l }));
+                      return (
+                        <Field key={k}>
+                          <FieldLabel
+                            id={`${fieldId}-field-1-${encodeURIComponent(String(k))}-label`}
+                            htmlFor={`${fieldId}-field-1-${encodeURIComponent(String(k))}`}
+                          >
+                            {k.charAt(0).toUpperCase() + k.slice(1)}
+                          </FieldLabel>
+                          <Select<string>
+                            items={draftkItems}
+                            value={draft[k]}
+                            onValueChange={(value) => {
+                              if (value === null) return;
+                              return setDraft({ ...draft, [k]: value as ImpactLevel });
+                            }}
+                          >
+                            <SelectTrigger
+                              id={`${fieldId}-field-1-${encodeURIComponent(String(k))}`}
+                              aria-labelledby={`${fieldId}-field-1-${encodeURIComponent(String(k))}-label`}
+                              className="w-full"
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent
+                              aria-labelledby={`${fieldId}-field-1-${encodeURIComponent(String(k))}-label`}
+                            >
+                              {draftkItems.map((item) => (
+                                <SelectItem key={item.value} value={item.value}>
+                                  {item.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      );
+                    })}
                   </Grid>
                   <Grid
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
                     <form.Field name="draft.systemClass">
-                      {(field) => (
-                        <Field
-                          label="System class"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value as SystemClass)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {systemClasses.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems = systemClasses.map((s) => ({ value: s, label: s }));
+                        const fieldError2 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError2)}>
+                            <FieldLabel
+                              id={`${fieldId}-system-class-2-label`}
+                              htmlFor={`${fieldId}-system-class-2`}
+                            >
+                              {"System class"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems}
+                              value={field.state.value}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as SystemClass);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-system-class-2`}
+                                aria-labelledby={`${fieldId}-system-class-2-label`}
+                                aria-invalid={Boolean(fieldError2)}
+                                aria-describedby={
+                                  fieldError2 ? `${fieldId}-system-class-2-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-system-class-2-label`}>
+                                {valueItems.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError2 ? (
+                              <FieldError id={`${fieldId}-system-class-2-message`}>
+                                {fieldError2}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="draft.hosting">
-                      {(field) => (
-                        <Field
-                          label="Hosting"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value as Hosting)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {hostingOptions.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems2 = hostingOptions.map((s) => ({ value: s, label: s }));
+                        const fieldError3 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError3)}>
+                            <FieldLabel
+                              id={`${fieldId}-hosting-3-label`}
+                              htmlFor={`${fieldId}-hosting-3`}
+                            >
+                              {"Hosting"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems2}
+                              value={field.state.value}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as Hosting);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-hosting-3`}
+                                aria-labelledby={`${fieldId}-hosting-3-label`}
+                                aria-invalid={Boolean(fieldError3)}
+                                aria-describedby={
+                                  fieldError3 ? `${fieldId}-hosting-3-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-hosting-3-label`}>
+                                {valueItems2.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError3 ? (
+                              <FieldError id={`${fieldId}-hosting-3-message`}>
+                                {fieldError3}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
                   <Grid
@@ -451,50 +543,113 @@ export function TailoringSection({
                     templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
                     <form.Field name="draft.classification">
-                      {(field) => (
-                        <Field
-                          label="Classification"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value as Classification)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {classifications.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems3 = classifications.map((s) => ({ value: s, label: s }));
+                        const fieldError4 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError4)}>
+                            <FieldLabel
+                              id={`${fieldId}-classification-4-label`}
+                              htmlFor={`${fieldId}-classification-4`}
+                            >
+                              {"Classification"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems3}
+                              value={field.state.value}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as Classification);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-classification-4`}
+                                aria-labelledby={`${fieldId}-classification-4-label`}
+                                aria-invalid={Boolean(fieldError4)}
+                                aria-describedby={
+                                  fieldError4 ? `${fieldId}-classification-4-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-classification-4-label`}>
+                                {valueItems3.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError4 ? (
+                              <FieldError id={`${fieldId}-classification-4-message`}>
+                                {fieldError4}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="draft.connectivity">
-                      {(field) => (
-                        <Field
-                          label="Connectivity"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value as Connectivity)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {connectivityOptions.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems4 = connectivityOptions.map((s) => ({
+                          value: s,
+                          label: s,
+                        }));
+                        const fieldError5 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError5)}>
+                            <FieldLabel
+                              id={`${fieldId}-connectivity-5-label`}
+                              htmlFor={`${fieldId}-connectivity-5`}
+                            >
+                              {"Connectivity"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems4}
+                              value={field.state.value}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as Connectivity);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-connectivity-5`}
+                                aria-labelledby={`${fieldId}-connectivity-5-label`}
+                                aria-invalid={Boolean(fieldError5)}
+                                aria-describedby={
+                                  fieldError5 ? `${fieldId}-connectivity-5-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-connectivity-5-label`}>
+                                {valueItems4.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError5 ? (
+                              <FieldError id={`${fieldId}-connectivity-5-message`}>
+                                {fieldError5}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
                   <Inline
@@ -576,30 +731,57 @@ export function TailoringSection({
               }}
             >
               <Stack space="space.150">
-                <Field label="Approver">
-                  <Input defaultValue={`${programOwner} (PM)`} readOnly />
+                <Field>
+                  <FieldLabel id={`${fieldId}-approver-6-label`} htmlFor={`${fieldId}-approver-6`}>
+                    {"Approver"}
+                  </FieldLabel>
+                  <Input
+                    id={`${fieldId}-approver-6`}
+                    aria-labelledby={`${fieldId}-approver-6-label`}
+                    defaultValue={`${programOwner} (PM)`}
+                    readOnly
+                  />
                 </Field>
                 <form.Field name="message">
-                  {(field) => (
-                    <Field
-                      label="Message"
-                      hint="Shown on the shared scope approvals dashboard."
-                      isRequired
-                      error={
-                        field.state.meta.isTouched && !field.state.meta.isValid
-                          ? [...new Set(field.state.meta.errors)].join(" ")
-                          : undefined
-                      }
-                    >
-                      <Textarea
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group."
-                        name={field.name}
-                        onBlur={field.handleBlur}
-                      />
-                    </Field>
-                  )}
+                  {(field) => {
+                    const fieldError7 =
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError7)}>
+                        <FieldLabel
+                          id={`${fieldId}-message-7-label`}
+                          htmlFor={`${fieldId}-message-7`}
+                        >
+                          {"Message"}
+                          <span aria-hidden="true" className="text-danger">
+                            {" "}
+                            *
+                          </span>
+                        </FieldLabel>
+                        <Textarea
+                          id={`${fieldId}-message-7`}
+                          aria-labelledby={`${fieldId}-message-7-label`}
+                          aria-required={true}
+                          aria-invalid={Boolean(fieldError7)}
+                          aria-describedby={`${fieldId}-message-7-message`}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group."
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                        {fieldError7 ? (
+                          <FieldError id={`${fieldId}-message-7-message`}>{fieldError7}</FieldError>
+                        ) : (
+                          <FieldDescription id={`${fieldId}-message-7-message`}>
+                            {"Shown on the shared scope approvals dashboard."}
+                          </FieldDescription>
+                        )}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
               </Stack>
             </form>
@@ -659,29 +841,49 @@ export function TailoringSection({
               }}
             >
               <form.Field name="note">
-                {(field) => (
-                  <Field
-                    isRequired={deciding === "changes"}
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? [...new Set(field.state.meta.errors)].join(" ")
-                        : undefined
-                    }
-                    label={deciding === "approve" ? "Approval note" : "What needs to change?"}
-                    hint={
-                      deciding === "approve"
-                        ? "Recorded against the authorization package."
-                        : "Returned to the systems security engineer."
-                    }
-                  >
-                    <Textarea
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                    />
-                  </Field>
-                )}
+                {(field) => {
+                  const fieldError8 =
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined;
+                  const fieldHint8 =
+                    deciding === "approve"
+                      ? "Recorded against the authorization package."
+                      : "Returned to the systems security engineer.";
+                  return (
+                    <Field data-invalid={Boolean(fieldError8)}>
+                      <FieldLabel id={`${fieldId}-field-8-label`} htmlFor={`${fieldId}-field-8`}>
+                        {deciding === "approve" ? "Approval note" : "What needs to change?"}
+                        {deciding === "changes" ? (
+                          <span aria-hidden="true" className="text-danger">
+                            {" "}
+                            *
+                          </span>
+                        ) : null}
+                      </FieldLabel>
+                      <Textarea
+                        id={`${fieldId}-field-8`}
+                        aria-labelledby={`${fieldId}-field-8-label`}
+                        aria-required={deciding === "changes"}
+                        aria-invalid={Boolean(fieldError8)}
+                        aria-describedby={
+                          fieldError8 || fieldHint8 ? `${fieldId}-field-8-message` : undefined
+                        }
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                      {fieldError8 ? (
+                        <FieldError id={`${fieldId}-field-8-message`}>{fieldError8}</FieldError>
+                      ) : fieldHint8 ? (
+                        <FieldDescription id={`${fieldId}-field-8-message`}>
+                          {fieldHint8}
+                        </FieldDescription>
+                      ) : null}
+                    </Field>
+                  );
+                }}
               </form.Field>
             </form>
           </Box>

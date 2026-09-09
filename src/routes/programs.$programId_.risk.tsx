@@ -1,7 +1,30 @@
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  Badge,
+  Box,
+  Empty,
+  Grid,
+  Id,
+  Inline,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  TabsList,
+  TabsTrigger,
+  Count,
+  TextLink,
+  Toolbar,
+} from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
-import type { ReactNode } from "react";
-
+import { useMemo, type ReactNode } from "react";
 import {
   AuthoredComparisonTable,
   BandChip,
@@ -15,27 +38,6 @@ import {
   type ComparisonRow,
   type ScoredSubject,
 } from "@/components/app/risk-scoring";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Badge,
-  Box,
-  Empty,
-  Grid,
-  Id,
-  Inline,
-  NativeSelect,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Stack,
-  TabsList,
-  TabsTrigger,
-  Count,
-  TextLink,
-  Toolbar,
-} from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { assetById, findings, isDeficiency } from "@/lib/findings";
 import { programs } from "@/lib/grc-data";
@@ -190,6 +192,15 @@ function ProgramRisk() {
     Calculation: null,
   };
 
+  const subjectItems = scored.map((r) => ({
+    value: r.score.subject,
+    label: (
+      <>
+        {r.score.subject}— {r.score.score}
+        {r.score.band}— {r.title}
+      </>
+    ),
+  }));
   return (
     <Shell>
       <ShowPage
@@ -370,19 +381,29 @@ function ProgramRisk() {
               >
                 <Toolbar>
                   <span className="font-body-small text-subtle">Finding</span>
-                  <NativeSelect
+                  <Select<string>
+                    items={subjectItems}
                     value={selected.score.subject}
-                    onChange={(e) => selectSubject(e.target.value)}
-                    aria-label="Scored finding"
-                    className="h-control-small font-body"
-                    style={{ width: 460, maxWidth: "100%" }}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return selectSubject(value);
+                    }}
                   >
-                    {scored.map((r) => (
-                      <option key={r.score.subject} value={r.score.subject}>
-                        {r.score.subject} — {r.score.score} {r.score.band} — {r.title}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    <SelectTrigger
+                      className={"w-full " + "h-control-small font-body"}
+                      aria-label="Scored finding"
+                      style={{ width: 460, maxWidth: "100%" }}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjectItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Toolbar>
                 <Stack space="space.200">
                   <ScoreCard score={selected.score} subject={selected.title} />

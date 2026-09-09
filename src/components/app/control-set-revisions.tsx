@@ -1,4 +1,10 @@
 import {
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  AlertTitle,
+  Dot,
+  AlertDescription,
   Alert,
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +41,7 @@ import {
 import { useRecordForm } from "@/lib/record-form";
 
 import { Link } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState, type SetStateAction } from "react";
+import { useId, useCallback, useMemo, useRef, useState, type SetStateAction } from "react";
 
 import {
   approvalConsequence,
@@ -124,6 +130,8 @@ export function RevisionActions({
   revision: ControlSetRevision;
   align?: "start" | "end";
 }) {
+  const fieldId = useId();
+
   const alertCancelRef = useRef<HTMLButtonElement>(null);
 
   const version = useControlSetVersion();
@@ -206,8 +214,21 @@ export function RevisionActions({
                 </DialogDescription>
               </DialogHeader>
               <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
-                <Field label="Reason" hint="Recorded on the revision and in its history.">
-                  <Textarea autoFocus value={note} onChange={(e) => setNote(e.target.value)} />
+                <Field>
+                  <FieldLabel id={`${fieldId}-reason-1-label`} htmlFor={`${fieldId}-reason-1`}>
+                    {"Reason"}
+                  </FieldLabel>
+                  <Textarea
+                    id={`${fieldId}-reason-1`}
+                    aria-labelledby={`${fieldId}-reason-1-label`}
+                    aria-describedby={`${fieldId}-reason-1-message`}
+                    autoFocus
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                  <FieldDescription id={`${fieldId}-reason-1-message`}>
+                    {"Recorded on the revision and in its history."}
+                  </FieldDescription>
                 </Field>
               </Box>
               <DialogFooter>
@@ -267,6 +288,8 @@ export function RevisionActions({
 
 /** "Propose change" with its reason dialog; disabled with the reason when a revision is already open. */
 export function ProposeChange({ scopeId }: { scopeId: string }) {
+  const fieldId = useId();
+
   useControlSetVersion();
   useWorkVersion();
   const [proposing, setProposing] = useState(false);
@@ -338,27 +361,48 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
               }}
             >
               <form.Field name="reason">
-                {(field) => (
-                  <Field
-                    isRequired
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? [...new Set(field.state.meta.errors)].join(" ")
-                        : undefined
-                    }
-                    label="What changed"
-                    hint="The reason the control set has to move."
-                  >
-                    <Textarea
-                      autoFocus
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="A new interface, a categorization challenge, an overlay revision, a finding…"
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                    />
-                  </Field>
-                )}
+                {(field) => {
+                  const fieldError2 =
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined;
+                  return (
+                    <Field data-invalid={Boolean(fieldError2)}>
+                      <FieldLabel
+                        id={`${fieldId}-what-changed-2-label`}
+                        htmlFor={`${fieldId}-what-changed-2`}
+                      >
+                        {"What changed"}
+                        <span aria-hidden="true" className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Textarea
+                        id={`${fieldId}-what-changed-2`}
+                        aria-labelledby={`${fieldId}-what-changed-2-label`}
+                        aria-required={true}
+                        aria-invalid={Boolean(fieldError2)}
+                        aria-describedby={`${fieldId}-what-changed-2-message`}
+                        autoFocus
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="A new interface, a categorization challenge, an overlay revision, a finding…"
+                        name={field.name}
+                        onBlur={field.handleBlur}
+                      />
+                      {fieldError2 ? (
+                        <FieldError id={`${fieldId}-what-changed-2-message`}>
+                          {fieldError2}
+                        </FieldError>
+                      ) : (
+                        <FieldDescription id={`${fieldId}-what-changed-2-message`}>
+                          {"The reason the control set has to move."}
+                        </FieldDescription>
+                      )}
+                    </Field>
+                  );
+                }}
               </form.Field>
             </form>
           </Box>
@@ -400,6 +444,8 @@ export function RevisionReview({
   programId: string;
   compact?: boolean;
 }) {
+  const fieldId = useId();
+
   const version = useControlSetVersion();
   const workVersion = useWorkVersion();
   const inForce = inForceRevision(revision.scope);
@@ -429,8 +475,16 @@ export function RevisionReview({
         >
           <Stack space="space.150">
             {editable ? (
-              <Field label="Reason for the change">
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-reason-for-the-change-3-label`}
+                  htmlFor={`${fieldId}-reason-for-the-change-3`}
+                >
+                  {"Reason for the change"}
+                </FieldLabel>
                 <Input
+                  id={`${fieldId}-reason-for-the-change-3`}
+                  aria-labelledby={`${fieldId}-reason-for-the-change-3-label`}
                   value={revision.reason}
                   onChange={(e) => updateDraft(revision.id, { reason: e.target.value })}
                   placeholder="What changed in the system or its environment"
@@ -460,8 +514,16 @@ export function RevisionReview({
               </RevisionFact>
             </Grid>
             {revision.state === "Changes requested" && revision.note ? (
-              <Alert tone="danger" title={revision.decidedBy}>
-                {revision.note}
+              <Alert tone="danger" role="alert">
+                {revision.decidedBy ? (
+                  <AlertTitle>
+                    <span aria-hidden="true" className="flex h-250 shrink-0 items-center">
+                      <Dot tone={"danger"} />
+                    </span>
+                    <span className="min-w-0 break-words">{revision.decidedBy}</span>
+                  </AlertTitle>
+                ) : null}
+                <AlertDescription>{revision.note}</AlertDescription>
               </Alert>
             ) : null}
           </Stack>

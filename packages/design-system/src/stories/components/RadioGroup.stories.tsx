@@ -1,8 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { createRef, useState } from "react";
+import { useId, createRef, useState } from "react";
 import { expect, fn, userEvent, within } from "storybook/test";
 
-import { Button, Field, RadioGroup, RadioGroupItem } from "../../components";
+import {
+  FieldSet,
+  FieldLegend,
+  FieldDescription,
+  FieldError,
+  Button,
+  RadioGroup,
+  RadioGroupItem,
+} from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -195,10 +203,13 @@ const renderedButtonRef = createRef<HTMLButtonElement>();
 const changed = fn();
 
 function FormDemo() {
+  const fieldId = useId();
+
   const [frequency, setFrequency] = useState("");
   const [tried, setTried] = useState(false);
   const [saved, setSaved] = useState("No review scheduled.");
   const invalid = tried && !frequency;
+  const fieldError1 = invalid ? "Choose a frequency." : undefined;
   return (
     <form
       noValidate
@@ -217,14 +228,23 @@ function FormDemo() {
       }}
     >
       <Stack space="space.200">
-        <Field
-          label="Frequency"
-          isGroup
-          isRequired
-          hint="How often the control is reviewed."
-          error={invalid ? "Choose a frequency." : undefined}
+        <FieldSet
+          data-invalid={Boolean(fieldError1)}
+          aria-invalid={Boolean(fieldError1)}
+          aria-labelledby={`${fieldId}-frequency-1-label`}
+          aria-describedby={`${fieldId}-frequency-1-message`}
         >
+          <FieldLegend id={`${fieldId}-frequency-1-label`} variant="label">
+            {"Frequency"}
+            <span aria-hidden="true" className="text-danger">
+              {" "}
+              *
+            </span>
+          </FieldLegend>
           <RadioGroup
+            aria-labelledby={`${fieldId}-frequency-1-label`}
+            aria-invalid={Boolean(fieldError1)}
+            aria-describedby={`${fieldId}-frequency-1-message`}
             ref={groupRef}
             inputRef={groupInputRef}
             id="review-frequency"
@@ -277,7 +297,14 @@ function FormDemo() {
               </Text>
             </Stack>
           </RadioGroup>
-        </Field>
+          {Boolean(fieldError1) ? (
+            <FieldError id={`${fieldId}-frequency-1-message`}>{fieldError1}</FieldError>
+          ) : (
+            <FieldDescription id={`${fieldId}-frequency-1-message`}>
+              {"How often the control is reviewed."}
+            </FieldDescription>
+          )}
+        </FieldSet>
         <Inline space="space.100">
           <Button type="submit" variant="primary">
             Schedule

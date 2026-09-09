@@ -1,8 +1,14 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Button,
+} from "../../components";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { useMemo, useState, type ReactNode } from "react";
-
-import { Button, NativeSelect } from "../../components";
 import { DataTable, PickerSheet, defineColumns, useDataTable } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -135,6 +141,14 @@ function PickerStates() {
     label: "Chosen requirements",
   });
 
+  const undefinedItems = [
+    { value: "", label: "Responsibility" },
+    ...responsibilities.map((r) => ({ value: r, label: r })),
+  ];
+  const undefinedItems2 = [
+    { value: "", label: "Coverage" },
+    ...coverages.map((c) => ({ value: c, label: c })),
+  ];
   return (
     <Stack space="space.200">
       <Specimens title="PickerSheet">
@@ -187,35 +201,52 @@ function PickerStates() {
                 Apply to all
               </Text>
               <Box style={{ width: 140 }}>
-                <NativeSelect
-                  aria-label="Responsibility for all"
-                  className="[&>select]:h-control-small"
+                <Select<string>
+                  items={undefinedItems}
                   defaultValue=""
-                  onChange={(e) =>
-                    e.target.value &&
-                    applyAll({ responsibility: e.target.value as Fields["responsibility"] })
-                  }
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return value && applyAll({ responsibility: value as Fields["responsibility"] });
+                  }}
                 >
-                  <option value="">Responsibility</option>
-                  {responsibilities.map((r) => (
-                    <option key={r}>{r}</option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    className={"w-full " + "[&>select]:h-control-small"}
+                    aria-label="Responsibility for all"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {undefinedItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Box>
               <Box style={{ width: 120 }}>
-                <NativeSelect
-                  aria-label="Coverage for all"
-                  className="[&>select]:h-control-small"
+                <Select<string>
+                  items={undefinedItems2}
                   defaultValue=""
-                  onChange={(e) =>
-                    e.target.value && applyAll({ coverage: e.target.value as Fields["coverage"] })
-                  }
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return value && applyAll({ coverage: value as Fields["coverage"] });
+                  }}
                 >
-                  <option value="">Coverage</option>
-                  {coverages.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    className={"w-full " + "[&>select]:h-control-small"}
+                    aria-label="Coverage for all"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {undefinedItems2.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Box>
             </Inline>
           }

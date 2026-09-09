@@ -1,5 +1,12 @@
-import { useRecordForm } from "@/lib/record-form";
 import {
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Box,
   Button,
@@ -21,7 +28,6 @@ import {
   Input,
   Item,
   KeyValue,
-  NativeSelect,
   Progress,
   Related,
   Section,
@@ -31,10 +37,10 @@ import {
   TextLink,
   Timeline,
 } from "@ledger/design-system";
+import { useRecordForm } from "@/lib/record-form";
 import { Link } from "@tanstack/react-router";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type SetStateAction } from "react";
-
+import { useId, useCallback, useEffect, useMemo, useState, type SetStateAction } from "react";
 import {
   formatOscalDate,
   milestoneStatusTone,
@@ -715,6 +721,8 @@ function PoamEditModal({
   onSave: (next: PoamItem) => void;
   onDelete: () => void;
 }) {
+  const fieldId = useId();
+
   const { form, values, setValue, formId, formRef } = useRecordForm(
     {
       draft: item as PoamItem | null,
@@ -834,74 +842,138 @@ function PoamEditModal({
               >
                 <Stack space="space.150">
                   <form.Field name="draft.title">
-                    {(field) => (
-                      <Field
-                        isRequired
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label="Weakness title"
-                        hint="markup-line — appears as the poam-item title."
-                      >
-                        <Input
-                          autoFocus
-                          value={field.state.value ?? ""}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError1 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError1)}>
+                          <FieldLabel
+                            id={`${fieldId}-weakness-title-1-label`}
+                            htmlFor={`${fieldId}-weakness-title-1`}
+                          >
+                            {"Weakness title"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
+                          <Input
+                            id={`${fieldId}-weakness-title-1`}
+                            aria-labelledby={`${fieldId}-weakness-title-1-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError1)}
+                            aria-describedby={`${fieldId}-weakness-title-1-message`}
+                            autoFocus
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError1 ? (
+                            <FieldError id={`${fieldId}-weakness-title-1-message`}>
+                              {fieldError1}
+                            </FieldError>
+                          ) : (
+                            <FieldDescription id={`${fieldId}-weakness-title-1-message`}>
+                              {"markup-line — appears as the poam-item title."}
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <form.Field name="draft.description">
-                    {(field) => (
-                      <Field
-                        label="Description"
-                        hint="markup-multiline"
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                      >
-                        <Textarea
-                          value={field.state.value ?? ""}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError2 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError2)}>
+                          <FieldLabel
+                            id={`${fieldId}-description-2-label`}
+                            htmlFor={`${fieldId}-description-2`}
+                          >
+                            {"Description"}
+                          </FieldLabel>
+                          <Textarea
+                            id={`${fieldId}-description-2`}
+                            aria-labelledby={`${fieldId}-description-2-label`}
+                            aria-invalid={Boolean(fieldError2)}
+                            aria-describedby={`${fieldId}-description-2-message`}
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError2 ? (
+                            <FieldError id={`${fieldId}-description-2-message`}>
+                              {fieldError2}
+                            </FieldError>
+                          ) : (
+                            <FieldDescription id={`${fieldId}-description-2-message`}>
+                              {"markup-multiline"}
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <form.Field name="draft.remarks">
-                    {(field) => (
-                      <Field
-                        label="Remarks"
-                        hint="markup-multiline — compensating controls, AO notes."
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                      >
-                        <Textarea
-                          value={field.state.value ?? ""}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError3 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError3)}>
+                          <FieldLabel
+                            id={`${fieldId}-remarks-3-label`}
+                            htmlFor={`${fieldId}-remarks-3`}
+                          >
+                            {"Remarks"}
+                          </FieldLabel>
+                          <Textarea
+                            id={`${fieldId}-remarks-3`}
+                            aria-labelledby={`${fieldId}-remarks-3-label`}
+                            aria-invalid={Boolean(fieldError3)}
+                            aria-describedby={`${fieldId}-remarks-3-message`}
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError3 ? (
+                            <FieldError id={`${fieldId}-remarks-3-message`}>
+                              {fieldError3}
+                            </FieldError>
+                          ) : (
+                            <FieldDescription id={`${fieldId}-remarks-3-message`}>
+                              {"markup-multiline — compensating controls, AO notes."}
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
 
                   <Grid
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
                   >
-                    <Field label="Controls" hint="token list">
+                    <Field>
+                      <FieldLabel
+                        id={`${fieldId}-controls-4-label`}
+                        htmlFor={`${fieldId}-controls-4`}
+                      >
+                        {"Controls"}
+                      </FieldLabel>
                       <Input
+                        id={`${fieldId}-controls-4`}
+                        aria-labelledby={`${fieldId}-controls-4-label`}
+                        aria-describedby={`${fieldId}-controls-4-message`}
                         value={draft.controls.join(", ")}
                         onChange={(e) =>
                           set(
@@ -913,52 +985,115 @@ function PoamEditModal({
                           )
                         }
                       />
+                      <FieldDescription id={`${fieldId}-controls-4-message`}>
+                        {"token list"}
+                      </FieldDescription>
                     </Field>
                     <form.Field name="draft.severity">
-                      {(field) => (
-                        <Field
-                          label="Severity"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value as PoamSeverity)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {severities.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems = severities.map((s) => ({ value: s, label: s }));
+                        const fieldError5 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError5)}>
+                            <FieldLabel
+                              id={`${fieldId}-severity-5-label`}
+                              htmlFor={`${fieldId}-severity-5`}
+                            >
+                              {"Severity"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as PoamSeverity);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-severity-5`}
+                                aria-labelledby={`${fieldId}-severity-5-label`}
+                                aria-invalid={Boolean(fieldError5)}
+                                aria-describedby={
+                                  fieldError5 ? `${fieldId}-severity-5-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-severity-5-label`}>
+                                {valueItems.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError5 ? (
+                              <FieldError id={`${fieldId}-severity-5-message`}>
+                                {fieldError5}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="draft.status">
-                      {(field) => (
-                        <Field
-                          label="Status"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value as PoamStatus)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {statuses.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems2 = statuses.map((s) => ({ value: s, label: s }));
+                        const fieldError6 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError6)}>
+                            <FieldLabel
+                              id={`${fieldId}-status-6-label`}
+                              htmlFor={`${fieldId}-status-6`}
+                            >
+                              {"Status"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems2}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as PoamStatus);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-status-6`}
+                                aria-labelledby={`${fieldId}-status-6-label`}
+                                aria-invalid={Boolean(fieldError6)}
+                                aria-describedby={
+                                  fieldError6 ? `${fieldId}-status-6-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-status-6-label`}>
+                                {valueItems2.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError6 ? (
+                              <FieldError id={`${fieldId}-status-6-message`}>
+                                {fieldError6}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
 
@@ -966,63 +1101,139 @@ function PoamEditModal({
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
                   >
-                    <Field label="Scheduled completion" hint="date-time-with-timezone">
+                    <Field>
+                      <FieldLabel
+                        id={`${fieldId}-scheduled-completion-7-label`}
+                        htmlFor={`${fieldId}-scheduled-completion-7`}
+                      >
+                        {"Scheduled completion"}
+                      </FieldLabel>
                       <DatePicker
+                        id={`${fieldId}-scheduled-completion-7`}
+                        aria-labelledby={`${fieldId}-scheduled-completion-7-label`}
+                        aria-describedby={`${fieldId}-scheduled-completion-7-message`}
                         value={toDateInput(draft.scheduledCompletion)}
                         onChange={(iso) => set("scheduledCompletion", toOscalDateTime(iso))}
                       />
+                      <FieldDescription id={`${fieldId}-scheduled-completion-7-message`}>
+                        {"date-time-with-timezone"}
+                      </FieldDescription>
                     </Field>
                     <form.Field name="draft.pointOfContact">
-                      {(field) => (
-                        <Field
-                          label="Point of contact"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {[
-                              draft.pointOfContact,
-                              ...contacts.filter((c) => c !== draft.pointOfContact),
-                            ].map((c) => (
-                              <option key={c}>{c}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems3 = [
+                          draft.pointOfContact,
+                          ...contacts.filter((c) => c !== draft.pointOfContact),
+                        ].map((c) => ({ value: c, label: c }));
+                        const fieldError8 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError8)}>
+                            <FieldLabel
+                              id={`${fieldId}-point-of-contact-8-label`}
+                              htmlFor={`${fieldId}-point-of-contact-8`}
+                            >
+                              {"Point of contact"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems3}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-point-of-contact-8`}
+                                aria-labelledby={`${fieldId}-point-of-contact-8-label`}
+                                aria-invalid={Boolean(fieldError8)}
+                                aria-describedby={
+                                  fieldError8 ? `${fieldId}-point-of-contact-8-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent
+                                aria-labelledby={`${fieldId}-point-of-contact-8-label`}
+                              >
+                                {valueItems3.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError8 ? (
+                              <FieldError id={`${fieldId}-point-of-contact-8-message`}>
+                                {fieldError8}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="draft.detectionSource">
-                      {(field) => (
-                        <Field
-                          label="Detection source"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {[
-                              draft.detectionSource,
-                              ...detectionSources.filter((s) => s !== draft.detectionSource),
-                            ].map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems4 = [
+                          draft.detectionSource,
+                          ...detectionSources.filter((s) => s !== draft.detectionSource),
+                        ].map((s) => ({ value: s, label: s }));
+                        const fieldError9 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError9)}>
+                            <FieldLabel
+                              id={`${fieldId}-detection-source-9-label`}
+                              htmlFor={`${fieldId}-detection-source-9`}
+                            >
+                              {"Detection source"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems4}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-detection-source-9`}
+                                aria-labelledby={`${fieldId}-detection-source-9-label`}
+                                aria-invalid={Boolean(fieldError9)}
+                                aria-describedby={
+                                  fieldError9 ? `${fieldId}-detection-source-9-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent
+                                aria-labelledby={`${fieldId}-detection-source-9-label`}
+                              >
+                                {valueItems4.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError9 ? (
+                              <FieldError id={`${fieldId}-detection-source-9-message`}>
+                                {fieldError9}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
 
@@ -1039,56 +1250,73 @@ function PoamEditModal({
                       </Button>
                     </Inline>
                     <Box paddingBlockStart="space.050">
-                      {draft.milestones.map((m) => (
-                        <Grid
-                          key={m.uuid}
-                          className="border-b border-default py-100 last:border-0"
-                          gap="space.100"
-                          templateColumns={{
-                            base: "minmax(0,1fr)",
-                            md: "42px minmax(0,1fr) 128px 132px 24px",
-                          }}
-                          alignItems="center"
-                        >
-                          <Id className="font-body-small text-subtle">{m.id}</Id>
-                          <Input
-                            aria-label={`Milestone ${m.id} title`}
-                            value={m.title}
-                            placeholder="Milestone title"
-                            onChange={(e) => setMilestone(m.uuid, { title: e.target.value })}
-                          />
-                          <NativeSelect
-                            aria-label={`Milestone ${m.id} status`}
-                            value={m.status}
-                            onChange={(e) =>
-                              setMilestone(m.uuid, { status: e.target.value as MilestoneStatus })
-                            }
+                      {draft.milestones.map((m) => {
+                        const statusItems = milestoneStatuses.map((s) => ({
+                          value: s,
+                          label: s,
+                        }));
+                        return (
+                          <Grid
+                            key={m.uuid}
+                            className="border-b border-default py-100 last:border-0"
+                            gap="space.100"
+                            templateColumns={{
+                              base: "minmax(0,1fr)",
+                              md: "42px minmax(0,1fr) 128px 132px 24px",
+                            }}
+                            alignItems="center"
                           >
-                            {milestoneStatuses.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                          <DatePicker
-                            aria-label={`Milestone ${m.id} date`}
-                            value={toDateInput(m.completedDate ?? m.targetDate)}
-                            onChange={(iso) =>
-                              setMilestone(
-                                m.uuid,
-                                m.status === "Completed"
-                                  ? { completedDate: toOscalDateTime(iso) }
-                                  : { targetDate: toOscalDateTime(iso) },
-                              )
-                            }
-                          />
-                          <button
-                            aria-label={`Remove milestone ${m.id}`}
-                            className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-danger hover:text-danger size-300"
-                            onClick={() => removeMilestone(m.uuid)}
-                          >
-                            <X className="size-icon-small" />
-                          </button>
-                        </Grid>
-                      ))}
+                            <Id className="font-body-small text-subtle">{m.id}</Id>
+                            <Input
+                              aria-label={`Milestone ${m.id} title`}
+                              value={m.title}
+                              placeholder="Milestone title"
+                              onChange={(e) => setMilestone(m.uuid, { title: e.target.value })}
+                            />
+                            <Select<string>
+                              items={statusItems}
+                              value={m.status}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return setMilestone(m.uuid, { status: value as MilestoneStatus });
+                              }}
+                            >
+                              <SelectTrigger
+                                className="w-full"
+                                aria-label={`Milestone ${m.id} status`}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {statusItems.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <DatePicker
+                              aria-label={`Milestone ${m.id} date`}
+                              value={toDateInput(m.completedDate ?? m.targetDate)}
+                              onChange={(iso) =>
+                                setMilestone(
+                                  m.uuid,
+                                  m.status === "Completed"
+                                    ? { completedDate: toOscalDateTime(iso) }
+                                    : { targetDate: toOscalDateTime(iso) },
+                                )
+                              }
+                            />
+                            <button
+                              aria-label={`Remove milestone ${m.id}`}
+                              className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-danger hover:text-danger size-300"
+                              onClick={() => removeMilestone(m.uuid)}
+                            >
+                              <X className="size-icon-small" />
+                            </button>
+                          </Grid>
+                        );
+                      })}
                       {draft.milestones.length === 0 ? (
                         <p className="py-100 font-body text-subtle">
                           No milestones. Add one to track intermediate progress.
@@ -1296,6 +1524,8 @@ function PoamCreateModal({
   nextId: string;
   onCreate: (item: PoamItem) => void;
 }) {
+  const fieldId = useId();
+
   const { form, values, setValue, formId, formRef } = useRecordForm(
     {
       title: "",
@@ -1428,123 +1658,262 @@ function PoamCreateModal({
               >
                 <Stack space="space.150">
                   <form.Field name="title">
-                    {(field) => (
-                      <Field
-                        isRequired
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label="Weakness title"
-                        hint="markup-line — appears as the poam-item title."
-                      >
-                        <Input
-                          autoFocus
-                          value={field.state.value ?? ""}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          placeholder="Privileged function invocations are not forwarded to the audit sink"
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError10 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError10)}>
+                          <FieldLabel
+                            id={`${fieldId}-weakness-title-10-label`}
+                            htmlFor={`${fieldId}-weakness-title-10`}
+                          >
+                            {"Weakness title"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
+                          <Input
+                            id={`${fieldId}-weakness-title-10`}
+                            aria-labelledby={`${fieldId}-weakness-title-10-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError10)}
+                            aria-describedby={`${fieldId}-weakness-title-10-message`}
+                            autoFocus
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="Privileged function invocations are not forwarded to the audit sink"
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError10 ? (
+                            <FieldError id={`${fieldId}-weakness-title-10-message`}>
+                              {fieldError10}
+                            </FieldError>
+                          ) : (
+                            <FieldDescription id={`${fieldId}-weakness-title-10-message`}>
+                              {"markup-line — appears as the poam-item title."}
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <form.Field name="description">
-                    {(field) => (
-                      <Field
-                        label="Description"
-                        hint="markup-multiline — the weakness as it will read to the AO."
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                      >
-                        <Textarea
-                          value={field.state.value ?? ""}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          placeholder="Describe the weakness, the affected component, and the sampling that identified it."
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError11 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError11)}>
+                          <FieldLabel
+                            id={`${fieldId}-description-11-label`}
+                            htmlFor={`${fieldId}-description-11`}
+                          >
+                            {"Description"}
+                          </FieldLabel>
+                          <Textarea
+                            id={`${fieldId}-description-11`}
+                            aria-labelledby={`${fieldId}-description-11-label`}
+                            aria-invalid={Boolean(fieldError11)}
+                            aria-describedby={`${fieldId}-description-11-message`}
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="Describe the weakness, the affected component, and the sampling that identified it."
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError11 ? (
+                            <FieldError id={`${fieldId}-description-11-message`}>
+                              {fieldError11}
+                            </FieldError>
+                          ) : (
+                            <FieldDescription id={`${fieldId}-description-11-message`}>
+                              {"markup-multiline — the weakness as it will read to the AO."}
+                            </FieldDescription>
+                          )}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <Grid
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
                   >
                     <form.Field name="control">
-                      {(field) => (
-                        <Field
-                          isRequired
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                          label="Control"
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {programControls.map((c) => (
-                              <option key={c.id}>{c.id}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems5 = programControls.map((c) => ({
+                          value: c.id,
+                          label: c.id,
+                        }));
+                        const fieldError12 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError12)}>
+                            <FieldLabel
+                              id={`${fieldId}-control-12-label`}
+                              htmlFor={`${fieldId}-control-12`}
+                            >
+                              {"Control"}
+                              <span aria-hidden="true" className="text-danger">
+                                {" "}
+                                *
+                              </span>
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems5}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-control-12`}
+                                aria-labelledby={`${fieldId}-control-12-label`}
+                                aria-required={true}
+                                aria-invalid={Boolean(fieldError12)}
+                                aria-describedby={
+                                  fieldError12 ? `${fieldId}-control-12-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-control-12-label`}>
+                                {valueItems5.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError12 ? (
+                              <FieldError id={`${fieldId}-control-12-message`}>
+                                {fieldError12}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="severity">
-                      {(field) => (
-                        <Field
-                          label="Severity"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value as PoamSeverity)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {severities.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems6 = severities.map((s) => ({ value: s, label: s }));
+                        const fieldError13 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError13)}>
+                            <FieldLabel
+                              id={`${fieldId}-severity-13-label`}
+                              htmlFor={`${fieldId}-severity-13`}
+                            >
+                              {"Severity"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems6}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as PoamSeverity);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-severity-13`}
+                                aria-labelledby={`${fieldId}-severity-13-label`}
+                                aria-invalid={Boolean(fieldError13)}
+                                aria-describedby={
+                                  fieldError13 ? `${fieldId}-severity-13-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-severity-13-label`}>
+                                {valueItems6.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError13 ? (
+                              <FieldError id={`${fieldId}-severity-13-message`}>
+                                {fieldError13}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="status">
-                      {(field) => (
-                        <Field
-                          label="Status"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value as PoamStatus)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            <option>Open</option>
-                            <option>Ongoing</option>
-                            <option>Risk accepted</option>
-                            <option>Deferred</option>
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems7 = [
+                          { value: "Open", label: "Open" },
+                          { value: "Ongoing", label: "Ongoing" },
+                          { value: "Risk accepted", label: "Risk accepted" },
+                          { value: "Deferred", label: "Deferred" },
+                        ];
+                        const fieldError14 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError14)}>
+                            <FieldLabel
+                              id={`${fieldId}-status-14-label`}
+                              htmlFor={`${fieldId}-status-14`}
+                            >
+                              {"Status"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems7}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as PoamStatus);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-status-14`}
+                                aria-labelledby={`${fieldId}-status-14-label`}
+                                aria-invalid={Boolean(fieldError14)}
+                                aria-describedby={
+                                  fieldError14 ? `${fieldId}-status-14-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-status-14-label`}>
+                                {valueItems7.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError14 ? (
+                              <FieldError id={`${fieldId}-status-14-message`}>
+                                {fieldError14}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
                   <Grid
@@ -1552,73 +1921,164 @@ function PoamCreateModal({
                     templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
                   >
                     <form.Field name="scheduled">
-                      {(field) => (
-                        <Field
-                          label="Scheduled completion"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <DatePicker
-                            value={field.state.value ?? ""}
-                            onChange={field.handleChange}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          />
-                        </Field>
-                      )}
+                      {(field) => {
+                        const fieldError15 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError15)}>
+                            <FieldLabel
+                              id={`${fieldId}-scheduled-completion-15-label`}
+                              htmlFor={`${fieldId}-scheduled-completion-15`}
+                            >
+                              {"Scheduled completion"}
+                            </FieldLabel>
+                            <DatePicker
+                              id={`${fieldId}-scheduled-completion-15`}
+                              aria-labelledby={`${fieldId}-scheduled-completion-15-label`}
+                              aria-invalid={Boolean(fieldError15)}
+                              aria-describedby={
+                                fieldError15
+                                  ? `${fieldId}-scheduled-completion-15-message`
+                                  : undefined
+                              }
+                              value={field.state.value ?? ""}
+                              onChange={field.handleChange}
+                              name={field.name}
+                              onBlur={field.handleBlur}
+                            />
+                            {fieldError15 ? (
+                              <FieldError id={`${fieldId}-scheduled-completion-15-message`}>
+                                {fieldError15}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="contact">
-                      {(field) => (
-                        <Field
-                          isRequired
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                          label="Point of contact"
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {[defaultOwner, ...contacts.filter((c) => c !== defaultOwner)].map(
-                              (c) => (
-                                <option key={c}>{c}</option>
-                              ),
-                            )}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems8 = [
+                          defaultOwner,
+                          ...contacts.filter((c) => c !== defaultOwner),
+                        ].map((c) => ({ value: c, label: c }));
+                        const fieldError16 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError16)}>
+                            <FieldLabel
+                              id={`${fieldId}-point-of-contact-16-label`}
+                              htmlFor={`${fieldId}-point-of-contact-16`}
+                            >
+                              {"Point of contact"}
+                              <span aria-hidden="true" className="text-danger">
+                                {" "}
+                                *
+                              </span>
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems8}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-point-of-contact-16`}
+                                aria-labelledby={`${fieldId}-point-of-contact-16-label`}
+                                aria-required={true}
+                                aria-invalid={Boolean(fieldError16)}
+                                aria-describedby={
+                                  fieldError16
+                                    ? `${fieldId}-point-of-contact-16-message`
+                                    : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent
+                                aria-labelledby={`${fieldId}-point-of-contact-16-label`}
+                              >
+                                {valueItems8.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError16 ? (
+                              <FieldError id={`${fieldId}-point-of-contact-16-message`}>
+                                {fieldError16}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="marking">
-                      {(field) => (
-                        <Field
-                          label="Marking"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            <option>CUI</option>
-                            <option>CUI//SP-PRIV</option>
-                            <option>CUI//SP-PRVCY</option>
-                            <option>Unclassified</option>
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems9 = [
+                          { value: "CUI", label: "CUI" },
+                          { value: "CUI//SP-PRIV", label: "CUI//SP-PRIV" },
+                          { value: "CUI//SP-PRVCY", label: "CUI//SP-PRVCY" },
+                          { value: "Unclassified", label: "Unclassified" },
+                        ];
+                        const fieldError17 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError17)}>
+                            <FieldLabel
+                              id={`${fieldId}-marking-17-label`}
+                              htmlFor={`${fieldId}-marking-17`}
+                            >
+                              {"Marking"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems9}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-marking-17`}
+                                aria-labelledby={`${fieldId}-marking-17-label`}
+                                aria-invalid={Boolean(fieldError17)}
+                                aria-describedby={
+                                  fieldError17 ? `${fieldId}-marking-17-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-marking-17-label`}>
+                                {valueItems9.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError17 ? (
+                              <FieldError id={`${fieldId}-marking-17-message`}>
+                                {fieldError17}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
                   <Grid
@@ -1626,95 +2086,199 @@ function PoamCreateModal({
                     templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                   >
                     <form.Field name="source">
-                      {(field) => (
-                        <Field
-                          label="Detection source"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {detectionSources.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems10 = detectionSources.map((s) => ({ value: s, label: s }));
+                        const fieldError18 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError18)}>
+                            <FieldLabel
+                              id={`${fieldId}-detection-source-18-label`}
+                              htmlFor={`${fieldId}-detection-source-18`}
+                            >
+                              {"Detection source"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems10}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-detection-source-18`}
+                                aria-labelledby={`${fieldId}-detection-source-18-label`}
+                                aria-invalid={Boolean(fieldError18)}
+                                aria-describedby={
+                                  fieldError18
+                                    ? `${fieldId}-detection-source-18-message`
+                                    : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent
+                                aria-labelledby={`${fieldId}-detection-source-18-label`}
+                              >
+                                {valueItems10.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError18 ? (
+                              <FieldError id={`${fieldId}-detection-source-18-message`}>
+                                {fieldError18}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="riskId">
-                      {(field) => (
-                        <Field
-                          label="Associated risk"
-                          hint="Links the item to a risk exposure entry."
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            <option value="">None</option>
-                            <option>RSK-2419</option>
-                            <option>RSK-2402</option>
-                            <option>RSK-2388</option>
-                            <option>RSK-2290</option>
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems11 = [
+                          { value: "", label: "None" },
+                          { value: "RSK-2419", label: "RSK-2419" },
+                          { value: "RSK-2402", label: "RSK-2402" },
+                          { value: "RSK-2388", label: "RSK-2388" },
+                          { value: "RSK-2290", label: "RSK-2290" },
+                        ];
+                        const fieldError19 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError19)}>
+                            <FieldLabel
+                              id={`${fieldId}-associated-risk-19-label`}
+                              htmlFor={`${fieldId}-associated-risk-19`}
+                            >
+                              {"Associated risk"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems11}
+                              value={field.state.value ?? ""}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-associated-risk-19`}
+                                aria-labelledby={`${fieldId}-associated-risk-19-label`}
+                                aria-invalid={Boolean(fieldError19)}
+                                aria-describedby={`${fieldId}-associated-risk-19-message`}
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent
+                                aria-labelledby={`${fieldId}-associated-risk-19-label`}
+                              >
+                                {valueItems11.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError19 ? (
+                              <FieldError id={`${fieldId}-associated-risk-19-message`}>
+                                {fieldError19}
+                              </FieldError>
+                            ) : (
+                              <FieldDescription id={`${fieldId}-associated-risk-19-message`}>
+                                {"Links the item to a risk exposure entry."}
+                              </FieldDescription>
+                            )}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
                   <Grid gap="space.150" templateColumns="minmax(0,1fr) 160px">
                     <form.Field name="milestone">
-                      {(field) => (
-                        <Field
-                          label="First milestone"
-                          hint="Additional milestones can be added after creation."
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <Input
-                            value={field.state.value ?? ""}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="Deploy audit forwarder to broker nodes"
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          />
-                        </Field>
-                      )}
+                      {(field) => {
+                        const fieldError20 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError20)}>
+                            <FieldLabel
+                              id={`${fieldId}-first-milestone-20-label`}
+                              htmlFor={`${fieldId}-first-milestone-20`}
+                            >
+                              {"First milestone"}
+                            </FieldLabel>
+                            <Input
+                              id={`${fieldId}-first-milestone-20`}
+                              aria-labelledby={`${fieldId}-first-milestone-20-label`}
+                              aria-invalid={Boolean(fieldError20)}
+                              aria-describedby={`${fieldId}-first-milestone-20-message`}
+                              value={field.state.value ?? ""}
+                              onChange={(e) => field.handleChange(e.target.value)}
+                              placeholder="Deploy audit forwarder to broker nodes"
+                              name={field.name}
+                              onBlur={field.handleBlur}
+                            />
+                            {fieldError20 ? (
+                              <FieldError id={`${fieldId}-first-milestone-20-message`}>
+                                {fieldError20}
+                              </FieldError>
+                            ) : (
+                              <FieldDescription id={`${fieldId}-first-milestone-20-message`}>
+                                {"Additional milestones can be added after creation."}
+                              </FieldDescription>
+                            )}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="milestoneDate">
-                      {(field) => (
-                        <Field
-                          label="Target date"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <DatePicker
-                            value={field.state.value ?? ""}
-                            onChange={field.handleChange}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          />
-                        </Field>
-                      )}
+                      {(field) => {
+                        const fieldError21 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError21)}>
+                            <FieldLabel
+                              id={`${fieldId}-target-date-21-label`}
+                              htmlFor={`${fieldId}-target-date-21`}
+                            >
+                              {"Target date"}
+                            </FieldLabel>
+                            <DatePicker
+                              id={`${fieldId}-target-date-21`}
+                              aria-labelledby={`${fieldId}-target-date-21-label`}
+                              aria-invalid={Boolean(fieldError21)}
+                              aria-describedby={
+                                fieldError21 ? `${fieldId}-target-date-21-message` : undefined
+                              }
+                              value={field.state.value ?? ""}
+                              onChange={field.handleChange}
+                              name={field.name}
+                              onBlur={field.handleBlur}
+                            />
+                            {fieldError21 ? (
+                              <FieldError id={`${fieldId}-target-date-21-message`}>
+                                {fieldError21}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
                 </Stack>

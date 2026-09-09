@@ -1,19 +1,3 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Fragment } from "react";
-
-import { TextBlock } from "@/components/app/control-text";
-import { Shell } from "@/components/app/shell";
-import { assetById, bySeverity } from "@/lib/findings";
-import {
-  ccisForRisk,
-  findingsForRisk,
-  openCount,
-  poamsForRisk,
-  registerRisks,
-} from "@/lib/register";
-import { authoredComparison, bandTone, scoreRisk, type ScoreFactor } from "@/lib/risk-scoring";
-import { severityTone, statusTone } from "@/lib/spine";
 import {
   Badge,
   Box,
@@ -35,6 +19,21 @@ import {
   Table,
   TextLink,
 } from "@ledger/design-system";
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Fragment } from "react";
+import { TextBlock } from "@/components/app/control-text";
+import { Shell } from "@/components/app/shell";
+import { assetById, bySeverity } from "@/lib/findings";
+import {
+  ccisForRisk,
+  findingsForRisk,
+  openCount,
+  poamsForRisk,
+  registerRisks,
+} from "@/lib/register";
+import { authoredComparison, bandTone, scoreRisk, type ScoreFactor } from "@/lib/risk-scoring";
+import { severityTone, statusTone } from "@/lib/spine";
 
 export const Route = createFileRoute("/register/risks/$riskId")({
   head: ({ params }) => {

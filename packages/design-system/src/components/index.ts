@@ -10,6 +10,9 @@ export {
 } from "./accordion";
 export {
   Alert,
+  AlertTitle,
+  AlertDescription,
+  AlertAction,
   type AlertActionProps,
   type AlertDescriptionProps,
   type AlertProps,
@@ -55,22 +58,7 @@ export {
   type AttachmentTitleProps,
   type AttachmentTriggerProps,
 } from "./attachment";
-export {
-  Avatar,
-  Person,
-  type AvatarBadgeProps,
-  type AvatarCountProps,
-  type AvatarFallbackProps,
-  type AvatarHue,
-  type AvatarImageProps,
-  type AvatarProps,
-  type AvatarSize,
-  type AvatarStackPerson,
-  type AvatarStackProps,
-  type AvatarStackSize,
-  type AvatarVariant,
-  type PersonProps,
-} from "./avatar";
+
 export {
   Badge,
   Count,
@@ -104,7 +92,15 @@ export {
   type ButtonProps,
   type IconButtonProps,
 } from "./button";
-export { ButtonGroup, type ButtonGroupProps } from "./button-group";
+export {
+  ButtonGroup,
+  ButtonGroupText,
+  ButtonGroupSeparator,
+  buttonGroupVariants,
+  type ButtonGroupProps,
+  type ButtonGroupTextProps,
+  type ButtonGroupSeparatorProps,
+} from "./button-group";
 export { Calendar, type CalendarProps } from "./calendar";
 export {
   Chart,
@@ -153,29 +149,7 @@ export {
   type CollapsibleProps,
   type CollapsibleTriggerProps,
 } from "./collapsible";
-export {
-  Combobox,
-  type ComboboxChipProps,
-  type ComboboxChipRemoveProps,
-  type ComboboxChipsProps,
-  type ComboboxClearProps,
-  type ComboboxCollectionProps,
-  type ComboboxContentProps,
-  type ComboboxEmptyProps,
-  type ComboboxGroupLabelProps,
-  type ComboboxGroupProps,
-  type ComboboxInputGroupProps,
-  type ComboboxInputProps,
-  type ComboboxItemProps,
-  type ComboboxListProps,
-  type ComboboxOption,
-  type ComboboxProps,
-  type ComboboxRootProps,
-  type ComboboxSeparatorProps,
-  type ComboboxStatusProps,
-  type ComboboxTriggerProps,
-  type ComboboxValueProps,
-} from "./combobox";
+
 export {
   Command,
   CommandCount,
@@ -192,17 +166,30 @@ export {
   type CommandDialogProps,
   type CommandShortcutProps,
 } from "./command";
+export { controlBase, controlHeight } from "./controls";
 export {
   Field,
-  Input,
-  NativeSelect,
-  Textarea,
-  controlBase,
-  controlHeight,
-  useFieldControl,
   type FieldProps,
-} from "./controls";
-export type { ControlSize, InputProps, NativeSelectProps } from "./controls";
+  FieldLabel,
+  type FieldLabelProps,
+  FieldDescription,
+  type FieldDescriptionProps,
+  FieldError,
+  type FieldErrorProps,
+  FieldGroup,
+  type FieldGroupProps,
+  FieldLegend,
+  type FieldLegendProps,
+  FieldSeparator,
+  type FieldSeparatorProps,
+  FieldSet,
+  type FieldSetProps,
+  FieldContent,
+  type FieldContentProps,
+  FieldTitle,
+  type FieldTitleProps,
+} from "./field";
+export type { ControlSize } from "./controls";
 export { DatePicker, type DatePickerProps } from "./date-picker";
 export {
   Dialog,
@@ -278,8 +265,7 @@ export {
   type HoverCardTriggerProps,
 } from "./hover-card";
 export { Id, type IdListProps, type IdProps } from "./id";
-export { InputGroup } from "./input-group";
-export type { InputGroupProps } from "./input-group";
+
 export { Item, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
 export { Kbd, KbdGroup, type KbdGroupProps, type KbdProps } from "./kbd";
 export { KeyValue, type KeyValueProps } from "./key-value";
@@ -435,3 +421,82 @@ export {
   type FactProps,
   type ProseProps,
 } from "./typography";
+
+export {
+  avatarInitials,
+  type AvatarSize,
+  type AvatarHue,
+  type AvatarVariant,
+  avatarHue,
+  type AvatarProps,
+  type AvatarImageProps,
+  type AvatarFallbackProps,
+  type AvatarGroupCountProps,
+  type AvatarBadgeProps,
+  AvatarImage,
+  AvatarFallback,
+  AvatarBadge,
+  Avatar,
+  type AvatarGroupProps,
+  AvatarGroup,
+  AvatarGroupCount,
+  type PersonProps,
+  Person,
+} from "./avatar";
+
+export { type InputProps, Input } from "./input";
+
+export { type TextareaProps, Textarea } from "./textarea";
+
+export {
+  type InputGroupProps,
+  InputGroup,
+  type InputGroupAddonProps,
+  InputGroupAddon,
+  type InputGroupButtonProps,
+  InputGroupButton,
+  type InputGroupTextProps,
+  InputGroupText,
+  InputGroupInput,
+  InputGroupTextarea,
+} from "./input-group";
+
+export {
+  type ComboboxProps,
+  type ComboboxInputProps,
+  type ComboboxTriggerProps,
+  type ComboboxContentProps,
+  type ComboboxListProps,
+  type ComboboxItemProps,
+  type ComboboxEmptyProps,
+  type ComboboxGroupProps,
+  type ComboboxLabelProps,
+  type ComboboxCollectionProps,
+  type ComboboxValueProps,
+  type ComboboxSeparatorProps,
+  type ComboboxChipsProps,
+  type ComboboxChipProps,
+  type ComboboxChipRemoveProps,
+  type ComboboxClearProps,
+  type ComboboxStatusProps,
+  Combobox,
+  ComboboxInput,
+  ComboboxTrigger,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+  ComboboxEmpty,
+  ComboboxStatus,
+  ComboboxGroup,
+  ComboboxLabel,
+  ComboboxSeparator,
+  ComboboxChips,
+  ComboboxChip,
+  ComboboxChipRemove,
+  ComboboxClear,
+  ComboboxValue,
+  ComboboxCollection,
+  type ComboboxChipsInputProps,
+  ComboboxChipsInput,
+  useComboboxAnchor,
+} from "./combobox";

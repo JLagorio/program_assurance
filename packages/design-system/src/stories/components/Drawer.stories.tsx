@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { expect, userEvent, within } from "storybook/test";
 
-import { Button, Checkbox, Drawer, Field, Input } from "../../components";
+import { FieldLabel, Button, Checkbox, Drawer, Field, Input } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -69,6 +69,8 @@ const filters = (
 );
 
 function DrawerStates() {
+  const fieldId = useId();
+
   const [open, setOpen] = useState<Kind | null>(null);
   const close = () => setOpen(null);
   return (
@@ -111,8 +113,17 @@ function DrawerStates() {
         ) : open === "long" ? (
           <Stack space="space.200">
             {Array.from({ length: 12 }, (_, i) => (
-              <Field key={i} label={`Evidence ${i + 1}`}>
-                <Input defaultValue={`Artifact ${i + 1}`} readOnly />
+              <Field key={i}>
+                <FieldLabel
+                  id={`${fieldId}-field-1-label`}
+                  htmlFor={`${fieldId}-field-1`}
+                >{`Evidence ${i + 1}`}</FieldLabel>
+                <Input
+                  id={`${fieldId}-field-1`}
+                  aria-labelledby={`${fieldId}-field-1-label`}
+                  defaultValue={`Artifact ${i + 1}`}
+                  readOnly
+                />
               </Field>
             ))}
           </Stack>
@@ -141,6 +152,8 @@ export const OpenMatrix: Story = {
 };
 
 function DontDemo() {
+  const fieldId = useId();
+
   const [open, setOpen] = useState<"actions" | "form" | null>(null);
   const close = () => setOpen(null);
   return (
@@ -184,8 +197,17 @@ function DontDemo() {
       >
         <Stack space="space.200">
           {["Title", "Owner", "Severity", "Due", "Source", "Notes"].map((l) => (
-            <Field key={l} label={l}>
-              <Input />
+            <Field key={l}>
+              <FieldLabel
+                id={`${fieldId}-field-2-${encodeURIComponent(String(l))}-label`}
+                htmlFor={`${fieldId}-field-2-${encodeURIComponent(String(l))}`}
+              >
+                {l}
+              </FieldLabel>
+              <Input
+                id={`${fieldId}-field-2-${encodeURIComponent(String(l))}`}
+                aria-labelledby={`${fieldId}-field-2-${encodeURIComponent(String(l))}-label`}
+              />
             </Field>
           ))}
         </Stack>

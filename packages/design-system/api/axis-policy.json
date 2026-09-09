@@ -75,26 +75,6 @@
         }
       }
     },
-    "Alert": {
-      "domTarget": "Native div for the callout root; native attributes, events, style, className and HTMLDivElement ref forwarded. Root title is the ReactNode shorthand rather than a native tooltip attribute.",
-      "controlledBehavior": "Stateless presentation. The caller owns content, interactive controls, pending/dismissal state and any focus recovery. No child inspection or implicit workflow state.",
-      "defaultBehavior": "warning tone. Default role is alert for danger and status otherwise; explicit role overrides. Optional shorthand title/action wraps supplied body in Description, retaining zero-valued content. Dot appears with shorthand title unless icon=null. No automatic naming or focus.",
-      "reviewSources": ["packages/design-system/src/components/alert.tsx"],
-      "props": {
-        "action": {
-          "meaning": "ReactNode shorthand rendered unchanged inside Alert.Action; no cloning, forced color/underline or automatic dismissal.",
-          "migration": "Existing shorthand is supported. Use a matching tone text token and underline on links that need the previous tone-colored treatment; button variants and handlers now remain caller-owned."
-        },
-        "icon": {
-          "meaning": "Decorative ReactNode beside a shorthand title. Defaults to Dot; null removes it. Ignored without a shorthand title.",
-          "migration": "Optional additive customization. In compound usage, put an aria-hidden decorative mark directly in Alert.Title."
-        },
-        "tone": {
-          "meaning": "Semantic visual tone; warning is the default. Explicit role and aria-live choose announcement behavior independently of visual severity.",
-          "migration": "Existing default roles remain danger=alert and others=status. Prefer explicit role=note for static content and choose announcement urgency for dynamic messages."
-        }
-      }
-    },
     "Attachment": {
       "domTarget": "Native div root; DOM attributes, events, className, style and HTMLDivElement ref forwarded. Native title remains a tooltip attribute.",
       "controlledBehavior": "Stateless presentation of caller-owned state, size and orientation. No upload, removal, preview, selection or disabled-state inference.",
@@ -177,80 +157,6 @@
         "packages/design-system/src/components/attachment.tsx",
         "packages/design-system/src/components/button.tsx"
       ]
-    },
-    "Avatar": {
-      "domTarget": "Base UI Avatar root span owns the accessible image name, data-slot/size/variant/shape and caller style; native span props and ref target it. It does not clip overflow, so a Badge sits on its corner; the photo and the fallback carry the radius. A loaded Image is decorative within it; the Fallback holds the circle otherwise.",
-      "controlledBehavior": "Base UI tracks the photo's loading status (idle, loading, loaded, error) from Image; a different src is attempted again. All identity, hue, shape and size inputs remain caller-owned; inside a Stack, size, variant and the decorative default come from the stack context unless given.",
-      "defaultBehavior": "size=small (24px), variant=neutral, shape=circle; in a Stack, the stack's size and variant. Non-decorative name labels the span as an img; decorative hides it; explicit role, aria-label and aria-hidden override. title defaults to name. Missing hue hashes name into six hues. Without children, src renders Avatar.Image and a Fallback of the initials; children replace that content. Empty initials use ?. xsmall uses one initial; other sizes use two. A loaded photo sits on the neutral paint; caller style overrides the computed gradient.",
-      "reviewSources": ["packages/design-system/src/components/avatar.tsx"],
-      "props": {
-        "variant": {
-          "meaning": "Decorative identity paint: neutral, tinted, bold, gradient; hue does not express status.",
-          "migration": "Keep variant separate from semantic tone; moving these values to tone would incorrectly imply status meaning."
-        },
-        "size": {
-          "meaning": "Mark diameter: xsmall 16px, small 24px, medium 32px, large 40px, xlarge 64px.",
-          "migration": "Retain the Avatar scale; matching Button's size labels does not imply matching pixels."
-        }
-      }
-    },
-    "Avatar.Badge": {
-      "domTarget": "Absolutely positioned span at the root's block-end/inline-end corner with data-slot=avatar-badge, data-tone and data-size; native span props and ref target it. Children (an icon) render inside; presentational within the root's img role.",
-      "controlledBehavior": "Stateless presentation. Reads the root's size from context for its box and icon visibility; no presence state is tracked.",
-      "defaultBehavior": "tone=neutral. Box follows the root size: 6px at xsmall, 8px at small, 12px at medium and large, 16px at xlarge; an SVG child is hidden below medium. Ringed 2px in elevation.surface via inline style that caller style can override.",
-      "reviewSources": ["packages/design-system/src/components/avatar.tsx"],
-      "props": {
-        "tone": {
-          "meaning": "Semantic status tone of the corner mark from the shared tone table: neutral (default) for a mark that is not a status; success, danger, warning or information for one that is.",
-          "migration": "Keep tone as the status vocabulary; the avatar's own identity color stays on variant. Say the meaning in the root aria-label, since the mark is presentational inside the image."
-        }
-      }
-    },
-    "Avatar.Count": {
-      "domTarget": "Span with data-slot=avatar-count and data-size; native span props and ref target it. Children are the caller's text.",
-      "controlledBehavior": "Stateless presentation. Reads the enclosing Stack's size and ring from context; no implicit state.",
-      "defaultBehavior": "Neutral circle at the stack's size (small when outside a stack). Not aria-hidden unless the caller or the names shorthand says so.",
-      "reviewSources": ["packages/design-system/src/components/avatar.tsx"]
-    },
-    "Avatar.Fallback": {
-      "domTarget": "Base UI Avatar Fallback span with native span props, Base UI render/className/style callbacks and the ref; rendered only while no Image has loaded.",
-      "controlledBehavior": "Base UI decides visibility from the root's loading status and delay; no caller-owned state.",
-      "defaultBehavior": "delay=0. Children default to the initials from the root's name, one at xsmall and two otherwise; explicit children replace them.",
-      "reviewSources": ["packages/design-system/src/components/avatar.tsx"]
-    },
-    "Avatar.Image": {
-      "domTarget": "Base UI Avatar Image: an img rendered only once loaded, with native img props, Base UI render/className/style callbacks and the ref. alt defaults to empty, decorative within the named root.",
-      "controlledBehavior": "Base UI owns the loading status from src and reports it to the root and through onLoadingStatusChange; no caller-owned state.",
-      "defaultBehavior": "alt='' and object-fit cover at the root's full size. Nothing renders while idle, loading or failed; the sibling Fallback shows instead.",
-      "reviewSources": ["packages/design-system/src/components/avatar.tsx"],
-      "props": {
-        "width": {
-          "meaning": "Native img width attribute, forwarded; the circle's box is the root's size token.",
-          "migration": "Size the avatar with size on the root; width only sets the intrinsic image attribute."
-        },
-        "height": {
-          "meaning": "Native img height attribute, forwarded; the circle's box is the root's size token.",
-          "migration": "Size the avatar with size on the root; height only sets the intrinsic image attribute."
-        },
-        "onLoadingStatusChange": {
-          "meaning": "Base UI's report of the photo's loading status: idle, loading, loaded or error. Informational; the root and the Fallback already react to it.",
-          "migration": "Additive. Use it for analytics or a caller-owned placeholder; do not gate the Fallback on it."
-        }
-      }
-    },
-    "Avatar.Stack": {
-      "domTarget": "Group span (role=group, overridable) with data-slot and data-size; native span props and ref target it. With names, aria-label is every name; with children, the caller's aria-label or aria-labelledby names it.",
-      "controlledBehavior": "Stateless presentation. Context passes size, variant and whether the group is named to the circles and the Count inside; no implicit value, checked or selected state.",
-      "defaultBehavior": "max=4, size=small, variant=neutral. Names can be strings or name/src objects. Without children the first max entries render decorative and the rest become an aria-hidden +N Count; with children names and max are ignored and the children render as given, decorative when the group is named. Supply a nonnegative integer max.",
-      "reviewSources": ["packages/design-system/src/components/avatar.tsx"],
-      "props": {
-        "size": {
-          "meaning": "`small` is 24px, the default; `medium` is 32px, on a profile or a card."
-        },
-        "variant": {
-          "meaning": "Avatar identity color recipe, forwarded to each Avatar; neutral is the default, not a status tone."
-        }
-      }
     },
     "Badge": {
       "domTarget": "Native span by default, with native attributes, events, styles and HTMLSpanElement ref. Base UI render accepts an element or callback; a custom component must forward merged props/ref. Anchor-specific attributes and anchor refs belong on the rendered link.",
@@ -402,12 +308,6 @@
           "migration": "Preserve position in the prop name and preserve the accessible label independently."
         }
       }
-    },
-    "ButtonGroup": {
-      "domTarget": "span role=group; optional label becomes aria-label. Only children/className/label are accepted.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "No default accessible name: supply label when the group needs one. Children retain their own focus/selection; no toolbar keyboard behavior.",
-      "reviewSources": ["packages/design-system/src/components/button-group.tsx"]
     },
     "Calendar": {
       "domTarget": "react-day-picker root div by default, with interactive day buttons. id reaches its root; components overrides can change rendered elements. No wrapper-added ref API; use dependency-supported component refs.",
@@ -765,280 +665,10 @@
         "packages/design-system/src/patterns/data-table/features.ts"
       ]
     },
-    "Combobox": {
-      "domTarget": "Editable native input role=combobox receives id, native attributes/events and HTMLInputElement ref, including Field bindings. className/style/width target the surrounding input group. Base UI hidden input owns name/form/selected value and visible focus-target association. Popup contains only options and empty state.",
-      "controlledBehavior": "Selection remains caller-owned with value and onChange(string); clearing reports an empty string. Base UI owns the independent editable query. Local open state starts from defaultOpen and is suppressed while disabled; single selection closes the popup and keeps input focus.",
-      "defaultBehavior": "size=medium (32px group), defaultOpen=false. Missing/empty value is no selection and submits an empty string. Main input displays the selected label; placeholder falls back to deprecated searchPlaceholder then localized choose. width in CSS pixels sets group and popup, overrides style.width, and otherwise follows the group width. Locale-aware substring search matches label/value/keywords; it does not use cmdk fuzzy ranking. List inherits Field naming or localized choose. readOnly prevents edits while preserving submission; required enables native selection validation.",
-      "props": {
-        "defaultOpen": {
-          "meaning": "Selection remains caller-owned with value and onChange(string); clearing reports an empty string. Base UI owns the independent editable query. Local open state starts from defaultOpen and is suppressed while disabled; single selection closes the popup and keeps input focus.",
-          "migration": "The selection callback retains string values; handle the empty string when cleared. Query text is not submitted as an option value."
-        },
-        "empty": {
-          "meaning": "ReactNode rendered by Base UI Empty when no items match. null/undefined fall back to localized noMatches; an empty string suppresses the text.",
-          "migration": "Retain a rendered content slot; an empty-string node intentionally suppresses text while null uses fallback."
-        },
-        "id": {
-          "meaning": "Editable native input role=combobox receives id, native attributes/events and HTMLInputElement ref, including Field bindings. className/style/width target the surrounding input group. Base UI hidden input owns name/form/selected value and visible focus-target association. Popup contains only options and empty state.",
-          "migration": "Move former button refs and native handler types to HTMLInputElement. Keep Field/label IDs on the editable input.",
-          "defaultBehavior": "Explicit id is forwarded except dependency-owned internal relationships; consult component defaultBehavior for generated/Field fallback."
-        },
-        "onChange": {
-          "meaning": "Selection remains caller-owned with value and onChange(string); clearing reports an empty string. Base UI owns the independent editable query. Local open state starts from defaultOpen and is suppressed while disabled; single selection closes the popup and keeps input focus.",
-          "migration": "The selection callback retains string values; handle the empty string when cleared. Query text is not submitted as an option value."
-        },
-        "size": {
-          "meaning": "Input group height: small=28px/medium=32px; the native input fills the interior.",
-          "migration": "Keep family-relative geometry and native attribute exceptions explicit; no global enum normalization."
-        },
-        "value": {
-          "meaning": "Selection remains caller-owned with value and onChange(string); clearing reports an empty string. Base UI owns the independent editable query. Local open state starts from defaultOpen and is suppressed while disabled; single selection closes the popup and keeps input focus.",
-          "migration": "The selection callback retains string values; handle the empty string when cleared. Query text is not submitted as an option value."
-        },
-        "width": {
-          "meaning": "CSS pixels for the input group and popup; overrides style.width on the group.",
-          "migration": "Preserve physical dimension units and each family\u2019s preset meaning; do not reinterpret as control size."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/src/components/controls.tsx",
-        "packages/design-system/src/components/_overlay-focus.ts",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Chip": {
-      "domTarget": "Native div for a selected value in the Root multiple-selection context. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Token chip styling with Base UI keyboard navigation. Value rendering order identifies selected chips; no implicit remove button.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.ChipRemove": {
-      "domTarget": "Native button removing its enclosing chip\u2019s selection. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Decorative X when children are absent. Caller supplies a target-specific accessible name; Base UI controls disabled/read-only interaction.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Chips": {
-      "domTarget": "Native div anchoring and laying out selected chips and input. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Wraps selected chips with a shared border/focus/invalid treatment. Caller supplies Value, Chip, ChipRemove and Input.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Clear": {
-      "domTarget": "Native button clearing the Root selection and query. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Decorative X and localized clear accessible name unless overridden; availability follows Base UI selection/read-only state.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Collection": {
-      "domTarget": "No wrapper DOM node or DOM ref; renders the current filtered collection through children.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Uses the enclosing Group collection or Root filtered items. It owns no separate selection/query state.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Content": {
-      "domTarget": "Native Base UI Popup div; props/ref target Popup, not Positioner or Portal. A hidden local marker locates an enclosing dialog. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Portal defaults to nearest dialog/alertdialog, otherwise the body; portalContainer overrides, including explicit null. Fixed positioner defaults bottom/start, sideOffset=4, alignOffset=0, collision handling and anchor-width sizing. Popup constrains itself to available viewport space. keepMounted delegates hidden/inert closed content to Base UI; otherwise closure unmounts after transitions.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Empty": {
-      "domTarget": "Native div with Base UI\u2019s polite live-region semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Keep mounted while popup is open; shows caller content only when no items match. Empty children remove spacing, not the live region. No fallback text on the compound part.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Group": {
-      "domTarget": "Native div role=group with label association supplied by GroupLabel. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Contains filtered group items; items provides this group\u2019s collection. No heading content is invented.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.GroupLabel": {
-      "domTarget": "Native div providing the enclosing group\u2019s accessible label. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Base UI generates a label ID and associates it with Group; explicit id participates in that relationship.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ],
-      "props": {
-        "id": {
-          "meaning": "Explicit group label identity, registered with the enclosing Base UI Group.",
-          "migration": "Keep IDs on the element they identify and preserve Base UI\u2019s generated accessible relationships."
-        }
-      }
-    },
-    "Combobox.Input": {
-      "domTarget": "Native input, including input ref; Field bindings attach to the editable control outside Content. The shorthand\u2019s popup input has its own search name. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "medium=32px, small=28px; Field id/label/description/invalid/required bindings are inherited unless explicitly supplied. Root owns the query and selection.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ],
-      "props": {
-        "id": {
-          "meaning": "Native editable input identity; defaults to explicit props, then Ledger Field binding, then Base UI generated identity.",
-          "migration": "Keep IDs on the element they identify and preserve Base UI\u2019s generated accessible relationships."
-        },
-        "size": {
-          "meaning": "Ledger control height: small=28px, medium=32px (default), replacing the native input character-width attribute.",
-          "migration": "Preserve Ledger\u2019s control size scale; use layout classes/style for width."
-        },
-        "value": {
-          "meaning": "Inherited native input value reaches Base UI input merging. Root inputValue/onInputValueChange is the supported query ownership pair; Root value owns selection.",
-          "migration": "Keep query/selection ownership on Root; native metadata does not replace Root value."
-        }
-      }
-    },
-    "Combobox.InputGroup": {
-      "domTarget": "Native div grouping the input and optional buttons. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Shared input border and focus/invalid treatment. Input determines height; no implicit trigger or clear button.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Item": {
-      "domTarget": "Native div role=option; Base UI owns its generated ID and exposes no id override. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Renders caller content and automatic selected checkmark. Root filtering and disabled/highlighted/selected state determine interaction. Keep option content noninteractive.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ],
-      "props": {
-        "value": {
-          "meaning": "Option identity passed to Root selection/equality; distinct from DOM id and display label.",
-          "migration": "Use stable scalar identities or Root object serializers/equality; retain duplicate-label support."
-        }
-      }
-    },
-    "Combobox.List": {
-      "domTarget": "Native div role=listbox with Base UI-generated relationship ID. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Scrollable list, constrained to panel token and available height. Field supplies its label without duplicating the control ID; explicit naming wins and localized choose is the fallback. Render children receive filtered items/groups.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ],
-      "props": {
-        "id": {
-          "meaning": "Native listbox id override; Base UI generates the linked default. Overriding it requires preserving the input\u2019s aria-controls relationship.",
-          "migration": "Keep IDs on the element they identify and preserve Base UI\u2019s generated accessible relationships."
-        }
-      }
-    },
-    "Combobox.Root": {
-      "domTarget": "No wrapper DOM node or DOM ref. inputRef targets Base UI\u2019s hidden native form input; name/form apply there.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Defaults to single selection, no value and a closed popup; uses Ledger locale/direction. Uncontrolled selection resets to defaultValue (or null/[]) after an uncanceled native form reset, including external form ownership. Controlled selection stays caller-owned. Object values need label/value serializers and stable equality; multiple values serialize under repeated names.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ],
-      "props": {
-        "defaultOpen": {
-          "meaning": "Initial uncontrolled popup state; false when omitted.",
-          "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
-        },
-        "defaultValue": {
-          "meaning": "Initial uncontrolled selection, also restored by uncanceled native form reset. Single accepts a value/null; multiple accepts arrays.",
-          "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
-        },
-        "id": {
-          "meaning": "Base UI control identity, not a wrapper id; use Input id for explicit Ledger Field/label integration.",
-          "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
-        },
-        "onInputValueChange": {
-          "meaning": "Base UI query callback receives the input string and event details; independent of selection.",
-          "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
-        },
-        "onOpenChange": {
-          "meaning": "Base UI popup callback receives a boolean and event details; open controls popup state when supplied.",
-          "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
-        },
-        "onValueChange": {
-          "meaning": "Selection callback receives the generic value/null or array plus Base UI event details. details.cancel() prevents the uncontrolled adapter update.",
-          "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
-        },
-        "open": {
-          "meaning": "Controlled popup visibility. Omit to let Base UI manage popup state from defaultOpen.",
-          "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
-        },
-        "value": {
-          "meaning": "Controlled selection: generic single value/null or multiple array. Omit for the adapter\u2019s uncontrolled state; do not switch ownership during a mount.",
-          "migration": "Preserve Base UI value/event-details payloads and independent selection/query/open ownership. The existing Combobox shorthand continues reporting onChange(string)."
-        }
-      }
-    },
-    "Combobox.Separator": {
-      "domTarget": "Native div with Base UI separator semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "A token-colored horizontal rule with vertical spacing; no selection behavior.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Status": {
-      "domTarget": "Native div with Base UI\u2019s polite status/live-region semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Keep mounted and update caller-owned loading/error/result text. Empty children remove spacing; Root does not fetch data.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Trigger": {
-      "domTarget": "Native button that opens/toggles Root\u2019s popup. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Decorative downward chevron when children are absent. Give icon-only triggers an accessible name. Base UI manages disabled state, popup relationships and keyboard interaction.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
-    "Combobox.Value": {
-      "domTarget": "No wrapper DOM node or DOM ref; renders selected values or a render-function result.",
-      "controlledBehavior": "Selection belongs to Root: controlled value/onValueChange or uncontrolled defaultValue; multiple uses arrays, single uses a value or null. Parts consume that state. Query and open state have independent Base UI control pairs.",
-      "defaultBehavior": "Reads Root selection. Render arrays as Chips for multiple values; provide application-specific empty display when needed.",
-      "reviewSources": [
-        "packages/design-system/src/components/combobox.tsx",
-        "packages/design-system/package.json"
-      ]
-    },
     "CommandPalette": {
       "domTarget": "Portaled Command.Dialog/Radix dialog; its input and listbox/options come from cmdk. There is no root DOM/ref passthrough on the pattern.",
       "controlledBehavior": "Caller owns open; cmdk internally owns search and active-option navigation. Choosing requests onClose before invoking command.run synchronously. Neither callback is awaited or caught; caller owns action failures. useCommandPalette is a separate optional hook with local false initial state and window Cmd/Ctrl+K listener.",
-      "defaultBehavior": "Placeholder defaults to Type a command\u2026. Input hint is explicitly null. Empty matching result uses No commands match. Contiguous commands with equal group share a heading; repeated nonadjacent groups remain separate. Unique command ids identify options and group runs; group, label and hint remain searchable keywords.",
+      "defaultBehavior": "Placeholder defaults to Type a command…. Input hint is explicitly null. Empty matching result uses No commands match. Contiguous commands with equal group share a heading; repeated nonadjacent groups remain separate. Unique command ids identify options and group runs; group, label and hint remain searchable keywords.",
       "reviewSources": [
         "packages/design-system/src/patterns/command-palette.tsx",
         "packages/design-system/src/components/command.tsx",
@@ -1069,9 +699,9 @@
           "meaning": "Discriminated controlled value/onValueChange or uncontrolled defaultValue. Internal suggestion/draft/pending/error state; onSubmit receives trimmed nonempty text. Single in-flight submission; fulfillment clears only the unchanged submitted draft, rejection preserves text; stale/unmounted results ignored."
         },
         "id": {
-          "meaning": "DOM id of the visible textarea, forwarded through Textarea/useFieldControl; suggestion IDs are generated separately.",
+          "meaning": "DOM id of the visible textarea, forwarded through Textarea; suggestion IDs are generated separately.",
           "migration": "Preserve textarea label/focus integrations; never move this id to outer layout.",
-          "defaultBehavior": "Field context may supply an id when no explicit id is provided."
+          "defaultBehavior": "Pass an explicit id when connecting an external label."
         },
         "onValueChange": {
           "meaning": "Discriminated controlled value/onValueChange or uncontrolled defaultValue. Internal suggestion/draft/pending/error state; onSubmit receives trimmed nonempty text. Single in-flight submission; fulfillment clears only the unchanged submitted draft, rejection preserves text; stale/unmounted results ignored."
@@ -1203,7 +833,7 @@
     "DatePicker": {
       "domTarget": "Visible button receives id, button events, style and React 19 ref. Hidden input has its own private ref and carries ISO value/name/form and focus-target association.",
       "controlledBehavior": "value/onChange controls ISO day; otherwise defaultValue initializes local state. Selection reports yyyy-MM-dd or empty string and closes. Native form reset restores the uncontrolled default and closes unless reset was canceled.",
-      "defaultBehavior": "size=medium, defaultOpen=false, initial uncontrolled value empty string. Invalid ISO values display placeholder but remain caller data. Localized placeholder/date/Today/Clear. id prefers Field/explicit id then useId; aria-required is intentionally stripped from the plain button.",
+      "defaultBehavior": "size=medium, defaultOpen=false, initial uncontrolled value empty string. Invalid ISO values display placeholder but remain caller data. Localized placeholder/date/Today/Clear. id prefers explicit id then useId; aria-required is intentionally stripped from the plain button.",
       "props": {
         "defaultOpen": {
           "meaning": "value/onChange controls ISO day; otherwise defaultValue initializes local state. Selection reports yyyy-MM-dd or empty string and closes. Native form reset restores the uncontrolled default and closes unless reset was canceled."
@@ -1383,12 +1013,6 @@
       "defaultBehavior": "Default layout is the fixed wrapping fact row; children determine ordering.",
       "reviewSources": ["packages/design-system/src/components/typography.tsx"]
     },
-    "Field": {
-      "domTarget": "div plus label by default, fieldset plus legend for isGroup. controlId belongs to the child control, never the layout root. No root ref or arbitrary DOM spread.",
-      "controlledBehavior": "Stateless context provider. Caller owns error/required state; this component does not perform validation or native submission. Native direct children are cloned, package controls bind through useFieldControl.",
-      "defaultBehavior": "controlId prefers supplied controlId, then a direct eligible child id, then useId. Error replaces hint; false/absent group and required flags stay off. Group names attach to a group container, not each checkbox; descriptions are merged.",
-      "reviewSources": ["packages/design-system/src/components/controls.tsx"]
-    },
     "FilterChip": {
       "domTarget": "Native button receives remaining button props/events; no public ref. label/value compose the content.",
       "controlledBehavior": "isActive and disabled are caller-owned. isActive supplies aria-pressed unless aria-expanded or aria-haspopup gives the control popover semantics. onClick belongs to the caller.",
@@ -1533,34 +1157,6 @@
       "defaultBehavior": "as=div, display=flex. CSS row/nowrap, no gap unless supplied. rowSpace falls back to space; spread overrides alignInline. grow omitted hugs content. separator is decorative and omitted for ul/ol to preserve list semantics. Style prop is intentionally excluded.",
       "reviewSources": ["packages/design-system/src/primitives/inline.tsx"]
     },
-    "Input": {
-      "domTarget": "Native input; id, aria attributes, events, style and React 19 ref reach that input through useFieldControl. className also targets the input.",
-      "controlledBehavior": "Native React input ownership: value/onChange or defaultValue; checked/defaultChecked only apply to checkbox/radio input types. No package state.",
-      "defaultBehavior": "size=medium. Field supplies missing id/name relationships and merges descriptions; error and required context augment explicit attributes. Native type defaults to text; omitted value/checked retain native behavior. Search clearing remains platform/input-handler behavior, not package-owned.",
-      "props": {
-        "id": {
-          "meaning": "Native input; id, aria attributes, events, style and React 19 ref reach that input through useFieldControl. className also targets the input.",
-          "migration": "Preserve the actual target; do not move control IDs to wrappers or hidden inputs. For context-generated command/tab IDs prefer the dependency association unless explicitly integrating with external labels.",
-          "defaultBehavior": "Explicit id is forwarded except dependency-owned internal relationships; consult component defaultBehavior for generated/Field fallback."
-        },
-        "size": {
-          "meaning": "Control height small=28px/medium=32px, not native character width.",
-          "migration": "Keep family-relative geometry and native attribute exceptions explicit; no global enum normalization."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/controls.tsx"]
-    },
-    "InputGroup": {
-      "domTarget": "Outer relative block span around Input/NativeSelect; width is applied there. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "Omitted width uses normal block sizing in its containing element. Leading/trailing adornments are aria-hidden and pointer-events-none. Use a trailing adornment with Input; NativeSelect owns its chevron. A truthy number width is CSS pixels; pass positive dimensions.",
-      "reviewSources": ["packages/design-system/src/components/input-group.tsx"],
-      "props": {
-        "width": {
-          "meaning": "The width in pixels for a group that stands alone, such as a search box. In a form's Grid the column sets it."
-        }
-      }
-    },
     "Inspector": {
       "domTarget": "Div root; sticky form nests ScrollArea. Accordion owns the coordinated sections and KeyValue owns rows. No arbitrary DOM/ref forwarding.",
       "controlledBehavior": "Each group is an uncontrolled disclosure open initially; caller supplies facts, not disclosure state. PanelContext supplies flush and default stickiness. Titles are disclosure identity and React keys and must be unique.",
@@ -1689,23 +1285,6 @@
         }
       }
     },
-    "NativeSelect": {
-      "domTarget": "Outer span receives className; native select receives id, style, events and React 19 ref through useFieldControl.",
-      "controlledBehavior": "Native select ownership: value/onChange or defaultValue; multiple selects use the native array contract. No package selection state.",
-      "defaultBehavior": "size=medium. Field relationships are merged. With neither value nor defaultValue the browser selects its ordinary initial option; no package placeholder. size is consumed as geometry, not native visible option count.",
-      "props": {
-        "id": {
-          "meaning": "Outer span receives className; native select receives id, style, events and React 19 ref through useFieldControl.",
-          "migration": "Preserve the actual target; do not move control IDs to wrappers or hidden inputs. For context-generated command/tab IDs prefer the dependency association unless explicitly integrating with external labels.",
-          "defaultBehavior": "Explicit id is forwarded except dependency-owned internal relationships; consult component defaultBehavior for generated/Field fallback."
-        },
-        "size": {
-          "meaning": "Control height small=28px/medium=32px, not native visible option count.",
-          "migration": "Keep family-relative geometry and native attribute exceptions explicit; no global enum normalization."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/controls.tsx"]
-    },
     "PageHeader": {
       "domTarget": "Root div containing h1 and optional p; no DOM/ref forwarding.",
       "controlledBehavior": "Stateless page title and action composition.",
@@ -1770,17 +1349,6 @@
         "packages/design-system/src/patterns/panel.tsx",
         "packages/design-system/src/components/button.tsx"
       ]
-    },
-    "Person": {
-      "domTarget": "Span with data-slot=person containing a decorative xsmall Avatar and the visible name; native span props and ref target it. Takes no children: the name is the content.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "variant is forwarded to Avatar, which defaults to neutral. Optional src is forwarded; xsmall size is fixed.",
-      "reviewSources": ["packages/design-system/src/components/avatar.tsx"],
-      "props": {
-        "variant": {
-          "meaning": "Avatar identity color recipe for the small portrait; unrelated to presence or workflow status."
-        }
-      }
     },
     "PickerSheet": {
       "domTarget": "Sheet portaled modal dialog with controlled Input in toolbar and Button footer. No generic DOM props/ref passthrough.",
@@ -2487,19 +2055,6 @@
         }
       }
     },
-    "Textarea": {
-      "domTarget": "Native textarea receives id, className, style, events and React 19 ref through useFieldControl.",
-      "controlledBehavior": "Native React value/onChange or defaultValue; no package draft state.",
-      "defaultBehavior": "No package value/rows fallback. Native rows behavior remains; CSS sets a minimum height and vertical resizing. Field relationships merge with explicit descriptions.",
-      "props": {
-        "id": {
-          "meaning": "Native textarea receives id, className, style, events and React 19 ref through useFieldControl.",
-          "migration": "Preserve the actual target; do not move control IDs to wrappers or hidden inputs. For context-generated command/tab IDs prefer the dependency association unless explicitly integrating with external labels.",
-          "defaultBehavior": "Explicit id is forwarded except dependency-owned internal relationships; consult component defaultBehavior for generated/Field fallback."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/controls.tsx"]
-    },
     "Tiles": {
       "domTarget": "Grid div; no arbitrary DOM/ref forwarding.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
@@ -2708,24 +2263,6 @@
         "packages/design-system/src/patterns/data-table/view-store.ts",
         "packages/design-system/src/patterns/data-table/features.ts"
       ]
-    },
-    "Alert.Action": {
-      "domTarget": "Native div for action; native attributes, events, style, className and HTMLDivElement ref forwarded. Title retains its native DOM attribute meaning on this part.",
-      "controlledBehavior": "Stateless presentation. The caller owns content, interactive controls, pending/dismissal state and any focus recovery. No child inspection or implicit workflow state.",
-      "defaultBehavior": "Wrapping flex div below preceding content; no absolute positioning, event interception or child style injection.",
-      "reviewSources": ["packages/design-system/src/components/alert.tsx"]
-    },
-    "Alert.Description": {
-      "domTarget": "Native div for description; native attributes, events, style, className and HTMLDivElement ref forwarded. Title retains its native DOM attribute meaning on this part.",
-      "controlledBehavior": "Stateless presentation. The caller owns content, interactive controls, pending/dismissal state and any focus recovery. No child inspection or implicit workflow state.",
-      "defaultBehavior": "Div with min-width and word wrapping; arbitrary paragraphs, lists and links are caller-owned.",
-      "reviewSources": ["packages/design-system/src/components/alert.tsx"]
-    },
-    "Alert.Title": {
-      "domTarget": "Native div for title; native attributes, events, style, className and HTMLDivElement ref forwarded. Title retains its native DOM attribute meaning on this part.",
-      "controlledBehavior": "Stateless presentation. The caller owns content, interactive controls, pending/dismissal state and any focus recovery. No child inspection or implicit workflow state.",
-      "defaultBehavior": "Div with medium text and wrapping flex layout; no icon or heading semantics inferred. Native role and aria-level can establish a heading.",
-      "reviewSources": ["packages/design-system/src/components/alert.tsx"]
     }
   }
 }

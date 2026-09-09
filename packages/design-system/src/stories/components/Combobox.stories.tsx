@@ -1,399 +1,92 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { SlidersHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useArgs } from "storybook/preview-api";
-import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import {
+  FieldLabel,
+  FieldDescription,
+  InputGroupAddon,
+  ComboboxClear,
+  ComboboxTrigger,
   Button,
   Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxLabel,
+  ComboboxCollection,
+  ComboboxSeparator,
+  ComboboxChips,
+  ComboboxChip,
+  ComboboxChipRemove,
+  ComboboxChipsInput,
+  ComboboxValue,
+  ComboboxStatus,
+  useComboboxAnchor,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   Field,
-  NativeSelect,
-  type ComboboxOption,
-  useRequired,
 } from "../../components";
-
+import { type Meta, type StoryObj } from "@storybook/react-vite";
+import { useId, useEffect, useState } from "react";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { Inline, Stack } from "../../primitives";
-import { Matrix as Grid, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
-
-const people: ComboboxOption[] = [
-  { value: "dw", label: "Dana Whitfield", keywords: "isso", meta: "ISSO" },
-  { value: "pn", label: "Priya Natarajan", keywords: "issm", meta: "ISSM" },
-  { value: "gh", label: "Grace Hoppel", meta: "Program owner" },
-  { value: "tz", label: "Tomasz Zieliński", meta: "Engineer" },
-  { value: "mr", label: "Marcus Ryde", meta: "Assessor" },
-  { value: "sc", label: "Sarah Chen", meta: "Engineer" },
-  { value: "la", label: "Linus Aarto", disabled: true, meta: "On leave" },
-];
-const controls: ComboboxOption[] = [
-  { value: "AC-2", label: "Account management", keywords: "AC-2", meta: "AC-2" },
-  { value: "AC-3", label: "Access enforcement", keywords: "AC-3", meta: "AC-3" },
-  { value: "AU-2", label: "Event logging", keywords: "AU-2", meta: "AU-2" },
-  { value: "CM-6", label: "Configuration settings", keywords: "CM-6", meta: "CM-6" },
-  { value: "IA-2", label: "Identification and authentication", keywords: "IA-2", meta: "IA-2" },
-  { value: "SC-7", label: "Boundary protection", keywords: "SC-7", meta: "SC-7" },
-];
-const environments = ["Development", "Test", "Production"];
 
 const meta = {
   title: "Components/Combobox",
   component: Combobox,
   parameters: { layout: "padded" },
-  args: {
-    "aria-label": "Owner",
-    options: people,
-    value: "pn",
-    onChange: () => undefined,
-    placeholder: "Choose an owner",
-  },
 } satisfies Meta<typeof Combobox>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-const states = ["rest", "filled", "invalid", "disabled"] as const;
-type State = (typeof states)[number];
-function MatrixCombobox({ state }: { state: State }) {
-  const [value, setValue] = useState(state === "rest" ? "" : "pn");
-  return (
-    <Combobox
-      aria-label="Owner"
-      options={people}
-      value={value}
-      onChange={setValue}
-      placeholder="Choose an owner"
-      disabled={state === "disabled"}
-      aria-invalid={state === "invalid"}
-    />
-  );
-}
-
-/** Every state down the side; type directly in the field to filter its options. */
-export const ComboboxMatrix: Story = {
-  render: () => (
-    <Grid
-      rows={states}
-      cols={["bare", "in a Field"] as const}
-      rowLabel="state"
-      render={(state, col) => (
-        <div style={{ width: 240 }}>
-          {col === "bare" ? (
-            <MatrixCombobox state={state} />
-          ) : (
-            <Field
-              label="Owner"
-              isRequired
-              hint={state === "invalid" ? undefined : "Who answers for the control."}
-              error={state === "invalid" ? "Required." : undefined}
-            >
-              <MatrixCombobox state={state} />
-            </Field>
-          )}
-        </div>
-      )}
-    />
-  ),
-};
-
-/** The editable field with its options open and the chosen one checked. */
-export const Open: Story = {
-  render: function OpenExample() {
-    const [value, setValue] = useState("pn");
-    return (
-      <div style={{ width: 280, height: 380 }}>
-        <Field label="Owner">
-          <Combobox
-            options={people}
-            value={value}
-            onChange={setValue}
-            placeholder="Choose an owner"
-            defaultOpen
-          />
-        </Field>
-      </div>
-    );
-  },
-};
-
-/** `medium` in a form, `small` in a toolbar beside small Buttons. */
-export const Sizes: Story = {
-  render: () => (
-    <Stack space="space.300">
-      <Specimens title="medium (32px): in a form">
-        <div style={{ width: 280 }}>
-          <Field label="Control">
-            <Combobox
-              options={controls}
-              value="AC-2"
-              onChange={() => undefined}
-              placeholder="Choose a control"
-            />
-          </Field>
-        </div>
-      </Specimens>
-      <Specimens title="small (28px): a toolbar's filter">
-        <Inline space="space.100" alignBlock="center">
-          <Button size="small" variant="secondary" iconBefore={<SlidersHorizontal />}>
-            Filter
-          </Button>
-          <Combobox
-            size="small"
-            width={200}
-            aria-label="Owner"
-            options={people}
-            value=""
-            onChange={() => undefined}
-            placeholder="Any owner"
-          />
-          <div style={{ width: 160 }}>
-            <NativeSelect size="small" aria-label="Environment" defaultValue="">
-              <option value="">Any environment</option>
-              {environments.map((e) => (
-                <option key={e}>{e}</option>
-              ))}
-            </NativeSelect>
-          </div>
-        </Inline>
-      </Specimens>
-    </Stack>
-  ),
-};
-
-const ownerInputRef = fn();
-
-function FormDemo() {
-  const [owner, setOwner] = useState("");
-  const [control, setControl] = useState("");
-  const req = useRequired({ owner, control });
-  return (
-    <form
-      id="assignment-form"
-      style={{ width: 360 }}
-      onSubmit={(event) => {
-        event.preventDefault();
-        req.check();
-      }}
-    >
-      <Stack space="space.200">
-        <Field
-          label="Owner"
-          isRequired
-          hint="Who answers for the control."
-          error={req.errorFor("owner")}
-        >
-          <Combobox
-            name="owner"
-            ref={ownerInputRef}
-            options={people}
-            value={owner}
-            onChange={setOwner}
-            placeholder="Choose an owner"
-          />
-        </Field>
-        <Field
-          label="Control"
-          isRequired
-          hint="Type the id or the name."
-          error={req.errorFor("control")}
-        >
-          <Combobox
-            name="control"
-            options={controls}
-            value={control}
-            onChange={setControl}
-            placeholder="Choose a control"
-          />
-        </Field>
-        <Inline space="space.100" alignInline="end">
-          <Button variant="subtle">Cancel</Button>
-          <Button type="submit" variant="primary">
-            Assign
-          </Button>
-        </Inline>
-      </Stack>
-    </form>
-  );
-}
-
-/** Inside a Field with a label, a hint and, on submit, the error. Press Assign with a field unchosen. */
-export const InField: Story = {
-  render: () => <FormDemo />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const page = within(canvasElement.ownerDocument.body);
-    const input = canvas.getByRole("combobox", { name: "Owner" });
-    await expect(ownerInputRef).toHaveBeenCalledWith(input);
-    await expect(input.tagName).toBe("INPUT");
-    await expect(input).toHaveAccessibleDescription("Who answers for the control.");
-    const group = input.closest('[data-slot="combobox-input-group"]')!;
-    await expect(group.getBoundingClientRect().height).toBeCloseTo(32, 0);
-    await userEvent.click(input);
-    const list = await page.findByRole("listbox", { name: "Owner" });
-    const popup = list.closest('[data-slot="combobox-content"]')!;
-    await expect(popup.querySelector("input")).toBeNull();
-    await waitFor(() =>
-      expect(popup.getBoundingClientRect().width).toBeCloseTo(
-        group.getBoundingClientRect().width,
-        0,
-      ),
-    );
-    await expect(page.getByRole("option", { name: /Linus Aarto/ })).toHaveAttribute(
-      "aria-disabled",
-      "true",
-    );
-    await userEvent.type(input, "isso");
-    await expect(page.queryByRole("option", { name: /Priya/ })).toBeNull();
-    await userEvent.keyboard("{ArrowDown}{Enter}");
-    await expect(input).toHaveValue("Dana Whitfield");
-    await expect(input).toHaveFocus();
-    await expect(new FormData(canvasElement.querySelector("form")!).getAll("owner")).toEqual([
-      "dw",
-    ]);
-    await userEvent.clear(input);
-    await userEvent.type(input, "nothing-matches");
-    await expect(await page.findByText("Nothing matches")).toBeVisible();
-    await userEvent.keyboard("{Escape}");
-  },
-};
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <div style={{ width: 240 }}>
-            <Field label="Environment">
-              <NativeSelect defaultValue="Production">
-                {environments.map((e) => (
-                  <option key={e}>{e}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-          </div>
-        }
-        doText="Three words are a NativeSelect. There is nothing to search."
-        dont={
-          <div style={{ width: 240 }}>
-            <Field label="Environment">
-              <Combobox
-                value="Production"
-                onChange={() => undefined}
-                options={environments.map((e) => ({ value: e, label: e }))}
-              />
-            </Field>
-          </div>
-        }
-        dontText="A search box over three options. The reader is asked to type for a list they can see whole."
-      />
-      <Pair
-        do={
-          <div style={{ width: 280 }}>
-            <Field label="Control">
-              <Combobox
-                value="AC-2"
-                onChange={() => undefined}
-                options={controls}
-                placeholder="Choose a control"
-              />
-            </Field>
-          </div>
-        }
-        doText="The meta is a word or an id at the end of the row; the keywords let the reader type either."
-        dont={
-          <div style={{ width: 280 }}>
-            <Field label="Control">
-              <Combobox
-                value="AC-2"
-                onChange={() => undefined}
-                options={controls.map((c) => ({
-                  ...c,
-                  meta: `${c.meta} · Moderate baseline · 3 systems · last assessed May`,
-                }))}
-                placeholder="Choose a control"
-              />
-            </Field>
-          </div>
-        }
-        dontText="A sentence of facts in the meta. The row is a choice, not a record; the facts live on the record's page."
-      />
-      <Pair
-        do={
-          <div style={{ width: 240 }}>
-            <Field label="Owner">
-              <Combobox
-                value=""
-                onChange={() => undefined}
-                options={people}
-                placeholder="Choose an owner"
-              />
-            </Field>
-          </div>
-        }
-        doText="The placeholder says what to choose. Type in that same field to search."
-        dont={
-          <div style={{ width: 240 }}>
-            <Field label="Owner">
-              <Combobox
-                value=""
-                onChange={() => undefined}
-                options={people}
-                placeholder="Select..."
-              />
-            </Field>
-          </div>
-        }
-        dontText='"Select..." does not say what the answer is.'
-      />
-    </Stack>
-  ),
-};
-
-export const Playground: Story = {
-  render: function PlaygroundExample(args) {
-    const [, updateArgs] = useArgs();
-    return (
-      <Combobox
-        {...args}
-        onChange={(value) => {
-          updateArgs({ value });
-        }}
-      />
-    );
-  },
-};
 
 const frameworks = ["React", "Vue", "Svelte", "Angular", "Solid"];
 
 /** An editable input and optional controls, built from the Base UI parts. */
 export const Searchable: Story = {
-  render: () => (
-    <div className="w-layout-list max-w-full">
-      <Field label="Framework" hint="Search and choose a framework.">
-        <Combobox.Root items={frameworks} autoHighlight>
-          <Combobox.InputGroup>
-            <Combobox.Input placeholder="Choose a framework" />
-            <Combobox.Clear aria-label="Clear framework" />
-            <Combobox.Trigger aria-label="Show frameworks" />
-          </Combobox.InputGroup>
-          <Combobox.Content>
-            <Combobox.Empty>No frameworks found.</Combobox.Empty>
-            <Combobox.List>
-              {(item: string) => (
-                <Combobox.Item key={item} value={item}>
-                  {item}
-                </Combobox.Item>
-              )}
-            </Combobox.List>
-          </Combobox.Content>
-        </Combobox.Root>
-      </Field>
-    </div>
-  ),
+  render: function FieldExample() {
+    const fieldId = useId();
+    return (
+      <div className="w-layout-list max-w-full">
+        <Field>
+          <FieldLabel id={`${fieldId}-framework-1-label`} htmlFor={`${fieldId}-framework-1`}>
+            {"Framework"}
+          </FieldLabel>
+          <Combobox items={frameworks} autoHighlight>
+            <>
+              <ComboboxInput
+                id={`${fieldId}-framework-1`}
+                aria-labelledby={`${fieldId}-framework-1-label`}
+                aria-describedby={`${fieldId}-framework-1-message`}
+                showTrigger={false}
+                placeholder="Choose a framework"
+              >
+                <InputGroupAddon align="inline-end">
+                  <ComboboxClear aria-label="Clear framework" />
+                  <ComboboxTrigger aria-label="Show frameworks" />
+                </InputGroupAddon>
+              </ComboboxInput>
+            </>
+            <ComboboxContent>
+              <ComboboxEmpty>No frameworks found.</ComboboxEmpty>
+              <ComboboxList aria-labelledby={`${fieldId}-framework-1-label`}>
+                {(item: string) => (
+                  <ComboboxItem key={item} value={item}>
+                    {item}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          <FieldDescription id={`${fieldId}-framework-1-message`}>
+            {"Search and choose a framework."}
+          </FieldDescription>
+        </Field>
+      </div>
+    );
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
@@ -407,43 +100,59 @@ export const Searchable: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Clear framework" }));
     await expect(input).toHaveValue("");
     await userEvent.type(input, "nothing-matches");
-    await expect(await page.findByText("No frameworks found.")).toBeVisible();
+    await waitFor(() => expect(page.getByText("No frameworks found.")).toBeVisible());
     await userEvent.keyboard("{Escape}");
   },
 };
 
 export const Multiple: Story = {
-  render: () => (
-    <div className="w-layout-list max-w-full">
-      <Field label="Frameworks" hint="Choose all that apply.">
-        <Combobox.Root<string, true> items={frameworks} multiple defaultValue={["React"]}>
-          <Combobox.Chips>
-            <Combobox.Value>
-              {(values: string[]) =>
-                values.map((value) => (
-                  <Combobox.Chip key={value}>
-                    <span>{value}</span>
-                    <Combobox.ChipRemove aria-label={`Remove ${value}`} />
-                  </Combobox.Chip>
-                ))
-              }
-            </Combobox.Value>
-            <Combobox.Input placeholder="Add a framework" />
-          </Combobox.Chips>
-          <Combobox.Content>
-            <Combobox.Empty>No frameworks found.</Combobox.Empty>
-            <Combobox.List>
-              {(item: string) => (
-                <Combobox.Item key={item} value={item}>
-                  {item}
-                </Combobox.Item>
-              )}
-            </Combobox.List>
-          </Combobox.Content>
-        </Combobox.Root>
-      </Field>
-    </div>
-  ),
+  render: function MultipleExample() {
+    const fieldId = useId();
+
+    const anchor = useComboboxAnchor();
+    return (
+      <div className="w-layout-list max-w-full">
+        <Field>
+          <FieldLabel id={`${fieldId}-frameworks-2-label`} htmlFor={`${fieldId}-frameworks-2`}>
+            {"Frameworks"}
+          </FieldLabel>
+          <Combobox<string, true> items={frameworks} multiple defaultValue={["React"]}>
+            <ComboboxChips ref={anchor}>
+              <ComboboxValue>
+                {(values: string[]) =>
+                  values.map((value) => (
+                    <ComboboxChip key={value} showRemove={false}>
+                      <span>{value}</span>
+                      <ComboboxChipRemove aria-label={`Remove ${value}`} />
+                    </ComboboxChip>
+                  ))
+                }
+              </ComboboxValue>
+              <ComboboxChipsInput
+                id={`${fieldId}-frameworks-2`}
+                aria-labelledby={`${fieldId}-frameworks-2-label`}
+                aria-describedby={`${fieldId}-frameworks-2-message`}
+                placeholder="Add a framework"
+              />
+            </ComboboxChips>
+            <ComboboxContent anchor={anchor}>
+              <ComboboxEmpty>No frameworks found.</ComboboxEmpty>
+              <ComboboxList aria-labelledby={`${fieldId}-frameworks-2-label`}>
+                {(item: string) => (
+                  <ComboboxItem key={item} value={item}>
+                    {item}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          <FieldDescription id={`${fieldId}-frameworks-2-message`}>
+            {"Choose all that apply."}
+          </FieldDescription>
+        </Field>
+      </div>
+    );
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
@@ -486,52 +195,61 @@ const teamGroups = [
 type Team = (typeof teamGroups)[number]["items"][number];
 
 export const Groups: Story = {
-  render: () => (
-    <div className="w-layout-list max-w-full">
-      <Field label="Team">
-        <Combobox.Root<Team>
-          items={teamGroups}
-          itemToStringLabel={(team) => team.label}
-          itemToStringValue={(team) => team.id}
-          isItemEqualToValue={(a, b) => a.id === b.id}
-        >
-          <Combobox.InputGroup>
-            <Combobox.Input placeholder="Choose a team" />
-            <Combobox.Trigger aria-label="Show teams" />
-          </Combobox.InputGroup>
-          <Combobox.Content>
-            <Combobox.Empty>No teams found.</Combobox.Empty>
-            <Combobox.List>
-              {(group: (typeof teamGroups)[number], index: number) => (
-                <Combobox.Group key={group.label} items={group.items}>
-                  {index > 0 && <Combobox.Separator />}
-                  <Combobox.GroupLabel>{group.label}</Combobox.GroupLabel>
-                  <Combobox.Collection>
-                    {(team: Team) => (
-                      <Combobox.Item
-                        key={team.id}
-                        value={team}
-                        disabled={"disabled" in team && team.disabled}
-                      >
-                        <span className="flex flex-col gap-025">
-                          <span>{team.label}</span>
-                          <span className="font-body-small text-subtle">{team.description}</span>
-                        </span>
-                      </Combobox.Item>
-                    )}
-                  </Combobox.Collection>
-                </Combobox.Group>
-              )}
-            </Combobox.List>
-          </Combobox.Content>
-        </Combobox.Root>
-      </Field>
-    </div>
-  ),
+  render: function FieldExample() {
+    const fieldId = useId();
+    return (
+      <div className="w-layout-list max-w-full">
+        <Field>
+          <FieldLabel id={`${fieldId}-team-3-label`} htmlFor={`${fieldId}-team-3`}>
+            {"Team"}
+          </FieldLabel>
+          <Combobox<Team>
+            items={teamGroups}
+            itemToStringLabel={(team) => team.label}
+            itemToStringValue={(team) => team.id}
+            isItemEqualToValue={(a, b) => a.id === b.id}
+          >
+            <>
+              <ComboboxInput
+                id={`${fieldId}-team-3`}
+                aria-labelledby={`${fieldId}-team-3-label`}
+                placeholder="Choose a team"
+              />
+            </>
+            <ComboboxContent>
+              <ComboboxEmpty>No teams found.</ComboboxEmpty>
+              <ComboboxList aria-labelledby={`${fieldId}-team-3-label`}>
+                {(group: (typeof teamGroups)[number], index: number) => (
+                  <ComboboxGroup key={group.label} items={group.items}>
+                    {index > 0 && <ComboboxSeparator />}
+                    <ComboboxLabel>{group.label}</ComboboxLabel>
+                    <ComboboxCollection>
+                      {(team: Team) => (
+                        <ComboboxItem
+                          key={team.id}
+                          value={team}
+                          disabled={"disabled" in team && team.disabled}
+                        >
+                          <span className="flex flex-col gap-025">
+                            <span>{team.label}</span>
+                            <span className="font-body-small text-subtle">{team.description}</span>
+                          </span>
+                        </ComboboxItem>
+                      )}
+                    </ComboboxCollection>
+                  </ComboboxGroup>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        </Field>
+      </div>
+    );
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
-    await userEvent.click(canvas.getByRole("button", { name: "Show teams" }));
+    await userEvent.click(canvas.getByRole("combobox", { name: "Team" }));
     await waitFor(() => expect(page.getByRole("group", { name: "Engineering" })).toBeVisible());
     await expect(page.getByRole("option", { name: /Security/ })).toHaveAttribute(
       "aria-disabled",
@@ -543,6 +261,8 @@ export const Groups: Story = {
 };
 
 function DialogExample() {
+  const fieldId = useId();
+
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -561,30 +281,48 @@ function DialogExample() {
             <DialogDescription>Choose the framework used by this project.</DialogDescription>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
-            <Field label="Project framework">
-              <Combobox.Root items={frameworks}>
-                <Combobox.InputGroup>
-                  <Combobox.Input placeholder="Choose a framework" />
-                  <Combobox.Trigger aria-label="Show project frameworks" />
-                </Combobox.InputGroup>
-                <Combobox.Content>
-                  <Combobox.Empty>No frameworks found.</Combobox.Empty>
-                  <Combobox.List>
+            <Field>
+              <FieldLabel
+                id={`${fieldId}-project-framework-4-label`}
+                htmlFor={`${fieldId}-project-framework-4`}
+              >
+                {"Project framework"}
+              </FieldLabel>
+              <Combobox items={frameworks}>
+                <>
+                  <ComboboxInput
+                    id={`${fieldId}-project-framework-4`}
+                    aria-labelledby={`${fieldId}-project-framework-4-label`}
+                    placeholder="Choose a framework"
+                  />
+                </>
+                <ComboboxContent>
+                  <ComboboxEmpty>No frameworks found.</ComboboxEmpty>
+                  <ComboboxList aria-labelledby={`${fieldId}-project-framework-4-label`}>
                     {(item: string) => (
-                      <Combobox.Item key={item} value={item}>
+                      <ComboboxItem key={item} value={item}>
                         {item}
-                      </Combobox.Item>
+                      </ComboboxItem>
                     )}
-                  </Combobox.List>
-                </Combobox.Content>
-              </Combobox.Root>
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
             </Field>
-            <Field label="Deployment framework">
-              <Combobox.Root<string> items={["React"]} defaultValue="React" readOnly>
-                <Combobox.InputGroup>
-                  <Combobox.Input />
-                </Combobox.InputGroup>
-              </Combobox.Root>
+            <Field>
+              <FieldLabel
+                id={`${fieldId}-deployment-framework-5-label`}
+                htmlFor={`${fieldId}-deployment-framework-5`}
+              >
+                {"Deployment framework"}
+              </FieldLabel>
+              <Combobox<string> items={["React"]} defaultValue="React" readOnly>
+                <>
+                  <ComboboxInput
+                    id={`${fieldId}-deployment-framework-5`}
+                    aria-labelledby={`${fieldId}-deployment-framework-5-label`}
+                  />
+                </>
+              </Combobox>
             </Field>
           </div>
         </DialogContent>
@@ -636,106 +374,160 @@ const formRecords = [
   { id: "c", label: "Unavailable" },
 ];
 function NativeFormExample() {
+  const fieldId = useId();
+
+  const anchor = useComboboxAnchor();
   const [framework, setFramework] = useState<string | null>("React");
+  const [record, setRecord] = useState<(typeof formRecords)[number] | null>(formRecords[0]!);
+  const [tags, setTags] = useState(["Internal", "Reviewed"]);
   return (
     <form
       id="native-combo-form"
       className="w-layout-list max-w-full"
       onSubmit={(event) => event.preventDefault()}
+      onReset={(event) => {
+        const native = event.nativeEvent;
+        queueMicrotask(() => {
+          if (!native.defaultPrevented) {
+            setRecord(formRecords[0]!);
+            setTags(["Internal", "Reviewed"]);
+          }
+        });
+      }}
     >
       <Stack space="space.200">
-        <Field label="Record" isRequired hint="Two directory records can share a display name.">
-          <Combobox.Root<(typeof formRecords)[number]>
+        <Field>
+          <FieldLabel id={`${fieldId}-record-6-label`} htmlFor={`${fieldId}-record-6`}>
+            {"Record"}
+            <span aria-hidden="true" className="text-danger">
+              {" "}
+              *
+            </span>
+          </FieldLabel>
+          <Combobox<(typeof formRecords)[number]>
             items={formRecords}
             name="record"
-            defaultValue={{ id: "a", label: "Alex Morgan" }}
+            value={record}
+            onValueChange={setRecord}
             itemToStringLabel={(item) => item.label}
             itemToStringValue={(item) => item.id}
             isItemEqualToValue={(a, b) => a.id === b.id}
           >
-            <Combobox.InputGroup>
-              <Combobox.Input render={<input data-testid="native-input" />} />
-              <Combobox.Trigger aria-label="Show records" />
-            </Combobox.InputGroup>
-            <Combobox.Content keepMounted>
-              <Combobox.Empty>No records found.</Combobox.Empty>
-              <Combobox.List>
+            <>
+              <ComboboxInput
+                id={`${fieldId}-record-6`}
+                aria-labelledby={`${fieldId}-record-6-label`}
+                aria-required={true}
+                aria-describedby={`${fieldId}-record-6-message`}
+                render={<input data-testid="native-input" />}
+              />
+            </>
+            <ComboboxContent keepMounted>
+              <ComboboxEmpty>No records found.</ComboboxEmpty>
+              <ComboboxList aria-labelledby={`${fieldId}-record-6-label`}>
                 {(item: (typeof formRecords)[number]) => (
-                  <Combobox.Item key={item.id} value={item} disabled={item.id === "c"}>
+                  <ComboboxItem key={item.id} value={item} disabled={item.id === "c"}>
                     {item.label} · {item.id}
-                  </Combobox.Item>
+                  </ComboboxItem>
                 )}
-              </Combobox.List>
-            </Combobox.Content>
-          </Combobox.Root>
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          <FieldDescription id={`${fieldId}-record-6-message`}>
+            {"Two directory records can share a display name."}
+          </FieldDescription>
         </Field>
-        <Field label="Tags">
-          <Combobox.Root<string, true>
+        <Field>
+          <FieldLabel id={`${fieldId}-tags-7-label`} htmlFor={`${fieldId}-tags-7`}>
+            {"Tags"}
+          </FieldLabel>
+          <Combobox<string, true>
             items={["Internal", "Reviewed", "Published"]}
             multiple
-            defaultValue={["Internal", "Reviewed"]}
+            value={tags}
+            onValueChange={setTags}
             name="tags"
           >
-            <Combobox.Chips>
-              <Combobox.Value>
+            <ComboboxChips ref={anchor}>
+              <ComboboxValue>
                 {(values: string[]) =>
                   values.map((value) => (
-                    <Combobox.Chip key={value}>
+                    <ComboboxChip key={value} showRemove={false}>
                       {value}
-                      <Combobox.ChipRemove aria-label={`Remove ${value}`} />
-                    </Combobox.Chip>
+                      <ComboboxChipRemove aria-label={`Remove ${value}`} />
+                    </ComboboxChip>
                   ))
                 }
-              </Combobox.Value>
-              <Combobox.Input placeholder="Add a tag" />
-            </Combobox.Chips>
-            <Combobox.Content>
-              <Combobox.List>
+              </ComboboxValue>
+              <ComboboxChipsInput
+                id={`${fieldId}-tags-7`}
+                aria-labelledby={`${fieldId}-tags-7-label`}
+                placeholder="Add a tag"
+              />
+            </ComboboxChips>
+            <ComboboxContent anchor={anchor}>
+              <ComboboxList aria-labelledby={`${fieldId}-tags-7-label`}>
                 {(item: string) => (
-                  <Combobox.Item key={item} value={item}>
+                  <ComboboxItem key={item} value={item}>
                     {item}
-                  </Combobox.Item>
+                  </ComboboxItem>
                 )}
-              </Combobox.List>
-            </Combobox.Content>
-          </Combobox.Root>
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
         </Field>
-        <Field label="Environment" hint="Set by the project administrator.">
-          <Combobox.Root<string>
+        <Field>
+          <FieldLabel id={`${fieldId}-environment-8-label`} htmlFor={`${fieldId}-environment-8`}>
+            {"Environment"}
+          </FieldLabel>
+          <Combobox<string>
             items={["Production", "Staging"]}
             defaultValue="Production"
             readOnly
             name="readonly"
           >
-            <Combobox.InputGroup>
-              <Combobox.Input />
-            </Combobox.InputGroup>
-          </Combobox.Root>
+            <>
+              <ComboboxInput
+                id={`${fieldId}-environment-8`}
+                aria-labelledby={`${fieldId}-environment-8-label`}
+                aria-describedby={`${fieldId}-environment-8-message`}
+              />
+            </>
+          </Combobox>
+          <FieldDescription id={`${fieldId}-environment-8-message`}>
+            {"Set by the project administrator."}
+          </FieldDescription>
         </Field>
-        <Field
-          label="Framework"
-          hint="Controlled selection stays owned by the application when the form resets."
-        >
-          <Combobox.Root<string>
+        <Field>
+          <FieldLabel id={`${fieldId}-framework-9-label`} htmlFor={`${fieldId}-framework-9`}>
+            {"Framework"}
+          </FieldLabel>
+          <Combobox<string>
             items={frameworks}
             value={framework}
             onValueChange={setFramework}
             name="controlled"
           >
-            <Combobox.InputGroup>
-              <Combobox.Input />
-              <Combobox.Trigger aria-label="Show frameworks" />
-            </Combobox.InputGroup>
-            <Combobox.Content>
-              <Combobox.List>
+            <>
+              <ComboboxInput
+                id={`${fieldId}-framework-9`}
+                aria-labelledby={`${fieldId}-framework-9-label`}
+                aria-describedby={`${fieldId}-framework-9-message`}
+              />
+            </>
+            <ComboboxContent>
+              <ComboboxList aria-labelledby={`${fieldId}-framework-9-label`}>
                 {(item: string) => (
-                  <Combobox.Item key={item} value={item}>
+                  <ComboboxItem key={item} value={item}>
                     {item}
-                  </Combobox.Item>
+                  </ComboboxItem>
                 )}
-              </Combobox.List>
-            </Combobox.Content>
-          </Combobox.Root>
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          <FieldDescription id={`${fieldId}-framework-9-message`}>
+            {"Controlled selection stays owned by the application when the form resets."}
+          </FieldDescription>
         </Field>
         <Inline>
           <Button type="reset">Reset choices</Button>
@@ -755,7 +547,7 @@ export const NativeForms: Story = {
     await expect(input).toHaveAttribute("aria-required", "true");
     await expect(canvasElement.querySelectorAll(`[id="${input.id}"]`)).toHaveLength(1);
     await expect(page.queryByRole("listbox")).toBeNull();
-    await userEvent.click(canvas.getByRole("button", { name: "Show records" }));
+    await userEvent.click(canvas.getByRole("combobox", { name: "Record" }));
     await expect(await page.findByRole("option", { name: "Alex Morgan · a" })).toHaveAttribute(
       "aria-selected",
       "true",
@@ -785,6 +577,8 @@ const fetchFrameworks = fn(async (query: string) => {
 });
 
 function AsyncFrameworkExample() {
+  const fieldId = useId();
+
   const [query, setQuery] = useState("");
   const [value, setValue] = useState<string | null>(null);
   const [items, setItems] = useState<string[]>([]);
@@ -804,8 +598,11 @@ function AsyncFrameworkExample() {
   }, [query]);
   return (
     <div className="w-layout-list max-w-full">
-      <Field label="Framework" hint="Results are loaded as you type.">
-        <Combobox.Root<string>
+      <Field>
+        <FieldLabel id={`${fieldId}-framework-10-label`} htmlFor={`${fieldId}-framework-10`}>
+          {"Framework"}
+        </FieldLabel>
+        <Combobox<string>
           items={items}
           filter={null}
           inputValue={query}
@@ -813,22 +610,29 @@ function AsyncFrameworkExample() {
           value={value}
           onValueChange={setValue}
         >
-          <Combobox.InputGroup>
-            <Combobox.Input placeholder="Search frameworks" />
-            <Combobox.Trigger aria-label="Show frameworks" />
-          </Combobox.InputGroup>
-          <Combobox.Content>
-            <Combobox.Status>{loading ? "Loading frameworks…" : null}</Combobox.Status>
-            <Combobox.Empty>{loading ? null : "No frameworks found."}</Combobox.Empty>
-            <Combobox.List>
+          <>
+            <ComboboxInput
+              id={`${fieldId}-framework-10`}
+              aria-labelledby={`${fieldId}-framework-10-label`}
+              aria-describedby={`${fieldId}-framework-10-message`}
+              placeholder="Search frameworks"
+            />
+          </>
+          <ComboboxContent>
+            <ComboboxStatus>{loading ? "Loading frameworks…" : null}</ComboboxStatus>
+            <ComboboxEmpty>{loading ? null : "No frameworks found."}</ComboboxEmpty>
+            <ComboboxList aria-labelledby={`${fieldId}-framework-10-label`}>
               {(item: string) => (
-                <Combobox.Item key={item} value={item}>
+                <ComboboxItem key={item} value={item}>
                   {item}
-                </Combobox.Item>
+                </ComboboxItem>
               )}
-            </Combobox.List>
-          </Combobox.Content>
-        </Combobox.Root>
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
+        <FieldDescription id={`${fieldId}-framework-10-message`}>
+          {"Results are loaded as you type."}
+        </FieldDescription>
       </Field>
     </div>
   );

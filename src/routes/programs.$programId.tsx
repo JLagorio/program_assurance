@@ -1,6 +1,11 @@
-import { saveProgramCommand, useProgramsVersion } from "@/lib/program-store";
-import { useRecordForm } from "@/lib/record-form";
 import {
+  FieldLabel,
+  FieldError,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxList,
+  ComboboxItem,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -50,10 +55,11 @@ import {
   toast,
   useCommandPalette,
 } from "@ledger/design-system";
+import { saveProgramCommand, useProgramsVersion } from "@/lib/program-store";
+import { useRecordForm } from "@/lib/record-form";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, Lock } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
+import { useId, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CoverageBand } from "@/components/app/coverage";
 import { CdrPackageModal } from "@/components/app/digital-thread";
 import { ProgramAssessments } from "@/components/app/program-assessments";
@@ -276,6 +282,8 @@ const segmentStatus: Record<string, ControlStatus> = {
 };
 
 function ProgramDetail() {
+  const fieldId = useId();
+
   const alertCancelRef = useRef<HTMLButtonElement>(null);
 
   const program = Route.useLoaderData();
@@ -988,57 +996,161 @@ function ProgramDetail() {
             >
               <Stack space="space.150">
                 <form.Field name="assessControl">
-                  {(field) => (
-                    <Field
-                      isRequired
-                      error={
-                        field.state.meta.isTouched && !field.state.meta.isValid
-                          ? field.state.meta.errors.join(" ")
-                          : undefined
-                      }
-                      label="Control"
-                    >
-                      <Combobox
-                        value={field.state.value}
-                        onChange={field.handleChange}
-                        options={scopedControls.map((control) => ({
-                          value: control.id,
-                          label: control.id,
-                          meta: control.title,
-                        }))}
-                        placeholder="Choose a control"
-                        searchPlaceholder="Search controls…"
-                        className="w-full"
-                        name={field.name}
-                        onBlur={field.handleBlur}
-                      />
-                    </Field>
-                  )}
+                  {(field) => {
+                    const valueItems = scopedControls.map((control) => ({
+                      value: control.id,
+                      label: control.id,
+                      meta: control.title,
+                    }));
+                    const fieldError1 =
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? field.state.meta.errors.join(" ")
+                        : undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError1)}>
+                        <FieldLabel
+                          id={`${fieldId}-control-1-label`}
+                          htmlFor={`${fieldId}-control-1`}
+                        >
+                          {"Control"}
+                          <span aria-hidden="true" className="text-danger">
+                            {" "}
+                            *
+                          </span>
+                        </FieldLabel>
+                        <div className={"w-full"}>
+                          <Combobox<(typeof valueItems)[number]>
+                            items={valueItems}
+
+                            isItemEqualToValue={(item, selected) => item.value === selected.value}
+                            filter={(item, query) =>
+                              [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                                .join(" ")
+                                .toLocaleLowerCase()
+                                .includes(query.toLocaleLowerCase())
+                            }
+                            value={
+                              valueItems.find((item) => item.value === field.state.value) ?? null
+                            }
+                            onValueChange={(item) => field.handleChange(item?.value ?? "")}
+                            name={field.name}
+                          >
+                            <ComboboxInput
+                              id={`${fieldId}-control-1`}
+                              aria-labelledby={`${fieldId}-control-1-label`}
+                              aria-required={true}
+                              aria-invalid={Boolean(fieldError1)}
+                              aria-describedby={
+                                fieldError1 ? `${fieldId}-control-1-message` : undefined
+                              }
+                              placeholder="Choose a control"
+                              onBlur={field.handleBlur}
+                            />
+                            <ComboboxContent>
+                              <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+                              <ComboboxList aria-labelledby={`${fieldId}-control-1-label`}>
+                                {(item) => (
+                                  <ComboboxItem
+                                    key={item.value}
+                                    value={item}
+                                    disabled={"disabled" in item && Boolean(item.disabled)}
+                                  >
+                                    <span className="min-w-0 flex-1">{item.label}</span>
+                                    {"meta" in item && item.meta ? (
+                                      <span className="text-subtle font-body-small">
+                                        {String(item.meta)}
+                                      </span>
+                                    ) : null}
+                                  </ComboboxItem>
+                                )}
+                              </ComboboxList>
+                            </ComboboxContent>
+                          </Combobox>
+                        </div>
+                        {fieldError1 ? (
+                          <FieldError id={`${fieldId}-control-1-message`}>{fieldError1}</FieldError>
+                        ) : null}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
                 <form.Field name="assessScope">
-                  {(field) => (
-                    <Field
-                      label="System / component"
-                      isRequired
-                      error={
-                        field.state.meta.isTouched && !field.state.meta.isValid
-                          ? field.state.meta.errors.join(" ")
-                          : undefined
-                      }
-                    >
-                      <Combobox
-                        value={field.state.value}
-                        onChange={field.handleChange}
-                        options={assessmentSubjects.map((subject) => ({
-                          value: subject.scopeId,
-                          label: subject.name,
-                        }))}
-                        placeholder="Choose the system or component to assess"
-                        name={field.name}
-                        onBlur={field.handleBlur}
-                      />
-                    </Field>
-                  )}
+                  {(field) => {
+                    const valueItems2 = assessmentSubjects.map((subject) => ({
+                      value: subject.scopeId,
+                      label: subject.name,
+                    }));
+                    const fieldError2 =
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? field.state.meta.errors.join(" ")
+                        : undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError2)}>
+                        <FieldLabel
+                          id={`${fieldId}-system-component-2-label`}
+                          htmlFor={`${fieldId}-system-component-2`}
+                        >
+                          {"System / component"}
+                          <span aria-hidden="true" className="text-danger">
+                            {" "}
+                            *
+                          </span>
+                        </FieldLabel>
+                        <Combobox<(typeof valueItems2)[number]>
+                          items={valueItems2}
+
+                          isItemEqualToValue={(item, selected) => item.value === selected.value}
+                          filter={(item, query) =>
+                            [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                              .join(" ")
+                              .toLocaleLowerCase()
+                              .includes(query.toLocaleLowerCase())
+                          }
+                          value={
+                            valueItems2.find((item) => item.value === field.state.value) ?? null
+                          }
+                          onValueChange={(item) => field.handleChange(item?.value ?? "")}
+                          name={field.name}
+                        >
+                          <ComboboxInput
+                            id={`${fieldId}-system-component-2`}
+                            aria-labelledby={`${fieldId}-system-component-2-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError2)}
+                            aria-describedby={
+                              fieldError2 ? `${fieldId}-system-component-2-message` : undefined
+                            }
+                            placeholder="Choose the system or component to assess"
+                            onBlur={field.handleBlur}
+                          />
+                          <ComboboxContent>
+                            <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+                            <ComboboxList aria-labelledby={`${fieldId}-system-component-2-label`}>
+                              {(item) => (
+                                <ComboboxItem
+                                  key={item.value}
+                                  value={item}
+                                  disabled={"disabled" in item && Boolean(item.disabled)}
+                                >
+                                  <span className="min-w-0 flex-1">{item.label}</span>
+                                  {"meta" in item && item.meta ? (
+                                    <span className="text-subtle font-body-small">
+                                      {String(item.meta)}
+                                    </span>
+                                  ) : null}
+                                </ComboboxItem>
+                              )}
+                            </ComboboxList>
+                          </ComboboxContent>
+                        </Combobox>
+                        {fieldError2 ? (
+                          <FieldError id={`${fieldId}-system-component-2-message`}>
+                            {fieldError2}
+                          </FieldError>
+                        ) : null}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
               </Stack>
             </form>

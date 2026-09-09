@@ -3,7 +3,6 @@ import { playwright } from "@vitest/browser-playwright";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, mergeConfig } from "vitest/config";
-
 import viteConfig from "./.storybook/vite.config";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,6 +14,8 @@ export default mergeConfig(
     optimizeDeps: {
       include: [
         "@base-ui/react/accordion",
+        "@base-ui/react/input",
+        "@base-ui/react/field",
         "@base-ui/react/checkbox-group",
         "@base-ui/react/menu",
         "@base-ui/react/select",

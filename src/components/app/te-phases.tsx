@@ -15,6 +15,7 @@ import {
   type ThreatScenario,
 } from "@/lib/te-phases";
 import {
+  AlertDescription,
   Absent,
   Alert,
   Badge,
@@ -904,11 +905,13 @@ export function AttackChain({
 
         {unwalkable.length > 0 ? (
           <Box paddingBlockStart="space.100">
-            <Alert tone="danger">
-              {unwalkable.length} {unwalkable.length === 1 ? "step is" : "steps are"} not
-              traversable in the composition graph —{" "}
-              {unwalkable.map((h) => `${h.from} → ${h.to}`).join(", ")}. The scenario cannot be
-              executed as written against this system.
+            <Alert tone="danger" role="alert">
+              <AlertDescription>
+                {unwalkable.length} {unwalkable.length === 1 ? "step is" : "steps are"} not
+                traversable in the composition graph —{" "}
+                {unwalkable.map((h) => `${h.from} → ${h.to}`).join(", ")}. The scenario cannot be
+                executed as written against this system.
+              </AlertDescription>
             </Alert>
           </Box>
         ) : null}

@@ -1,238 +1,230 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Command as CommandIcon, Search, SlidersHorizontal, Star, User, X } from "lucide-react";
-
-import { Button, Field, IconButton, Input, InputGroup, NativeSelect } from "../../components";
-import { Inline, Stack } from "../../primitives";
-import { Matrix as Grid, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
-
-const owners = ["Dana Whitfield", "Priya Natarajan", "Grace Hoppel"];
+import { type Meta, type StoryObj } from "@storybook/react-vite";
+import { Search, X } from "lucide-react";
+import { useId, useRef, useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
+import {
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  Field,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  InputGroupText,
+  InputGroupTextarea,
+} from "../../components";
+import { Stack } from "../../primitives";
 
 const meta = {
   title: "Components/InputGroup",
   component: InputGroup,
   parameters: { layout: "padded" },
-  args: {
-    leading: <Search />,
-    width: 240,
-    children: <Input type="search" placeholder="Search controls" aria-label="Search" />,
-  },
 } satisfies Meta<typeof InputGroup>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const shortcut = (
-  <>
-    <CommandIcon />K
-  </>
-);
+export const SearchBox: Story = {
+  render: function SearchExample() {
+    const fieldId = useId();
 
-const kinds = [
-  "leading icon",
-  "trailing hint",
-  "both",
-  "trailing unit",
-  "NativeSelect inside",
-] as const;
-type Kind = (typeof kinds)[number];
-const states = ["rest", "filled", "disabled"] as const;
-type State = (typeof states)[number];
-
-function Specimen({ kind, state }: { kind: Kind; state: State }) {
-  const disabled = state === "disabled";
-  const filled = state !== "rest";
-  if (kind === "trailing unit")
+    const [query, setQuery] = useState("AC-2");
+    const input = useRef<HTMLInputElement>(null);
     return (
-      <InputGroup trailing="days" width={140}>
-        <Input
-          type="number"
-          inputMode="numeric"
-          aria-label="Retention"
-          min={0}
-          placeholder="90"
-          defaultValue={filled ? "90" : undefined}
-          disabled={disabled}
-        />
-      </InputGroup>
+      <div className="w-layout-list max-w-full">
+        <Field>
+          <FieldLabel
+            id={`${fieldId}-search-controls-1-label`}
+            htmlFor={`${fieldId}-search-controls-1`}
+          >
+            {"Search controls"}
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              id={`${fieldId}-search-controls-1`}
+              aria-labelledby={`${fieldId}-search-controls-1-label`}
+              aria-describedby={`${fieldId}-search-controls-1-message`}
+              ref={input}
+              type="search"
+              value={query}
+              onValueChange={setQuery}
+            />
+            <InputGroupAddon data-testid="search-addon">
+              <Search aria-hidden="true" />
+            </InputGroupAddon>
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                size="icon-xs"
+                aria-label="Clear search"
+                onClick={() => {
+                  setQuery("");
+                  input.current?.focus();
+                }}
+              >
+                <X aria-hidden="true" />
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+          <FieldDescription id={`${fieldId}-search-controls-1-message`}>
+            {"Search by identifier or title."}
+          </FieldDescription>
+        </Field>
+      </div>
     );
-  if (kind === "NativeSelect inside")
-    return (
-      <InputGroup leading={<User />} width={240}>
-        <NativeSelect aria-label="Owner" defaultValue={filled ? owners[1] : ""} disabled={disabled}>
-          <option value="">Any owner</option>
-          {owners.map((o) => (
-            <option key={o}>{o}</option>
-          ))}
-        </NativeSelect>
-      </InputGroup>
-    );
-  return (
-    <InputGroup
-      leading={kind === "trailing hint" ? undefined : <Search />}
-      trailing={kind === "leading icon" ? undefined : shortcut}
-      width={240}
-    >
-      <Input
-        type="search"
-        aria-label="Search"
-        placeholder="Search controls"
-        defaultValue={filled ? "AC-2 account management" : undefined}
-        disabled={disabled}
-      />
-    </InputGroup>
-  );
-}
-
-/** What can sit at either end, down the side; the states across. */
-export const InputGroupMatrix: Story = {
-  render: () => (
-    <Grid
-      rows={kinds}
-      cols={states}
-      rowLabel="ends"
-      render={(kind, state) => <Specimen kind={kind} state={state} />}
-    />
-  ),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("searchbox", { name: "Search controls" });
+    await expect(input).toHaveAccessibleDescription("Search by identifier or title.");
+    await userEvent.click(canvas.getByTestId("search-addon"));
+    await expect(input).toHaveFocus();
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: "Clear search" })).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(input).toHaveValue("");
+    await expect(input).toHaveFocus();
+    await userEvent.type(input, "AU-2");
+    await expect(input).toHaveValue("AU-2");
+  },
 };
 
-/** The search box: the top navigation's, wide and small with its shortcut, and a toolbar's beside a small Button. Escape clears either. */
-export const SearchBox: Story = {
-  render: () => (
-    <Stack space="space.300">
-      <Specimens title="the top navigation">
-        <InputGroup leading={<Search />} trailing={shortcut} width={420}>
-          <Input
-            type="search"
-            size="small"
-            placeholder="Search risks, controls, evidence…"
-            aria-label="Search"
-          />
-        </InputGroup>
-      </Specimens>
-      <Specimens title="a toolbar">
-        <Inline space="space.100" alignBlock="center">
-          <InputGroup leading={<Search />} width={240}>
-            <Input
-              type="search"
+export const Units: Story = {
+  render: function FieldExample() {
+    const fieldId = useId();
+    return (
+      <Stack space="space.200" className="w-layout-list max-w-full">
+        <Field>
+          <FieldLabel id={`${fieldId}-retention-2-label`} htmlFor={`${fieldId}-retention-2`}>
+            {"Retention"}
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              id={`${fieldId}-retention-2`}
+              aria-labelledby={`${fieldId}-retention-2-label`}
+              aria-describedby={`${fieldId}-retention-2-message`}
+              type="number"
+              defaultValue="90"
+              min={0}
+            />
+            <InputGroupAddon align="inline-end">
+              <InputGroupText>days</InputGroupText>
+            </InputGroupAddon>
+          </InputGroup>
+          <FieldDescription id={`${fieldId}-retention-2-message`}>
+            {"Days before the scan is purged."}
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel id={`${fieldId}-budget-3-label`} htmlFor={`${fieldId}-budget-3`}>
+            {"Budget"}
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              id={`${fieldId}-budget-3`}
+              aria-labelledby={`${fieldId}-budget-3-label`}
+              type="number"
+              defaultValue="240000"
+              min={0}
+            />
+            <InputGroupAddon>
+              <InputGroupText>$</InputGroupText>
+            </InputGroupAddon>
+          </InputGroup>
+        </Field>
+      </Stack>
+    );
+  },
+};
+
+export const Multiline: Story = {
+  render: function FieldExample() {
+    const fieldId = useId();
+    return (
+      <div className="w-layout-list max-w-full">
+        <Field>
+          <FieldLabel id={`${fieldId}-review-note-4-label`} htmlFor={`${fieldId}-review-note-4`}>
+            {"Review note"}
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupTextarea
+              id={`${fieldId}-review-note-4`}
+              aria-labelledby={`${fieldId}-review-note-4-label`}
+              placeholder="Explain the decision"
+              rows={3}
+            />
+            <InputGroupAddon align="block-start">
+              <InputGroupText>Decision record</InputGroupText>
+            </InputGroupAddon>
+            <InputGroupAddon align="block-end">
+              <InputGroupText>Visible to the assessment team</InputGroupText>
+              <InputGroupButton className="ms-auto">Save note</InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+        </Field>
+      </div>
+    );
+  },
+};
+
+export const States: Story = {
+  render: function FieldExample() {
+    const fieldId = useId();
+    return (
+      <Stack space="space.200" className="w-layout-list max-w-full">
+        <Field data-invalid={Boolean("Choose an owner.")}>
+          <FieldLabel id={`${fieldId}-owner-5-label`} htmlFor={`${fieldId}-owner-5`}>
+            {"Owner"}
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              id={`${fieldId}-owner-5`}
+              aria-labelledby={`${fieldId}-owner-5-label`}
+              aria-describedby={`${fieldId}-owner-5-message`}
+              aria-invalid={Boolean("Choose an owner.") || true}
+              placeholder="Search owners"
+            />
+            <InputGroupAddon>
+              <Search aria-hidden="true" />
+            </InputGroupAddon>
+          </InputGroup>
+          {Boolean("Choose an owner.") ? (
+            <FieldError id={`${fieldId}-owner-5-message`}>{"Choose an owner."}</FieldError>
+          ) : null}
+        </Field>
+        <Field>
+          <FieldLabel
+            id={`${fieldId}-archived-record-6-label`}
+            htmlFor={`${fieldId}-archived-record-6`}
+          >
+            {"Archived record"}
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              id={`${fieldId}-archived-record-6`}
+              aria-labelledby={`${fieldId}-archived-record-6-label`}
+              disabled
+              defaultValue="AC-2"
+            />
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton disabled>Open</InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+        </Field>
+        <Field>
+          <FieldLabel id={`${fieldId}-record-id-7-label`} htmlFor={`${fieldId}-record-id-7`}>
+            {"Record ID"}
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              id={`${fieldId}-record-id-7`}
+              aria-labelledby={`${fieldId}-record-id-7-label`}
+              readOnly
+              defaultValue="REQ-1041"
               size="small"
-              placeholder="Search POA&M items, owners"
-              aria-label="Search"
             />
           </InputGroup>
-          <Button size="small" variant="secondary" iconBefore={<SlidersHorizontal />}>
-            Filter
-          </Button>
-        </Inline>
-      </Specimens>
-    </Stack>
-  ),
-};
-
-/** A unit at the end, a currency at the start. The value is a number; the end says what it counts. */
-export const Units: Story = {
-  render: () => (
-    <Inline space="space.300" alignBlock="start">
-      <div style={{ width: 160 }}>
-        <Field label="Retention" hint="Days before the scan is purged.">
-          <InputGroup trailing="days">
-            <Input type="number" inputMode="numeric" defaultValue="90" min={0} />
-          </InputGroup>
         </Field>
-      </div>
-      <div style={{ width: 160 }}>
-        <Field label="Weight">
-          <InputGroup trailing="kg">
-            <Input type="number" inputMode="decimal" defaultValue="12.5" min={0} step={0.1} />
-          </InputGroup>
-        </Field>
-      </div>
-      <div style={{ width: 180 }}>
-        <Field label="Budget">
-          <InputGroup leading="$">
-            <Input type="number" inputMode="decimal" defaultValue="240000" min={0} />
-          </InputGroup>
-        </Field>
-      </div>
-    </Inline>
-  ),
+      </Stack>
+    );
+  },
 };
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  // The negative example intentionally puts a button in an aria-hidden decorative slot.
-  parameters: { a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } } },
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Inline space="space.100" alignBlock="center">
-            <InputGroup leading={<Search />} width={220}>
-              <Input type="search" defaultValue="AC-2" aria-label="Search" />
-            </InputGroup>
-            <Button variant="secondary">Clear</Button>
-          </Inline>
-        }
-        doText="An action is a Button beside the field, and Escape clears a search box anyway."
-        dont={
-          <InputGroup
-            trailing={
-              <IconButton
-                label="Clear"
-                icon={<X />}
-                variant="subtle"
-                size="small"
-                isTooltipDisabled
-              />
-            }
-            width={220}
-          >
-            <Input type="search" defaultValue="AC-2" aria-label="Search" />
-          </InputGroup>
-        }
-        dontText="A button inside the field. The ends are static; this one cannot be clicked or reached by Tab."
-      />
-      <Pair
-        do={
-          <div style={{ width: 160 }}>
-            <Field label="Retention">
-              <InputGroup trailing="days">
-                <Input type="number" inputMode="numeric" defaultValue="90" />
-              </InputGroup>
-            </Field>
-          </div>
-        }
-        doText="The value is a number and the unit stays after it."
-        dont={
-          <div style={{ width: 160 }}>
-            <Field label="Retention">
-              <Input placeholder="90 days" />
-            </Field>
-          </div>
-        }
-        dontText="The unit is in the placeholder. It vanishes when typing starts, and the value is now free text."
-      />
-      <Pair
-        do={
-          <div style={{ width: 240 }}>
-            <Field label="Program name">
-              <Input defaultValue="Atlas payments platform" />
-            </Field>
-          </div>
-        }
-        doText="A field with nothing to say at either end has no group."
-        dont={
-          <div style={{ width: 240 }}>
-            <Field label="Program name">
-              <InputGroup leading={<Star />}>
-                <Input defaultValue="Atlas payments platform" />
-              </InputGroup>
-            </Field>
-          </div>
-        }
-        dontText="A decoration in the field. The icon means nothing and takes the room the name needs."
-      />
-    </Stack>
-  ),
-};
-
-export const Playground: Story = {};

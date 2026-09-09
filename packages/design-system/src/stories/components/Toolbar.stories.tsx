@@ -1,19 +1,21 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-
-import { Download, Plus } from "lucide-react";
-import { useState } from "react";
-
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Button,
   Count,
   FilterChip,
-  NativeSelect,
   Table,
   ToggleGroup,
   ToggleGroupItem,
   Toolbar,
 } from "../../components";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
+import { Download, Plus } from "lucide-react";
+import { useState } from "react";
 import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -28,66 +30,80 @@ type Story = StoryObj<typeof meta>;
 
 /** Search only; search and filters; filters and actions; no search, the children carry the row; a Select that narrows. */
 export const ToolbarMatrix: Story = {
-  render: () => (
-    <Stack space="space.200" className="max-w-layout-measure">
-      <Toolbar search="" onSearch={() => {}} placeholder="Search controls" />
-      <Toolbar search="AC-2" onSearch={() => {}} placeholder="Search controls">
-        <FilterChip label="Baseline" value="Rev. 5" isActive />
-        <FilterChip label="Impact" />
-      </Toolbar>
-      <Toolbar
-        search=""
-        onSearch={() => {}}
-        placeholder="Search controls"
-        actions={
-          <>
-            <Button size="small" iconBefore={<Download />}>
-              Export
+  render: () => {
+    const undefinedItems = [
+      { value: "ssp", label: "System security plan" },
+      { value: "sap", label: "Assessment plan" },
+      { value: "poam", label: "Plan of action" },
+    ];
+    return (
+      <Stack space="space.200" className="max-w-layout-measure">
+        <Toolbar search="" onSearch={() => {}} placeholder="Search controls" />
+        <Toolbar search="AC-2" onSearch={() => {}} placeholder="Search controls">
+          <FilterChip label="Baseline" value="Rev. 5" isActive />
+          <FilterChip label="Impact" />
+        </Toolbar>
+        <Toolbar
+          search=""
+          onSearch={() => {}}
+          placeholder="Search controls"
+          actions={
+            <>
+              <Button size="small" iconBefore={<Download />}>
+                Export
+              </Button>
+              <Button size="small" variant="primary" iconBefore={<Plus />}>
+                New control
+              </Button>
+            </>
+          }
+        >
+          <FilterChip label="Owner" />
+          <FilterChip label="Status" />
+        </Toolbar>
+        <Toolbar
+          actions={
+            <Text size="small" color="color.text.subtle">
+              12 of 340 controls
+            </Text>
+          }
+        >
+          <ToggleGroup aria-label="Lens" defaultValue={["gaps"]}>
+            <ToggleGroupItem value="all">All</ToggleGroupItem>
+            <ToggleGroupItem value="gaps">
+              Gaps <Count value={12} />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="mine">Mine</ToggleGroupItem>
+          </ToggleGroup>
+        </Toolbar>
+        <Toolbar
+          search=""
+          onSearch={() => {}}
+          placeholder="Search parts, suppliers"
+          actions={
+            <Button size="small" variant="subtle">
+              Reset
             </Button>
-            <Button size="small" variant="primary" iconBefore={<Plus />}>
-              New control
-            </Button>
-          </>
-        }
-      >
-        <FilterChip label="Owner" />
-        <FilterChip label="Status" />
-      </Toolbar>
-      <Toolbar
-        actions={
-          <Text size="small" color="color.text.subtle">
-            12 of 340 controls
-          </Text>
-        }
-      >
-        <ToggleGroup aria-label="Lens" defaultValue={["gaps"]}>
-          <ToggleGroupItem value="all">All</ToggleGroupItem>
-          <ToggleGroupItem value="gaps">
-            Gaps <Count value={12} />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="mine">Mine</ToggleGroupItem>
-        </ToggleGroup>
-      </Toolbar>
-      <Toolbar
-        search=""
-        onSearch={() => {}}
-        placeholder="Search parts, suppliers"
-        actions={
-          <Button size="small" variant="subtle">
-            Reset
-          </Button>
-        }
-      >
-        <div style={{ width: 220 }}>
-          <NativeSelect size="small" aria-label="Model" defaultValue="ssp">
-            <option value="ssp">System security plan</option>
-            <option value="sap">Assessment plan</option>
-            <option value="poam">Plan of action</option>
-          </NativeSelect>
-        </div>
-      </Toolbar>
-    </Stack>
-  ),
+          }
+        >
+          <div style={{ width: 220 }}>
+            <Select<string> items={undefinedItems} defaultValue="ssp">
+              <SelectTrigger className="w-full" size="sm" aria-label="Model">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {undefinedItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </Toolbar>
+      </Stack>
+    );
+  },
 };
 
 const controls = [

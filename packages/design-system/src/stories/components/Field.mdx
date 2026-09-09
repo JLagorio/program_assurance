@@ -1,95 +1,73 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-
-import { Field } from "../../components";
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldSet,
+  FieldLegend,
+  FieldGroup,
+  FieldContent,
+  FieldTitle,
+  FieldSeparator,
+} from "../../components";
 import * as Stories from "./Field.stories";
-import * as FormsStories from "../patterns/Forms.stories";
-import * as InputStories from "./Input.stories";
 
 <Meta of={Stories} />
 
 # Field
 
-**Field** wraps one control with its label, hint and error. It is how every control in a form gets its name, its description and its failure, whatever the control is: an [Input](?path=/docs/components-input--docs), a [Textarea](?path=/docs/components-textarea--docs), a [NativeSelect](?path=/docs/components-nativeselect--docs), a [Select](?path=/docs/components-select--docs), a [Combobox](?path=/docs/components-combobox--docs), a [DatePicker](?path=/docs/components-datepicker--docs).
-
-<Canvas of={Stories.FieldMatrix} />
-
-- `label` is required. It is a real `label` linked to the control, so clicking it focuses the control and the control is named by it.
-- `hint` sits under the control as its description. `error` replaces the hint, turns it danger, marks the control invalid and is announced.
-- `isRequired` adds the asterisk and sets `aria-required` on the control. It does not set the browser's `required`: the form validates through TanStack Form ([Forms](?path=/docs/patterns-forms--docs)).
-- `isGroup` makes the Field a fieldset: the label is the legend over a [RadioGroup](?path=/docs/components-radiogroup--docs) or several [Checkbox](?path=/docs/components-checkbox--docs)es, and the hint or the error describes the group.
-
-<Canvas of={FormsStories.Fields} />
+Compose labels, controls and validation messages with shadcn's Base UI Field parts and Ledger tokens. Field owns layout; the form owns values, validation and native associations.
 
 ## Anatomy
 
-| Part          | What it is                                                                                                                              |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Label         | Above the control, `font.body.small` at `font.weight.medium` in `color.text.subtle`. It is the control's accessible name.               |
-| Required mark | `isRequired`: a red asterisk after the label, hidden from screen readers, which hear `aria-required` on the control instead.            |
-| Control       | The one child. The label is linked to it, so a click on the label focuses it.                                                                  |
-| Message       | Under the control: the `hint` in `color.text.subtlest`, or the `error` in `color.text.danger`, which replaces it. Wired to the control as its description. |
-| Legend        | With `isGroup`: the label as a fieldset's legend over a group of choice controls, `space.050` above them; the message describes the group. |
+```tsx
+const id = useId();
+<Field data-invalid={invalid}>
+  <FieldLabel htmlFor={id}>Owner</FieldLabel>
+  <Input id={id} aria-invalid={invalid} aria-describedby={`${id}-message`} />
+  {invalid ? (
+    <FieldError id={`${id}-message`} errors={errors} />
+  ) : (
+    <FieldDescription id={`${id}-message`}>Use the full name.</FieldDescription>
+  )}
+</Field>;
+```
 
-## Variants
+`FieldSet` and `FieldLegend` group related controls. `FieldGroup` spaces fields; `FieldContent` groups text beside a control; `FieldTitle` supplies visual text when a wrapping label already provides the association. `FieldSeparator` divides sections, with optional text.
 
-Field has one appearance. The control inside is what varies; see [Forms](?path=/docs/patterns-forms--docs) for which control answers which question.
+<Canvas of={Stories.Composition} />
 
-## Sizes
+## Variants and states
 
-Not applicable: a Field is as wide as its container and as tall as its control plus the label and the message. The control's height is the control's: `dimension.control.medium`, 32px, for every control in a form. A control's `small` size is for toolbars, where there is no Field and `aria-label` names it.
+Field supports `vertical` (default), `horizontal` and `responsive` orientations. Responsive fields change direction inside a FieldGroup container. Mark the wrapper with `data-invalid` or `data-disabled` and pass the actual state to the control. An asterisk belongs in label content; `aria-required` describes the requirement, while native `required` enables browser validation.
 
-## States
+<Canvas of={Stories.Validation} />
 
-| State    | What changes                                                                                                                 |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Rest     | The label, the control, the hint if there is one.                                                                            |
-| Required | The asterisk after the label; `aria-required` on the control. The form checks on submit, the browser does not.                |
-| Invalid  | `error` set: the message turns `color.text.danger` and replaces the hint, the control takes `aria-invalid` and its border turns, the message is announced. |
-| Disabled | The Field has no disabled state of its own; the control is disabled, and the label stays readable so the reader knows what is missing. |
+FieldError accepts children or an `errors` array of message objects. It deduplicates messages and renders nothing for an empty result. Children take precedence.
 
-## Modifiers
-
-- **`hint`** for the format, the reason or the consequence: one full sentence with a full stop.
-- **`error`** for what is wrong and what fixes it. The form schema supplies the message for an empty required field; a rule of the store supplies its own sentence.
-- **`isRequired`** paints the mark and sets `aria-required`. It does not set the browser's `required`.
-- **`isGroup`** for a RadioGroup or several Checkboxes: a fieldset with the label as its legend. A RadioGroup inside takes `aria-invalid` and `aria-required`. Checkboxes keep their individual names, share the group description and error, and do not each inherit the group’s required state.
-- **`className`** for layout only: a column span in a form's Grid.
-
-## Content
-
-The label is a noun in sentence case with no colon; the placeholder is the format; the hint is a sentence; the error says what fixes it; required is marked and optional is not. The rules are written once, on [Input](?path=/docs/components-input--docs#content).
-
-## Style
-
-| Element       | Token                                                                    |
-| ------------- | ------------------------------------------------------------------------ |
-| Label         | `font.body.small` at `font.weight.medium` in `color.text.subtle`         |
-| Required mark | `color.text.danger`                                                      |
-| Hint          | `font.body.small` in `color.text.subtlest`                               |
-| Error         | `font.body.small` in `color.text.danger`                                 |
-| Gaps          | `space.050` 4px from label to control and from control to message        |
+<Canvas of={Stories.Errors} />
 
 ## Accessibility
 
-- The `<label>` wraps the control, so whatever control it holds is named by the label text and focused by a click on it. Nothing else goes inside the label: the message sits outside it.
-- The hint or the error is the control's description through `aria-describedby`, so a screen reader reads the name, then the value, then the message, and the message never becomes part of the name.
-- The error has `role="alert"` and the control `aria-invalid`, so the failure is announced when it appears and spoken with the name after.
-- `isRequired` sets `aria-required` on the control. The browser's `required` is not set on purpose: the form's own check on submit says what is missing in the kit's words, and no native bubble competes with it.
-- Every field and picker takes `aria-describedby`, `aria-invalid` and `aria-required` from the Field; the DatePicker's trigger is a plain button and accepts `aria-required` without rendering it, since a button may not carry it.
-- With `isGroup`, the fieldset's legend names the group and the fieldset carries the description, so a screen reader hears the legend and the hint on entering the group; a RadioGroup inside also takes `aria-invalid` and `aria-required`.
+Use `htmlFor` and a matching control `id` for individual fields. Reference hint/error IDs with `aria-describedby`, and pass `aria-invalid` to the control. Use FieldSet/FieldLegend for checkbox groups and explicitly name a RadioGroup with `aria-labelledby`. Choice controls keep their individual labels. A group requirement does not make every checkbox required.
+
+Native associations work through wrappers and custom components that forward their props. Generate IDs with `useId` when a form can appear more than once. TanStack Form continues to own touched state, validation and submission; focus the first invalid control on failed submission.
 
 ## Props
 
 <ArgTypes of={Field} />
+<ArgTypes of={FieldError} />
+<ArgTypes of={FieldLegend} />
+
+Every part forwards the native attributes and ref of its element: Field/Group/Content/Title/Error/Separator use divs, FieldLabel a label, FieldDescription a paragraph, FieldSet a fieldset, and FieldLegend a legend.
+
+### Migration
+
+Replace `label`, `hint`, `error`, `isRequired`, `isGroup` and `controlId` with composed parts and native attributes. `useFieldControl` and automatic child binding are removed. Move group content to FieldSet/FieldLegend; preserve the control's accessible name, description, invalid state and required announcement. Shadcn's Base UI Field uses semantic HTML; it is separate from the optional Base UI Field primitive.
 
 ## Related
 
-- [Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs), [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs): what a Field holds.
-- [Forms](?path=/docs/patterns-forms--docs): the layout, which control for which answer, and TanStack Form validation.
-- [Switch](?path=/docs/components-switch--docs) and [Checkbox](?path=/docs/components-checkbox--docs) can use Field for an external label, hint and error. Group several checkboxes or a [RadioGroup](?path=/docs/components-radiogroup--docs) in a Field with `isGroup`, and label each choice individually.
+[Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), and [Forms](?path=/docs/patterns-forms--docs).
 
-## Don't
-
-The pairs are on [Input](?path=/docs/components-input--docs#dont): a placeholder standing in for the label, an instruction as the label, an error that says only "invalid", a field wider than its answer.
-
-<Canvas of={InputStories.Dont} />
+Sources: [shadcn Field](https://ui.shadcn.com/docs/components/base/field), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/field.tsx), [TanStack integration](https://base-ui.com/react/handbook/forms#tanstack-form).

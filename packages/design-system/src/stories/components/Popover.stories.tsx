@@ -1,9 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SlidersHorizontal } from "lucide-react";
-import { createRef, useState } from "react";
+import { useId, createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
+  FieldLabel,
   Button,
   buttonVariants,
   Checkbox,
@@ -170,6 +171,8 @@ export const PopoverMatrix: Story = {
 };
 
 function DeferDemo() {
+  const fieldId = useId();
+
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [deferred, setDeferred] = useState<string | null>(null);
@@ -193,8 +196,18 @@ function DeferDemo() {
               }}
             >
               <Stack space="space.200">
-                <Field label="Reason" isRequired>
+                <Field>
+                  <FieldLabel id={`${fieldId}-reason-1-label`} htmlFor={`${fieldId}-reason-1`}>
+                    {"Reason"}
+                    <span aria-hidden="true" className="text-danger">
+                      {" "}
+                      *
+                    </span>
+                  </FieldLabel>
                   <Textarea
+                    id={`${fieldId}-reason-1`}
+                    aria-labelledby={`${fieldId}-reason-1-label`}
+                    aria-required={true}
                     rows={2}
                     value={reason}
                     onChange={(event) => setReason(event.target.value)}

@@ -1,93 +1,54 @@
-import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-import { Alert } from "../../components";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Alert, AlertTitle, AlertDescription, AlertAction } from "../../components";
 import * as Stories from "./Alert.stories";
 
 <Meta of={Stories} />
 
 # Alert
 
-An inline callout for information the reader needs near their work. Alert remains a base component: compose its title, description and actions directly. Owner: Ledger maintainers. The new compound API is experimental; existing title/action shorthand remains available.
+Inline feedback with explicit title, description and action parts. Use record-specific language that tells the reader what happened and what they can do.
 
 ## Anatomy
 
-| Part              | Responsibility                                                                        |
-| ----------------- | ------------------------------------------------------------------------------------- |
-| Alert             | Tone, surface, root semantics and native DOM integration.                             |
-| Alert.Title       | The message title; accepts an optional caller-rendered decorative icon.               |
-| Alert.Description | Explanatory content, including paragraphs, lists and links.                           |
-| Alert.Action      | A wrapping row of caller-owned controls. No child cloning, forced color or underline. |
-
 ```tsx
-<Alert tone="information" role="note" aria-labelledby="import-title">
-  <Alert.Title id="import-title">Review imported records</Alert.Title>
-  <Alert.Description>Two records need an owner before continuing.</Alert.Description>
-  <Alert.Action>
-    <Button onClick={openReview}>Review records</Button>
-  </Alert.Action>
+<Alert variant="destructive">
+  <AlertTitle>Import failed</AlertTitle>
+  <AlertDescription>The file is missing record identifiers.</AlertDescription>
+  <AlertAction>
+    <a href="#format">Read the required format</a>
+  </AlertAction>
 </Alert>
 ```
 
-The root does not inspect children or infer parts from element identity. Compound parts can be wrapped by application components. Icons can be placed directly in the title with explicit sizing and `aria-hidden="true"` when decorative.
+A decorative SVG may sit directly inside Alert, or beside text inside AlertTitle. Content and icons are caller-owned. Ledger keeps actions in normal flow so long recovery links fit narrow panels.
 
-## Variants
+## Variants and states
 
-Ledger keeps semantic `tone`: neutral, information, success, warning and danger. Warning remains the default. Use the tone's tokens rather than one-off colors. Static guidance can use any tone with `role="note"`. Announce a newly important message with `role="status"` or `role="alert"` according to urgency.
+`variant="default"` uses a neutral tone; `destructive` uses danger. Ledger's optional `tone` overrides either visual tone. Tone does not choose announcement behavior.
 
-<Canvas of={Stories.AlertMatrix} />
+<Canvas of={Stories.Variants} />
+<Canvas of={Stories.Tones} />
 
-## Sizes
-
-One token-based size. Width follows its container; content grows naturally. Titles and descriptions wrap. Action controls wrap in normal flow rather than occupying an absolute corner, so longer copy and narrow rails have room. Compound content should use min-width and wrapping appropriate to its own layout.
-
-<Canvas of={Stories.Placement} />
-
-## States
-
-Body-only, title-only, title with description, and actions are supported. There is no internal open, dismissal, disabled or pending state. The application owns those states and supplies buttons, links or progress as needed. Do not infer a workflow from the alert's color.
-
-<Canvas of={Stories.Kinds} />
-
-## Modifiers
-
-- `title` and `action` preserve the convenient shorthand. When either is supplied, nonempty children are wrapped in Alert.Description. Omit both to compose parts directly.
-- `icon` replaces the shorthand title's Dot; `null` removes the mark. It has no effect without a shorthand title. The shorthand mark is decorative, so do not put interactive content there.
-- Native `id`, `role`, `aria-*`, `data-*`, `dir`, `style`, event handlers and `ref` target the root div. Parts independently forward native props and div refs.
-- Default role remains `alert` for danger and `status` otherwise for compatibility. Explicit `role` overrides that default; native `aria-live` is also forwarded. Prefer `role="note"` for static page guidance.
-- Title is a styled div, not an inferred document heading. When needed, `role="heading"` with `aria-level` establishes its outline level.
+The application owns action handlers and feedback.
 
 <Canvas of={Stories.WithAction} />
 
-## Content
-
-Say what happened, what it means, and what the reader can do. Use a concise title rather than a generic tone name such as Warning. Rich descriptions and multiple actions are supported; use only the actions the situation needs. A persistent record constraint should remain visible while true. Dismissal is appropriate only when hiding that message is safe for the workflow, and the application owns it and focus recovery.
-
-## Style
-
-Subtle tone fill and text, medium radius, space.150 inline padding, space.100 block padding and space.075 between parts. Title uses medium body weight. The shorthand Dot remains the default mark. Action controls retain their own variant, tone, focus treatment and event handlers. To preserve the previous action link treatment explicitly, use the matching tone text token and underline on a TextLink or link Button, for example `className="text-warning underline"` in a warning callout.
-
 ## Accessibility
 
-Visual severity and announcement urgency are separate decisions. An alert does not move focus, and an action only runs when activated. Dynamic live regions need careful timing; content already present at initial page load is not guaranteed to be announced. Use an existing empty live region for subsequent updates when reliable announcement timing matters. Avoid repeated competing announcements. The browser checks verify DOM roles and relationships, not actual screen-reader speech.
-
-Connect a title or description with root `aria-labelledby` / `aria-describedby` when needed; no generated association is imposed on arbitrary composition. Decorative icons are hidden from assistive technology. Buttons and links retain native keyboard operation. Do not move focus merely because an alert appears. If an application dismisses an alert containing focus, return focus to a surviving control.
+Alert defaults to `role="alert"`, following shadcn. Use `role="status"` for polite updates or `role="note"` for static contextual information. Explicitly associate titles and descriptions with `aria-labelledby` and `aria-describedby` when needed. Hide decorative icons from assistive technology. Buttons and links retain their native behavior.
 
 ## Props
 
 <ArgTypes of={Alert} />
 
-`AlertTitleProps`, `AlertDescriptionProps` and `AlertActionProps` expose native div props and refs. Root `title` is the existing ReactNode shorthand, so it does not represent the native tooltip attribute; compound parts retain native title attributes.
+All parts accept native div attributes and refs. `title` is now the native HTML tooltip attribute.
 
-### Playground
+### Migration
 
-<Canvas of={Stories.Playground} />
-<Controls of={Stories.Playground} />
+Replace `Alert.Title`, `Alert.Description`, and `Alert.Action` with flat exports. Move shorthand `title`, `action`, and `icon` content into children. Existing callers explicitly retain their previous tones and announcement roles. New callers receive shadcn's neutral default appearance and alert role.
 
 ## Related
 
-[Banner](?path=/docs/components-banner--docs) for site-wide messages; [Toaster](?path=/docs/components-toaster--docs) for transient feedback; [AlertDialog](?path=/docs/components-alertdialog--docs) for a modal decision; [Gates](?path=/docs/components-gates--docs) for structured requirements. Reference: [shadcn Alert](https://ui.shadcn.com/docs/components/base/alert) and [WAI-ARIA Alert pattern](https://www.w3.org/WAI/ARIA/apg/patterns/alert/).
+[Banner](?path=/docs/components-banner--docs), [Toaster](?path=/docs/components-toaster--docs), [AlertDialog](?path=/docs/components-alertdialog--docs).
 
-## Don't
-
-Do not make every red callout an urgent interruption. Do not clone actions to overwrite their button variants or link styling. Do not put an absolute action over wrapping copy. Do not dismiss a blocking condition merely to remove it from view.
-
-<Canvas of={Stories.Dont} />
+Sources: [shadcn Alert](https://ui.shadcn.com/docs/components/base/alert), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/alert.tsx).

@@ -1,4 +1,40 @@
 import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldSet,
+  FieldLegend,
+  FieldGroup,
+  FieldContent,
+  FieldTitle,
+  FieldSeparator,
+  ButtonGroup,
+  ButtonGroupText,
+  ButtonGroupSeparator,
+  buttonGroupVariants,
+} from "@ledger/design-system";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@ledger/design-system";
+import {
+  AlertTitle,
+  AlertDescription,
+  AlertAction,
+  AvatarImage,
+  AvatarBadge,
+  AvatarGroup,
+  AvatarGroupCount,
+  AvatarFallback,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxList,
+  ComboboxItem,
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -198,6 +234,8 @@ import {
   type TooltipTriggerProps,
 } from "@ledger/design-system";
 import { createRef, type ComponentProps } from "react";
+
+const reactItems = [{ value: "react", label: "React" }];
 const breadcrumbRefs = {
   nav: createRef<HTMLElement>(),
   list: createRef<HTMLOListElement>(),
@@ -238,53 +276,114 @@ const breadcrumb = (
   </Breadcrumb>
 );
 void breadcrumb;
+const groupedInputs = (
+  <>
+    <InputGroup>
+      <InputGroupInput
+        name="packed-query"
+        aria-label="Search"
+        onValueChange={(value, details) => {
+          if (value.includes("!")) details.cancel();
+        }}
+        className={(state) => (state.focused ? "text-brand" : undefined)}
+        ref={(node) => node?.select()}
+      />
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton size="icon-xs" aria-label="Search">
+          ?
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
+    <InputGroup>
+      <InputGroupTextarea aria-label="Note" ref={(node) => node?.select()} />
+    </InputGroup>
+  </>
+);
+void groupedInputs;
 const avatars = (
-  <Avatar.Stack size="medium" aria-label="Reviewers" ref={(node) => node?.focus()}>
-    <Avatar name="Dana Whitlock" shape="square" hue="teal">
-      <Avatar.Image src="/dana.png" onLoadingStatusChange={(status) => status === "loaded"} />
-      <Avatar.Fallback delay={200} />
-      <Avatar.Badge tone="success" ref={(node) => node?.focus()} />
+  <AvatarGroup role="group" aria-label="Reviewers" ref={(node) => node?.focus()}>
+    <Avatar
+      shape="square"
+      hue="teal"
+      role="img"
+      aria-label={"Dana Whitlock"}
+      title={"Dana Whitlock"}
+    >
+      <AvatarImage src="/dana.png" onLoadingStatusChange={(status) => status === "loaded"} />
+      <AvatarFallback delay={200}>DW</AvatarFallback>
+      <AvatarBadge tone="success" ref={(node) => node?.focus()} />
     </Avatar>
-    <Avatar.Count>+2</Avatar.Count>
-  </Avatar.Stack>
+    <AvatarGroupCount>+2</AvatarGroupCount>
+  </AvatarGroup>
 );
 void avatars;
 const owner = <Person name="Dana Whitlock" title="Owner" />;
 void owner;
 const combo = (
-  <Combobox.Root<string, true>
+  <Combobox<string, true>
     multiple
     items={["React", "Vue"]}
     defaultValue={["React"]}
     onValueChange={(values) => values.map((value) => value.toUpperCase())}
   >
-    <Combobox.Input
+    <ComboboxInput
       render={<input aria-label="Framework" />}
       className={(state) => (state.open ? "text-brand" : "text-default")}
     />
-    <Combobox.Content>
-      <Combobox.List>
+    <ComboboxContent>
+      <ComboboxList>
         {(item: string) => (
-          <Combobox.Item key={item} value={item}>
+          <ComboboxItem key={item} value={item}>
             {item}
-          </Combobox.Item>
+          </ComboboxItem>
         )}
-      </Combobox.List>
-    </Combobox.Content>
-  </Combobox.Root>
+      </ComboboxList>
+    </ComboboxContent>
+  </Combobox>
 );
 void combo;
-const compatibleCombo = (
-  <Combobox
-    ref={(input) => {
-      input?.select();
+const objectCombo = (
+  <Combobox<(typeof reactItems)[number]>
+    items={reactItems}
+
+    isItemEqualToValue={(item, selected) => item.value === selected.value}
+    filter={(item, query) =>
+      [item.label, item.value, "keywords" in item ? item.keywords : ""]
+        .join(" ")
+        .toLocaleLowerCase()
+        .includes(query.toLocaleLowerCase())
+    }
+    value={reactItems.find((item) => item.value === "react") ?? null}
+    onValueChange={(item) => {
+      const value = item?.value ?? "";
+      return value.toUpperCase();
     }}
-    options={[{ value: "react", label: "React" }]}
-    value="react"
-    onChange={(value) => value.toUpperCase()}
-  />
+  >
+    <ComboboxInput
+      ref={(input) => {
+        input?.select();
+      }}
+    />
+    <ComboboxContent>
+      <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+      <ComboboxList>
+        {(item) => (
+          <ComboboxItem
+            key={item.value}
+            value={item}
+            disabled={"disabled" in item && Boolean(item.disabled)}
+          >
+            <span className="min-w-0 flex-1">{item.label}</span>
+            {"meta" in item && item.meta ? (
+              <span className="text-subtle font-body-small">{String(item.meta)}</span>
+            ) : null}
+          </ComboboxItem>
+        )}
+      </ComboboxList>
+    </ComboboxContent>
+  </Combobox>
 );
-void compatibleCombo;
+void objectCombo;
 const attachment = (
   <Attachment.Group>
     <Attachment size="small" orientation="vertical">
@@ -312,12 +411,12 @@ const attachment = (
 );
 void attachment;
 const alert = (
-  <Alert role="note" data-testid="packed-alert">
-    <Alert.Title id="packed-title">Import ready</Alert.Title>
-    <Alert.Description>Review records.</Alert.Description>
-    <Alert.Action>
+  <Alert role="note" data-testid="packed-alert" tone="warning">
+    <AlertTitle id="packed-title">Import ready</AlertTitle>
+    <AlertDescription>Review records.</AlertDescription>
+    <AlertAction>
       <Button>Review</Button>
-    </Alert.Action>
+    </AlertAction>
   </Alert>
 );
 void alert;
@@ -1485,3 +1584,31 @@ void packedCollapsible;
 <CollapsibleTrigger asChild />;
 // @ts-expect-error Base UI uses keepMounted instead of forceMount.
 <CollapsibleContent forceMount />;
+
+const fieldsAndGroups = (
+  <FieldSet disabled>
+    <FieldLegend>Review</FieldLegend>
+    <FieldGroup>
+      <Field orientation="responsive" data-invalid>
+        <FieldContent>
+          <FieldLabel htmlFor="packed-owner">Owner</FieldLabel>
+          <FieldDescription id="packed-owner-help">Full name.</FieldDescription>
+        </FieldContent>
+        <Input id="packed-owner" aria-describedby="packed-owner-help" />
+        <FieldError errors={[{ message: "Required." }]} />
+      </Field>
+      <FieldSeparator>Actions</FieldSeparator>
+      <FieldTitle>Review options</FieldTitle>
+      <ButtonGroup
+        orientation="vertical"
+        aria-label="Actions"
+        className={buttonGroupVariants({ orientation: "vertical" })}
+      >
+        <ButtonGroupText render={<label htmlFor="packed-owner" />}>Owner</ButtonGroupText>
+        <ButtonGroupSeparator orientation="horizontal" isDecorative />
+        <Button>Save</Button>
+      </ButtonGroup>
+    </FieldGroup>
+  </FieldSet>
+);
+void fieldsAndGroups;

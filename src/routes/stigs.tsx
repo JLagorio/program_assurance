@@ -1,18 +1,20 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
-  Button,
   Id,
   IndexPage,
   Indicator,
-  NativeSelect,
   PageHeader,
   Section,
   Table,
 } from "@ledger/design-system";
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Shell } from "@/components/app/shell";
 import { benchmarkById, benchmarks, rules } from "@/lib/catalog";
 import { severityTone } from "@/lib/spine";
@@ -49,6 +51,17 @@ function StigLibrary() {
 
   const drifted = benchmarks.filter((b) => b.appliedVersion !== b.version);
 
+  const benchmarkItems = [
+    { value: "All", label: "All benchmarks" },
+    ...benchmarks.map((b) => ({
+      value: b.id,
+      label: (
+        <>
+          {b.technology} · {b.version}
+        </>
+      ),
+    })),
+  ];
   return (
     <Shell>
       <IndexPage
@@ -125,19 +138,29 @@ function StigLibrary() {
         <Section
           title="Rule to CCI mapping"
           action={
-            <NativeSelect
+            <Select<string>
+              items={benchmarkItems}
               value={benchmark}
-              onChange={(e) => setBenchmark(e.target.value)}
-              aria-label="Benchmark"
-              style={{ width: 224, maxWidth: "100%" }}
+              onValueChange={(value) => {
+                if (value === null) return;
+                return setBenchmark(value);
+              }}
             >
-              <option value="All">All benchmarks</option>
-              {benchmarks.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.technology} · {b.version}
-                </option>
-              ))}
-            </NativeSelect>
+              <SelectTrigger
+                className="w-full"
+                aria-label="Benchmark"
+                style={{ width: 224, maxWidth: "100%" }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {benchmarkItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           }
         >
           <Table className="table-fixed">

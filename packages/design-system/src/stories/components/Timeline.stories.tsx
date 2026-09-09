@@ -1,16 +1,10 @@
 import {
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Download,
-  MoreHorizontal,
-  Paperclip,
-  Play,
-  Plus,
-  X,
-} from "lucide-react";
-import {
   Avatar,
+  AvatarFallback,
+  AvatarGroupCount,
+  avatarInitials,
+  AvatarGroup,
+  avatarHue,
   Badge,
   Button,
   ButtonGroup,
@@ -39,11 +33,19 @@ import {
   Timeline,
   tones,
 } from "../../components";
-
-import type { Meta, StoryObj } from "@storybook/react-vite";
-
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Download,
+  MoreHorizontal,
+  Paperclip,
+  Play,
+  Plus,
+  X,
+} from "lucide-react";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { useState, type ReactNode } from "react";
-
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -119,7 +121,9 @@ const menu = () => (
 );
 
 const person = (name: string, size: "xsmall" | "small" = "small") => (
-  <Avatar name={name} size={size} variant="tinted" isDecorative />
+  <Avatar size={size} variant="tinted" aria-hidden="true" hue={avatarHue(name)} title={name}>
+    <AvatarFallback>{avatarInitials(name, size === "xsmall" ? 1 : 2)}</AvatarFallback>
+  </Avatar>
 );
 
 const three = (size?: "small" | "medium" | "large") => (
@@ -180,7 +184,16 @@ export const TimelineMatrix: Story = {
             />
             <Timeline.Item
               title="Custom marker"
-              marker={<Avatar name="Dana Whitlock" size="xsmall" isDecorative />}
+              marker={
+                <Avatar
+                  size="xsmall"
+                  aria-hidden="true"
+                  hue={avatarHue("Dana Whitlock")}
+                  title={"Dana Whitlock"}
+                >
+                  <AvatarFallback>{avatarInitials("Dana Whitlock", 1)}</AvatarFallback>
+                </Avatar>
+              }
               meta="Dana Whitlock"
             />
             <Timeline.Item title="A menu in the trailing slot" trailing={menu()} />
@@ -436,10 +449,14 @@ function Feed() {
         }
         trailing={menu()}
       >
-        <Avatar.Stack
-          names={["Priya Natarajan", "Dana Whitfield", "Owen Fox", "Sam Lee"]}
-          max={2}
-        />
+        <AvatarGroup role="group" aria-label="Reviewers">
+          {["Priya Natarajan", "Dana Whitfield", "Owen Fox", "Sam Lee"].slice(0, 2).map((name) => (
+            <Avatar key={name} role="img" aria-label={name}>
+              <AvatarFallback>{avatarInitials(name)}</AvatarFallback>
+            </Avatar>
+          ))}
+          <AvatarGroupCount>+2</AvatarGroupCount>
+        </AvatarGroup>
       </Timeline.Item>
       <Timeline.Item
         title={
@@ -531,7 +548,16 @@ export const Activity: Story = {
           Moved to line up with the quarter close.
         </Timeline.Item>
         <Timeline.Item
-          marker={<Avatar name="Dana Whitfield" size="xsmall" isDecorative />}
+          marker={
+            <Avatar
+              size="xsmall"
+              aria-hidden="true"
+              hue={avatarHue("Dana Whitfield")}
+              title={"Dana Whitfield"}
+            >
+              <AvatarFallback>{avatarInitials("Dana Whitfield", 1)}</AvatarFallback>
+            </Avatar>
+          }
           title="Dana Whitfield took ownership"
           meta="Dana Whitfield"
           time="20 Aug"
@@ -1054,7 +1080,16 @@ export const FeedComposition: Story = {
   render: () => (
     <Timeline label="Updates" size="large" timePosition="end">
       <Timeline.Item
-        marker={<Avatar name="Sam Rivera" size="small" isDecorative />}
+        marker={
+          <Avatar
+            size="small"
+            aria-hidden="true"
+            hue={avatarHue("Sam Rivera")}
+            title={"Sam Rivera"}
+          >
+            <AvatarFallback>{avatarInitials("Sam Rivera", 2)}</AvatarFallback>
+          </Avatar>
+        }
         title="Sam Rivera shared an update"
         meta="Comment"
         time="10:30"

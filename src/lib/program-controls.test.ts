@@ -4,6 +4,7 @@ import { workFor, workForProgram } from "./control-work";
 import { findings } from "./findings";
 import { nistControls } from "./nist-catalog";
 import { registerPlatformAssurance } from "./platform-assurance";
+import { platformSeed } from "./platform-seed";
 import { registerPlatformControls } from "./platform-controls";
 import { platformNodeId, platformScopeId } from "./platform-ids";
 import { registerPlatformStructure } from "./platform-structure";
@@ -55,8 +56,9 @@ describe("program controls and their named element implementations", () => {
   it("keeps the exact native set and applies local tailoring without changing siblings", () => {
     const element = platformNodeId("LRU-001");
     const scope = platformScopeId("LRU-001");
-    expect(programControlRows("PRG-1090")).toHaveLength(74);
-    expect(programControlRows("PRG-1090", element)).toHaveLength(74);
+    const resolved = platformSeed.profiles[0]!.effective_control_ids.length;
+    expect(programControlRows("PRG-1090")).toHaveLength(resolved);
+    expect(programControlRows("PRG-1090", element)).toHaveLength(resolved);
     recordTailoring(scope, {
       overlays: [],
       excluded: new Map([["AC-2", "Not applicable to this component"]]),

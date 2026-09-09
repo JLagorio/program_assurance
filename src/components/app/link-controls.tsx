@@ -1,8 +1,12 @@
-import { useMemo, useState } from "react";
 import {
+  FieldLabel,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Field,
   Id,
-  NativeSelect,
   PickerSheet,
   Stack,
   Table,
@@ -10,6 +14,7 @@ import {
   Textarea,
   toast,
 } from "@ledger/design-system";
+import { useId, useMemo, useState } from "react";
 import { record } from "@/lib/activity";
 import { controlMatrix } from "@/lib/control-matrix";
 import { currentSession } from "@/lib/control-work";
@@ -30,6 +35,8 @@ export function LinkControlsSheet({
   open: boolean;
   onClose: () => void;
 }) {
+  const fieldId = useId();
+
   const version = useRequirementsVersion();
   const scopeVersion = useScopesVersion();
   const [query, setQuery] = useState("");
@@ -89,6 +96,10 @@ export function LinkControlsSheet({
       toast.error(error instanceof Error ? error.message : "Controls could not be linked.");
     }
   };
+  const relationItems = [
+    { value: "mapped", label: "Mapped to — supports a control" },
+    { value: "derived", label: "Derived from — the control is its source" },
+  ];
   return (
     <PickerSheet
       open={open}
@@ -108,17 +119,49 @@ export function LinkControlsSheet({
       }}
       toolbar={
         <Stack space="space.150">
-          <Field label="Relationship">
-            <NativeSelect
-              value={relation}
-              onChange={(event) => setRelation(event.target.value as typeof relation)}
+          <Field>
+            <FieldLabel
+              id={`${fieldId}-relationship-1-label`}
+              htmlFor={`${fieldId}-relationship-1`}
             >
-              <option value="mapped">Mapped to — supports a control</option>
-              <option value="derived">Derived from — the control is its source</option>
-            </NativeSelect>
+              {"Relationship"}
+            </FieldLabel>
+            <Select<string>
+              items={relationItems}
+              value={relation}
+              onValueChange={(value) => {
+                if (value === null) return;
+                return setRelation(value as typeof relation);
+              }}
+            >
+              <SelectTrigger
+                id={`${fieldId}-relationship-1`}
+                aria-labelledby={`${fieldId}-relationship-1-label`}
+                className="w-full"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent aria-labelledby={`${fieldId}-relationship-1-label`}>
+                {relationItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
-          <Field label="Rationale" isRequired>
+          <Field>
+            <FieldLabel id={`${fieldId}-rationale-2-label`} htmlFor={`${fieldId}-rationale-2`}>
+              {"Rationale"}
+              <span aria-hidden="true" className="text-danger">
+                {" "}
+                *
+              </span>
+            </FieldLabel>
             <Textarea
+              id={`${fieldId}-rationale-2`}
+              aria-labelledby={`${fieldId}-rationale-2-label`}
+              aria-required={true}
               rows={2}
               value={rationale}
               onChange={(event) => setRationale(event.target.value)}

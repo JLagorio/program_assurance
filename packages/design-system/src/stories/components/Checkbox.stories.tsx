@@ -1,9 +1,18 @@
 import { CheckboxGroup } from "@base-ui/react/checkbox-group";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { createRef, useState } from "react";
+import { useId, createRef, useState } from "react";
 import { expect, fn, userEvent, within } from "storybook/test";
 
-import { Button, Checkbox, Field } from "../../components";
+import {
+  FieldSet,
+  FieldLegend,
+  FieldDescription,
+  FieldLabel,
+  FieldError,
+  Button,
+  Checkbox,
+  Field,
+} from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 
@@ -95,28 +104,44 @@ const families = [
 ] as const;
 
 function ParentDemo() {
+  const fieldId = useId();
+
   return (
-    <Field label="Control families" isGroup hint="Choose which families to include in this review.">
+    <FieldSet
+      aria-labelledby={`${fieldId}-control-families-1-label`}
+      aria-describedby={`${fieldId}-control-families-1-message`}
+    >
+      <FieldLegend id={`${fieldId}-control-families-1-label`} variant="label">
+        {"Control families"}
+      </FieldLegend>
       <CheckboxGroup
+        aria-describedby={`${fieldId}-control-families-1-message`}
         aria-label="Selected control families"
         defaultValue={["ac"]}
         allValues={families.map(([key]) => key)}
         className="grid gap-100"
       >
         <label className="inline-flex items-center gap-100">
-          <Checkbox inputRef={parentInputRef} parent />
+          <Checkbox
+            aria-describedby={`${fieldId}-control-families-1-message`}
+            inputRef={parentInputRef}
+            parent
+          />
           Every family
         </label>
         <Stack space="space.100" className="ps-300">
           {families.map(([key, label]) => (
             <label key={key} className="inline-flex items-center gap-100">
-              <Checkbox value={key} />
+              <Checkbox aria-describedby={`${fieldId}-control-families-1-message`} value={key} />
               {label}
             </label>
           ))}
         </Stack>
       </CheckboxGroup>
-    </Field>
+      <FieldDescription id={`${fieldId}-control-families-1-message`}>
+        {"Choose which families to include in this review."}
+      </FieldDescription>
+    </FieldSet>
   );
 }
 
@@ -152,11 +177,14 @@ const rootClick = fn();
 const renderedClick = fn();
 
 function FormDemo() {
+  const fieldId = useId();
+
   const [pii, setPii] = useState(false);
   const [attested, setAttested] = useState(false);
   const [tried, setTried] = useState(false);
   const [saved, setSaved] = useState("Not submitted.");
   const [submissions, setSubmissions] = useState(0);
+  const fieldError2 = tried && !attested ? "Review the evidence before submitting." : undefined;
   return (
     <form
       noValidate
@@ -195,14 +223,23 @@ function FormDemo() {
             The package includes records about a person.
           </Text>
         </Stack>
-        <Field
-          label="I have reviewed the evidence"
-          controlId="review-attestation"
-          isRequired
-          hint="Confirm the review before submitting the package."
-          error={tried && !attested ? "Review the evidence before submitting." : undefined}
-        >
+        <Field data-invalid={Boolean(fieldError2)}>
+          <FieldLabel
+            id={`${fieldId}-i-have-reviewed-the-evidence-2-label`}
+            htmlFor={"review-attestation"}
+          >
+            {"I have reviewed the evidence"}
+            <span aria-hidden="true" className="text-danger">
+              {" "}
+              *
+            </span>
+          </FieldLabel>
           <Checkbox
+            id={"review-attestation"}
+            aria-labelledby={`${fieldId}-i-have-reviewed-the-evidence-2-label`}
+            aria-required={true}
+            aria-invalid={Boolean(fieldError2)}
+            aria-describedby={`${fieldId}-i-have-reviewed-the-evidence-2-message`}
             ref={buttonRef}
             inputRef={renderedInputRef}
             name="attested"
@@ -224,6 +261,15 @@ function FormDemo() {
             style={(state) => ({ outlineOffset: state.checked ? 4 : 2 })}
             onClick={rootClick}
           />
+          {Boolean(fieldError2) ? (
+            <FieldError id={`${fieldId}-i-have-reviewed-the-evidence-2-message`}>
+              {fieldError2}
+            </FieldError>
+          ) : (
+            <FieldDescription id={`${fieldId}-i-have-reviewed-the-evidence-2-message`}>
+              {"Confirm the review before submitting the package."}
+            </FieldDescription>
+          )}
         </Field>
         <Inline space="space.100">
           <Button type="submit" variant="primary">

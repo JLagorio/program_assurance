@@ -3,82 +3,16 @@
 import { Combobox as Primitive } from "@base-ui/react/combobox";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Check, ChevronDown, X } from "lucide-react";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useId,
-  useState,
-  type ComponentProps,
-  type ReactNode,
-} from "react";
-
+import { createContext, useContext, type ComponentProps, useRef } from "react";
 import { classes } from "../lib/base-ui";
-import { cn } from "../lib/cn";
 import { useOverlayContainer } from "./_overlay-focus";
 import { useLedgerLocale } from "../lib/locale";
-import { controlBase, controlHeight, useFieldControl, type ControlSize } from "./controls";
-
-export type ComboboxOption = {
-  /** The value the Combobox reports. */
-  value: string;
-  /** The option's text, in the list and in the field once chosen. */
-  label: string;
-  /** Extra text the filter matches but does not show: an id, an alias, a role. */
-  keywords?: string | undefined;
-  /** A short hint at the end of the row: a kind, a count, a role. A word or two. */
-  meta?: ReactNode;
-  /** A choice the reader cannot make yet, kept in the list so they know it exists. */
-  disabled?: boolean | undefined;
-};
-
-type ComboboxOwnProps = {
-  /** The options, every one known before the list opens. */
-  options: ComboboxOption[];
-  /** The controlled value participates in native form submission when named. */
-  name?: string | undefined;
-  form?: string | undefined;
-  /** The chosen value. The Combobox is always controlled. */
-  value?: string | undefined;
-  /** Called with the chosen option value, or an empty string when cleared. */
-  onChange: (value: string) => void;
-  /** What the field says with nothing chosen: "Choose an owner". */
-  placeholder?: string | undefined;
-  /** @deprecated Use placeholder. This is a fallback for the same editable field. */
-  searchPlaceholder?: string | undefined;
-  /** What the list says when nothing matches. A sentence. */
-  empty?: ReactNode;
-  /** `medium` (32px) in a form; `small` (28px) in a toolbar. */
-  size?: ControlSize | undefined;
-  /** The width in pixels of the field and its list. In a form the column sets the field and the list matches. */
-  width?: number | undefined;
-  /** Not available. The last resort. */
-  disabled?: boolean | undefined;
-  /** Open on first render; for a page that exists to make this choice, and for the docs. */
-  defaultOpen?: boolean | undefined;
-  /** Layout and appearance on the input group. Native attributes and ref target the input. */
-  className?: string | undefined;
-  /** Layout and appearance on the input group; width overrides style.width. */
-  style?: ComponentProps<"div">["style"];
-  /** The name, when there is no Field around it. */
-  id?: string | undefined;
-  "aria-labelledby"?: string | undefined;
-  "aria-label"?: string | undefined;
-  /** Set by the Field from `error`; the border turns. */
-  "aria-invalid"?: boolean | undefined;
-  /** Set by the Field from `isRequired`. */
-  "aria-required"?: boolean | undefined;
-  /** Set by the Field: the hint or the error is the control's description. */
-  "aria-describedby"?: string | undefined;
-};
-
-export type ComboboxProps = ComboboxOwnProps &
-  Omit<ComponentProps<"input">, keyof ComboboxOwnProps | "children" | "type" | "defaultValue">;
+import { type ControlSize } from "./controls";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "./input-group";
 
 /** Base UI's generic selection, filtering, form and popup state. Root has no DOM element. */
-export type ComboboxRootProps<
-  Value,
+export type ComboboxProps<
+  Value = unknown,
   Multiple extends boolean | undefined = false,
 > = Primitive.Root.Props<Value, Multiple> & {
   /** Defaults to LedgerProvider's direction, including keyboard and popup positioning. */
@@ -86,8 +20,9 @@ export type ComboboxRootProps<
 };
 export type ComboboxInputProps = Omit<ComponentProps<typeof Primitive.Input>, "size"> & {
   size?: ControlSize | undefined;
+  showTrigger?: boolean | undefined;
+  showClear?: boolean | undefined;
 };
-export type ComboboxInputGroupProps = ComponentProps<typeof Primitive.InputGroup>;
 export type ComboboxTriggerProps = ComponentProps<typeof Primitive.Trigger>;
 export type ComboboxContentProps = ComponentProps<typeof Primitive.Popup> &
   Pick<Primitive.Positioner.Props, "side" | "align" | "sideOffset" | "alignOffset" | "anchor"> & {
@@ -100,119 +35,94 @@ export type ComboboxListProps = ComponentProps<typeof Primitive.List>;
 export type ComboboxItemProps = ComponentProps<typeof Primitive.Item>;
 export type ComboboxEmptyProps = ComponentProps<typeof Primitive.Empty>;
 export type ComboboxGroupProps = ComponentProps<typeof Primitive.Group>;
-export type ComboboxGroupLabelProps = ComponentProps<typeof Primitive.GroupLabel>;
+export type ComboboxLabelProps = ComponentProps<typeof Primitive.GroupLabel>;
 export type ComboboxCollectionProps = ComponentProps<typeof Primitive.Collection>;
 export type ComboboxValueProps = ComponentProps<typeof Primitive.Value>;
 export type ComboboxSeparatorProps = ComponentProps<typeof Primitive.Separator>;
 export type ComboboxChipsProps = ComponentProps<typeof Primitive.Chips>;
-export type ComboboxChipProps = ComponentProps<typeof Primitive.Chip>;
+export type ComboboxChipProps = ComponentProps<typeof Primitive.Chip> & {
+  showRemove?: boolean | undefined;
+};
 export type ComboboxChipRemoveProps = ComponentProps<typeof Primitive.ChipRemove>;
 export type ComboboxClearProps = ComponentProps<typeof Primitive.Clear>;
 export type ComboboxStatusProps = ComponentProps<typeof Primitive.Status>;
 
 const DirectionContext = createContext<"ltr" | "rtl">("ltr");
-const PopupContext = createContext(false);
 
-function ComboboxRoot<Value, Multiple extends boolean | undefined = false>({
+export function Combobox<Value, Multiple extends boolean | undefined = false>({
   dir,
   locale,
-  value,
-  defaultValue,
-  onValueChange,
-  inputRef,
   ...props
-}: ComboboxRootProps<Value, Multiple>) {
-  type Selection = ComboboxRootProps<Value, Multiple>["value"];
-  const [uncontrolledValue, setUncontrolledValue] = useState<Selection>(
-    () => defaultValue ?? ((props.multiple ? [] : null) as Selection),
-  );
-  const [owningForm, setOwningForm] = useState<HTMLFormElement | null>(null);
-  const bindInput = useCallback(
-    (node: HTMLInputElement | null) => {
-      setOwningForm(node?.form ?? null);
-      if (typeof inputRef === "function") return inputRef(node);
-      if (inputRef) inputRef.current = node;
-    },
-    [inputRef, props.form],
-  );
-  useEffect(() => {
-    if (!owningForm || value !== undefined) return;
-    const reset = (event: Event) => {
-      // Let an application cancel the native reset before changing selection.
-      queueMicrotask(() => {
-        if (!event.defaultPrevented)
-          setUncontrolledValue(defaultValue ?? ((props.multiple ? [] : null) as Selection));
-      });
-    };
-    owningForm.addEventListener("reset", reset);
-    return () => owningForm.removeEventListener("reset", reset);
-  }, [owningForm, value, defaultValue, props.multiple]);
+}: ComboboxProps<Value, Multiple>) {
   const ledger = useLedgerLocale();
   const direction = dir ?? ledger.direction;
   return (
     <DirectionContext.Provider value={direction}>
       <DirectionProvider direction={direction}>
-        <Primitive.Root<Value, Multiple>
-          locale={locale ?? ledger.locale}
-          {...props}
-          inputRef={bindInput}
-          value={value === undefined ? uncontrolledValue : value}
-          onValueChange={(next, details) => {
-            onValueChange?.(next, details);
-            if (!details.isCanceled && value === undefined) setUncontrolledValue(next);
-          }}
-        />
+        <Primitive.Root<Value, Multiple> locale={locale ?? ledger.locale} {...props} />
       </DirectionProvider>
     </DirectionContext.Provider>
   );
 }
 
-/** Native search input. Optional surrounding InputGroup supplies a shared border with Trigger/Clear. */
-function ComboboxInput({ size = "medium", className, ...props }: ComboboxInputProps) {
-  const inPopup = useContext(PopupContext);
-  const bound = useFieldControl(props);
+/** Search input and its trigger/clear controls, composed with the shared InputGroup. */
+export function ComboboxInput({
+  size = "medium",
+  showTrigger = true,
+  showClear = false,
+  children,
+  disabled,
+  className,
+  ...props
+}: ComboboxInputProps) {
+  const { t } = useLedgerLocale();
   return (
-    <Primitive.Input
-      data-slot="combobox-input"
-      className={classes(
-        cn(controlBase, controlHeight[size], "min-w-0", inPopup ? "flex-none" : "flex-1"),
-        className,
+    <Primitive.InputGroup render={<InputGroup />}>
+      <Primitive.Input
+        data-slot="input-group-control"
+        data-combobox-input=""
+        disabled={disabled}
+        className={className}
+        render={<InputGroupInput size={size} />}
+        {...props}
+      />
+      {(showTrigger || showClear) && (
+        <InputGroupAddon align="inline-end">
+          {showTrigger && (
+            <InputGroupButton
+              size="icon-xs"
+              variant="subtle"
+              render={<ComboboxTrigger aria-label={t("choose")} />}
+              className="group-has-[[data-slot=combobox-clear]]/input-group:hidden"
+              disabled={disabled}
+            />
+          )}
+          {showClear && <ComboboxClear disabled={disabled} />}
+        </InputGroupAddon>
       )}
-      {...(inPopup ? props : bound)}
-    />
-  );
-}
-
-function ComboboxInputGroup({ className, ...props }: ComboboxInputGroupProps) {
-  return (
-    <Primitive.InputGroup
-      data-slot="combobox-input-group"
-      className={classes(
-        "flex min-w-0 items-center rounded-medium border border-input bg-input pe-050 has-[:focus-visible]:border-focused has-[:focus-visible]:outline-focused has-[[aria-invalid=true]]:border-danger data-[disabled]:border-disabled data-[disabled]:bg-disabled [&_[data-slot=combobox-input]]:border-0 [&_[data-slot=combobox-input]]:bg-transparent [&_[data-slot=combobox-input]]:outline-none",
-        className,
-      )}
-      {...props}
-    />
+      {children}
+    </Primitive.InputGroup>
   );
 }
 
 const iconControl =
   "inline-flex size-control-small shrink-0 items-center justify-center rounded-small icon-subtle outline-none hover:bg-neutral-subtle-hovered focus-visible:outline-focused disabled:cursor-not-allowed disabled:text-disabled data-[disabled]:text-disabled";
 
-function ComboboxTrigger({ className, children, ...props }: ComboboxTriggerProps) {
+export function ComboboxTrigger({ className, children, ...props }: ComboboxTriggerProps) {
   return (
     <Primitive.Trigger
       data-slot="combobox-trigger"
       className={classes(iconControl, className)}
       {...props}
     >
-      {children ?? <ChevronDown aria-hidden="true" className="size-icon-small" />}
+      {children}
+      <ChevronDown aria-hidden="true" className="size-icon-small" />
     </Primitive.Trigger>
   );
 }
 
 /** Popup with a collision-aware positioner and portal; DOM props/ref target Popup. */
-function ComboboxContent({
+export function ComboboxContent({
   side = "bottom",
   align = "start",
   sideOffset = 4,
@@ -247,36 +157,33 @@ function ComboboxContent({
           positionMethod="fixed"
           className="z-50 isolate"
         >
-          <PopupContext.Provider value={true}>
-            <Primitive.Popup
-              data-slot="combobox-content"
-              dir={direction}
-              className={classes(
-                "flex min-w-0 flex-col overflow-hidden rounded-large border border-default bg-surface-overlay font-body text-default shadow-overlay outline-none data-[open]:animate-enter data-[closed]:animate-exit",
-                className,
-              )}
-              style={
-                typeof style === "function"
-                  ? (state) => ({ ...defaults, ...style(state) })
-                  : { ...defaults, ...style }
-              }
-              {...props}
-            />
-          </PopupContext.Provider>
+          <Primitive.Popup
+            data-slot="combobox-content"
+            dir={direction}
+            className={classes(
+              "flex min-w-0 flex-col overflow-hidden rounded-large border border-default bg-surface-overlay font-body text-default shadow-overlay outline-none data-[open]:animate-enter data-[closed]:animate-exit",
+              className,
+            )}
+            style={
+              typeof style === "function"
+                ? (state) => ({ ...defaults, ...style(state) })
+                : { ...defaults, ...style }
+            }
+            {...props}
+          />
         </Primitive.Positioner>
       </Primitive.Portal>
     </>
   );
 }
 
-function ComboboxList({ className, style, ...props }: ComboboxListProps) {
+export function ComboboxList({ className, style, ...props }: ComboboxListProps) {
   const defaults = { maxHeight: "min(var(--ds-dimension-layout-panel), var(--available-height))" };
-  const bound = useFieldControl(props);
   const { t } = useLedgerLocale();
   return (
     <Primitive.List
-      aria-labelledby={bound["aria-labelledby"]}
-      aria-label={bound["aria-labelledby"] ? undefined : t("choose")}
+      aria-labelledby={props["aria-labelledby"]}
+      aria-label={props["aria-labelledby"] ? undefined : t("choose")}
       data-slot="combobox-list"
       className={classes(
         "min-h-0 overflow-y-auto overscroll-none p-050 outline-none empty:p-0",
@@ -292,7 +199,7 @@ function ComboboxList({ className, style, ...props }: ComboboxListProps) {
   );
 }
 
-function ComboboxItem({ className, children, ...props }: ComboboxItemProps) {
+export function ComboboxItem({ className, children, ...props }: ComboboxItemProps) {
   return (
     <Primitive.Item
       data-slot="combobox-item"
@@ -313,7 +220,7 @@ function ComboboxItem({ className, children, ...props }: ComboboxItemProps) {
   );
 }
 
-function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps) {
+export function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps) {
   return (
     <Primitive.Empty
       data-slot="combobox-empty"
@@ -322,7 +229,7 @@ function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps) {
     />
   );
 }
-function ComboboxStatus({ className, ...props }: ComboboxStatusProps) {
+export function ComboboxStatus({ className, ...props }: ComboboxStatusProps) {
   return (
     <Primitive.Status
       data-slot="combobox-status"
@@ -331,7 +238,7 @@ function ComboboxStatus({ className, ...props }: ComboboxStatusProps) {
     />
   );
 }
-function ComboboxGroup({ className, ...props }: ComboboxGroupProps) {
+export function ComboboxGroup({ className, ...props }: ComboboxGroupProps) {
   return (
     <Primitive.Group
       data-slot="combobox-group"
@@ -340,16 +247,16 @@ function ComboboxGroup({ className, ...props }: ComboboxGroupProps) {
     />
   );
 }
-function ComboboxGroupLabel({ className, ...props }: ComboboxGroupLabelProps) {
+export function ComboboxLabel({ className, ...props }: ComboboxLabelProps) {
   return (
     <Primitive.GroupLabel
-      data-slot="combobox-group-label"
+      data-slot="combobox-label"
       className={classes("px-100 py-100 font-body-small font-medium text-subtle", className)}
       {...props}
     />
   );
 }
-function ComboboxSeparator({ className, ...props }: ComboboxSeparatorProps) {
+export function ComboboxSeparator({ className, ...props }: ComboboxSeparatorProps) {
   return (
     <Primitive.Separator
       data-slot="combobox-separator"
@@ -358,19 +265,24 @@ function ComboboxSeparator({ className, ...props }: ComboboxSeparatorProps) {
     />
   );
 }
-function ComboboxChips({ className, ...props }: ComboboxChipsProps) {
+export function ComboboxChips({ className, ...props }: ComboboxChipsProps) {
   return (
     <Primitive.Chips
       data-slot="combobox-chips"
       className={classes(
-        "flex min-h-control-medium flex-wrap items-center gap-050 rounded-medium border border-input bg-input p-050 has-[:focus-visible]:border-focused has-[:focus-visible]:outline-focused has-[[aria-invalid=true]]:border-danger [&_[data-slot=combobox-input]]:w-auto [&_[data-slot=combobox-input]]:border-0 [&_[data-slot=combobox-input]]:bg-transparent [&_[data-slot=combobox-input]]:outline-none",
+        "flex min-h-control-medium flex-wrap items-center gap-050 rounded-medium border border-input bg-input p-050 has-[:focus-visible]:border-focused has-[:focus-visible]:outline-focused has-[[aria-invalid=true]]:border-danger",
         className,
       )}
       {...props}
     />
   );
 }
-function ComboboxChip({ className, ...props }: ComboboxChipProps) {
+export function ComboboxChip({
+  className,
+  children,
+  showRemove = true,
+  ...props
+}: ComboboxChipProps) {
   return (
     <Primitive.Chip
       data-slot="combobox-chip"
@@ -379,13 +291,18 @@ function ComboboxChip({ className, ...props }: ComboboxChipProps) {
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+      {showRemove && <ComboboxChipRemove />}
+    </Primitive.Chip>
   );
 }
-function ComboboxChipRemove({ className, children, ...props }: ComboboxChipRemoveProps) {
+export function ComboboxChipRemove({ className, children, ...props }: ComboboxChipRemoveProps) {
+  const { t } = useLedgerLocale();
   return (
     <Primitive.ChipRemove
       data-slot="combobox-chip-remove"
+      aria-label={t("clear")}
       className={classes(iconControl, className)}
       {...props}
     >
@@ -393,11 +310,12 @@ function ComboboxChipRemove({ className, children, ...props }: ComboboxChipRemov
     </Primitive.ChipRemove>
   );
 }
-function ComboboxClear({ className, children, ...props }: ComboboxClearProps) {
+export function ComboboxClear({ className, children, ...props }: ComboboxClearProps) {
   const { t } = useLedgerLocale();
   return (
     <Primitive.Clear
       data-slot="combobox-clear"
+      render={<InputGroupButton variant="subtle" size="icon-xs" />}
       aria-label={t("clear")}
       className={classes(iconControl, className)}
       {...props}
@@ -407,112 +325,26 @@ function ComboboxClear({ className, children, ...props }: ComboboxClearProps) {
   );
 }
 
-/** Single selection searched directly in the field, with an options-only popup. */
-function ComboboxSelect({
-  options,
-  name,
-  form,
-  value,
-  onChange,
-  placeholder,
-  searchPlaceholder,
-  empty,
-  size = "medium",
-  width,
-  disabled,
-  readOnly,
-  required,
-  defaultOpen = false,
-  className,
-  style,
-  ...inputProps
-}: ComboboxProps) {
-  const { t, locale } = useLedgerLocale();
-  const generatedId = useId();
-  const bound = useFieldControl(inputProps);
-  const inputId = bound.id ?? generatedId;
-  const [open, setOpen] = useState(defaultOpen);
-  const { contains } = Primitive.useFilter({ locale });
+export function ComboboxValue(props: ComboboxValueProps) {
+  return <Primitive.Value data-slot="combobox-value" {...props} />;
+}
+export function ComboboxCollection(props: ComboboxCollectionProps) {
+  return <Primitive.Collection data-slot="combobox-collection" {...props} />;
+}
+export type ComboboxChipsInputProps = Primitive.Input.Props;
+export function ComboboxChipsInput({ className, ...props }: ComboboxChipsInputProps) {
   return (
-    <ComboboxRoot<string>
-      items={options.map((option) => option.value)}
-      name={name}
-      form={form}
-      value={value || null}
-      disabled={disabled}
-      readOnly={readOnly}
-      required={required}
-      open={open && !disabled}
-      onOpenChange={(next) => setOpen(next && !disabled)}
-      itemToStringLabel={(item) => options.find((option) => option.value === item)?.label ?? ""}
-      filter={(item, query) => {
-        const option = options.find((option) => option.value === item);
-        return Boolean(
-          option && contains(`${option.label} ${option.value} ${option.keywords ?? ""}`, query),
-        );
-      }}
-      inputRef={(node) => {
-        node?.setAttribute("data-ds-focus-target", inputId);
-      }}
-      onValueChange={(next) => {
-        if (disabled || readOnly || options.find((option) => option.value === next)?.disabled)
-          return;
-        onChange(next ?? "");
-      }}
-      dir={inputProps.dir === "rtl" || inputProps.dir === "ltr" ? inputProps.dir : undefined}
-    >
-      <ComboboxInputGroup
-        style={{ ...style, ...(width === undefined ? {} : { width }) }}
-        className={cn("w-full", controlHeight[size], className)}
-      >
-        <ComboboxInput
-          {...bound}
-          id={inputId}
-          size={size}
-          placeholder={placeholder ?? searchPlaceholder ?? t("choose")}
-          className="h-full"
-        />
-        <ComboboxTrigger aria-label={t("choose")} className="h-full" />
-      </ComboboxInputGroup>
-      <ComboboxContent style={width === undefined ? undefined : { width }}>
-        <ComboboxList>
-          {(item: string) => {
-            const option = options.find((option) => option.value === item)!;
-            return (
-              <ComboboxItem key={item} value={item} disabled={option.disabled}>
-                <span className="flex min-w-0 items-center gap-100">
-                  <span className="min-w-0 flex-1 truncate">{option.label}</span>
-                  {option.meta != null && (
-                    <span className="font-body-small text-subtle">{option.meta}</span>
-                  )}
-                </span>
-              </ComboboxItem>
-            );
-          }}
-        </ComboboxList>
-        <ComboboxEmpty>{empty ?? t("noMatches")}</ComboboxEmpty>
-      </ComboboxContent>
-    </ComboboxRoot>
+    <Primitive.Input
+      data-slot="combobox-chip-input"
+      data-combobox-input=""
+      className={classes(
+        "min-w-800 flex-1 bg-transparent px-075 py-050 outline-none placeholder:text-subtlest disabled:text-disabled",
+        className,
+      )}
+      {...props}
+    />
   );
 }
-
-export const Combobox = Object.assign(ComboboxSelect, {
-  Root: ComboboxRoot,
-  Input: ComboboxInput,
-  InputGroup: ComboboxInputGroup,
-  Trigger: ComboboxTrigger,
-  Content: ComboboxContent,
-  List: ComboboxList,
-  Item: ComboboxItem,
-  Empty: ComboboxEmpty,
-  Group: ComboboxGroup,
-  GroupLabel: ComboboxGroupLabel,
-  Collection: Primitive.Collection,
-  Value: Primitive.Value,
-  Separator: ComboboxSeparator,
-  Chips: ComboboxChips,
-  Chip: ComboboxChip,
-  ChipRemove: ComboboxChipRemove,
-  Clear: ComboboxClear,
-  Status: ComboboxStatus,
-});
+export function useComboboxAnchor() {
+  return useRef<HTMLDivElement | null>(null);
+}

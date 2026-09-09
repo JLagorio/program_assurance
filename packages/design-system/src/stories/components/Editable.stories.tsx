@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { act, useState } from "react";
+import { useId, act, useState } from "react";
 
 import {
+  FieldLabel,
   Badge,
   Button,
   Editable,
@@ -405,17 +406,43 @@ function StatusAsText() {
 }
 
 function FormOfEditables() {
+  const fieldId = useId();
+
   const [title, setTitle] = useState("");
   const [owner, setOwner] = useState("");
   return (
     <Pair
       do={
         <Stack space="space.200" className="w-layout-list">
-          <Field label="Title" isRequired>
-            <Input placeholder="What was found" />
+          <Field>
+            <FieldLabel id={`${fieldId}-title-1-label`} htmlFor={`${fieldId}-title-1`}>
+              {"Title"}
+              <span aria-hidden="true" className="text-danger">
+                {" "}
+                *
+              </span>
+            </FieldLabel>
+            <Input
+              id={`${fieldId}-title-1`}
+              aria-labelledby={`${fieldId}-title-1-label`}
+              aria-required={true}
+              placeholder="What was found"
+            />
           </Field>
-          <Field label="Owner" isRequired>
-            <Input placeholder="Who fixes it" />
+          <Field>
+            <FieldLabel id={`${fieldId}-owner-2-label`} htmlFor={`${fieldId}-owner-2`}>
+              {"Owner"}
+              <span aria-hidden="true" className="text-danger">
+                {" "}
+                *
+              </span>
+            </FieldLabel>
+            <Input
+              id={`${fieldId}-owner-2`}
+              aria-labelledby={`${fieldId}-owner-2-label`}
+              aria-required={true}
+              placeholder="Who fixes it"
+            />
           </Field>
           <Inline space="space.100" alignInline="end">
             <Button variant="subtle">Cancel</Button>

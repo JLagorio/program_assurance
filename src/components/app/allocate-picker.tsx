@@ -1,5 +1,23 @@
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Badge,
+  Box,
+  Button,
+  Editable,
+  FilterChip,
+  Id,
+  Indicator,
+  Inline,
+  PickerSheet,
+  Table,
+  Text,
+  toast,
+} from "@ledger/design-system";
 import { useMemo, useState } from "react";
-
 import { nodesForProgram, pathLabel, type CompositionNode } from "@/lib/composition";
 import { currentSession } from "@/lib/control-work";
 import { reviewLink } from "@/lib/link-currency";
@@ -19,21 +37,6 @@ import {
   type Responsibility,
 } from "@/lib/requirements";
 import { systemComponents } from "@/lib/reusable-components";
-import {
-  Badge,
-  Box,
-  Button,
-  Editable,
-  FilterChip,
-  Id,
-  Indicator,
-  Inline,
-  NativeSelect,
-  PickerSheet,
-  Table,
-  Text,
-  toast,
-} from "@ledger/design-system";
 
 type Fields = { responsibility: Responsibility; coverage: Coverage; claim: string };
 type Frame = "choose" | "details";
@@ -66,38 +69,60 @@ function useChoice() {
 
 /** The defaults row of frame two: one value for every chosen row. */
 function DefaultsRow({ applyAll }: { applyAll: (patch: Partial<Fields>) => void }) {
+  const undefinedItems = [
+    { value: "", label: "Responsibility" },
+    ...responsibilities.map((r) => ({ value: r, label: r })),
+  ];
+  const undefinedItems2 = [
+    { value: "", label: "Coverage" },
+    ...coverages.map((c) => ({ value: c, label: c })),
+  ];
   return (
     <Inline space="space.150" alignBlock="center">
       <Text size="small" color="color.text.subtle">
         Apply to all
       </Text>
       <Box style={{ width: 150 }}>
-        <NativeSelect
-          aria-label="Responsibility for all"
-          size="small"
+        <Select<string>
+          items={undefinedItems}
           defaultValue=""
-          onChange={(e) =>
-            e.target.value && applyAll({ responsibility: e.target.value as Responsibility })
-          }
+          onValueChange={(value) => {
+            if (value === null) return;
+            return value && applyAll({ responsibility: value as Responsibility });
+          }}
         >
-          <option value="">Responsibility</option>
-          {responsibilities.map((r) => (
-            <option key={r}>{r}</option>
-          ))}
-        </NativeSelect>
+          <SelectTrigger className="w-full" aria-label="Responsibility for all" size="sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {undefinedItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Box>
       <Box style={{ width: 120 }}>
-        <NativeSelect
-          aria-label="Coverage for all"
-          size="small"
+        <Select<string>
+          items={undefinedItems2}
           defaultValue=""
-          onChange={(e) => e.target.value && applyAll({ coverage: e.target.value as Coverage })}
+          onValueChange={(value) => {
+            if (value === null) return;
+            return value && applyAll({ coverage: value as Coverage });
+          }}
         >
-          <option value="">Coverage</option>
-          {coverages.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </NativeSelect>
+          <SelectTrigger className="w-full" aria-label="Coverage for all" size="sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {undefinedItems2.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Box>
     </Inline>
   );

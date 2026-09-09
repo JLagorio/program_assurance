@@ -62,9 +62,17 @@
       "target": "\"src/components/alert\".Alert",
       "kind": "value"
     },
+    ".#AlertAction": {
+      "target": "\"src/components/alert\".AlertAction",
+      "kind": "value"
+    },
     ".#AlertActionProps": {
       "target": "\"src/components/alert\".AlertActionProps",
       "kind": "type"
+    },
+    ".#AlertDescription": {
+      "target": "\"src/components/alert\".AlertDescription",
+      "kind": "value"
     },
     ".#AlertDescriptionProps": {
       "target": "\"src/components/alert\".AlertDescriptionProps",
@@ -170,6 +178,10 @@
       "target": "\"src/components/alert\".AlertProps",
       "kind": "type"
     },
+    ".#AlertTitle": {
+      "target": "\"src/components/alert\".AlertTitle",
+      "kind": "value"
+    },
     ".#AlertTitleProps": {
       "target": "\"src/components/alert\".AlertTitleProps",
       "kind": "type"
@@ -242,25 +254,57 @@
       "target": "\"src/components/avatar\".Avatar",
       "kind": "value"
     },
+    ".#AvatarBadge": {
+      "target": "\"src/components/avatar\".AvatarBadge",
+      "kind": "value"
+    },
     ".#AvatarBadgeProps": {
       "target": "\"src/components/avatar\".AvatarBadgeProps",
       "kind": "type"
     },
-    ".#AvatarCountProps": {
-      "target": "\"src/components/avatar\".AvatarCountProps",
-      "kind": "type"
+    ".#AvatarFallback": {
+      "target": "\"src/components/avatar\".AvatarFallback",
+      "kind": "value"
     },
     ".#AvatarFallbackProps": {
       "target": "\"src/components/avatar\".AvatarFallbackProps",
       "kind": "type"
     },
+    ".#AvatarGroup": {
+      "target": "\"src/components/avatar\".AvatarGroup",
+      "kind": "value"
+    },
+    ".#AvatarGroupCount": {
+      "target": "\"src/components/avatar\".AvatarGroupCount",
+      "kind": "value"
+    },
+    ".#AvatarGroupCountProps": {
+      "target": "\"src/components/avatar\".AvatarGroupCountProps",
+      "kind": "type"
+    },
+    ".#AvatarGroupProps": {
+      "target": "\"src/components/avatar\".AvatarGroupProps",
+      "kind": "type"
+    },
+    ".#avatarHue": {
+      "target": "\"src/components/avatar\".avatarHue",
+      "kind": "value"
+    },
     ".#AvatarHue": {
       "target": "\"src/components/avatar\".AvatarHue",
       "kind": "type"
     },
+    ".#AvatarImage": {
+      "target": "\"src/components/avatar\".AvatarImage",
+      "kind": "value"
+    },
     ".#AvatarImageProps": {
       "target": "\"src/components/avatar\".AvatarImageProps",
       "kind": "type"
+    },
+    ".#avatarInitials": {
+      "target": "\"src/components/avatar\".avatarInitials",
+      "kind": "value"
     },
     ".#AvatarProps": {
       "target": "\"src/components/avatar\".AvatarProps",
@@ -268,18 +312,6 @@
     },
     ".#AvatarSize": {
       "target": "\"src/components/avatar\".AvatarSize",
-      "kind": "type"
-    },
-    ".#AvatarStackPerson": {
-      "target": "\"src/components/avatar\".AvatarStackPerson",
-      "kind": "type"
-    },
-    ".#AvatarStackProps": {
-      "target": "\"src/components/avatar\".AvatarStackProps",
-      "kind": "type"
-    },
-    ".#AvatarStackSize": {
-      "target": "\"src/components/avatar\".AvatarStackSize",
       "kind": "type"
     },
     ".#AvatarVariant": {
@@ -389,6 +421,26 @@
     ".#ButtonGroupProps": {
       "target": "\"src/components/button-group\".ButtonGroupProps",
       "kind": "type"
+    },
+    ".#ButtonGroupSeparator": {
+      "target": "\"src/components/button-group\".ButtonGroupSeparator",
+      "kind": "value"
+    },
+    ".#ButtonGroupSeparatorProps": {
+      "target": "\"src/components/button-group\".ButtonGroupSeparatorProps",
+      "kind": "type"
+    },
+    ".#ButtonGroupText": {
+      "target": "\"src/components/button-group\".ButtonGroupText",
+      "kind": "value"
+    },
+    ".#ButtonGroupTextProps": {
+      "target": "\"src/components/button-group\".ButtonGroupTextProps",
+      "kind": "type"
+    },
+    ".#buttonGroupVariants": {
+      "target": "\"src/components/button-group\".buttonGroupVariants",
+      "kind": "value"
     },
     ".#ButtonProps": {
       "target": "\"src/components/button\".ButtonProps",
@@ -622,81 +674,141 @@
       "target": "\"src/components/combobox\".Combobox",
       "kind": "value"
     },
+    ".#ComboboxChip": {
+      "target": "\"src/components/combobox\".ComboboxChip",
+      "kind": "value"
+    },
     ".#ComboboxChipProps": {
       "target": "\"src/components/combobox\".ComboboxChipProps",
       "kind": "type"
     },
+    ".#ComboboxChipRemove": {
+      "target": "\"src/components/combobox\".ComboboxChipRemove",
+      "kind": "value"
+    },
     ".#ComboboxChipRemoveProps": {
       "target": "\"src/components/combobox\".ComboboxChipRemoveProps",
+      "kind": "type"
+    },
+    ".#ComboboxChips": {
+      "target": "\"src/components/combobox\".ComboboxChips",
+      "kind": "value"
+    },
+    ".#ComboboxChipsInput": {
+      "target": "\"src/components/combobox\".ComboboxChipsInput",
+      "kind": "value"
+    },
+    ".#ComboboxChipsInputProps": {
+      "target": "\"src/components/combobox\".ComboboxChipsInputProps",
       "kind": "type"
     },
     ".#ComboboxChipsProps": {
       "target": "\"src/components/combobox\".ComboboxChipsProps",
       "kind": "type"
     },
+    ".#ComboboxClear": {
+      "target": "\"src/components/combobox\".ComboboxClear",
+      "kind": "value"
+    },
     ".#ComboboxClearProps": {
       "target": "\"src/components/combobox\".ComboboxClearProps",
       "kind": "type"
+    },
+    ".#ComboboxCollection": {
+      "target": "\"src/components/combobox\".ComboboxCollection",
+      "kind": "value"
     },
     ".#ComboboxCollectionProps": {
       "target": "\"src/components/combobox\".ComboboxCollectionProps",
       "kind": "type"
     },
+    ".#ComboboxContent": {
+      "target": "\"src/components/combobox\".ComboboxContent",
+      "kind": "value"
+    },
     ".#ComboboxContentProps": {
       "target": "\"src/components/combobox\".ComboboxContentProps",
       "kind": "type"
+    },
+    ".#ComboboxEmpty": {
+      "target": "\"src/components/combobox\".ComboboxEmpty",
+      "kind": "value"
     },
     ".#ComboboxEmptyProps": {
       "target": "\"src/components/combobox\".ComboboxEmptyProps",
       "kind": "type"
     },
-    ".#ComboboxGroupLabelProps": {
-      "target": "\"src/components/combobox\".ComboboxGroupLabelProps",
-      "kind": "type"
+    ".#ComboboxGroup": {
+      "target": "\"src/components/combobox\".ComboboxGroup",
+      "kind": "value"
     },
     ".#ComboboxGroupProps": {
       "target": "\"src/components/combobox\".ComboboxGroupProps",
       "kind": "type"
     },
-    ".#ComboboxInputGroupProps": {
-      "target": "\"src/components/combobox\".ComboboxInputGroupProps",
-      "kind": "type"
+    ".#ComboboxInput": {
+      "target": "\"src/components/combobox\".ComboboxInput",
+      "kind": "value"
     },
     ".#ComboboxInputProps": {
       "target": "\"src/components/combobox\".ComboboxInputProps",
       "kind": "type"
     },
+    ".#ComboboxItem": {
+      "target": "\"src/components/combobox\".ComboboxItem",
+      "kind": "value"
+    },
     ".#ComboboxItemProps": {
       "target": "\"src/components/combobox\".ComboboxItemProps",
       "kind": "type"
     },
-    ".#ComboboxListProps": {
-      "target": "\"src/components/combobox\".ComboboxListProps",
+    ".#ComboboxLabel": {
+      "target": "\"src/components/combobox\".ComboboxLabel",
+      "kind": "value"
+    },
+    ".#ComboboxLabelProps": {
+      "target": "\"src/components/combobox\".ComboboxLabelProps",
       "kind": "type"
     },
-    ".#ComboboxOption": {
-      "target": "\"src/components/combobox\".ComboboxOption",
+    ".#ComboboxList": {
+      "target": "\"src/components/combobox\".ComboboxList",
+      "kind": "value"
+    },
+    ".#ComboboxListProps": {
+      "target": "\"src/components/combobox\".ComboboxListProps",
       "kind": "type"
     },
     ".#ComboboxProps": {
       "target": "\"src/components/combobox\".ComboboxProps",
       "kind": "type"
     },
-    ".#ComboboxRootProps": {
-      "target": "\"src/components/combobox\".ComboboxRootProps",
-      "kind": "type"
+    ".#ComboboxSeparator": {
+      "target": "\"src/components/combobox\".ComboboxSeparator",
+      "kind": "value"
     },
     ".#ComboboxSeparatorProps": {
       "target": "\"src/components/combobox\".ComboboxSeparatorProps",
       "kind": "type"
     },
+    ".#ComboboxStatus": {
+      "target": "\"src/components/combobox\".ComboboxStatus",
+      "kind": "value"
+    },
     ".#ComboboxStatusProps": {
       "target": "\"src/components/combobox\".ComboboxStatusProps",
       "kind": "type"
     },
+    ".#ComboboxTrigger": {
+      "target": "\"src/components/combobox\".ComboboxTrigger",
+      "kind": "value"
+    },
     ".#ComboboxTriggerProps": {
       "target": "\"src/components/combobox\".ComboboxTriggerProps",
       "kind": "type"
+    },
+    ".#ComboboxValue": {
+      "target": "\"src/components/combobox\".ComboboxValue",
+      "kind": "value"
     },
     ".#ComboboxValueProps": {
       "target": "\"src/components/combobox\".ComboboxValueProps",
@@ -1187,11 +1299,83 @@
       "kind": "type"
     },
     ".#Field": {
-      "target": "\"src/components/controls\".Field",
+      "target": "\"src/components/field\".Field",
       "kind": "value"
     },
+    ".#FieldContent": {
+      "target": "\"src/components/field\".FieldContent",
+      "kind": "value"
+    },
+    ".#FieldContentProps": {
+      "target": "\"src/components/field\".FieldContentProps",
+      "kind": "type"
+    },
+    ".#FieldDescription": {
+      "target": "\"src/components/field\".FieldDescription",
+      "kind": "value"
+    },
+    ".#FieldDescriptionProps": {
+      "target": "\"src/components/field\".FieldDescriptionProps",
+      "kind": "type"
+    },
+    ".#FieldError": {
+      "target": "\"src/components/field\".FieldError",
+      "kind": "value"
+    },
+    ".#FieldErrorProps": {
+      "target": "\"src/components/field\".FieldErrorProps",
+      "kind": "type"
+    },
+    ".#FieldGroup": {
+      "target": "\"src/components/field\".FieldGroup",
+      "kind": "value"
+    },
+    ".#FieldGroupProps": {
+      "target": "\"src/components/field\".FieldGroupProps",
+      "kind": "type"
+    },
+    ".#FieldLabel": {
+      "target": "\"src/components/field\".FieldLabel",
+      "kind": "value"
+    },
+    ".#FieldLabelProps": {
+      "target": "\"src/components/field\".FieldLabelProps",
+      "kind": "type"
+    },
+    ".#FieldLegend": {
+      "target": "\"src/components/field\".FieldLegend",
+      "kind": "value"
+    },
+    ".#FieldLegendProps": {
+      "target": "\"src/components/field\".FieldLegendProps",
+      "kind": "type"
+    },
     ".#FieldProps": {
-      "target": "\"src/components/controls\".FieldProps",
+      "target": "\"src/components/field\".FieldProps",
+      "kind": "type"
+    },
+    ".#FieldSeparator": {
+      "target": "\"src/components/field\".FieldSeparator",
+      "kind": "value"
+    },
+    ".#FieldSeparatorProps": {
+      "target": "\"src/components/field\".FieldSeparatorProps",
+      "kind": "type"
+    },
+    ".#FieldSet": {
+      "target": "\"src/components/field\".FieldSet",
+      "kind": "value"
+    },
+    ".#FieldSetProps": {
+      "target": "\"src/components/field\".FieldSetProps",
+      "kind": "type"
+    },
+    ".#FieldTitle": {
+      "target": "\"src/components/field\".FieldTitle",
+      "kind": "value"
+    },
+    ".#FieldTitleProps": {
+      "target": "\"src/components/field\".FieldTitleProps",
       "kind": "type"
     },
     ".#FilterChip": {
@@ -1343,19 +1527,51 @@
       "kind": "type"
     },
     ".#Input": {
-      "target": "\"src/components/controls\".Input",
+      "target": "\"src/components/input\".Input",
       "kind": "value"
     },
     ".#InputGroup": {
       "target": "\"src/components/input-group\".InputGroup",
       "kind": "value"
     },
+    ".#InputGroupAddon": {
+      "target": "\"src/components/input-group\".InputGroupAddon",
+      "kind": "value"
+    },
+    ".#InputGroupAddonProps": {
+      "target": "\"src/components/input-group\".InputGroupAddonProps",
+      "kind": "type"
+    },
+    ".#InputGroupButton": {
+      "target": "\"src/components/input-group\".InputGroupButton",
+      "kind": "value"
+    },
+    ".#InputGroupButtonProps": {
+      "target": "\"src/components/input-group\".InputGroupButtonProps",
+      "kind": "type"
+    },
+    ".#InputGroupInput": {
+      "target": "\"src/components/input-group\".InputGroupInput",
+      "kind": "value"
+    },
     ".#InputGroupProps": {
       "target": "\"src/components/input-group\".InputGroupProps",
       "kind": "type"
     },
+    ".#InputGroupText": {
+      "target": "\"src/components/input-group\".InputGroupText",
+      "kind": "value"
+    },
+    ".#InputGroupTextarea": {
+      "target": "\"src/components/input-group\".InputGroupTextarea",
+      "kind": "value"
+    },
+    ".#InputGroupTextProps": {
+      "target": "\"src/components/input-group\".InputGroupTextProps",
+      "kind": "type"
+    },
     ".#InputProps": {
-      "target": "\"src/components/controls\".InputProps",
+      "target": "\"src/components/input\".InputProps",
       "kind": "type"
     },
     ".#Inspector": {
@@ -1469,14 +1685,6 @@
     ".#ModeSwitch": {
       "target": "\"src/mode/mode\".ModeSwitch",
       "kind": "value"
-    },
-    ".#NativeSelect": {
-      "target": "\"src/components/controls\".NativeSelect",
-      "kind": "value"
-    },
-    ".#NativeSelectProps": {
-      "target": "\"src/components/controls\".NativeSelectProps",
-      "kind": "type"
     },
     ".#PageHeader": {
       "target": "\"src/patterns/page-header\".PageHeader",
@@ -2207,8 +2415,12 @@
       "kind": "value"
     },
     ".#Textarea": {
-      "target": "\"src/components/controls\".Textarea",
+      "target": "\"src/components/textarea\".Textarea",
       "kind": "value"
+    },
+    ".#TextareaProps": {
+      "target": "\"src/components/textarea\".TextareaProps",
+      "kind": "type"
     },
     ".#TextColorToken": {
       "target": "\"src/primitives/tokens\".TextColorToken",
@@ -2426,6 +2638,10 @@
       "target": "\"src/patterns/data-table/reorder\".useColumnDrag",
       "kind": "value"
     },
+    ".#useComboboxAnchor": {
+      "target": "\"src/components/combobox\".useComboboxAnchor",
+      "kind": "value"
+    },
     ".#useCommandPalette": {
       "target": "\"src/patterns/command-palette\".useCommandPalette",
       "kind": "value"
@@ -2436,10 +2652,6 @@
     },
     ".#useDensity": {
       "target": "\"src/mode/density\".useDensity",
-      "kind": "value"
-    },
-    ".#useFieldControl": {
-      "target": "\"src/components/controls\".useFieldControl",
       "kind": "value"
     },
     ".#useHeaderContext": {
@@ -2683,13 +2895,25 @@
     "\"src/components/alert\".Alert": [
       {
         "source": "src/components/alert.d.ts",
-        "declaration": "Alert: typeof AlertRoot & {\n    Title: typeof AlertTitle;\n    Description: typeof AlertDescription;\n    Action: typeof AlertAction;\n}"
+        "declaration": "export declare function Alert({ className, variant, tone, ...props }: AlertProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/alert\".AlertAction": [
+      {
+        "source": "src/components/alert.d.ts",
+        "declaration": "export declare function AlertAction({ className, ...props }: AlertActionProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/alert\".AlertActionProps": [
       {
         "source": "src/components/alert.d.ts",
         "declaration": "export type AlertActionProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/alert\".AlertDescription": [
+      {
+        "source": "src/components/alert.d.ts",
+        "declaration": "export declare function AlertDescription({ className, ...props }: AlertDescriptionProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/alert\".AlertDescriptionProps": [
@@ -2701,7 +2925,13 @@
     "\"src/components/alert\".AlertProps": [
       {
         "source": "src/components/alert.d.ts",
-        "declaration": "export type AlertProps = Omit<ComponentProps<\"div\">, \"title\"> & {\n    tone?: Tone | undefined;\n    title?: ReactNode;\n    action?: ReactNode;\n    icon?: ReactNode;\n};"
+        "declaration": "export type AlertProps = ComponentProps<\"div\"> & {\n    variant?: \"default\" | \"destructive\" | undefined;\n    tone?: Tone | undefined;\n};"
+      }
+    ],
+    "\"src/components/alert\".AlertTitle": [
+      {
+        "source": "src/components/alert.d.ts",
+        "declaration": "export declare function AlertTitle({ className, ...props }: AlertTitleProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/alert\".AlertTitleProps": [
@@ -2785,7 +3015,13 @@
     "\"src/components/avatar\".Avatar": [
       {
         "source": "src/components/avatar.d.ts",
-        "declaration": "Avatar: typeof AvatarRoot & {\n    Image: typeof AvatarImage;\n    Fallback: typeof AvatarFallback;\n    Badge: typeof AvatarBadge;\n    Stack: typeof AvatarStack;\n    Count: typeof AvatarCount;\n}"
+        "declaration": "export declare function Avatar({ size, variant, hue, shape, className, style, ...props }: AvatarProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/avatar\".AvatarBadge": [
+      {
+        "source": "src/components/avatar.d.ts",
+        "declaration": "export declare function AvatarBadge({ tone, className, style, ...props }: AvatarBadgeProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/avatar\".AvatarBadgeProps": [
@@ -2794,10 +3030,10 @@
         "declaration": "export type AvatarBadgeProps = ComponentProps<\"span\"> & {\n    tone?: Tone | undefined;\n};"
       }
     ],
-    "\"src/components/avatar\".AvatarCountProps": [
+    "\"src/components/avatar\".AvatarFallback": [
       {
         "source": "src/components/avatar.d.ts",
-        "declaration": "export type AvatarCountProps = ComponentProps<\"span\">;"
+        "declaration": "export declare function AvatarFallback({ className, children, ...props }: AvatarFallbackProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/avatar\".AvatarFallbackProps": [
@@ -2806,10 +3042,46 @@
         "declaration": "export type AvatarFallbackProps = Primitive.Fallback.Props;"
       }
     ],
+    "\"src/components/avatar\".AvatarGroup": [
+      {
+        "source": "src/components/avatar.d.ts",
+        "declaration": "export declare function AvatarGroup({ className, ...props }: AvatarGroupProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/avatar\".AvatarGroupCount": [
+      {
+        "source": "src/components/avatar.d.ts",
+        "declaration": "export declare function AvatarGroupCount({ className, style, ...props }: AvatarGroupCountProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/avatar\".AvatarGroupCountProps": [
+      {
+        "source": "src/components/avatar.d.ts",
+        "declaration": "export type AvatarGroupCountProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/avatar\".AvatarGroupProps": [
+      {
+        "source": "src/components/avatar.d.ts",
+        "declaration": "export type AvatarGroupProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/avatar\".avatarHue": [
+      {
+        "source": "src/components/avatar.d.ts",
+        "declaration": "export declare function avatarHue(name: string): AvatarHue;"
+      }
+    ],
     "\"src/components/avatar\".AvatarHue": [
       {
         "source": "src/components/avatar.d.ts",
         "declaration": "export type AvatarHue = (typeof hues)[number];"
+      }
+    ],
+    "\"src/components/avatar\".AvatarImage": [
+      {
+        "source": "src/components/avatar.d.ts",
+        "declaration": "export declare function AvatarImage({ className, alt, ...props }: AvatarImageProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/avatar\".AvatarImageProps": [
@@ -2818,40 +3090,22 @@
         "declaration": "export type AvatarImageProps = Primitive.Image.Props;"
       }
     ],
+    "\"src/components/avatar\".avatarInitials": [
+      {
+        "source": "src/components/avatar.d.ts",
+        "declaration": "export declare function avatarInitials(name: string, count?: 1 | 2): string;"
+      }
+    ],
     "\"src/components/avatar\".AvatarProps": [
       {
         "source": "src/components/avatar.d.ts",
-        "declaration": "export type AvatarProps = ComponentProps<\"span\"> & {\n    name: string;\n    src?: string | undefined;\n    size?: AvatarSize | undefined;\n    variant?: AvatarVariant | undefined;\n    hue?: AvatarHue | undefined;\n    shape?: \"circle\" | \"square\" | undefined;\n    isDecorative?: boolean | undefined;\n};"
+        "declaration": "export type AvatarProps = Primitive.Root.Props & {\n    size?: AvatarSize | undefined;\n    variant?: AvatarVariant | undefined;\n    hue?: AvatarHue | undefined;\n    shape?: \"circle\" | \"square\" | undefined;\n};"
       }
     ],
     "\"src/components/avatar\".AvatarSize": [
       {
         "source": "src/components/avatar.d.ts",
         "declaration": "export type AvatarSize = \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\";"
-      }
-    ],
-    "\"src/components/avatar\".AvatarStack": [
-      {
-        "source": "src/components/avatar.d.ts",
-        "declaration": "export declare function AvatarStack({ names, max, size, variant, className, children, role, \"aria-label\": ariaLabel, \"aria-labelledby\": ariaLabelledBy, ...props }: AvatarStackProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/avatar\".AvatarStackPerson": [
-      {
-        "source": "src/components/avatar.d.ts",
-        "declaration": "export type AvatarStackPerson = string | {\n    name: string;\n    src?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/avatar\".AvatarStackProps": [
-      {
-        "source": "src/components/avatar.d.ts",
-        "declaration": "export type AvatarStackProps = ComponentProps<\"span\"> & {\n    names?: AvatarStackPerson[] | undefined;\n    max?: number | undefined;\n    size?: AvatarStackSize | undefined;\n    variant?: AvatarVariant | undefined;\n};"
-      }
-    ],
-    "\"src/components/avatar\".AvatarStackSize": [
-      {
-        "source": "src/components/avatar.d.ts",
-        "declaration": "export type AvatarStackSize = \"small\" | \"medium\";"
       }
     ],
     "\"src/components/avatar\".AvatarVariant": [
@@ -2947,13 +3201,43 @@
     "\"src/components/button-group\".ButtonGroup": [
       {
         "source": "src/components/button-group.d.ts",
-        "declaration": "export declare function ButtonGroup({ label, children, className }: ButtonGroupProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function ButtonGroup({ className, orientation, ...props }: ButtonGroupProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/button-group\".ButtonGroupProps": [
       {
         "source": "src/components/button-group.d.ts",
-        "declaration": "export type ButtonGroupProps = {\n    label?: string | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
+        "declaration": "export type ButtonGroupProps = ComponentProps<\"div\"> & VariantProps<typeof buttonGroupVariants>;"
+      }
+    ],
+    "\"src/components/button-group\".ButtonGroupSeparator": [
+      {
+        "source": "src/components/button-group.d.ts",
+        "declaration": "export declare function ButtonGroupSeparator({ className, orientation, ...props }: ButtonGroupSeparatorProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/button-group\".ButtonGroupSeparatorProps": [
+      {
+        "source": "src/components/button-group.d.ts",
+        "declaration": "export type ButtonGroupSeparatorProps = ComponentProps<typeof Separator>;"
+      }
+    ],
+    "\"src/components/button-group\".ButtonGroupText": [
+      {
+        "source": "src/components/button-group.d.ts",
+        "declaration": "export declare function ButtonGroupText({ className, render, ...props }: ButtonGroupTextProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+      }
+    ],
+    "\"src/components/button-group\".ButtonGroupTextProps": [
+      {
+        "source": "src/components/button-group.d.ts",
+        "declaration": "export type ButtonGroupTextProps = useRender.ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/button-group\".buttonGroupVariants": [
+      {
+        "source": "src/components/button-group.d.ts",
+        "declaration": "buttonGroupVariants: (props?: ({\n    orientation?: \"horizontal\" | \"vertical\" | null | undefined;\n} & import(\"class-variance-authority/types\").ClassProp) | undefined) => string"
       }
     ],
     "\"src/components/button\".Button": [
@@ -3373,13 +3657,25 @@
     "\"src/components/combobox\".Combobox": [
       {
         "source": "src/components/combobox.d.ts",
-        "declaration": "Combobox: typeof ComboboxSelect & {\n    Root: typeof ComboboxRoot;\n    Input: typeof ComboboxInput;\n    InputGroup: typeof ComboboxInputGroup;\n    Trigger: typeof ComboboxTrigger;\n    Content: typeof ComboboxContent;\n    List: typeof ComboboxList;\n    Item: typeof ComboboxItem;\n    Empty: typeof ComboboxEmpty;\n    Group: typeof ComboboxGroup;\n    GroupLabel: typeof ComboboxGroupLabel;\n    Collection: typeof Primitive.Collection;\n    Value: typeof Primitive.Value;\n    Separator: typeof ComboboxSeparator;\n    Chips: typeof ComboboxChips;\n    Chip: typeof ComboboxChip;\n    ChipRemove: typeof ComboboxChipRemove;\n    Clear: typeof ComboboxClear;\n    Status: typeof ComboboxStatus;\n}"
+        "declaration": "export declare function Combobox<Value, Multiple extends boolean | undefined = false>({ dir, locale, ...props }: ComboboxProps<Value, Multiple>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxChip": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxChip({ className, children, showRemove, ...props }: ComboboxChipProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/combobox\".ComboboxChipProps": [
       {
         "source": "src/components/combobox.d.ts",
-        "declaration": "export type ComboboxChipProps = ComponentProps<typeof Primitive.Chip>;"
+        "declaration": "export type ComboboxChipProps = ComponentProps<typeof Primitive.Chip> & {\n    showRemove?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxChipRemove": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxChipRemove({ className, children, ...props }: ComboboxChipRemoveProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/combobox\".ComboboxChipRemoveProps": [
@@ -3388,10 +3684,34 @@
         "declaration": "export type ComboboxChipRemoveProps = ComponentProps<typeof Primitive.ChipRemove>;"
       }
     ],
+    "\"src/components/combobox\".ComboboxChips": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxChips({ className, ...props }: ComboboxChipsProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxChipsInput": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxChipsInput({ className, ...props }: ComboboxChipsInputProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxChipsInputProps": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export type ComboboxChipsInputProps = Primitive.Input.Props;"
+      }
+    ],
     "\"src/components/combobox\".ComboboxChipsProps": [
       {
         "source": "src/components/combobox.d.ts",
         "declaration": "export type ComboboxChipsProps = ComponentProps<typeof Primitive.Chips>;"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxClear": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxClear({ className, children, ...props }: ComboboxClearProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/combobox\".ComboboxClearProps": [
@@ -3400,10 +3720,22 @@
         "declaration": "export type ComboboxClearProps = ComponentProps<typeof Primitive.Clear>;"
       }
     ],
+    "\"src/components/combobox\".ComboboxCollection": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxCollection(props: ComboboxCollectionProps): import(\"react\").JSX.Element;"
+      }
+    ],
     "\"src/components/combobox\".ComboboxCollectionProps": [
       {
         "source": "src/components/combobox.d.ts",
         "declaration": "export type ComboboxCollectionProps = ComponentProps<typeof Primitive.Collection>;"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxContent": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxContent({ side, align, sideOffset, alignOffset, anchor, portalContainer, keepMounted, className, style, ...props }: ComboboxContentProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/combobox\".ComboboxContentProps": [
@@ -3412,16 +3744,22 @@
         "declaration": "export type ComboboxContentProps = ComponentProps<typeof Primitive.Popup> & Pick<Primitive.Positioner.Props, \"side\" | \"align\" | \"sideOffset\" | \"alignOffset\" | \"anchor\"> & {\n    portalContainer?: Primitive.Portal.Props[\"container\"];\n    keepMounted?: boolean | undefined;\n};"
       }
     ],
+    "\"src/components/combobox\".ComboboxEmpty": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps): import(\"react\").JSX.Element;"
+      }
+    ],
     "\"src/components/combobox\".ComboboxEmptyProps": [
       {
         "source": "src/components/combobox.d.ts",
         "declaration": "export type ComboboxEmptyProps = ComponentProps<typeof Primitive.Empty>;"
       }
     ],
-    "\"src/components/combobox\".ComboboxGroupLabelProps": [
+    "\"src/components/combobox\".ComboboxGroup": [
       {
         "source": "src/components/combobox.d.ts",
-        "declaration": "export type ComboboxGroupLabelProps = ComponentProps<typeof Primitive.GroupLabel>;"
+        "declaration": "export declare function ComboboxGroup({ className, ...props }: ComboboxGroupProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/combobox\".ComboboxGroupProps": [
@@ -3430,16 +3768,22 @@
         "declaration": "export type ComboboxGroupProps = ComponentProps<typeof Primitive.Group>;"
       }
     ],
-    "\"src/components/combobox\".ComboboxInputGroupProps": [
+    "\"src/components/combobox\".ComboboxInput": [
       {
         "source": "src/components/combobox.d.ts",
-        "declaration": "export type ComboboxInputGroupProps = ComponentProps<typeof Primitive.InputGroup>;"
+        "declaration": "export declare function ComboboxInput({ size, showTrigger, showClear, children, disabled, className, ...props }: ComboboxInputProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/combobox\".ComboboxInputProps": [
       {
         "source": "src/components/combobox.d.ts",
-        "declaration": "export type ComboboxInputProps = Omit<ComponentProps<typeof Primitive.Input>, \"size\"> & {\n    size?: ControlSize | undefined;\n};"
+        "declaration": "export type ComboboxInputProps = Omit<ComponentProps<typeof Primitive.Input>, \"size\"> & {\n    size?: ControlSize | undefined;\n    showTrigger?: boolean | undefined;\n    showClear?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxItem": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxItem({ className, children, ...props }: ComboboxItemProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/combobox\".ComboboxItemProps": [
@@ -3448,28 +3792,40 @@
         "declaration": "export type ComboboxItemProps = ComponentProps<typeof Primitive.Item>;"
       }
     ],
+    "\"src/components/combobox\".ComboboxLabel": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxLabel({ className, ...props }: ComboboxLabelProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxLabelProps": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export type ComboboxLabelProps = ComponentProps<typeof Primitive.GroupLabel>;"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxList": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxList({ className, style, ...props }: ComboboxListProps): import(\"react\").JSX.Element;"
+      }
+    ],
     "\"src/components/combobox\".ComboboxListProps": [
       {
         "source": "src/components/combobox.d.ts",
         "declaration": "export type ComboboxListProps = ComponentProps<typeof Primitive.List>;"
       }
     ],
-    "\"src/components/combobox\".ComboboxOption": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "export type ComboboxOption = {\n    value: string;\n    label: string;\n    keywords?: string | undefined;\n    meta?: ReactNode;\n    disabled?: boolean | undefined;\n};"
-      }
-    ],
     "\"src/components/combobox\".ComboboxProps": [
       {
         "source": "src/components/combobox.d.ts",
-        "declaration": "export type ComboboxProps = ComboboxOwnProps & Omit<ComponentProps<\"input\">, keyof ComboboxOwnProps | \"children\" | \"type\" | \"defaultValue\">;"
+        "declaration": "export type ComboboxProps<Value = unknown, Multiple extends boolean | undefined = false> = Primitive.Root.Props<Value, Multiple> & {\n    dir?: \"ltr\" | \"rtl\" | undefined;\n};"
       }
     ],
-    "\"src/components/combobox\".ComboboxRootProps": [
+    "\"src/components/combobox\".ComboboxSeparator": [
       {
         "source": "src/components/combobox.d.ts",
-        "declaration": "export type ComboboxRootProps<Value, Multiple extends boolean | undefined = false> = Primitive.Root.Props<Value, Multiple> & {\n    dir?: \"ltr\" | \"rtl\" | undefined;\n};"
+        "declaration": "export declare function ComboboxSeparator({ className, ...props }: ComboboxSeparatorProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/combobox\".ComboboxSeparatorProps": [
@@ -3478,10 +3834,22 @@
         "declaration": "export type ComboboxSeparatorProps = ComponentProps<typeof Primitive.Separator>;"
       }
     ],
+    "\"src/components/combobox\".ComboboxStatus": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxStatus({ className, ...props }: ComboboxStatusProps): import(\"react\").JSX.Element;"
+      }
+    ],
     "\"src/components/combobox\".ComboboxStatusProps": [
       {
         "source": "src/components/combobox.d.ts",
         "declaration": "export type ComboboxStatusProps = ComponentProps<typeof Primitive.Status>;"
+      }
+    ],
+    "\"src/components/combobox\".ComboboxTrigger": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxTrigger({ className, children, ...props }: ComboboxTriggerProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/combobox\".ComboboxTriggerProps": [
@@ -3490,10 +3858,22 @@
         "declaration": "export type ComboboxTriggerProps = ComponentProps<typeof Primitive.Trigger>;"
       }
     ],
+    "\"src/components/combobox\".ComboboxValue": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function ComboboxValue(props: ComboboxValueProps): import(\"react\").JSX.Element;"
+      }
+    ],
     "\"src/components/combobox\".ComboboxValueProps": [
       {
         "source": "src/components/combobox.d.ts",
         "declaration": "export type ComboboxValueProps = ComponentProps<typeof Primitive.Value>;"
+      }
+    ],
+    "\"src/components/combobox\".useComboboxAnchor": [
+      {
+        "source": "src/components/combobox.d.ts",
+        "declaration": "export declare function useComboboxAnchor(): import(\"react\").RefObject<HTMLDivElement | null>;"
       }
     ],
     "\"src/components/command\".Command": [
@@ -3596,54 +3976,6 @@
       {
         "source": "src/components/controls.d.ts",
         "declaration": "export type ControlSize = \"small\" | \"medium\";"
-      }
-    ],
-    "\"src/components/controls\".Field": [
-      {
-        "source": "src/components/controls.d.ts",
-        "declaration": "export declare function Field({ label, controlId: suppliedId, hint, error, isRequired, isGroup, children, className, }: FieldProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/controls\".FieldProps": [
-      {
-        "source": "src/components/controls.d.ts",
-        "declaration": "export type FieldProps = {\n    label: ReactNode;\n    controlId?: string | undefined;\n    hint?: ReactNode;\n    error?: ReactNode;\n    isRequired?: boolean | undefined;\n    isGroup?: boolean | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/controls\".Input": [
-      {
-        "source": "src/components/controls.d.ts",
-        "declaration": "export declare function Input({ size, className, ...props }: InputProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/controls\".InputProps": [
-      {
-        "source": "src/components/controls.d.ts",
-        "declaration": "export type InputProps = {\n    size?: ControlSize;\n} & Omit<ComponentProps<\"input\">, \"size\">;"
-      }
-    ],
-    "\"src/components/controls\".NativeSelect": [
-      {
-        "source": "src/components/controls.d.ts",
-        "declaration": "export declare function NativeSelect({ size, className, ...props }: NativeSelectProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/controls\".NativeSelectProps": [
-      {
-        "source": "src/components/controls.d.ts",
-        "declaration": "export type NativeSelectProps = {\n    size?: ControlSize;\n} & Omit<ComponentProps<\"select\">, \"size\">;"
-      }
-    ],
-    "\"src/components/controls\".Textarea": [
-      {
-        "source": "src/components/controls.d.ts",
-        "declaration": "export declare function Textarea({ className, ...props }: ComponentProps<\"textarea\">): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/controls\".useFieldControl": [
-      {
-        "source": "src/components/controls.d.ts",
-        "declaration": "export declare function useFieldControl<P extends AriaAttributes & {\n    id?: string | undefined;\n}>(props: P, groupContainer?: boolean): P & {\n    \"aria-invalid\": boolean | \"false\" | \"true\" | \"grammar\" | \"spelling\" | undefined;\n    \"aria-required\": (boolean | \"false\" | \"true\") | undefined;\n    \"aria-describedby\": string | undefined;\n    id?: string;\n    \"aria-labelledby\"?: string | undefined;\n};"
       }
     ],
     "\"src/components/date-picker\".DatePicker": [
@@ -4006,6 +4338,126 @@
         "declaration": "export type EditableTextProps = EditableProps<string> & {\n    placeholder?: string | undefined;\n};"
       }
     ],
+    "\"src/components/field\".Field": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function Field({ className, orientation, ...props }: FieldProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/field\".FieldContent": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function FieldContent({ className, ...props }: FieldContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/field\".FieldContentProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldContentProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/field\".FieldDescription": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function FieldDescription({ className, ...props }: FieldDescriptionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/field\".FieldDescriptionProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldDescriptionProps = ComponentProps<\"p\">;"
+      }
+    ],
+    "\"src/components/field\".FieldError": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function FieldError({ className, children, errors, ...props }: FieldErrorProps): import(\"react\").JSX.Element | null;"
+      }
+    ],
+    "\"src/components/field\".FieldErrorProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldErrorProps = ComponentProps<\"div\"> & {\n    errors?: Array<{\n        message?: string | undefined;\n    } | undefined> | undefined;\n};"
+      }
+    ],
+    "\"src/components/field\".FieldGroup": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function FieldGroup({ className, ...props }: FieldGroupProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/field\".FieldGroupProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldGroupProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/field\".FieldLabel": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function FieldLabel({ className, ...props }: FieldLabelProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/field\".FieldLabelProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldLabelProps = ComponentProps<\"label\">;"
+      }
+    ],
+    "\"src/components/field\".FieldLegend": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function FieldLegend({ className, variant, ...props }: FieldLegendProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/field\".FieldLegendProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldLegendProps = ComponentProps<\"legend\"> & {\n    variant?: \"legend\" | \"label\" | undefined;\n};"
+      }
+    ],
+    "\"src/components/field\".FieldProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldProps = ComponentProps<\"div\"> & VariantProps<typeof fieldVariants>;"
+      }
+    ],
+    "\"src/components/field\".FieldSeparator": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function FieldSeparator({ children, className, ...props }: FieldSeparatorProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/field\".FieldSeparatorProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldSeparatorProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/field\".FieldSet": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function FieldSet({ className, ...props }: FieldSetProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/field\".FieldSetProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldSetProps = ComponentProps<\"fieldset\">;"
+      }
+    ],
+    "\"src/components/field\".FieldTitle": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export declare function FieldTitle({ className, ...props }: FieldTitleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/field\".FieldTitleProps": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "export type FieldTitleProps = ComponentProps<\"div\">;"
+      }
+    ],
     "\"src/components/form\".useRequired": [
       {
         "source": "src/components/form.d.ts",
@@ -4105,13 +4557,73 @@
     "\"src/components/input-group\".InputGroup": [
       {
         "source": "src/components/input-group.d.ts",
-        "declaration": "export declare function InputGroup({ leading, trailing, width, className, children }: InputGroupProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function InputGroup({ className, ...props }: InputGroupProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/input-group\".InputGroupAddon": [
+      {
+        "source": "src/components/input-group.d.ts",
+        "declaration": "export declare function InputGroupAddon({ className, align, onClick, ...props }: InputGroupAddonProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/input-group\".InputGroupAddonProps": [
+      {
+        "source": "src/components/input-group.d.ts",
+        "declaration": "export type InputGroupAddonProps = ComponentProps<\"div\"> & {\n    align?: \"inline-start\" | \"inline-end\" | \"block-start\" | \"block-end\" | undefined;\n};"
+      }
+    ],
+    "\"src/components/input-group\".InputGroupButton": [
+      {
+        "source": "src/components/input-group.d.ts",
+        "declaration": "export declare function InputGroupButton({ className, type, variant, size, ...props }: InputGroupButtonProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/input-group\".InputGroupButtonProps": [
+      {
+        "source": "src/components/input-group.d.ts",
+        "declaration": "export type InputGroupButtonProps = Omit<ButtonProps, \"size\"> & {\n    size?: \"xs\" | \"sm\" | \"icon-xs\" | \"icon-sm\" | undefined;\n};"
+      }
+    ],
+    "\"src/components/input-group\".InputGroupInput": [
+      {
+        "source": "src/components/input-group.d.ts",
+        "declaration": "export declare function InputGroupInput({ className, ...props }: InputProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/input-group\".InputGroupProps": [
       {
         "source": "src/components/input-group.d.ts",
-        "declaration": "export type InputGroupProps = {\n    leading?: ReactNode;\n    trailing?: ReactNode;\n    width?: number | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
+        "declaration": "export type InputGroupProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/input-group\".InputGroupText": [
+      {
+        "source": "src/components/input-group.d.ts",
+        "declaration": "export declare function InputGroupText({ className, ...props }: InputGroupTextProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/input-group\".InputGroupTextarea": [
+      {
+        "source": "src/components/input-group.d.ts",
+        "declaration": "export declare function InputGroupTextarea({ className, ...props }: TextareaProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/input-group\".InputGroupTextProps": [
+      {
+        "source": "src/components/input-group.d.ts",
+        "declaration": "export type InputGroupTextProps = ComponentProps<\"span\">;"
+      }
+    ],
+    "\"src/components/input\".Input": [
+      {
+        "source": "src/components/input.d.ts",
+        "declaration": "export declare function Input({ size, className, ...props }: InputProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/input\".InputProps": [
+      {
+        "source": "src/components/input.d.ts",
+        "declaration": "export type InputProps = Omit<InputPrimitive.Props, \"size\"> & {\n    size?: ControlSize | undefined;\n};"
       }
     ],
     "\"src/components/item\".Item": [
@@ -4904,6 +5416,18 @@
       {
         "source": "src/components/text-link.d.ts",
         "declaration": "export type TextLinkProps = ComponentPropsWithoutRef<\"a\"> & {\n    asChild?: boolean | undefined;\n    size?: \"small\" | \"medium\" | undefined;\n    weight?: \"regular\" | \"medium\" | undefined;\n};"
+      }
+    ],
+    "\"src/components/textarea\".Textarea": [
+      {
+        "source": "src/components/textarea.d.ts",
+        "declaration": "export declare function Textarea({ className, ...props }: TextareaProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/textarea\".TextareaProps": [
+      {
+        "source": "src/components/textarea.d.ts",
+        "declaration": "export type TextareaProps = ComponentProps<\"textarea\">;"
       }
     ],
     "\"src/components/timeline\".Timeline": [
@@ -6448,30 +6972,6 @@
         "declaration": "declare function AccordionTrigger({ className, children, ...props }: AccordionTriggerProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/components/alert.d.ts#AlertAction": [
-      {
-        "source": "src/components/alert.d.ts",
-        "declaration": "declare function AlertAction({ className, ...props }: AlertActionProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/alert.d.ts#AlertDescription": [
-      {
-        "source": "src/components/alert.d.ts",
-        "declaration": "declare function AlertDescription({ className, ...props }: AlertDescriptionProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/alert.d.ts#AlertRoot": [
-      {
-        "source": "src/components/alert.d.ts",
-        "declaration": "declare function AlertRoot({ tone, title, children, action, icon, className, role, ...props }: AlertProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/alert.d.ts#AlertTitle": [
-      {
-        "source": "src/components/alert.d.ts",
-        "declaration": "declare function AlertTitle({ className, ...props }: AlertTitleProps): import(\"react\").JSX.Element;"
-      }
-    ],
     "src/components/attachment.d.ts#AttachmentAction": [
       {
         "source": "src/components/attachment.d.ts",
@@ -6530,36 +7030,6 @@
       {
         "source": "src/components/attachment.d.ts",
         "declaration": "type TriggerProps<Props> = Props extends unknown ? Omit<Props, \"variant\" | \"size\" | \"iconBefore\" | \"iconAfter\" | \"isSelected\" | \"isFullWidth\" | \"isLoading\"> : never;"
-      }
-    ],
-    "src/components/avatar.d.ts#AvatarBadge": [
-      {
-        "source": "src/components/avatar.d.ts",
-        "declaration": "declare function AvatarBadge({ tone, className, style, ...props }: AvatarBadgeProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/avatar.d.ts#AvatarCount": [
-      {
-        "source": "src/components/avatar.d.ts",
-        "declaration": "declare function AvatarCount({ className, style, ...props }: AvatarCountProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/avatar.d.ts#AvatarFallback": [
-      {
-        "source": "src/components/avatar.d.ts",
-        "declaration": "declare function AvatarFallback({ className, children, ...props }: AvatarFallbackProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/avatar.d.ts#AvatarImage": [
-      {
-        "source": "src/components/avatar.d.ts",
-        "declaration": "declare function AvatarImage({ className, alt, ...props }: AvatarImageProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/avatar.d.ts#AvatarRoot": [
-      {
-        "source": "src/components/avatar.d.ts",
-        "declaration": "declare function AvatarRoot({ name, src, size, variant, hue, shape, isDecorative, className, style, children, role, title, \"aria-label\": ariaLabel, \"aria-hidden\": ariaHidden, ...props }: AvatarProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/avatar.d.ts#hues": [
@@ -6658,114 +7128,6 @@
         "declaration": "type ButtonStyleProps = {\n    variant?: ButtonVariant | undefined;\n    size?: ButtonSize | undefined;\n    isSelected?: boolean | undefined;\n    isFullWidth?: boolean | undefined;\n};"
       }
     ],
-    "src/components/combobox.d.ts#ComboboxChip": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxChip({ className, ...props }: ComboboxChipProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxChipRemove": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxChipRemove({ className, children, ...props }: ComboboxChipRemoveProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxChips": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxChips({ className, ...props }: ComboboxChipsProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxClear": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxClear({ className, children, ...props }: ComboboxClearProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxContent": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxContent({ side, align, sideOffset, alignOffset, anchor, portalContainer, keepMounted, className, style, ...props }: ComboboxContentProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxEmpty": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxGroup": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxGroup({ className, ...props }: ComboboxGroupProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxGroupLabel": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxGroupLabel({ className, ...props }: ComboboxGroupLabelProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxInput": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxInput({ size, className, ...props }: ComboboxInputProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxInputGroup": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxInputGroup({ className, ...props }: ComboboxInputGroupProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxItem": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxItem({ className, children, ...props }: ComboboxItemProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxList": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxList({ className, style, ...props }: ComboboxListProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxOwnProps": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "type ComboboxOwnProps = {\n    options: ComboboxOption[];\n    name?: string | undefined;\n    form?: string | undefined;\n    value?: string | undefined;\n    onChange: (value: string) => void;\n    placeholder?: string | undefined;\n    searchPlaceholder?: string | undefined;\n    empty?: ReactNode;\n    size?: ControlSize | undefined;\n    width?: number | undefined;\n    disabled?: boolean | undefined;\n    defaultOpen?: boolean | undefined;\n    className?: string | undefined;\n    style?: ComponentProps<\"div\">[\"style\"];\n    id?: string | undefined;\n    \"aria-labelledby\"?: string | undefined;\n    \"aria-label\"?: string | undefined;\n    \"aria-invalid\"?: boolean | undefined;\n    \"aria-required\"?: boolean | undefined;\n    \"aria-describedby\"?: string | undefined;\n};"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxRoot": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxRoot<Value, Multiple extends boolean | undefined = false>({ dir, locale, value, defaultValue, onValueChange, inputRef, ...props }: ComboboxRootProps<Value, Multiple>): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxSelect": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxSelect({ options, name, form, value, onChange, placeholder, searchPlaceholder, empty, size, width, disabled, readOnly, required, defaultOpen, className, style, ...inputProps }: ComboboxProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxSeparator": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxSeparator({ className, ...props }: ComboboxSeparatorProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxStatus": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxStatus({ className, ...props }: ComboboxStatusProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/combobox.d.ts#ComboboxTrigger": [
-      {
-        "source": "src/components/combobox.d.ts",
-        "declaration": "declare function ComboboxTrigger({ className, children, ...props }: ComboboxTriggerProps): import(\"react\").JSX.Element;"
-      }
-    ],
     "src/components/date-picker.d.ts#DatePickerOwnProps": [
       {
         "source": "src/components/date-picker.d.ts",
@@ -6782,6 +7144,12 @@
       {
         "source": "src/components/editable.d.ts",
         "declaration": "declare function EditableText({ placeholder, ...props }: EditableTextProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/components/field.d.ts#fieldVariants": [
+      {
+        "source": "src/components/field.d.ts",
+        "declaration": "fieldVariants: (props?: ({\n    orientation?: \"horizontal\" | \"vertical\" | \"responsive\" | null | undefined;\n} & import(\"class-variance-authority/types\").ClassProp) | undefined) => string"
       }
     ],
     "src/components/form.d.ts#FieldValue": [
@@ -7344,7 +7712,7 @@
     ]
   },
   "dependencyContracts": {
-    "@base-ui/react": "2f7068e7320c858c7dce2963ad21982ddcd24e3a04106cb6e6f24b63719bad45",
+    "@base-ui/react": "6552988e2d050e41dc3cff5b762d1aba82d294a6548d4ae8c3e6071406ad5849",
     "@base-ui/utils": "a71988b4234a15dd1dcecb2aaaac6ab8c6472d75cd26993efe45671a8247777a",
     "@floating-ui/core": "581cec84f04c06ef6908cd1af8471390d1d96893d63abdaf0391ef43ae0a1815",
     "@floating-ui/dom": "82afab4c16f6bedc49dfed4eec228766546f4e0a8aed010cab33ad05aeed4568",

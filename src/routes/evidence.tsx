@@ -1,6 +1,15 @@
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  IndexPage,
+  PageHeader,
+  Stack,
+} from "@ledger/design-system";
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { IndexPage, NativeSelect, PageHeader, Stack } from "@ledger/design-system";
 import { ProgramEvidence } from "@/components/app/program-evidence";
 import { Shell } from "@/components/app/shell";
 import { programs } from "@/lib/grc-data";
@@ -20,21 +29,30 @@ export const Route = createFileRoute("/evidence")({
 });
 function Evidence() {
   const [programId, setProgramId] = useState(programs[0]?.id ?? "");
+  const programIdItems = programs.map((program) => ({ value: program.id, label: program.name }));
   return (
     <Shell>
       <IndexPage header={<PageHeader title="Evidence" />}>
         <Stack space="space.200">
-          <NativeSelect
-            aria-label="Evidence program"
+          <Select<string>
+            items={programIdItems}
             value={programId}
-            onChange={(event) => setProgramId(event.target.value)}
+            onValueChange={(value) => {
+              if (value === null) return;
+              return setProgramId(value);
+            }}
           >
-            {programs.map((program) => (
-              <option key={program.id} value={program.id}>
-                {program.name}
-              </option>
-            ))}
-          </NativeSelect>
+            <SelectTrigger className="w-full" aria-label="Evidence program">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {programIdItems.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {programId ? <ProgramEvidence key={programId} programId={programId} /> : null}
         </Stack>
       </IndexPage>

@@ -1,9 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Plus } from "lucide-react";
-import { useState } from "react";
-import { expect, userEvent, waitFor, within } from "storybook/test";
-
 import {
+  avatarHue,
+  AvatarFallback,
+  avatarInitials,
   Badge,
   Avatar,
   BreadcrumbItem,
@@ -17,6 +15,10 @@ import {
   Count,
   TextLink,
 } from "../../components";
+import { type Meta, type StoryObj } from "@storybook/react-vite";
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   Card,
   Empty,
@@ -177,7 +179,16 @@ export const Preview: Story = {
       >
         <div>
           <KeyValue label="Owner">
-            <Avatar name="Priya Natarajan" size="xsmall" /> Priya Natarajan
+            <Avatar
+              size="xsmall"
+              role="img"
+              aria-label={"Priya Natarajan"}
+              hue={avatarHue("Priya Natarajan")}
+              title={"Priya Natarajan"}
+            >
+              <AvatarFallback>{avatarInitials("Priya Natarajan", 1)}</AvatarFallback>
+            </Avatar>{" "}
+            Priya Natarajan
           </KeyValue>
           <KeyValue label="Status">
             <Badge variant="secondary" tone="danger">

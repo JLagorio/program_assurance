@@ -1,4 +1,15 @@
 import {
+  FieldLabel,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxList,
+  ComboboxItem,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Box,
   Button,
   Combobox,
@@ -16,18 +27,16 @@ import {
   Grid,
   IconButton,
   Inline,
-  NativeSelect,
   Section,
   Stack,
 } from "@ledger/design-system";
 import { MoreHorizontal, Plus } from "lucide-react";
-import { useState, type ReactNode } from "react";
-
+import { useId, useState, type ReactNode } from "react";
 import { SubjectWords } from "@/components/app/subject-link";
 import { Task } from "@/components/app/task";
 import { TaskDialog } from "@/components/app/task-dialog";
 import { programPresets, TaskTable } from "@/components/app/task-table";
-import type { Subject } from "@/lib/activity";
+import { type Subject } from "@/lib/activity";
 import { mentionablePeople } from "@/lib/people";
 import {
   completeTask,
@@ -160,6 +169,8 @@ function TaskEditDialog({
   me: string;
   onClose: () => void;
 }) {
+  const fieldId = useId();
+
   const [assignee, setAssignee] = useState(task.assignee);
   const [state, setState] = useState<TaskState>(startState ?? task.state);
   const [waitingOn, setWaitingOn] = useState(task.waitingOn ?? "");
@@ -176,6 +187,12 @@ function TaskEditDialog({
     onClose();
   };
 
+  const stateItems = (["Open", "Waiting", "Blocked", "Done"] as TaskState[]).map((s) => ({
+    value: s,
+    label: s,
+  }));
+  const assigneeItems = options;
+  const waitingOnItems = options;
   return (
     <Dialog
       open={true}
@@ -196,46 +213,139 @@ function TaskEditDialog({
               gap="space.150"
               templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
             >
-              <Field label="Assignee">
-                <Combobox
-                  value={assignee}
-                  onChange={setAssignee}
-                  options={options}
-                  width={300}
-                  className="w-full"
-                />
+              <Field>
+                <FieldLabel id={`${fieldId}-assignee-1-label`} htmlFor={`${fieldId}-assignee-1`}>
+                  {"Assignee"}
+                </FieldLabel>
+                <div className={"w-full"} style={{ width: 300, maxWidth: "100%" }}>
+                  <Combobox<(typeof assigneeItems)[number]>
+                    items={assigneeItems}
+
+                    isItemEqualToValue={(item, selected) => item.value === selected.value}
+                    filter={(item, query) =>
+                      [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                        .join(" ")
+                        .toLocaleLowerCase()
+                        .includes(query.toLocaleLowerCase())
+                    }
+                    value={assigneeItems.find((item) => item.value === assignee) ?? null}
+                    onValueChange={(item) => setAssignee(item?.value ?? "")}
+                  >
+                    <ComboboxInput
+                      id={`${fieldId}-assignee-1`}
+                      aria-labelledby={`${fieldId}-assignee-1-label`}
+                    />
+                    <ComboboxContent>
+                      <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+                      <ComboboxList aria-labelledby={`${fieldId}-assignee-1-label`}>
+                        {(item) => (
+                          <ComboboxItem
+                            key={item.value}
+                            value={item}
+                            disabled={"disabled" in item && Boolean(item.disabled)}
+                          >
+                            <span className="min-w-0 flex-1">{item.label}</span>
+                            {"meta" in item && item.meta ? (
+                              <span className="text-subtle font-body-small">
+                                {String(item.meta)}
+                              </span>
+                            ) : null}
+                          </ComboboxItem>
+                        )}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </div>
               </Field>
-              <Field label="Due">
-                <DatePicker value={due} onChange={setDue} placeholder="Choose a day" />
+              <Field>
+                <FieldLabel id={`${fieldId}-due-2-label`} htmlFor={`${fieldId}-due-2`}>
+                  {"Due"}
+                </FieldLabel>
+                <DatePicker
+                  id={`${fieldId}-due-2`}
+                  aria-labelledby={`${fieldId}-due-2-label`}
+                  value={due}
+                  onChange={setDue}
+                  placeholder="Choose a day"
+                />
               </Field>
             </Grid>
             <Grid
               gap="space.150"
               templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
             >
-              <Field label="State">
-                <NativeSelect
+              <Field>
+                <FieldLabel id={`${fieldId}-state-3-label`} htmlFor={`${fieldId}-state-3`}>
+                  {"State"}
+                </FieldLabel>
+                <Select<string>
+                  items={stateItems}
                   value={state}
-                  onChange={(e) => setState(e.target.value as TaskState)}
-                  aria-label="State"
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return setState(value as TaskState);
+                  }}
                 >
-                  {(["Open", "Waiting", "Blocked", "Done"] as TaskState[]).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id={`${fieldId}-state-3`} className="w-full" aria-label="State">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-state-3-label`}>
+                    {stateItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
               {state === "Waiting" ? (
-                <Field label="Waiting on">
-                  <Combobox
-                    value={waitingOn}
-                    onChange={setWaitingOn}
-                    options={options}
-                    placeholder="Choose a person"
-                    width={300}
-                    className="w-full"
-                  />
+                <Field>
+                  <FieldLabel
+                    id={`${fieldId}-waiting-on-4-label`}
+                    htmlFor={`${fieldId}-waiting-on-4`}
+                  >
+                    {"Waiting on"}
+                  </FieldLabel>
+                  <div className={"w-full"} style={{ width: 300, maxWidth: "100%" }}>
+                    <Combobox<(typeof waitingOnItems)[number]>
+                      items={waitingOnItems}
+
+                      isItemEqualToValue={(item, selected) => item.value === selected.value}
+                      filter={(item, query) =>
+                        [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                          .join(" ")
+                          .toLocaleLowerCase()
+                          .includes(query.toLocaleLowerCase())
+                      }
+                      value={waitingOnItems.find((item) => item.value === waitingOn) ?? null}
+                      onValueChange={(item) => setWaitingOn(item?.value ?? "")}
+                    >
+                      <ComboboxInput
+                        id={`${fieldId}-waiting-on-4`}
+                        aria-labelledby={`${fieldId}-waiting-on-4-label`}
+                        placeholder="Choose a person"
+                      />
+                      <ComboboxContent>
+                        <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
+                        <ComboboxList aria-labelledby={`${fieldId}-waiting-on-4-label`}>
+                          {(item) => (
+                            <ComboboxItem
+                              key={item.value}
+                              value={item}
+                              disabled={"disabled" in item && Boolean(item.disabled)}
+                            >
+                              <span className="min-w-0 flex-1">{item.label}</span>
+                              {"meta" in item && item.meta ? (
+                                <span className="text-subtle font-body-small">
+                                  {String(item.meta)}
+                                </span>
+                              ) : null}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                  </div>
                 </Field>
               ) : null}
             </Grid>

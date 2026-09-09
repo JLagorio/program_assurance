@@ -1,4 +1,10 @@
 import {
+  FieldLabel,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Block,
   Box,
@@ -14,7 +20,6 @@ import {
   Field,
   Inline,
   Input,
-  NativeSelect,
   PreviewSheet,
   Stack,
   Table,
@@ -55,9 +60,8 @@ import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope"
 import { requirementsForProgramElement } from "@/lib/requirement-context";
 import { requirementsForProgram } from "@/lib/requirements";
 import { controlSetFor, scopeById, scopesForProgram } from "@/lib/scopes";
-
 import { Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 const reviewTone = (review: EvidenceReview) =>
   review === "Accepted"
@@ -79,6 +83,8 @@ export function AddEvidenceDialog({
   initialLink?: EvidenceLink;
   onCreated?: (artifact: EvidenceArtifact) => void;
 }) {
+  const fieldId = useId();
+
   const [draft, setDraft] = useState<NewEvidence>({
     program: programId,
     label: "",
@@ -104,6 +110,17 @@ export function AddEvidenceDialog({
       setError(error instanceof Error ? error.message : "Evidence could not be saved.");
     }
   };
+  const kindItems = ["Document", "Configuration", "Test result", "Scan output"].map((kind) => ({
+    value: kind,
+    label: kind,
+  }));
+  const selectionItems = [
+    { value: "", label: "Program-wide" },
+    ...scopesForProgram(programId).map((scope) => ({
+      value: scope.id,
+      label: scope.name,
+    })),
+  ];
   return (
     <Dialog
       open={open}
@@ -119,11 +136,37 @@ export function AddEvidenceDialog({
         </DialogHeader>
         <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
           <Stack space="space.150">
-            <Field label="Title" isRequired>
-              <Input value={draft.label} onChange={(event) => set("label", event.target.value)} />
-            </Field>
-            <Field label="Artifact URL" isRequired>
+            <Field>
+              <FieldLabel id={`${fieldId}-title-1-label`} htmlFor={`${fieldId}-title-1`}>
+                {"Title"}
+                <span aria-hidden="true" className="text-danger">
+                  {" "}
+                  *
+                </span>
+              </FieldLabel>
               <Input
+                id={`${fieldId}-title-1`}
+                aria-labelledby={`${fieldId}-title-1-label`}
+                aria-required={true}
+                value={draft.label}
+                onChange={(event) => set("label", event.target.value)}
+              />
+            </Field>
+            <Field>
+              <FieldLabel
+                id={`${fieldId}-artifact-url-2-label`}
+                htmlFor={`${fieldId}-artifact-url-2`}
+              >
+                {"Artifact URL"}
+                <span aria-hidden="true" className="text-danger">
+                  {" "}
+                  *
+                </span>
+              </FieldLabel>
+              <Input
+                id={`${fieldId}-artifact-url-2`}
+                aria-labelledby={`${fieldId}-artifact-url-2-label`}
+                aria-required={true}
                 type="url"
                 placeholder="https://repository.example/artifacts/report.pdf"
                 value={draft.url}
@@ -135,51 +178,128 @@ export function AddEvidenceDialog({
               controlled by that repository.
             </Text>
             <Inline space="space.150" shouldWrap>
-              <Field label="Kind">
-                <NativeSelect
+              <Field>
+                <FieldLabel id={`${fieldId}-kind-3-label`} htmlFor={`${fieldId}-kind-3`}>
+                  {"Kind"}
+                </FieldLabel>
+                <Select<string>
+                  items={kindItems}
                   value={draft.kind}
-                  onChange={(event) => set("kind", event.target.value as EvidenceArtifact["kind"])}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return set("kind", value as EvidenceArtifact["kind"]);
+                  }}
                 >
-                  {["Document", "Configuration", "Test result", "Scan output"].map((kind) => (
-                    <option key={kind}>{kind}</option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-kind-3`}
+                    aria-labelledby={`${fieldId}-kind-3-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-kind-3-label`}>
+                    {kindItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
-              <Field label="Version" isRequired>
+              <Field>
+                <FieldLabel id={`${fieldId}-version-4-label`} htmlFor={`${fieldId}-version-4`}>
+                  {"Version"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
                 <Input
+                  id={`${fieldId}-version-4`}
+                  aria-labelledby={`${fieldId}-version-4-label`}
+                  aria-required={true}
                   value={draft.version}
                   onChange={(event) => set("version", event.target.value)}
                 />
               </Field>
-              <Field label="Collected on" isRequired>
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-collected-on-5-label`}
+                  htmlFor={`${fieldId}-collected-on-5`}
+                >
+                  {"Collected on"}
+                  <span aria-hidden="true" className="text-danger">
+                    {" "}
+                    *
+                  </span>
+                </FieldLabel>
                 <Input
+                  id={`${fieldId}-collected-on-5`}
+                  aria-labelledby={`${fieldId}-collected-on-5-label`}
+                  aria-required={true}
                   type="date"
                   value={draft.collected}
                   onChange={(event) => set("collected", event.target.value)}
                 />
               </Field>
             </Inline>
-            <Field label="Owner" isRequired>
-              <Input value={draft.owner} onChange={(event) => set("owner", event.target.value)} />
+            <Field>
+              <FieldLabel id={`${fieldId}-owner-6-label`} htmlFor={`${fieldId}-owner-6`}>
+                {"Owner"}
+                <span aria-hidden="true" className="text-danger">
+                  {" "}
+                  *
+                </span>
+              </FieldLabel>
+              <Input
+                id={`${fieldId}-owner-6`}
+                aria-labelledby={`${fieldId}-owner-6-label`}
+                aria-required={true}
+                value={draft.owner}
+                onChange={(event) => set("owner", event.target.value)}
+              />
             </Field>
-            <Field label="System">
-              <NativeSelect
+            <Field>
+              <FieldLabel id={`${fieldId}-system-7-label`} htmlFor={`${fieldId}-system-7`}>
+                {"System"}
+              </FieldLabel>
+              <Select<string>
+                items={selectionItems}
                 value={draft.scopeIds?.[0] ?? ""}
                 disabled={!!initialLink?.scopeId}
-                onChange={(event) =>
-                  set("scopeIds", event.target.value ? [event.target.value] : [])
-                }
+                onValueChange={(value) => {
+                  if (value === null) return;
+                  return set("scopeIds", value ? [value] : []);
+                }}
               >
-                <option value="">Program-wide</option>
-                {scopesForProgram(programId).map((scope) => (
-                  <option key={scope.id} value={scope.id}>
-                    {scope.name}
-                  </option>
-                ))}
-              </NativeSelect>
+                <SelectTrigger
+                  id={`${fieldId}-system-7`}
+                  aria-labelledby={`${fieldId}-system-7-label`}
+                  className="w-full"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent aria-labelledby={`${fieldId}-system-7-label`}>
+                  {selectionItems.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
-            <Field label="Provenance" isRequired>
+            <Field>
+              <FieldLabel id={`${fieldId}-provenance-8-label`} htmlFor={`${fieldId}-provenance-8`}>
+                {"Provenance"}
+                <span aria-hidden="true" className="text-danger">
+                  {" "}
+                  *
+                </span>
+              </FieldLabel>
               <Textarea
+                id={`${fieldId}-provenance-8`}
+                aria-labelledby={`${fieldId}-provenance-8-label`}
+                aria-required={true}
                 placeholder="Who produced this artifact, using which method and system/build?"
                 value={draft.provenance}
                 onChange={(event) => set("provenance", event.target.value)}
@@ -367,6 +487,8 @@ function EvidenceRecordPreview({
   onClose: () => void;
   elementId?: string | undefined;
 }) {
+  const fieldId = useId();
+
   const [editing, setEditing] = useState<"link" | "review" | null>(null);
   const [kind, setKind] = useState<"control" | "requirement">("control");
   const scopes = scopesForProgram(artifact.program).filter((scope) =>
@@ -401,6 +523,40 @@ function EvidenceRecordPreview({
     setError("");
     setTarget("");
   };
+  const kindItems2 = [
+    { value: "control", label: "Control implementation" },
+    { value: "requirement", label: "Requirement" },
+  ];
+  const scopeIdItems = [
+    ...(kind === "requirement" && !artifact.scopeIds.length
+      ? [{ value: "", label: "Program requirement" }]
+      : []),
+    ...scopes.map((scope) => ({ value: scope.id, label: scope.name })),
+  ];
+  const targetItems = [
+    { value: "", label: "Choose a record…" },
+    ...(kind === "control"
+      ? controls.map(({ control }) => ({
+          value: control.id,
+          label: (
+            <>
+              {control.id} · {control.title}
+            </>
+          ),
+        }))
+      : requirements.map((requirement) => ({
+          value: requirement.id,
+          label: (
+            <>
+              {requirement.id} · {requirement.text}
+            </>
+          ),
+        }))),
+  ];
+  const reviewItems = ["Pending review", "Accepted", "Needs revision"].map((status) => ({
+    value: status,
+    label: status,
+  }));
   return (
     <PreviewSheet
       open
@@ -515,53 +671,95 @@ function EvidenceRecordPreview({
           )}
           {editing === "link" ? (
             <Stack space="space.150" className="pt-150">
-              <Field label="Link to">
-                <NativeSelect
+              <Field>
+                <FieldLabel id={`${fieldId}-link-to-9-label`} htmlFor={`${fieldId}-link-to-9`}>
+                  {"Link to"}
+                </FieldLabel>
+                <Select<string>
+                  items={kindItems2}
                   value={kind}
-                  onChange={(event) => {
-                    setKind(event.target.value as typeof kind);
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    setKind(value as typeof kind);
                     setTarget("");
-                    if (event.target.value === "control" && !scopeId)
-                      setScopeId(scopes[0]?.id ?? "");
+                    if (value === "control" && !scopeId) setScopeId(scopes[0]?.id ?? "");
                   }}
                 >
-                  <option value="control">Control implementation</option>
-                  <option value="requirement">Requirement</option>
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-link-to-9`}
+                    aria-labelledby={`${fieldId}-link-to-9-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-link-to-9-label`}>
+                    {kindItems2.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
-              <Field label="System / component scope">
-                <NativeSelect
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-system-component-scope-10-label`}
+                  htmlFor={`${fieldId}-system-component-scope-10`}
+                >
+                  {"System / component scope"}
+                </FieldLabel>
+                <Select<string>
+                  items={scopeIdItems}
                   value={scopeId}
-                  onChange={(event) => {
-                    setScopeId(event.target.value);
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    setScopeId(value);
                     setTarget("");
                   }}
                 >
-                  {kind === "requirement" && !artifact.scopeIds.length ? (
-                    <option value="">Program requirement</option>
-                  ) : null}
-                  {scopes.map((scope) => (
-                    <option key={scope.id} value={scope.id}>
-                      {scope.name}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger
+                    id={`${fieldId}-system-component-scope-10`}
+                    aria-labelledby={`${fieldId}-system-component-scope-10-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-system-component-scope-10-label`}>
+                    {scopeIdItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
-              <Field label={kind === "control" ? "Control" : "Requirement"}>
-                <NativeSelect value={target} onChange={(event) => setTarget(event.target.value)}>
-                  <option value="">Choose a record…</option>
-                  {kind === "control"
-                    ? controls.map(({ control }) => (
-                        <option key={control.id} value={control.id}>
-                          {control.id} · {control.title}
-                        </option>
-                      ))
-                    : requirements.map((requirement) => (
-                        <option key={requirement.id} value={requirement.id}>
-                          {requirement.id} · {requirement.text}
-                        </option>
-                      ))}
-                </NativeSelect>
+              <Field>
+                <FieldLabel id={`${fieldId}-field-11-label`} htmlFor={`${fieldId}-field-11`}>
+                  {kind === "control" ? "Control" : "Requirement"}
+                </FieldLabel>
+                <Select<string>
+                  items={targetItems}
+                  value={target}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return setTarget(value);
+                  }}
+                >
+                  <SelectTrigger
+                    id={`${fieldId}-field-11`}
+                    aria-labelledby={`${fieldId}-field-11-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-field-11-label`}>
+                    {targetItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
               <Inline space="space.100">
                 <Button
@@ -642,21 +840,58 @@ function EvidenceRecordPreview({
           ) : null}
           {editing === "review" ? (
             <Stack space="space.150" className="pt-150">
-              <Field label="Review status">
-                <NativeSelect
-                  value={review}
-                  onChange={(event) => setReview(event.target.value as EvidenceReview)}
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-review-status-12-label`}
+                  htmlFor={`${fieldId}-review-status-12`}
                 >
-                  {["Pending review", "Accepted", "Needs revision"].map((status) => (
-                    <option key={status}>{status}</option>
-                  ))}
-                </NativeSelect>
+                  {"Review status"}
+                </FieldLabel>
+                <Select<string>
+                  items={reviewItems}
+                  value={review}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    return setReview(value as EvidenceReview);
+                  }}
+                >
+                  <SelectTrigger
+                    id={`${fieldId}-review-status-12`}
+                    aria-labelledby={`${fieldId}-review-status-12-label`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent aria-labelledby={`${fieldId}-review-status-12-label`}>
+                    {reviewItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
-              <Field label="Reviewer">
-                <Input value={reviewer} onChange={(event) => setReviewer(event.target.value)} />
+              <Field>
+                <FieldLabel id={`${fieldId}-reviewer-13-label`} htmlFor={`${fieldId}-reviewer-13`}>
+                  {"Reviewer"}
+                </FieldLabel>
+                <Input
+                  id={`${fieldId}-reviewer-13`}
+                  aria-labelledby={`${fieldId}-reviewer-13-label`}
+                  value={reviewer}
+                  onChange={(event) => setReviewer(event.target.value)}
+                />
               </Field>
-              <Field label="Review rationale">
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-review-rationale-14-label`}
+                  htmlFor={`${fieldId}-review-rationale-14`}
+                >
+                  {"Review rationale"}
+                </FieldLabel>
                 <Textarea
+                  id={`${fieldId}-review-rationale-14`}
+                  aria-labelledby={`${fieldId}-review-rationale-14-label`}
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
                   placeholder="Scope, version and suitability for the linked claims."
@@ -776,6 +1011,19 @@ export function RequirementEvidence({
   const [selected, setSelected] = useState("");
   const [previewId, setPreviewId] = useState<string | null>(null);
   const linked = evidenceForTarget(programId, "requirement", requirementId);
+  const selectedItems = [
+    { value: "", label: "Choose program evidence…" },
+    ...evidenceForProgram(programId)
+      .filter((artifact) => !linked.some((row) => row.id === artifact.id))
+      .map((artifact) => ({
+        value: artifact.id,
+        label: (
+          <>
+            {artifact.id} · {artifact.label}
+          </>
+        ),
+      })),
+  ];
   return (
     <Stack space="space.100">
       {linked.map((artifact) => (
@@ -803,20 +1051,25 @@ export function RequirementEvidence({
         </Text>
       ) : null}
       <Inline space="space.100">
-        <NativeSelect
-          aria-label="Evidence to link"
+        <Select<string>
+          items={selectedItems}
           value={selected}
-          onChange={(event) => setSelected(event.target.value)}
+          onValueChange={(value) => {
+            if (value === null) return;
+            return setSelected(value);
+          }}
         >
-          <option value="">Choose program evidence…</option>
-          {evidenceForProgram(programId)
-            .filter((artifact) => !linked.some((row) => row.id === artifact.id))
-            .map((artifact) => (
-              <option key={artifact.id} value={artifact.id}>
-                {artifact.id} · {artifact.label}
-              </option>
+          <SelectTrigger className="w-full" aria-label="Evidence to link">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {selectedItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
             ))}
-        </NativeSelect>
+          </SelectContent>
+        </Select>
         <Button
           size="small"
           disabled={!selected}

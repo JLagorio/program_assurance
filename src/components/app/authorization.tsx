@@ -1,6 +1,12 @@
-import { UnavailableAction } from "@/components/app/unavailable-action";
-import { useRecordForm } from "@/lib/record-form";
 import {
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Box,
   Button,
@@ -20,7 +26,6 @@ import {
   Inline,
   Input,
   KeyValue,
-  NativeSelect,
   Progress,
   ProgressValue,
   Section,
@@ -28,9 +33,10 @@ import {
   Table,
   Textarea,
 } from "@ledger/design-system";
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { useRecordForm } from "@/lib/record-form";
 import { Check, FileSignature, Lock, Plus, ShieldCheck, UserPlus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-
+import { useId, useEffect, useMemo, useState } from "react";
 import {
   authorization,
   decisionTone,
@@ -340,6 +346,8 @@ function ObservationModal({
   onLog: (next: ScaObservation) => void;
   programId: string;
 }) {
+  const fieldId = useId();
+
   const { form, values, formId, formRef } = useRecordForm(
     {
       title: "",
@@ -404,116 +412,220 @@ function ObservationModal({
               >
                 <Stack space="space.150">
                   <form.Field name="title">
-                    {(field) => (
-                      <Field
-                        isRequired
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label="Observation"
-                      >
-                        <Input
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          placeholder="e.g. Session termination not enforced on maintenance console"
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError1 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError1)}>
+                          <FieldLabel
+                            id={`${fieldId}-observation-1-label`}
+                            htmlFor={`${fieldId}-observation-1`}
+                          >
+                            {"Observation"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
+                          <Input
+                            id={`${fieldId}-observation-1`}
+                            aria-labelledby={`${fieldId}-observation-1-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError1)}
+                            aria-describedby={
+                              fieldError1 ? `${fieldId}-observation-1-message` : undefined
+                            }
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="e.g. Session termination not enforced on maintenance console"
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError1 ? (
+                            <FieldError id={`${fieldId}-observation-1-message`}>
+                              {fieldError1}
+                            </FieldError>
+                          ) : null}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <Grid
                     gap="space.150"
                     templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
                   >
                     <form.Field name="severity">
-                      {(field) => (
-                        <Field
-                          label="Severity"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value}
-                            onChange={(e) =>
-                              field.handleChange(e.target.value as ScaObservation["severity"])
-                            }
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            <option>CAT I</option>
-                            <option>CAT II</option>
-                            <option>CAT III</option>
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems = [
+                          { value: "CAT I", label: "CAT I" },
+                          { value: "CAT II", label: "CAT II" },
+                          { value: "CAT III", label: "CAT III" },
+                        ];
+                        const fieldError2 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError2)}>
+                            <FieldLabel
+                              id={`${fieldId}-severity-2-label`}
+                              htmlFor={`${fieldId}-severity-2`}
+                            >
+                              {"Severity"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems}
+                              value={field.state.value}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as ScaObservation["severity"]);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-severity-2`}
+                                aria-labelledby={`${fieldId}-severity-2-label`}
+                                aria-invalid={Boolean(fieldError2)}
+                                aria-describedby={
+                                  fieldError2 ? `${fieldId}-severity-2-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-severity-2-label`}>
+                                {valueItems.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError2 ? (
+                              <FieldError id={`${fieldId}-severity-2-message`}>
+                                {fieldError2}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="control">
-                      {(field) => (
-                        <Field
-                          isRequired
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                          label="Control"
-                        >
-                          <Input
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="AC-12"
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          />
-                        </Field>
-                      )}
+                      {(field) => {
+                        const fieldError3 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError3)}>
+                            <FieldLabel
+                              id={`${fieldId}-control-3-label`}
+                              htmlFor={`${fieldId}-control-3`}
+                            >
+                              {"Control"}
+                              <span aria-hidden="true" className="text-danger">
+                                {" "}
+                                *
+                              </span>
+                            </FieldLabel>
+                            <Input
+                              id={`${fieldId}-control-3`}
+                              aria-labelledby={`${fieldId}-control-3-label`}
+                              aria-required={true}
+                              aria-invalid={Boolean(fieldError3)}
+                              aria-describedby={
+                                fieldError3 ? `${fieldId}-control-3-message` : undefined
+                              }
+                              value={field.state.value}
+                              onChange={(e) => field.handleChange(e.target.value)}
+                              placeholder="AC-12"
+                              name={field.name}
+                              onBlur={field.handleBlur}
+                            />
+                            {fieldError3 ? (
+                              <FieldError id={`${fieldId}-control-3-message`}>
+                                {fieldError3}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="due">
-                      {(field) => (
-                        <Field
-                          label="Response due"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <Input
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          />
-                        </Field>
-                      )}
+                      {(field) => {
+                        const fieldError4 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError4)}>
+                            <FieldLabel
+                              id={`${fieldId}-response-due-4-label`}
+                              htmlFor={`${fieldId}-response-due-4`}
+                            >
+                              {"Response due"}
+                            </FieldLabel>
+                            <Input
+                              id={`${fieldId}-response-due-4`}
+                              aria-labelledby={`${fieldId}-response-due-4-label`}
+                              aria-invalid={Boolean(fieldError4)}
+                              aria-describedby={
+                                fieldError4 ? `${fieldId}-response-due-4-message` : undefined
+                              }
+                              value={field.state.value}
+                              onChange={(e) => field.handleChange(e.target.value)}
+                              name={field.name}
+                              onBlur={field.handleBlur}
+                            />
+                            {fieldError4 ? (
+                              <FieldError id={`${fieldId}-response-due-4-message`}>
+                                {fieldError4}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                   </Grid>
                   <form.Field name="detail">
-                    {(field) => (
-                      <Field
-                        label="Assessor detail"
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                      >
-                        <Textarea
-                          rows={4}
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          placeholder="What was observed, where, and under what test conditions…"
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError5 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError5)}>
+                          <FieldLabel
+                            id={`${fieldId}-assessor-detail-5-label`}
+                            htmlFor={`${fieldId}-assessor-detail-5`}
+                          >
+                            {"Assessor detail"}
+                          </FieldLabel>
+                          <Textarea
+                            id={`${fieldId}-assessor-detail-5`}
+                            aria-labelledby={`${fieldId}-assessor-detail-5-label`}
+                            aria-invalid={Boolean(fieldError5)}
+                            aria-describedby={
+                              fieldError5 ? `${fieldId}-assessor-detail-5-message` : undefined
+                            }
+                            rows={4}
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="What was observed, where, and under what test conditions…"
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError5 ? (
+                            <FieldError id={`${fieldId}-assessor-detail-5-message`}>
+                              {fieldError5}
+                            </FieldError>
+                          ) : null}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                 </Stack>
               </form>
@@ -567,6 +679,8 @@ function RemediationModal({
   onClose: () => void;
   onSave: (next: ScaObservation) => void;
 }) {
+  const fieldId = useId();
+
   const { form, values, formId, formRef } = useRecordForm(
     {
       status: "Triaged" as ScaObservationStatus,
@@ -642,118 +756,252 @@ function RemediationModal({
                     templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(4, minmax(0, 1fr))" }}
                   >
                     <form.Field name="status">
-                      {(field) => (
-                        <Field
-                          label="Status"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value}
-                            onChange={(e) =>
-                              field.handleChange(e.target.value as ScaObservationStatus)
-                            }
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {observationStatuses.map((s) => (
-                              <option key={s}>{s}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems2 = observationStatuses.map((s) => ({
+                          value: s,
+                          label: s,
+                        }));
+                        const fieldError6 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError6)}>
+                            <FieldLabel
+                              id={`${fieldId}-status-6-label`}
+                              htmlFor={`${fieldId}-status-6`}
+                            >
+                              {"Status"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems2}
+                              value={field.state.value}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value as ScaObservationStatus);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-status-6`}
+                                aria-labelledby={`${fieldId}-status-6-label`}
+                                aria-invalid={Boolean(fieldError6)}
+                                aria-describedby={
+                                  fieldError6 ? `${fieldId}-status-6-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-status-6-label`}>
+                                {valueItems2.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError6 ? (
+                              <FieldError id={`${fieldId}-status-6-message`}>
+                                {fieldError6}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="project">
-                      {(field) => (
-                        <Field
-                          label="Jira project"
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                        >
-                          <NativeSelect
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {jiraProjects.map((p) => (
-                              <option key={p}>{p}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems3 = jiraProjects.map((p) => ({ value: p, label: p }));
+                        const fieldError7 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError7)}>
+                            <FieldLabel
+                              id={`${fieldId}-jira-project-7-label`}
+                              htmlFor={`${fieldId}-jira-project-7`}
+                            >
+                              {"Jira project"}
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems3}
+                              value={field.state.value}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-jira-project-7`}
+                                aria-labelledby={`${fieldId}-jira-project-7-label`}
+                                aria-invalid={Boolean(fieldError7)}
+                                aria-describedby={
+                                  fieldError7 ? `${fieldId}-jira-project-7-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-jira-project-7-label`}>
+                                {valueItems3.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError7 ? (
+                              <FieldError id={`${fieldId}-jira-project-7-message`}>
+                                {fieldError7}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="assignee">
-                      {(field) => (
-                        <Field
-                          isRequired
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                          label="Assignee"
-                        >
-                          <NativeSelect
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            name={field.name}
-                            onBlur={field.handleBlur}
-                          >
-                            {jiraAssignees.map((a) => (
-                              <option key={a}>{a}</option>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
+                      {(field) => {
+                        const valueItems4 = jiraAssignees.map((a) => ({ value: a, label: a }));
+                        const fieldError8 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError8)}>
+                            <FieldLabel
+                              id={`${fieldId}-assignee-8-label`}
+                              htmlFor={`${fieldId}-assignee-8`}
+                            >
+                              {"Assignee"}
+                              <span aria-hidden="true" className="text-danger">
+                                {" "}
+                                *
+                              </span>
+                            </FieldLabel>
+                            <Select<string>
+                              items={valueItems4}
+                              value={field.state.value}
+                              onValueChange={(value) => {
+                                if (value === null) return;
+                                return field.handleChange(value);
+                              }}
+                              name={field.name}
+                            >
+                              <SelectTrigger
+                                id={`${fieldId}-assignee-8`}
+                                aria-labelledby={`${fieldId}-assignee-8-label`}
+                                aria-required={true}
+                                aria-invalid={Boolean(fieldError8)}
+                                aria-describedby={
+                                  fieldError8 ? `${fieldId}-assignee-8-message` : undefined
+                                }
+                                className="w-full"
+                                onBlur={field.handleBlur}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent aria-labelledby={`${fieldId}-assignee-8-label`}>
+                                {valueItems4.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>
+                                    {item.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {fieldError8 ? (
+                              <FieldError id={`${fieldId}-assignee-8-message`}>
+                                {fieldError8}
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
                     </form.Field>
                     <form.Field name="due">
-                      {(field) => (
-                        <Field
-                          isRequired
-                          error={
-                            field.state.meta.isTouched && !field.state.meta.isValid
-                              ? [...new Set(field.state.meta.errors)].join(" ")
-                              : undefined
-                          }
-                          label="Due"
-                        >
-                          <Input
+                      {(field) => {
+                        const fieldError9 =
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined;
+                        return (
+                          <Field data-invalid={Boolean(fieldError9)}>
+                            <FieldLabel id={`${fieldId}-due-9-label`} htmlFor={`${fieldId}-due-9`}>
+                              {"Due"}
+                              <span aria-hidden="true" className="text-danger">
+                                {" "}
+                                *
+                              </span>
+                            </FieldLabel>
+                            <Input
+                              id={`${fieldId}-due-9`}
+                              aria-labelledby={`${fieldId}-due-9-label`}
+                              aria-required={true}
+                              aria-invalid={Boolean(fieldError9)}
+                              aria-describedby={
+                                fieldError9 ? `${fieldId}-due-9-message` : undefined
+                              }
+                              value={field.state.value}
+                              onChange={(e) => field.handleChange(e.target.value)}
+                              name={field.name}
+                              onBlur={field.handleBlur}
+                            />
+                            {fieldError9 ? (
+                              <FieldError id={`${fieldId}-due-9-message`}>{fieldError9}</FieldError>
+                            ) : null}
+                          </Field>
+                        );
+                      }}
+                    </form.Field>
+                  </Grid>
+                  <form.Field name="response">
+                    {(field) => {
+                      const fieldError10 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError10)}>
+                          <FieldLabel
+                            id={`${fieldId}-program-response-to-the-assessor-10-label`}
+                            htmlFor={`${fieldId}-program-response-to-the-assessor-10`}
+                          >
+                            {"Program response to the assessor"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
+                          <Textarea
+                            id={`${fieldId}-program-response-to-the-assessor-10`}
+                            aria-labelledby={`${fieldId}-program-response-to-the-assessor-10-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError10)}
+                            aria-describedby={
+                              fieldError10
+                                ? `${fieldId}-program-response-to-the-assessor-10-message`
+                                : undefined
+                            }
+                            rows={4}
                             value={field.state.value}
                             onChange={(e) => field.handleChange(e.target.value)}
                             name={field.name}
                             onBlur={field.handleBlur}
                           />
+                          {fieldError10 ? (
+                            <FieldError
+                              id={`${fieldId}-program-response-to-the-assessor-10-message`}
+                            >
+                              {fieldError10}
+                            </FieldError>
+                          ) : null}
                         </Field>
-                      )}
-                    </form.Field>
-                  </Grid>
-                  <form.Field name="response">
-                    {(field) => (
-                      <Field
-                        isRequired
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label="Program response to the assessor"
-                      >
-                        <Textarea
-                          rows={4}
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                      );
+                    }}
                   </form.Field>
                 </Stack>
               </form>
@@ -811,6 +1059,8 @@ links:
 /* ------------------------------------------------------------ grant modal */
 
 function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const fieldId = useId();
+
   const { form, values } = useRecordForm(
     {
       email: "",
@@ -841,77 +1091,157 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
         <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
           <Stack space="space.150">
             <form.Field name="email">
-              {(field) => (
-                <Field
-                  isRequired
-                  error={
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                      ? [...new Set(field.state.meta.errors)].join(" ")
-                      : undefined
-                  }
-                  label="Government email"
-                  hint=".mil or .gov only"
-                >
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="first.last@us.navy.mil"
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                  />
-                </Field>
-              )}
+              {(field) => {
+                const fieldError11 =
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined;
+                return (
+                  <Field data-invalid={Boolean(fieldError11)}>
+                    <FieldLabel
+                      id={`${fieldId}-government-email-11-label`}
+                      htmlFor={`${fieldId}-government-email-11`}
+                    >
+                      {"Government email"}
+                      <span aria-hidden="true" className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    </FieldLabel>
+                    <Input
+                      id={`${fieldId}-government-email-11`}
+                      aria-labelledby={`${fieldId}-government-email-11-label`}
+                      aria-required={true}
+                      aria-invalid={Boolean(fieldError11)}
+                      aria-describedby={`${fieldId}-government-email-11-message`}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="first.last@us.navy.mil"
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    />
+                    {fieldError11 ? (
+                      <FieldError id={`${fieldId}-government-email-11-message`}>
+                        {fieldError11}
+                      </FieldError>
+                    ) : (
+                      <FieldDescription id={`${fieldId}-government-email-11-message`}>
+                        {".mil or .gov only"}
+                      </FieldDescription>
+                    )}
+                  </Field>
+                );
+              }}
             </form.Field>
             <Grid
               gap="space.150"
               templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
             >
               <form.Field name="role">
-                {(field) => (
-                  <Field
-                    label="Role"
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? [...new Set(field.state.meta.errors)].join(" ")
-                        : undefined
-                    }
-                  >
-                    <NativeSelect
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                    >
-                      <option>SCA</option>
-                      <option>SCA team</option>
-                      <option>AO</option>
-                      <option>AODR</option>
-                    </NativeSelect>
-                  </Field>
-                )}
+                {(field) => {
+                  const valueItems5 = [
+                    { value: "SCA", label: "SCA" },
+                    { value: "SCA team", label: "SCA team" },
+                    { value: "AO", label: "AO" },
+                    { value: "AODR", label: "AODR" },
+                  ];
+                  const fieldError12 =
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined;
+                  return (
+                    <Field data-invalid={Boolean(fieldError12)}>
+                      <FieldLabel id={`${fieldId}-role-12-label`} htmlFor={`${fieldId}-role-12`}>
+                        {"Role"}
+                      </FieldLabel>
+                      <Select<string>
+                        items={valueItems5}
+                        value={field.state.value}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return field.handleChange(value);
+                        }}
+                        name={field.name}
+                      >
+                        <SelectTrigger
+                          id={`${fieldId}-role-12`}
+                          aria-labelledby={`${fieldId}-role-12-label`}
+                          aria-invalid={Boolean(fieldError12)}
+                          aria-describedby={fieldError12 ? `${fieldId}-role-12-message` : undefined}
+                          className="w-full"
+                          onBlur={field.handleBlur}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent aria-labelledby={`${fieldId}-role-12-label`}>
+                          {valueItems5.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldError12 ? (
+                        <FieldError id={`${fieldId}-role-12-message`}>{fieldError12}</FieldError>
+                      ) : null}
+                    </Field>
+                  );
+                }}
               </form.Field>
               <form.Field name="access">
-                {(field) => (
-                  <Field
-                    label="Access"
-                    error={
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                        ? [...new Set(field.state.meta.errors)].join(" ")
-                        : undefined
-                    }
-                  >
-                    <NativeSelect
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      name={field.name}
-                      onBlur={field.handleBlur}
-                    >
-                      <option>Read only</option>
-                      <option>Read + comment</option>
-                      <option>Sign authority</option>
-                    </NativeSelect>
-                  </Field>
-                )}
+                {(field) => {
+                  const valueItems6 = [
+                    { value: "Read only", label: "Read only" },
+                    { value: "Read + comment", label: "Read + comment" },
+                    { value: "Sign authority", label: "Sign authority" },
+                  ];
+                  const fieldError13 =
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined;
+                  return (
+                    <Field data-invalid={Boolean(fieldError13)}>
+                      <FieldLabel
+                        id={`${fieldId}-access-13-label`}
+                        htmlFor={`${fieldId}-access-13`}
+                      >
+                        {"Access"}
+                      </FieldLabel>
+                      <Select<string>
+                        items={valueItems6}
+                        value={field.state.value}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          return field.handleChange(value);
+                        }}
+                        name={field.name}
+                      >
+                        <SelectTrigger
+                          id={`${fieldId}-access-13`}
+                          aria-labelledby={`${fieldId}-access-13-label`}
+                          aria-invalid={Boolean(fieldError13)}
+                          aria-describedby={
+                            fieldError13 ? `${fieldId}-access-13-message` : undefined
+                          }
+                          className="w-full"
+                          onBlur={field.handleBlur}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent aria-labelledby={`${fieldId}-access-13-label`}>
+                          {valueItems6.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldError13 ? (
+                        <FieldError id={`${fieldId}-access-13-message`}>{fieldError13}</FieldError>
+                      ) : null}
+                    </Field>
+                  );
+                }}
               </form.Field>
             </Grid>
           </Stack>
@@ -1133,6 +1463,8 @@ function RiskDecisionModal({
   onClose: () => void;
   onSave: (next: ResidualRisk) => void;
 }) {
+  const fieldId = useId();
+
   const { form, values, formId, formRef } = useRecordForm(
     {
       decision: "Accepted" as ResidualRisk["decision"],
@@ -1187,52 +1519,106 @@ function RiskDecisionModal({
                 <Stack space="space.150">
                   <p className="font-body text-subtle">Mitigation in place: {risk.mitigation}</p>
                   <form.Field name="decision">
-                    {(field) => (
-                      <Field
-                        label="AO decision"
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                      >
-                        <NativeSelect
-                          value={field.state.value}
-                          onChange={(e) =>
-                            field.handleChange(e.target.value as ResidualRisk["decision"])
-                          }
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        >
-                          <option>Accepted</option>
-                          <option>Rejected</option>
-                          <option>Deferred</option>
-                          <option>Pending AO</option>
-                        </NativeSelect>
-                      </Field>
-                    )}
+                    {(field) => {
+                      const valueItems7 = [
+                        { value: "Accepted", label: "Accepted" },
+                        { value: "Rejected", label: "Rejected" },
+                        { value: "Deferred", label: "Deferred" },
+                        { value: "Pending AO", label: "Pending AO" },
+                      ];
+                      const fieldError14 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError14)}>
+                          <FieldLabel
+                            id={`${fieldId}-ao-decision-14-label`}
+                            htmlFor={`${fieldId}-ao-decision-14`}
+                          >
+                            {"AO decision"}
+                          </FieldLabel>
+                          <Select<string>
+                            items={valueItems7}
+                            value={field.state.value}
+                            onValueChange={(value) => {
+                              if (value === null) return;
+                              return field.handleChange(value as ResidualRisk["decision"]);
+                            }}
+                            name={field.name}
+                          >
+                            <SelectTrigger
+                              id={`${fieldId}-ao-decision-14`}
+                              aria-labelledby={`${fieldId}-ao-decision-14-label`}
+                              aria-invalid={Boolean(fieldError14)}
+                              aria-describedby={
+                                fieldError14 ? `${fieldId}-ao-decision-14-message` : undefined
+                              }
+                              className="w-full"
+                              onBlur={field.handleBlur}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent aria-labelledby={`${fieldId}-ao-decision-14-label`}>
+                              {valueItems7.map((item) => (
+                                <SelectItem key={item.value} value={item.value}>
+                                  {item.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {fieldError14 ? (
+                            <FieldError id={`${fieldId}-ao-decision-14-message`}>
+                              {fieldError14}
+                            </FieldError>
+                          ) : null}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <form.Field name="rationale">
-                    {(field) => (
-                      <Field
-                        isRequired
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label="Rationale for the record"
-                      >
-                        <Textarea
-                          rows={4}
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          placeholder="Basis for acceptance, conditions, and review point…"
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        />
-                      </Field>
-                    )}
+                    {(field) => {
+                      const fieldError15 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError15)}>
+                          <FieldLabel
+                            id={`${fieldId}-rationale-for-the-record-15-label`}
+                            htmlFor={`${fieldId}-rationale-for-the-record-15`}
+                          >
+                            {"Rationale for the record"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
+                          <Textarea
+                            id={`${fieldId}-rationale-for-the-record-15`}
+                            aria-labelledby={`${fieldId}-rationale-for-the-record-15-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError15)}
+                            aria-describedby={
+                              fieldError15
+                                ? `${fieldId}-rationale-for-the-record-15-message`
+                                : undefined
+                            }
+                            rows={4}
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="Basis for acceptance, conditions, and review point…"
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError15 ? (
+                            <FieldError id={`${fieldId}-rationale-for-the-record-15-message`}>
+                              {fieldError15}
+                            </FieldError>
+                          ) : null}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                 </Stack>
               </form>
@@ -1282,6 +1668,8 @@ function RiskDecisionModal({
 }
 
 function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const fieldId = useId();
+
   const { form, values } = useRecordForm(
     {
       type: authorization.type,
@@ -1322,70 +1710,155 @@ function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                   templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
                 >
                   <form.Field name="type">
-                    {(field) => (
-                      <Field
-                        label="Authorization type"
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                      >
-                        <NativeSelect
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          name={field.name}
-                          onBlur={field.handleBlur}
-                        >
-                          <option>ATO with conditions (36 months)</option>
-                          <option>ATO (36 months)</option>
-                          <option>Continuous ATO (cATO)</option>
-                          <option>IATT (90 days)</option>
-                          <option>Denial of authorization</option>
-                        </NativeSelect>
-                      </Field>
-                    )}
+                    {(field) => {
+                      const valueItems8 = [
+                        {
+                          value: "ATO with conditions (36 months)",
+                          label: "ATO with conditions (36 months)",
+                        },
+                        { value: "ATO (36 months)", label: "ATO (36 months)" },
+                        {
+                          value: "Continuous ATO (cATO)",
+                          label: "Continuous ATO (cATO)",
+                        },
+                        { value: "IATT (90 days)", label: "IATT (90 days)" },
+                        {
+                          value: "Denial of authorization",
+                          label: "Denial of authorization",
+                        },
+                      ];
+                      const fieldError16 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError16)}>
+                          <FieldLabel
+                            id={`${fieldId}-authorization-type-16-label`}
+                            htmlFor={`${fieldId}-authorization-type-16`}
+                          >
+                            {"Authorization type"}
+                          </FieldLabel>
+                          <Select<string>
+                            items={valueItems8}
+                            value={field.state.value}
+                            onValueChange={(value) => {
+                              if (value === null) return;
+                              return field.handleChange(value);
+                            }}
+                            name={field.name}
+                          >
+                            <SelectTrigger
+                              id={`${fieldId}-authorization-type-16`}
+                              aria-labelledby={`${fieldId}-authorization-type-16-label`}
+                              aria-invalid={Boolean(fieldError16)}
+                              aria-describedby={
+                                fieldError16
+                                  ? `${fieldId}-authorization-type-16-message`
+                                  : undefined
+                              }
+                              className="w-full"
+                              onBlur={field.handleBlur}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent
+                              aria-labelledby={`${fieldId}-authorization-type-16-label`}
+                            >
+                              {valueItems8.map((item) => (
+                                <SelectItem key={item.value} value={item.value}>
+                                  {item.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {fieldError16 ? (
+                            <FieldError id={`${fieldId}-authorization-type-16-message`}>
+                              {fieldError16}
+                            </FieldError>
+                          ) : null}
+                        </Field>
+                      );
+                    }}
                   </form.Field>
                   <form.Field name="expires">
-                    {(field) => (
-                      <Field
-                        isRequired
-                        error={
-                          field.state.meta.isTouched && !field.state.meta.isValid
-                            ? [...new Set(field.state.meta.errors)].join(" ")
-                            : undefined
-                        }
-                        label="Expires"
-                      >
-                        <Input
+                    {(field) => {
+                      const fieldError17 =
+                        field.state.meta.isTouched && !field.state.meta.isValid
+                          ? [...new Set(field.state.meta.errors)].join(" ")
+                          : undefined;
+                      return (
+                        <Field data-invalid={Boolean(fieldError17)}>
+                          <FieldLabel
+                            id={`${fieldId}-expires-17-label`}
+                            htmlFor={`${fieldId}-expires-17`}
+                          >
+                            {"Expires"}
+                            <span aria-hidden="true" className="text-danger">
+                              {" "}
+                              *
+                            </span>
+                          </FieldLabel>
+                          <Input
+                            id={`${fieldId}-expires-17`}
+                            aria-labelledby={`${fieldId}-expires-17-label`}
+                            aria-required={true}
+                            aria-invalid={Boolean(fieldError17)}
+                            aria-describedby={
+                              fieldError17 ? `${fieldId}-expires-17-message` : undefined
+                            }
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            name={field.name}
+                            onBlur={field.handleBlur}
+                          />
+                          {fieldError17 ? (
+                            <FieldError id={`${fieldId}-expires-17-message`}>
+                              {fieldError17}
+                            </FieldError>
+                          ) : null}
+                        </Field>
+                      );
+                    }}
+                  </form.Field>
+                </Grid>
+                <form.Field name="conditions">
+                  {(field) => {
+                    const fieldError18 =
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined;
+                    return (
+                      <Field data-invalid={Boolean(fieldError18)}>
+                        <FieldLabel
+                          id={`${fieldId}-conditions-of-authorization-18-label`}
+                          htmlFor={`${fieldId}-conditions-of-authorization-18`}
+                        >
+                          {"Conditions of authorization"}
+                        </FieldLabel>
+                        <Textarea
+                          id={`${fieldId}-conditions-of-authorization-18`}
+                          aria-labelledby={`${fieldId}-conditions-of-authorization-18-label`}
+                          aria-invalid={Boolean(fieldError18)}
+                          aria-describedby={
+                            fieldError18
+                              ? `${fieldId}-conditions-of-authorization-18-message`
+                              : undefined
+                          }
+                          rows={4}
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           name={field.name}
                           onBlur={field.handleBlur}
                         />
+                        {fieldError18 ? (
+                          <FieldError id={`${fieldId}-conditions-of-authorization-18-message`}>
+                            {fieldError18}
+                          </FieldError>
+                        ) : null}
                       </Field>
-                    )}
-                  </form.Field>
-                </Grid>
-                <form.Field name="conditions">
-                  {(field) => (
-                    <Field
-                      label="Conditions of authorization"
-                      error={
-                        field.state.meta.isTouched && !field.state.meta.isValid
-                          ? [...new Set(field.state.meta.errors)].join(" ")
-                          : undefined
-                      }
-                    >
-                      <Textarea
-                        rows={4}
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        name={field.name}
-                        onBlur={field.handleBlur}
-                      />
-                    </Field>
-                  )}
+                    );
+                  }}
                 </form.Field>
               </Stack>
             </Box>

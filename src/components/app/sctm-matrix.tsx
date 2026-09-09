@@ -1,9 +1,19 @@
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Box,
+  Button,
+  Empty,
+  Section,
+  Toolbar,
+} from "@ledger/design-system";
 import { useMemo, useState } from "react";
-
 import { SctmFamilyTable } from "@/components/app/sctm";
 import { controlStatuses, type ControlStatus } from "@/lib/control-matrix";
 import { groupByFamily, useControlText, useSctm, type Determination } from "@/lib/sctm";
-import { Box, Button, Empty, NativeSelect, Section, Toolbar } from "@ledger/design-system";
 
 /**
  * The program's four-value control vocabulary against the SCTM's.
@@ -116,6 +126,21 @@ export function SctmMatrixSection({
     );
   }
 
+  const familyItems = [
+    { value: "All", label: "All families" },
+    ...families.map((f) => ({
+      value: f.id,
+      label: (
+        <>
+          {f.id}— {f.name}
+        </>
+      ),
+    })),
+  ];
+  const statusItems = [
+    { value: "All", label: "All determinations" },
+    ...controlStatuses.map((s) => ({ value: s, label: s })),
+  ];
   return (
     <Section
       title="Traceability matrix"
@@ -140,34 +165,54 @@ export function SctmMatrixSection({
           </Button>
         }
       >
-        <NativeSelect
-          aria-label="Control family"
+        <Select<string>
+          items={familyItems}
           value={family}
-          onChange={(e) => onFamily(e.target.value)}
-          size="small"
-          style={{ width: 188, maxWidth: "100%" }}
+          onValueChange={(value) => {
+            if (value === null) return;
+            return onFamily(value);
+          }}
         >
-          <option value="All">All families</option>
-          {families.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.id} — {f.name}
-            </option>
-          ))}
-        </NativeSelect>
-        <NativeSelect
-          aria-label="Control determination"
+          <SelectTrigger
+            className="w-full"
+            aria-label="Control family"
+            size="sm"
+            style={{ width: 188, maxWidth: "100%" }}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {familyItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select<string>
+          items={statusItems}
           value={status}
-          onChange={(e) => onStatus(e.target.value as ControlStatus | "All")}
-          size="small"
-          style={{ width: 176, maxWidth: "100%" }}
+          onValueChange={(value) => {
+            if (value === null) return;
+            return onStatus(value as ControlStatus | "All");
+          }}
         >
-          <option value="All">All determinations</option>
-          {controlStatuses.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </NativeSelect>
+          <SelectTrigger
+            className="w-full"
+            aria-label="Control determination"
+            size="sm"
+            style={{ width: 176, maxWidth: "100%" }}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {statusItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Toolbar>
 
       {groups.length === 0 ? (

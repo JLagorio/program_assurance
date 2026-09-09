@@ -1,10 +1,9 @@
-import { useMemo, useState } from "react";
-
-import { tailoringSources, type TailoringDecision, type TailoringSource } from "@/lib/control-set";
-import { currentSession } from "@/lib/control-work";
-import { datasetToday } from "@/lib/dataset-clock";
-import { nistControls } from "@/lib/nist-catalog";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Badge,
   Box,
   Button,
@@ -13,11 +12,15 @@ import {
   Id,
   Indicator,
   Inline,
-  NativeSelect,
   PickerSheet,
   Table,
   Text,
 } from "@ledger/design-system";
+import { useMemo, useState } from "react";
+import { tailoringSources, type TailoringDecision, type TailoringSource } from "@/lib/control-set";
+import { currentSession } from "@/lib/control-work";
+import { datasetToday } from "@/lib/dataset-clock";
+import { nistControls } from "@/lib/nist-catalog";
 
 const shown = 150;
 
@@ -199,6 +202,10 @@ export function TailorControlsSheet({
       </PickerSheet>
     );
 
+  const undefinedItems = [
+    { value: "", label: "Source" },
+    ...tailoringSources.map((s) => ({ value: s.value, label: s.label })),
+  ];
   return (
     <PickerSheet
       open={open}
@@ -213,12 +220,12 @@ export function TailorControlsSheet({
             Apply to all
           </Text>
           <Box style={{ width: 200, maxWidth: "100%" }}>
-            <NativeSelect
-              aria-label="Source for all"
-              size="small"
+            <Select<string>
+              items={undefinedItems}
               defaultValue=""
-              onChange={(e) => {
-                const source = e.target.value as TailoringSource;
+              onValueChange={(value) => {
+                if (value === null) return;
+                const source = value as TailoringSource;
                 if (source)
                   setFields((f) =>
                     Object.fromEntries(
@@ -227,13 +234,17 @@ export function TailorControlsSheet({
                   );
               }}
             >
-              <option value="">Source</option>
-              {tailoringSources.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </NativeSelect>
+              <SelectTrigger className="w-full" aria-label="Source for all" size="sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {undefinedItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Box>
         </Inline>
       }

@@ -1,6 +1,9 @@
 import type { Decorator, Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import {
+  AlertTitle,
+  Dot,
+  AlertDescription,
   Alert,
   AlertDialog,
   AlertDialogAction,
@@ -354,8 +357,16 @@ export const Dont: Story = {
       <Pair
         do={
           <Box className="w-layout-list">
-            <Alert tone="warning" title="Assessment overdue">
-              AC-2 was due on 12 Aug. Record the assessment or move the date.
+            <Alert tone="warning" role="status">
+              <AlertTitle>
+                <span aria-hidden="true" className="flex h-250 shrink-0 items-center">
+                  <Dot tone={"warning"} />
+                </span>
+                <span className="min-w-0 break-words">{"Assessment overdue"}</span>
+              </AlertTitle>
+              <AlertDescription>
+                AC-2 was due on 12 Aug. Record the assessment or move the date.
+              </AlertDescription>
             </Alert>
           </Box>
         }

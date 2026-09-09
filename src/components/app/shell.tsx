@@ -1,4 +1,7 @@
 import {
+  avatarHue,
+  AvatarFallback,
+  avatarInitials,
   Avatar,
   Box,
   Button,
@@ -14,7 +17,6 @@ import {
   Shell as DsShell,
   Stack,
 } from "@ledger/design-system";
-
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Archive,
@@ -37,7 +39,6 @@ import {
   Users,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
-
 import { currentSession, useWorkVersion } from "@/lib/control-work";
 import { findings } from "@/lib/findings";
 import { programs, risks } from "@/lib/grc-data";
@@ -175,7 +176,17 @@ export function Shell({ children }: { children: ReactNode }) {
         </DsShell.SideNav.Body>
         <DsShell.SideNav.Footer>
           <DsShell.Profile
-            avatar={<Avatar name={session.name} size="small" />}
+            avatar={
+              <Avatar
+                size="small"
+                role="img"
+                aria-label={session.name}
+                hue={avatarHue(session.name)}
+                title={session.name}
+              >
+                <AvatarFallback>{avatarInitials(session.name, 2)}</AvatarFallback>
+              </Avatar>
+            }
             name={session.name}
             role={session.role}
             onClick={() => setSettingsOpen(true)}
