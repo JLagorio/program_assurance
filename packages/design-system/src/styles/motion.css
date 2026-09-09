@@ -70,21 +70,21 @@
     transform: translateY(var(--ds-space-075));
   }
 }
-/* Radix sets the content's measured height as a variable on the element itself: one name for an
-   Accordion, another for a Collapsible, so the keyframe reads whichever is there. */
+/* Disclosure primitives expose their measured height as a custom property on the panel. Base UI
+   uses --accordion-panel-height; the remaining Radix Collapsible uses its Radix property. */
 @keyframes ds-collapse-open {
   from {
     height: 0;
     opacity: 0;
   }
   to {
-    height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height));
+    height: var(--accordion-panel-height, var(--radix-collapsible-content-height));
     opacity: 1;
   }
 }
 @keyframes ds-collapse-close {
   from {
-    height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height));
+    height: var(--accordion-panel-height, var(--radix-collapsible-content-height));
     opacity: 1;
   }
   to {

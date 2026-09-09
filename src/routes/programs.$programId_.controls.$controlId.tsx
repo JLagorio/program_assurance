@@ -30,6 +30,9 @@ import { Shell } from "@/components/app/shell";
 import { TasksSection } from "@/components/app/tasks-section";
 import {
   Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
   Badge,
   Box,
   BreadcrumbItem,
@@ -341,66 +344,46 @@ function ControlRecord() {
                 {detail.statement.length ? (
                   <StatementList items={detail.statement} />
                 ) : (
-                  <p className="font-body-small text-subtle">None published.</p>
-                )}
+        <Accordion multiple className="border-b border-default pt-050">
+          <AccordionItem value="control-statement" className="border-t border-default border-t-0">
+            <AccordionTrigger>{"Control statement"}</AccordionTrigger>
+            <AccordionContent>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem className="border-t border-default" value="assessment-objectives">
+            <AccordionTrigger>
+              {"Assessment objectives"}{" "}
+              {detail.objectives.length > 0 ? <Count value={detail.objectives.length} /> : null}
+            </AccordionTrigger>
+            <AccordionContent>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem className="border-t border-default" value="parameters">
+            <AccordionTrigger>
+              {"Parameters"}{" "}
+              {detail.params.length > 0 ? <Count value={detail.params.length} /> : null}
+            </AccordionTrigger>
+            <AccordionContent>
               </Box>
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item className="border-t border-default" value="assessment-objectives">
-            <Accordion.Header asChild>
-              <h3>
-                <Accordion.Trigger>
-                  {"Assessment objectives"}{" "}
-                  {detail.objectives.length > 0 ? <Count value={detail.objectives.length} /> : null}
-                </Accordion.Trigger>
-              </h3>
-            </Accordion.Header>
-            <Accordion.Content>
-              <Box paddingBlockEnd="space.200">
-                <ObjectiveList items={detail.objectives} />
-              </Box>
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item className="border-t border-default" value="parameters">
-            <Accordion.Header asChild>
-              <h3>
-                <Accordion.Trigger>
-                  {"Parameters"}{" "}
-                  {detail.params.length > 0 ? <Count value={detail.params.length} /> : null}
-                </Accordion.Trigger>
-              </h3>
-            </Accordion.Header>
-            <Accordion.Content>
-              <Box paddingBlockEnd="space.200">
-                <ParameterTable params={detail.params} />
-              </Box>
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item className="border-t border-default" value="assessment-methods">
-            <Accordion.Header asChild>
-              <h3>
-                <Accordion.Trigger>
-                  {"Assessment methods"}{" "}
-                  {detail.methods.length > 0 ? <Count value={detail.methods.length} /> : null}
-                </Accordion.Trigger>
-              </h3>
-            </Accordion.Header>
-            <Accordion.Content>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem className="border-t border-default" value="assessment-methods">
+            <AccordionTrigger>
+              {"Assessment methods"}{" "}
+              {detail.methods.length > 0 ? <Count value={detail.methods.length} /> : null}
+            </AccordionTrigger>
+            <AccordionContent>
               <Box paddingBlockEnd="space.200">
                 <MethodList methods={detail.methods} />
               </Box>
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item className="border-t border-default" value="discussion-and-references">
-            <Accordion.Header asChild>
-              <h3>
-                <Accordion.Trigger>
-                  {"Discussion and references"}{" "}
-                  {detail.discussion.length > 0 ? <Count value={detail.discussion.length} /> : null}
-                </Accordion.Trigger>
-              </h3>
-            </Accordion.Header>
-            <Accordion.Content>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem className="border-t border-default" value="discussion-and-references">
+            <AccordionTrigger>
+              {"Discussion and references"}{" "}
+              {detail.discussion.length > 0 ? <Count value={detail.discussion.length} /> : null}
+            </AccordionTrigger>
+            <AccordionContent>
               <Box paddingBlockEnd="space.200">
                 <Stack className="font-body-small text-subtle" space="space.100">
                   {detail.discussion.map((p, i) => (
@@ -411,8 +394,8 @@ function ControlRecord() {
                   <ReferenceList references={detail.references} />
                 </Box>
               </Box>
-            </Accordion.Content>
-          </Accordion.Item>
+            </AccordionContent>
+          </AccordionItem>
         </Accordion>
       </Inspector.Group>
     </>

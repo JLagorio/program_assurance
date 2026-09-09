@@ -1,76 +1,37 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-import { Accordion } from "../../components";
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
 import * as Stories from "./Accordion.stories";
 
 <Meta of={Stories} />
 
 # Accordion
 
-A coordinated set of expandable sections. Experimental; owner: Ledger maintainers. Use when related sections share an open-selection policy. Use Collapsible for one independent toggle. Compose titles, counts and actions with the parts below; no extra section component is required.
+A coordinated set of expandable sections, implemented with the shadcn Base UI composition. Use Collapsible for one independent disclosure.
 
 ## Anatomy
 
-`Accordion` owns state. `Accordion.Item` owns an explicit, stable `value`. `Accordion.Header` supplies the heading; `Accordion.Trigger` is its button; `Accordion.Content` is its labelled region. Keep the Header even when customizing the Trigger.
+Compose the flat `Accordion`, `AccordionItem`, `AccordionTrigger`, and `AccordionContent` exports. Each item needs a stable value; values are always arrays, and `multiple` allows more than one open item.
 
 ```tsx
-<Accordion type="single" collapsible defaultValue="delivery">
-  <Accordion.Item value="delivery">
-    <Accordion.Header>
-      <Accordion.Trigger>What delivery options are available?</Accordion.Trigger>
-    </Accordion.Header>
-    <Accordion.Content>Delivery information.</Accordion.Content>
-  </Accordion.Item>
+<Accordion defaultValue={["delivery"]}>
+  <AccordionItem value="delivery">
+    <AccordionTrigger>What delivery options are available?</AccordionTrigger>
+    <AccordionContent>Delivery information.</AccordionContent>
+  </AccordionItem>
 </Accordion>
 ```
 
-## Variants
+## Variants and states
 
-`type="single"` uses a string and permits one open item. Add `collapsible` to allow closing it; without that flag the open item stays open. `type="multiple"` uses a string array and permits any number. There is no implicit mode. Add borders or a Card outside the component; the root and items impose no surface treatment.
+<Canvas of={Stories.Examples} />
 
-<Canvas of={Stories.AccordionMatrix} />
-
-## Sizes
-
-One token-based trigger size. Labels wrap; the root takes the available width. Body spacing belongs to the caller. The examples include a long label and logical alignment for RTL.
-
-## States
-
-Controlled: `value` and `onValueChange`. Uncontrolled: `defaultValue`. With neither, all sections start closed. Root `disabled` disables the set; item `disabled` disables one section. Hover, visible focus, expanded state and reduced motion are supported.
+Use `value` with `onValueChange` for controlled state and `defaultValue` otherwise. Use `disabled` on the root or an item. `keepMounted` preserves panel state while closed; `hiddenUntilFound` additionally lets browser find-in-page reveal closed content.
 
 <Canvas of={Stories.ControlledAndRetained} />
 
-## Modifiers
-
-- Set stable item values independently of labels, translations and array positions. Fragments and component wrappers do not affect initial selection.
-- `Header asChild` accepts the appropriate heading, normally h2–h6. Default: h3.
-- `Trigger indicator` replaces the decorative chevron; `null` removes it. With `asChild`, supply the complete trigger content in one ref-capable button; the default chevron is not injected.
-- `Content forceMount` keeps child state alive. A closed retained panel uses `display: none`, so its controls stay out of the tab order and accessibility tree. Retained panels close immediately; ordinary panels use the exit animation before unmounting.
-- DOM attributes, events and refs target the named part. Root direction follows LedgerProvider unless `dir` overrides it.
-
-## Content
-
-Use a descriptive label, including questions when appropriate. Keep actions beside the heading, outside its trigger. For many simultaneously open panels, consider separate page sections to avoid a crowded landmark list. Collapsed content is unavailable to browser find; `forceMount` is state retention, not search support. Base UI's `hiddenUntilFound` is not implemented by this Radix adapter.
-
-## Style
-
-Ledger body typography, small radius, space.100 trigger padding/gap, neutral hover, focused outline and small decorative indicator. Content uses medium enter/exit collapse motion; reduced-motion preferences remove animation and indicator transitions. Use logical spacing and `text-start`.
-
 ## Accessibility
 
-Native buttons provide Enter/Space and normal Tab order. Radix additionally supports Up/Down and Home/End between enabled triggers. Headers preserve the document outline. Each content region is associated with its trigger. Disabled items are skipped by arrow navigation. A nested Collapsible owns independent boolean state. When programmatically closing content containing focus, callers must move focus to a visible control first; the root does not infer the intended destination.
-
-<Canvas of={Stories.Composition} />
-
-## Props
-
-<ArgTypes of={Accordion} />
-
-The root props are a discriminated union: a multiple root cannot receive a string value or single-only `collapsible`. Item `value` is required. Trigger refs target HTMLButtonElement; root, item and content refs target HTMLDivElement. `asChild` consumers must forward injected attributes, events and refs to a semantically appropriate element.
+Triggers are native buttons with Enter, Space, and normal Tab behavior. Base UI follows current APG guidance and does not add arrow-key roving focus. The trigger wrapper supplies the heading and associates every panel with its trigger.
 
 ## Related
 
-[Collapsible](?path=/docs/components-collapsible--docs), [shadcn Accordion](https://ui.shadcn.com/docs/components/base/accordion), and [Radix Accordion](https://www.radix-ui.com/primitives/docs/components/accordion).
-
-## Don't
-
-Do not derive selection by inspecting children or use translated labels as identity. Do not nest a button or link inside the trigger. Do not apply `open` to an item: state belongs on the root. Do not hide required work merely to shorten a page.
+[Collapsible](?path=/docs/components-collapsible--docs), [shadcn Accordion](https://ui.shadcn.com/docs/components/base/accordion), and [Base UI Accordion](https://base-ui.com/react/components/accordion).

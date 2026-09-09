@@ -155,9 +155,11 @@ export { Dialog, type DialogProps } from "./dialog";
 export { AlertDialog, type AlertDialogProps } from "./alert-dialog";
 export {
   Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
   type AccordionProps,
   type AccordionItemProps,
-  type AccordionHeaderProps,
   type AccordionTriggerProps,
   type AccordionContentProps,
 } from "./accordion";

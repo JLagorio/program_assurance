@@ -33,6 +33,9 @@ import {
   Attachment,
   Alert,
   Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
   Collapsible,
   Button,
   IconButton,
@@ -266,17 +269,11 @@ const disclosures = (
     <Accordion
       type="multiple"
       defaultValue={["stable"]}
-      onValueChange={(values) => values.map(String)}
-    >
-      <Accordion.Item value="stable">
-        <Accordion.Header>
-          <Accordion.Trigger>Details</Accordion.Trigger>
-        </Accordion.Header>
-        <Accordion.Content forceMount>Retained</Accordion.Content>
-      </Accordion.Item>
-    </Accordion>
-    <Collapsible defaultOpen>
-      <Collapsible.Trigger>More</Collapsible.Trigger>
+    <Accordion multiple defaultValue={["stable"]} onValueChange={(values) => values.map(String)}>
+      <AccordionItem value="stable">
+        <AccordionTrigger>Details</AccordionTrigger>
+        <AccordionContent keepMounted>Retained</AccordionContent>
+      </AccordionItem>
       <Collapsible.Content>Content</Collapsible.Content>
     </Collapsible>
   </>
