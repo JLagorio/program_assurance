@@ -14,6 +14,7 @@ export default mergeConfig(
   defineConfig({
     optimizeDeps: {
       include: [
+        "@base-ui/react/accordion",
         "@base-ui/react/checkbox-group",
         "@base-ui/react/menu",
         "@base-ui/react/select",

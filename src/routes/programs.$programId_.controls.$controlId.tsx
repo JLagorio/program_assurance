@@ -332,22 +332,17 @@ function ControlRecord() {
       </Inspector.Group>
 
       <Inspector.Group title="Catalog">
-        <Accordion type="multiple" className="border-b border-default pt-050">
-          <Accordion.Item value="control-statement" className="border-t border-default border-t-0">
-            <Accordion.Header asChild>
-              <h3>
-                <Accordion.Trigger>{"Control statement"}</Accordion.Trigger>
-              </h3>
-            </Accordion.Header>
-            <Accordion.Content>
-              <Box paddingBlockEnd="space.200">
-                {detail.statement.length ? (
-                  <StatementList items={detail.statement} />
-                ) : (
         <Accordion multiple className="border-b border-default pt-050">
           <AccordionItem value="control-statement" className="border-t border-default border-t-0">
             <AccordionTrigger>{"Control statement"}</AccordionTrigger>
             <AccordionContent>
+              <Box paddingBlockEnd="space.200">
+                {detail.statement.length ? (
+                  <StatementList items={detail.statement} />
+                ) : (
+                  <p className="font-body-small text-subtle">None published.</p>
+                )}
+              </Box>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem className="border-t border-default" value="assessment-objectives">
@@ -356,6 +351,9 @@ function ControlRecord() {
               {detail.objectives.length > 0 ? <Count value={detail.objectives.length} /> : null}
             </AccordionTrigger>
             <AccordionContent>
+              <Box paddingBlockEnd="space.200">
+                <ObjectiveList items={detail.objectives} />
+              </Box>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem className="border-t border-default" value="parameters">
@@ -364,6 +362,8 @@ function ControlRecord() {
               {detail.params.length > 0 ? <Count value={detail.params.length} /> : null}
             </AccordionTrigger>
             <AccordionContent>
+              <Box paddingBlockEnd="space.200">
+                <ParameterTable params={detail.params} />
               </Box>
             </AccordionContent>
           </AccordionItem>

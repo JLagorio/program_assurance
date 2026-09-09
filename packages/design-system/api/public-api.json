@@ -2256,40 +2256,28 @@
         "declaration": "export type LegacyCollapsibleProps = {\n    title: ReactNode;\n    value?: string | undefined;\n    count?: number | string | null | undefined;\n    defaultOpen?: boolean | undefined;\n    open?: boolean | undefined;\n    onOpenChange?: ((open: boolean) => void) | undefined;\n    headingLevel?: DisclosureHeading | undefined;\n    disabled?: boolean | undefined;\n    inset?: boolean | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
       }
     ],
-    "\"src/components/accordion\".Accordion": [
-      {
-        "source": "src/components/accordion.d.ts",
-        "declaration": "Accordion: typeof AccordionRoot & {\n    Item: typeof AccordionItem;\n    Header: typeof AccordionHeader;\n    Trigger: typeof AccordionTrigger;\n    Content: typeof AccordionContent;\n}"
-      }
-    ],
     "\"src/components/accordion\".AccordionContentProps": [
       {
         "source": "src/components/accordion.d.ts",
-        "declaration": "export type AccordionContentProps = ComponentProps<typeof Primitive.Content>;"
-      }
-    ],
-    "\"src/components/accordion\".AccordionHeaderProps": [
-      {
-        "source": "src/components/accordion.d.ts",
-        "declaration": "export type AccordionHeaderProps = ComponentProps<typeof Primitive.Header>;"
+        "declaration": "export type AccordionContentProps = AccordionPrimitive.Panel.Props;"
       }
     ],
     "\"src/components/accordion\".AccordionItemProps": [
       {
         "source": "src/components/accordion.d.ts",
-        "declaration": "export type AccordionItemProps = ComponentProps<typeof Primitive.Item>;"
+        "declaration": "export type AccordionItemProps = AccordionPrimitive.Item.Props;"
       }
     ],
     "\"src/components/accordion\".AccordionProps": [
       {
         "source": "src/components/accordion.d.ts",
-        "declaration": "export type AccordionProps = ComponentProps<typeof Primitive.Root>;"
+        "declaration": "export type AccordionProps = AccordionPrimitive.Root.Props;"
       }
     ],
     "\"src/components/accordion\".AccordionTriggerProps": [
       {
         "source": "src/components/accordion.d.ts",
-        "declaration": "export type AccordionTriggerProps = ComponentProps<typeof Primitive.Trigger> & {\n    indicator?: ReactNode;\n};"
+        "declaration": "export type AccordionTriggerProps = AccordionPrimitive.Trigger.Props;"
       }
     ],
     "\"src/components/alert-dialog\".AlertDialog": [
@@ -2312,13 +2300,25 @@
     ],
     "\"src/components/alert\".AlertActionProps": [
       {
-        "declaration": "export type AccordionContentProps = AccordionPrimitive.Panel.Props;"
-        "declaration": "export type AccordionItemProps = AccordionPrimitive.Item.Props;"
+        "source": "src/components/alert.d.ts",
+        "declaration": "export type AlertActionProps = ComponentProps<\"div\">;"
       }
     ],
-        "declaration": "export type AccordionProps = AccordionPrimitive.Root.Props;"
+    "\"src/components/alert\".AlertDescriptionProps": [
       {
-        "declaration": "export type AccordionTriggerProps = AccordionPrimitive.Trigger.Props;"
+        "source": "src/components/alert.d.ts",
+        "declaration": "export type AlertDescriptionProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/alert\".AlertProps": [
+      {
+        "source": "src/components/alert.d.ts",
+        "declaration": "export type AlertProps = Omit<ComponentProps<\"div\">, \"title\"> & {\n    tone?: Tone | undefined;\n    title?: ReactNode;\n    action?: ReactNode;\n    icon?: ReactNode;\n};"
+      }
+    ],
+    "\"src/components/alert\".AlertTitleProps": [
+      {
+        "source": "src/components/alert.d.ts",
         "declaration": "export type AlertTitleProps = ComponentProps<\"div\">;"
       }
     ],
@@ -5730,34 +5730,28 @@
         "declaration": "declare function LegacyCollapsibleRoot(props: LegacyCollapsibleProps): import(\"react\").JSX.Element;"
       }
     ],
+    "src/components/accordion.d.ts#Accordion": [
+      {
+        "source": "src/components/accordion.d.ts",
+        "declaration": "declare function Accordion({ className, ...props }: AccordionProps): import(\"react\").JSX.Element;"
+      }
+    ],
     "src/components/accordion.d.ts#AccordionContent": [
       {
         "source": "src/components/accordion.d.ts",
-        "declaration": "declare function AccordionContent({ className, forceMount, ...props }: AccordionContentProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/accordion.d.ts#AccordionHeader": [
-      {
-        "source": "src/components/accordion.d.ts",
-        "declaration": "declare function AccordionHeader({ className, ...props }: AccordionHeaderProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function AccordionContent({ className, children, ...props }: AccordionContentProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/accordion.d.ts#AccordionItem": [
       {
         "source": "src/components/accordion.d.ts",
-        "declaration": "declare function AccordionItem(props: AccordionItemProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/accordion.d.ts#AccordionRoot": [
-      {
-        "source": "src/components/accordion.d.ts",
-        "declaration": "declare function AccordionRoot({ dir, ...props }: AccordionProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function AccordionItem({ className, ...props }: AccordionItemProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/accordion.d.ts#AccordionTrigger": [
       {
         "source": "src/components/accordion.d.ts",
-        "declaration": "declare function AccordionTrigger({ className, children, indicator, asChild, ...props }: AccordionTriggerProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function AccordionTrigger({ className, children, ...props }: AccordionTriggerProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/alert.d.ts#AlertAction": [
@@ -5936,17 +5930,23 @@
     ],
     "src/components/breadcrumb.d.ts#BreadcrumbItem": [
       {
-    "src/components/accordion.d.ts#Accordion": [
-        "declaration": "declare function Accordion({ className, ...props }: AccordionProps): import(\"react\").JSX.Element;"
+        "source": "src/components/breadcrumb.d.ts",
+        "declaration": "declare function BreadcrumbItem({ className, ...props }: BreadcrumbItemProps): React.JSX.Element;"
       }
     ],
-    "src/components/accordion.d.ts#AccordionContent": [
+    "src/components/breadcrumb.d.ts#BreadcrumbLink": [
       {
-        "declaration": "declare function AccordionContent({ className, children, ...props }: AccordionContentProps): import(\"react\").JSX.Element;"
-        "declaration": "declare function AccordionItem({ className, ...props }: AccordionItemProps): import(\"react\").JSX.Element;"
+        "source": "src/components/breadcrumb.d.ts",
+        "declaration": "declare function BreadcrumbLink({ className, render, ...props }: useRender.ComponentProps<\"a\">): React.ReactElement<unknown, string | React.JSXElementConstructor<any>>;"
       }
     ],
-        "declaration": "declare function AccordionTrigger({ className, children, ...props }: AccordionTriggerProps): import(\"react\").JSX.Element;"
+    "src/components/breadcrumb.d.ts#BreadcrumbList": [
+      {
+        "source": "src/components/breadcrumb.d.ts",
+        "declaration": "declare function BreadcrumbList({ className, ...props }: React.ComponentProps<\"ol\">): React.JSX.Element;"
+      }
+    ],
+    "src/components/breadcrumb.d.ts#BreadcrumbPage": [
       {
         "source": "src/components/breadcrumb.d.ts",
         "declaration": "declare function BreadcrumbPage({ className, ...props }: React.ComponentProps<\"span\">): React.JSX.Element;"
@@ -6746,13 +6746,12 @@
     ]
   },
   "dependencyContracts": {
-    "@base-ui/react": "1f6fad0ef8446c6998d9896720f82d17d0601da0bdd8c6836b84342e101d784d",
+    "@base-ui/react": "568423787e1a07f68cdfbee88d7bd7541af8030c974a77cb5ac21a75181d7585",
     "@base-ui/utils": "a71988b4234a15dd1dcecb2aaaac6ab8c6472d75cd26993efe45671a8247777a",
     "@floating-ui/core": "581cec84f04c06ef6908cd1af8471390d1d96893d63abdaf0391ef43ae0a1815",
     "@floating-ui/dom": "82afab4c16f6bedc49dfed4eec228766546f4e0a8aed010cab33ad05aeed4568",
     "@floating-ui/react-dom": "023a762c387806bf19f0c67764527cca1afc5ae1c288544112949a2bf9094ab7",
     "@floating-ui/utils": "34c80a6d180ad13d73b6b65a910527df0bac499721975343ae80380eea649211",
-    "@radix-ui/react-accordion": "1303f3842225face5ab96006ebf5d44ef687ec6e89b1cdce2734018f795936c5",
     "@radix-ui/react-collapsible": "ca701be9348bda6a7fb90802c60d48fc17266f2db61ff5f600f6a8dd2e87101f",
     "@radix-ui/react-dialog": "82a48d5e74f33dc2aef6de95ede036bd198b55c6c3ae7a9549226e5bd7c16d9c",
     "@radix-ui/react-primitive": "63d3234db546b015692a041ebca64565f13927070357207f513c50568fb47110",
@@ -6768,5 +6767,3 @@
     "sonner": "794ba26cf92cf6d76cc31fd7dd57e2394acab1b719312a8fbc87355510bdb73d"
   }
 }
-    "@base-ui/react": "568423787e1a07f68cdfbee88d7bd7541af8030c974a77cb5ac21a75181d7585",
-    "sonner": "fb6be00883e8ee9535145f6da73492b741e84ed0da4a1d602e921021f407d92e"

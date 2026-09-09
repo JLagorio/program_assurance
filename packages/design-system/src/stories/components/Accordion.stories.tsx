@@ -65,7 +65,11 @@ export const Examples: Story = {
     await expect(first).toHaveAttribute("aria-expanded", "false");
     await expect(last).toHaveAttribute("aria-expanded", "true");
     await expect(last.closest("h3")?.nextElementSibling).toHaveAttribute("data-open");
-    await expect(canvas.getByRole("button", { name: "Unavailable section" })).toBeDisabled();
+    const disabled = canvas.getByRole("button", { name: "Unavailable section" });
+    await expect(disabled).toHaveAttribute("aria-disabled", "true");
+    disabled.focus();
+    await userEvent.keyboard("{Enter} ");
+    await expect(disabled).toHaveAttribute("aria-expanded", "false");
     await userEvent.click(canvas.getByRole("button", { name: "Alpha section" }));
     await expect(canvas.getByRole("button", { name: "Beta section" })).toHaveAttribute(
       "aria-expanded",
@@ -76,7 +80,7 @@ export const Examples: Story = {
 
 function ControlledExample() {
   const [value, setValue] = useState(["record-a"]);
-  const trigger = useRef<HTMLElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
   return (
     <Stack space="space.200">
       <Button onClick={() => setValue(["record-b"])}>Open second externally</Button>
@@ -100,13 +104,13 @@ function ControlledExample() {
 export const ControlledAndRetained: Story = {
   render: () => <ControlledExample />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
+    const { expect, userEvent, waitFor, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const input = canvas.getByRole("textbox", { name: "Draft record-a" });
     await userEvent.clear(input);
     await userEvent.type(input, "Unsaved draft");
     await userEvent.click(canvas.getByRole("button", { name: "Open second externally" }));
-    await expect(input).not.toBeVisible();
+    await waitFor(() => expect(input).not.toBeVisible());
     await userEvent.click(canvas.getByRole("button", { name: "Record A" }));
     await expect(input).toHaveValue("Unsaved draft");
     await userEvent.click(canvas.getByRole("button", { name: "Focus first by ref" }));
