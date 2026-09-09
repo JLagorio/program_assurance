@@ -21,6 +21,9 @@ import {
   Count,
   TextLink,
   Toolbar,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -301,10 +304,12 @@ function ProgramIngestion() {
           {!scan ? (
             <Section title="Automated ingestion">
               <Box paddingBlockStart="space.200">
-                <Empty
-                  title="Nothing ingested"
-                  description={`${program.id} has no delivered checklists, SCAP results, ACAS exports, SAST reports, SBOMs or firmware reports. Ingestion begins when a run is filed against a component in the composition.`}
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{"Nothing ingested"}</EmptyTitle>
+                    <EmptyDescription>{`${program.id} has no delivered checklists, SCAP results, ACAS exports, SAST reports, SBOMs or firmware reports. Ingestion begins when a run is filed against a component in the composition.`}</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </Box>
             </Section>
           ) : null}

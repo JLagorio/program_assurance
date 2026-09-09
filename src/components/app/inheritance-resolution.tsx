@@ -17,6 +17,9 @@ import {
   Stat,
   Table,
   type Tone,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import type { ReactNode } from "react";
 
@@ -135,10 +138,16 @@ export function ResolutionTable({
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="Nothing inherited"
-          description="No reusable component lists this program as a consumer, so every control is system-specific and assessed here."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Nothing inherited"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No reusable component lists this program as a consumer, so every control is system-specific and assessed here."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -293,10 +302,16 @@ export function ConflictList({
   if (items.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No provider competed for a control"
-          description="Every inherited control on this system is offered by exactly one component, so the CCP tier ladder had nothing to deconflict."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No provider competed for a control"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "Every inherited control on this system is offered by exactly one component, so the CCP tier ladder had nothing to deconflict."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -357,10 +372,16 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="Nothing owed on an inherited control"
-          description="Every resolved control is fully inherited: the provider implements it end to end and the consuming system carries no residual obligation."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Nothing owed on an inherited control"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "Every resolved control is fully inherited: the provider implements it end to end and the consuming system carries no residual obligation."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -439,10 +460,16 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="Every offer reaches this system"
-          description="No provider scoped an offer to inventory this program does not carry, so nothing was excluded on applicability."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Every offer reaches this system"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No provider scoped an offer to inventory this program does not carry, so nothing was excluded on applicability."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }

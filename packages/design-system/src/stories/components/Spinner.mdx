@@ -1,5 +1,4 @@
-import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
 import { Spinner } from "../../components";
 import * as Stories from "./Spinner.stories";
 
@@ -7,88 +6,42 @@ import * as Stories from "./Spinner.stories";
 
 # Spinner
 
-Something is in flight: a save, an export, a refresh, a section that is empty while it loads. A turning arc in three sizes on the icon scale, subtle by default, inverse on a bold fill, and a delay so a fast load never flashes one. A page or a section with a shape to hold is a [Skeleton](?path=/docs/components-skeleton--docs); a button that is working shows its own, through `isLoading`.
-
-<Canvas of={Stories.SpinnerMatrix} />
+An indeterminate wait such as saving, exporting or refreshing. Use Skeleton when the loading content has a known shape.
 
 ## Anatomy
 
-| Part | What it is                                                                                            |
-| ---- | ----------------------------------------------------------------------------------------------------- |
-| Arc  | A 12, 16 or 24px arc turning once a second, in `color.icon.subtle`, or inverse, or the text's colour. |
-| Name | `label`: what the wait is, for a screen reader. "Loading" unless the wait has a better word.          |
+Spinner renders Lucide's Loader2 SVG with `data-slot="spinner"`. Native SVG attributes, events and refs reach that element.
 
-## Variants
+<Canvas of={Stories.Playground} />
 
-| Appearance | Use                                                                                  |
-| ---------- | ------------------------------------------------------------------------------------ |
-| `subtle`   | The default, on a surface: beside a word, in a row, in a section.                    |
-| `inverse`  | On a bold fill: a primary button, a banner.                                          |
-| `inherit`  | The text colour around it: inside a Button, which passes it; inside a coloured word. |
+## Variants and states
 
-Not built, and why: an overlay with a blanket, because a section that is loading is a Skeleton, and a wait that must block the page is a Dialog's `pending`; a determinate spinner, because a wait with a known end is a Progress; a spinner larger than 24px, because nothing here is one spinner on an empty page.
+Sizes are small (12px, default), medium (16px) and large (24px). Appearance is subtle, inverse on a bold fill, or inherit for the surrounding text color.
 
-## Sizes
+<Canvas of={Stories.SizesAndAppearance} />
 
-| Size     | Arc  | Where                                                                       |
-| -------- | ---- | --------------------------------------------------------------------------- |
-| `small`  | 12px | The default: beside a word, in a small or medium button, in a table cell.   |
-| `medium` | 16px | On its own in a row or a toolbar, in an icon button, in a Chart's refresh.  |
-| `large`  | 24px | Centred in a section that is empty while it loads and has no shape to hold. |
+`delay` waits before revealing the spinner. Changing a pending delay restarts the timer; once visible, it stays visible until unmounted. A new operation can reset it with a new key. Non-positive delays reveal immediately.
 
-The icon scale, so a spinner takes an icon's place at the same size: a Button swaps its icon for one.
-
-<Canvas of={Stories.DelayStory} />
-
-## States
-
-A spinner has one state: turning. `delay` holds it back for that many milliseconds; a load that finishes first shows nothing, so the page does not flash. Under reduced motion, the arc stays still and its named status remains available. Use `isDecorative` when an enclosing control already owns the busy announcement.
-
-## Modifiers
-
-- **`size`** and **`appearance`** as above.
-- **`label`**: the wait's word. Beside text that already says it, pass that word so the two agree.
-- **`delay`** in milliseconds; 0 by default, 300 for a load that is usually quick.
-
-## Content
-
-- **One spinner at a time.** The page is either working or it is not.
-- **The label is the wait**: "Saving", "Exporting", "Refreshing". "Loading" only when nothing better is known.
-- **Beside a word, the word wins**: "Saving…" in `color.text.subtle` with the spinner before it, and the label the same word.
-- **Not for a page.** A page's first paint is a Skeleton.
-
-## Style
-
-| Element | Token                                                                     |
-| ------- | ------------------------------------------------------------------------- |
-| Arc     | 12, 16, 24px · `color.icon.subtle`, `color.icon.inverse`, or currentColor |
-| Motion  | one turn per second, linear; static under `prefers-reduced-motion`        |
-| Beside  | `space.075` to the word                                                   |
+<Canvas of={Stories.Delay} />
 
 ## Accessibility
 
-- **A `role="status"`** named by `label`, so a screen reader announces the wait politely when it appears.
-- **Delayed, it announces once**, when it appears; a load that finishes first says nothing, which is right.
-- **A button that is working** sets `aria-busy` and keeps its label; the spinner inside it is not named twice.
-- **Colour is not the message**; the motion and the label are. `inherit` in a coloured word is still a spinner.
+The default is a status named by the provider's localized Loading text. Use `label` or native `aria-label` to describe the operation; explicit native attributes take precedence. Use `aria-labelledby` to associate visible text.
+
+`isDecorative` hides a spinner when its parent already owns the busy announcement. Button does this for its loading indicator. Reduced motion stops the animation while retaining the accessible status.
 
 ## Props
 
 <ArgTypes of={Spinner} />
 
-### Playground
+Native SVG props include `ref`, `id`, `strokeWidth`, `style`, `className`, ARIA and events. Ledger retains `size`, `appearance`, `label`, `isDecorative` and `delay`. Class overrides can adjust dimensions.
 
-<Canvas of={Stories.Playground} />
+### Migration
 
-<Controls of={Stories.Playground} />
+Existing Spinner calls keep working. Native SVG props and refs no longer need an enclosing element.
 
 ## Related
 
-- [Skeleton](?path=/docs/components-skeleton--docs): a wait with a shape to hold.
-- [Button](?path=/docs/components-button--docs): `isLoading`.
-- [Progress](?path=/docs/components-progress--docs): a wait with a known end.
-- [Dialog](?path=/docs/components-dialog--docs): `pending`, a wait that must block.
+[Button](?path=/docs/components-button--docs), [Skeleton](?path=/docs/components-skeleton--docs), [Progress](?path=/docs/components-progress--docs).
 
-## Don't
-
-<Canvas of={Stories.Dont} />
+Sources: [shadcn Spinner](https://ui.shadcn.com/docs/components/base/spinner), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/spinner.tsx).

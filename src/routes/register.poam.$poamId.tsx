@@ -18,6 +18,9 @@ import {
   Stack,
   Table,
   TextLink,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { assetById, bySeverity, isOpen } from "@/lib/findings";
@@ -247,10 +250,12 @@ function PoamRecord() {
                 </tbody>
               </Table>
             ) : (
-              <Empty
-                title="No findings attached"
-                description="This commitment has nothing to close."
-              />
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>{"No findings attached"}</EmptyTitle>
+                  <EmptyDescription>{"This commitment has nothing to close."}</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             )}
           </Section>
         </ShowPage>

@@ -28,6 +28,9 @@ import {
   Inline,
   Stack,
   Table,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
 
@@ -316,10 +319,12 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
 
   if (sheet.rows.length === 0) {
     return (
-      <Empty
-        title={`The ${sheet.kind} sheet has no rows for this program`}
-        description={sheet.note}
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{`The ${sheet.kind} sheet has no rows for this program`}</EmptyTitle>
+          {sheet.note ? <EmptyDescription>{sheet.note}</EmptyDescription> : null}
+        </EmptyHeader>
+      </Empty>
     );
   }
 

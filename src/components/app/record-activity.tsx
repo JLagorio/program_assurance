@@ -11,7 +11,7 @@ import {
   ToggleGroupItem,
   type Tone,
 } from "@ledger/design-system";
-import { Stack } from "@ledger/design-system";
+import { Stack, EmptyHeader, EmptyTitle, EmptyDescription } from "@ledger/design-system";
 
 import { Activity } from "@/components/app/activity";
 import { TaskDialog } from "@/components/app/task-dialog";
@@ -120,11 +120,14 @@ export function ActivityFeed({
   };
   if (entries.length === 0) {
     return (
-      <Empty
-        size="compact"
-        title={emptyTitle}
-        description="Notes, tasks, requests and links land here as they happen."
-      />
+      <Empty size="compact">
+        <EmptyHeader>
+          <EmptyTitle>{emptyTitle}</EmptyTitle>
+          <EmptyDescription>
+            {"Notes, tasks, requests and links land here as they happen."}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
   const groups = groupByWhen(entries);

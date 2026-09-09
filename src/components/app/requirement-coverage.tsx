@@ -45,6 +45,10 @@ import {
   defineColumns,
   useDataTable,
   type Preset,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 
 /** Who carries a requirement, as one value a preset can ask for. */
@@ -334,15 +338,19 @@ export function RequirementCoverage({
           label={`${r.id} allocations`}
         />
       ) : (
-        <Empty
-          title={`${r.id} is not allocated`}
-          description="Allocate it to the elements that answer it, each with the scope of its claim."
-          action={
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{`${r.id} is not allocated`}</EmptyTitle>
+            <EmptyDescription>
+              Allocate it to the elements that answer it, each with the scope of its claim.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
             <Button size="small" variant="primary" onClick={() => setAllocating(r.requirement)}>
               Allocate
             </Button>
-          }
-        />
+          </EmptyContent>
+        </Empty>
       ),
     initialState: { columnVisibility: { currency: false, allocation: false } },
   });

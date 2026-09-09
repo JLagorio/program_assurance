@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import { cn } from "../lib/cn";
-import { Empty } from "../patterns/empty";
+import { Empty, EmptyHeader, EmptyTitle } from "./empty";
 import { Count } from "./badge";
 import { Id } from "./id";
 
@@ -264,7 +264,15 @@ export function ItemGroup({
   const body =
     !has && empty ? (
       <div className={cn(flush ? "px-200" : "px-050", size === "compact" ? "py-050" : "py-100")}>
-        {typeof empty === "string" ? <Empty size="compact" title={empty} /> : empty}
+        {typeof empty === "string" ? (
+          <Empty size="compact">
+            <EmptyHeader>
+              <EmptyTitle>{empty}</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          empty
+        )}
       </div>
     ) : (
       <ol

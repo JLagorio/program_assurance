@@ -4,7 +4,7 @@
 
 **Do not hand-edit it — regenerate with `node scripts/gen-wsx90-seed.mjs`.**
 
-SHA-256: `dec4a04dedd0752761762135ce281e47c323c6591f357237bfc0cc8738544f32`
+SHA-256: `6d0148ee3153c16ca3388d9192132dc5afcd1e4ceb28158348914878bb8b88c8`
 
 `src/lib/platform-seed.ts` validates the file at import time and
 `platform-ingestion.ts` registers it in the existing program stores before saved
@@ -109,8 +109,16 @@ further evidence artifacts, plus a second assessment (`ASM-2026-002`) with its
 300 results, 36 findings, 24 risks and 24 POA&M items.
 
 `implementation_status` is the program's own claim per control, not a record of
-whether anything was written: 154 `implemented`, 218 `partially-implemented`,
-136 `planned` and 38 `not-implemented`. A `not-implemented` control here is an
+whether anything was written: 159 `implemented`, 213 `partially-implemented`,
+136 `planned` and 38 `not-implemented`. Five of those `implemented` rows read
+`partially-implemented` until the closed findings FND-021, FND-024, FND-026,
+FND-039 and FND-041 were reconciled with them: a finding closed on a passing
+retest inside the assessment window leaves the implementation in its remediated
+state, so the narrative names what changed and when instead of describing the
+old gap in the present tense. AC-17(4) is the one closed-finding control that
+stays `partially-implemented`, because a second gap the findings never covered
+— the need code is not a required field on the LRU-007 session record — is
+still open, and its narrative says so. A `not-implemented` control here is an
 authored position — the program has not built it yet — and no longer means a
 missing record. The counter stays in the derivation so that a future
 re-resolution which adds controls reopens the gap visibly.

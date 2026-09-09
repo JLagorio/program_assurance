@@ -227,6 +227,7 @@ const structural = [
   /^divide-(x|y)-0$/,
   /^grid-cols-\(--ds-grid-(base|sm|md|lg|xl)\)$/, // Grid's responsive templateColumns, read from a CSS variable
   /^h-\(--accordion-panel-height\)$/, // Base UI's measured panel height, used for disclosure motion
+  /^(left|right)-\(--mobile-offset-(left|right)\)$/, // Sonner's caller-controlled viewport offsets
 ];
 const spacing = new RegExp(
   `^-?(p|px|py|pt|pb|pl|pr|ps|pe|m|mx|my|mt|mb|ml|mr|ms|me|gap|gap-x|gap-y|space-x|space-y|w|h|size|min-w|min-h|max-w|max-h|inset|inset-x|inset-y|top|right|bottom|left|start|end|translate-x|translate-y|indent|scroll-m|scroll-mx|scroll-my|scroll-mt|scroll-mb|scroll-p|scroll-px|scroll-py|scroll-pt|scroll-pb)-(${spaceKeys})$`,
@@ -356,7 +357,6 @@ const LEGACY = {
   Tiles: "Tiles",
   TabStrip: "Tabs",
   RailGroup: "Inspector.Group",
-  CardHeader: "Card.Header",
   StackedBar: "ProgressStacked",
   AvatarStack: "AvatarGroup",
   MenuItem: "DropdownMenu.Item",

@@ -42,6 +42,9 @@ import {
   Count,
   TextLink,
   Toolbar,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -592,10 +595,16 @@ function ProgramExport() {
           ) : (
             <Section title="Received media">
               <Box paddingBlockStart="space.150">
-                <Empty
-                  title={`No media has been received for ${program.id}`}
-                  description="When a bundle arrives from the far side, its manifest is registered here and every path on either side is compared by digest — identical, changed, present only here, or present only on the media — with the manifest's own digest re-derived rather than trusted."
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{`No media has been received for ${program.id}`}</EmptyTitle>
+                    <EmptyDescription>
+                      {
+                        "When a bundle arrives from the far side, its manifest is registered here and every path on either side is compared by digest — identical, changed, present only here, or present only on the media — with the manifest's own digest re-derived rather than trusted."
+                      }
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </Box>
             </Section>
           )

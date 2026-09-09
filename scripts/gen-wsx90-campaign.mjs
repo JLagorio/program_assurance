@@ -65,6 +65,20 @@ const GENERATED_PATH = path.join(ROOT, "src/data/wsx90-platform-seed.json");
  */
 const FINDINGS_PATH = path.join(HERE, "wsx90-findings.json");
 
+/**
+ * The risks and the POA&M items are authored the same way and for the same reason.
+ * A risk statement has to say what could happen to WS-X90 if the findings clustered
+ * under it are left standing, which is a judgement about this platform and its
+ * H-H-M categorization rather than a restatement of the findings, and a milestone
+ * title has to name the remediation step - a fix, a rebuild, a config change on a
+ * named LRU. Neither can be derived from the record shape without collapsing into a
+ * handful of repeated strings, so scripts/wsx90-risks.json carries one hand-written
+ * entry per risk: the statement, the POA&M title, description and one title per
+ * milestone, plus finding_ids and overall as binding assertions the generator checks
+ * against the cluster it built.
+ */
+const RISKS_PATH = path.join(HERE, "wsx90-risks.json");
+
 // ---------------------------------------------------------------------------
 // uuid5 - the same recipe assembly used (brief section 2.1)
 // ---------------------------------------------------------------------------
@@ -123,6 +137,9 @@ const TARGET = {
   findings: 36,
   risks: 24,
   poam: 24,
+  // The 48 undated milestones of the first campaign are a pinned warning count, so
+  // the second campaign's contribution is pinned too: 81 dated rows, 129 in total.
+  milestones: 81,
   severity: { critical: 2, high: 8, moderate: 18, low: 8 },
   findingStatus: { open: 30, closed: 6 },
   poamStatus: { open: 20, completed: 4 },
@@ -157,8 +174,10 @@ const stampFor = (dayOffset, slot) => {
 };
 
 // ---------------------------------------------------------------------------
-// themes - the functional grouping that drives fail selection, findings, risks,
-// POA&M ownership and the domain texture in every authored sentence.
+// themes - the functional grouping that drives fail selection, how findings cluster
+// into risks, POA&M ownership and the domain texture in an assessment result note.
+// A theme carries no prose that reaches a finding, a risk or a POA&M item: all of
+// that is authored per record in wsx90-findings.json and wsx90-risks.json.
 // ---------------------------------------------------------------------------
 
 /** SC splits: cryptography and session/transmission protection vs. everything boundary. */
@@ -193,8 +212,6 @@ const themeOf = (controlId) => {
 
 const THEMES = {
   crypto: {
-    short: "Cryptographic protection",
-    noun: "cryptographic protection and transmission confidentiality",
     owner: "Product Security Engineer",
     detail: [
       "The check centred on how key material is used and retired rather than on the algorithms themselves.",
@@ -203,11 +220,8 @@ const THEMES = {
       "Key generation was left to the module's own attestation; the assessor looked at issue, use and destruction.",
       "The question was whether protected data leaving the mission enclave stays protected, not how fast it is processed.",
     ],
-    fix: "Complete the key-handling change and re-cut the cryptographic configuration baseline",
   },
   boundary: {
-    short: "Boundary protection",
-    noun: "boundary protection and network policy enforcement",
     owner: "Product Security Engineer",
     detail: [
       "The mediation path between the mission enclave and every external interface was the focus.",
@@ -216,11 +230,8 @@ const THEMES = {
       "Interfaces that are only enabled during integration were included, since they exist on the delivered article.",
       "The assessor distinguished a policy that is configured from a policy that is actually enforced at the gateway.",
     ],
-    fix: "Correct the flow policy and re-baseline the mediated interface set",
   },
   audit: {
-    short: "Audit integrity",
-    noun: "audit record generation, retention and log integrity",
     owner: "System Security Engineer",
     detail: [
       "Both the generating component and the collector that holds the exported record were in scope.",
@@ -229,11 +240,8 @@ const THEMES = {
       "Clock quality was considered, because an audit record that cannot be ordered is of limited use.",
       "The assessor checked what happens when the collector is unreachable, not only the nominal path.",
     ],
-    fix: "Correct audit generation and retention, then reconcile the collector holdings",
   },
   access: {
-    short: "Access enforcement",
-    noun: "access enforcement, least privilege and session control",
     owner: "System Security Engineer",
     detail: [
       "Privileged and unprivileged roles were exercised separately; the two paths differ on WS-X90.",
@@ -242,11 +250,8 @@ const THEMES = {
       "Enforcement after a session is established was checked as well as enforcement at the point of entry.",
       "Payload command paths were treated as a distinct case because a wrong authorisation there is not recoverable.",
     ],
-    fix: "Tighten the enforcement decision and reconcile the role register",
   },
   ident: {
-    short: "Authentication",
-    noun: "identification, authentication and credential management",
     owner: "System Security Engineer",
     detail: [
       "Device authentication was treated separately from operator authentication throughout.",
@@ -255,11 +260,8 @@ const THEMES = {
       "Shared and service identities were pulled out and looked at on their own terms.",
       "Re-authentication after a role change was exercised, not only the initial bind.",
     ],
-    fix: "Close the credential lifecycle gap and re-verify both authentication paths",
   },
   integrity: {
-    short: "System integrity",
-    noun: "software, firmware and information integrity",
     owner: "Firmware Lead",
     detail: [
       "Verification at load and verification at rest were treated as separate questions.",
@@ -268,11 +270,8 @@ const THEMES = {
       "The assessor looked for what the system does when verification fails, not only that it verifies.",
       "Update staging was included, since an artifact is exposed for longest while it waits to be applied.",
     ],
-    fix: "Restore end-to-end integrity verification and re-sign the affected artifacts",
   },
   config: {
-    short: "Configuration baseline",
-    noun: "configuration baselines, change control and inventory accuracy",
     owner: "Firmware Lead",
     detail: [
       "The as-built state was compared against the approved baseline, not against the design intent.",
@@ -281,11 +280,8 @@ const THEMES = {
       "Configuration settings applied at runtime were compared with the settings recorded as approved.",
       "The assessor asked what happens to an unapproved component that appears in the inventory, not only whether it is noticed.",
     ],
-    fix: "Reconcile the as-built state with the approved baseline and close the change record",
   },
   maint: {
-    short: "Maintenance control",
-    noun: "maintenance authorization, tooling and service access",
     owner: "Platform Lead",
     detail: [
       "Both scheduled depot activity and unscheduled field service were considered.",
@@ -294,11 +290,8 @@ const THEMES = {
       "Remote and on-platform service paths were separated, because they authorise differently on WS-X90.",
       "The assessor followed one service action from request through authorisation to the closing record.",
     ],
-    fix: "Correct the maintenance authorization workflow and re-baseline the tool set",
   },
   contingency: {
-    short: "Recovery readiness",
-    noun: "contingency planning, backup and controlled recovery",
     owner: "Platform Lead",
     detail: [
       "Availability for WS-X90 is categorised moderate, so the objective was read at that level and no continuous failover was expected.",
@@ -307,11 +300,8 @@ const THEMES = {
       "Backup currency was read against the last approved baseline rather than against the backup schedule.",
       "The assessor asked what state the system comes back in, not only whether it comes back.",
     ],
-    fix: "Rehearse the recovery path and lodge a verified restore record",
   },
   supply: {
-    short: "Supply chain assurance",
-    noun: "acquisition, development process and supply chain assurance",
     owner: "Product Security Engineer",
     detail: [
       "Supplier obligations were read against the flow-down actually present in the contract set.",
@@ -320,11 +310,8 @@ const THEMES = {
       "The assessor separated what the program requires of a supplier from what the supplier has agreed in writing.",
       "Development-environment protections were treated as in scope, since they shape what ships.",
     ],
-    fix: "Flow the requirement down to the supplier set and refresh the provenance record",
   },
   assessrisk: {
-    short: "Continuous monitoring",
-    noun: "assessment, continuous monitoring and risk determination",
     owner: "System Security Engineer",
     detail: [
       "The monitoring cadence was read against the program schedule, not against tool availability.",
@@ -333,11 +320,8 @@ const THEMES = {
       "The assessor looked for evidence the monitoring output reaches a decision, not only that it is produced.",
       "Coverage was compared against the expanded control set rather than the original authorization scope.",
     ],
-    fix: "Restore the monitoring cadence and close out the outstanding dispositions",
   },
   incident: {
-    short: "Incident response",
-    noun: "incident handling, tracking and reporting",
     owner: "System Security Engineer",
     detail: [
       "Detection, containment and reporting were treated as three separate obligations.",
@@ -346,11 +330,8 @@ const THEMES = {
       "Timeliness of reporting was checked against the program obligation rather than against team practice.",
       "The assessor asked how an incident on a fielded article reaches the program, not only how one in the lab does.",
     ],
-    fix: "Close the incident handling gap and re-run the reporting rehearsal",
   },
   physical: {
-    short: "Physical and media protection",
-    noun: "physical access control and media protection",
     owner: "Platform Lead",
     detail: [
       "The integration facility and the flight-line enclosure were assessed as distinct environments.",
@@ -359,11 +340,8 @@ const THEMES = {
       "Escort and unescorted access were separated, and the record of each was read on its own.",
       "Removable media used to move builds between environments was treated as in scope.",
     ],
-    fix: "Correct the physical and media handling procedure and re-verify the controlled areas",
   },
   people: {
-    short: "Personnel and training",
-    noun: "personnel security, role-based training and security planning",
     owner: "Platform Lead",
     detail: [
       "Role-based content was distinguished from the general awareness material throughout.",
@@ -372,7 +350,6 @@ const THEMES = {
       "Training records were read for the roles that actually touch the expanded scope, not for headcount.",
       "The assessor checked that a role change triggers a review, not only that an initial screening happened.",
     ],
-    fix: "Refresh the role-based content and re-issue the affected plan",
   },
 };
 
@@ -526,6 +503,7 @@ const FRAMES = {
 
 const seed = JSON.parse(readFileSync(SEED_PATH, "utf8"));
 const authoredFindings = JSON.parse(readFileSync(FINDINGS_PATH, "utf8"));
+const authoredRisks = JSON.parse(readFileSync(RISKS_PATH, "utf8"));
 
 const componentName = new Map(seed.components.map((c) => [c.id, c.name]));
 const componentSubsystem = new Map(seed.components.map((c) => [c.id, c.subsystem_id]));
@@ -615,14 +593,48 @@ const baseline = {
 
 const hasEvidence = (r) => (evidenceByRequirement.get(r.id) ?? []).length > 0;
 
+/**
+ * The pools below draw on the state the assessor MET, which is not always the state
+ * the corpus records today. Where a finding was remediated inside the assessment
+ * window and retested to a pass, the implementation record and its requirements now
+ * read "implemented" - that is the point of closing a finding - but the assessor
+ * walked in on a partial implementation and that is what produced the fail. Reading
+ * `implementation_status` here instead would move those requirements out of the fail
+ * pool, shift every stride selection after them, and re-pair the authored finding
+ * text with a different requirement (the `finding-binding-drift` abort below).
+ *
+ * So: one entry per requirement whose current status is the post-remediation claim,
+ * carrying the status that was true when ASM-2026-002 assessed it.
+ */
+const ASSESSED_STATUS = new Map([
+  ["REQ-229", "partially-implemented"], // FND-021 SC-18, closed 2026-11-10
+  ["REQ-349", "partially-implemented"], // FND-024 AU-6(3), closed 2026-11-11
+  ["REQ-363", "partially-implemented"], // sibling of REQ-364 on AU-12(1)
+  ["REQ-364", "partially-implemented"], // FND-026 AU-12(1), closed 2026-11-12
+  ["REQ-379", "partially-implemented"], // FND-041 MA-3(5), closed 2026-11-18
+  ["REQ-583", "partially-implemented"], // FND-039 CM-7(9), closed 2026-11-15
+]);
+const assessedStatus = (r) => ASSESSED_STATUS.get(r.id) ?? r.implementation_status;
+/** A pin that no longer overrides anything is a pin nobody maintained. */
+for (const [id, assessed] of ASSESSED_STATUS) {
+  const requirement = newRequirements.find((r) => r.id === id);
+  if (!requirement) fail("assessed-status-orphan", id, "no such requirement in the expanded scope");
+  else if (requirement.implementation_status === assessed)
+    fail(
+      "assessed-status-redundant",
+      id,
+      `still reads "${assessed}" upstream, so the pin overrides nothing`,
+    );
+}
+
 const implementedWithEvidence = newRequirements.filter(
-  (r) => r.implementation_status === "implemented" && hasEvidence(r),
+  (r) => assessedStatus(r) === "implemented" && hasEvidence(r),
 );
 const partialWithEvidence = newRequirements.filter(
-  (r) => r.implementation_status === "partially-implemented" && hasEvidence(r),
+  (r) => assessedStatus(r) === "partially-implemented" && hasEvidence(r),
 );
 const unevidenced = newRequirements.filter(
-  (r) => r.implementation_status === "planned" || r.implementation_status === "not-implemented",
+  (r) => assessedStatus(r) === "planned" || assessedStatus(r) === "not-implemented",
 );
 
 /**
@@ -1020,54 +1032,72 @@ const RANK_SEVERITY = ["low", "moderate", "high", "critical"];
 const LIKELIHOOD = { low: "low", moderate: "moderate", high: "moderate", critical: "moderate" };
 const IMPACT = { low: "low", moderate: "moderate", high: "high", critical: "high" };
 
+/**
+ * The risk record. Title and statement come from the authored entry; the ids, the
+ * roll-up and the dates are assembled here. The authored entry restates the cluster
+ * it was written for and the severity it was written against, so a shift in the fail
+ * pool or a re-cut finding severity aborts the run instead of leaving a statement
+ * describing a risk the record no longer carries.
+ */
 const riskRecords = riskClusters.map((cluster) => {
-  const meta = THEMES[cluster.theme];
+  const authored = authoredRisks[cluster.id];
   const worst = cluster.members.reduce((rank, m) => Math.max(rank, SEVERITY_RANK[m.severity]), 0);
   const overall = RANK_SEVERITY[worst];
   const allClosed = cluster.members.every((m) => closedFindingIds.has(m.id));
-  const controls = [...new Set(cluster.members.flatMap((m) => m.requirement.control_ids))].sort();
-  const components = [
-    ...new Set(cluster.members.flatMap((m) => m.requirement.component_ids)),
-  ].sort();
-  const requirementIds = cluster.members.map((m) => m.requirement.id);
+  const findingIds = cluster.members.map((m) => m.id);
+  if (!authored) fail("risk-not-authored", cluster.id, "no entry in scripts/wsx90-risks.json");
+  else {
+    if (authored.finding_ids.join("|") !== findingIds.join("|"))
+      fail(
+        "risk-binding-drift",
+        cluster.id,
+        `authored for ${authored.finding_ids.join(", ")}, generator clustered ${findingIds.join(", ")}`,
+      );
+    if (authored.overall !== overall)
+      fail(
+        "risk-overall-drift",
+        cluster.id,
+        `authored ${authored.overall}, findings roll up to ${overall}`,
+      );
+  }
   return {
     id: cluster.id,
     uuid: mintUuid(cluster.id),
-    title: `${meta.short} risk on ${componentName.get(components[0])} arising from ${joinIds(controls)}`,
-    statement:
-      `${cluster.members.length === 1 ? "One assessment finding" : `${cluster.members.length} assessment findings`} in ${ASSESSMENT_ID} show ${meta.noun} is not fully established for ${joinIds(requirementIds)} on ${joinNames(components)}. ` +
-      `If the condition persists, WS-X90 may not hold the protection its tailored selection of ${joinIds(controls)} was chosen to provide, and the authorization package would carry that gap forward. ` +
-      (allClosed
-        ? `The contributing findings have been corrected and retested, so the risk is recorded as mitigated pending the next monitoring cycle. `
-        : `The risk stays open until every contributing finding is corrected, re-evidenced and retested. `) +
-      PROSE_MARKER,
+    title: authored?.title ?? cluster.id,
+    statement: `${authored?.statement ?? ""} ${PROSE_MARKER}`,
     likelihood: allClosed ? "low" : LIKELIHOOD[overall],
     impact: IMPACT[overall],
     overall,
-    finding_ids: cluster.members.map((m) => m.id),
+    finding_ids: findingIds,
     status: allClosed ? "mitigated" : "open",
   };
 });
+for (const id of Object.keys(authoredRisks))
+  if (id.startsWith("RSK-") && !riskClusters.some((cluster) => cluster.id === id))
+    fail("risk-authored-orphan", id, "authored but no cluster carries this id");
 
 // ---------------------------------------------------------------------------
 // poam_items
 // ---------------------------------------------------------------------------
 
-const MILESTONE_STATUS_PATTERNS = [
-  ["completed", "in-progress", "planned", "planned"],
-  ["in-progress", "planned", "planned", "planned"],
-  ["completed", "completed", "in-progress", "planned"],
-];
+/**
+ * The day the dataset reports as of. Nothing in the POA&M layer may claim work
+ * finished after it: a milestone whose target_date falls beyond this date has not
+ * happened yet, whatever the remediation plan intended, so it can only be planned
+ * or in-progress. Milestone status is therefore DERIVED from the schedule below
+ * rather than stamped from a fixed pattern, and the validation block refuses to
+ * write if any milestone ends up asserting a completion the timeline has not
+ * reached. (An earlier revision used three fixed status patterns and suppressed
+ * completed_at when the target ran past the window; that left 14 milestones
+ * reading "completed" with a December-or-later target and no completion date.)
+ */
+const REPORT_DAY = WINDOW_END.slice(0, 10); // 2026-11-20
 
-const milestoneTitle = (theme, step, controls) => {
-  const meta = THEMES[theme];
-  return [
-    `${meta.fix} for ${controls}`,
-    `Update the WS-X90 configuration baseline and release record for the corrected state`,
-    `Collect replacement evidence and lodge it against the affected requirements`,
-    `Retest with the independent assessor and close the ${meta.short.toLowerCase()} finding`,
-  ][step];
-};
+/** The brief fixes the POA&M horizon at 2026-10 -> 2027-03; nothing may escape it. */
+const POAM_WINDOW_START = "2026-10-01";
+const POAM_WINDOW_END = "2027-03-31";
+/** The close-out review that sets planned_completion sits three weeks after the last step. */
+const CLOSEOUT_DAYS = 21;
 
 /** 0-based position of a closed-out cluster among the closed-out clusters. */
 const closedClusterIndexes = riskClusters
@@ -1078,6 +1108,7 @@ const closedPoamRank = (index) => closedClusterIndexes.indexOf(index);
 
 const poamRecords = riskClusters.map((cluster, index) => {
   const risk = riskRecords[index];
+  const authored = authoredRisks[cluster.id]?.poam;
   const meta = THEMES[cluster.theme];
   const id = `POAM-${String(17 + index).padStart(3, "0")}`;
   const allClosed = cluster.members.every((m) => closedFindingIds.has(m.id));
@@ -1087,51 +1118,79 @@ const poamRecords = riskClusters.map((cluster, index) => {
   ].sort();
   const requirementIds = cluster.members.map((m) => m.requirement.id);
 
-  const milestoneCount = allClosed ? 3 : index % 2 === 0 ? 4 : 3;
-  const startOffset = index % 3; // Oct / Nov / Dec 2026, so the last one lands by 2027-03
+  // The step count is the length of the authored milestone list: the remediation
+  // for one risk is as long as it is, and the schedule below stretches to fit it.
+  const milestoneCount = authored?.milestones.length ?? 0;
+  if (!authored) fail("poam-not-authored", id, `no poam block on ${cluster.id}`);
   const day = 5 + (index % 20);
-  const statuses = allClosed
-    ? ["completed", "completed", "completed", "completed"]
-    : MILESTONE_STATUS_PATTERNS[index % MILESTONE_STATUS_PATTERNS.length];
-
-  const milestones = [];
-  let lastTarget = "";
   const closedRank = allClosed ? closedPoamRank(index) : 0;
-  for (let step = 0; step < milestoneCount; step += 1) {
-    // A closed-out item did its work inside the assessment window, so its three
-    // milestones run on a three-week cadence from early October and every one of
-    // them lands on or before the reporting date. An open item runs monthly from
-    // its October / November / December start so the last target stays inside March.
-    let target;
-    if (allClosed) {
-      target = fromDay(toDay(`2026-10-${String(3 + closedRank * 2).padStart(2, "0")}`) + step * 21);
-    } else {
-      const [year, month] = addMonths(2026, 10, startOffset + step);
-      target = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    }
-    lastTarget = target;
+
+  // ---- the schedule ------------------------------------------------------
+  // A closed-out item did its work inside the assessment window, so its milestones
+  // run on a three-week cadence from early October and every one of them lands on
+  // or before the reporting date. An open item runs monthly from an October /
+  // November / December start. The whole ladder plus its three-week close-out has
+  // to fit 2026-10-01 -> 2027-03-31, so an item whose monthly cadence would push
+  // planned_completion past the horizon starts a month earlier instead of spilling
+  // out of the window (this is what used to send POAM-025 to 2027-04-03).
+  const ladder = (offset) =>
+    Array.from({ length: milestoneCount }, (_, step) => {
+      if (allClosed)
+        return fromDay(toDay(`2026-10-${String(3 + closedRank * 2).padStart(2, "0")}`) + step * 21);
+      const [year, month] = addMonths(2026, 10, offset + step);
+      return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    });
+  let startOffset = index % 3;
+  let targets = ladder(startOffset);
+  while (
+    !allClosed &&
+    startOffset > 0 &&
+    fromDay(toDay(targets[targets.length - 1]) + CLOSEOUT_DAYS) > POAM_WINDOW_END
+  ) {
+    startOffset -= 1;
+    targets = ladder(startOffset);
+  }
+  const lastTarget = targets[targets.length - 1] ?? "";
+
+  // ---- the statuses, derived from that schedule --------------------------
+  // How many steps the reporting date has already passed. Nothing beyond that
+  // count can be complete, so `completed` can never outrun the timeline.
+  const pastDue = targets.filter((target) => target <= REPORT_DAY).length;
+  // Half the open items are behind their own ladder: the most recent past-due step
+  // is still open on those, one fewer step is done. The other half are on pace.
+  const slipped = index % 2 === 1;
+  // An item with nothing yet past due may still have visibly begun its first step.
+  const started = index % 4 < 2;
+  const completedSteps = allClosed ? milestoneCount : slipped ? Math.max(0, pastDue - 1) : pastDue;
+  // The cursor is the first step not yet finished. An overdue cursor is always
+  // under way; a cursor whose target is still ahead is under way only once begun.
+  const cursorUnderway = completedSteps < pastDue || started;
+
+  const milestones = targets.map((target, step) => {
     const milestone = {
       id: `${id}-M${step + 1}`,
-      title: milestoneTitle(cluster.theme, step, joinIds(controls)),
-      status: statuses[step],
+      title: authored?.milestones[step] ?? `${id} step ${step + 1}`,
+      status:
+        step < completedSteps
+          ? "completed"
+          : step === completedSteps && cursorUnderway
+            ? "in-progress"
+            : "planned",
       target_date: target,
     };
-    // A completed milestone only carries completed_at when its target falls on or
-    // before the assessment report date; nothing claims a completion that has
-    // not happened yet in the dataset's own timeline.
-    if (statuses[step] === "completed" && target <= WINDOW_END.slice(0, 10))
-      milestone.completed_at = `${target}T17:00:00Z`;
-    milestones.push(milestone);
-  }
+    // A completed milestone says when it completed, and it completed on its target
+    // day - which the derivation above guarantees is on or before the report date.
+    if (milestone.status === "completed") milestone.completed_at = `${target}T17:00:00Z`;
+    return milestone;
+  });
+  if (!allClosed && completedSteps >= milestoneCount)
+    fail("open-poam-fully-completed", id, "an open item cannot have every milestone completed");
 
   return {
     id,
     uuid: mintUuid(id),
-    title: `Remediate ${meta.short.toLowerCase()} gap in ${joinIds(controls)}`,
-    description:
-      `Close the ${meta.noun} shortfall recorded by ${ASSESSMENT_ID} against ${joinIds(requirementIds)} on ${joinNames(components)}. ` +
-      `The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. ` +
-      PROSE_MARKER,
+    title: authored?.title ?? id,
+    description: `${authored?.description ?? ""} ${PROSE_MARKER}`,
     risk_ids: [risk.id],
     finding_ids: cluster.members.map((m) => m.id),
     control_ids: controls,
@@ -1139,7 +1198,7 @@ const poamRecords = riskClusters.map((cluster, index) => {
     component_ids: components,
     owner_role: meta.owner,
     status: allClosed ? "completed" : "open",
-    planned_completion: fromDay(toDay(lastTarget) + 21),
+    planned_completion: fromDay(toDay(lastTarget) + CLOSEOUT_DAYS),
     milestones,
   };
 });
@@ -1502,6 +1561,9 @@ const tally = (values) =>
   if (riskRecords.length !== TARGET.risks)
     fail("risk-count", "risks", `${riskRecords.length}, expected ${TARGET.risks}`);
   const covered = new Set();
+  const titles = new Set();
+  /** Same sentence-ownership rule the findings carry, applied across the statements. */
+  const sentenceOwner = new Map();
   for (const risk of riskRecords) {
     if (risk.finding_ids.length < 1 || risk.finding_ids.length > 3)
       fail("risk-cluster-size", risk.id, `${risk.finding_ids.length} findings, expected 1-3`);
@@ -1519,6 +1581,39 @@ const tally = (values) =>
       covered.add(findingId);
     }
     if (!risk.statement.includes(PROSE_MARKER)) fail("missing-marker", risk.id, "statement");
+
+    if (titles.has(risk.title)) fail("duplicate-title", risk.id, risk.title);
+    titles.add(risk.title);
+    const body = risk.statement.replace(PROSE_MARKER, "").trim();
+    if (body.length < 400)
+      fail("risk-statement-thin", risk.id, `${body.length} characters of narrative`);
+    const members = risk.finding_ids.map((f) => findingById.get(f));
+    const memberComponents = [...new Set(members.flatMap((m) => m.requirement.component_ids))];
+    const memberControls = [...new Set(members.flatMap((m) => m.requirement.control_ids))];
+    if (!memberComponents.some((componentId) => body.includes(componentId)))
+      fail("risk-without-component-named", risk.id, `names none of ${memberComponents.join(", ")}`);
+    if (!memberControls.some((controlId) => body.includes(controlId)))
+      fail("risk-without-control-cited", risk.id, `cites none of ${memberControls.join(", ")}`);
+    /**
+     * The template this replaced swapped the noun in a "{n} findings" slot and left
+     * the verb behind, so sixteen statements read "One assessment finding ... show".
+     * There is no slot any more, and this guard keeps it that way.
+     */
+    if (/\bfinding\b[^.]{0,80}\b(show|are|were|describe)\b/.test(body))
+      fail("risk-number-disagreement", risk.id, "singular finding with a plural verb");
+    if (/\bfindings\b[^.]{0,80}\b(shows|is|was|describes)\b/.test(body))
+      fail("risk-number-disagreement", risk.id, "plural findings with a singular verb");
+    for (const sentence of body.split(". ")) {
+      const key = sentence.trim();
+      if (key.length < 20) continue;
+      if (sentenceOwner.has(key))
+        fail(
+          "risk-shared-sentence",
+          risk.id,
+          `shares a sentence with ${sentenceOwner.get(key)}: ${key.slice(0, 60)}`,
+        );
+      else sentenceOwner.set(key, risk.id);
+    }
   }
   if (covered.size !== TARGET.findings)
     fail(
@@ -1536,6 +1631,47 @@ const tally = (values) =>
   for (const [status, want] of Object.entries(TARGET.poamStatus))
     if ((statuses[status] ?? 0) !== want)
       fail("poam-status-distribution", status, `${statuses[status] ?? 0}, expected ${want}`);
+  const totalMilestones = poamRecords.reduce((n, p) => n + p.milestones.length, 0);
+  if (totalMilestones !== TARGET.milestones)
+    fail(
+      "poam-milestone-total",
+      "poam_items",
+      `${totalMilestones} new milestones, pinned at ${TARGET.milestones}`,
+    );
+  const titles = new Set();
+  /**
+   * Milestone titles are the surface the old template collapsed hardest: 48 of the 81
+   * rows carried one of two strings. A milestone has to name the step it stands for,
+   * so no title may be reused anywhere in the campaign and none may be a stub.
+   */
+  const milestoneTitles = new Map();
+  const sentenceOwner = new Map();
+  for (const item of poamRecords) {
+    if (titles.has(item.title)) fail("duplicate-title", item.id, item.title);
+    titles.add(item.title);
+    const body = item.description.replace(PROSE_MARKER, "").trim();
+    if (body.length < 200)
+      fail("poam-description-thin", item.id, `${body.length} characters of narrative`);
+    for (const sentence of body.split(". ")) {
+      const key = sentence.trim();
+      if (key.length < 20) continue;
+      if (sentenceOwner.has(key))
+        fail(
+          "poam-shared-sentence",
+          item.id,
+          `shares a sentence with ${sentenceOwner.get(key)}: ${key.slice(0, 60)}`,
+        );
+      else sentenceOwner.set(key, item.id);
+    }
+    for (const milestone of item.milestones) {
+      const title = milestone.title.trim();
+      if (title.length < 30)
+        fail("milestone-title-thin", milestone.id, `${title.length} characters`);
+      if (milestoneTitles.has(title))
+        fail("duplicate-milestone-title", milestone.id, `also on ${milestoneTitles.get(title)}`);
+      else milestoneTitles.set(title, milestone.id);
+    }
+  }
   for (const item of poamRecords) {
     if (!OWNER_ROLES.has(item.owner_role)) fail("bad-owner-role", item.id, item.owner_role);
     if (!DATE_RE.test(item.planned_completion))

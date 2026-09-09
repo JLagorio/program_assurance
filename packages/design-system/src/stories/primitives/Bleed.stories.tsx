@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Table } from "../../components";
-import { Card } from "../../patterns";
+import { Table, CardHeader, CardTitle, CardContent, Card } from "../../components";
+
 import { Bleed, Box, Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -16,7 +16,11 @@ type Story = StoryObj<typeof meta>;
 
 function Strip({ label }: { label: string }) {
   return (
-    <Box backgroundColor="color.background.warning" paddingBlock="space.100" paddingInline="space.200">
+    <Box
+      backgroundColor="color.background.warning"
+      paddingBlock="space.100"
+      paddingInline="space.200"
+    >
       <Text size="small" color="color.text.warning">
         {label}
       </Text>
@@ -62,7 +66,12 @@ export const BleedMatrix: Story = {
       <Inline space="space.300" alignBlock="start" shouldWrap>
         <Stack space="space.050">
           <Label>inline space.200, in a card padded space.200</Label>
-          <Box backgroundColor="elevation.surface.raised" padding="space.200" className="rounded-large shadow-raised" style={{ width: 360 }}>
+          <Box
+            backgroundColor="elevation.surface.raised"
+            padding="space.200"
+            className="rounded-large shadow-raised"
+            style={{ width: 360 }}
+          >
             <Stack space="space.150">
               <Text weight="medium">Boundary protection</Text>
               <Bleed inline="space.200">
@@ -75,15 +84,19 @@ export const BleedMatrix: Story = {
           </Box>
         </Stack>
         <Stack space="space.050">
-          <Label>inline space.200 on a table in a Card.Body</Label>
+          <Label>inline space.200 on a table in a CardContent</Label>
           <Box style={{ width: 360 }}>
             <Card>
-              <Card.Header title="Findings" />
-              <Card.Body>
+              <CardHeader>
+                <CardTitle>
+                  <h2>{"Findings"}</h2>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <Bleed inline="space.200">
                   <Rows />
                 </Bleed>
-              </Card.Body>
+              </CardContent>
             </Card>
           </Box>
         </Stack>
@@ -91,7 +104,12 @@ export const BleedMatrix: Story = {
       <Inline space="space.300" alignBlock="start" shouldWrap>
         <Stack space="space.050">
           <Label>block space.200: rows to a panel's top and bottom</Label>
-          <Box backgroundColor="elevation.surface.sunken" padding="space.200" className="rounded-large" style={{ width: 280 }}>
+          <Box
+            backgroundColor="elevation.surface.sunken"
+            padding="space.200"
+            className="rounded-large"
+            style={{ width: 280 }}
+          >
             <Bleed block="space.200">
               <Stack>
                 {["AC-2", "AC-3", "AC-6"].map((id) => (
@@ -105,9 +123,18 @@ export const BleedMatrix: Story = {
         </Stack>
         <Stack space="space.050">
           <Label>all space.200: a fill to every edge, a hero</Label>
-          <Box backgroundColor="elevation.surface.raised" padding="space.200" className="rounded-large shadow-raised" style={{ width: 280 }}>
+          <Box
+            backgroundColor="elevation.surface.raised"
+            padding="space.200"
+            className="rounded-large shadow-raised"
+            style={{ width: 280 }}
+          >
             <Bleed all="space.200">
-              <Box backgroundColor="color.background.brand.bold" padding="space.200" className="rounded-large">
+              <Box
+                backgroundColor="color.background.brand.bold"
+                padding="space.200"
+                className="rounded-large"
+              >
                 <Text size="small">A cover on the card, under its radius.</Text>
               </Box>
             </Bleed>
@@ -115,13 +142,22 @@ export const BleedMatrix: Story = {
         </Stack>
         <Stack space="space.050">
           <Label>inline space.100: a rail row's hover fill to the rail's edges</Label>
-          <Box backgroundColor="elevation.surface" padding="space.100" className="rounded-medium border border-default" style={{ width: 272 }}>
+          <Box
+            backgroundColor="elevation.surface"
+            padding="space.100"
+            className="rounded-medium border border-default"
+            style={{ width: 272 }}
+          >
             <Stack space="space.050">
               <Text size="small" weight="medium">
                 Linked risks
               </Text>
               <Bleed inline="space.100">
-                <Box backgroundColor="color.background.neutral.subtle.hovered" paddingBlock="space.075" paddingInline="space.100">
+                <Box
+                  backgroundColor="color.background.neutral.subtle.hovered"
+                  paddingBlock="space.075"
+                  paddingInline="space.100"
+                >
                   <Text size="small">R-17 Unpatched edge devices</Text>
                 </Box>
               </Bleed>
@@ -135,7 +171,12 @@ export const BleedMatrix: Story = {
 
 export const BleedInsideCard: Story = {
   render: () => (
-    <Box backgroundColor="elevation.surface.raised" padding="space.200" className="rounded-large shadow-raised" style={{ maxWidth: 420 }}>
+    <Box
+      backgroundColor="elevation.surface.raised"
+      padding="space.200"
+      className="rounded-large shadow-raised"
+      style={{ maxWidth: 420 }}
+    >
       <Stack space="space.150">
         <Text weight="medium">Card with a full-bleed strip</Text>
         <Bleed inline="space.200">
@@ -155,7 +196,12 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <Box backgroundColor="elevation.surface.raised" padding="space.200" className="rounded-large shadow-raised" style={{ width: 320 }}>
+          <Box
+            backgroundColor="elevation.surface.raised"
+            padding="space.200"
+            className="rounded-large shadow-raised"
+            style={{ width: 320 }}
+          >
             <Stack space="space.150">
               <Text weight="medium">Boundary protection</Text>
               <Bleed inline="space.200">
@@ -166,7 +212,12 @@ export const Dont: Story = {
         }
         doText="The strip escapes by the token the card is padded with: Bleed inline space.200 inside padding space.200."
         dont={
-          <Box backgroundColor="elevation.surface.raised" padding="space.200" className="rounded-large shadow-raised" style={{ width: 320 }}>
+          <Box
+            backgroundColor="elevation.surface.raised"
+            padding="space.200"
+            className="rounded-large shadow-raised"
+            style={{ width: 320 }}
+          >
             <Stack space="space.150">
               <Text weight="medium">Boundary protection</Text>
               <div style={{ marginInline: -16 }}>
@@ -179,7 +230,12 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box backgroundColor="elevation.surface.raised" padding="space.200" className="rounded-large shadow-raised" style={{ width: 320 }}>
+          <Box
+            backgroundColor="elevation.surface.raised"
+            padding="space.200"
+            className="rounded-large shadow-raised"
+            style={{ width: 320 }}
+          >
             <Bleed inline="space.200">
               <Strip label="To the edge, not past it." />
             </Bleed>
@@ -187,7 +243,12 @@ export const Dont: Story = {
         }
         doText="The bleed equals the padding: the strip meets the card's edge."
         dont={
-          <Box backgroundColor="elevation.surface.raised" padding="space.200" className="rounded-large shadow-raised" style={{ width: 320 }}>
+          <Box
+            backgroundColor="elevation.surface.raised"
+            padding="space.200"
+            className="rounded-large shadow-raised"
+            style={{ width: 320 }}
+          >
             <Bleed inline="space.300">
               <Strip label="Past the edge." />
             </Bleed>
@@ -201,7 +262,12 @@ export const Dont: Story = {
 
 export const Playground: Story = {
   render: (args) => (
-    <Box backgroundColor="elevation.surface.raised" padding="space.200" className="rounded-large shadow-raised" style={{ width: 360 }}>
+    <Box
+      backgroundColor="elevation.surface.raised"
+      padding="space.200"
+      className="rounded-large shadow-raised"
+      style={{ width: 360 }}
+    >
       <Stack space="space.150">
         <Text weight="medium">Card</Text>
         <Bleed {...args}>

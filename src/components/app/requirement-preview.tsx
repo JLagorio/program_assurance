@@ -11,6 +11,10 @@ import {
   Stack,
   Text,
   TextLink,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 
 import { CoverageBar } from "@/components/app/coverage-bar";
@@ -149,11 +153,15 @@ export function RequirementPreviewSheet({
             {allocations.length ? (
               <AllocationTable allocations={allocations} programId={programId} />
             ) : (
-              <Empty
-                title="No allocations"
-                description="Allocate this requirement to a system element."
-                action={allocate}
-              />
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>No allocations</EmptyTitle>
+                  <EmptyDescription>
+                    Allocate this requirement to a system element.
+                  </EmptyDescription>
+                </EmptyHeader>
+                {allocate ? <EmptyContent>{allocate}</EmptyContent> : null}
+              </Empty>
             )}
           </Block>
           <Block title="Linked controls" count={controls.length}>

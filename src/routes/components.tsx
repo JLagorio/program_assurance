@@ -17,6 +17,9 @@ import {
   Progress,
   Stack,
   Table,
+  CardHeader,
+  CardTitle,
+  CardDescription,
 } from "@ledger/design-system";
 import { MoreHorizontal } from "lucide-react";
 
@@ -52,7 +55,12 @@ function CardSection({
 }) {
   return (
     <Card>
-      <Card.Header title={title} description={description} />
+      <CardHeader>
+        <CardTitle>
+          <h2>{title}</h2>
+        </CardTitle>
+        {description ? <CardDescription>{description}</CardDescription> : null}
+      </CardHeader>
       <Inline className="px-200 py-200" space="space.150" alignBlock="center" shouldWrap>
         {children}
       </Inline>
@@ -136,10 +144,14 @@ function Components() {
         </Grid>
 
         <Card>
-          <Card.Header
-            title="Dense table"
-            description="13px rows, 10px vertical rhythm, hairline dividers."
-          />
+          <CardHeader>
+            <CardTitle>
+              <h2>{"Dense table"}</h2>
+            </CardTitle>
+            <CardDescription>
+              {"13px rows, 10px vertical rhythm, hairline dividers."}
+            </CardDescription>
+          </CardHeader>
           <Table>
             <thead>
               <tr>

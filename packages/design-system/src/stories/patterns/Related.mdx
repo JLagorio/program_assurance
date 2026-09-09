@@ -7,7 +7,7 @@ import * as Stories from "./Related.stories";
 
 # Related
 
-A card of linked records, in a rail or in the body of a page. Its header is the kind of record, a Count and the way to add one. Its body is a row per record in a rail, or a card per record on a page: the name as the link, a mark, one status, the properties the reader decides by, and the actions that show on hover. Its footer is "See all" when it shows a handful of many. When nothing is linked it is a proper [Empty](?path=/docs/patterns-empty--docs), the mark, a statement and the way to fill it, never a line of grey text.
+A card of linked records, in a rail or in the body of a page. Its header is the kind of record, a Count and the way to add one. Its body is a row per record in a rail, or a card per record on a page: the name as the link, a mark, one status, the properties the reader decides by, and the actions that show on hover. Its footer is "See all" when it shows a handful of many. When nothing is linked it is a proper [Empty](?path=/docs/components-empty--docs), the mark, a statement and the way to fill it, never a line of grey text.
 
 On the body of a page: a header with the kind and "+ Add", a card per related record with its name as the link and up to six properties, the actions in a menu that shows on hover, "view all" at the bottom. In the rail, one row per record. A card is metadata with actions on hover, and a card that carries actions of its own cannot be one click target. So the title is the link and the actions are stops of their own, in both layouts.
 
@@ -40,7 +40,7 @@ The header and the footer are the card's; the rows are [Item](?path=/docs/compon
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `list`          | A rail beside a record: one Item row per record, compact. What a row can carry at 270px is an id, a name and one thing at the end.                    |
 | `cards`         | The body of a page: a grid of cards, as many across as fit at 240px each, sharing the row's width. A card carries the mark, the name, the status and the meta, four properties and the actions. |
-| A related table | When the records need columns to compare: a Table in a [Card](?path=/docs/patterns-card--docs), headed by Card.Header. Not a Related; it is a section of the page. |
+| A related table | When the records need columns to compare: a Table in a [Card](?path=/docs/components-card--docs), headed by CardHeader. Not a Related; it is a section of the page. |
 
 <Canvas of={Stories.RelatedTable} />
 
@@ -125,8 +125,8 @@ The size is the list's; every row in one card is the same height. A card in the 
 ## Related
 
 - [Item](?path=/docs/components-item--docs): the rows.
-- [Card](?path=/docs/patterns-card--docs): the frame, and the related table.
-- [Empty](?path=/docs/patterns-empty--docs): the compact empty state inside the card.
+- [Card](?path=/docs/components-card--docs): the frame, and the related table.
+- [Empty](?path=/docs/components-empty--docs): the compact empty state inside the card.
 - [KeyValue](?path=/docs/components-keyvalue--docs): the properties.
 - [Pages](?path=/docs/patterns-pages--docs): the ShowPage's rail and body it sits in.
 

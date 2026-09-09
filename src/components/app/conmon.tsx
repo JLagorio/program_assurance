@@ -12,6 +12,9 @@ import {
   Table,
   defineColumns,
   useDataTable,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { useMemo, type ReactNode } from "react";
 import {
@@ -515,13 +518,18 @@ export function AlertList({
   if (alerts.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title={empty?.title ?? "Nothing has diverged"}
-          description={
-            empty?.description ??
-            "No pin has moved without a change record, no determination has been retracted, no evidence is past its SLA and no monitoring window has closed empty. An empty queue here is a result, not a failure to find something to say."
-          }
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{empty?.title ?? "Nothing has diverged"}</EmptyTitle>
+            {(empty?.description ??
+            "No pin has moved without a change record, no determination has been retracted, no evidence is past its SLA and no monitoring window has closed empty. An empty queue here is a result, not a failure to find something to say.") ? (
+              <EmptyDescription>
+                {empty?.description ??
+                  "No pin has moved without a change record, no determination has been retracted, no evidence is past its SLA and no monitoring window has closed empty. An empty queue here is a result, not a failure to find something to say."}
+              </EmptyDescription>
+            ) : null}
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -628,10 +636,16 @@ export function ScheduleTable({ rows }: { rows: ScheduleRow[] }) {
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No continuous monitoring strategy on file"
-          description="No control in this program carries an SLCM frequency, method or responsible entity, so there is no schedule to fall behind. An empty ConMon strategy is a finding in its own right — it is not the same as a program that is up to date."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No continuous monitoring strategy on file"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No control in this program carries an SLCM frequency, method or responsible entity, so there is no schedule to fall behind. An empty ConMon strategy is a finding in its own right — it is not the same as a program that is up to date."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -723,10 +737,16 @@ export function FreshnessTable({ rows }: { rows: EvidenceSlaRow[] }) {
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No monitored requirement to age"
-          description="No requirement in this program's matrix maps to a control the ConMon strategy covers, so no evidence SLA applies and there is nothing to measure an artifact's age against."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No monitored requirement to age"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No requirement in this program's matrix maps to a control the ConMon strategy covers, so no evidence SLA applies and there is nothing to measure an artifact's age against."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -816,10 +836,16 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No scan target to measure"
-          description="No tracked asset in this program anchors a composition node, so there is no target a scan window could be measured against. Nothing here is being monitored automatically."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No scan target to measure"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No tracked asset in this program anchors a composition node, so there is no target a scan window could be measured against. Nothing here is being monitored automatically."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -875,10 +901,16 @@ export function SlippageTable({ rows }: { rows: SlippageRow[] }) {
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No POA&M item to track"
-          description="This program carries no plan of action and milestones item with a scheduled completion date, so there is no commitment for a slip to be measured against."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No POA&M item to track"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "This program carries no plan of action and milestones item with a scheduled completion date, so there is no commitment for a slip to be measured against."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }

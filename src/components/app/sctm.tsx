@@ -18,6 +18,9 @@ import {
   Table,
   TextLink,
   type Tone,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
@@ -230,10 +233,16 @@ export function SctmTable({
 }) {
   if (rows.length === 0) {
     return (
-      <Empty
-        title="No requirement rows"
-        description="No control in this scope decomposes into a CCI, an assessment objective or a control-level requirement."
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{"No requirement rows"}</EmptyTitle>
+          <EmptyDescription>
+            {
+              "No control in this scope decomposes into a CCI, an assessment objective or a control-level requirement."
+            }
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -281,10 +290,16 @@ export function SctmFamilyTable({
 }) {
   if (groups.length === 0) {
     return (
-      <Empty
-        title="No requirement rows"
-        description="No control in this set decomposes into a CCI, an assessment objective or a control-level requirement."
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{"No requirement rows"}</EmptyTitle>
+          <EmptyDescription>
+            {
+              "No control in this set decomposes into a CCI, an assessment objective or a control-level requirement."
+            }
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 

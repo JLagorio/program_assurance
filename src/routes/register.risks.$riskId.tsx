@@ -18,6 +18,9 @@ import {
   Stack,
   Table,
   TextLink,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -339,10 +342,12 @@ function RiskRecord() {
                 </Box>
               </>
             ) : (
-              <Empty
-                title="Nothing to compute from"
-                description={`${risk.id} has no finding joined to it, so there is no severity, exposure or mission evidence to read. Deriving a residual from the authored likelihood and impact would re-badge the assessor's judgement as a calculation, which is exactly what the score exists to prevent. The authored ${risk.residual ?? risk.sourceRating?.overall ?? "Unrecorded"} stands on its own.`}
-              />
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>{"Nothing to compute from"}</EmptyTitle>
+                  <EmptyDescription>{`${risk.id} has no finding joined to it, so there is no severity, exposure or mission evidence to read. Deriving a residual from the authored likelihood and impact would re-badge the assessor's judgement as a calculation, which is exactly what the score exists to prevent. The authored ${risk.residual ?? risk.sourceRating?.overall ?? "Unrecorded"} stands on its own.`}</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             )}
           </Section>
 

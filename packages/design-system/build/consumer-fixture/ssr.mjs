@@ -1347,3 +1347,65 @@ assert.match(migrationHtml, /name="due"[^>]*value="2026-09-14"/);
 assert.match(migrationHtml, /data-slot="resizable-panel-group"/);
 assert.equal("Resizable" in ledger, false);
 console.log("Packed Drawer, Calendar, DatePicker, Pagination and Resizable passed");
+
+const cardHtml = renderToString(
+  createElement(
+    ledger.Card,
+    { size: "sm", "aria-labelledby": "card-title" },
+    createElement(
+      ledger.CardHeader,
+      null,
+      createElement(ledger.CardTitle, null, createElement("h2", { id: "card-title" }, "Evidence")),
+      createElement(ledger.CardDescription, null, "Three artifacts"),
+      createElement(ledger.CardAction, null, createElement("button", { type: "button" }, "Edit")),
+    ),
+    createElement(ledger.CardContent, null, "Details"),
+    createElement(ledger.CardFooter, null, "Saved"),
+  ),
+);
+assert.match(cardHtml, /data-slot="card" data-size="sm"/);
+assert.match(
+  cardHtml,
+  /--ds-utility-elevation-surface-current:var\(--ds-elevation-surface-raised\)/,
+);
+assert.match(cardHtml, /<h2 id="card-title">Evidence<\/h2>/);
+assert.equal("Body" in ledger.Card, false);
+assert.equal("Header" in ledger.Card, false);
+const emptyHtml = renderToString(
+  createElement(
+    ledger.Empty,
+    { size: "compact", title: "Native tooltip", "aria-label": "Empty records" },
+    createElement(
+      ledger.EmptyMedia,
+      { variant: "icon", "aria-hidden": true },
+      createElement("svg", { "data-custom": "icon" }),
+    ),
+    createElement(
+      ledger.EmptyHeader,
+      null,
+      createElement(ledger.EmptyTitle, null, "No records"),
+      createElement(ledger.EmptyDescription, null, "Add one"),
+    ),
+    createElement(ledger.EmptyContent, null, createElement("button", { type: "button" }, "Add")),
+  ),
+);
+assert.match(emptyHtml, /data-slot="empty" data-size="compact"/);
+assert.match(emptyHtml, /title="Native tooltip"/);
+assert.match(emptyHtml, /<div data-slot="empty-description"/);
+assert.match(emptyHtml, /<svg data-custom="icon"/);
+const spinnerHtml = renderToString(
+  createElement(ledger.Spinner, { "aria-label": "Saving", strokeWidth: 3 }),
+);
+assert.match(spinnerHtml, /<svg/);
+assert.match(spinnerHtml, /stroke-width="3"/);
+assert.match(spinnerHtml, /aria-label="Saving"/);
+assert.equal(renderToString(createElement(ledger.Spinner, { delay: 300 })), "");
+assert.match(
+  renderToString(createElement(ledger.Spinner, { isDecorative: true })),
+  /aria-hidden="true"/,
+);
+assert.match(
+  renderToString(createElement(ledger.Toaster, { containerAriaLabel: "Exports" })),
+  /Exports/,
+);
+console.log("Packed Card, Empty, Spinner and Toaster native composition passed");

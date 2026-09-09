@@ -8615,7 +8615,7 @@
             "CCI-000153"
           ],
           "implementation_id": "IMPL-AU_6_3",
-          "implementation_status": "partially-implemented",
+          "implementation_status": "implemented",
           "requirement_ids": [
             "REQ-349"
           ],
@@ -9430,7 +9430,7 @@
             "CCI-001577"
           ],
           "implementation_id": "IMPL-AU_12_1",
-          "implementation_status": "partially-implemented",
+          "implementation_status": "implemented",
           "requirement_ids": [
             "REQ-363",
             "REQ-364"
@@ -12276,7 +12276,7 @@
             "CCI-003961"
           ],
           "implementation_id": "IMPL-CM_7_9",
-          "implementation_status": "partially-implemented",
+          "implementation_status": "implemented",
           "requirement_ids": [
             "REQ-583"
           ],
@@ -18103,7 +18103,7 @@
             "CCI-004188"
           ],
           "implementation_id": "IMPL-MA_3_5",
-          "implementation_status": "partially-implemented",
+          "implementation_status": "implemented",
           "requirement_ids": [
             "REQ-379"
           ],
@@ -27807,7 +27807,7 @@
             "CCI-001165"
           ],
           "implementation_id": "IMPL-SC_18",
-          "implementation_status": "partially-implemented",
+          "implementation_status": "implemented",
           "requirement_ids": [
             "REQ-229"
           ],
@@ -40021,7 +40021,7 @@
       "id": "REQ-229",
       "uuid": "4c2ab0db-2ea7-5c58-9f3f-88629d36c9cd",
       "title": "Acceptable interpreted-code technologies named and enforced at build",
-      "description": "The WS-X90 software baseline shall name which interpreted and dynamically loaded code technologies are acceptable on the Mission Computer (LRU-001) and on the Provisioning Workstation (LRU-017), and the build process shall reject a load module containing a technology outside that list. The list exists with a named owner and the build check is enforced for LRU-001; LRU-017 tooling is still checked by review rather than by the build. This is fictional example language and not the text of the NIST control.",
+      "description": "The WS-X90 software baseline shall name which interpreted and dynamically loaded code technologies are acceptable on the Mission Computer (LRU-001) and on the Provisioning Workstation (LRU-017), and the build process shall reject a load module containing a technology outside that list. The list exists with a named owner and the build check is enforced for both endpoints, the LRU-017 tooling pipeline having been brought under it on 2026-11-03. This is fictional example language and not the text of the NIST control.",
       "source": "derived",
       "source_profile_id": "PROFILE-WSX90-TAILORED",
       "priority": "P3",
@@ -40037,12 +40037,12 @@
         "SUB-01",
         "SUB-06"
       ],
-      "implementation_status": "partially-implemented",
+      "implementation_status": "implemented",
       "owner_role": "Product Security Engineer",
       "acceptance_criteria": [
         "The baseline contains a dated acceptable and unacceptable technology list with a named owner.",
         "An LRU-001 load module containing a listed unacceptable technology fails the build and the failure names the technology.",
-        "The manual review path used for LRU-017 is documented, with the plan to bring it under the build check."
+        "Tooling built for LRU-017 fails its build on a listed unacceptable technology in the same way an LRU-001 load module does."
       ],
       "tags": [
         "sc",
@@ -43937,7 +43937,7 @@
         "SUB-05",
         "SUB-06"
       ],
-      "implementation_status": "partially-implemented",
+      "implementation_status": "implemented",
       "owner_role": "System Security Engineer",
       "acceptance_criteria": [
         "A seeded configuration change and its resulting platform audit records return as one correlated event in the analysis view.",
@@ -44398,7 +44398,7 @@
       "subsystem_ids": [
         "SUB-02"
       ],
-      "implementation_status": "partially-implemented",
+      "implementation_status": "implemented",
       "owner_role": "Firmware Lead",
       "acceptance_criteria": [
         "Timestamps sampled from LRU-004 and LRU-006 stay within the AU-8 tolerance of the LRU-005 reference across a four-hour run.",
@@ -44433,7 +44433,7 @@
         "SUB-03",
         "SUB-06"
       ],
-      "implementation_status": "partially-implemented",
+      "implementation_status": "implemented",
       "owner_role": "System Security Engineer",
       "acceptance_criteria": [
         "The compiled trail contains records from every LRU in the reporting-component register for the sampled window.",
@@ -44927,7 +44927,7 @@
         "SUB-05",
         "SUB-06"
       ],
-      "implementation_status": "partially-implemented",
+      "implementation_status": "implemented",
       "owner_role": "Platform Lead",
       "acceptance_criteria": [
         "Every privileged invocation in a sampled period has a matching audit record on LRU-018.",
@@ -51591,7 +51591,7 @@
         "SUB-03",
         "SUB-05"
       ],
-      "implementation_status": "partially-implemented",
+      "implementation_status": "implemented",
       "owner_role": "Platform Lead",
       "acceptance_criteria": [
         "An unlisted device connected to an LRU-009 port or the LRU-014 maintenance port is refused a data path.",
@@ -58421,8 +58421,8 @@
       "id": "IMPL-SC_18",
       "uuid": "b4bb523e-4955-5c25-9eff-1809936ce78f",
       "control_id": "SC-18",
-      "status": "partially-implemented",
-      "narrative": "Mobile code on WS-X90 means interpreted and dynamically loaded content inside load modules, not browser content, and it is governed by a dated acceptable and unacceptable technology list with a named owner. For the Mission Computer (LRU-001) the list is enforced at build time - a module containing an unacceptable technology fails the build and the failure names it - which is why the airborne baseline can be asserted. The Provisioning Workstation (LRU-017) tooling is still reviewed by the software configuration control board rather than checked by the build, so authorization there depends on a reviewer rather than a gate. This narrative is synthetic demo content.",
+      "status": "implemented",
+      "narrative": "Mobile code on WS-X90 means interpreted and dynamically loaded content inside load modules, not browser content, and it is governed by a dated acceptable and unacceptable technology list with a named owner. For the Mission Computer (LRU-001) the list has been enforced at build time throughout the assessment - a module containing an unacceptable technology fails the build and the failure names it - which is why the airborne baseline can be asserted. The Provisioning Workstation (LRU-017) tooling pipeline came under the same gate on 2026-11-03, when the existing build scan was extended over it and the software configuration control board reading became a record of the decision rather than the decision itself, so both endpoints now refuse an unacceptable technology by build rather than by reviewer attention. This narrative is synthetic demo content.",
       "responsible_roles": [
         "Product Security Engineer"
       ],
@@ -58438,7 +58438,7 @@
         {
           "component_id": "LRU-017",
           "component_uuid": "4d8adf3b-92c5-57b8-a399-8a5ce0e055c9",
-          "description": "Provisioning tooling is reviewed against the same list by the software configuration control board rather than by an automated build check, which is slower and depends on the reviewer noticing."
+          "description": "Provisioning tooling has been scanned by the same build-time check as the airborne baseline since 2026-11-03; a technology outside the acceptable list fails the tooling build, and the control board reading now records that outcome instead of standing in for it."
         }
       ]
     },
@@ -61279,8 +61279,8 @@
       "id": "IMPL-AU_6_3",
       "uuid": "64633552-24d9-5389-b376-93030f3658a4",
       "control_id": "AU-6(3)",
-      "status": "partially-implemented",
-      "narrative": "The Security Log Collector (LRU-018) joins the on-platform audit store copied from the Secure Storage Module (LRU-015) with the configuration-change history held in the Configuration Repository (LRU-020), keyed on actor identity and time, so a configuration change and the audit records it produced resolve to a single correlated event and an unmatched change is reported rather than dropped. What is missing is the third repository: maintenance session transcripts are held separately and are not yet part of the correlation key space, so a change made during a maintenance session correlates to the change record but not to the session that carried it. This narrative is synthetic demo content.",
+      "status": "implemented",
+      "narrative": "The Security Log Collector (LRU-018) joins the on-platform audit store copied from the Secure Storage Module (LRU-015) with the configuration-change history held in the Configuration Repository (LRU-020), keyed on actor identity and time, so a configuration change and the audit records it produced resolve to a single correlated event and an unmatched change is reported rather than dropped. The maintenance session transcript store was the third repository sitting outside that key space; it was brought inside it on 2026-10-28, so a change made during a maintenance session now resolves to the session that carried it as well as to the change record, and the analysis view can say under whose hands a change was made. This narrative is synthetic demo content.",
       "responsible_roles": [
         "System Security Engineer"
       ],
@@ -61291,7 +61291,7 @@
         {
           "component_id": "LRU-018",
           "component_uuid": "5387ea9a-67ca-5990-b416-e1d2c9e87f66",
-          "description": "Performs the cross-repository join on actor identity and time and publishes the correlated analysis view."
+          "description": "Performs the join on actor identity and time across the audit store, the configuration-change history and, since 2026-10-28, the maintenance session transcript store, and publishes the correlated analysis view."
         },
         {
           "component_id": "LRU-015",
@@ -61621,8 +61621,8 @@
       "id": "IMPL-AU_12_1",
       "uuid": "808386e2-516d-5d18-a937-2baf57c315a1",
       "control_id": "AU-12(1)",
-      "status": "partially-implemented",
-      "narrative": "The system-wide audit trail is time-correlated to the platform time reference distributed by the Timing Receiver (LRU-005), which holds the Navigation Processor (LRU-004) and the Navigation Sensor Interface (LRU-006) inside the AU-8 tolerance and declares holdover with a degraded-time marker on emitted records when it cannot. The Security Log Collector (LRU-018) compiles records from every reporting LRU into one trail ordered on that reference, carrying the degraded-time marker through rather than interleaving silently. What is missing is the switch path: the Internal Ethernet Switch (LRU-009) relays records without stamping its own source time, so switch-origin events are ordered on receipt at LRU-018 rather than on origin, which is outside the tolerance during congestion. This narrative is synthetic demo content.",
+      "status": "implemented",
+      "narrative": "The system-wide audit trail is time-correlated to the platform time reference distributed by the Timing Receiver (LRU-005), which holds the Navigation Processor (LRU-004) and the Navigation Sensor Interface (LRU-006) inside the AU-8 tolerance and declares holdover with a degraded-time marker on emitted records when it cannot. The Security Log Collector (LRU-018) compiles records from every reporting LRU into one trail ordered on that reference, carrying the degraded-time marker through rather than interleaving silently. The relay path was the last ordering exception and it closed on 2026-11-05, when the Internal Ethernet Switch (LRU-009) began stamping its own source time; switch-origin events are ordered on origin from that date and stay inside the tolerance while the internal segment is congested. This narrative is synthetic demo content.",
       "responsible_roles": [
         "Firmware Lead",
         "System Security Engineer"
@@ -61650,7 +61650,7 @@
         {
           "component_id": "LRU-009",
           "component_uuid": "aea51f10-3ba3-5c46-b7a0-942148ec8af2",
-          "description": "Relays audit records from segmented internal paths but does not stamp source time, so its events are ordered on receipt."
+          "description": "Relays audit records from segmented internal paths and, since 2026-11-05, stamps each one with its own source time, so relayed events are ordered on origin instead of on arrival at the collector."
         },
         {
           "component_id": "LRU-018",
@@ -62009,8 +62009,8 @@
       "id": "IMPL-MA_3_5",
       "uuid": "9dcf8e8d-503f-5b5e-acd6-ae1d0797601f",
       "control_id": "MA-3(5)",
-      "status": "partially-implemented",
-      "narrative": "Every maintenance tool invocation that runs with elevated platform privilege produces an audit record from the Maintenance Access Gateway (LRU-014) to the Security Log Collector (LRU-018) naming the tool, the technician identity and the privilege level, so privileged tool use is fully visible after the fact. What is missing is detection: the rule that raises an alert for a privileged invocation falling outside an open work order is specified but not built on LRU-018, so out-of-order privileged use is discoverable by query rather than surfaced automatically. This narrative is synthetic demo content.",
+      "status": "implemented",
+      "narrative": "Every maintenance tool invocation that runs with elevated platform privilege produces an audit record from the Maintenance Access Gateway (LRU-014) to the Security Log Collector (LRU-018) naming the tool, the technician identity and the privilege level, so privileged tool use is fully visible after the fact. Detection caught up with that visibility on 2026-11-14, when the rule raising an alert for a privileged invocation that falls outside an open work order was built on LRU-018; out-of-order privileged use now surfaces on its own rather than waiting for someone to go looking for it. This narrative is synthetic demo content.",
       "responsible_roles": [
         "Platform Lead"
       ],
@@ -62026,7 +62026,7 @@
         {
           "component_id": "LRU-018",
           "component_uuid": "5387ea9a-67ca-5990-b416-e1d2c9e87f66",
-          "description": "Receives and retains those records; the out-of-work-order alert rule is not yet implemented."
+          "description": "Receives and retains those records and, since 2026-11-14, raises the out-of-work-order alert when a privileged invocation has no open work order standing behind it."
         }
       ]
     },
@@ -64307,7 +64307,7 @@
       "uuid": "a5ac19c6-8660-5422-b175-3d70e5f05fdb",
       "control_id": "AC-17(4)",
       "status": "partially-implemented",
-      "narrative": "Remote privileged access exists on two paths, both bounded. On the maintenance path the Maintenance Access Gateway (LRU-014) admits a privileged command from a Maintenance Laptop (LRU-019) only when the command is on the approved remote-privileged list, the laptop presents a current device attestation, and the session falls inside a scheduled maintenance window, refusing with a reason code otherwise. On the mission network path, remote privileged access to the Mission Computer (LRU-001) through the Protected Network Gateway (LRU-007) is limited to two documented operational needs, in-flight security policy reload and audit configuration recovery. What is missing: the maintenance window check is advisory — an out-of-window command is logged but not refused — and the need code is not yet a required field in the LRU-007 session record. This narrative is synthetic demo content.",
+      "narrative": "Remote privileged access exists on two paths, both bounded. On the maintenance path the Maintenance Access Gateway (LRU-014) admits a privileged command from a Maintenance Laptop (LRU-019) only when the command is on the approved remote-privileged list, the laptop presents a current device attestation, and the session falls inside a scheduled maintenance window; the window test was promoted from advisory to a blocking admission decision on 2026-11-14, so a command failing any one of the three is now refused with a reason code rather than logged and executed. On the mission network path, remote privileged access to the Mission Computer (LRU-001) through the Protected Network Gateway (LRU-007) is limited to two documented operational needs, in-flight security policy reload and audit configuration recovery. One gap keeps this record short of complete: the need code is written into the LRU-007 session record by convention and is not a required field, so a session can still be recorded without one. This narrative is synthetic demo content.",
       "responsible_roles": [
         "Platform Lead",
         "Product Security Engineer"
@@ -64320,7 +64320,7 @@
         {
           "component_id": "LRU-014",
           "component_uuid": "06c3fa1d-9058-59b4-93e8-baf5d5fab6a2",
-          "description": "Applies the approved-list and attestation checks to remote privileged commands and logs a reason code on refusal; the maintenance window check is advisory today."
+          "description": "Applies the approved-list, attestation and scheduled-window checks to remote privileged commands and refuses on any one of the three with a reason code; the window check has been a blocking decision rather than an advisory note since 2026-11-14."
         },
         {
           "component_id": "LRU-019",
@@ -64330,7 +64330,7 @@
         {
           "component_id": "LRU-007",
           "component_uuid": "bfc80ea6-6be4-57d0-b424-f40c12e71b85",
-          "description": "Carries the mission network privileged path for the two documented needs; the need code is recorded by convention rather than enforced as a required field."
+          "description": "Carries the mission network privileged path for the two documented needs; the need code is still recorded by convention rather than enforced as a required field on the session record, and that is the gap keeping this control short of complete."
         },
         {
           "component_id": "LRU-001",
@@ -66961,8 +66961,8 @@
       "id": "IMPL-CM_7_9",
       "uuid": "5912e39e-6651-5562-9953-57f92b4d57b7",
       "control_id": "CM-7(9)",
-      "status": "partially-implemented",
-      "narrative": "The authorised hardware list is maintained by the Platform Management Controller (LRU-013) with each entry tied to a platform build, and the Maintenance Access Gateway (LRU-014) enforces it on the maintenance port — an unlisted device is refused a session and reported. The Internal Ethernet Switch (LRU-009) is the weaker half: it detects an unlisted device identity and reports it within 30 seconds, but on four of its twelve ports the refusal is advisory because those ports predate the enforcement firmware and cannot yet drop a data path on identity alone. The annual list review CNSSI 1253 sets for CM-7(9) has been completed once. Closing the four ports is the open work behind REQ-583. This narrative is synthetic demo content.",
+      "status": "implemented",
+      "narrative": "The authorised hardware list is maintained by the Platform Management Controller (LRU-013) with each entry tied to a platform build, and the Maintenance Access Gateway (LRU-014) enforces it on the maintenance port - an unlisted device is refused a session and reported. The Internal Ethernet Switch (LRU-009) was the weaker half until 2026-11-11, when the four of its twelve ports still running firmware that predated the enforcement build were reflashed; all twelve now refuse an unlisted device a data path and report it inside the thirty-second bound, instead of four of them raising the report while the traffic continued. The annual list review CNSSI 1253 sets for CM-7(9) has been completed once. This narrative is synthetic demo content.",
       "responsible_roles": [
         "Platform Lead"
       ],
@@ -66973,7 +66973,7 @@
         {
           "component_id": "LRU-009",
           "component_uuid": "aea51f10-3ba3-5c46-b7a0-942148ec8af2",
-          "description": "Detects an unlisted device identity on a port and reports it within 30 seconds; on four of twelve ports the refusal is advisory only because those ports predate the enforcement firmware."
+          "description": "Refuses an unlisted device identity a data path on all twelve ports and reports it within 30 seconds; the four ports left on pre-enforcement firmware were reflashed to the enforcement build on 2026-11-11."
         },
         {
           "component_id": "LRU-014",
@@ -86855,8 +86855,8 @@
     {
       "id": "RSK-017",
       "uuid": "0601ed6d-7337-5a8c-bd28-9352cef18091",
-      "title": "Boundary protection risk on Protected Network Gateway arising from SC-1, SC-5(3) and SC-7(9)",
-      "statement": "3 assessment findings in ASM-2026-002 show boundary protection and network policy enforcement is not fully established for REQ-193, REQ-200 and REQ-207 on Protected Network Gateway (LRU-007), Provisioning Workstation (LRU-017), Security Log Collector (LRU-018) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of SC-1, SC-5(3) and SC-7(9) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "Low-rate exhaustion and unattributable egress at the WS-X90 external boundary",
+      "statement": "WS-X90 mediates every external exchange through one Protected Network Gateway (LRU-007), and the three gaps clustered here remove the ability to watch it being worked on. An adversary who drains gateway session state at a packet rate below the profiled threshold produces no counter that LRU-018 evaluates, and traffic pushed outward from a maintenance session is denied and then recorded against an appliance rather than against the technician whose session carried it. Those two together describe a patient exfiltration attempt that costs the tactical path its capacity and leaves the program with no name to put against it, on a system categorised high for confidentiality. Because the SC-1 review that would ordinarily notice an incomplete telemetry set leaves no decision behind in the Configuration Repository (LRU-020), the paper trail is not positioned to catch the omission either. Until the occupancy counters, the session identity and the review record are all in place, the boundary is being operated on the assumption that anything hostile will be loud. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "high",
       "overall": "high",
@@ -86870,8 +86870,8 @@
     {
       "id": "RSK-018",
       "uuid": "f25f22df-5b1c-5d9a-9a2a-c0bfc43384c2",
-      "title": "Boundary protection risk on Mission Computer arising from SC-18 and SC-7(14)",
-      "statement": "2 assessment findings in ASM-2026-002 show boundary protection and network policy enforcement is not fully established for REQ-212 and REQ-229 on Mission Computer (LRU-001), Protected Network Gateway (LRU-007), Internal Ethernet Switch (LRU-009), Maintenance Access Gateway (LRU-014) and Provisioning Workstation (LRU-017). If the condition persists, WS-X90 may not hold the protection its tailored selection of SC-18 and SC-7(14) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "An unsealed service connector leaves a physical route into the maintenance path",
+      "statement": "The Maintenance Access Gateway (LRU-014) is the one place on the airframe where a cable can be seated and pulled between scheduled inspections without leaving anything for an inspector to find, and the path it opens reaches the mission computing chain directly. A connection made there while a platform sits on a dispersed flightline would go undetected, so the program would learn of it from its consequences rather than from an inspection sheet. The interpreted-code screening gap on the Provisioning Workstation (LRU-017) has since been closed at the build, which removes the software half of that story, but SC-7(14) still rests on a keyed lock that a determined visitor treats as a delay rather than a barrier. On a platform categorised high for integrity, an unrecorded physical touchpoint into the maintenance path is a standing route to a load the platform has no reason to distrust. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "high",
       "overall": "high",
@@ -86884,8 +86884,8 @@
     {
       "id": "RSK-019",
       "uuid": "50b1861d-c7b0-5811-9c15-12a370d2f3bd",
-      "title": "Boundary protection risk on Mission Computer arising from SC-24",
-      "statement": "One assessment finding in ASM-2026-002 show boundary protection and network policy enforcement is not fully established for REQ-240 on Mission Computer (LRU-001) and Secure Boot Controller (LRU-002). If the condition persists, WS-X90 may not hold the protection its tailored selection of SC-24 was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "A partition that has failed its own integrity check keeps flying the mission",
+      "statement": "SC-24 was selected so that WS-X90 arrives at one known state when something breaks, and today it does that only for failures the Secure Boot Controller (LRU-002) can observe for itself. A mission partition that fails its own check in flight leaves the Mission Computer (LRU-001) running with the remaining partitions live, so the platform continues to fly, navigate and report on an article that has already declared part of itself untrustworthy. Whatever that partition emits afterwards is indistinguishable downstream from correct output, which puts suspect mission data on the tactical link with the platform's full provenance behind it. The uncovered case is airborne rather than at power-on, so there is nobody standing at the article to make the call the missing handler would have made. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "high",
       "overall": "high",
@@ -86897,8 +86897,8 @@
     {
       "id": "RSK-020",
       "uuid": "20706f4f-9c5c-5b7d-82db-c8c6bdb8aed8",
-      "title": "Audit integrity risk on Cryptographic Services Module arising from AU-1, AU-10 and AU-6(3)",
-      "statement": "3 assessment findings in ASM-2026-002 show audit record generation, retention and log integrity is not fully established for REQ-344, REQ-349 and REQ-360 on Cryptographic Services Module (LRU-003), Payload Interface Controller (LRU-010), Payload Safety Interlock (LRU-011), Secure Storage Module (LRU-015), Security Log Collector (LRU-018) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of AU-1, AU-10 and AU-6(3) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "Payload arm and release records become unverifiable as signing keys rotate",
+      "statement": "Arm and release commands are the highest-consequence traffic WS-X90 carries, and the record that would say who issued one stops being readable the moment its signing key rotates. A disputed payload event would therefore reach the program with the Payload Interface Controller (LRU-010) record present and the Cryptographic Services Module (LRU-003) signature intact, and with no way to resolve either back to an operator, which is precisely the condition AU-10 was selected to prevent. The affected population is not fixed: every rotation moves another tranche of arm and release records from verifiable to unknown-key, so the ability to reconstruct a payload event decays on the key schedule rather than on the retention schedule. The correlated view over maintenance sessions has been repaired, which leaves the unpublished key history and the audit direction in LRU-020 that never required it to be published. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "high",
       "overall": "critical",
@@ -86912,8 +86912,8 @@
     {
       "id": "RSK-021",
       "uuid": "8f918cc4-bfeb-57d7-b2a9-1a1152523071",
-      "title": "Audit integrity risk on Timing Receiver arising from AU-12(1)",
-      "statement": "One assessment finding in ASM-2026-002 show audit record generation, retention and log integrity is not fully established for REQ-364 on Timing Receiver (LRU-005), Internal Ethernet Switch (LRU-009) and Security Log Collector (LRU-018). If the condition persists, WS-X90 may not hold the protection its tailored selection of AU-12(1) was chosen to provide, and the authorization package would carry that gap forward. The contributing findings have been corrected and retested, so the risk is recorded as mitigated pending the next monitoring cycle. This narrative is synthetic demo content.",
+      "title": "Relayed audit records carried a second ordering inside the platform trail",
+      "statement": "Records relayed through the Internal Ethernet Switch (LRU-009) were ordered on arrival, so any reconstruction of an event that crossed the internal segment during congestion could have placed effects before their causes. On a platform whose entire trail is anchored to the Timing Receiver (LRU-005) reference, a second ordering hiding inside the first is the sort of defect that surfaces only once an investigation depends on it. A source-time stamp now travels with the relayed records and the Security Log Collector (LRU-018) reproduced the seeded sequence across every source on retest, so AU-12(1) holds and what remains is the window already shut. This narrative is synthetic demo content.",
       "likelihood": "low",
       "impact": "low",
       "overall": "low",
@@ -86925,8 +86925,8 @@
     {
       "id": "RSK-022",
       "uuid": "424d0cd9-79bc-55ec-bede-0f97c722a615",
-      "title": "Access enforcement risk on Cryptographic Services Module arising from AC-1 and AC-4(4)",
-      "statement": "2 assessment findings in ASM-2026-002 show access enforcement, least privilege and session control is not fully established for REQ-436 and REQ-449 on Cryptographic Services Module (LRU-003), Protected Network Gateway (LRU-007), Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of AC-1 and AC-4(4) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "A disallowed session survives at the boundary while field procedures go unsigned",
+      "statement": "Two different populations are exposed here: technicians in the field working from unsigned direction, and a UDP-bearing tunnel at the Protected Network Gateway (LRU-007) that outlives its own failed inspection. AC-4(4) sets a teardown so that a flow already judged disallowed stops being available to try again, and discarding its packets one at a time leaves the session established for as long as the sender cares to hold it. The people best placed to notice that behaviour are meanwhile assembling their work from packages the Provisioning Workstation (LRU-017) will still build around seven procedures nobody currently owns. Neither gap moves protected content across the boundary by itself, but together they describe a platform that resists an intrusion attempt without ever closing the door or telling anyone to look at it. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -86939,8 +86939,8 @@
     {
       "id": "RSK-023",
       "uuid": "4f6fee1b-8740-5681-bfc9-7c9d92f7fb67",
-      "title": "Access enforcement risk on Platform Management Controller arising from AC-6(7)",
-      "statement": "One assessment finding in ASM-2026-002 show access enforcement, least privilege and session control is not fully established for REQ-454 on Platform Management Controller (LRU-013) and Security Log Collector (LRU-018). If the condition persists, WS-X90 may not hold the protection its tailored selection of AC-6(7) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "Privilege that survived its own review still reaches platform management",
+      "statement": "The privileged assignment review on the Platform Management Controller (LRU-013) does its work and then stops short of the only step that changes anything, so two holders judged to no longer need privilege still hold it. Privilege that has outlived its own justification is the standing account an attacker prefers, because it belongs to a real person whose activity reads as ordinary in the Security Log Collector (LRU-018) record. On WS-X90 that privilege reaches platform management functions directly, so a credential compromise against either holder begins from a position the program has already decided nobody should occupy. AC-6(7) is carried as a review with an enforcement step attached, and while the flag is raised and left alone the platform keeps accumulating the excess the control was selected to shed. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -86952,8 +86952,8 @@
     {
       "id": "RSK-024",
       "uuid": "1b75123a-b87c-5d40-9f97-1a9da1593dbf",
-      "title": "Access enforcement risk on Maintenance Access Gateway arising from AC-17(4)",
-      "statement": "One assessment finding in ASM-2026-002 show access enforcement, least privilege and session control is not fully established for REQ-470 on Maintenance Access Gateway (LRU-014) and Maintenance Laptop (LRU-019). If the condition persists, WS-X90 may not hold the protection its tailored selection of AC-17(4) was chosen to provide, and the authorization package would carry that gap forward. The contributing findings have been corrected and retested, so the risk is recorded as mitigated pending the next monitoring cycle. This narrative is synthetic demo content.",
+      "title": "Out-of-window privileged maintenance was recorded rather than refused",
+      "statement": "A privileged command issued outside a maintenance window was being written to the session log at the Maintenance Access Gateway (LRU-014) and then executed, so the schedule documented privileged work instead of bounding it. The point of a scheduled window is that activity outside it is refused while somebody can still ask why, and an advisory check converts that into an after-the-fact reading of a log nobody was watching. The window test now blocks at the gateway and a retest from the Maintenance Laptop (LRU-019) saw the out-of-window command refused with its reason code, so AC-17(4) is satisfied and the risk is carried only until the next monitoring cycle confirms it holds. This narrative is synthetic demo content.",
       "likelihood": "low",
       "impact": "low",
       "overall": "low",
@@ -86965,8 +86965,8 @@
     {
       "id": "RSK-025",
       "uuid": "6a21a112-b17a-5bd9-b9c4-da5ca17667fc",
-      "title": "Authentication risk on Mission Computer arising from IA-2(2) and IA-3(1)",
-      "statement": "2 assessment findings in ASM-2026-002 show identification, authentication and credential management is not fully established for REQ-599 and REQ-604 on Mission Computer (LRU-001), Secure Boot Controller (LRU-002), Internal Ethernet Switch (LRU-009), Provisioning Workstation (LRU-017) and Maintenance Laptop (LRU-019). If the condition persists, WS-X90 may not hold the protection its tailored selection of IA-2(2) and IA-3(1) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "A password on its own reaches WS-X90 at the flightline",
+      "statement": "Everything WS-X90 knows about who is at the aircraft rests on the Maintenance Laptop (LRU-019), and away from the ground support network that laptop still accepts a password by itself. Anyone holding it on a dispersed flightline is one guessable secret from a privileged maintenance session against the airframe, in the setting where the platform is worked on most often and watched least closely. The Internal Ethernet Switch (LRU-009) compounds that from the other direction, because a port admitted to the mission VLAN on a one-sided exchange means the switch has proved itself to a device while learning nothing about what is attached, and the device in question distributes the reference the whole audit trail is ordered on. A platform categorised high for confidentiality that can be reached by password alone and then observed over a link nobody authenticated has lost the multi-factor property IA-2(2) was selected to provide, not merely the evidence of it. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "high",
       "overall": "critical",
@@ -86979,8 +86979,8 @@
     {
       "id": "RSK-026",
       "uuid": "8cf42b6d-1aa5-5938-a9ee-86081c697ec6",
-      "title": "Authentication risk on Cryptographic Services Module arising from IA-5(1)",
-      "statement": "One assessment finding in ASM-2026-002 show identification, authentication and credential management is not fully established for REQ-609 on Cryptographic Services Module (LRU-003) and Secure Storage Module (LRU-015). If the condition persists, WS-X90 may not hold the protection its tailored selection of IA-5(1) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "A publicly known password is still a valid WS-X90 credential",
+      "statement": "Composition rules are enforced and the credential region on the Secure Storage Module (LRU-015) gives nothing away, so the weakness is not in how a password is held but in which passwords are let through. Screening against a compromised-credential list last refreshed well outside its interval means a password already sitting in a public breach corpus is accepted today provided it is long enough and mixed enough. An attacker replaying harvested credentials against the provisioning path needs no flaw in the Cryptographic Services Module (LRU-003) if the program is issuing secrets that can simply be looked up. IA-5(1) is one scheduled refresh away from holding, and until that schedule exists the strength of a WS-X90 password is a claim about its shape rather than its secrecy. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -86992,8 +86992,8 @@
     {
       "id": "RSK-027",
       "uuid": "3df14b46-454e-5956-8f72-e46707eba410",
-      "title": "System integrity risk on Secure Boot Controller arising from SI-1, SI-4(10) and SI-7(5)",
-      "statement": "3 assessment findings in ASM-2026-002 show software, firmware and information integrity is not fully established for REQ-251, REQ-261 and REQ-280 on Secure Boot Controller (LRU-002), Cryptographic Services Module (LRU-003), Protected Network Gateway (LRU-007), Update & Recovery Controller (LRU-016), Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of SI-1, SI-4(10) and SI-7(5) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "The mission link is unmonitored and three firmware domains cannot force the restricted state",
+      "statement": "The Tactical Data Radio path carries more WS-X90 traffic than every other external link together and nothing inspects its content, so the monitoring picture is complete everywhere except where the mission actually happens. Set beside firmware integrity violations in the navigation, timing and payload domains that raise an alert and change nothing, the plausible sequence is a compromised component continuing to produce mission output over a link nobody is reading. The Secure Boot Controller (LRU-002) would hold the platform in its restricted state for the same class of violation in mission software, so the protection exists and simply does not reach three of the domains the mission leans on hardest. SI-7(5) was selected against an integrity-high categorization, and with the procedures covering both enhancements still marked draft in the LRU-020 set there is not even issued direction telling an operator what to do when the alert arrives. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "high",
       "overall": "high",
@@ -87007,8 +87007,8 @@
     {
       "id": "RSK-028",
       "uuid": "633a08d1-e3d2-53df-9d1e-77c917b5357a",
-      "title": "Configuration baseline risk on Provisioning Workstation arising from CM-1 and CM-3(7)",
-      "statement": "2 assessment findings in ASM-2026-002 show configuration baselines, change control and inventory accuracy is not fully established for REQ-559 and REQ-568 on Provisioning Workstation (LRU-017), Security Log Collector (LRU-018) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of CM-1 and CM-3(7) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "The widest configuration divergence WS-X90 produces has no review behind it",
+      "statement": "A change campaign is the moment the applied configuration of WS-X90 diverges furthest from the approved one in the shortest time, and it is the one moment no review is scheduled to follow. Nothing in the Configuration Repository (LRU-020) opens a reconciliation when a campaign closes, so an unapproved change made during one waits for the monthly cycle and is then found, if at all, inside a month of ordinary drift. The four procedures still unsigned in the CM set are the ones covering automated change prohibition and automated security response, which means the direction for the machinery that would otherwise catch such a change is itself unissued. CM-3(7) is the check on the largest divergence the platform ever experiences, and it currently runs only when the engineer who ran the campaign thinks to ask for it. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -87021,8 +87021,8 @@
     {
       "id": "RSK-029",
       "uuid": "79bcf027-a814-525d-815d-e0eeb939beba",
-      "title": "Configuration baseline risk on Internal Ethernet Switch arising from CM-7(9)",
-      "statement": "One assessment finding in ASM-2026-002 show configuration baselines, change control and inventory accuracy is not fully established for REQ-583 on Internal Ethernet Switch (LRU-009), Platform Management Controller (LRU-013) and Maintenance Access Gateway (LRU-014). If the condition persists, WS-X90 may not hold the protection its tailored selection of CM-7(9) was chosen to provide, and the authorization package would carry that gap forward. The contributing findings have been corrected and retested, so the risk is recorded as mitigated pending the next monitoring cycle. This narrative is synthetic demo content.",
+      "title": "Unlisted hardware was announced onto the internal segment and then carried",
+      "statement": "Four Internal Ethernet Switch (LRU-009) ports were announcing an unlisted device and then carrying its traffic anyway, which put unauthorised hardware on the internal segment with a log entry as the only consequence. A device admitted that way sits inside every trust boundary the mediated external path exists to defend, so the reporting the platform did well was describing an exposure rather than preventing it. Those ports now run the enforcement build and all twelve refused an unlisted device on retest, so CM-7(9) is met and this is retained as a record of what a lagging port firmware baseline costs. This narrative is synthetic demo content.",
       "likelihood": "low",
       "impact": "low",
       "overall": "low",
@@ -87034,8 +87034,8 @@
     {
       "id": "RSK-030",
       "uuid": "692a7375-a6fa-5a48-b978-adbbf358f041",
-      "title": "Maintenance control risk on Platform Management Controller arising from MA-2(2)",
-      "statement": "One assessment finding in ASM-2026-002 show maintenance authorization, tooling and service access is not fully established for REQ-373 on Platform Management Controller (LRU-013) and Update & Recovery Controller (LRU-016). If the condition persists, WS-X90 may not hold the protection its tailored selection of MA-2(2) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "Payload telemetry maintenance happens outside the work-order gate",
+      "statement": "Maintenance on the payload telemetry equipment is written down after the fact rather than authorised in advance, so for that subsystem the work-order gate on the Update & Recovery Controller (LRU-016) is a filing convention instead of a control. Anyone able to reach the equipment can perform work no open order permitted and then supply the paperwork that makes it read as routine, and the stale-record flag on the Platform Management Controller (LRU-013) never examines records that arrive complete. MA-2(2) treats the workflow as the thing that authorises a maintenance action, so a subsystem sitting outside it is a subsystem where the program cannot say whether a given change was sanctioned. Everything else on the platform is gated correctly, which makes this a seam an insider would find faster than an assessor would. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -87047,8 +87047,8 @@
     {
       "id": "RSK-031",
       "uuid": "1eddbf40-4e6f-5986-8a88-ecbe5e85c80e",
-      "title": "Maintenance control risk on Maintenance Access Gateway arising from MA-3(5)",
-      "statement": "One assessment finding in ASM-2026-002 show maintenance authorization, tooling and service access is not fully established for REQ-379 on Maintenance Access Gateway (LRU-014) and Security Log Collector (LRU-018). If the condition persists, WS-X90 may not hold the protection its tailored selection of MA-3(5) was chosen to provide, and the authorization package would carry that gap forward. The contributing findings have been corrected and retested, so the risk is recorded as mitigated pending the next monitoring cycle. This narrative is synthetic demo content.",
+      "title": "Out-of-work-order privileged tool use was recorded and never surfaced",
+      "statement": "Privileged maintenance tooling was fully recorded and never watched, so use of a privileged tool with no open work order behind it would have waited in the Security Log Collector (LRU-018) for a query nobody had a reason to run. That interval is where an insider works: the evidence exists, the discovery does not, and the gap between them is as long as the program's curiosity. The alert rule now runs on the collector and a seeded out-of-order invocation through the Maintenance Access Gateway (LRU-014) raised it on retest, so MA-3(5) is satisfied and the exposure closed inside the assessment window. This narrative is synthetic demo content.",
       "likelihood": "low",
       "impact": "low",
       "overall": "low",
@@ -87060,8 +87060,8 @@
     {
       "id": "RSK-032",
       "uuid": "393639d9-9594-508d-a46d-77093e232288",
-      "title": "Recovery readiness risk on Secure Storage Module arising from CP-4",
-      "statement": "One assessment finding in ASM-2026-002 show contingency planning, backup and controlled recovery is not fully established for REQ-486 on Secure Storage Module (LRU-015) and Update & Recovery Controller (LRU-016). If the condition persists, WS-X90 may not hold the protection its tailored selection of CP-4 was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "The four-hour recovery objective has never been measured on a whole article",
+      "statement": "WS-X90 has never been restored end to end, so the four-hour recovery objective is a figure the program has adopted rather than one it has measured. The partitions left out of the exercise are platform management and payload interface, which are exactly the ones an operator needs back before the article is worth flying again. Availability is categorised moderate, so the exposure is not an outage so much as the discovery, during a real recovery, that the Update & Recovery Controller (LRU-016) path taken from a sealed Secure Storage Module (LRU-015) set behaves differently for partitions nobody has exercised. CP-4 exists to turn a documented recovery path into a demonstrated one, and until the flight-configuration article is released for test the program is planning against an unverified number. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -87073,8 +87073,8 @@
     {
       "id": "RSK-033",
       "uuid": "2a37b144-8845-5d69-9829-bead4f2f5719",
-      "title": "Recovery readiness risk on Protected Network Gateway arising from CP-8(2)",
-      "statement": "One assessment finding in ASM-2026-002 show contingency planning, backup and controlled recovery is not fully established for REQ-498 on Protected Network Gateway (LRU-007), Tactical Data Radio (LRU-008) and Internal Ethernet Switch (LRU-009). If the condition persists, WS-X90 may not hold the protection its tailored selection of CP-8(2) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "Primary and alternate bearers converge on one switch port group",
+      "statement": "The alternate telecommunications path for WS-X90 is genuinely disjoint from the primary everywhere except on the platform itself, where both transit a single Internal Ethernet Switch (LRU-009) port group. A failure in that port group takes the Protected Network Gateway (LRU-007) route and the Tactical Data Radio (LRU-008) route down together, which is the one event the alternate was procured to survive. The convergence is already carried as an accepted single point of failure and availability is categorised moderate, so what is exposed is a redundancy the program has paid for rather than the mission itself. CP-8(2) cannot hold while the two paths share an element on either side of the demarcation, and re-homing the radio is the only change that alters the answer. This narrative is synthetic demo content.",
       "likelihood": "low",
       "impact": "low",
       "overall": "low",
@@ -87086,8 +87086,8 @@
     {
       "id": "RSK-034",
       "uuid": "dc153fa7-4d27-5619-802a-51f1fcb249e7",
-      "title": "Supply chain assurance risk on Secure Boot Controller arising from SA-1, SA-10(3) and SA-8(9)",
-      "statement": "3 assessment findings in ASM-2026-002 show acquisition, development process and supply chain assurance is not fully established for REQ-121, REQ-148 and REQ-182 on Secure Boot Controller (LRU-002), Cryptographic Services Module (LRU-003), Payload Safety Interlock (LRU-011), Platform Management Controller (LRU-013), Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of SA-1, SA-10(3) and SA-8(9) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "The payload interlock's trust basis is asserted and six units identify themselves from paperwork",
+      "statement": "The Payload Safety Interlock (LRU-011) is the component standing between a payload command and the payload, and it is the one entry in the dependency map whose trustworthiness is asserted rather than evidenced. Nothing can evaluate whether an authorisation arriving there comes from a component of adequate strength while one side of that comparison is a placeholder, so the rule SA-8(9) turns on is unenforceable in exactly the chain where it matters most. Six units across the navigation, timing and payload interface subsystems compound it by falling back to a maintenance record for hardware identity, which authenticates the paperwork rather than the part and misses precisely the substitution an adversary would perform. With acquisition procedures that expired before the control set reached its present size still citable in a live procurement, the route to correcting either problem runs through direction the Configuration Repository (LRU-020) is not withdrawing. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "high",
       "overall": "high",
@@ -87101,8 +87101,8 @@
     {
       "id": "RSK-035",
       "uuid": "32315370-7ef5-5ca0-b12a-12f03dc7b984",
-      "title": "Continuous monitoring risk on Protected Network Gateway arising from CA-3",
-      "statement": "One assessment finding in ASM-2026-002 show assessment, continuous monitoring and risk determination is not fully established for REQ-508 on Protected Network Gateway (LRU-007) and Tactical Data Radio (LRU-008). If the condition persists, WS-X90 may not hold the protection its tailored selection of CA-3 was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "Platform telemetry crosses to a party nobody has signed a responsibility split with",
+      "statement": "A ground-support telemetry exchange is enabled in the Protected Network Gateway (LRU-007) policy set and carrying traffic under an interim approval, so WS-X90 information is crossing to a party whose control responsibilities nobody has signed for. If that party mishandles what it receives, the program has no agreed division of duties to point at and no recorded impact level to argue from, which makes a partner's incident the program's problem by default. CA-3 makes the signed agreement the precondition for enabling an exchange for exactly that reason, and an interim approval with an expiry on it is a schedule rather than an agreement. The exposure is bounded by the exchange being listed openly and time-limited, but it is live traffic off a confidentiality-high platform in the meantime. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -87114,8 +87114,8 @@
     {
       "id": "RSK-036",
       "uuid": "576c7402-9233-527d-a771-ab335fd71663",
-      "title": "Continuous monitoring risk on Provisioning Workstation arising from RA-5(2)",
-      "statement": "One assessment finding in ASM-2026-002 show assessment, continuous monitoring and risk determination is not fully established for REQ-525 on Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of RA-5(2) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "A scan on a stale signature set reports clean and the program acts on it",
+      "statement": "A baseline scan that runs against a thirty-hour-old signature set and returns nothing is worse than a scan that does not run, because the program acts on the result. The Provisioning Workstation (LRU-017) makes no comparison against the freshness window and the report header omits the signature identifier, so a reviewer holding a clean report has no way to judge what it covered. Newly published vulnerabilities against the WS-X90 build therefore get a window in which they are simultaneously known to the world and invisible to the program's own monitoring. RA-5(2) specifies an abort precisely so silence is never mistaken for a clean result, and the abort path does not exist to be triggered. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -87127,8 +87127,8 @@
     {
       "id": "RSK-037",
       "uuid": "3eebf233-8cb0-5151-9c92-8332426ef96e",
-      "title": "Incident response risk on Provisioning Workstation arising from IR-1",
-      "statement": "One assessment finding in ASM-2026-002 show incident handling, tracking and reporting is not fully established for REQ-298 on Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of IR-1 was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "Insider threat and spillage have an escalation path and no named owner",
+      "statement": "Two of the incident classes WS-X90 can now declare, an insider threat case and a classified spillage, have an escalation path in the control set and no named role in the direction anybody actually follows. The first hours of either are when containment is decided, and they would be spent working out who owns the decision rather than making it, with the copy staged on the Provisioning Workstation (LRU-017) giving ground support nothing to act on. Spillage in particular runs against a confidentiality-high categorization, where a slow start is measured in how far the material travels before somebody moves. IR-1 asks for review after any change to the escalation chain, and widening that chain by two branches is the change no review in the Configuration Repository (LRU-020) has been run against. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -87140,8 +87140,8 @@
     {
       "id": "RSK-038",
       "uuid": "82fedf54-a26a-5880-914a-7bc1ee57cc3f",
-      "title": "Incident response risk on Security Log Collector arising from IR-6(2)",
-      "statement": "One assessment finding in ASM-2026-002 show incident handling, tracking and reporting is not fully established for REQ-319 on Security Log Collector (LRU-018) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of IR-6(2) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "Weakness reports reach their second recipient after the reporting bound",
+      "statement": "Half the weakness reports WS-X90 has produced since the scope expansion reached their second recipient after the bound had passed, and the reason is that one of the two routes is walked by hand while the other is dispatched automatically. A weakness anchored to a Configuration Repository (LRU-020) baseline item is exactly the kind another program on the same baseline could act on immediately, so lateness costs somebody else time they did not know they were losing. IR-6(2) sets one bound across both recipients because a report that is timely to only one of them has not been reported. Four cases is thin as evidence and complete as a record of how the platform has behaved since the scope grew. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "moderate",
       "overall": "moderate",
@@ -87153,8 +87153,8 @@
     {
       "id": "RSK-039",
       "uuid": "06862046-5391-57bb-9ea8-db364eb5fb27",
-      "title": "Physical and media protection risk on Mission Computer arising from PE-3(1)",
-      "statement": "One assessment finding in ASM-2026-002 show physical access control and media protection is not fully established for REQ-392 on Mission Computer (LRU-001), Cryptographic Services Module (LRU-003) and Secure Storage Module (LRU-015). If the condition persists, WS-X90 may not hold the protection its tailored selection of PE-3(1) was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "A hand-kept bay list leaves standing physical access to key and recovery material",
+      "statement": "Behind the protected bay door sit the Mission Computer (LRU-001), the Cryptographic Services Module (LRU-003) and the Secure Storage Module (LRU-015), which is to say the key material, the configuration and the recovery set the rest of the control selection assumes are physically out of reach. The bay reader list is transcribed from the facility roster rather than derived from it, so somebody removed from the program keeps bay access until a person notices, and the reader log is never exported for anyone to notice with. Physical access to those three units defeats controls that are otherwise sound, because an attacker standing at the bay is inside every boundary the platform mediates. PE-3(1) was selected to make bay access narrower than facility access, and a hand-maintained list is the one form of separation that can outlive the access it exists to restrict. This narrative is synthetic demo content.",
       "likelihood": "moderate",
       "impact": "high",
       "overall": "high",
@@ -87166,8 +87166,8 @@
     {
       "id": "RSK-040",
       "uuid": "ca443d34-46a9-5ac3-b2da-1dfcaa7d39a7",
-      "title": "Personnel and training risk on Provisioning Workstation arising from PS-1",
-      "statement": "One assessment finding in ASM-2026-002 show personnel security, role-based training and security planning is not fully established for REQ-330 on Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). If the condition persists, WS-X90 may not hold the protection its tailored selection of PS-1 was chosen to provide, and the authorization package would carry that gap forward. The risk stays open until every contributing finding is corrected, re-evidenced and retested. This narrative is synthetic demo content.",
+      "title": "The personnel procedure and the provisioning gate no longer agree",
+      "statement": "What the Provisioning Workstation (LRU-017) enforces when an account is created is stricter than what the published personnel security procedure describes, so the divergence runs the safe way and nothing on WS-X90 is under-protected today. The cost is that the program's written direction no longer predicts its own system: a request built to the procedure can be refused, and whoever wrote it has no way to see why. Direction that is wrong in the harmless direction still gets corrected by whoever it inconveniences, which is how a gate ends up loosened to match a document rather than the document being reissued to match the gate. PS-1 asks for an update after any change to eligibility gating, and the change made during the scope expansion is the one that went unrecorded in the Configuration Repository (LRU-020). This narrative is synthetic demo content.",
       "likelihood": "low",
       "impact": "low",
       "overall": "low",
@@ -87859,8 +87859,8 @@
     {
       "id": "POAM-017",
       "uuid": "eaf5954a-38ac-59d7-a697-d30bbe8f53ce",
-      "title": "Remediate boundary protection gap in SC-1, SC-5(3) and SC-7(9)",
-      "description": "Close the boundary protection and network policy enforcement shortfall recorded by ASM-2026-002 against REQ-193, REQ-200 and REQ-207 on Protected Network Gateway (LRU-007), Provisioning Workstation (LRU-017), Security Log Collector (LRU-018) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Restore state-level visibility and operator attribution at the boundary gateway",
+      "description": "Extending the gateway telemetry export is the load-bearing change here, because the same export feeds both the SC-5(3) occupancy question and the thresholds the collector evaluates. Carrying maintenance session identity into the SC-7(9) denial record and lodging the SC-1 annual review as a repository workflow step are the two smaller corrections that ride with it. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-017"
       ],
@@ -87891,26 +87891,26 @@
       "milestones": [
         {
           "id": "POAM-017-M1",
-          "title": "Correct the flow policy and re-baseline the mediated interface set for SC-1, SC-5(3) and SC-7(9)",
+          "title": "Publish session-table and buffer occupancy counters in the LRU-007 telemetry export",
           "status": "completed",
           "target_date": "2026-10-05",
           "completed_at": "2026-10-05T17:00:00Z"
         },
         {
           "id": "POAM-017-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Set collector thresholds on the new counters so a low-rate excursion alerts at LRU-018",
           "status": "in-progress",
           "target_date": "2026-11-05"
         },
         {
           "id": "POAM-017-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Carry maintenance session identity into the denial record so a denied flow names an operator",
           "status": "planned",
           "target_date": "2026-12-05"
         },
         {
           "id": "POAM-017-M4",
-          "title": "Retest with the independent assessor and close the boundary protection finding",
+          "title": "Lodge the SC policy annual review as a Configuration Repository workflow step and retest all three objectives",
           "status": "planned",
           "target_date": "2027-01-05"
         }
@@ -87919,8 +87919,8 @@
     {
       "id": "POAM-018",
       "uuid": "ceb1b255-5a5e-58c5-b9c9-81ee698b1ad5",
-      "title": "Remediate boundary protection gap in SC-18 and SC-7(14)",
-      "description": "Close the boundary protection and network policy enforcement shortfall recorded by ASM-2026-002 against REQ-212 and REQ-229 on Mission Computer (LRU-001), Protected Network Gateway (LRU-007), Internal Ethernet Switch (LRU-009), Maintenance Access Gateway (LRU-014) and Provisioning Workstation (LRU-017). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Seal the maintenance service connector and confirm the interface inventory",
+      "description": "Seals are specified and on order, so this item fits them to the LRU-014 service connector, records each against its key holder and adds the seal state to the sheet an inspector actually works from. SC-7(14) is retested against the physical interface inventory, the SC-18 half having already retested to a pass when the build scan was extended over the LRU-017 tooling pipeline. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-018"
       ],
@@ -87949,19 +87949,19 @@
       "milestones": [
         {
           "id": "POAM-018-M1",
-          "title": "Correct the flow policy and re-baseline the mediated interface set for SC-18 and SC-7(14)",
+          "title": "Fit tamper-evident seals to the LRU-014 service connector and record each against its key holder",
           "status": "in-progress",
           "target_date": "2026-11-06"
         },
         {
           "id": "POAM-018-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Add the seal state to the boundary interface inspection sheet used at the flightline",
           "status": "planned",
           "target_date": "2026-12-06"
         },
         {
           "id": "POAM-018-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Re-verify the physical interface inventory with the independent assessor",
           "status": "planned",
           "target_date": "2027-01-06"
         }
@@ -87970,8 +87970,8 @@
     {
       "id": "POAM-019",
       "uuid": "7800965e-3cd1-5806-86a5-2e0c88162553",
-      "title": "Remediate boundary protection gap in SC-24",
-      "description": "Close the boundary protection and network policy enforcement shortfall recorded by ASM-2026-002 against REQ-240 on Mission Computer (LRU-001) and Secure Boot Controller (LRU-002). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Route in-partition failures into the platform secure state",
+      "description": "Failures raised inside a mission partition are handed to that partition's own handler today, and this item routes them to LRU-002 and defines the whole-platform transition the requirement describes. The demonstration is run in the air-mode profile because the uncovered case is the airborne one. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-019"
       ],
@@ -87994,25 +87994,25 @@
       "milestones": [
         {
           "id": "POAM-019-M1",
-          "title": "Correct the flow policy and re-baseline the mediated interface set for SC-24",
+          "title": "Route partition-level integrity and watchdog failures to LRU-002 rather than the partition handler",
           "status": "completed",
           "target_date": "2026-12-07"
         },
         {
           "id": "POAM-019-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Define the whole-platform secure state transition for an in-flight partition failure",
           "status": "completed",
           "target_date": "2027-01-07"
         },
         {
           "id": "POAM-019-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Demonstrate the transition on the rig with a mission partition failed in the air-mode profile",
           "status": "in-progress",
           "target_date": "2027-02-07"
         },
         {
           "id": "POAM-019-M4",
-          "title": "Retest with the independent assessor and close the boundary protection finding",
+          "title": "Retest SC-24 against an induced in-partition failure and record the elapsed transition time",
           "status": "planned",
           "target_date": "2027-03-07"
         }
@@ -88021,8 +88021,8 @@
     {
       "id": "POAM-020",
       "uuid": "e20a2278-8b23-5983-8965-fb81eaf58e61",
-      "title": "Remediate audit integrity gap in AU-1, AU-10 and AU-6(3)",
-      "description": "Close the audit record generation, retention and log integrity shortfall recorded by ASM-2026-002 against REQ-344, REQ-349 and REQ-360 on Cryptographic Services Module (LRU-003), Payload Interface Controller (LRU-010), Payload Safety Interlock (LRU-011), Secure Storage Module (LRU-015), Security Log Collector (LRU-018) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Publish the retired key history and reissue the audit direction",
+      "description": "Publishing the retired signing key identifiers to the collector is what makes a signature resolvable after a rotation, so it leads and the stranded arm and release records are re-verified behind it. The AU-1 procedure reissue is carried in the same item because the direction that would have called for the key history is the same direction that is stale. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-020"
       ],
@@ -88055,20 +88055,20 @@
       "milestones": [
         {
           "id": "POAM-020-M1",
-          "title": "Correct audit generation and retention, then reconcile the collector holdings for AU-1, AU-10 and AU-6(3)",
+          "title": "Publish the retired signing key identifiers from LRU-003 to the collector",
           "status": "completed",
           "target_date": "2026-10-08",
           "completed_at": "2026-10-08T17:00:00Z"
         },
         {
           "id": "POAM-020-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Re-verify the stranded arm and release records against the republished key history",
           "status": "in-progress",
           "target_date": "2026-11-08"
         },
         {
           "id": "POAM-020-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Reissue the audit procedures to the current control scope and describe the correlation behaviour now running",
           "status": "planned",
           "target_date": "2026-12-08"
         }
@@ -88077,8 +88077,8 @@
     {
       "id": "POAM-021",
       "uuid": "7482044a-ff89-5da3-83f7-800a7844aec7",
-      "title": "Remediate audit integrity gap in AU-12(1)",
-      "description": "Close the audit record generation, retention and log integrity shortfall recorded by ASM-2026-002 against REQ-364 on Timing Receiver (LRU-005), Internal Ethernet Switch (LRU-009) and Security Log Collector (LRU-018). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Order the compiled audit trail on source time",
+      "description": "The relay path now stamps a source time before a record leaves the switch, and the compiled trail is rebuilt on that stamp so ordering holds across every source rather than across most of them. The work completed inside the assessment window and the seeded sequence reproduced under a congested internal segment. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-021"
       ],
@@ -88102,21 +88102,21 @@
       "milestones": [
         {
           "id": "POAM-021-M1",
-          "title": "Correct audit generation and retention, then reconcile the collector holdings for AU-12(1)",
+          "title": "Stamp source time on records relayed by LRU-009 before they leave the switch",
           "status": "completed",
           "target_date": "2026-10-03",
           "completed_at": "2026-10-03T17:00:00Z"
         },
         {
           "id": "POAM-021-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Rebuild the compiled trail on origin time and re-run the seeded ordering sequence",
           "status": "completed",
           "target_date": "2026-10-24",
           "completed_at": "2026-10-24T17:00:00Z"
         },
         {
           "id": "POAM-021-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Confirm the order tolerance against the LRU-005 reference under a congested segment",
           "status": "completed",
           "target_date": "2026-11-14",
           "completed_at": "2026-11-14T17:00:00Z"
@@ -88126,8 +88126,8 @@
     {
       "id": "POAM-022",
       "uuid": "3dd786a1-efef-568c-a13b-40195da0a466",
-      "title": "Remediate access enforcement gap in AC-1 and AC-4(4)",
-      "description": "Close the access enforcement, least privilege and session control shortfall recorded by ASM-2026-002 against REQ-436 and REQ-449 on Cryptographic Services Module (LRU-003), Protected Network Gateway (LRU-007), Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Terminate failed-inspection sessions and reissue the unsigned access procedures",
+      "description": "Two independent corrections sit under this item: a tunnel that fails inspection is torn down inside the bound instead of being drained packet by packet, and the seven procedures published without a current owner signature are reissued. The package check is changed at the same time so an unsigned procedure cannot travel to the field inside an otherwise valid package. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-022"
       ],
@@ -88155,19 +88155,19 @@
       "milestones": [
         {
           "id": "POAM-022-M1",
-          "title": "Tighten the enforcement decision and reconcile the role register for AC-1 and AC-4(4)",
+          "title": "Tear down a UDP-bearing tunnel on inspection failure rather than discarding its packets",
           "status": "completed",
           "target_date": "2026-12-10"
         },
         {
           "id": "POAM-022-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Reissue the seven unsigned access control procedures with a current owner signature",
           "status": "completed",
           "target_date": "2027-01-10"
         },
         {
           "id": "POAM-022-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Make the LRU-017 package check test the signature state of every procedure it assembles",
           "status": "in-progress",
           "target_date": "2027-02-10"
         }
@@ -88176,8 +88176,8 @@
     {
       "id": "POAM-023",
       "uuid": "7de06732-85a4-58ee-833a-972dfc051807",
-      "title": "Remediate access enforcement gap in AC-6(7)",
-      "description": "Close the access enforcement, least privilege and session control shortfall recorded by ASM-2026-002 against REQ-454 on Platform Management Controller (LRU-013) and Security Log Collector (LRU-018). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Make the privileged access review reduce privilege by itself",
+      "description": "Expiry replaces the flag, so an assignment a review leaves unreconfirmed loses its privilege without waiting for somebody to remember. The two assignments still standing from the last cycle are reduced first and the objective is then retested across a full review interval. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-023"
       ],
@@ -88200,26 +88200,26 @@
       "milestones": [
         {
           "id": "POAM-023-M1",
-          "title": "Tighten the enforcement decision and reconcile the role register for AC-6(7)",
+          "title": "Make a non-reconfirmed assignment on LRU-013 expire instead of raising a flag",
           "status": "completed",
           "target_date": "2026-10-11",
           "completed_at": "2026-10-11T17:00:00Z"
         },
         {
           "id": "POAM-023-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Reduce the two privileged assignments left standing by the last review",
           "status": "in-progress",
           "target_date": "2026-11-11"
         },
         {
           "id": "POAM-023-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Report each reduction to the collector so a downgrade is auditable after the fact",
           "status": "planned",
           "target_date": "2026-12-11"
         },
         {
           "id": "POAM-023-M4",
-          "title": "Retest with the independent assessor and close the access enforcement finding",
+          "title": "Retest AC-6(7) across a full review cycle with a seeded non-reconfirmation",
           "status": "planned",
           "target_date": "2027-01-11"
         }
@@ -88228,8 +88228,8 @@
     {
       "id": "POAM-024",
       "uuid": "c0c09ef7-8ea4-5385-904f-1b6e46dcf5e9",
-      "title": "Remediate access enforcement gap in AC-17(4)",
-      "description": "Close the access enforcement, least privilege and session control shortfall recorded by ASM-2026-002 against REQ-470 on Maintenance Access Gateway (LRU-014) and Maintenance Laptop (LRU-019). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Block out-of-window privileged commands at the maintenance gateway",
+      "description": "The scheduled-window leg of the admission decision was wired as advisory and is now a blocking check, so a command issued outside a window is refused rather than narrated. The retest exercised all three admission checks from the laptop and the item is recorded complete. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-024"
       ],
@@ -88252,21 +88252,21 @@
       "milestones": [
         {
           "id": "POAM-024-M1",
-          "title": "Tighten the enforcement decision and reconcile the role register for AC-17(4)",
+          "title": "Promote the scheduled-window test at LRU-014 from advisory to a blocking admission check",
           "status": "completed",
           "target_date": "2026-10-05",
           "completed_at": "2026-10-05T17:00:00Z"
         },
         {
           "id": "POAM-024-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Refuse an out-of-window privileged command with its reason code in the session log",
           "status": "completed",
           "target_date": "2026-10-26",
           "completed_at": "2026-10-26T17:00:00Z"
         },
         {
           "id": "POAM-024-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Retest the three admission checks from LRU-019 including the window leg",
           "status": "completed",
           "target_date": "2026-11-16",
           "completed_at": "2026-11-16T17:00:00Z"
@@ -88276,8 +88276,8 @@
     {
       "id": "POAM-025",
       "uuid": "4cb5328c-53c8-559e-bfb6-572e7e485d2b",
-      "title": "Remediate authentication gap in IA-2(2) and IA-3(1)",
-      "description": "Close the identification, authentication and credential management shortfall recorded by ASM-2026-002 against REQ-599 and REQ-604 on Mission Computer (LRU-001), Secure Boot Controller (LRU-002), Internal Ethernet Switch (LRU-009), Provisioning Workstation (LRU-017) and Maintenance Laptop (LRU-019). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Remove the password-only path and make the switch exchange mutual",
+      "description": "The offline credential verifier for the laptop baseline is the only thing that forecloses the password-only path, so it leads and the local logon is withdrawn behind it. The IA-3(1) half changes the Timing Receiver end of the link to present its own certificate before the switch will admit the port. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-025"
       ],
@@ -88306,25 +88306,25 @@
       "milestones": [
         {
           "id": "POAM-025-M1",
-          "title": "Close the credential lifecycle gap and re-verify both authentication paths for IA-2(2) and IA-3(1)",
+          "title": "Ship the offline credential verifier in the LRU-019 baseline so a disconnected session still needs a hardware credential",
           "status": "completed",
           "target_date": "2026-12-13"
         },
         {
           "id": "POAM-025-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Withdraw the password-only local logon from the Maintenance Laptop image",
           "status": "completed",
           "target_date": "2027-01-13"
         },
         {
           "id": "POAM-025-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Require the Timing Receiver to present its own certificate before LRU-009 admits the port",
           "status": "in-progress",
           "target_date": "2027-02-13"
         },
         {
           "id": "POAM-025-M4",
-          "title": "Retest with the independent assessor and close the authentication finding",
+          "title": "Retest both authentication objectives with the laptop off the ground support network",
           "status": "planned",
           "target_date": "2027-03-13"
         }
@@ -88333,8 +88333,8 @@
     {
       "id": "POAM-026",
       "uuid": "cf5be7c4-64b1-5caf-aeab-bde1dbaa306e",
-      "title": "Remediate authentication gap in IA-5(1)",
-      "description": "Close the identification, authentication and credential management shortfall recorded by ASM-2026-002 against REQ-609 on Cryptographic Services Module (LRU-003) and Secure Storage Module (LRU-015). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Put compromised-credential screening on a scheduled refresh",
+      "description": "Screening quality is a scheduling problem rather than a mechanism problem, so the list moves onto a quarterly job and what is already stored is re-screened against it. The objective is retested with a candidate published since the previous refresh, which is the case that passes today. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-026"
       ],
@@ -88357,20 +88357,20 @@
       "milestones": [
         {
           "id": "POAM-026-M1",
-          "title": "Close the credential lifecycle gap and re-verify both authentication paths for IA-5(1)",
+          "title": "Put the compromised-password list refresh on a scheduled quarterly job feeding LRU-003",
           "status": "completed",
           "target_date": "2026-10-14",
           "completed_at": "2026-10-14T17:00:00Z"
         },
         {
           "id": "POAM-026-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Re-screen the credentials already held in the LRU-015 region against the refreshed list",
           "status": "in-progress",
           "target_date": "2026-11-14"
         },
         {
           "id": "POAM-026-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Retest IA-5(1) with a candidate published after the previous refresh",
           "status": "planned",
           "target_date": "2026-12-14"
         }
@@ -88379,8 +88379,8 @@
     {
       "id": "POAM-027",
       "uuid": "8d978253-4ab6-58fa-bd69-13b1822b8bfb",
-      "title": "Remediate system integrity gap in SI-1, SI-4(10) and SI-7(5)",
-      "description": "Close the software, firmware and information integrity shortfall recorded by ASM-2026-002 against REQ-251, REQ-261 and REQ-280 on Secure Boot Controller (LRU-002), Cryptographic Services Module (LRU-003), Protected Network Gateway (LRU-007), Update & Recovery Controller (LRU-016), Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Close the mission-link monitoring blind spot and widen the restricted-state trigger",
+      "description": "The open decision on the mission link is taken first, because everything else depends on whether the link is terminated for inspection or metadata-only visibility is formally accepted. The restricted-state response is then widened across the three remaining measurement domains and the draft procedures are signed so operators have direction covering both. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-027"
       ],
@@ -88413,25 +88413,25 @@
       "milestones": [
         {
           "id": "POAM-027-M1",
-          "title": "Restore end-to-end integrity verification and re-sign the affected artifacts for SI-1, SI-4(10) and SI-7(5)",
+          "title": "Decide whether to terminate the LRU-008 mission link for inspection or record a formal metadata-only acceptance",
           "status": "in-progress",
           "target_date": "2026-11-15"
         },
         {
           "id": "POAM-027-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Extend the restricted-state response to navigation, timing and payload firmware violations",
           "status": "planned",
           "target_date": "2026-12-15"
         },
         {
           "id": "POAM-027-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Sign the draft monitoring and boot-integrity procedures into the issued SI set",
           "status": "planned",
           "target_date": "2027-01-15"
         },
         {
           "id": "POAM-027-M4",
-          "title": "Retest with the independent assessor and close the system integrity finding",
+          "title": "Retest the monitoring coverage and restricted-state objectives on the integration rig",
           "status": "planned",
           "target_date": "2027-02-15"
         }
@@ -88440,8 +88440,8 @@
     {
       "id": "POAM-028",
       "uuid": "19d44031-14ff-53c6-86a2-1a64177146d4",
-      "title": "Remediate configuration baseline gap in CM-1 and CM-3(7)",
-      "description": "Close the configuration baselines, change control and inventory accuracy shortfall recorded by ASM-2026-002 against REQ-559 and REQ-568 on Provisioning Workstation (LRU-017), Security Log Collector (LRU-018) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Trigger the post-campaign reconciliation and sign the outstanding procedures",
+      "description": "A campaign closing in the repository becomes the event that opens a reconciliation, which is what the requirement asks for and what nothing currently provides. The four unsigned procedures are signed in the same pass because they cover the automated machinery that reconciliation depends on. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-028"
       ],
@@ -88468,19 +88468,19 @@
       "milestones": [
         {
           "id": "POAM-028-M1",
-          "title": "Reconcile the as-built state with the approved baseline and close the change record for CM-1 and CM-3(7)",
+          "title": "Open a reconciliation against the LRU-018 event stream whenever LRU-020 records a campaign closing",
           "status": "completed",
           "target_date": "2026-12-16"
         },
         {
           "id": "POAM-028-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Sign the four outstanding configuration management procedures and clear the review-overdue flag",
           "status": "completed",
           "target_date": "2027-01-16"
         },
         {
           "id": "POAM-028-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Run the post-campaign review against the next planned campaign and record both exception classes",
           "status": "in-progress",
           "target_date": "2027-02-16"
         }
@@ -88489,8 +88489,8 @@
     {
       "id": "POAM-029",
       "uuid": "12518753-c31f-5a46-a51e-790dd8bcc207",
-      "title": "Remediate configuration baseline gap in CM-7(9)",
-      "description": "Close the configuration baselines, change control and inventory accuracy shortfall recorded by ASM-2026-002 against REQ-583 on Internal Ethernet Switch (LRU-009), Platform Management Controller (LRU-013) and Maintenance Access Gateway (LRU-014). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Refuse unlisted hardware on every switch port",
+      "description": "The four ports running firmware that predated the enforcement build were reflashed, so an unlisted device is now refused a path on all twelve rather than reported on four of them. The objective retested clean inside the assessment window with the refusal reaching the platform log inside its bound. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-029"
       ],
@@ -88514,21 +88514,21 @@
       "milestones": [
         {
           "id": "POAM-029-M1",
-          "title": "Reconcile the as-built state with the approved baseline and close the change record for CM-7(9)",
+          "title": "Reflash the four lagging LRU-009 ports to the enforcement build",
           "status": "completed",
           "target_date": "2026-10-07",
           "completed_at": "2026-10-07T17:00:00Z"
         },
         {
           "id": "POAM-029-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Confirm an unlisted device is refused a data path on all twelve switch ports",
           "status": "completed",
           "target_date": "2026-10-28",
           "completed_at": "2026-10-28T17:00:00Z"
         },
         {
           "id": "POAM-029-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Check the refusal reaches the platform log inside the thirty-second bound",
           "status": "completed",
           "target_date": "2026-11-18",
           "completed_at": "2026-11-18T17:00:00Z"
@@ -88538,8 +88538,8 @@
     {
       "id": "POAM-030",
       "uuid": "16723f8d-2f1a-577c-a1d0-d0fb32da66df",
-      "title": "Remediate maintenance control gap in MA-2(2)",
-      "description": "Close the maintenance authorization, tooling and service access shortfall recorded by ASM-2026-002 against REQ-373 on Platform Management Controller (LRU-013) and Update & Recovery Controller (LRU-016). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Gate payload telemetry maintenance instead of recording it afterwards",
+      "description": "The equipment moves inside the work-order gate and the retrospective paper route is withdrawn, so no action proceeds without an open order behind it. The stale-record flag is extended over the newly gated equipment so coverage becomes visible rather than assumed. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-030"
       ],
@@ -88562,19 +88562,19 @@
       "milestones": [
         {
           "id": "POAM-030-M1",
-          "title": "Correct the maintenance authorization workflow and re-baseline the tool set for MA-2(2)",
+          "title": "Bring payload telemetry maintenance inside the LRU-016 work-order gate",
           "status": "in-progress",
           "target_date": "2026-11-18"
         },
         {
           "id": "POAM-030-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Withdraw the retrospective paper route so no action starts without an open order",
           "status": "planned",
           "target_date": "2026-12-18"
         },
         {
           "id": "POAM-030-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Extend the LRU-013 stale-record flag over the newly gated equipment",
           "status": "planned",
           "target_date": "2027-01-18"
         }
@@ -88583,8 +88583,8 @@
     {
       "id": "POAM-031",
       "uuid": "dc93fe96-732e-5fa0-90b3-e35f25cbf9a3",
-      "title": "Remediate maintenance control gap in MA-3(5)",
-      "description": "Close the maintenance authorization, tooling and service access shortfall recorded by ASM-2026-002 against REQ-379 on Maintenance Access Gateway (LRU-014) and Security Log Collector (LRU-018). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Alert on privileged tool use outside an open work order",
+      "description": "The rule had been specified for the collector and never built, so this item builds it and routes what it raises to the maintenance review queue with the technician identity attached. A seeded out-of-order invocation raised the alert on retest and the item is complete. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-031"
       ],
@@ -88607,21 +88607,21 @@
       "milestones": [
         {
           "id": "POAM-031-M1",
-          "title": "Correct the maintenance authorization workflow and re-baseline the tool set for MA-3(5)",
+          "title": "Build the out-of-work-order alert rule on the collector",
           "status": "completed",
           "target_date": "2026-10-09",
           "completed_at": "2026-10-09T17:00:00Z"
         },
         {
           "id": "POAM-031-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Seed an out-of-order privileged invocation through LRU-014 and confirm the alert fires",
           "status": "completed",
           "target_date": "2026-10-30",
           "completed_at": "2026-10-30T17:00:00Z"
         },
         {
           "id": "POAM-031-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Route the alert to the maintenance review queue with the technician identity attached",
           "status": "completed",
           "target_date": "2026-11-20",
           "completed_at": "2026-11-20T17:00:00Z"
@@ -88631,8 +88631,8 @@
     {
       "id": "POAM-032",
       "uuid": "2604f453-a41d-5844-8c23-50f91c63c882",
-      "title": "Remediate recovery readiness gap in CP-4",
-      "description": "Close the contingency planning, backup and controlled recovery shortfall recorded by ASM-2026-002 against REQ-486 on Secure Storage Module (LRU-015) and Update & Recovery Controller (LRU-016). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Exercise a whole-article recovery against the four-hour objective",
+      "description": "Nothing changes on the platform under this item; what is missing is a whole-article exercise, so the flight-configuration article is released and the untested partitions are restored from a sealed backup set. The elapsed time then becomes a measurement against the objective rather than a figure for whichever partitions happened to be available. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-032"
       ],
@@ -88655,20 +88655,20 @@
       "milestones": [
         {
           "id": "POAM-032-M1",
-          "title": "Rehearse the recovery path and lodge a verified restore record for CP-4",
+          "title": "Release the flight-configuration article for a full recovery exercise",
           "status": "completed",
           "target_date": "2026-10-20",
           "completed_at": "2026-10-20T17:00:00Z"
         },
         {
           "id": "POAM-032-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Restore the platform management and payload interface partitions from the sealed LRU-015 set",
           "status": "in-progress",
           "target_date": "2026-11-20"
         },
         {
           "id": "POAM-032-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Measure the whole-article restore against the four-hour objective and lodge the record",
           "status": "planned",
           "target_date": "2026-12-20"
         }
@@ -88677,8 +88677,8 @@
     {
       "id": "POAM-033",
       "uuid": "7f87d2f3-7195-57fa-bc30-9f35f8551c1b",
-      "title": "Remediate recovery readiness gap in CP-8(2)",
-      "description": "Close the contingency planning, backup and controlled recovery shortfall recorded by ASM-2026-002 against REQ-498 on Protected Network Gateway (LRU-007), Tactical Data Radio (LRU-008) and Internal Ethernet Switch (LRU-009). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Re-home the alternate bearer off the shared port group",
+      "description": "Moving the radio path off the shared port group is the only change that makes the two traces disjoint on the platform side of the demarcation. The accepted single point of failure entry is withdrawn once the traces are rebuilt from live state and the objective is retested with the port group failed. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-033"
       ],
@@ -88702,25 +88702,25 @@
       "milestones": [
         {
           "id": "POAM-033-M1",
-          "title": "Rehearse the recovery path and lodge a verified restore record for CP-8(2)",
+          "title": "Re-home the LRU-008 radio path off the shared LRU-009 port group",
           "status": "in-progress",
           "target_date": "2026-11-21"
         },
         {
           "id": "POAM-033-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Rebuild the primary and alternate traces from live interface and routing state",
           "status": "planned",
           "target_date": "2026-12-21"
         },
         {
           "id": "POAM-033-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Withdraw the accepted single point of failure entry once the traces are disjoint",
           "status": "planned",
           "target_date": "2027-01-21"
         },
         {
           "id": "POAM-033-M4",
-          "title": "Retest with the independent assessor and close the recovery readiness finding",
+          "title": "Retest CP-8(2) with the shared port group failed",
           "status": "planned",
           "target_date": "2027-02-21"
         }
@@ -88729,8 +88729,8 @@
     {
       "id": "POAM-034",
       "uuid": "19fa1566-3dd6-5c6c-bccc-a4e8a44dd0e3",
-      "title": "Remediate supply chain assurance gap in SA-1, SA-10(3) and SA-8(9)",
-      "description": "Close the acquisition, development process and supply chain assurance shortfall recorded by ASM-2026-002 against REQ-121, REQ-148 and REQ-182 on Secure Boot Controller (LRU-002), Cryptographic Services Module (LRU-003), Payload Safety Interlock (LRU-011), Platform Management Controller (LRU-013), Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Evidence the interlock trust basis and fit provisioned hardware identity",
+      "description": "The supplier assurance case behind the interlock is the missing side of the comparison, so obtaining and reviewing it is this item's first obligation. Fitting a provisioned identity part to the six units still identified from a maintenance record and reissuing the expired acquisition procedures complete the other two halves. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-034"
       ],
@@ -88763,19 +88763,19 @@
       "milestones": [
         {
           "id": "POAM-034-M1",
-          "title": "Flow the requirement down to the supplier set and refresh the provenance record for SA-1, SA-10(3) and SA-8(9)",
+          "title": "Obtain the supplier assurance case for LRU-011 and review the basis behind the dependency entry",
           "status": "completed",
           "target_date": "2026-12-22"
         },
         {
           "id": "POAM-034-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Fit a provisioned identity part to the six units still identified from a maintenance record",
           "status": "completed",
           "target_date": "2027-01-22"
         },
         {
           "id": "POAM-034-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Reissue the acquisition procedures to the current scope and stop an expired revision being citable",
           "status": "in-progress",
           "target_date": "2027-02-22"
         }
@@ -88784,8 +88784,8 @@
     {
       "id": "POAM-035",
       "uuid": "739b81cd-ddc8-5c79-996b-3212e1cbab44",
-      "title": "Remediate continuous monitoring gap in CA-3",
-      "description": "Close the assessment, continuous monitoring and risk determination shortfall recorded by ASM-2026-002 against REQ-508 on Protected Network Gateway (LRU-007) and Tactical Data Radio (LRU-008). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Sign the ground-support telemetry agreement before the exchange continues",
+      "description": "The exchange keeps carrying traffic only until its agreement is signed, so the control responsibility split is drafted, signed and bound to the entry in the gateway policy set. Enforcement then happens at the policy review, where any exchange without a current agreement is disabled. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-035"
       ],
@@ -88808,26 +88808,26 @@
       "milestones": [
         {
           "id": "POAM-035-M1",
-          "title": "Restore the monitoring cadence and close out the outstanding dispositions for CA-3",
+          "title": "Draft the control responsibility split for the ground-support telemetry exchange",
           "status": "completed",
           "target_date": "2026-10-23",
           "completed_at": "2026-10-23T17:00:00Z"
         },
         {
           "id": "POAM-035-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Obtain the other party's signature and record the impact level on the agreement",
           "status": "in-progress",
           "target_date": "2026-11-23"
         },
         {
           "id": "POAM-035-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Bind the signed agreement identifier to the exchange entry in the LRU-007 policy set",
           "status": "planned",
           "target_date": "2026-12-23"
         },
         {
           "id": "POAM-035-M4",
-          "title": "Retest with the independent assessor and close the continuous monitoring finding",
+          "title": "Disable any exchange whose agreement is not current at the next policy set review",
           "status": "planned",
           "target_date": "2027-01-23"
         }
@@ -88836,8 +88836,8 @@
     {
       "id": "POAM-036",
       "uuid": "7bd2b0ad-6725-519b-bd9b-b8baff1b8130",
-      "title": "Remediate continuous monitoring gap in RA-5(2)",
-      "description": "Close the assessment, continuous monitoring and risk determination shortfall recorded by ASM-2026-002 against REQ-525 on Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Abort a baseline scan on a stale signature set",
+      "description": "A freshness comparison and an abort are what the requirement asks for and what the workstation does not implement, so both are built. Lifting the signature set identifier into the report header is what afterwards lets a reviewer tell a clean result from a silent one. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-036"
       ],
@@ -88860,19 +88860,19 @@
       "milestones": [
         {
           "id": "POAM-036-M1",
-          "title": "Restore the monitoring cadence and close out the outstanding dispositions for RA-5(2)",
+          "title": "Compare the mirrored signature set timestamp against the freshness window before a scan starts",
           "status": "in-progress",
           "target_date": "2026-11-24"
         },
         {
           "id": "POAM-036-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Abort a scan running on a stale set and surface the reason to the operator",
           "status": "planned",
           "target_date": "2026-12-24"
         },
         {
           "id": "POAM-036-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Print the signature set identifier in the scan report header",
           "status": "planned",
           "target_date": "2027-01-24"
         }
@@ -88881,8 +88881,8 @@
     {
       "id": "POAM-037",
       "uuid": "5ee40388-904d-5792-97fc-a07b523efff1",
-      "title": "Remediate incident response gap in IR-1",
-      "description": "Close the incident handling, tracking and reporting shortfall recorded by ASM-2026-002 against REQ-298 on Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Add insider-threat and spillage handling to the incident procedures",
+      "description": "The procedure set is reviewed against the expanded escalation chain, naming the insider-threat branch and assigning the spillage roles the added enhancements introduce. The reissued set is staged for ground support and both branches are exercised, so the objective is evidenced by a rehearsal rather than by a signature. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-037"
       ],
@@ -88905,25 +88905,25 @@
       "milestones": [
         {
           "id": "POAM-037-M1",
-          "title": "Close the incident handling gap and re-run the reporting rehearsal for IR-1",
+          "title": "Name the insider-threat branch and its decision authority in the incident response procedures",
           "status": "completed",
           "target_date": "2026-12-05"
         },
         {
           "id": "POAM-037-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Assign the spillage roles the expanded control set introduces",
           "status": "completed",
           "target_date": "2027-01-05"
         },
         {
           "id": "POAM-037-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Stage the reissued procedure set on LRU-017 and confirm the digest matches the repository",
           "status": "in-progress",
           "target_date": "2027-02-05"
         },
         {
           "id": "POAM-037-M4",
-          "title": "Retest with the independent assessor and close the incident response finding",
+          "title": "Exercise both new branches and record the corrective actions they produce",
           "status": "planned",
           "target_date": "2027-03-05"
         }
@@ -88932,8 +88932,8 @@
     {
       "id": "POAM-038",
       "uuid": "58048df3-7284-5ca9-8fdc-285a28780352",
-      "title": "Remediate incident response gap in IR-6(2)",
-      "description": "Close the incident handling, tracking and reporting shortfall recorded by ASM-2026-002 against REQ-319 on Security Log Collector (LRU-018) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Automate the second reporting route for weakness reports",
+      "description": "Dispatch to the second recipient is automated off the same trigger as the first, which is the only arrangement under which one bound covers both. The two cases that ran late are re-reported and the next four are measured from their recorded containment timestamps. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-038"
       ],
@@ -88956,20 +88956,20 @@
       "milestones": [
         {
           "id": "POAM-038-M1",
-          "title": "Close the incident handling gap and re-run the reporting rehearsal for IR-6(2)",
+          "title": "Automate dispatch to the second recipient off the same trigger as the first",
           "status": "completed",
           "target_date": "2026-10-06",
           "completed_at": "2026-10-06T17:00:00Z"
         },
         {
           "id": "POAM-038-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Re-report the two late cases and record the corrected timeline against each",
           "status": "in-progress",
           "target_date": "2026-11-06"
         },
         {
           "id": "POAM-038-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Measure elapsed time from containment on the next four weakness reports",
           "status": "planned",
           "target_date": "2026-12-06"
         }
@@ -88978,8 +88978,8 @@
     {
       "id": "POAM-039",
       "uuid": "d52347a9-4916-5ab4-bf44-0add56f2cb60",
-      "title": "Remediate physical and media protection gap in PE-3(1)",
-      "description": "Close the physical access control and media protection shortfall recorded by ASM-2026-002 against REQ-392 on Mission Computer (LRU-001), Cryptographic Services Module (LRU-003) and Secure Storage Module (LRU-015). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Derive bay access from the facility roster and export the reader log",
+      "description": "The bay reader list stops being transcribed and starts being derived, so a removal at the facility level takes bay access with it rather than waiting for somebody to remember. Exporting the reader log for correlation is what allows a bay entry to be checked against current platform access, and the objective is retested with a withdrawn credential. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-039"
       ],
@@ -89003,25 +89003,25 @@
       "milestones": [
         {
           "id": "POAM-039-M1",
-          "title": "Correct the physical and media handling procedure and re-verify the controlled areas for PE-3(1)",
+          "title": "Derive the bay reader list from the facility roster instead of transcribing it",
           "status": "in-progress",
           "target_date": "2026-11-07"
         },
         {
           "id": "POAM-039-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Remove bay access automatically when a holder leaves the facility roster",
           "status": "planned",
           "target_date": "2026-12-07"
         },
         {
           "id": "POAM-039-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Export the bay reader log for correlation against current platform access",
           "status": "planned",
           "target_date": "2027-01-07"
         },
         {
           "id": "POAM-039-M4",
-          "title": "Retest with the independent assessor and close the physical and media protection finding",
+          "title": "Retest PE-3(1) with a credential withdrawn at the facility level",
           "status": "planned",
           "target_date": "2027-02-07"
         }
@@ -89030,8 +89030,8 @@
     {
       "id": "POAM-040",
       "uuid": "c293db6f-0333-5ff5-b5bc-f4e52a1f0ea0",
-      "title": "Remediate personnel and training gap in PS-1",
-      "description": "Close the personnel security, role-based training and security planning shortfall recorded by ASM-2026-002 against REQ-330 on Provisioning Workstation (LRU-017) and Configuration Repository (LRU-020). The work covers the engineering correction, the baseline and release record that carries it, the replacement evidence and the independent retest. This narrative is synthetic demo content.",
+      "title": "Reissue the personnel security procedure to match enforced gating",
+      "description": "The published procedure is reissued to describe the eligibility gating the workstation actually enforces, and the national eligibility change is recorded against the approved revision. Re-dissemination with acknowledgements closes the objective on both its update and its distribution leg. This narrative is synthetic demo content.",
       "risk_ids": [
         "RSK-040"
       ],
@@ -89054,19 +89054,19 @@
       "milestones": [
         {
           "id": "POAM-040-M1",
-          "title": "Refresh the role-based content and re-issue the affected plan for PS-1",
+          "title": "Reissue the personnel security procedure to match the eligibility gating LRU-017 enforces",
           "status": "completed",
           "target_date": "2026-12-08"
         },
         {
           "id": "POAM-040-M2",
-          "title": "Update the WS-X90 configuration baseline and release record for the corrected state",
+          "title": "Record the national eligibility change against the approved revision in LRU-020",
           "status": "completed",
           "target_date": "2027-01-08"
         },
         {
           "id": "POAM-040-M3",
-          "title": "Collect replacement evidence and lodge it against the affected requirements",
+          "title": "Re-disseminate to every provisioning role and capture the acknowledgements",
           "status": "in-progress",
           "target_date": "2027-02-08"
         }

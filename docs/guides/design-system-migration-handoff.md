@@ -1,6 +1,6 @@
 # Design-system migration handoff
 
-Continue migrating `@ledger/design-system` from shadcn's Base UI source, preserving Ledger tokens and useful product options. Completed families are Breadcrumb, Badge, Separator, Skeleton, Kbd, Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog, Command, Progress, ScrollArea, Avatar, Input, Textarea, InputGroup, Combobox, Field, Alert, ButtonGroup, Drawer, Calendar/DatePicker, Pagination and Resizable.
+Continue migrating `@ledger/design-system` from shadcn's Base UI source, preserving Ledger tokens and useful product options. Completed families are Breadcrumb, Badge, Separator, Skeleton, Kbd, Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog, Command, Progress, ScrollArea, Avatar, Input, Textarea, InputGroup, Combobox, Field, Alert, ButtonGroup, Drawer, Calendar/DatePicker, Pagination, Resizable, Card, Empty and Spinner. Toaster’s Sonner wrapper cleanup is also complete.
 
 ## Direction and sources
 
@@ -39,9 +39,16 @@ The package's direct Radix Dialog, AlertDialog, Collapsible, Progress and Scroll
 - Pagination has flat nav/list/item/link/previous/next/ellipsis parts. Base UI 1.7 Button imposes role=button and Space activation on rendered anchors, so PaginationLink uses buttonVariants on a real anchor. In-memory DataTable paging uses native Buttons in the internal pagination pattern; page algorithms and summaries are not part of the primitive.
 - ResizablePanelGroup/Panel/Handle forward react-resizable-panels props, element refs and imperative refs. Numeric sizes now mean pixels; former percentage numbers are migrated to explicit percent strings. Persistence uses upstream useDefaultLayout at the consuming composition, preserving stable IDs/storage keys. PreviewSplit retains 55% list minimum and 26% rail default bounded at 18–45%.
 
+- Card and Empty now live in components with flat native div parts/refs. CardTitle leaves heading level to callers; migrated headers retain h2 children. Preserve the raised-surface CSS variable for sticky tables. Empty retains its framed/default and compact layouts; top-level media spans the compact message/actions without cloning icons. Related and DataTable retain their own empty-message options and compose these parts.
+- Spinner forwards native SVG props/ref and explicit ARIA overrides while retaining size, appearance, localization, decorative behavior and its latched reveal delay. Toaster forwards Sonner props/ref; partial icons, toastOptions.style and per-part classNames preserve unspecified defaults. Stories use independent toaster IDs, with real live toasts rather than copied DOM or singleton bookkeeping.
+
 ## Next candidates
 
-Inspect the remaining component and pattern contracts against current shadcn Base UI source before choosing the next batch. Drawer, Calendar/DatePicker, Pagination and Resizable are complete; the earlier Vaul guidance was stale.
+TextLink and Shell navigation are the two remaining direct Radix Slot import sites. Migrate their asChild composition to Base UI useRender/mergeProps while retaining native link behavior and Shell layout.
+
+Source correction: shadcn's current main Toast docs and toast.tsx use Base UI Toast; the separate sonner.tsx still exists. This batch implements the explicitly requested Sonner passthrough cleanup. A full Toast-manager migration remains a separate candidate and should update toast call sites, undo/promise behavior and popup/focus integration together.
+
+Review Item, Table, Chart and larger Shell compositions only for concrete duplication or contract problems. Their product behavior is intentional. Missing catalog families such as Slider, ContextMenu, Menubar and Carousel are optional additions driven by an application need, not migration debt.
 
 ## Completion workflow
 
@@ -55,8 +62,6 @@ Run package/application typechecks, lint, API/coverage checks and relevant stori
 
 ## Latest validation
 
-Drawer, Calendar/DatePicker, Pagination and Resizable passed all 1,072 Storybook checks in both themes (218 files). After visual review refined Calendar dropdown layout, the final Calendar/DatePicker/Pagination run passed all 26 checks. Package/application typechecks, package lint, API/coverage checks, package/production/Storybook builds and the packed consumer passed. Package unit tests passed 15; application tests passed 161 with one skipped.
+Card, Empty, Spinner and Toaster passed all 26 focused story checks and the complete 1,062-check Storybook suite in both themes (218 files). Package/application typechecks, package lint, API/coverage checks, package/production/Storybook builds and the packed consumer passed. Package unit tests passed 15; application tests passed 165 with one skipped.
 
-Coverage reports 260 exports with stories, 102 family pages and 536 stories, with no gaps. All five touched family pages have five focused sections. The installed tarball checks native declarations, SSR and consumer CSS, including drawer swipe geometry, ISO date submission, real pagination anchors and absence of the old Resizable export. Drawer’s Vaul dependency and 85-line focus/portal helper are removed; seven overlay/chart consumers no longer need portal-containment sentinels. Seven obsolete optional policy entries are removed.
-
-Visual checks covered mobile Drawer dismissal and focus return, collapsed/expanded snap points, narrow two-month Calendar, dark dropdown/week-number styling, RTL calendar/pagination arrows and pointer resizing. The shared popup removal passed the full suite without observer-error suppression. A first packed-consumer attempt overlapped the production build clearing dist; rebuilding then packing sequentially passed. Concurrent root artifact deletions are preserved. No commit or release is implied.
+Coverage reports 271 exports with stories, 102 family pages and 531 stories, with no gaps. After visual review fixed Sonner’s mobile RTL overflow, all eight final Toaster story checks passed. The four touched family pages each use five focused sections. Card/Empty are under Components. Visual review covered narrow Card/Empty layouts, dark mode, explicit RTL roots, native Toaster options and all four documentation pages. Packed-consumer fixtures cover the flat exports, native refs/props, SSR markup, raised surfaces, SVG naming and the production bundle.

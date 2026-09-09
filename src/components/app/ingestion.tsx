@@ -31,6 +31,9 @@ import {
   Stat,
   Table,
   type Tone,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 
 import { cn } from "@ledger/design-system/cn";
@@ -243,10 +246,16 @@ export function ScanTable({
   if (scans.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No scans delivered"
-          description="A checklist, SCAP result, ACAS export, SAST report, SBOM or firmware report delivered against this program appears here."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No scans delivered"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "A checklist, SCAP result, ACAS export, SAST report, SBOM or firmware report delivered against this program appears here."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -794,10 +803,14 @@ export function NormalizationView({
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No native records on this run"
-          description="The delivered file carried no result rows, so there is nothing to normalize."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No native records on this run"}</EmptyTitle>
+            <EmptyDescription>
+              {"The delivered file carried no result rows, so there is nothing to normalize."}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -937,10 +950,16 @@ export function DedupTable({
   if (groups.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="Nothing to reconcile"
-          description="No two results in the program's current scans share a requirement, a component and a rule."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Nothing to reconcile"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No two results in the program's current scans share a requirement, a component and a rule."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -1184,14 +1203,16 @@ export function ScanDiffTable({
       </Inline>
 
       {rows.length === 0 ? (
-        <Empty
-          title="Nothing to compare"
-          description={
-            previous
-              ? `Neither ${previous} nor ${current ?? "this run"} reported a condition that survived normalization.`
-              : "This is the first run against this target and format, so there is no prior picture to diff against."
-          }
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Nothing to compare"}</EmptyTitle>
+            <EmptyDescription>
+              {previous
+                ? `Neither ${previous} nor ${current ?? "this run"} reported a condition that survived normalization.`
+                : "This is the first run against this target and format, so there is no prior picture to diff against."}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <Table className="table-fixed">
           <thead>

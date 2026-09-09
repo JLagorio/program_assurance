@@ -32,6 +32,9 @@ import {
   TabsTrigger,
   Count,
   TextLink,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -591,14 +594,16 @@ function ComponentRecord() {
                   </Table>
                 ) : (
                   <Box paddingBlockStart="space.150">
-                    <Empty
-                      title="No open findings"
-                      description={
-                        node.asset
-                          ? `Nothing open against ${node.asset}.`
-                          : "This component is not a tracked boundary asset, so findings attach to its host instead."
-                      }
-                    />
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"No open findings"}</EmptyTitle>
+                        <EmptyDescription>
+                          {node.asset
+                            ? `Nothing open against ${node.asset}.`
+                            : "This component is not a tracked boundary asset, so findings attach to its host instead."}
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   </Box>
                 )}
               </Section>

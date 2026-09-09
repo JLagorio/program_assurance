@@ -467,19 +467,59 @@
       "kind": "type"
     },
     ".#Card": {
-      "target": "\"src/patterns/card\".Card",
+      "target": "\"src/components/card\".Card",
       "kind": "value"
     },
-    ".#CardBodyProps": {
-      "target": "\"src/patterns/card\".CardBodyProps",
+    ".#CardAction": {
+      "target": "\"src/components/card\".CardAction",
+      "kind": "value"
+    },
+    ".#CardActionProps": {
+      "target": "\"src/components/card\".CardActionProps",
       "kind": "type"
     },
+    ".#CardContent": {
+      "target": "\"src/components/card\".CardContent",
+      "kind": "value"
+    },
+    ".#CardContentProps": {
+      "target": "\"src/components/card\".CardContentProps",
+      "kind": "type"
+    },
+    ".#CardDescription": {
+      "target": "\"src/components/card\".CardDescription",
+      "kind": "value"
+    },
+    ".#CardDescriptionProps": {
+      "target": "\"src/components/card\".CardDescriptionProps",
+      "kind": "type"
+    },
+    ".#CardFooter": {
+      "target": "\"src/components/card\".CardFooter",
+      "kind": "value"
+    },
+    ".#CardFooterProps": {
+      "target": "\"src/components/card\".CardFooterProps",
+      "kind": "type"
+    },
+    ".#CardHeader": {
+      "target": "\"src/components/card\".CardHeader",
+      "kind": "value"
+    },
     ".#CardHeaderProps": {
-      "target": "\"src/patterns/card\".CardHeaderProps",
+      "target": "\"src/components/card\".CardHeaderProps",
       "kind": "type"
     },
     ".#CardProps": {
-      "target": "\"src/patterns/card\".CardProps",
+      "target": "\"src/components/card\".CardProps",
+      "kind": "type"
+    },
+    ".#CardTitle": {
+      "target": "\"src/components/card\".CardTitle",
+      "kind": "value"
+    },
+    ".#CardTitleProps": {
+      "target": "\"src/components/card\".CardTitleProps",
       "kind": "type"
     },
     ".#categoricalTone": {
@@ -1351,11 +1391,55 @@
       "kind": "type"
     },
     ".#Empty": {
-      "target": "\"src/patterns/empty\".Empty",
+      "target": "\"src/components/empty\".Empty",
       "kind": "value"
     },
+    ".#EmptyContent": {
+      "target": "\"src/components/empty\".EmptyContent",
+      "kind": "value"
+    },
+    ".#EmptyContentProps": {
+      "target": "\"src/components/empty\".EmptyContentProps",
+      "kind": "type"
+    },
+    ".#EmptyDescription": {
+      "target": "\"src/components/empty\".EmptyDescription",
+      "kind": "value"
+    },
+    ".#EmptyDescriptionProps": {
+      "target": "\"src/components/empty\".EmptyDescriptionProps",
+      "kind": "type"
+    },
+    ".#EmptyHeader": {
+      "target": "\"src/components/empty\".EmptyHeader",
+      "kind": "value"
+    },
+    ".#EmptyHeaderProps": {
+      "target": "\"src/components/empty\".EmptyHeaderProps",
+      "kind": "type"
+    },
+    ".#EmptyMedia": {
+      "target": "\"src/components/empty\".EmptyMedia",
+      "kind": "value"
+    },
+    ".#EmptyMediaProps": {
+      "target": "\"src/components/empty\".EmptyMediaProps",
+      "kind": "type"
+    },
     ".#EmptyProps": {
-      "target": "\"src/patterns/empty\".EmptyProps",
+      "target": "\"src/components/empty\".EmptyProps",
+      "kind": "type"
+    },
+    ".#EmptySize": {
+      "target": "\"src/components/empty\".EmptySize",
+      "kind": "type"
+    },
+    ".#EmptyTitle": {
+      "target": "\"src/components/empty\".EmptyTitle",
+      "kind": "value"
+    },
+    ".#EmptyTitleProps": {
+      "target": "\"src/components/empty\".EmptyTitleProps",
       "kind": "type"
     },
     ".#ExpandedState": {
@@ -3450,6 +3534,90 @@
         "declaration": "export type CalendarProps = ComponentProps<typeof DayPicker> & {\n    buttonVariant?: ButtonProps[\"variant\"];\n};"
       }
     ],
+    "\"src/components/card\".Card": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export declare function Card({ className, style, size, ...props }: CardProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/card\".CardAction": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export declare function CardAction({ className, ...props }: CardActionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/card\".CardActionProps": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export type CardActionProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/card\".CardContent": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export declare function CardContent({ className, ...props }: CardContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/card\".CardContentProps": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export type CardContentProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/card\".CardDescription": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export declare function CardDescription({ className, ...props }: CardDescriptionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/card\".CardDescriptionProps": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export type CardDescriptionProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/card\".CardFooter": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export declare function CardFooter({ className, ...props }: CardFooterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/card\".CardFooterProps": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export type CardFooterProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/card\".CardHeader": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export declare function CardHeader({ className, ...props }: CardHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/card\".CardHeaderProps": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export type CardHeaderProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/card\".CardProps": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export type CardProps = ComponentProps<\"div\"> & {\n    size?: \"default\" | \"sm\" | undefined;\n};"
+      }
+    ],
+    "\"src/components/card\".CardTitle": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export declare function CardTitle({ className, ...props }: CardTitleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/card\".CardTitleProps": [
+      {
+        "source": "src/components/card.d.ts",
+        "declaration": "export type CardTitleProps = ComponentProps<\"div\">;"
+      }
+    ],
     "\"src/components/chart/_shared\".categoricalTone": [
       {
         "source": "src/components/chart/_shared.d.ts",
@@ -4614,6 +4782,84 @@
         "declaration": "export type EditableTextProps = EditableProps<string> & {\n    placeholder?: string | undefined;\n};"
       }
     ],
+    "\"src/components/empty\".Empty": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export declare function Empty({ size, className, ...props }: EmptyProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/empty\".EmptyContent": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export declare function EmptyContent({ className, ...props }: EmptyContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/empty\".EmptyContentProps": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptyContentProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/empty\".EmptyDescription": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export declare function EmptyDescription({ className, ...props }: EmptyDescriptionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/empty\".EmptyDescriptionProps": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptyDescriptionProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/empty\".EmptyHeader": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export declare function EmptyHeader({ className, ...props }: EmptyHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/empty\".EmptyHeaderProps": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptyHeaderProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/empty\".EmptyMedia": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export declare function EmptyMedia({ variant, className, ...props }: EmptyMediaProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/empty\".EmptyMediaProps": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptyMediaProps = ComponentProps<\"div\"> & VariantProps<typeof emptyMediaVariants>;"
+      }
+    ],
+    "\"src/components/empty\".EmptyProps": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptyProps = ComponentProps<\"div\"> & {\n    size?: EmptySize | undefined;\n};"
+      }
+    ],
+    "\"src/components/empty\".EmptySize": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptySize = \"default\" | \"compact\";"
+      }
+    ],
+    "\"src/components/empty\".EmptyTitle": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export declare function EmptyTitle({ className, ...props }: EmptyTitleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/empty\".EmptyTitleProps": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptyTitleProps = ComponentProps<\"div\">;"
+      }
+    ],
     "\"src/components/field\".Field": [
       {
         "source": "src/components/field.d.ts",
@@ -5553,13 +5799,13 @@
     "\"src/components/spinner\".Spinner": [
       {
         "source": "src/components/spinner.d.ts",
-        "declaration": "export declare function Spinner({ size, label, isDecorative, appearance, delay, className, }: SpinnerProps): import(\"react\").JSX.Element | null;"
+        "declaration": "export declare function Spinner({ size, label, isDecorative, appearance, delay, className, ...props }: SpinnerProps): import(\"react\").JSX.Element | null;"
       }
     ],
     "\"src/components/spinner\".SpinnerProps": [
       {
         "source": "src/components/spinner.d.ts",
-        "declaration": "export type SpinnerProps = {\n    size?: SpinnerSize | undefined;\n    label?: string | undefined;\n    isDecorative?: boolean | undefined;\n    appearance?: \"subtle\" | \"inverse\" | \"inherit\" | undefined;\n    delay?: number | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type SpinnerProps = ComponentProps<\"svg\"> & {\n    size?: SpinnerSize | undefined;\n    label?: string | undefined;\n    isDecorative?: boolean | undefined;\n    appearance?: \"subtle\" | \"inverse\" | \"inherit\" | undefined;\n    delay?: number | undefined;\n};"
       }
     ],
     "\"src/components/spinner\".SpinnerSize": [
@@ -5865,13 +6111,13 @@
     "\"src/components/toaster\".Toaster": [
       {
         "source": "src/components/toaster.d.ts",
-        "declaration": "export declare function Toaster({ position, expand, closeButton, }: ToasterProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Toaster({ position, expand, closeButton, icons, toastOptions, className, ...props }: ToasterProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/toaster\".ToasterProps": [
       {
         "source": "src/components/toaster.d.ts",
-        "declaration": "export type ToasterProps = {\n    position?: Position | undefined;\n    expand?: boolean | undefined;\n    closeButton?: boolean | undefined;\n};"
+        "declaration": "export type ToasterProps = ComponentProps<typeof Sonner>;"
       }
     ],
     "\"src/components/toaster\".ToastOptions": [
@@ -6360,30 +6606,6 @@
         "declaration": "export type ShowPageProps = {\n    header: ReactNode;\n    tabs?: ReactNode;\n    tab?: string | undefined;\n    onTabChange?: ((value: string) => void) | undefined;\n    rail?: ReactNode;\n    children: ReactNode;\n};"
       }
     ],
-    "\"src/patterns/card\".Card": [
-      {
-        "source": "src/patterns/card.d.ts",
-        "declaration": "Card: typeof CardRoot & {\n    Header: typeof CardHeader;\n    Body: typeof CardBody;\n}"
-      }
-    ],
-    "\"src/patterns/card\".CardBodyProps": [
-      {
-        "source": "src/patterns/card.d.ts",
-        "declaration": "export type CardBodyProps = {\n    children: ReactNode;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/patterns/card\".CardHeaderProps": [
-      {
-        "source": "src/patterns/card.d.ts",
-        "declaration": "export type CardHeaderProps = {\n    title: ReactNode;\n    description?: ReactNode;\n    action?: ReactNode;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/patterns/card\".CardProps": [
-      {
-        "source": "src/patterns/card.d.ts",
-        "declaration": "export type CardProps = {\n    children?: ReactNode;\n    className?: string | undefined;\n    style?: CSSProperties | undefined;\n} & Omit<ComponentPropsWithoutRef<\"div\">, \"children\" | \"className\" | \"style\">;"
-      }
-    ],
     "\"src/patterns/command-palette\".CommandPalette": [
       {
         "source": "src/patterns/command-palette.d.ts",
@@ -6738,24 +6960,6 @@
         "declaration": "export declare function resetView<TData extends RowData>(table: DataTableInstance<TData>): void;"
       }
     ],
-    "\"src/patterns/empty\".Empty": [
-      {
-        "source": "src/patterns/empty.d.ts",
-        "declaration": "export declare function Empty({ title, description, action, secondary, icon, size, className, }: EmptyProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/patterns/empty\".EmptyProps": [
-      {
-        "source": "src/patterns/empty.d.ts",
-        "declaration": "export type EmptyProps = {\n    title: string;\n    description?: string | undefined;\n    action?: ReactNode;\n    secondary?: ReactNode;\n    icon?: ReactNode;\n    size?: EmptySize | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/patterns/empty\".EmptySize": [
-      {
-        "source": "src/patterns/empty.d.ts",
-        "declaration": "export type EmptySize = \"default\" | \"compact\";"
-      }
-    ],
     "\"src/patterns/glance\".Glance": [
       {
         "source": "src/patterns/glance.d.ts",
@@ -6903,7 +7107,7 @@
     "\"src/patterns/related\".RelatedEmpty": [
       {
         "source": "src/patterns/related.d.ts",
-        "declaration": "export type RelatedEmpty = string | Omit<EmptyProps, \"size\" | \"className\">;"
+        "declaration": "export type RelatedEmpty = string | {\n    title: string;\n    description?: string | undefined;\n    action?: ReactNode;\n    secondary?: ReactNode;\n    icon?: ReactNode;\n};"
       }
     ],
     "\"src/patterns/related\".RelatedLayout": [
@@ -7506,6 +7710,12 @@
         "declaration": "declare function EditableText({ placeholder, ...props }: EditableTextProps): import(\"react\").JSX.Element;"
       }
     ],
+    "src/components/empty.d.ts#emptyMediaVariants": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "emptyMediaVariants: (props?: ({\n    variant?: \"default\" | \"icon\" | null | undefined;\n} & import(\"class-variance-authority/types\").ClassProp) | undefined) => string"
+      }
+    ],
     "src/components/field.d.ts#fieldVariants": [
       {
         "source": "src/components/field.d.ts",
@@ -7644,12 +7854,6 @@
         "declaration": "type Message = Parameters<typeof sonnerToast>[0];"
       }
     ],
-    "src/components/toaster.d.ts#Position": [
-      {
-        "source": "src/components/toaster.d.ts",
-        "declaration": "type Position = NonNullable<ComponentPropsWithoutRef<typeof Sonner>[\"position\"]>;"
-      }
-    ],
     "src/components/toggle.d.ts#toggleVariants": [
       {
         "source": "src/components/toggle.d.ts",
@@ -7672,24 +7876,6 @@
       {
         "source": "src/mode/mode.d.ts",
         "declaration": "type ModeContextValue = {\n    mode: ColorMode;\n    setMode: (mode: ColorMode) => void;\n    resolved: \"light\" | \"dark\";\n};"
-      }
-    ],
-    "src/patterns/card.d.ts#CardBody": [
-      {
-        "source": "src/patterns/card.d.ts",
-        "declaration": "declare function CardBody({ children, className }: CardBodyProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/patterns/card.d.ts#CardHeader": [
-      {
-        "source": "src/patterns/card.d.ts",
-        "declaration": "declare function CardHeader({ title, description, action, className }: CardHeaderProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/patterns/card.d.ts#CardRoot": [
-      {
-        "source": "src/patterns/card.d.ts",
-        "declaration": "declare function CardRoot({ className, style, ...props }: CardProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/patterns/composer.d.ts#DraftProps": [

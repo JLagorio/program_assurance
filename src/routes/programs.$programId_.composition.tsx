@@ -23,6 +23,9 @@ import {
   TabsTrigger,
   Count,
   TextLink,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -242,10 +245,12 @@ function ProgramComposition() {
           {!root || !tree || !rootPosture ? (
             <Section title="System composition">
               <Box paddingBlockStart="space.200">
-                <Empty
-                  title="Nothing in the composition"
-                  description={`${program.id} carries no BOM. A CycloneDX, SPDX, hardware part list or firmware manifest delivery populates this page.`}
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{"Nothing in the composition"}</EmptyTitle>
+                    <EmptyDescription>{`${program.id} carries no BOM. A CycloneDX, SPDX, hardware part list or firmware manifest delivery populates this page.`}</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </Box>
             </Section>
           ) : null}
@@ -434,10 +439,16 @@ function ProgramComposition() {
                 </Table>
               ) : (
                 <Box paddingBlockStart="space.200">
-                  <Empty
-                    title="No BOM deliveries on file"
-                    description="Every component below was hand-declared. A signed CycloneDX or SPDX delivery replaces the declaration with an assertion."
-                  />
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyTitle>{"No BOM deliveries on file"}</EmptyTitle>
+                      <EmptyDescription>
+                        {
+                          "Every component below was hand-declared. A signed CycloneDX or SPDX delivery replaces the declaration with an assertion."
+                        }
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 </Box>
               )}
             </Section>

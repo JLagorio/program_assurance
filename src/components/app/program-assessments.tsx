@@ -34,6 +34,10 @@ import {
   toast,
   type Preset,
   useDataTable,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { RunRecordView } from "@/components/app/test-execution";
 import {
@@ -421,21 +425,25 @@ export function ProgramAssessments({
                 ) : null}
               </>
             ) : (
-              <Empty
-                title={runId ? "Run not found in this assessment" : "Ready to execute"}
-                description={
-                  runId
-                    ? "Choose a run belonging to this assessment."
-                    : "Start a run against a named build, then record observations and supporting evidence for each procedure step."
-                }
-                action={
-                  runId && assessmentRuns.length ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>
+                    {runId ? "Run not found in this assessment" : "Ready to execute"}
+                  </EmptyTitle>
+                  <EmptyDescription>
+                    {runId
+                      ? "Choose a run belonging to this assessment."
+                      : "Start a run against a named build, then record observations and supporting evidence for each procedure step."}
+                  </EmptyDescription>
+                </EmptyHeader>
+                {runId && assessmentRuns.length ? (
+                  <EmptyContent>
                     <Button size="small" onClick={() => setRunId(null)}>
                       Show latest run
                     </Button>
-                  ) : undefined
-                }
-              />
+                  </EmptyContent>
+                ) : null}
+              </Empty>
             )}
           </Stack>
         ) : null}

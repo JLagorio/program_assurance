@@ -23,6 +23,10 @@ import {
   TextLink,
   ToggleGroup,
   ToggleGroupItem,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { downloadText } from "@/components/app/export";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -259,10 +263,14 @@ function FindingsPage() {
                       {rows.length === 0 ? (
                         <Table.Row>
                           <Table.Cell colSpan={12}>
-                            <Empty
-                              title="No results match your filters"
-                              description="Clear the filters to see the available records."
-                              action={
+                            <Empty>
+                              <EmptyHeader>
+                                <EmptyTitle>No results match your filters</EmptyTitle>
+                                <EmptyDescription>
+                                  Clear the filters to see the available records.
+                                </EmptyDescription>
+                              </EmptyHeader>
+                              <EmptyContent>
                                 <Button
                                   variant="secondary"
                                   onClick={() => {
@@ -272,8 +280,8 @@ function FindingsPage() {
                                 >
                                   Clear filters
                                 </Button>
-                              }
-                            />
+                              </EmptyContent>
+                            </Empty>
                           </Table.Cell>
                         </Table.Row>
                       ) : null}

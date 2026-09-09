@@ -15,6 +15,9 @@ import {
   Stack,
   Table,
   useDataTable,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { useMemo, type ReactNode } from "react";
 import {
@@ -397,10 +400,16 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
   if (total === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="Nothing scored"
-          description="No finding in this program resolved to a scorable record, so there is no distribution to show."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Nothing scored"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No finding in this program resolved to a scorable record, so there is no distribution to show."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -574,10 +583,16 @@ export function TopRisksTable({
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="Nothing to score"
-          description="No finding or register risk in this program resolves to a record the model can read, so there is no residual to publish."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Nothing to score"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No finding or register risk in this program resolves to a record the model can read, so there is no residual to publish."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -595,10 +610,16 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
   if (movers.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="Nothing moved"
-          description="No finding in this program carries a KEV listing or sits under an unacknowledged significant change, so no score differs from what it would have been on the evidence alone."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Nothing moved"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No finding in this program carries a KEV listing or sits under an unacknowledged significant change, so no score differs from what it would have been on the evidence alone."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -661,10 +682,16 @@ export function AuthoredComparisonTable({ rows }: { rows: ComparisonRow[] }) {
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No register risk to compare"
-          description="This program carries no register risk with a finding joined to it, so there is no authored residual to set the computed one beside."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No register risk to compare"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "This program carries no register risk with a finding joined to it, so there is no authored residual to set the computed one beside."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }

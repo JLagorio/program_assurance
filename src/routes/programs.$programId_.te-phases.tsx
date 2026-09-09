@@ -27,6 +27,9 @@ import {
   Count,
   TextLink,
   Toolbar,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -485,10 +488,12 @@ function ProgramTePhases() {
               >
                 {phases.length === 0 ? (
                   <Box paddingBlockStart="space.200">
-                    <Empty
-                      title="No cyber T&E phases recorded"
-                      description={`${program.id} carries no phase record, so there is no gate to judge and no threat portrayal to execute against.`}
-                    />
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"No cyber T&E phases recorded"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} carries no phase record, so there is no gate to judge and no threat portrayal to execute against.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   </Box>
                 ) : (
                   <PhaseTrack
@@ -692,10 +697,12 @@ function ProgramTePhases() {
                 </>
               ) : (
                 <Box paddingBlockStart="space.200">
-                  <Empty
-                    title="No phase to judge"
-                    description={`${program.id} carries no cyber T&E phase record, so there is no entry or exit criterion to evaluate.`}
-                  />
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyTitle>{"No phase to judge"}</EmptyTitle>
+                      <EmptyDescription>{`${program.id} carries no cyber T&E phase record, so there is no entry or exit criterion to evaluate.`}</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 </Box>
               )}
             </>
@@ -704,10 +711,12 @@ function ProgramTePhases() {
           {tab === "Threat scenarios" ? (
             scenarios.length === 0 ? (
               <Box paddingBlockStart="space.200">
-                <Empty
-                  title="No threat scenario written"
-                  description={`${program.id} carries no threat portrayal, so there is no attack surface characterised and nothing for a red team to execute against.`}
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{"No threat scenario written"}</EmptyTitle>
+                    <EmptyDescription>{`${program.id} carries no threat portrayal, so there is no attack surface characterised and nothing for a red team to execute against.`}</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </Box>
             ) : (
               <>
@@ -780,10 +789,12 @@ function ProgramTePhases() {
           {tab === "Mission effects" ? (
             effects.length === 0 ? (
               <Box paddingBlockStart="space.200">
-                <Empty
-                  title="No mission effect recorded"
-                  description={`${program.id} has executed no scenario against a mission function, so there is nothing to score. An adversarial assessment with no recorded effect has not been run — it is not a clean result.`}
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{"No mission effect recorded"}</EmptyTitle>
+                    <EmptyDescription>{`${program.id} has executed no scenario against a mission function, so there is nothing to score. An adversarial assessment with no recorded effect has not been run — it is not a clean result.`}</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </Box>
             ) : (
               <>

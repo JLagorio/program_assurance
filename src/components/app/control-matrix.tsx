@@ -16,6 +16,10 @@ import {
   Table,
   TextLink,
   Toolbar,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -201,10 +205,12 @@ export function ControlMatrixSection({
       </Toolbar>
 
       {filtered.length === 0 ? (
-        <Empty
-          title="No controls match this filter"
-          description="Clear the search or pick another family."
-          action={
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No controls match this filter</EmptyTitle>
+            <EmptyDescription>Clear the search or pick another family.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
             <Button
               size="small"
               onClick={() => {
@@ -215,8 +221,8 @@ export function ControlMatrixSection({
             >
               Reset filters
             </Button>
-          }
-        />
+          </EmptyContent>
+        </Empty>
       ) : (
         <>
           <Table className="table-fixed">

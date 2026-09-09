@@ -23,6 +23,10 @@ import {
   Timeline,
   ToggleGroup,
   ToggleGroupItem,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Circle } from "lucide-react";
@@ -136,15 +140,19 @@ export function ActivityTimeline({
       </Inline>
 
       {filtered.length === 0 ? (
-        <Empty
-          title="No activity matches these filters"
-          description="Adjust the type, owner, or date range to see more of this program's history."
-          action={
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No activity matches these filters</EmptyTitle>
+            <EmptyDescription>
+              Adjust the type, owner, or date range to see more of this program's history.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
             <Button variant="secondary" size="xsmall" onClick={reset}>
               Clear filters
             </Button>
-          }
-        />
+          </EmptyContent>
+        </Empty>
       ) : (
         <Timeline>
           {groups.map((g) => (

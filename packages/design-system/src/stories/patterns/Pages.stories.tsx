@@ -14,14 +14,23 @@ import {
   TabsTrigger,
   Count,
   TextLink,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardAction,
+  CardContent,
+  Card,
+  Empty,
 } from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
-  Card,
-  Empty,
   IndexPage,
   PageHeader,
   PageSkeleton,
@@ -65,11 +74,15 @@ export const Index: Story = {
         </>
       }
     >
-      <Empty
-        title="No controls match"
-        description="Clear a filter or widen the date range."
-        action={<Button size="small">Clear filters</Button>}
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>No controls match</EmptyTitle>
+          <EmptyDescription>Clear a filter or widen the date range.</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button size="small">Clear filters</Button>
+        </EmptyContent>
+      </Empty>
     </IndexPage>
   ),
 };
@@ -127,11 +140,13 @@ function Show() {
         </Text>
       </Section>
       <Card>
-        <Card.Header
-          title="Evidence"
-          description="Three items, all current."
-          action={<Button size="small">Link evidence</Button>}
-        />
+        <CardHeader>
+          <CardTitle>
+            <h2>{"Evidence"}</h2>
+          </CardTitle>
+          <CardDescription>{"Three items, all current."}</CardDescription>
+          <CardAction>{<Button size="small">Link evidence</Button>}</CardAction>
+        </CardHeader>
         <Stack space="space.0" className="p-200">
           <Text color="color.text.subtle">The card body.</Text>
         </Stack>
@@ -335,11 +350,11 @@ export const Dont: Story = {
             header={<PageHeader title="Programs" description="5 programs · 2 in assessment" />}
           >
             <Card>
-              <Card.Body>
+              <CardContent>
                 <Text size="small" color="color.text.subtle">
                   The register
                 </Text>
-              </Card.Body>
+              </CardContent>
             </Card>
           </IndexPage>
         }
@@ -348,11 +363,11 @@ export const Dont: Story = {
           <IndexPage header={<PageHeader title="Programs" />}>
             <Stack space="space.300">
               <Card>
-                <Card.Body>
+                <CardContent>
                   <Text size="small" color="color.text.subtle">
                     The register
                   </Text>
-                </Card.Body>
+                </CardContent>
               </Card>
               <RecordHeader id="PRG-1041" title="Atlas payments platform" />
               <Section title="Control coverage">

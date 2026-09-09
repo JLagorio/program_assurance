@@ -19,6 +19,9 @@ import {
   Stat,
   Table,
   type Tone,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import type { ReactNode } from "react";
 
@@ -341,10 +344,16 @@ export function ObjectiveExecutionTable({
 }) {
   if (rows.length === 0) {
     return (
-      <Empty
-        title="This campaign covers no objectives"
-        description="No event under the campaign names an objective, so there is nothing for a procedure to execute against and nothing for the run log to contradict."
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{"This campaign covers no objectives"}</EmptyTitle>
+          <EmptyDescription>
+            {
+              "No event under the campaign names an objective, so there is nothing for a procedure to execute against and nothing for the run log to contradict."
+            }
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -478,10 +487,16 @@ export function ProcedureList({
 }) {
   if (rows.length === 0) {
     return (
-      <Empty
-        title="No procedure is written for this campaign"
-        description="Every objective the campaign covers is still an assertion — there is no written action, no pass criterion and no artifact to collect."
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{"No procedure is written for this campaign"}</EmptyTitle>
+          <EmptyDescription>
+            {
+              "Every objective the campaign covers is still an assertion — there is no written action, no pass criterion and no artifact to collect."
+            }
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -556,10 +571,14 @@ export function StepTable({
 }) {
   if (steps.length === 0) {
     return (
-      <Empty
-        title="This procedure declares no steps"
-        description="There is nothing to record and nothing a run of it could ever prove."
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{"This procedure declares no steps"}</EmptyTitle>
+          <EmptyDescription>
+            {"There is nothing to record and nothing a run of it could ever prove."}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -688,10 +707,16 @@ export function RunTable({
 }) {
   if (rows.length === 0) {
     return (
-      <Empty
-        title="Nothing has been run"
-        description="No procedure under this campaign has been executed against a build, so every objective result here is still a declaration."
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{"Nothing has been run"}</EmptyTitle>
+          <EmptyDescription>
+            {
+              "No procedure under this campaign has been executed against a build, so every objective result here is still a declaration."
+            }
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -895,10 +920,12 @@ export function RunRecordView({
         }
       >
         {steps.length === 0 ? (
-          <Empty
-            title="No steps to record"
-            description={`${run.procedure} is not in the procedure library, so this run has nothing to be judged against.`}
-          />
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>{"No steps to record"}</EmptyTitle>
+              <EmptyDescription>{`${run.procedure} is not in the procedure library, so this run has nothing to be judged against.`}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <div className="divide-y">
             {steps.map((step) => {
@@ -1014,10 +1041,16 @@ export function RunRail({ row }: { row: RunListRow }) {
 export function RegressionTable({ rows }: { rows: RegressionRow[] }) {
   if (rows.length === 0) {
     return (
-      <Empty
-        title="No step has been compared against a prior run"
-        description="A regression row needs a retest and a decisive record on both sides. Nothing under this campaign re-executes a procedure with two Pass-or-Fail observations of the same step."
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{"No step has been compared against a prior run"}</EmptyTitle>
+          <EmptyDescription>
+            {
+              "A regression row needs a retest and a decisive record on both sides. Nothing under this campaign re-executes a procedure with two Pass-or-Fail observations of the same step."
+            }
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 

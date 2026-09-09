@@ -1,0 +1,74 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardAction,
+  CardContent,
+  CardFooter,
+} from "../../components";
+import * as Stories from "./Card.stories";
+
+<Meta of={Stories} />
+
+# Card
+
+A raised container for a table, chart, form or set of facts. Compose its header, content and footer as needed.
+
+## Anatomy
+
+```tsx
+<Card>
+  <CardHeader>
+    <CardTitle>
+      <h2>Evidence</h2>
+    </CardTitle>
+    <CardDescription>Three linked artifacts</CardDescription>
+    <CardAction>
+      <Button size="small">Add evidence</Button>
+    </CardAction>
+  </CardHeader>
+  <CardContent>Assessment details</CardContent>
+  <CardFooter>
+    <Button>Save</Button>
+  </CardFooter>
+</Card>
+```
+
+CardHeader arranges the title, description and optional action. CardContent supplies the inset. CardFooter holds actions or secondary content. The root records its raised surface so sticky table headers remain opaque.
+
+<Canvas of={Stories.Playground} />
+
+## Variants and states
+
+The default size uses Ledger's standard inset; `size="sm"` reduces the header, content and footer spacing. Tables and charts that own their spacing can sit directly inside Card. Loading, empty and error behavior belongs to the content.
+
+<Canvas of={Stories.Sizes} />
+<Canvas of={Stories.EdgeToEdge} />
+
+## Accessibility
+
+All parts are native divs. CardTitle does not choose a heading level: compose an h2 or h3 when the card should appear in the document outline. Existing callers retain their h2 headings. Name a region with `role="region"` and `aria-labelledby` when a landmark is useful. Links and buttons inside the card keep their own semantics and focus.
+
+## Props
+
+<ArgTypes of={Card} />
+<ArgTypes of={CardHeader} />
+<ArgTypes of={CardTitle} />
+<ArgTypes of={CardDescription} />
+<ArgTypes of={CardAction} />
+<ArgTypes of={CardContent} />
+<ArgTypes of={CardFooter} />
+
+Every part accepts native div props and refs. Root `style` overrides merge with the raised-surface default.
+
+### Migration
+
+Replace `Card.Header title/description/action` with CardHeader containing CardTitle, CardDescription and CardAction. Replace `Card.Body` with CardContent. Add a heading inside CardTitle to preserve the original outline. Card now lives in the components layer; application imports still come from the package root.
+
+## Related
+
+[Section](?path=/docs/patterns-section--docs), [Table](?path=/docs/components-table--docs), [Empty](?path=/docs/components-empty--docs), [Related](?path=/docs/patterns-related--docs).
+
+Sources: [shadcn Card](https://ui.shadcn.com/docs/components/base/card), [Base UI catalog implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/card.tsx).

@@ -20,6 +20,9 @@ import {
   Count,
   TextLink,
   Eyebrow,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -378,10 +381,16 @@ function CampaignRecord() {
                   </Section>
                 </>
               ) : procedureRows.length > 0 ? (
-                <Empty
-                  title="Select a procedure"
-                  description="Open a row above to read its preconditions and the step-by-step action, pass criterion and artifact to collect."
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{"Select a procedure"}</EmptyTitle>
+                    <EmptyDescription>
+                      {
+                        "Open a row above to read its preconditions and the step-by-step action, pass criterion and artifact to collect."
+                      }
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               ) : null}
             </>
           ) : null}
@@ -415,10 +424,16 @@ function CampaignRecord() {
                   onComplete={() => setRunState(selectedRun.run.id, "Complete")}
                 />
               ) : runRows.length > 0 ? (
-                <Empty
-                  title="Select a run"
-                  description="Open a row above to read every step record: what was observed, what was collected, and why the verdict is what it is."
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{"Select a run"}</EmptyTitle>
+                    <EmptyDescription>
+                      {
+                        "Open a row above to read every step record: what was observed, what was collected, and why the verdict is what it is."
+                      }
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               ) : null}
             </>
           ) : null}
@@ -439,10 +454,12 @@ function CampaignRecord() {
 
           <Section title="Events under this campaign">
             {events.length === 0 ? (
-              <Empty
-                title="This campaign has no events"
-                description={`${campaign.id} was opened on the ${campaign.trigger.toLowerCase()} trigger but nothing was scheduled under it, so no objective is in scope and nothing can be executed.`}
-              />
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>{"This campaign has no events"}</EmptyTitle>
+                  <EmptyDescription>{`${campaign.id} was opened on the ${campaign.trigger.toLowerCase()} trigger but nothing was scheduled under it, so no objective is in scope and nothing can be executed.`}</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             ) : (
               <Stack className="pt-100" space="space.100">
                 {events.map((e) => (

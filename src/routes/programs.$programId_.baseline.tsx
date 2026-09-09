@@ -23,6 +23,9 @@ import {
   Count,
   TextLink,
   Toolbar,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -406,10 +409,12 @@ function ProgramBaseline() {
               ) : (
                 <Section title="Baseline comparison">
                   <Box paddingBlockStart="space.200">
-                    <Empty
-                      title="Nothing to compare"
-                      description={`${program.id} has no pair of an authorized baseline and a build under test, so there is no movement to analyse.`}
-                    />
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"Nothing to compare"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} has no pair of an authorized baseline and a build under test, so there is no movement to analyse.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   </Box>
                 </Section>
               )}
@@ -503,10 +508,12 @@ function ProgramBaseline() {
               ) : (
                 <Section title="Change impact">
                   <Box paddingBlockStart="space.200">
-                    <Empty
-                      title="No change to analyse"
-                      description={`${program.id} carries no change records, so there is no security impact analysis to read and nothing for the cascade to act on.`}
-                    />
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"No change to analyse"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} carries no change records, so there is no security impact analysis to read and nothing for the cascade to act on.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   </Box>
                 </Section>
               )}

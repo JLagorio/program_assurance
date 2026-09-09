@@ -22,6 +22,10 @@ import {
   TabsList,
   TabsTrigger,
   TextLink,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { downloadText } from "@/components/app/export";
 import { UnavailableAction } from "@/components/app/unavailable-action";
@@ -237,10 +241,14 @@ function RegisterPage() {
                       {poamRows.length === 0 ? (
                         <Table.Row>
                           <Table.Cell colSpan={12}>
-                            <Empty
-                              title="No results match your filters"
-                              description="Clear the filters to see the available records."
-                              action={
+                            <Empty>
+                              <EmptyHeader>
+                                <EmptyTitle>No results match your filters</EmptyTitle>
+                                <EmptyDescription>
+                                  Clear the filters to see the available records.
+                                </EmptyDescription>
+                              </EmptyHeader>
+                              <EmptyContent>
                                 <Button
                                   variant="secondary"
                                   onClick={() => {
@@ -249,8 +257,8 @@ function RegisterPage() {
                                 >
                                   Clear filters
                                 </Button>
-                              }
-                            />
+                              </EmptyContent>
+                            </Empty>
                           </Table.Cell>
                         </Table.Row>
                       ) : null}

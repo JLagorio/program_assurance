@@ -25,7 +25,13 @@ import { TablePagination } from "./pagination";
 import { Skeleton } from "../../components/skeleton";
 import { PreviewButton, Table } from "../../components/table";
 import { cn } from "../../lib/cn";
-import { Empty } from "../empty";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
+} from "../../components/empty";
 import type { DataTableFeatures } from "./features";
 import { Columns, HeaderMenu, Settings } from "./columns-menu";
 import { Filter, Filters, Presets, Search } from "./filter";
@@ -779,11 +785,15 @@ function DataTableRoot<TData extends RowData>({
             colSpan={columnCount}
             className="h-auto max-w-none whitespace-normal px-150 py-150"
           >
-            <Empty
-              title={empty?.title ?? t("nothingHere")}
-              description={empty?.description}
-              action={empty?.action}
-            />
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>{empty?.title ?? t("nothingHere")}</EmptyTitle>
+                {empty?.description ? (
+                  <EmptyDescription>{empty?.description}</EmptyDescription>
+                ) : null}
+              </EmptyHeader>
+              {empty?.action ? <EmptyContent>{empty?.action}</EmptyContent> : null}
+            </Empty>
           </Table.Cell>
         </Table.Row>
       ) : null}

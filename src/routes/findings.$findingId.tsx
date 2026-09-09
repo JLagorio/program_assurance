@@ -22,6 +22,9 @@ import {
   TabsList,
   TabsTrigger,
   TextLink,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -537,20 +540,22 @@ function FindingRecord() {
               />
             ) : (
               <Section title="Remediation plan">
-                <Empty
-                  title={
-                    controlRow
-                      ? "Nothing scheduled against this finding"
-                      : "No plan behind this finding"
-                  }
-                  description={
-                    !controlRow
-                      ? `${finding.control} is not in the tailored baseline for ${programId}${poam ? `, so ${poam.id} carries the commitment on its own` : ""}. Tailor the control in, or work the item from the register.`
-                      : isOpen(finding)
-                        ? `${finding.control} carries no POA&M section and no open remediation. Add ${finding.id} to a POA&M item to put a dated plan behind it.`
-                        : `${finding.id} is ${finding.lifecycle.toLowerCase()} and ${finding.control} is ${controlRow.status.toLowerCase()}, so no plan is running. ${finding.risk ? `The residual sits on ${finding.risk}.` : ""}`
-                  }
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>
+                      {controlRow
+                        ? "Nothing scheduled against this finding"
+                        : "No plan behind this finding"}
+                    </EmptyTitle>
+                    <EmptyDescription>
+                      {!controlRow
+                        ? `${finding.control} is not in the tailored baseline for ${programId}${poam ? `, so ${poam.id} carries the commitment on its own` : ""}. Tailor the control in, or work the item from the register.`
+                        : isOpen(finding)
+                          ? `${finding.control} carries no POA&M section and no open remediation. Add ${finding.id} to a POA&M item to put a dated plan behind it.`
+                          : `${finding.id} is ${finding.lifecycle.toLowerCase()} and ${finding.control} is ${controlRow.status.toLowerCase()}, so no plan is running. ${finding.risk ? `The residual sits on ${finding.risk}.` : ""}`}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </Section>
             )
           ) : null}
@@ -656,10 +661,12 @@ function FindingRecord() {
               </>
             ) : (
               <Section title="Residual risk">
-                <Empty
-                  title="No residual score"
-                  description={`${finding.id} carries no scored factors. A residual is only published where severity, exposure, mission impact and evidence currency can all be read from the record; scoring it without them would launder judgement as arithmetic.`}
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{"No residual score"}</EmptyTitle>
+                    <EmptyDescription>{`${finding.id} carries no scored factors. A residual is only published where severity, exposure, mission impact and evidence currency can all be read from the record; scoring it without them would launder judgement as arithmetic.`}</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </Section>
             )
           ) : null}

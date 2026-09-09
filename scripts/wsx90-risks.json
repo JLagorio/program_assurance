@@ -1,0 +1,396 @@
+{
+  "_comment": "Hand-authored WS-X90 risks RSK-017..RSK-040 and the POA&M item that answers each one. Read by scripts/gen-wsx90-campaign.mjs, which assembles the records (ids, uuid, control/requirement/component references, likelihood, impact, owner, milestone dates and statuses) around this text and appends the synthetic-content marker. There is no template: every statement was written from the findings clustered into that risk and says what could happen to the platform if they persist, and every milestone title names the actual remediation step. finding_ids and overall are carried as binding assertions so the generator can prove the cluster and the severity roll-up have not drifted under the prose. Controls are cited by id only; no NIST or DISA prose is reproduced.",
+
+  "RSK-017": {
+    "finding_ids": ["FND-017", "FND-018", "FND-019"],
+    "overall": "high",
+    "title": "Low-rate exhaustion and unattributable egress at the WS-X90 external boundary",
+    "statement": "WS-X90 mediates every external exchange through one Protected Network Gateway (LRU-007), and the three gaps clustered here remove the ability to watch it being worked on. An adversary who drains gateway session state at a packet rate below the profiled threshold produces no counter that LRU-018 evaluates, and traffic pushed outward from a maintenance session is denied and then recorded against an appliance rather than against the technician whose session carried it. Those two together describe a patient exfiltration attempt that costs the tactical path its capacity and leaves the program with no name to put against it, on a system categorised high for confidentiality. Because the SC-1 review that would ordinarily notice an incomplete telemetry set leaves no decision behind in the Configuration Repository (LRU-020), the paper trail is not positioned to catch the omission either. Until the occupancy counters, the session identity and the review record are all in place, the boundary is being operated on the assumption that anything hostile will be loud.",
+    "poam": {
+      "title": "Restore state-level visibility and operator attribution at the boundary gateway",
+      "description": "Extending the gateway telemetry export is the load-bearing change here, because the same export feeds both the SC-5(3) occupancy question and the thresholds the collector evaluates. Carrying maintenance session identity into the SC-7(9) denial record and lodging the SC-1 annual review as a repository workflow step are the two smaller corrections that ride with it.",
+      "milestones": [
+        "Publish session-table and buffer occupancy counters in the LRU-007 telemetry export",
+        "Set collector thresholds on the new counters so a low-rate excursion alerts at LRU-018",
+        "Carry maintenance session identity into the denial record so a denied flow names an operator",
+        "Lodge the SC policy annual review as a Configuration Repository workflow step and retest all three objectives"
+      ]
+    }
+  },
+
+  "RSK-018": {
+    "finding_ids": ["FND-020", "FND-021"],
+    "overall": "high",
+    "title": "An unsealed service connector leaves a physical route into the maintenance path",
+    "statement": "The Maintenance Access Gateway (LRU-014) is the one place on the airframe where a cable can be seated and pulled between scheduled inspections without leaving anything for an inspector to find, and the path it opens reaches the mission computing chain directly. A connection made there while a platform sits on a dispersed flightline would go undetected, so the program would learn of it from its consequences rather than from an inspection sheet. The interpreted-code screening gap on the Provisioning Workstation (LRU-017) has since been closed at the build, which removes the software half of that story, but SC-7(14) still rests on a keyed lock that a determined visitor treats as a delay rather than a barrier. On a platform categorised high for integrity, an unrecorded physical touchpoint into the maintenance path is a standing route to a load the platform has no reason to distrust.",
+    "poam": {
+      "title": "Seal the maintenance service connector and confirm the interface inventory",
+      "description": "Seals are specified and on order, so this item fits them to the LRU-014 service connector, records each against its key holder and adds the seal state to the sheet an inspector actually works from. SC-7(14) is retested against the physical interface inventory, the SC-18 half having already retested to a pass when the build scan was extended over the LRU-017 tooling pipeline.",
+      "milestones": [
+        "Fit tamper-evident seals to the LRU-014 service connector and record each against its key holder",
+        "Add the seal state to the boundary interface inspection sheet used at the flightline",
+        "Re-verify the physical interface inventory with the independent assessor"
+      ]
+    }
+  },
+
+  "RSK-019": {
+    "finding_ids": ["FND-022"],
+    "overall": "high",
+    "title": "A partition that has failed its own integrity check keeps flying the mission",
+    "statement": "SC-24 was selected so that WS-X90 arrives at one known state when something breaks, and today it does that only for failures the Secure Boot Controller (LRU-002) can observe for itself. A mission partition that fails its own check in flight leaves the Mission Computer (LRU-001) running with the remaining partitions live, so the platform continues to fly, navigate and report on an article that has already declared part of itself untrustworthy. Whatever that partition emits afterwards is indistinguishable downstream from correct output, which puts suspect mission data on the tactical link with the platform's full provenance behind it. The uncovered case is airborne rather than at power-on, so there is nobody standing at the article to make the call the missing handler would have made.",
+    "poam": {
+      "title": "Route in-partition failures into the platform secure state",
+      "description": "Failures raised inside a mission partition are handed to that partition's own handler today, and this item routes them to LRU-002 and defines the whole-platform transition the requirement describes. The demonstration is run in the air-mode profile because the uncovered case is the airborne one.",
+      "milestones": [
+        "Route partition-level integrity and watchdog failures to LRU-002 rather than the partition handler",
+        "Define the whole-platform secure state transition for an in-flight partition failure",
+        "Demonstrate the transition on the rig with a mission partition failed in the air-mode profile",
+        "Retest SC-24 against an induced in-partition failure and record the elapsed transition time"
+      ]
+    }
+  },
+
+  "RSK-020": {
+    "finding_ids": ["FND-023", "FND-024", "FND-025"],
+    "overall": "critical",
+    "title": "Payload arm and release records become unverifiable as signing keys rotate",
+    "statement": "Arm and release commands are the highest-consequence traffic WS-X90 carries, and the record that would say who issued one stops being readable the moment its signing key rotates. A disputed payload event would therefore reach the program with the Payload Interface Controller (LRU-010) record present and the Cryptographic Services Module (LRU-003) signature intact, and with no way to resolve either back to an operator, which is precisely the condition AU-10 was selected to prevent. The affected population is not fixed: every rotation moves another tranche of arm and release records from verifiable to unknown-key, so the ability to reconstruct a payload event decays on the key schedule rather than on the retention schedule. The correlated view over maintenance sessions has been repaired, which leaves the unpublished key history and the audit direction in LRU-020 that never required it to be published.",
+    "poam": {
+      "title": "Publish the retired key history and reissue the audit direction",
+      "description": "Publishing the retired signing key identifiers to the collector is what makes a signature resolvable after a rotation, so it leads and the stranded arm and release records are re-verified behind it. The AU-1 procedure reissue is carried in the same item because the direction that would have called for the key history is the same direction that is stale.",
+      "milestones": [
+        "Publish the retired signing key identifiers from LRU-003 to the collector",
+        "Re-verify the stranded arm and release records against the republished key history",
+        "Reissue the audit procedures to the current control scope and describe the correlation behaviour now running"
+      ]
+    }
+  },
+
+  "RSK-021": {
+    "finding_ids": ["FND-026"],
+    "overall": "low",
+    "title": "Relayed audit records carried a second ordering inside the platform trail",
+    "statement": "Records relayed through the Internal Ethernet Switch (LRU-009) were ordered on arrival, so any reconstruction of an event that crossed the internal segment during congestion could have placed effects before their causes. On a platform whose entire trail is anchored to the Timing Receiver (LRU-005) reference, a second ordering hiding inside the first is the sort of defect that surfaces only once an investigation depends on it. A source-time stamp now travels with the relayed records and the Security Log Collector (LRU-018) reproduced the seeded sequence across every source on retest, so AU-12(1) holds and what remains is the window already shut.",
+    "poam": {
+      "title": "Order the compiled audit trail on source time",
+      "description": "The relay path now stamps a source time before a record leaves the switch, and the compiled trail is rebuilt on that stamp so ordering holds across every source rather than across most of them. The work completed inside the assessment window and the seeded sequence reproduced under a congested internal segment.",
+      "milestones": [
+        "Stamp source time on records relayed by LRU-009 before they leave the switch",
+        "Rebuild the compiled trail on origin time and re-run the seeded ordering sequence",
+        "Confirm the order tolerance against the LRU-005 reference under a congested segment"
+      ]
+    }
+  },
+
+  "RSK-022": {
+    "finding_ids": ["FND-027", "FND-028"],
+    "overall": "moderate",
+    "title": "A disallowed session survives at the boundary while field procedures go unsigned",
+    "statement": "Two different populations are exposed here: technicians in the field working from unsigned direction, and a UDP-bearing tunnel at the Protected Network Gateway (LRU-007) that outlives its own failed inspection. AC-4(4) sets a teardown so that a flow already judged disallowed stops being available to try again, and discarding its packets one at a time leaves the session established for as long as the sender cares to hold it. The people best placed to notice that behaviour are meanwhile assembling their work from packages the Provisioning Workstation (LRU-017) will still build around seven procedures nobody currently owns. Neither gap moves protected content across the boundary by itself, but together they describe a platform that resists an intrusion attempt without ever closing the door or telling anyone to look at it.",
+    "poam": {
+      "title": "Terminate failed-inspection sessions and reissue the unsigned access procedures",
+      "description": "Two independent corrections sit under this item: a tunnel that fails inspection is torn down inside the bound instead of being drained packet by packet, and the seven procedures published without a current owner signature are reissued. The package check is changed at the same time so an unsigned procedure cannot travel to the field inside an otherwise valid package.",
+      "milestones": [
+        "Tear down a UDP-bearing tunnel on inspection failure rather than discarding its packets",
+        "Reissue the seven unsigned access control procedures with a current owner signature",
+        "Make the LRU-017 package check test the signature state of every procedure it assembles"
+      ]
+    }
+  },
+
+  "RSK-023": {
+    "finding_ids": ["FND-029"],
+    "overall": "moderate",
+    "title": "Privilege that survived its own review still reaches platform management",
+    "statement": "The privileged assignment review on the Platform Management Controller (LRU-013) does its work and then stops short of the only step that changes anything, so two holders judged to no longer need privilege still hold it. Privilege that has outlived its own justification is the standing account an attacker prefers, because it belongs to a real person whose activity reads as ordinary in the Security Log Collector (LRU-018) record. On WS-X90 that privilege reaches platform management functions directly, so a credential compromise against either holder begins from a position the program has already decided nobody should occupy. AC-6(7) is carried as a review with an enforcement step attached, and while the flag is raised and left alone the platform keeps accumulating the excess the control was selected to shed.",
+    "poam": {
+      "title": "Make the privileged access review reduce privilege by itself",
+      "description": "Expiry replaces the flag, so an assignment a review leaves unreconfirmed loses its privilege without waiting for somebody to remember. The two assignments still standing from the last cycle are reduced first and the objective is then retested across a full review interval.",
+      "milestones": [
+        "Make a non-reconfirmed assignment on LRU-013 expire instead of raising a flag",
+        "Reduce the two privileged assignments left standing by the last review",
+        "Report each reduction to the collector so a downgrade is auditable after the fact",
+        "Retest AC-6(7) across a full review cycle with a seeded non-reconfirmation"
+      ]
+    }
+  },
+
+  "RSK-024": {
+    "finding_ids": ["FND-030"],
+    "overall": "low",
+    "title": "Out-of-window privileged maintenance was recorded rather than refused",
+    "statement": "A privileged command issued outside a maintenance window was being written to the session log at the Maintenance Access Gateway (LRU-014) and then executed, so the schedule documented privileged work instead of bounding it. The point of a scheduled window is that activity outside it is refused while somebody can still ask why, and an advisory check converts that into an after-the-fact reading of a log nobody was watching. The window test now blocks at the gateway and a retest from the Maintenance Laptop (LRU-019) saw the out-of-window command refused with its reason code, so AC-17(4) is satisfied and the risk is carried only until the next monitoring cycle confirms it holds.",
+    "poam": {
+      "title": "Block out-of-window privileged commands at the maintenance gateway",
+      "description": "The scheduled-window leg of the admission decision was wired as advisory and is now a blocking check, so a command issued outside a window is refused rather than narrated. The retest exercised all three admission checks from the laptop and the item is recorded complete.",
+      "milestones": [
+        "Promote the scheduled-window test at LRU-014 from advisory to a blocking admission check",
+        "Refuse an out-of-window privileged command with its reason code in the session log",
+        "Retest the three admission checks from LRU-019 including the window leg"
+      ]
+    }
+  },
+
+  "RSK-025": {
+    "finding_ids": ["FND-031", "FND-032"],
+    "overall": "critical",
+    "title": "A password on its own reaches WS-X90 at the flightline",
+    "statement": "Everything WS-X90 knows about who is at the aircraft rests on the Maintenance Laptop (LRU-019), and away from the ground support network that laptop still accepts a password by itself. Anyone holding it on a dispersed flightline is one guessable secret from a privileged maintenance session against the airframe, in the setting where the platform is worked on most often and watched least closely. The Internal Ethernet Switch (LRU-009) compounds that from the other direction, because a port admitted to the mission VLAN on a one-sided exchange means the switch has proved itself to a device while learning nothing about what is attached, and the device in question distributes the reference the whole audit trail is ordered on. A platform categorised high for confidentiality that can be reached by password alone and then observed over a link nobody authenticated has lost the multi-factor property IA-2(2) was selected to provide, not merely the evidence of it.",
+    "poam": {
+      "title": "Remove the password-only path and make the switch exchange mutual",
+      "description": "The offline credential verifier for the laptop baseline is the only thing that forecloses the password-only path, so it leads and the local logon is withdrawn behind it. The IA-3(1) half changes the Timing Receiver end of the link to present its own certificate before the switch will admit the port.",
+      "milestones": [
+        "Ship the offline credential verifier in the LRU-019 baseline so a disconnected session still needs a hardware credential",
+        "Withdraw the password-only local logon from the Maintenance Laptop image",
+        "Require the Timing Receiver to present its own certificate before LRU-009 admits the port",
+        "Retest both authentication objectives with the laptop off the ground support network"
+      ]
+    }
+  },
+
+  "RSK-026": {
+    "finding_ids": ["FND-033"],
+    "overall": "moderate",
+    "title": "A publicly known password is still a valid WS-X90 credential",
+    "statement": "Composition rules are enforced and the credential region on the Secure Storage Module (LRU-015) gives nothing away, so the weakness is not in how a password is held but in which passwords are let through. Screening against a compromised-credential list last refreshed well outside its interval means a password already sitting in a public breach corpus is accepted today provided it is long enough and mixed enough. An attacker replaying harvested credentials against the provisioning path needs no flaw in the Cryptographic Services Module (LRU-003) if the program is issuing secrets that can simply be looked up. IA-5(1) is one scheduled refresh away from holding, and until that schedule exists the strength of a WS-X90 password is a claim about its shape rather than its secrecy.",
+    "poam": {
+      "title": "Put compromised-credential screening on a scheduled refresh",
+      "description": "Screening quality is a scheduling problem rather than a mechanism problem, so the list moves onto a quarterly job and what is already stored is re-screened against it. The objective is retested with a candidate published since the previous refresh, which is the case that passes today.",
+      "milestones": [
+        "Put the compromised-password list refresh on a scheduled quarterly job feeding LRU-003",
+        "Re-screen the credentials already held in the LRU-015 region against the refreshed list",
+        "Retest IA-5(1) with a candidate published after the previous refresh"
+      ]
+    }
+  },
+
+  "RSK-027": {
+    "finding_ids": ["FND-034", "FND-035", "FND-036"],
+    "overall": "high",
+    "title": "The mission link is unmonitored and three firmware domains cannot force the restricted state",
+    "statement": "The Tactical Data Radio path carries more WS-X90 traffic than every other external link together and nothing inspects its content, so the monitoring picture is complete everywhere except where the mission actually happens. Set beside firmware integrity violations in the navigation, timing and payload domains that raise an alert and change nothing, the plausible sequence is a compromised component continuing to produce mission output over a link nobody is reading. The Secure Boot Controller (LRU-002) would hold the platform in its restricted state for the same class of violation in mission software, so the protection exists and simply does not reach three of the domains the mission leans on hardest. SI-7(5) was selected against an integrity-high categorization, and with the procedures covering both enhancements still marked draft in the LRU-020 set there is not even issued direction telling an operator what to do when the alert arrives.",
+    "poam": {
+      "title": "Close the mission-link monitoring blind spot and widen the restricted-state trigger",
+      "description": "The open decision on the mission link is taken first, because everything else depends on whether the link is terminated for inspection or metadata-only visibility is formally accepted. The restricted-state response is then widened across the three remaining measurement domains and the draft procedures are signed so operators have direction covering both.",
+      "milestones": [
+        "Decide whether to terminate the LRU-008 mission link for inspection or record a formal metadata-only acceptance",
+        "Extend the restricted-state response to navigation, timing and payload firmware violations",
+        "Sign the draft monitoring and boot-integrity procedures into the issued SI set",
+        "Retest the monitoring coverage and restricted-state objectives on the integration rig"
+      ]
+    }
+  },
+
+  "RSK-028": {
+    "finding_ids": ["FND-037", "FND-038"],
+    "overall": "moderate",
+    "title": "The widest configuration divergence WS-X90 produces has no review behind it",
+    "statement": "A change campaign is the moment the applied configuration of WS-X90 diverges furthest from the approved one in the shortest time, and it is the one moment no review is scheduled to follow. Nothing in the Configuration Repository (LRU-020) opens a reconciliation when a campaign closes, so an unapproved change made during one waits for the monthly cycle and is then found, if at all, inside a month of ordinary drift. The four procedures still unsigned in the CM set are the ones covering automated change prohibition and automated security response, which means the direction for the machinery that would otherwise catch such a change is itself unissued. CM-3(7) is the check on the largest divergence the platform ever experiences, and it currently runs only when the engineer who ran the campaign thinks to ask for it.",
+    "poam": {
+      "title": "Trigger the post-campaign reconciliation and sign the outstanding procedures",
+      "description": "A campaign closing in the repository becomes the event that opens a reconciliation, which is what the requirement asks for and what nothing currently provides. The four unsigned procedures are signed in the same pass because they cover the automated machinery that reconciliation depends on.",
+      "milestones": [
+        "Open a reconciliation against the LRU-018 event stream whenever LRU-020 records a campaign closing",
+        "Sign the four outstanding configuration management procedures and clear the review-overdue flag",
+        "Run the post-campaign review against the next planned campaign and record both exception classes"
+      ]
+    }
+  },
+
+  "RSK-029": {
+    "finding_ids": ["FND-039"],
+    "overall": "low",
+    "title": "Unlisted hardware was announced onto the internal segment and then carried",
+    "statement": "Four Internal Ethernet Switch (LRU-009) ports were announcing an unlisted device and then carrying its traffic anyway, which put unauthorised hardware on the internal segment with a log entry as the only consequence. A device admitted that way sits inside every trust boundary the mediated external path exists to defend, so the reporting the platform did well was describing an exposure rather than preventing it. Those ports now run the enforcement build and all twelve refused an unlisted device on retest, so CM-7(9) is met and this is retained as a record of what a lagging port firmware baseline costs.",
+    "poam": {
+      "title": "Refuse unlisted hardware on every switch port",
+      "description": "The four ports running firmware that predated the enforcement build were reflashed, so an unlisted device is now refused a path on all twelve rather than reported on four of them. The objective retested clean inside the assessment window with the refusal reaching the platform log inside its bound.",
+      "milestones": [
+        "Reflash the four lagging LRU-009 ports to the enforcement build",
+        "Confirm an unlisted device is refused a data path on all twelve switch ports",
+        "Check the refusal reaches the platform log inside the thirty-second bound"
+      ]
+    }
+  },
+
+  "RSK-030": {
+    "finding_ids": ["FND-040"],
+    "overall": "moderate",
+    "title": "Payload telemetry maintenance happens outside the work-order gate",
+    "statement": "Maintenance on the payload telemetry equipment is written down after the fact rather than authorised in advance, so for that subsystem the work-order gate on the Update & Recovery Controller (LRU-016) is a filing convention instead of a control. Anyone able to reach the equipment can perform work no open order permitted and then supply the paperwork that makes it read as routine, and the stale-record flag on the Platform Management Controller (LRU-013) never examines records that arrive complete. MA-2(2) treats the workflow as the thing that authorises a maintenance action, so a subsystem sitting outside it is a subsystem where the program cannot say whether a given change was sanctioned. Everything else on the platform is gated correctly, which makes this a seam an insider would find faster than an assessor would.",
+    "poam": {
+      "title": "Gate payload telemetry maintenance instead of recording it afterwards",
+      "description": "The equipment moves inside the work-order gate and the retrospective paper route is withdrawn, so no action proceeds without an open order behind it. The stale-record flag is extended over the newly gated equipment so coverage becomes visible rather than assumed.",
+      "milestones": [
+        "Bring payload telemetry maintenance inside the LRU-016 work-order gate",
+        "Withdraw the retrospective paper route so no action starts without an open order",
+        "Extend the LRU-013 stale-record flag over the newly gated equipment"
+      ]
+    }
+  },
+
+  "RSK-031": {
+    "finding_ids": ["FND-041"],
+    "overall": "low",
+    "title": "Out-of-work-order privileged tool use was recorded and never surfaced",
+    "statement": "Privileged maintenance tooling was fully recorded and never watched, so use of a privileged tool with no open work order behind it would have waited in the Security Log Collector (LRU-018) for a query nobody had a reason to run. That interval is where an insider works: the evidence exists, the discovery does not, and the gap between them is as long as the program's curiosity. The alert rule now runs on the collector and a seeded out-of-order invocation through the Maintenance Access Gateway (LRU-014) raised it on retest, so MA-3(5) is satisfied and the exposure closed inside the assessment window.",
+    "poam": {
+      "title": "Alert on privileged tool use outside an open work order",
+      "description": "The rule had been specified for the collector and never built, so this item builds it and routes what it raises to the maintenance review queue with the technician identity attached. A seeded out-of-order invocation raised the alert on retest and the item is complete.",
+      "milestones": [
+        "Build the out-of-work-order alert rule on the collector",
+        "Seed an out-of-order privileged invocation through LRU-014 and confirm the alert fires",
+        "Route the alert to the maintenance review queue with the technician identity attached"
+      ]
+    }
+  },
+
+  "RSK-032": {
+    "finding_ids": ["FND-042"],
+    "overall": "moderate",
+    "title": "The four-hour recovery objective has never been measured on a whole article",
+    "statement": "WS-X90 has never been restored end to end, so the four-hour recovery objective is a figure the program has adopted rather than one it has measured. The partitions left out of the exercise are platform management and payload interface, which are exactly the ones an operator needs back before the article is worth flying again. Availability is categorised moderate, so the exposure is not an outage so much as the discovery, during a real recovery, that the Update & Recovery Controller (LRU-016) path taken from a sealed Secure Storage Module (LRU-015) set behaves differently for partitions nobody has exercised. CP-4 exists to turn a documented recovery path into a demonstrated one, and until the flight-configuration article is released for test the program is planning against an unverified number.",
+    "poam": {
+      "title": "Exercise a whole-article recovery against the four-hour objective",
+      "description": "Nothing changes on the platform under this item; what is missing is a whole-article exercise, so the flight-configuration article is released and the untested partitions are restored from a sealed backup set. The elapsed time then becomes a measurement against the objective rather than a figure for whichever partitions happened to be available.",
+      "milestones": [
+        "Release the flight-configuration article for a full recovery exercise",
+        "Restore the platform management and payload interface partitions from the sealed LRU-015 set",
+        "Measure the whole-article restore against the four-hour objective and lodge the record"
+      ]
+    }
+  },
+
+  "RSK-033": {
+    "finding_ids": ["FND-043"],
+    "overall": "low",
+    "title": "Primary and alternate bearers converge on one switch port group",
+    "statement": "The alternate telecommunications path for WS-X90 is genuinely disjoint from the primary everywhere except on the platform itself, where both transit a single Internal Ethernet Switch (LRU-009) port group. A failure in that port group takes the Protected Network Gateway (LRU-007) route and the Tactical Data Radio (LRU-008) route down together, which is the one event the alternate was procured to survive. The convergence is already carried as an accepted single point of failure and availability is categorised moderate, so what is exposed is a redundancy the program has paid for rather than the mission itself. CP-8(2) cannot hold while the two paths share an element on either side of the demarcation, and re-homing the radio is the only change that alters the answer.",
+    "poam": {
+      "title": "Re-home the alternate bearer off the shared port group",
+      "description": "Moving the radio path off the shared port group is the only change that makes the two traces disjoint on the platform side of the demarcation. The accepted single point of failure entry is withdrawn once the traces are rebuilt from live state and the objective is retested with the port group failed.",
+      "milestones": [
+        "Re-home the LRU-008 radio path off the shared LRU-009 port group",
+        "Rebuild the primary and alternate traces from live interface and routing state",
+        "Withdraw the accepted single point of failure entry once the traces are disjoint",
+        "Retest CP-8(2) with the shared port group failed"
+      ]
+    }
+  },
+
+  "RSK-034": {
+    "finding_ids": ["FND-044", "FND-045", "FND-046"],
+    "overall": "high",
+    "title": "The payload interlock's trust basis is asserted and six units identify themselves from paperwork",
+    "statement": "The Payload Safety Interlock (LRU-011) is the component standing between a payload command and the payload, and it is the one entry in the dependency map whose trustworthiness is asserted rather than evidenced. Nothing can evaluate whether an authorisation arriving there comes from a component of adequate strength while one side of that comparison is a placeholder, so the rule SA-8(9) turns on is unenforceable in exactly the chain where it matters most. Six units across the navigation, timing and payload interface subsystems compound it by falling back to a maintenance record for hardware identity, which authenticates the paperwork rather than the part and misses precisely the substitution an adversary would perform. With acquisition procedures that expired before the control set reached its present size still citable in a live procurement, the route to correcting either problem runs through direction the Configuration Repository (LRU-020) is not withdrawing.",
+    "poam": {
+      "title": "Evidence the interlock trust basis and fit provisioned hardware identity",
+      "description": "The supplier assurance case behind the interlock is the missing side of the comparison, so obtaining and reviewing it is this item's first obligation. Fitting a provisioned identity part to the six units still identified from a maintenance record and reissuing the expired acquisition procedures complete the other two halves.",
+      "milestones": [
+        "Obtain the supplier assurance case for LRU-011 and review the basis behind the dependency entry",
+        "Fit a provisioned identity part to the six units still identified from a maintenance record",
+        "Reissue the acquisition procedures to the current scope and stop an expired revision being citable"
+      ]
+    }
+  },
+
+  "RSK-035": {
+    "finding_ids": ["FND-047"],
+    "overall": "moderate",
+    "title": "Platform telemetry crosses to a party nobody has signed a responsibility split with",
+    "statement": "A ground-support telemetry exchange is enabled in the Protected Network Gateway (LRU-007) policy set and carrying traffic under an interim approval, so WS-X90 information is crossing to a party whose control responsibilities nobody has signed for. If that party mishandles what it receives, the program has no agreed division of duties to point at and no recorded impact level to argue from, which makes a partner's incident the program's problem by default. CA-3 makes the signed agreement the precondition for enabling an exchange for exactly that reason, and an interim approval with an expiry on it is a schedule rather than an agreement. The exposure is bounded by the exchange being listed openly and time-limited, but it is live traffic off a confidentiality-high platform in the meantime.",
+    "poam": {
+      "title": "Sign the ground-support telemetry agreement before the exchange continues",
+      "description": "The exchange keeps carrying traffic only until its agreement is signed, so the control responsibility split is drafted, signed and bound to the entry in the gateway policy set. Enforcement then happens at the policy review, where any exchange without a current agreement is disabled.",
+      "milestones": [
+        "Draft the control responsibility split for the ground-support telemetry exchange",
+        "Obtain the other party's signature and record the impact level on the agreement",
+        "Bind the signed agreement identifier to the exchange entry in the LRU-007 policy set",
+        "Disable any exchange whose agreement is not current at the next policy set review"
+      ]
+    }
+  },
+
+  "RSK-036": {
+    "finding_ids": ["FND-048"],
+    "overall": "moderate",
+    "title": "A scan on a stale signature set reports clean and the program acts on it",
+    "statement": "A baseline scan that runs against a thirty-hour-old signature set and returns nothing is worse than a scan that does not run, because the program acts on the result. The Provisioning Workstation (LRU-017) makes no comparison against the freshness window and the report header omits the signature identifier, so a reviewer holding a clean report has no way to judge what it covered. Newly published vulnerabilities against the WS-X90 build therefore get a window in which they are simultaneously known to the world and invisible to the program's own monitoring. RA-5(2) specifies an abort precisely so silence is never mistaken for a clean result, and the abort path does not exist to be triggered.",
+    "poam": {
+      "title": "Abort a baseline scan on a stale signature set",
+      "description": "A freshness comparison and an abort are what the requirement asks for and what the workstation does not implement, so both are built. Lifting the signature set identifier into the report header is what afterwards lets a reviewer tell a clean result from a silent one.",
+      "milestones": [
+        "Compare the mirrored signature set timestamp against the freshness window before a scan starts",
+        "Abort a scan running on a stale set and surface the reason to the operator",
+        "Print the signature set identifier in the scan report header"
+      ]
+    }
+  },
+
+  "RSK-037": {
+    "finding_ids": ["FND-049"],
+    "overall": "moderate",
+    "title": "Insider threat and spillage have an escalation path and no named owner",
+    "statement": "Two of the incident classes WS-X90 can now declare, an insider threat case and a classified spillage, have an escalation path in the control set and no named role in the direction anybody actually follows. The first hours of either are when containment is decided, and they would be spent working out who owns the decision rather than making it, with the copy staged on the Provisioning Workstation (LRU-017) giving ground support nothing to act on. Spillage in particular runs against a confidentiality-high categorization, where a slow start is measured in how far the material travels before somebody moves. IR-1 asks for review after any change to the escalation chain, and widening that chain by two branches is the change no review in the Configuration Repository (LRU-020) has been run against.",
+    "poam": {
+      "title": "Add insider-threat and spillage handling to the incident procedures",
+      "description": "The procedure set is reviewed against the expanded escalation chain, naming the insider-threat branch and assigning the spillage roles the added enhancements introduce. The reissued set is staged for ground support and both branches are exercised, so the objective is evidenced by a rehearsal rather than by a signature.",
+      "milestones": [
+        "Name the insider-threat branch and its decision authority in the incident response procedures",
+        "Assign the spillage roles the expanded control set introduces",
+        "Stage the reissued procedure set on LRU-017 and confirm the digest matches the repository",
+        "Exercise both new branches and record the corrective actions they produce"
+      ]
+    }
+  },
+
+  "RSK-038": {
+    "finding_ids": ["FND-050"],
+    "overall": "moderate",
+    "title": "Weakness reports reach their second recipient after the reporting bound",
+    "statement": "Half the weakness reports WS-X90 has produced since the scope expansion reached their second recipient after the bound had passed, and the reason is that one of the two routes is walked by hand while the other is dispatched automatically. A weakness anchored to a Configuration Repository (LRU-020) baseline item is exactly the kind another program on the same baseline could act on immediately, so lateness costs somebody else time they did not know they were losing. IR-6(2) sets one bound across both recipients because a report that is timely to only one of them has not been reported. Four cases is thin as evidence and complete as a record of how the platform has behaved since the scope grew.",
+    "poam": {
+      "title": "Automate the second reporting route for weakness reports",
+      "description": "Dispatch to the second recipient is automated off the same trigger as the first, which is the only arrangement under which one bound covers both. The two cases that ran late are re-reported and the next four are measured from their recorded containment timestamps.",
+      "milestones": [
+        "Automate dispatch to the second recipient off the same trigger as the first",
+        "Re-report the two late cases and record the corrected timeline against each",
+        "Measure elapsed time from containment on the next four weakness reports"
+      ]
+    }
+  },
+
+  "RSK-039": {
+    "finding_ids": ["FND-051"],
+    "overall": "high",
+    "title": "A hand-kept bay list leaves standing physical access to key and recovery material",
+    "statement": "Behind the protected bay door sit the Mission Computer (LRU-001), the Cryptographic Services Module (LRU-003) and the Secure Storage Module (LRU-015), which is to say the key material, the configuration and the recovery set the rest of the control selection assumes are physically out of reach. The bay reader list is transcribed from the facility roster rather than derived from it, so somebody removed from the program keeps bay access until a person notices, and the reader log is never exported for anyone to notice with. Physical access to those three units defeats controls that are otherwise sound, because an attacker standing at the bay is inside every boundary the platform mediates. PE-3(1) was selected to make bay access narrower than facility access, and a hand-maintained list is the one form of separation that can outlive the access it exists to restrict.",
+    "poam": {
+      "title": "Derive bay access from the facility roster and export the reader log",
+      "description": "The bay reader list stops being transcribed and starts being derived, so a removal at the facility level takes bay access with it rather than waiting for somebody to remember. Exporting the reader log for correlation is what allows a bay entry to be checked against current platform access, and the objective is retested with a withdrawn credential.",
+      "milestones": [
+        "Derive the bay reader list from the facility roster instead of transcribing it",
+        "Remove bay access automatically when a holder leaves the facility roster",
+        "Export the bay reader log for correlation against current platform access",
+        "Retest PE-3(1) with a credential withdrawn at the facility level"
+      ]
+    }
+  },
+
+  "RSK-040": {
+    "finding_ids": ["FND-052"],
+    "overall": "low",
+    "title": "The personnel procedure and the provisioning gate no longer agree",
+    "statement": "What the Provisioning Workstation (LRU-017) enforces when an account is created is stricter than what the published personnel security procedure describes, so the divergence runs the safe way and nothing on WS-X90 is under-protected today. The cost is that the program's written direction no longer predicts its own system: a request built to the procedure can be refused, and whoever wrote it has no way to see why. Direction that is wrong in the harmless direction still gets corrected by whoever it inconveniences, which is how a gate ends up loosened to match a document rather than the document being reissued to match the gate. PS-1 asks for an update after any change to eligibility gating, and the change made during the scope expansion is the one that went unrecorded in the Configuration Repository (LRU-020).",
+    "poam": {
+      "title": "Reissue the personnel security procedure to match enforced gating",
+      "description": "The published procedure is reissued to describe the eligibility gating the workstation actually enforces, and the national eligibility change is recorded against the approved revision. Re-dissemination with acknowledgements closes the objective on both its update and its distribution leg.",
+      "milestones": [
+        "Reissue the personnel security procedure to match the eligibility gating LRU-017 enforces",
+        "Record the national eligibility change against the approved revision in LRU-020",
+        "Re-disseminate to every provisioning role and capture the acknowledgements"
+      ]
+    }
+  }
+}

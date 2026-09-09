@@ -22,7 +22,7 @@ describe("platform records in the existing program stores", () => {
     const { platformSeed } = await import("./platform-seed");
     const canonicalSnapshot = readFileSync("src/data/wsx90-platform-seed.json", "utf8");
     expect(createHash("sha256").update(canonicalSnapshot).digest("hex")).toBe(
-      "dec4a04dedd0752761762135ce281e47c323c6591f357237bfc0cc8738544f32",
+      "6d0148ee3153c16ca3388d9192132dc5afcd1e4ceb28158348914878bb8b88c8",
     );
     expect(platformSeed).toEqual(JSON.parse(canonicalSnapshot));
     const { registerPlatformStructure } = await import("./platform-structure");

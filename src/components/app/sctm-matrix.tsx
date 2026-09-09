@@ -9,6 +9,10 @@ import {
   Empty,
   Section,
   Toolbar,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { useMemo, useState } from "react";
 import { SctmFamilyTable } from "@/components/app/sctm";
@@ -216,10 +220,12 @@ export function SctmMatrixSection({
       </Toolbar>
 
       {groups.length === 0 ? (
-        <Empty
-          title="No requirement rows match this filter"
-          description="Clear the search or pick another family."
-          action={
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No requirement rows match this filter</EmptyTitle>
+            <EmptyDescription>Clear the search or pick another family.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
             <Button
               size="small"
               onClick={() => {
@@ -230,8 +236,8 @@ export function SctmMatrixSection({
             >
               Reset filters
             </Button>
-          }
-        />
+          </EmptyContent>
+        </Empty>
       ) : (
         <SctmFamilyTable
           groups={groups}

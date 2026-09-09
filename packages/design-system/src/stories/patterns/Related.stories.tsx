@@ -15,10 +15,16 @@ import {
   Item,
   Table,
   TextLink,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardAction,
+  CardContent,
+  Card,
 } from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
-import { Card, Related } from "../../patterns";
+import { Related } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -340,20 +346,24 @@ export const RelatedMatrix: Story = {
   ),
 };
 
-/** The linked records need columns to compare: a Table in a Card, headed by Card.Header. Not a Related. */
+/** The linked records need columns to compare: a Table in a Card, headed by CardHeader. Not a Related. */
 export const RelatedTable: Story = {
   name: "A related table",
   render: () => (
     <Card>
-      <Card.Header
-        title="Linked findings"
-        description="14 findings, by severity"
-        action={
-          <Button size="small" variant="subtle" iconBefore={<Plus />}>
-            Link a finding
-          </Button>
-        }
-      />
+      <CardHeader>
+        <CardTitle>
+          <h2>{"Linked findings"}</h2>
+        </CardTitle>
+        <CardDescription>{"14 findings, by severity"}</CardDescription>
+        <CardAction>
+          {
+            <Button size="small" variant="subtle" iconBefore={<Plus />}>
+              Link a finding
+            </Button>
+          }
+        </CardAction>
+      </CardHeader>
       <Table label="Linked findings">
         <thead>
           <tr>
@@ -441,12 +451,16 @@ export const Dont: Story = {
         dont={
           <Box className="w-layout-rail">
             <Card>
-              <Card.Header title="Risks" />
-              <Card.Body>
+              <CardHeader>
+                <CardTitle>
+                  <h2>{"Risks"}</h2>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <Text size="small" color="color.text.subtle">
                   Nothing linked yet.
                 </Text>
-              </Card.Body>
+              </CardContent>
             </Card>
           </Box>
         }

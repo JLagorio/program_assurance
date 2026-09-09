@@ -1,0 +1,72 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "../../components";
+import * as Stories from "./Empty.stories";
+
+<Meta of={Stories} />
+
+# Empty
+
+Explain why a region has no content and offer a useful next action. The message, media and controls are composed by the caller.
+
+## Anatomy
+
+```tsx
+<Empty>
+  <EmptyMedia variant="icon" aria-hidden>
+    <Search />
+  </EmptyMedia>
+  <EmptyHeader>
+    <EmptyTitle>No controls match</EmptyTitle>
+    <EmptyDescription>Clear a filter or widen the date range.</EmptyDescription>
+  </EmptyHeader>
+  <EmptyContent>
+    <Button variant="link">Clear filters</Button>
+  </EmptyContent>
+</Empty>
+```
+
+EmptyHeader groups the message. EmptyMedia accepts any content; `variant="icon"` adds the neutral circle and default icon size without cloning the child. EmptyContent holds actions, links or additional content.
+
+<Canvas of={Stories.Playground} />
+
+## Variants and states
+
+Ledger retains the left-aligned dashed frame by default. `size="compact"` removes the frame and places top-level media beside the message and actions. For compact layouts, place EmptyMedia before EmptyHeader and EmptyContent as direct children of Empty. Omit media or actions when they add nothing.
+
+<Canvas of={Stories.Compact} />
+
+For other layouts, use native composition and className. A default Empty can also put media inside EmptyHeader, following shadcn's examples.
+
+<Canvas of={Stories.CustomMedia} />
+
+## Accessibility
+
+The parts are divs with no automatic landmark or announcement. Use native roles and ARIA only when the surrounding workflow needs them. Hide decorative media explicitly with `aria-hidden`; meaningful media keeps its own accessible name. Text precedes the actions in reading order. Loading uses Skeleton or Spinner.
+
+## Props
+
+<ArgTypes of={Empty} />
+<ArgTypes of={EmptyHeader} />
+<ArgTypes of={EmptyMedia} />
+<ArgTypes of={EmptyTitle} />
+<ArgTypes of={EmptyDescription} />
+<ArgTypes of={EmptyContent} />
+
+Every part accepts native div attributes, events, styles and refs. EmptyDescription's ref matches its rendered div. Icon children retain their own props, classes and refs.
+
+### Migration
+
+Replace configured `title`, `description`, `icon`, `action` and `secondary` with the corresponding children. The root's native `title` now means an HTML tooltip. Keep `size="compact"` on existing compact states. Related and DataTable still accept their workflow-specific empty-message options and compose these parts internally.
+
+## Related
+
+[Card](?path=/docs/components-card--docs), [Related](?path=/docs/patterns-related--docs), [DataTable](?path=/docs/patterns-datatable--docs), [Skeleton](?path=/docs/components-skeleton--docs).
+
+Sources: [shadcn Empty](https://ui.shadcn.com/docs/components/base/empty), [Base UI catalog implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/empty.tsx).

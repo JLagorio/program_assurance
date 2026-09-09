@@ -22,6 +22,9 @@ import {
   Count,
   TextLink,
   Toolbar,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, type ReactNode } from "react";
@@ -413,10 +416,12 @@ function ProgramRisk() {
             ) : (
               <Section title="Calculation trail">
                 <Box paddingBlockStart="space.200">
-                  <Empty
-                    title="Nothing selected"
-                    description={`${program.id} has no scored finding to open, so there is no factor table to read.`}
-                  />
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyTitle>{"Nothing selected"}</EmptyTitle>
+                      <EmptyDescription>{`${program.id} has no scored finding to open, so there is no factor table to read.`}</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 </Box>
               </Section>
             )}
@@ -462,10 +467,12 @@ function ProgramRisk() {
             ) : (
               <Section title="Worked example">
                 <Box paddingBlockStart="space.200">
-                  <Empty
-                    title="No finding to work through"
-                    description={`${program.id} carries no scorable finding, so any example on this page would be a fabrication.`}
-                  />
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyTitle>{"No finding to work through"}</EmptyTitle>
+                      <EmptyDescription>{`${program.id} carries no scorable finding, so any example on this page would be a fabrication.`}</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 </Box>
               </Section>
             )}

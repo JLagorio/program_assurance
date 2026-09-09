@@ -1,8 +1,9 @@
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentProps } from "react";
 import { Toaster as Sonner, toast as sonnerToast, type ExternalToast } from "sonner";
 
 import { Spinner } from "./spinner";
+import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 
 /* Feedback after an act: "Evidence linked", "Could not save". A toast is a card at the bottom
@@ -10,10 +11,8 @@ import { useLedgerLocale } from "../lib/locale";
    Toaster near the root, then `toast.success(...)` from anywhere. sonner underneath for the stack,
    the timer, the swipe and the live region; the kit owns the look and the defaults. */
 
-type Position = NonNullable<ComponentPropsWithoutRef<typeof Sonner>["position"]>;
-
-/** The classes on each part of a toast. The Toaster hands them to sonner; the Toaster page's specimens draw with them. */
-export const toastClasses = {
+/** Default classes for Sonner's native parts. */
+const toastClasses = {
   toast:
     "relative flex w-full items-start gap-100 rounded-large border border-default bg-surface-overlay px-150 py-150 font-body text-default shadow-overlay outline-none focus-visible:outline-focused",
   icon: "flex h-250 shrink-0 items-center",
@@ -29,7 +28,7 @@ export const toastClasses = {
 } as const;
 
 /** The mark for each kind, `dimension.icon.medium` in the tone's icon colour. */
-export const toastIcons = {
+const toastIcons = {
   success: <CircleCheck aria-hidden className="size-icon-medium icon-success" />,
   error: <CircleAlert aria-hidden className="size-icon-medium icon-danger" />,
   warning: <TriangleAlert aria-hidden className="size-icon-medium icon-warning" />,
@@ -38,20 +37,17 @@ export const toastIcons = {
   close: <X aria-hidden className="size-icon-small" />,
 } as const;
 
-export type ToasterProps = {
-  /** Where the stack sits. `bottom-right` by default, chosen once per product. */
-  position?: Position | undefined;
-  /** Every toast at its full height instead of stacked behind the newest. Off by default. */
-  expand?: boolean | undefined;
-  /** A close on every toast. Off by default: an error carries its own, and the rest go on their own. */
-  closeButton?: boolean | undefined;
-};
+export type ToasterProps = ComponentProps<typeof Sonner>;
 
 /** The stack. Render one near the root; the toasts find it. */
 export function Toaster({
   position = "bottom-right",
   expand = false,
   closeButton = false,
+  icons,
+  toastOptions,
+  className,
+  ...props
 }: ToasterProps) {
   const { t, direction } = useLedgerLocale();
   return (
@@ -64,16 +60,25 @@ export function Toaster({
       offset={16}
       visibleToasts={4}
       containerAriaLabel={t("notifications")}
-      icons={{ ...toastIcons, loading: <Spinner size="medium" label={t("loading")} /> }}
+      // Sonner's mobile width:100% plus both offsets can overflow an RTL left stack.
+      // Use its native offsets to bound the stack; each toast fills the available width.
+      className={cn(
+        "max-sm:left-(--mobile-offset-left)! max-sm:right-(--mobile-offset-right)! max-sm:w-auto!",
+        className,
+      )}
+      icons={{ ...toastIcons, loading: <Spinner size="medium" label={t("loading")} />, ...icons }}
       toastOptions={{
         unstyled: true,
-        style: {
-          width: "min(356px, calc(100vw - 32px))",
-          transitionDuration: "var(--ds-motion-duration-moderate)",
-        },
-        classNames: toastClasses,
         closeButtonAriaLabel: t("close"),
+        ...toastOptions,
+        style: {
+          width: "100%",
+          transitionDuration: "var(--ds-motion-duration-moderate)",
+          ...toastOptions?.style,
+        },
+        classNames: { ...toastClasses, ...toastOptions?.classNames },
       }}
+      {...props}
     />
   );
 }

@@ -33,6 +33,10 @@ import {
   TextLink,
   Timeline,
   toast,
+  EmptyHeader,
+  EmptyContent,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { UnavailableAction } from "@/components/app/unavailable-action";
 import { useRecordForm } from "@/lib/record-form";
@@ -136,15 +140,17 @@ function RiskDetail() {
   if (!risk)
     return (
       <Shell>
-        <Empty
-          title="Risk not found"
-          description="The record may be stored in another browser."
-          action={
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>Risk not found</EmptyTitle>
+            <EmptyDescription>The record may be stored in another browser.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
             <Link to="/risks" className={buttonVariants({ variant: "secondary" })}>
               Back to risks
             </Link>
-          }
-        />
+          </EmptyContent>
+        </Empty>
       </Shell>
     );
   const savedTreatments = treatmentsForRisk(risk.id);

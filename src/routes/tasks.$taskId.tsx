@@ -14,6 +14,9 @@ import {
   RecordHeader,
   Section,
   ShowPage,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 
 import { RecordActivity } from "@/components/app/record-activity";
@@ -62,14 +65,16 @@ function TaskPage() {
   if (!task)
     return (
       <Shell>
-        <Empty
-          title={tasksRestored() ? "Task not found" : "Loading task"}
-          description={
-            tasksRestored()
-              ? "This task is not available in this workspace."
-              : "Restoring your saved tasks."
-          }
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{tasksRestored() ? "Task not found" : "Loading task"}</EmptyTitle>
+            <EmptyDescription>
+              {tasksRestored()
+                ? "This task is not available in this workspace."
+                : "Restoring your saved tasks."}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Shell>
     );
   const program = programs.find((p) => p.id === task.program);

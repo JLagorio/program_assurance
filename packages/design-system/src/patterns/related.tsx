@@ -5,8 +5,15 @@ import { Count } from "../components/badge";
 import { Item, type ItemSize } from "../components/item";
 import { KeyValue } from "../components/key-value";
 import { cn } from "../lib/cn";
-import { Card } from "./card";
-import { Empty, type EmptyProps } from "./empty";
+import { Card } from "../components/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "../components/empty";
 
 /* On the body of a page, a card per related record: a header with the kind, the count and the
    way to add one; the record's name as the link, up to six properties under it, and the actions
@@ -17,7 +24,15 @@ import { Empty, type EmptyProps } from "./empty";
 export type RelatedLayout = "list" | "cards";
 
 /** What a Related card says when nothing is linked: a title alone, or an Empty's title, line, action and icon. */
-export type RelatedEmpty = string | Omit<EmptyProps, "size" | "className">;
+export type RelatedEmpty =
+  | string
+  | {
+      title: string;
+      description?: string | undefined;
+      action?: ReactNode;
+      secondary?: ReactNode;
+      icon?: ReactNode;
+    };
 
 export type RelatedProps = {
   /** The kind of record linked, a noun: "Linked findings", "Systems", "Team". */
@@ -53,8 +68,9 @@ function RelatedRoot({
 }: RelatedProps) {
   const headingId = useId();
   const has = Children.toArray(children).some(Boolean);
-  const emptyProps: Omit<EmptyProps, "size" | "className"> =
+  const emptyProps: Exclude<RelatedEmpty, string> =
     typeof empty === "string" ? { title: empty } : empty;
+  const emptyIcon = "icon" in emptyProps ? emptyProps.icon : <Link2 />;
   return (
     <Card className={cn("flex flex-col", className)}>
       <div className="flex items-center gap-100 border-b border-default px-200 py-100">
@@ -62,11 +78,31 @@ function RelatedRoot({
           {title}
         </h3>
         {count !== undefined ? <Count value={count} /> : null}
-        {action ? <span className="ms-auto flex shrink-0 items-center gap-100">{action}</span> : null}
+        {action ? (
+          <span className="ms-auto flex shrink-0 items-center gap-100">{action}</span>
+        ) : null}
       </div>
       {!has ? (
         <div className="px-200 py-150">
-          <Empty size="compact" icon={<Link2 />} {...emptyProps} />
+          <Empty size="compact">
+            {emptyIcon ? (
+              <EmptyMedia variant="icon" aria-hidden>
+                {emptyIcon}
+              </EmptyMedia>
+            ) : null}
+            <EmptyHeader>
+              <EmptyTitle>{emptyProps.title}</EmptyTitle>
+              {emptyProps.description ? (
+                <EmptyDescription>{emptyProps.description}</EmptyDescription>
+              ) : null}
+            </EmptyHeader>
+            {emptyProps.action || emptyProps.secondary ? (
+              <EmptyContent>
+                {emptyProps.action}
+                {emptyProps.secondary}
+              </EmptyContent>
+            ) : null}
+          </Empty>
         </div>
       ) : layout === "cards" ? (
         <ul
@@ -131,18 +167,18 @@ function RelatedCard({
 }: RelatedCardProps) {
   const text = <span className="block truncate">{title}</span>;
   const titleClass = "block min-w-0 font-body font-medium text-default";
-  const titleEl = link
-    ? cloneElement(link, {
-        className: cn(
-          titleClass,
-          "rounded-xsmall outline-none hover:underline focus-visible:outline-focused",
-          link.props.className,
-        ),
-        children: text,
-      })
-    : (
-      <span className={titleClass}>{text}</span>
-    );
+  const titleEl = link ? (
+    cloneElement(link, {
+      className: cn(
+        titleClass,
+        "rounded-xsmall outline-none hover:underline focus-visible:outline-focused",
+        link.props.className,
+      ),
+      children: text,
+    })
+  ) : (
+    <span className={titleClass}>{text}</span>
+  );
   return (
     <li
       className={cn(
@@ -157,7 +193,9 @@ function RelatedCard({
           {status || meta ? (
             <span className="flex min-w-0 items-center gap-100">
               {status ? <span className="flex shrink-0 items-center">{status}</span> : null}
-              {meta ? <span className="min-w-0 truncate font-body-small text-subtle">{meta}</span> : null}
+              {meta ? (
+                <span className="min-w-0 truncate font-body-small text-subtle">{meta}</span>
+              ) : null}
             </span>
           ) : null}
         </div>

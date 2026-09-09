@@ -28,6 +28,9 @@ import {
   TextLink,
   Toolbar,
   Eyebrow,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 import {
   useId,
@@ -1261,7 +1264,12 @@ export function ControlBoard({ programId }: { programId: string }) {
       >
         <div className="min-w-0">
           {groups.length === 0 ? (
-            <Empty title="No controls match" description="Clear a filter or the stage selection." />
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>{"No controls match"}</EmptyTitle>
+                <EmptyDescription>{"Clear a filter or the stage selection."}</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <>
               <BoardHeader narrow={narrow} />

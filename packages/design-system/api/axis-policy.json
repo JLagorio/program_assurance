@@ -309,36 +309,6 @@
         }
       }
     },
-    "Card": {
-      "domTarget": "Root HTML div receives the complete ...props spread including id, aria/data attributes and event handlers. ComponentPropsWithoutRef deliberately excludes ref.",
-      "controlledBehavior": "Stateless surface; no card-level selected/value state or clickable-card behavior.",
-      "defaultBehavior": "Raised-surface CSS variable is installed by default. Caller style spreads last and can override that variable; className merges through cn. Children are optional; no default child content.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/card.tsx",
-        "packages/design-system/src/lib/cn.ts"
-      ]
-    },
-    "Card.Body": {
-      "domTarget": "Padded div receiving className and children only; no arbitrary DOM props or ref.",
-      "controlledBehavior": "Stateless content inset.",
-      "defaultBehavior": "The fixed p-200 inset applies unless caller className overrides it through cn.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/card.tsx",
-        "packages/design-system/src/lib/cn.ts"
-      ]
-    },
-    "Card.Header": {
-      "domTarget": "div containing an h2, optional description p and action div. Only className is forwarded; no arbitrary DOM props or ref.",
-      "controlledBehavior": "Stateless header; caller owns rendered actions.",
-      "defaultBehavior": "Omitted/falsy description and action omit their wrappers. Title always renders as h2.",
-      "reviewSources": ["packages/design-system/src/patterns/card.tsx"],
-      "props": {
-        "action": {
-          "meaning": "Rendered action content in its named position; the pattern does not clone it or invoke it as a callback.",
-          "migration": "Keep caller-composed controls and their event ownership; do not replace this ReactNode slot with a callback or action configuration."
-        }
-      }
-    },
     "Chart": {
       "domTarget": "figure named by its figcaption title; className targets figure. An expansion Dialog is a sibling. No generic DOM spread/ref contract.",
       "controlledBehavior": "Caller owns status/data/path/actions. Frame owns hidden/highlighted series, table visibility and expanded Dialog; expanded copy has its own Frame state. No controlled props exist for these presentation states.",
@@ -645,7 +615,7 @@
     "CommandPalette": {
       "domTarget": "Portaled Command.Dialog/Radix dialog; its input and listbox/options come from cmdk. There is no root DOM/ref passthrough on the pattern.",
       "controlledBehavior": "Caller owns open; cmdk internally owns search and active-option navigation. Choosing requests onClose before invoking command.run synchronously. Neither callback is awaited or caught; caller owns action failures. useCommandPalette is a separate optional hook with local false initial state and window Cmd/Ctrl+K listener.",
-      "defaultBehavior": "Placeholder defaults to Type a command…. Input hint is explicitly null. Empty matching result uses No commands match. Contiguous commands with equal group share a heading; repeated nonadjacent groups remain separate. Unique command ids identify options and group runs; group, label and hint remain searchable keywords.",
+      "defaultBehavior": "Placeholder defaults to Type a command\u2026. Input hint is explicitly null. Empty matching result uses No commands match. Contiguous commands with equal group share a heading; repeated nonadjacent groups remain separate. Unique command ids identify options and group runs; group, label and hint remain searchable keywords.",
       "reviewSources": [
         "packages/design-system/src/patterns/command-palette.tsx",
         "packages/design-system/src/components/command.tsx",
@@ -889,29 +859,6 @@
         "packages/design-system/src/components/editable.tsx",
         "packages/design-system/src/components/dropdown-menu.tsx"
       ]
-    },
-    "Empty": {
-      "domTarget": "Root div with two composition layouts; title renders as p. No DOM attributes or ref passthrough.",
-      "controlledBehavior": "Stateless empty-state presentation; action slots own any interactions.",
-      "defaultBehavior": "size defaults to default (dashed frame); compact is unframed and places the icon beside content. Omitted/falsy icon, description or actions omit their wrappers. Valid icon elements are cloned with component-owned sizing className; other ReactNode content is retained inside aria-hidden mark.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/empty.tsx",
-        "packages/design-system/src/lib/cn.ts"
-      ],
-      "props": {
-        "action": {
-          "meaning": "Rendered action content in its named position; the pattern does not clone it or invoke it as a callback.",
-          "migration": "Keep caller-composed controls and their event ownership; do not replace this ReactNode slot with a callback or action configuration."
-        },
-        "icon": {
-          "meaning": "Decorative ReactNode mark. Valid elements receive a replacement className for size; the enclosing mark is aria-hidden.",
-          "migration": "Keep supplied icon content decorative and put essential information in title/description. Do not migrate to an icon constructor without an explicit adapter."
-        },
-        "size": {
-          "meaning": "Composition choice: default is a framed vertical empty region; compact is a horizontal unframed inset composition.",
-          "migration": "Keep these family-specific layout values; do not equate default/compact with control heights."
-        }
-      }
     },
     "Eyebrow": {
       "domTarget": "as chooses a TextElement or h2/h3/h4; id and className reach that element. No arbitrary DOM/ref forwarding.",
@@ -1427,8 +1374,8 @@
       "reviewSources": [
         "packages/design-system/src/patterns/related.tsx",
         "packages/design-system/src/components/item.tsx",
-        "packages/design-system/src/patterns/card.tsx",
-        "packages/design-system/src/patterns/empty.tsx"
+        "packages/design-system/src/components/card.tsx",
+        "packages/design-system/src/components/empty.tsx"
       ],
       "props": {
         "action": {
@@ -1728,20 +1675,6 @@
         }
       }
     },
-    "Spinner": {
-      "domTarget": "Loader SVG with status role and accessible name, or hidden decorative SVG; renders null during pending positive delay. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Local shown state only: pending delay changes restart the wait, nonpositive delay reveals immediately, and an already shown spinner stays shown until unmounted. Caller owns the loading lifecycle.",
-      "defaultBehavior": "size=small (12px), appearance=subtle, isDecorative=false, delay=0. Medium=16px, large=24px. Label falls back to localized Loading; decorative removes the name/status role. Reduced motion disables rotation.",
-      "reviewSources": ["packages/design-system/src/components/spinner.tsx"],
-      "props": {
-        "appearance": {
-          "meaning": "`subtle`, the default, on a surface; `inverse` on a bold fill; `inherit` takes the text colour around it, for a button."
-        },
-        "size": {
-          "meaning": "`small` (12px) beside text and in a button, the default; `medium` (16px) on its own in a row or a toolbar; `large` (24px) centred in a section that is empty while it loads."
-        }
-      }
-    },
     "Stack": {
       "domTarget": "The actual as element receives native attributes/events and HTMLElement ref. id remains a DOM id. Polymorphic element choices are restricted to documented semantic tags.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
@@ -1984,12 +1917,6 @@
           "meaning": "Semantic tone from the component allowed union; neutral is not a category hue. Uses the family tone styling described above."
         }
       }
-    },
-    "Toaster": {
-      "domTarget": "Sonner section containing toast lists, rendered in place with fixed positioning. Public props expose only position, expand and closeButton, not arbitrary DOM/ref attributes.",
-      "controlledBehavior": "Sonner store owns queue, dismissal and timers. Exported toast methods enqueue notifications; component props configure presentation. Promise/error behavior delegates through the package toast adapter.",
-      "defaultBehavior": "position=bottom-right, expand=false, closeButton=false; fixed gap=8, offset=16, visibleToasts=4. Locale supplies direction/messages. toast.error defaults duration=8000 and closeButton=true, then caller options override those defaults.",
-      "reviewSources": ["packages/design-system/src/components/toaster.tsx"]
     },
     "Toolbar": {
       "domTarget": "Outer layout div; className targets it. Search is internal Input; actions is a trailing span slot. No generic root DOM/ref forwarding.",

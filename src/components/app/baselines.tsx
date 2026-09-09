@@ -41,6 +41,9 @@ import {
   Table,
   Toolbar,
   type Tone,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
 } from "@ledger/design-system";
 
 import { cn } from "@ledger/design-system/cn";
@@ -184,10 +187,16 @@ export function BuildTable({
   if (builds.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No configuration baseline"
-          description="Nothing has been pinned for this program, so no determination on it can be said to be true of a known configuration."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No configuration baseline"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "Nothing has been pinned for this program, so no determination on it can be said to be true of a known configuration."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -239,10 +248,16 @@ export function ParameterTable({ parameters }: { parameters: ParameterPin[] }) {
   if (parameters.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No parameters pinned"
-          description="This build fixes no organization-defined parameter values, so every ODP the controls carry is unstated."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No parameters pinned"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "This build fixes no organization-defined parameter values, so every ODP the controls carry is unstated."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -417,10 +432,16 @@ export function PinDiffTable({
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="Nothing moved"
-          description="Every pin in the candidate matches the authorized baseline, so the two builds describe the same configuration."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Nothing moved"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "Every pin in the candidate matches the authorized baseline, so the two builds describe the same configuration."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -514,10 +535,16 @@ export function ChangeTable({
   if (changes.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="No change records"
-          description="Nothing has been proposed against this program's baseline. A program with a live candidate build and no change records is not a stable program — it is an unmanaged one."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"No change records"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "Nothing has been proposed against this program's baseline. A program with a live candidate build and no change records is not a stable program — it is an unmanaged one."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -1009,10 +1036,12 @@ export function ImpactView({
 
   if (!impact) {
     return (
-      <Empty
-        title="No impact record"
-        description={`${change.id} has no computed impact. A change record with no analysis behind it cannot be reasoned about.`}
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{"No impact record"}</EmptyTitle>
+          <EmptyDescription>{`${change.id} has no computed impact. A change record with no analysis behind it cannot be reasoned about.`}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -1168,14 +1197,16 @@ export function ImpactView({
           <Section title="Touched components">
             {impact.touched.length === 0 ? (
               <Box paddingBlockStart="space.200">
-                <Empty
-                  title="Not scoped to a component"
-                  description={
-                    change.kind === "Control parameter"
-                      ? `An organization-defined parameter is a property of the requirement, not of any one component. ${change.subject} moved from ${change.from} to ${change.to}, so every ${change.subject} row is invalidated wherever the graph allocated it — the cascade runs over the requirement set, not over the composition tree.`
-                      : `A provider re-assessment is a property of the inheritance reference, not of this program's inventory. ${change.subject} moved from ${change.from} to ${change.to}, so every row inherited from that provider is invalidated without any node in this graph being touched.`
-                  }
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{"Not scoped to a component"}</EmptyTitle>
+                    <EmptyDescription>
+                      {change.kind === "Control parameter"
+                        ? `An organization-defined parameter is a property of the requirement, not of any one component. ${change.subject} moved from ${change.from} to ${change.to}, so every ${change.subject} row is invalidated wherever the graph allocated it — the cascade runs over the requirement set, not over the composition tree.`
+                        : `A provider re-assessment is a property of the inheritance reference, not of this program's inventory. ${change.subject} moved from ${change.from} to ${change.to}, so every row inherited from that provider is invalidated without any node in this graph being touched.`}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </Box>
             ) : (
               <Grid
@@ -1234,14 +1265,16 @@ export function ImpactView({
           >
             {invalidatedRowRecords.length === 0 ? (
               <Box paddingBlockStart="space.200">
-                <Empty
-                  title="No determination affected"
-                  description={
-                    impact.suspectRows.length > 0
-                      ? "Nothing this change reaches is retracted. Every row it touches keeps its determination and is flagged for the assessor below."
-                      : "The change touched components, but no requirement row is allocated to any of them."
-                  }
-                />
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>{"No determination affected"}</EmptyTitle>
+                    <EmptyDescription>
+                      {impact.suspectRows.length > 0
+                        ? "Nothing this change reaches is retracted. Every row it touches keeps its determination and is flagged for the assessor below."
+                        : "The change touched components, but no requirement row is allocated to any of them."}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </Box>
             ) : (
               <Box paddingBlockStart="space.200">
@@ -1362,10 +1395,16 @@ export function RetestQueueTable({
   if (items.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
-        <Empty
-          title="Nothing owed"
-          description="No live change has withdrawn a determination, so no requirement is waiting to be re-verified against the configuration in force."
-        />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{"Nothing owed"}</EmptyTitle>
+            <EmptyDescription>
+              {
+                "No live change has withdrawn a determination, so no requirement is waiting to be re-verified against the configuration in force."
+              }
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </Box>
     );
   }
@@ -1442,10 +1481,12 @@ export function RetestQueueTable({
       ) : null}
       {filtered.length === 0 ? (
         <Box paddingBlockStart="space.200">
-          <Empty
-            title="No match"
-            description={`Nothing in the re-test queue matches “${query}”.`}
-          />
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>{"No match"}</EmptyTitle>
+              <EmptyDescription>{`Nothing in the re-test queue matches “${query}”.`}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         </Box>
       ) : null}
     </>

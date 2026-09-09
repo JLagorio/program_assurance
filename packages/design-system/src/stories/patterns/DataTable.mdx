@@ -114,7 +114,7 @@ Rows are `dimension.row` 40px, and `dimension.row.compact` 36px through the read
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Ready    | The rows. With none left after the filters, the empty state.                                                                                      |
 | Loading  | The header kept, a skeleton line per row where the records will be, no Pagination. The height of what is already there never changes.             |
-| Empty    | An [Empty](?path=/docs/patterns-empty--docs) under the header: `empty.title`, its description, its action.                                        |
+| Empty    | An [Empty](?path=/docs/components-empty--docs) under the header: `empty.title`, its description, its action.                                        |
 | Error    | `error` under the header.                                                                                                                         |
 | Sorted   | The header's arrow and `aria-sort`; one column at a time unless the table says `multiSort`.                                                       |
 | Filtered | The applied value on each chip; the presets' counts; the range in Pagination.                                                                     |
@@ -213,7 +213,7 @@ The hook's options are the Modifiers above; `DataTableOptions<T>` is exported wi
 
 - [Table](?path=/docs/components-table--docs): the parts, and the register that needs none of this.
 - [Toolbar](?path=/docs/components-toolbar--docs), [FilterChip](?path=/docs/components-filterchip--docs), [Pagination](?path=/docs/components-pagination--docs): what surrounds it.
-- [Editable](?path=/docs/components-editable--docs): the cell an editable column draws. [Empty](?path=/docs/patterns-empty--docs), [Skeleton](?path=/docs/components-skeleton--docs): its states.
+- [Editable](?path=/docs/components-editable--docs): the cell an editable column draws. [Empty](?path=/docs/components-empty--docs), [Skeleton](?path=/docs/components-skeleton--docs): its states.
 - [Tree](?path=/docs/components-tree--docs): the hierarchy without columns.
 
 ## Don't
