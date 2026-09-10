@@ -1,3 +1,5 @@
+import { useRef, useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   avatarHue,
   AvatarFallback,
@@ -15,6 +17,7 @@ import {
   Item,
   Table,
   TextLink,
+  Timeline,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -24,7 +27,7 @@ import {
 } from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
-import { Related } from "../../patterns";
+import { PreviewSheet, Related } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -560,4 +563,121 @@ export const Playground: Story = {
       <Related {...args}>{args.layout === "cards" ? systemCards : findings}</Related>
     </Box>
   ),
+};
+
+function RecordPreview() {
+  const [open, setOpen] = useState(false);
+  const [destination, setDestination] = useState("None");
+  const cardLink = useRef<HTMLAnchorElement>(null);
+  const historyLink = useRef<HTMLAnchorElement>(null);
+  const fullRecordLink = useRef<HTMLAnchorElement>(null);
+  return (
+    <Stack space="space.200">
+      <Related title="Linked systems" layout="cards">
+        <Related.Card
+          title="Telemetry gateway"
+          meta="Component · Ground segment"
+          link={
+            <a
+              id="related-gateway"
+              ref={cardLink}
+              href="#gateway"
+              data-record="gateway"
+              onClick={(event) => {
+                event.preventDefault();
+                setDestination("Gateway");
+              }}
+            />
+          }
+          actions={
+            <Button size="small" onClick={() => setOpen(true)}>
+              Preview gateway
+            </Button>
+          }
+        />
+      </Related>
+      <Button onClick={() => cardLink.current?.focus()}>Focus record link</Button>
+      <Text>Last navigation: {destination}</Text>
+      <PreviewSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        id="CMP-0113"
+        title="Telemetry gateway"
+        subtitle="Component history and details"
+        openTo={
+          <a
+            id="preview-gateway"
+            ref={fullRecordLink}
+            href="#gateway"
+            onClick={(event) => {
+              event.preventDefault();
+              setDestination("Full record");
+            }}
+          />
+        }
+        actions={
+          <Button onClick={() => fullRecordLink.current?.focus()}>Focus full record link</Button>
+        }
+      >
+        <Timeline label="Recent activity">
+          <Timeline.Item
+            title="Assessment completed"
+            time="Today"
+            link={
+              <a
+                id="gateway-assessment"
+                ref={historyLink}
+                href="#assessment"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setDestination("Assessment");
+                }}
+              >
+                View assessment result
+              </a>
+            }
+          />
+        </Timeline>
+        <Button onClick={() => historyLink.current?.focus()}>Focus history link</Button>
+      </PreviewSheet>
+    </Stack>
+  );
+}
+
+/** A card's preview action stays separate from navigation; the sheet composes history and a full-record link. */
+export const RecordNavigation: Story = {
+  render: () => <RecordPreview />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const link = canvas.getByRole("link", { name: "Telemetry gateway" });
+    await expect(link).toHaveAttribute("id", "related-gateway");
+    await expect(link).toHaveAttribute("data-record", "gateway");
+    await expect(link).toHaveAttribute("href", "#gateway");
+    await userEvent.click(canvas.getByRole("button", { name: "Focus record link" }));
+    await expect(link).toHaveFocus();
+    await userEvent.keyboard(" ");
+    await expect(canvas.getByText("Last navigation: None")).toBeVisible();
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByText("Last navigation: Gateway")).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Preview gateway" }));
+    const dialog = await page.findByRole("dialog", { name: "Telemetry gateway" });
+    await expect(canvas.getByText("Last navigation: Gateway")).toBeVisible();
+    const preview = within(dialog);
+    const fullRecord = preview.getByRole("link", { name: "Open the full record" });
+    await expect(fullRecord).toHaveAttribute("id", "preview-gateway");
+    await userEvent.click(preview.getByRole("button", { name: "Focus full record link" }));
+    await expect(fullRecord).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByText("Last navigation: Full record")).toBeVisible();
+    const history = preview.getByRole("link", { name: "View assessment result" });
+    await expect(history).toHaveAttribute("id", "gateway-assessment");
+    await userEvent.click(preview.getByRole("button", { name: "Focus history link" }));
+    await expect(history).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByText("Last navigation: Assessment")).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await expect(canvas.getByRole("button", { name: "Preview gateway" })).toHaveFocus();
+  },
 };

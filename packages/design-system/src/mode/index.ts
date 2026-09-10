@@ -10,18 +10,7 @@ export {
   writeMode,
   type ColorMode,
 } from "./mode";
-export {
-  DENSITY_STORAGE_KEY,
-  DensityProvider,
-  DensitySwitch,
-  applyDensity,
-  densityScript,
-  densityScriptFor,
-  readDensity,
-  useDensity,
-  writeDensity,
-  type Density,
-} from "./density";
+export type { Density } from "./density";
 export {
   LedgerProvider,
   useLedgerLocale,

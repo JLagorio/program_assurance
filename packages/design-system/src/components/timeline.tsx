@@ -1,3 +1,4 @@
+import { useRender } from "@base-ui/react/use-render";
 import {
   Children,
   cloneElement,
@@ -193,7 +194,7 @@ export type TimelineItemProps = {
   timeTitle?: string | undefined;
   /** The machine-readable stamp, which makes the time a `<time>` element. */
   dateTime?: string | undefined;
-  /** A link element (a router's Link) that becomes the title and stretches over the row. */
+  /** A link element (a router's Link) that becomes the title and stretches over the row. Leave it empty to use title; supplied children override the link text. */
   link?:
     | ReactElement<{
         id?: string | undefined;
@@ -238,7 +239,8 @@ export function TimelineItem({
   const edge = useContext(GroupContext);
   const horizontal = orientation === "horizontal";
   const s = sizes[size];
-  const titleId = useId();
+  const generatedTitleId = useId();
+  const titleId = link?.props.id ?? generatedTitleId;
   const clickable = Boolean(link || onSelect);
 
   const mark =
@@ -284,12 +286,14 @@ export function TimelineItem({
       "after:absolute after:inset-0 after:rounded-medium focus-visible:after:outline-focused",
   );
   const centred = horizontal && align === "center";
+  const titleLink = useRender({
+    defaultTagName: "a",
+    enabled: Boolean(link),
+    render: link,
+    props: { id: titleId, className: titleClass, children: text },
+  });
   const titleEl = link ? (
-    cloneElement(link, {
-      id: titleId,
-      className: cn(titleClass, link.props.className),
-      children: text,
-    })
+    titleLink
   ) : onSelect ? (
     <button
       type="button"

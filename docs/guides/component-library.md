@@ -17,7 +17,7 @@ the layers below it, by relative path, so the dependency graph stays visible.
 | --- | -------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0   | **Tokens**     | `tokens/`        | Nothing. DTCG JSON, built by Style Dictionary into `src/generated/` (CSS variables, the Tailwind theme map, per-token utilities, `token()`).         |
 | 1   | **Primitives** | `src/primitives` | Layout and type: Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading. Every prop is a token name.                                                   |
-| 2   | **Components** | `src/components` | Reusable component families. Standard families follow the shadcn Base UI contracts as they migrate; existing families retain their documented APIs.  |
+| 2   | **Components** | `src/components` | Reusable component families. Standard families follow shadcn Base UI contracts; family pages document their native APIs and Ledger options.  |
 | 3   | **Patterns**   | `src/patterns`   | Several components with a contract and no domain words: PageHeader, RecordHeader, PreviewRail, PreviewSheet, PickerSheet, the page archetypes. |
 | 4   | **Shapes**     | `src/shapes`     | A whole screen region and the job it does: ActionBar, Block, Inspector, WorkPane.                                                                    |
 | 5   | **Shell**      | `src/shell`      | The navigation system: banner, top nav, side nav, main, panel, and the items that go in them. It knows nothing about routes.                         |
@@ -25,8 +25,8 @@ the layers below it, by relative path, so the dependency graph stays visible.
 
 The standalone Shapes catalog is retired. Its runtime exports remain for existing consumers;
 Block and Inspector still appear in integration stories. ActionBar and WorkPane retain API
-compatibility checks but no dedicated stories. Build new compositions from the components and
-patterns as their shadcn/Base UI migrations land, rather than extending the Shapes catalog.
+compatibility checks but no dedicated stories. Build new compositions from the maintained
+components and patterns.
 
 Domain files (`src/components/app/*.tsx`) and routes assemble these. They may own a tone map for
 their vocabulary and a component that binds data to a pattern. They never declare a primitive or a
@@ -95,66 +95,7 @@ package. Use Ledger tokens for styling and keep the existing layer boundaries.
 Patterns assemble components into workflows or larger regions, such as RecordHeader. Options
 for one component, such as Badge's status tone, size and icon, belong on that component.
 
-Breadcrumb exports `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`,
-`BreadcrumbPage`, `BreadcrumbSeparator` and `BreadcrumbEllipsis`. Lists and separators are
-explicit; BreadcrumbLink uses Base UI `useRender` and `mergeProps`. Badge uses the same
-composition helpers and combines six shadcn variants with `tone`, `appearance`, `size` and
-`icon` options in one component. See the [Badge page](../../packages/design-system/src/stories/components/Badge.mdx#migration). Other
-families keep their current APIs until their own migration updates implementation, consumers,
-stories and any necessary compatibility notes together.
-
-[Separator](../../packages/design-system/src/stories/components/Separator.mdx#migration)
-uses the Base UI primitive. [Skeleton](../../packages/design-system/src/stories/components/Skeleton.mdx#migration)
-and [Kbd/KbdGroup](../../packages/design-system/src/stories/components/Kbd.mdx#migration)
-follow shadcn's native element contracts. These families retain their Ledger options and
-styling while accepting native attributes and refs; existing callers need no edits.
-[Toggle and ToggleGroup](../../packages/design-system/src/stories/components/ToggleGroup.mdx#migration)
-use shadcn's Base UI API: composed `ToggleGroupItem` children, array selection,
-`default`/`outline` variants and `default`/`sm`/`lg` sizes. Required single-selection
-rules belong in the consuming screen or pattern's callback.
-[Switch](../../packages/design-system/src/stories/components/Switch.mdx#migration)
-uses shadcn's Base UI control with external labels and descriptions, `default`/`sm`
-sizes and native root/input refs. Field labels and messages are associated with native IDs and ARIA.
-[RadioGroup](../../packages/design-system/src/stories/components/RadioGroup.mdx#migration)
-uses flat `RadioGroupItem` exports and external labels/descriptions; CSS controls layout.
-Group labels and descriptions use explicit IDs; Base UI owns selection, form and keyboard behavior.
-[Checkbox](../../packages/design-system/src/stories/components/Checkbox.mdx#migration)
-uses external labels and descriptions, boolean `checked` and a separate `indeterminate`
-prop. Table.Selection uses the same state split; keep `checked={false}` while mixed so
-activation selects all. Explicit label/message associations and Ledger's check/minus indicators remain.
-[HoverCard](../../packages/design-system/src/stories/components/HoverCard.mdx#migration)
-composes `HoverCardTrigger` and `HoverCardContent` over Base UI PreviewCard. Timing belongs
-on the trigger; positioning and native popup styles belong on the content. Existing
-glances keep their 300px width and start alignment, with locale-aware placement.
-[Popover](../../packages/design-system/src/stories/components/Popover.mdx#migration-and-api)
-uses flat trigger, content, header, title, description and close parts. Root owns open
-state and modality; Content owns placement, native styles and initial/final focus.
-Compose existing buttons through Trigger or Close's `render` prop.
-[Tooltip](../../packages/design-system/src/stories/components/Tooltip.mdx#migration-and-api)
-composes flat Trigger, Content and Provider parts. Provider defaults to zero delay;
-Shell explicitly keeps a shared 300ms delay. IconButton already supplies a tooltip.
-Keep accessible names and essential instructions independent of the visual popup.
-[DropdownMenu](../../packages/design-system/src/stories/components/DropdownMenu.mdx#migration-and-api)
-uses flat Base UI parts. Actions use `onClick`; independent and exclusive choices use
-CheckboxItem or RadioGroup. Content owns placement and width. Use LinkItem for navigation
-and Group for labeled sections; existing single-choice consumers explicitly close.
-[Select](../../packages/design-system/src/stories/components/Select.mdx#migration-and-api)
-composes Root, Trigger, Value and Content. Root owns selected/form state; Trigger binds
-Field labels and native events; Value owns display labels and the placeholder. Use
-`items` or Value children for readable labels, and handle nullable single selections.
-[Tabs](../../packages/design-system/src/stories/components/Tabs.mdx#migration-and-api)
-uses flat List, Trigger and Content parts. List owns default/line styling and
-`activateOnFocus`; counts and badges are children. Root owns orientation and values;
-ShowPage composes its existing root and body with `render`.
-[Avatar](../../packages/design-system/src/stories/components/Avatar.mdx) uses flat Image,
-Fallback, Badge, Group and GroupCount parts; callers own identity text and overflow.
-[Input](../../packages/design-system/src/stories/components/Input.mdx) wraps Base UI Input;
-Textarea stays native. Both accept explicit Field label/message associations. [InputGroup](../../packages/design-system/src/stories/components/InputGroup.mdx)
-composes controls, addons, text and accessible buttons. [Combobox](../../packages/design-system/src/stories/components/Combobox.mdx)
-uses one generic native root with flat parts and shares InputGroup. NativeSelect is removed;
-use Select for predefined choices and Combobox when search helps. Forms own controlled resets.
-The [migration handoff](design-system-migration-handoff.md) records the next family and
-integration constraints. Family pages own their detailed contracts.
+Family pages in Storybook own each component's current API, defaults, integration examples and migration guidance. Keep shared rules here; keep release changes in the [changelog](../../packages/design-system/CHANGELOG.md). The [handoff](design-system-migration-handoff.md) records completed migration work and remaining integration risks.
 
 ## Naming
 
@@ -289,11 +230,3 @@ Screens import the package's documented APIs.
 Forms belongs under **Patterns** in Storybook. Use TanStack Form for state and submission, Zod for validation, and Ledger Field and controls for presentation. The [Forms pattern](http://localhost:6007/?path=/docs/patterns-forms--docs) documents the mapping to shadcn's TanStack guidance.
 
 Application record forms use `src/lib/record-form.ts`: `useRecordForm` configures TanStack's validation policy and exposes its `form.Field` render props, values and form ref. It validates on submit, then on change; changing an action's required fields revalidates existing errors. Submission metadata selects the save command, so draft saves and conditional confirmation actions retain their behavior. All former application `useRequired` callers have been migrated; the exported legacy hook remains for package compatibility.
-
-## Accordion and Collapsible
-
-Accordion coordinates a set of sections using explicit item values and root-owned selection. Collapsible owns one independent boolean toggle. Compose titles, counts, actions, borders and body spacing with their parts; no extra disclosure pattern is needed. Both expose native attributes and refs on their named parts. See [the migration guide](disclosure-migration.md) for the former title/count/Group API and current flat parts.
-
-Field, Alert and ButtonGroup follow shadcn's Base UI source with flat native parts. Field uses explicit label/message associations and TanStack-owned validation; Alert composes its content; ButtonGroup adds native props, orientation and Text/Separator parts. See [Field](../../packages/design-system/src/stories/components/Field.mdx) for migration.
-
-Drawer, Calendar/DatePicker, Pagination and Resizable now follow their shadcn Base UI family sources. Drawer removes the former Vaul bridge; Calendar keeps DayPicker and exports CalendarDayButton; DatePicker preserves ISO form values. Pagination exposes native navigation parts while DataTable owns page calculations. Resizable forwards upstream refs, callbacks and sizes: numbers are pixels, percentages are strings, and saved layouts use the caller’s native hook. See the family pages for migration examples.

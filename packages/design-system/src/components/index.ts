@@ -434,7 +434,7 @@ export {
 } from "./sheet";
 export { Skeleton, type SkeletonProps, type SkeletonShape } from "./skeleton";
 export { Spinner, type SpinnerProps, type SpinnerSize } from "./spinner";
-export { Stat, Tiles, type StatGridProps, type StatProps, type StatTileProps } from "./stat";
+export { Stat, type StatGridProps, type StatProps, type StatTileProps } from "./stat";
 export {
   Stepper,
   type StepState,

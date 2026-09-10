@@ -16,7 +16,7 @@ export { RecordPicker, type PickerRecord, type RecordPickerProps } from "./recor
 export { PickerSheet, type PickerSheetProps } from "./picker-sheet";
 export { PreviewSheet, type PreviewSheetProps } from "./preview-sheet";
 export { RecordHeader, type RecordHeaderProps } from "./record-header";
-export { Related, type RelatedProps, type RelatedRowProps } from "./related";
+export { Related, type RelatedProps } from "./related";
 export { Section, type SectionProps } from "./section";
 export {
   Composer,

@@ -1,5 +1,6 @@
+import { useRender } from "@base-ui/react/use-render";
 import { Link2 } from "lucide-react";
-import { Children, cloneElement, useId, type ReactElement, type ReactNode } from "react";
+import { Children, useId, type ReactElement, type ReactNode } from "react";
 
 import { Count } from "../components/badge";
 import { Item, type ItemSize } from "../components/item";
@@ -133,7 +134,7 @@ export type RelatedCardProps = {
   leading?: ReactNode;
   /** The record's name. With `link`, it is the link. */
   title: ReactNode;
-  /** A link element (a router's Link) that becomes the title. The title is the link; the card is not. */
+  /** A link element (a router's Link) that becomes the title. Leave it empty to use title; supplied children override the link text. */
   link?:
     | ReactElement<{
         className?: string | undefined;
@@ -167,18 +168,17 @@ function RelatedCard({
 }: RelatedCardProps) {
   const text = <span className="block truncate">{title}</span>;
   const titleClass = "block min-w-0 font-body font-medium text-default";
-  const titleEl = link ? (
-    cloneElement(link, {
+  const titleEl = useRender({
+    defaultTagName: "span",
+    render: link,
+    props: {
       className: cn(
         titleClass,
-        "rounded-xsmall outline-none hover:underline focus-visible:outline-focused",
-        link.props.className,
+        link && "rounded-xsmall outline-none hover:underline focus-visible:outline-focused",
       ),
       children: text,
-    })
-  ) : (
-    <span className={titleClass}>{text}</span>
-  );
+    },
+  });
   return (
     <li
       className={cn(
@@ -219,17 +219,4 @@ function RelatedCard({
   );
 }
 
-export type RelatedRowProps = {
-  lead?: ReactNode;
-  label: ReactNode;
-  meta?: ReactNode;
-  trailing?: ReactNode;
-  onClick?: (() => void) | undefined;
-};
-
-/** @deprecated A Related row is an Item: `leading` for `lead`, `title` for `label`, `onSelect` or `link` for `onClick`. */
-function RelatedRow({ lead, label, meta, trailing, onClick }: RelatedRowProps) {
-  return <Item leading={lead} title={label} meta={meta} trailing={trailing} onSelect={onClick} />;
-}
-
-export const Related = Object.assign(RelatedRoot, { Card: RelatedCard, Row: RelatedRow });
+export const Related = Object.assign(RelatedRoot, { Card: RelatedCard });

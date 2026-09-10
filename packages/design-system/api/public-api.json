@@ -190,10 +190,6 @@
       "target": "\"src/shell/shell\".AppLogoProps",
       "kind": "type"
     },
-    ".#applyDensity": {
-      "target": "\"src/mode/density\".applyDensity",
-      "kind": "value"
-    },
     ".#applyMode": {
       "target": "\"src/mode/mode\".applyMode",
       "kind": "value"
@@ -1037,26 +1033,6 @@
     ".#Density": {
       "target": "\"src/mode/density\".Density",
       "kind": "type"
-    },
-    ".#DENSITY_STORAGE_KEY": {
-      "target": "\"src/mode/density\".DENSITY_STORAGE_KEY",
-      "kind": "value"
-    },
-    ".#DensityProvider": {
-      "target": "\"src/mode/density\".DensityProvider",
-      "kind": "value"
-    },
-    ".#densityScript": {
-      "target": "\"src/mode/density\".densityScript",
-      "kind": "value"
-    },
-    ".#densityScriptFor": {
-      "target": "\"src/mode/density\".densityScriptFor",
-      "kind": "value"
-    },
-    ".#DensitySwitch": {
-      "target": "\"src/mode/density\".DensitySwitch",
-      "kind": "value"
     },
     ".#Dialog": {
       "target": "\"src/components/dialog\".Dialog",
@@ -2142,10 +2118,6 @@
       "target": "\"src/components/radio-group\".RadioGroupProps",
       "kind": "type"
     },
-    ".#readDensity": {
-      "target": "\"src/mode/density\".readDensity",
-      "kind": "value"
-    },
     ".#readMode": {
       "target": "\"src/mode/mode\".readMode",
       "kind": "value"
@@ -2176,10 +2148,6 @@
     },
     ".#RelatedProps": {
       "target": "\"src/patterns/related\".RelatedProps",
-      "kind": "type"
-    },
-    ".#RelatedRowProps": {
-      "target": "\"src/patterns/related\".RelatedRowProps",
       "kind": "type"
     },
     ".#resetView": {
@@ -2678,10 +2646,6 @@
       "target": "\"src/components/table\".ThProps",
       "kind": "type"
     },
-    ".#Tiles": {
-      "target": "\"src/components/stat\".Tiles",
-      "kind": "value"
-    },
     ".#Timeline": {
       "target": "\"src/components/timeline\".Timeline",
       "kind": "value"
@@ -2914,10 +2878,6 @@
       "target": "\"src/patterns/data-table/use-data-table\".useDataTable",
       "kind": "value"
     },
-    ".#useDensity": {
-      "target": "\"src/mode/density\".useDensity",
-      "kind": "value"
-    },
     ".#useHeaderContext": {
       "target": "\"src/patterns/data-table/use-data-table\".useHeaderContext",
       "kind": "value"
@@ -2977,10 +2937,6 @@
     ".#WorkPaneRowProps": {
       "target": "\"src/shapes/work-pane\".WorkPaneRowProps",
       "kind": "type"
-    },
-    ".#writeDensity": {
-      "target": "\"src/mode/density\".writeDensity",
-      "kind": "value"
     },
     ".#writeMode": {
       "target": "\"src/mode/mode\".writeMode",
@@ -5890,12 +5846,6 @@
         "declaration": "export type StatTileProps = StatProps & {\n    note?: string | undefined;\n};"
       }
     ],
-    "\"src/components/stat\".Tiles": [
-      {
-        "source": "src/components/stat.d.ts",
-        "declaration": "Tiles: typeof StatGrid"
-      }
-    ],
     "\"src/components/stepper\".Stepper": [
       {
         "source": "src/components/stepper.d.ts",
@@ -5911,7 +5861,7 @@
     "\"src/components/stepper\".StepperItemProps": [
       {
         "source": "src/components/stepper.d.ts",
-        "declaration": "export type StepperItemProps = {\n    state: StepState;\n    label: ReactNode;\n    meta?: ReactNode;\n    title?: string | undefined;\n    onSelect?: (() => void) | undefined;\n    children?: ReactNode;\n    first?: boolean | undefined;\n    last?: boolean | undefined;\n};"
+        "declaration": "export type StepperItemProps = {\n    state: StepState;\n    label: ReactNode;\n    meta?: ReactNode;\n    title?: string | undefined;\n    onSelect?: (() => void) | undefined;\n    children?: ReactNode;\n};"
       }
     ],
     "\"src/components/stepper\".StepperOrientation": [
@@ -6562,64 +6512,10 @@
         "declaration": "tones: readonly [\n    \"neutral\",\n    \"information\",\n    \"success\",\n    \"warning\",\n    \"danger\"\n]"
       }
     ],
-    "\"src/mode/density\".applyDensity": [
-      {
-        "source": "src/mode/density.d.ts",
-        "declaration": "export declare function applyDensity(_density: Density, _root?: HTMLElement): void;"
-      }
-    ],
     "\"src/mode/density\".Density": [
       {
         "source": "src/mode/density.d.ts",
         "declaration": "export type Density = \"default\" | \"compact\";"
-      }
-    ],
-    "\"src/mode/density\".DENSITY_STORAGE_KEY": [
-      {
-        "source": "src/mode/density.d.ts",
-        "declaration": "DENSITY_STORAGE_KEY = \"ledger.density\""
-      }
-    ],
-    "\"src/mode/density\".DensityProvider": [
-      {
-        "source": "src/mode/density.d.ts",
-        "declaration": "export declare function DensityProvider({ children, }: {\n    storageKey?: string | undefined;\n    children: ReactNode;\n}): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/mode/density\".densityScript": [
-      {
-        "source": "src/mode/density.d.ts",
-        "declaration": "densityScript = \"\""
-      }
-    ],
-    "\"src/mode/density\".densityScriptFor": [
-      {
-        "source": "src/mode/density.d.ts",
-        "declaration": "densityScriptFor: (_key: string) => string"
-      }
-    ],
-    "\"src/mode/density\".DensitySwitch": [
-      {
-        "source": "src/mode/density.d.ts",
-        "declaration": "export declare function DensitySwitch({ value, onChange, showLabels, \"aria-label\": ariaLabel, className, }: {\n    value?: Density | undefined;\n    onChange?: ((density: Density) => void) | undefined;\n    showLabels?: boolean | undefined;\n    \"aria-label\"?: string | undefined;\n    className?: string | undefined;\n}): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/mode/density\".readDensity": [
-      {
-        "source": "src/mode/density.d.ts",
-        "declaration": "export declare function readDensity(_key?: string): Density;"
-      }
-    ],
-    "\"src/mode/density\".useDensity": [
-      {
-        "source": "src/mode/density.d.ts",
-        "declaration": "export declare function useDensity(): {\n    density: Density;\n    setDensity: (density: Density) => void;\n};"
-      }
-    ],
-    "\"src/mode/density\".writeDensity": [
-      {
-        "source": "src/mode/density.d.ts",
-        "declaration": "export declare function writeDensity(_density: Density, _key?: string): void;"
       }
     ],
     "\"src/mode/mode\".applyMode": [
@@ -7165,13 +7061,13 @@
     "\"src/patterns/record-header\".RecordHeader": [
       {
         "source": "src/patterns/record-header.d.ts",
-        "declaration": "export declare function RecordHeader({ crumbs, id, title, meta, actions, facts, below, breadcrumb, }: RecordHeaderProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function RecordHeader({ crumbs, id, title, meta, actions, below }: RecordHeaderProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/patterns/record-header\".RecordHeaderProps": [
       {
         "source": "src/patterns/record-header.d.ts",
-        "declaration": "export type RecordHeaderProps = {\n    crumbs?: ReactNode;\n    id?: ReactNode;\n    title: ReactNode;\n    meta?: ReactNode;\n    actions?: ReactNode;\n    facts?: ReactNode;\n    below?: ReactNode;\n    breadcrumb?: ReactNode;\n    back?: ReactNode;\n};"
+        "declaration": "export type RecordHeaderProps = {\n    crumbs?: ReactNode;\n    id?: ReactNode;\n    title: ReactNode;\n    meta?: ReactNode;\n    actions?: ReactNode;\n    below?: ReactNode;\n};"
       }
     ],
     "\"src/patterns/record-picker\".PickerRecord": [
@@ -7195,7 +7091,7 @@
     "\"src/patterns/related\".Related": [
       {
         "source": "src/patterns/related.d.ts",
-        "declaration": "Related: typeof RelatedRoot & {\n    Card: typeof RelatedCard;\n    Row: typeof RelatedRow;\n}"
+        "declaration": "Related: typeof RelatedRoot & {\n    Card: typeof RelatedCard;\n}"
       }
     ],
     "\"src/patterns/related\".RelatedCardProps": [
@@ -7220,12 +7116,6 @@
       {
         "source": "src/patterns/related.d.ts",
         "declaration": "export type RelatedProps = {\n    title: ReactNode;\n    count?: number | undefined;\n    action?: ReactNode;\n    footer?: ReactNode;\n    layout?: RelatedLayout | undefined;\n    size?: ItemSize | undefined;\n    empty?: RelatedEmpty | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n};"
-      }
-    ],
-    "\"src/patterns/related\".RelatedRowProps": [
-      {
-        "source": "src/patterns/related.d.ts",
-        "declaration": "export type RelatedRowProps = {\n    lead?: ReactNode;\n    label: ReactNode;\n    meta?: ReactNode;\n    trailing?: ReactNode;\n    onClick?: (() => void) | undefined;\n};"
       }
     ],
     "\"src/patterns/section\".Section": [
@@ -7393,7 +7283,7 @@
     "\"src/shapes/action-bar\".ActionBar": [
       {
         "source": "src/shapes/action-bar.d.ts",
-        "declaration": "export declare function ActionBar({ crumbs, breadcrumb, id, title, context, states, actions, tabs, }: ActionBarProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function ActionBar({ crumbs, id, title, context, states, actions, tabs }: ActionBarProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/shapes/action-bar\".ActionBarAction": [
@@ -7405,7 +7295,7 @@
     "\"src/shapes/action-bar\".ActionBarProps": [
       {
         "source": "src/shapes/action-bar.d.ts",
-        "declaration": "export type ActionBarProps = {\n    crumbs?: ReactNode;\n    breadcrumb?: ReactNode;\n    id: ReactNode;\n    title: ReactNode;\n    context?: ReactNode;\n    states: ActionBarState[];\n    actions?: ActionBarAction[] | undefined;\n    tabs?: ReactNode;\n};"
+        "declaration": "export type ActionBarProps = {\n    crumbs?: ReactNode;\n    id: ReactNode;\n    title: ReactNode;\n    context?: ReactNode;\n    states: ActionBarState[];\n    actions?: ActionBarAction[] | undefined;\n    tabs?: ReactNode;\n};"
       }
     ],
     "\"src/shapes/action-bar\".ActionBarState": [
@@ -8054,12 +7944,6 @@
       {
         "source": "src/patterns/related.d.ts",
         "declaration": "declare function RelatedRoot({ title, count, action, footer, layout, size, empty, className, children, }: RelatedProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/patterns/related.d.ts#RelatedRow": [
-      {
-        "source": "src/patterns/related.d.ts",
-        "declaration": "declare function RelatedRow({ lead, label, meta, trailing, onClick }: RelatedRowProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/primitives/flex.d.ts#alignItems": [

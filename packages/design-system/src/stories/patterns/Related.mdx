@@ -44,7 +44,7 @@ The header and the footer are the card's; the rows are [Item](?path=/docs/compon
 
 <Canvas of={Stories.RelatedTable} />
 
-Not built, and why: the whole card as the link, because a card that carries its own actions cannot be one click target and the actions are here; a card that scrolls, because a rail shows a handful and the footer says See all; search, sort and filters in the header, because a card long enough to need them is the record's tab, where the Table has them; a card that folds, because a handful of rows has nothing to fold; drag to reorder, because links have no order of their own; `Related.Row`, because a row is an Item, and the old part is deprecated in its favour.
+Not built, and why: the whole card as the link, because a card that carries its own actions cannot be one click target and the actions are here; a card that scrolls, because a rail shows a handful and the footer says See all; search, sort and filters in the header, because a card long enough to need them is the record's tab, where the Table has them; a card that folds, because a handful of rows has nothing to fold; drag to reorder, because links have no order of their own.
 
 ## Sizes
 
@@ -133,3 +133,13 @@ The size is the list's; every row in one card is the same height. A card in the 
 ## Don't
 
 <Canvas of={Stories.Dont} />
+
+## Record navigation
+
+A card can open a preview through a separate action while its title remains a native link. The preview keeps a link to the full record and can include linked history.
+
+<Canvas of={Stories.RecordNavigation} />
+
+## Migration
+
+`Related.Row` and `RelatedRowProps` are removed. Use `Item`: `leading` replaces `lead`, `title` replaces `label`, and `onSelect` or `link` replaces `onClick`. Card links compose native props and refs through Base UI; leave the supplied link empty to use the card title, or supply its own children to override the link text.

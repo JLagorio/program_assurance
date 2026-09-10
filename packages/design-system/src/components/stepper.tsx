@@ -104,10 +104,6 @@ export type StepperItemProps = {
   onSelect?: (() => void) | undefined;
   /** Under the label, when the rail is a list of milestones rather than a wizard's: a Collapsible with the owner and the open task, a sentence, a Badge. Anything interactive in it is its own stop beside the step's button. */
   children?: ReactNode;
-  /** @deprecated The list knows which step is first; the flag does nothing. */
-  first?: boolean | undefined;
-  /** @deprecated The list knows which step is last; the flag does nothing. */
-  last?: boolean | undefined;
 };
 
 /** One step. It reads its place and its neighbour from the list, so it draws its own rails. */

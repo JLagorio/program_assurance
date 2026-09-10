@@ -83,7 +83,7 @@ function PreviewSheetStates() {
             )
           ) : undefined
         }
-        openTo={<a href="#record" />}
+        openTo={<a href="#record">{open === "full" ? "Open component record" : undefined}</a>}
         links={
           open === "full" ? (
             <TextLink render={<a href="#controls" />}>Control set and revisions</TextLink>
@@ -164,8 +164,26 @@ function PreviewSheetStates() {
 export const PreviewSheetStory: Story = {
   name: "Preview sheet",
   render: () => <PreviewSheetStates />,
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, waitFor, within } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Facts only" }));
+    await expect(await page.findByRole("link", { name: "Open the full record" })).toHaveAttribute(
+      "href",
+      "#record",
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await userEvent.click(canvas.getByRole("button", { name: "With links and actions" }));
+    await expect(await page.findByRole("link", { name: "Open component record" })).toHaveAttribute(
+      "href",
+      "#record",
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+  },
 };
-export const PreviewSheetMatrix: Story = { render: () => <PreviewSheetStates /> };
 
 /** The sheet's footer, drawn on its own for a pair. */
 function Footer({ children }: { children: ReactNode }) {

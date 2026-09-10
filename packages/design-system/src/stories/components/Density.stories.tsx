@@ -1,10 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Table, ToggleGroup, ToggleGroupItem, type Tone } from "../../components";
+import { Badge, Table, type Tone } from "../../components";
 import { DataTable, defineColumns, useDataTable } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Density",
@@ -154,95 +152,6 @@ export const ByDesign: Story = {
   render: () => (
     <Box style={{ maxWidth: 760 }}>
       <Register density="compact" />
-    </Box>
-  ),
-};
-
-/** The two heights side by side on a plain Table and on a DataTable; the header row is 32px in both. */
-export const DensityMatrix: Story = {
-  render: () => (
-    <Stack space="space.300">
-      <Specimens title="Table · default · compact">
-        <Box style={{ width: 400 }}>
-          <Plain />
-        </Box>
-        <Box style={{ width: 400 }}>
-          <Plain density="compact" />
-        </Box>
-      </Specimens>
-      <Specimens title="DataTable · compact by design">
-        <Box style={{ width: 720 }}>
-          <Register density="compact" />
-        </Box>
-      </Specimens>
-    </Stack>
-  ),
-};
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Box style={{ width: 460 }}>
-            <Register view="storybook.density.dont" />
-          </Box>
-        }
-        doText="Density is the table's: Compact rows in its Columns menu, one table at a time, kept with its view."
-        dont={
-          <Box style={{ width: 460 }}>
-            <Stack space="space.150">
-              <Inline
-                space="space.100"
-                alignBlock="center"
-                className="rounded-medium border border-default bg-surface-raised px-150 py-075"
-              >
-                <Text size="small" color="color.text.subtle">
-                  Equinox
-                </Text>
-                <span className="ms-auto">
-                  <ToggleGroup aria-label="Row density" defaultValue={["compact"]}>
-                    <ToggleGroupItem value="default">Comfortable</ToggleGroupItem>
-                    <ToggleGroupItem value="compact">Compact</ToggleGroupItem>
-                  </ToggleGroup>
-                </span>
-              </Inline>
-              <Plain density="compact" />
-            </Stack>
-          </Box>
-        }
-        dontText="A density switch in the top bar. It squeezes every table in the product at once, including the rails and the pickers that were sized on purpose."
-      />
-      <Pair
-        do={
-          <Box style={{ width: 460 }}>
-            <Plain />
-          </Box>
-        }
-        doText="Default rows for a register the reader reads: a Badge and a name with room around them."
-        dont={
-          <Box style={{ width: 460 }} data-density="compact">
-            <Stack space="space.150">
-              <Plain />
-              <Text size="small" color="color.text.subtle">
-                The page's facts, its lists and every other row here are compact too.
-              </Text>
-            </Stack>
-          </Box>
-        }
-        dontText="The attribute on a page wrapper to fit more in. Everything inside with a row height follows, and nothing chose to."
-      />
-    </Stack>
-  ),
-};
-
-export const Playground: StoryObj<{ density: "default" | "compact" }> = {
-  args: { density: "default" },
-  argTypes: { density: { control: "radio", options: ["default", "compact"] } },
-  render: (args) => (
-    <Box style={{ width: 460 }}>
-      <Plain density={args.density} />
     </Box>
   ),
 };

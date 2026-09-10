@@ -100,7 +100,4 @@ export function StatGrid({ cols = 4, frame = "card", children, className }: Stat
   );
 }
 
-/** @deprecated The name is `Stat.Grid`; `ledger/no-deprecated-name` says so. */
-export const Tiles = StatGrid;
-
 export const Stat = Object.assign(StatRoot, { Tile: StatTile, Grid: StatGrid });

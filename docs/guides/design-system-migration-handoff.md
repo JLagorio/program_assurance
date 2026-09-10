@@ -1,6 +1,6 @@
 # Design-system migration handoff
 
-Continue migrating `@ledger/design-system` from shadcn's Base UI source, preserving Ledger tokens and useful product options. Completed families are Breadcrumb, Badge, Separator, Skeleton, Kbd, Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog, Command, Progress, ScrollArea, Avatar, Input, Textarea, InputGroup, Combobox, Field, Alert, ButtonGroup, Drawer, Calendar/DatePicker, Pagination, Resizable, Card, Empty, Spinner, TextLink, Shell navigation and Toast/Toaster.
+Maintain `@ledger/design-system` from shadcn's Base UI source, preserving Ledger tokens and useful product options. Completed families are Breadcrumb, Badge, Separator, Skeleton, Kbd, Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog, Command, Progress, ScrollArea, Avatar, Input, Textarea, InputGroup, Combobox, Field, Alert, ButtonGroup, Drawer, Calendar/DatePicker, Pagination, Resizable, Card, Empty, Spinner, TextLink, Shell navigation and Toast/Toaster.
 
 ## Direction and sources
 
@@ -47,7 +47,11 @@ The package has no direct Radix, Sonner or Vaul dependencies. Command intentiona
 
 ## Remaining work
 
-The identified shadcn/Base UI migration candidates are complete. Review Item, Table, Chart and larger Shell compositions only for concrete duplication or contract problems. Their product behavior is intentional. Missing catalog families such as Slider, ContextMenu, Menubar and Carousel are optional additions driven by an application need, not migration debt.
+The identified shadcn/Base UI migration candidates are complete. Item, Table and Chart.Frame expose native DOM props and refs while retaining their workflow contracts. The legacy global density runtime, Tiles, Related.Row, and deprecated RecordHeader/ActionBar/Stepper options are removed; density remains a table setting. ActionBar composes its state facts through RecordHeader's below slot.
+
+Timeline and Related.Card use Base UI link composition. Supplied link children override the configured title, and caller ids, refs and handlers are preserved. PreviewSheet keeps a small explicit fallback before TextLink composition: even a link with explicitly undefined children must receive its default label.
+
+Review larger compositions for concrete duplication or contract problems. Missing catalog families such as Slider, ContextMenu, Menubar and Carousel are optional additions driven by an application need. Investigate the Combobox/In Dialog ResizeObserver error if it recurs; it has not reproduced in seven focused runs (84 checks), including runs alongside a production build. No Combobox behavior or error handling was changed.
 
 ## Completion workflow
 
@@ -61,8 +65,8 @@ Run package/application typechecks, lint, API/coverage checks and relevant stori
 
 ## Latest validation
 
-TextLink, Shell navigation and Toast passed 34 focused Storybook checks and the full 1,064-check suite in both themes (218 files). Package/application typechecks, package lint, API/coverage checks, package/production/Storybook builds and the packed consumer passed. Package unit tests passed 15; application tests passed 165 with one skipped.
+The compatibility cleanup passed 82 focused light/dark Storybook checks, followed by 14 checks for PreviewSheet and Related after retaining the explicit empty-link fallback. The final full suite passed all 1,058 checks (218 files). Package/application typechecks, package lint, API/coverage checks, production/Storybook builds and the packed consumer passed. Package unit tests passed 15; application tests passed 165 with one skipped. Repository lint passed with 52 existing warnings.
 
-Coverage reports 280 story-covered exports, 102 family pages and 532 stories, with no gaps. Consumer fixtures cover the native Toast manager/parts, refs, promise result types, removed legacy props, navigation markup and production toast geometry. No package-owned Slot or Sonner adapter remains.
+Coverage reports 280 story-covered exports, 102 family pages and 529 stories, with no gaps. The batch removes ten runtime exports, the Related.Row part, its prop type and six deprecated prop options. Consumer fixtures verify the removals, replacement types, native link refs/attributes and ActionBar state facts. The new record-preview story verifies independent actions, native navigation, refs, Escape and focus restoration; PreviewSheet covers both its default link label and caller-supplied text. Visual review confirmed the card and preview layout.
 
-Visual review covered Shell links/icons/badges, the narrow RTL toast viewport, dark expanded stacks, limit recovery and pointer swipe dismissal. Repository lint also exposed missing semicolons in the shared shadcn use-mobile/utils helpers; those received formatting-only corrections. Repository lint passes with 52 existing warnings.
+The prior Combobox/In Dialog ResizeObserver error did not recur in seven focused runs (84 checks) or either full-suite run. No Combobox code or error suppression changed; this remains an unreproduced timing issue. The first full run's two failures were the new PreviewSheet fallback checks, repaired before the final passing run.

@@ -555,13 +555,6 @@ function RecordDemo() {
                   <Button variant="primary">Submit for assessment</Button>
                 </>
               }
-              facts={
-                <>
-                  <Fact label="Phase">Authorise</Fact>
-                  <Fact label="Owner">Sarah Chen</Fact>
-                  <Fact label="Next gate">12 Sep</Fact>
-                </>
-              }
             />
           }
           tabs={

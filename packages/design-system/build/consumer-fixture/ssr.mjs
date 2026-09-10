@@ -1437,3 +1437,44 @@ assert.match(frameHtml, /<figure[^>]*id="report-figure"/);
 assert.match(frameHtml, /data-report="coverage"/);
 assert.match(frameHtml, /max-width:800px/);
 console.log("Packed Item, Table and Chart native contracts passed");
+
+for (const name of [
+  "DensityProvider",
+  "DensitySwitch",
+  "useDensity",
+  "DENSITY_STORAGE_KEY",
+  "readDensity",
+  "writeDensity",
+  "applyDensity",
+  "densityScript",
+  "densityScriptFor",
+  "Tiles",
+]) {
+  assert.equal(name in ledger, false, name + " is a retired compatibility export");
+}
+assert.equal("Row" in ledger.Related, false);
+const relatedLinkHtml = renderToString(
+  createElement(ledger.Related.Card, {
+    title: "Fallback title",
+    link: createElement(
+      "a",
+      { id: "packed-related", href: "/record", "data-record": "REC-1" },
+      "Record link",
+    ),
+  }),
+);
+assert.match(relatedLinkHtml, /id="packed-related"/);
+assert.match(relatedLinkHtml, /href="\/record"/);
+assert.match(relatedLinkHtml, /data-record="REC-1"/);
+assert.match(relatedLinkHtml, /Record link/);
+assert.doesNotMatch(relatedLinkHtml, /Fallback title/);
+const actionBarHtml = renderToString(
+  createElement(ledger.ActionBar, {
+    id: "REC-1",
+    title: "Record",
+    states: [{ label: "Assessment", value: "Passed", tone: "success" }],
+  }),
+);
+assert.match(actionBarHtml, /Assessment/);
+assert.match(actionBarHtml, /Passed/);
+console.log("Packed compatibility removal and record navigation passed");

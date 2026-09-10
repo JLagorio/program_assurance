@@ -54,27 +54,6 @@
       "defaultBehavior": "Always renders an em dash in subtlest text; typography inherits.",
       "reviewSources": ["packages/design-system/src/components/typography.tsx"]
     },
-    "ActionBar": {
-      "domTarget": "Outer sticky div containing RecordHeader, h1 and buttons. No arbitrary DOM props or ref are accepted. id is displayed in the breadcrumb, not forwarded as an HTML id.",
-      "controlledBehavior": "Caller owns state facts, controls and action outcomes; the bar only invokes action.onSelect. Blocked actions render native disabled buttons.",
-      "defaultBehavior": "Omitted actions render no controls; empty states render no facts. The first state is a Badge and later states use Indicator; control overrides use nullish fallback. primary omitted is secondary; truthy blocked strings disable the action and display its reason. tabs selects bottom-padding/border layout. Legacy breadcrumb overrides crumbs/id through RecordHeader.",
-      "reviewSources": [
-        "packages/design-system/src/shapes/action-bar.tsx",
-        "packages/design-system/src/patterns/record-header.tsx",
-        "packages/design-system/src/components/button.tsx",
-        "packages/design-system/src/components/badge.tsx"
-      ],
-      "props": {
-        "actions": {
-          "meaning": "Array of labeled action descriptors, unlike the ReactNode actions slots elsewhere. Each invokes onSelect; primary changes emphasis; a truthy blocked reason disables it.",
-          "migration": "Preserve descriptor payload and blocked reasons. The one-primary rule is caller guidance, not enforced; use a new API rather than silently treating actions as ReactNode."
-        },
-        "id": {
-          "meaning": "Rendered record identifier, not an HTML id or label-target attribute.",
-          "migration": "Keep domain identity as visible content; use underlying primitives when DOM attribute/ref integration is required."
-        }
-      }
-    },
     "Attachment": {
       "domTarget": "Native div root; DOM attributes, events, className, style and HTMLDivElement ref forwarded. Native title remains a tooltip attribute.",
       "controlledBehavior": "Stateless presentation of caller-owned state, size and orientation. No upload, removal, preview, selection or disabled-state inference.",
@@ -751,33 +730,6 @@
         }
       }
     },
-    "DensityProvider": {
-      "domTarget": "Fragment preserving children; no wrapper/ref/DOM forwarding.",
-      "controlledBehavior": "Deprecated stateless compatibility no-op; does not own or persist density.",
-      "defaultBehavior": "storageKey is intentionally ignored. Children render unchanged; useDensity returns default and no-op setter. Migrate density to Table or useDataTable view.",
-      "reviewSources": ["packages/design-system/src/mode/density.tsx"]
-    },
-    "DensitySwitch": {
-      "domTarget": "ToggleGroup group and native toggle buttons with aria-pressed; className/aria-label target group. No public ref/DOM passthrough.",
-      "controlledBehavior": "Deprecated controlled standalone control; value/onChange only. Does not read a provider or change document/table density.",
-      "defaultBehavior": "value=default, onChange=no-op, showLabels=false, aria-label=Row density. Visible labels Comfortable/Compact are legacy English copy.",
-      "reviewSources": [
-        "packages/design-system/src/mode/density.tsx",
-        "packages/design-system/src/components/toggle-group.tsx"
-      ],
-      "props": {
-        "value": {
-          "meaning": "Legacy controlled Density value; no provider or table connection.",
-          "migration": "Migrate to Table density or DataTable Columns menu; preserve caller state if temporarily retaining control.",
-          "defaultBehavior": "default."
-        },
-        "onChange": {
-          "meaning": "Legacy Density notification, not native event and not persistence.",
-          "migration": "Move density ownership to the table view; do not mount the deprecated provider to wire it.",
-          "defaultBehavior": "No-op when omitted."
-        }
-      }
-    },
     "Dot": {
       "domTarget": "SVG circle: supplied label makes a named image; otherwise aria-hidden. No native prop/ref bag.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
@@ -1259,27 +1211,6 @@
         }
       }
     },
-    "RecordHeader": {
-      "domTarget": "Root div with Breadcrumb and h1; id is visible Id content in current crumb. No native DOM id/ref passthrough.",
-      "controlledBehavior": "Stateless record header; caller owns navigation and actions.",
-      "defaultBehavior": "Truthy deprecated breadcrumb wins over crumbs/id and is rendered unchanged. Otherwise truthy crumbs/id build Breadcrumb with BreadcrumbList; crumbs supply parent items and separators between parents, and a separator is inserted before a truthy id when crumbs are also present. The id is wrapped in BreadcrumbPage; omitted id adds no current crumb. Deprecated facts still render in Fact.Group; deprecated back is ignored. Falsy meta/actions/facts are omitted; below renders directly.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/record-header.tsx",
-        "packages/design-system/src/components/breadcrumb.tsx",
-        "packages/design-system/src/components/id.tsx",
-        "packages/design-system/src/components/typography.tsx"
-      ],
-      "props": {
-        "id": {
-          "meaning": "Rendered record identifier, not an HTML id or label-target attribute.",
-          "migration": "Keep domain identity as visible content; use underlying primitives when DOM attribute/ref integration is required."
-        },
-        "actions": {
-          "meaning": "Rendered action content in its named position; the pattern does not clone it or invoke it as a callback.",
-          "migration": "Keep caller-composed controls and their event ownership; do not replace this ReactNode slot with a callback or action configuration."
-        }
-      }
-    },
     "RecordPicker": {
       "domTarget": "Command.Dialog portaled modal with cmdk combobox/listbox/options. No DOM/ref passthrough.",
       "controlledBehavior": "Caller owns open and eligible records; cmdk owns query and active option. Choosing calls onPick(record), then onClose synchronously. If onPick throws, close is not reached; no promise lifecycle is owned.",
@@ -1341,15 +1272,6 @@
           "migration": "Keep separate interactive targets; do not wrap the card in a link or move controls inside its title link."
         }
       }
-    },
-    "Related.Row": {
-      "domTarget": "Deprecated Item wrapper, producing li with optional title button. No DOM/ref passthrough.",
-      "controlledBehavior": "onClick adapts to Item.onSelect and is invoked without an event. Caller owns selection; omitted callback is static. Item.Group supplies density/flush context.",
-      "defaultBehavior": "lead->leading, label->title, meta->meta, trailing->trailing. With no surrounding group Item uses default size and nonflush inset; no collapsible behavior or link is exposed.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/related.tsx",
-        "packages/design-system/src/components/item.tsx"
-      ]
     },
     "RowSortable": {
       "domTarget": "Context provider preserves child structure; DndContext also supplies accessibility live regions/instructions. No wrapper/ref/native DOM API.",
@@ -1611,12 +1533,6 @@
         }
       }
     },
-    "Stat.Grid": {
-      "domTarget": "Grid div; no arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "cols=4 and frame=card. Base layout has two columns; responsive breakpoints realize requested 2..6 columns. band selects a shared bordered frame, not a size. Tiles is a deprecated exact alias for Stat.Grid.",
-      "reviewSources": ["packages/design-system/src/components/stat.tsx"]
-    },
     "Stat.Tile": {
       "domTarget": "div with display-only value and label; no arbitrary DOM/ref forwarding.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
@@ -1636,17 +1552,6 @@
       "controlledBehavior": "Root derives index/count and preceding-done context from direct children; each Item state is caller-owned. It does not advance steps or select them automatically.",
       "defaultBehavior": "orientation=horizontal, numbered=false. Horizontal minWidth=420px unless caller style overrides it. Use direct Stepper.Item children for indexing; arbitrary wrappers/fragments are not introspected.",
       "reviewSources": ["packages/design-system/src/components/stepper.tsx"]
-    },
-    "Stepper.Item": {
-      "domTarget": "li with aria-current=step when current; button when onSelect exists, otherwise span. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Required state is caller-owned done/current/upcoming/blocked. onSelect is optional activation and does not mutate state or implement tabs/roving focus.",
-      "defaultBehavior": "Standalone context starts index=0/count=1/numbered=false. first/last are deprecated and ignored; root context defines positions. Spoken state prefixes are fixed English. Optional children render beside the title control.",
-      "reviewSources": ["packages/design-system/src/components/stepper.tsx"],
-      "props": {
-        "onSelect": {
-          "meaning": "Optional step activation callback; caller owns step state. No automatic progression."
-        }
-      }
     },
     "Table.Detail": {
       "domTarget": "tr receives id; spanning td receives className/colSpan/content. No ref/native rest props.",
@@ -1760,12 +1665,6 @@
           "meaning": "Composite body typography scale: large, medium, small or xsmall; omitted inherits, not a control height."
         }
       }
-    },
-    "Tiles": {
-      "domTarget": "Grid div; no arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "cols=4 and frame=card. Base layout has two columns; responsive breakpoints realize requested 2..6 columns. band selects a shared bordered frame, not a size. Tiles is a deprecated exact alias for Stat.Grid.",
-      "reviewSources": ["packages/design-system/src/components/stat.tsx"]
     },
     "Timeline": {
       "domTarget": "ol with context and optional aria-label; no arbitrary DOM/ref forwarding.",

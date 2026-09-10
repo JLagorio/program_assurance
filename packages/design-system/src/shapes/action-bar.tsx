@@ -36,8 +36,6 @@ export type ActionBarAction = {
 export type ActionBarProps = {
   /** The parents as BreadcrumbItem elements with BreadcrumbSeparator between them; the header appends the id as the last crumb. */
   crumbs?: ReactNode;
-  /** @deprecated A whole Breadcrumb. Pass the parents as `crumbs`; the id is drawn as the last crumb. */
-  breadcrumb?: ReactNode;
   /** The record's id: the last crumb of the trail. */
   id: ReactNode;
   /** The record's name, the h1. */
@@ -53,16 +51,7 @@ export type ActionBarProps = {
 };
 
 /** The record's header pinned above the work: the trail, the title, the state axes as facts, and the actions that change them. A blocked action carries its reason rather than hiding. */
-export function ActionBar({
-  crumbs,
-  breadcrumb,
-  id,
-  title,
-  context,
-  states,
-  actions,
-  tabs,
-}: ActionBarProps) {
+export function ActionBar({ crumbs, id, title, context, states, actions, tabs }: ActionBarProps) {
   const blocked = actions?.filter((a) => a.blocked) ?? [];
   const facts = states.length
     ? states.map((s, i) => (
@@ -109,13 +98,18 @@ export function ActionBar({
     >
       <RecordHeader
         crumbs={crumbs}
-        breadcrumb={breadcrumb}
         id={id}
         title={title}
         meta={context}
-        facts={facts}
         actions={buttons}
-        below={tabs}
+        below={
+          <>
+            {facts ? (
+              <Fact.Group className="border-t border-default pt-100">{facts}</Fact.Group>
+            ) : null}
+            {tabs}
+          </>
+        }
       />
     </div>
   );

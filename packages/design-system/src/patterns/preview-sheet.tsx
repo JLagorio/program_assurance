@@ -66,6 +66,8 @@ export function PreviewSheet({
   width = 720,
   children,
 }: PreviewSheetProps) {
+  // TextLink's render element owns children, even when explicitly undefined.
+  // Fill the default before composition so an empty router link stays named.
   const open_ = openTo.props.children
     ? openTo
     : cloneElement(openTo, { children: "Open the full record" });

@@ -31,11 +31,9 @@ Omit both `crumbs` and `id` for a heading without a trail. Empty parent fragment
 - Use the record's name as the title, matching its list entry: “Atlas payments platform” or “Encrypt telemetry in transit.”
 - Keep meta brief: a status Badge, a baseline, or “Updated 2h ago.” It appears after the title, not after the id.
 - Use one primary action and at most two accompanying controls; put additional actions in a menu. The header preserves caller order.
-- Put owners, dates, and other details in the rail's Inspector. The legacy `facts` slot remains available while callers migrate.
+- Put owners, dates, and other details in the rail's Inspector.
 - Pass parent links as `crumbs` and the current record identifier as `id`. On a sub-page, the trail can include a link to its parent record.
 - Use ShowPage's `tabs` for a tab strip spanning the page. `below` remains available for a local strip and renders the content supplied to it.
-
-<Canvas of={Stories.Dont} />
 
 ## Layout
 
@@ -60,13 +58,7 @@ The header fills its container. Its rows have `space.100` gaps; the heading and 
 
 ## Migration
 
-Three deprecated props remain in the API:
-
-| Prop         | Current behavior                                                              | Replacement                                                                 |
-| ------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `facts`      | Still renders a `Fact.Group` below the title, with a top border and padding.  | Move details into the page's rail.                                          |
-| `breadcrumb` | Renders the supplied content as-is, taking precedence over `crumbs` and `id`. | Pass parent items through `crumbs` and the current identifier through `id`. |
-| `back`       | Ignored; no back control is rendered.                                         | Use the parent links in the breadcrumb trail.                               |
+The deprecated `facts`, `breadcrumb` and `back` props are removed. Put details in the page's rail, pass parent items through `crumbs` with the current `id`, and use those parent links to navigate back. A state strip belongs in `below`; compose its `Fact.Group` explicitly when needed.
 
 ## Related
 

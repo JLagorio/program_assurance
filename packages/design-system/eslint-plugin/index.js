@@ -286,7 +286,7 @@ const deprecatedNames = {
   Tiles: { to: "Stat.Grid", note: "the same row of Stat.Tile cells, under the Stat name" },
   DensityProvider: {
     to: "nothing",
-    note: "density is a table's: Table density, or Compact rows in a DataTable's Columns menu; the provider renders its children and touches nothing",
+    note: "density is a table's: Table density, or Compact rows in a DataTable's Columns menu; remove the retired provider",
   },
   DensitySwitch: {
     to: "Compact rows in DataTable.Columns",
@@ -294,11 +294,11 @@ const deprecatedNames = {
   },
   useDensity: {
     to: "table.options.meta.density",
-    note: "a DataTable's own; the hook returns default",
+    note: "a DataTable's own; the global hook is removed",
   },
   densityScript: {
     to: "nothing",
-    note: "an empty string; no before-paint script is needed for a table's setting",
+    note: "remove the retired script; table density needs no before-paint script",
   },
   "Collapsible.Group": {
     to: "Accordion",
@@ -354,7 +354,7 @@ const LEGACY = {
   Severity: "Indicator",
   Label: "Eyebrow",
   Tile: "Stat.Tile",
-  Tiles: "Tiles",
+  Tiles: "Stat.Grid",
   TabStrip: "Tabs",
   RailGroup: "Inspector.Group",
   StackedBar: "ProgressStacked",
@@ -362,7 +362,7 @@ const LEGACY = {
   MenuItem: "DropdownMenu.Item",
   MenuLabel: "DropdownMenu.Label",
   RelatedCard: "Related",
-  RelatedRow: "Related.Row",
+  RelatedRow: "Item",
   WorkPaneRow: "WorkPane.Row",
   TreeCell: "Table.Tree",
   Facts: "Fact.Group",

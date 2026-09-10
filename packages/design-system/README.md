@@ -103,39 +103,11 @@ Use the checked-in shadcn Base UI components in `src/components/ui/` as the foun
 
 Port source into the package with relative imports and package `cn`; application source is never a package dependency. Ledger tokens supply styling. Document defaults, how options combine, and intentional differences from the reference, and test the resulting contract.
 
-Breadcrumb has seven composable exports and uses Base UI `render` for links. Badge combines shadcn variants and semantic status options in one component; its [Storybook page](src/stories/components/Badge.mdx) owns the usage and migration examples. Other families retain their documented APIs until their own migration.
-
-[Card](src/stories/components/Card.mdx) and [Empty](src/stories/components/Empty.mdx) use flat native parts in the components layer. [Spinner](src/stories/components/Spinner.mdx) accepts native SVG props/refs and retains delay and decorative behavior. [Toaster](src/stories/components/Toaster.mdx) uses Base UI Toast, with native manager operations and composable parts. TextLink and Shell navigation use Base UI render/mergeProps.
-
-[Separator](src/stories/components/Separator.mdx) uses the Base UI primitive; [Skeleton](src/stories/components/Skeleton.mdx) and [Kbd/KbdGroup](src/stories/components/Kbd.mdx) follow shadcn's native element contracts. Each accepts native attributes and refs while retaining Ledger's styling and useful options. [Toggle and ToggleGroup](src/stories/components/ToggleGroup.mdx) use shadcn's Base UI composition, standard variants/sizes and array selection API. Detailed contracts live on those family pages.
-
 Semantic axes keep clear meanings: `tone` communicates status, `variant` chooses treatment and `size` chooses density. Native DOM names retain their meanings. Extend components deliberately instead of creating parallel standard and product versions of the same control.
 
 DOM attributes and refs belong on the element that consumers must label, submit, focus, measure or integrate. Standard parts preserve their native targets and composition affordances; patterns document any narrower contract. Field composes native label/message parts; custom controls forward IDs, ARIA and refs. A `BreadcrumbLink render={<Link to="/records" />}` child must accept its merged props and ref. Button and IconButton share Base UI action behavior; navigation uses `buttonVariants` on a real anchor or router Link. See the [Button page](src/stories/components/Button.mdx) for loading, render composition and migration examples.
 
-[Switch](src/stories/components/Switch.mdx) uses shadcn's Base UI control with externally composed labels and descriptions. Its default root ref targets the visible span; `id` and `inputRef` target the hidden checkbox. Labels and descriptions use native IDs and ARIA.
-
-[RadioGroup](src/stories/components/RadioGroup.mdx) uses flat `RadioGroupItem` exports, external labels/descriptions and CSS layout. It uses explicit group names and descriptions with Base UI's generic selection, native form and keyboard contracts.
-
-[Checkbox](src/stories/components/Checkbox.mdx) uses external labels/descriptions and boolean `checked` with a separate `indeterminate` prop. Table.Selection uses the same state split. Explicit label/message associations and Ledger's check/minus indicators remain, with Base UI handling native input and keyboard behavior.
-
-[HoverCard](src/stories/components/HoverCard.mdx) composes `HoverCardTrigger` and `HoverCardContent` over Base UI PreviewCard. Triggers preserve native links and accept `render`; timing belongs on the trigger and placement/width on the content. Ledger locale supplies positioning direction.
-
-[Popover](src/stories/components/Popover.mdx) uses shadcn's flat Base UI parts, with `PopoverClose` for dismissal. Compose the trigger through `render`, name Content with Title or `aria-label`, and use Description for supporting text. Content owns positioning, width and initial/final focus; Root owns open state and modality.
-
-[Tooltip](src/stories/components/Tooltip.mdx) uses flat Trigger, Content and Provider parts. Provider defaults to zero delay; Shell explicitly keeps a shared 300ms delay. IconButton supplies its own tooltip. Keep the trigger's accessible name and essential instructions independent of the visual popup, and put native disabled state on the rendered button.
-
-[DropdownMenu](src/stories/components/DropdownMenu.mdx) uses flat Base UI parts for actions, checkbox/radio choices and submenus. Actions close by default; choices stay open unless `closeOnClick` is set. Use LinkItem for native/router links. Content owns placement, native styles and final focus; grouped labels belong inside Group or RadioGroup.
-
-[Select](src/stories/components/Select.mdx) uses flat Base UI parts. Root owns values and form props; Trigger owns explicit label/message associations, native button props and `default`/`sm` sizing; Value owns the placeholder and display; Content owns placement. Supply labels through `items` or Value. Single values may be null, multiple values are arrays, and form reset is caller-owned.
-
-[Tabs](src/stories/components/Tabs.mdx) uses flat Root, List, Trigger and Content parts with shadcn default/line list variants. List owns `activateOnFocus` (manual by default); Root owns orientation and controlled values. Compose counts as children and native/router links through `render` with `nativeButton={false}`.
-
-[Accordion](src/stories/components/Accordion.mdx) and [Collapsible](src/stories/components/Collapsible.mdx) use flat Base UI parts, native `render` composition and `keepMounted`/`hiddenUntilFound`. Accordion selection is an array in both modes; Collapsible owns one boolean.
-
-[Dialog](src/stories/components/Dialog.mdx), [Sheet](src/stories/components/Sheet.mdx) and [AlertDialog](src/stories/components/AlertDialog.mdx) compose explicit Trigger, Content, Title, Description and action parts. Root owns open state and cancellable `onOpenChange`; Content owns focus and layout. AlertDialogAction is a Button: close after successful work in the caller. [Command](src/stories/components/Command.mdx) follows shadcn's cmdk parts with a Base UI CommandDialog shell.
-
-[Progress](src/stories/components/Progress.mdx) uses the Base UI numeric range, label and value contracts, retaining Ledger tone/size and the separate ProgressStacked coverage bar. [ScrollArea](src/stories/components/ScrollArea.mdx) uses Base UI with an explicit horizontal ScrollBar; `viewportProps` targets the scrolling element for ARIA, refs and events.
+Family pages in Storybook own the current API, defaults, composition examples and migration notes. The [handoff](../../docs/guides/design-system-migration-handoff.md) tracks completed work and remaining integration risks; the [changelog](CHANGELOG.md) records changes.
 
 Base UI and layout helpers are implementation dependencies. Consumers use the package's public parts and their documented native and dependency-derived contracts. **Explicit public adapters** also include Base UI's toast manager API, TanStack table definitions, and chart configuration types exposed by the package. Upgrades that affect public contracts require checking consumer types and migration notes. React and Tailwind remain peers. `MODE_STORAGE_KEY` and `SHELL_STORAGE_KEY` are public storage integration constants; persisted data must be validated and fall back safely.
 
@@ -152,7 +124,3 @@ Tokens and layout implement the design; keyboard operation, understandable copy,
 Shared patterns describe reusable presentation and interaction. `Composer` owns drafting, keyboard suggestions and recoverable submission; its adapter supplies option identities, filtering and exact insertion text. `TaskRow` owns a completion row with caller-rendered owner, date and status content. `Timeline.Item` already supplies the reusable feed item, so no second shared wrapper is needed.
 
 The application keeps `Activity` and `Task` wrappers, event taxonomies, waiting/blocked states, overdue decisions, people lookups and mention serialization (`src/lib/mentions.ts`). Those wrappers and `parseMentions` are not package exports. Patterns/Composer, Patterns/TaskRow and Components/Timeline demonstrate the reusable behaviors; product workflows stay in the application. These new patterns are experimental; no release is implied.
-
-Field, Alert and ButtonGroup follow shadcn's Base UI source with flat native parts. Field uses explicit label/message associations and TanStack-owned validation; Alert composes its content; ButtonGroup adds native props, orientation and Text/Separator parts. See [Field](src/stories/components/Field.mdx) for migration.
-
-Drawer now shares Base UI’s native popup tree, with flat parts, swipe directions and snap points. The package no longer depends on Vaul or a cross-library portal/focus bridge. Calendar and DatePicker follow shadcn’s React DayPicker composition; Pagination exposes native navigation parts; ResizablePanelGroup/Panel/Handle expose react-resizable-panels directly. Numeric panel sizes are pixels; use explicit percentage strings and caller-owned useDefaultLayout for persistence. Family pages own the migration examples.

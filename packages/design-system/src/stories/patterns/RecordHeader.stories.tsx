@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  Fact,
   IconButton,
   Stepper,
   Tabs,
@@ -19,11 +18,9 @@ import {
   TabsTrigger,
   TabsContent,
   Count,
-  TextLink,
 } from "../../components";
 import { RecordHeader } from "../../patterns";
 import { Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Patterns/RecordHeader",
@@ -34,33 +31,13 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const facts = (
-  <>
-    <Fact label="Owner">Dana Whitfield</Fact>
-    <Fact label="Method">Test</Fact>
-    <Fact label="State">
-      <Badge variant="secondary" tone="success">
-        Verified
-      </Badge>
-    </Fact>
-    <Fact label="Allocated to">
-      <TextLink href="#cmp">Telemetry gateway</TextLink>
-    </Fact>
-  </>
-);
-
-/** The id as the trail; with facts (deprecated); the parents in the trail, meta and actions; a sub-page under its record's trail with a strip below; a lifecycle below. */
+/** The id as the trail; the parents in the trail, meta and actions; a sub-page under its record's trail with a strip below; a lifecycle below. */
 export const RecordHeaderMatrix: Story = {
   // Several record headers in one story mean several trails named "breadcrumb"; a page has one.
   parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
       <RecordHeader id="PRG-1041" title="Atlas payments platform" />
-      <RecordHeader
-        id="REQ-0118"
-        title="The gateway shall encrypt telemetry in transit"
-        facts={facts}
-      />
       <RecordHeader
         crumbs={
           <>
@@ -181,89 +158,6 @@ export const EmptyParentLevels: Story = {
       }
     }
   },
-};
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  // Independent record examples repeat their navigation landmarks.
-  parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={<RecordHeader id="REQ-0118" title="Encrypt telemetry in transit" />}
-        doText="The trail, the title and the actions. The owner, the method and the state are the rail's Details."
-        dont={
-          <RecordHeader
-            id="REQ-0118"
-            title="Encrypt telemetry in transit"
-            facts={
-              <>
-                {facts}
-                <Fact label="Source">SRD 4.2.1</Fact>
-                <Fact label="Priority">High</Fact>
-                <Fact label="Created">3 Aug 2026</Fact>
-                <Fact label="Updated">2h ago</Fact>
-              </>
-            }
-          />
-        }
-        dontText="Eight facts under the title. The strip wraps, and the reader scans a row of labels for the two that matter."
-      />
-      <Pair
-        do={
-          <RecordHeader
-            id="PRG-1041"
-            title="Atlas payments platform"
-            meta={
-              <Badge variant="secondary" tone="information">
-                In assessment
-              </Badge>
-            }
-          />
-        }
-        doText="Meta is a word or a Badge after the title: the state."
-        dont={
-          <RecordHeader
-            id="PRG-1041"
-            title="Atlas payments platform"
-            meta="The program is in its assessment phase; the SCA is reviewing the 287 controls in the tailored baseline against the evidence linked so far."
-          />
-        }
-        dontText="A sentence as the meta. It truncates, and the state is buried in it."
-      />
-      <Pair
-        do={
-          <RecordHeader
-            id="PRG-1041"
-            title="Atlas payments platform"
-            actions={
-              <>
-                <Button>Views</Button>
-                <Button variant="primary">Record result</Button>
-              </>
-            }
-          />
-        }
-        doText="One primary and one beside it."
-        dont={
-          <RecordHeader
-            id="PRG-1041"
-            title="Atlas payments platform"
-            actions={
-              <>
-                <Button>Export SSP</Button>
-                <Button>Schedule</Button>
-                <Button>Views</Button>
-                <Button variant="primary">Record result</Button>
-                <Button variant="danger">Archive</Button>
-              </>
-            }
-          />
-        }
-        dontText="Five actions in the row, two of them coloured. Past two the rest belong in a menu."
-      />
-    </Stack>
-  ),
 };
 
 export const Playground: Story = {};
