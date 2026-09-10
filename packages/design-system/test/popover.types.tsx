@@ -1,6 +1,7 @@
 import { createRef } from "react";
 
 import {
+  FilterChip,
   Popover,
   PopoverTrigger,
   PopoverContent,
@@ -74,5 +75,21 @@ const contentProps: PopoverContentProps = {
 </Popover>;
 <PopoverTrigger nativeButton={false} render={<span ref={createRef<HTMLSpanElement>()} />} />;
 <PopoverClose nativeButton={false} render={<span ref={createRef<HTMLSpanElement>()} />} />;
+<FilterChip
+  label="Gaps"
+  ref={createRef<HTMLButtonElement>()}
+  onClick={(event) => {
+    const button: HTMLButtonElement = event.currentTarget;
+    void button.form;
+  }}
+/>;
+<Popover>
+  <PopoverTrigger
+    ref={triggerRef}
+    render={<FilterChip label="Status" ref={createRef<HTMLButtonElement>()} />}
+  />
+</Popover>;
+// @ts-expect-error FilterChip exposes its native button ref.
+<FilterChip label="Gaps" ref={createRef<HTMLDivElement>()} />;
 // @ts-expect-error Root controls popup state; trigger composition is a separate part.
 <Popover trigger={<button>Filters</button>} />;

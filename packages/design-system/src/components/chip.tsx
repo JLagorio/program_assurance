@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentProps } from "react";
 
 import { cn } from "../lib/cn";
 
@@ -11,7 +11,7 @@ export type FilterChipProps = {
   isActive?: boolean | undefined;
   disabled?: boolean | undefined;
   className?: string | undefined;
-} & Omit<ComponentPropsWithoutRef<"button">, "className" | "disabled">;
+} & Omit<ComponentProps<"button">, "className" | "disabled">;
 
 /**
  * A filter the reader adds to a toolbar: dashed with a plus until it holds a value, then solid and

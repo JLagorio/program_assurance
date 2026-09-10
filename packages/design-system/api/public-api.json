@@ -3631,7 +3631,7 @@
     "\"src/components/chip\".FilterChipProps": [
       {
         "source": "src/components/chip.d.ts",
-        "declaration": "export type FilterChipProps = {\n    label: string;\n    value?: string | undefined;\n    isActive?: boolean | undefined;\n    disabled?: boolean | undefined;\n    className?: string | undefined;\n} & Omit<ComponentPropsWithoutRef<\"button\">, \"className\" | \"disabled\">;"
+        "declaration": "export type FilterChipProps = {\n    label: string;\n    value?: string | undefined;\n    isActive?: boolean | undefined;\n    disabled?: boolean | undefined;\n    className?: string | undefined;\n} & Omit<ComponentProps<\"button\">, \"className\" | \"disabled\">;"
       }
     ],
     "\"src/components/code-block\".CodeBlock": [

@@ -90,6 +90,10 @@ One: `dimension.control.small` 28px, the Toolbar's height, `space.100` each side
 
 ## Props
 
+Native button props, including `ref`, pass through to the button. Refs target `HTMLButtonElement`;
+when composed with `PopoverTrigger render={<FilterChip label="Status" />}`, both parts' refs and
+event handlers reach the same button. The Popover owns opening, dismissal and focus return.
+
 <ArgTypes of={FilterChip} />
 
 ### Playground

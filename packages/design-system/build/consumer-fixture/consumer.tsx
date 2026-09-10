@@ -1,4 +1,5 @@
 import {
+  FilterChip,
   Field,
   FieldLabel,
   FieldDescription,
@@ -1032,6 +1033,23 @@ const popover = (
   </Popover>
 );
 void popover;
+
+<FilterChip
+  label="Gaps"
+  ref={createRef<HTMLButtonElement>()}
+  onClick={(event) => {
+    const button: HTMLButtonElement = event.currentTarget;
+    void button.form;
+  }}
+/>;
+<Popover>
+  <PopoverTrigger
+    ref={popoverTriggerRef}
+    render={<FilterChip label="Status" ref={createRef<HTMLButtonElement>()} />}
+  />
+</Popover>;
+// @ts-expect-error FilterChip exposes its native button ref.
+<FilterChip label="Gaps" ref={createRef<HTMLDivElement>()} />;
 
 type TooltipAction = { label: string };
 const provider: TooltipProviderProps = { delay: 300, closeDelay: 100, timeout: 300 };

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { createRef, useState } from "react";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
   Button,
@@ -84,10 +85,27 @@ export const FilterChipMatrix: Story = {
       }}
     />
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const disabled = canvas.getAllByRole("button").filter((button) => button.hasAttribute("disabled"));
+    await expect(disabled).toHaveLength(3);
+    for (const button of disabled) {
+      await expect(button).toBeDisabled();
+      button.focus();
+      await expect(button).not.toHaveFocus();
+    }
+    await expect(within(canvasElement.ownerDocument.body).queryByRole("dialog")).toBeNull();
+  },
 };
 
 const owners = ["Dana Whitfield", "Priya Natarajan", "Marcus Oyelaran"];
 const statuses = ["Draft", "In review", "Verified", "Overdue"];
+const toolbarRefs = {
+  toggle: createRef<HTMLButtonElement>(),
+  chip: createRef<HTMLButtonElement>(),
+  trigger: createRef<HTMLButtonElement>(),
+};
+const toolbarCalls = { chip: fn(), trigger: fn() };
 
 function ToolbarDemo() {
   const [gaps, setGaps] = useState(true);
@@ -118,7 +136,7 @@ function ToolbarDemo() {
           ) : null
         }
       >
-        <FilterChip label="Gaps" isActive={gaps} onClick={() => setGaps((v) => !v)} />
+        <FilterChip ref={toolbarRefs.toggle} label="Gaps" isActive={gaps} onClick={() => setGaps((v) => !v)} />
         <FilterChip
           label="Owner"
           value={owner ?? undefined}
@@ -131,7 +149,17 @@ function ToolbarDemo() {
         />
         <Popover>
           <PopoverTrigger
-            render={<FilterChip label="Status" value={statusValue} isActive={chosen.length > 0} />}
+            ref={toolbarRefs.trigger}
+            onClick={toolbarCalls.trigger}
+            render={
+              <FilterChip
+                ref={toolbarRefs.chip}
+                label="Status"
+                value={statusValue}
+                isActive={chosen.length > 0}
+                onClick={toolbarCalls.chip}
+              />
+            }
           />
           <PopoverContent style={{ width: 220 }} aria-label="Status">
             <Stack space="space.100">
@@ -164,7 +192,61 @@ function ToolbarDemo() {
 }
 
 /** In a Toolbar: a toggle, a chip that steps through its values, and a chip that opens a popover of checkboxes. Clear filters appears when any is on. */
-export const InToolbar: Story = { render: () => <ToolbarDemo /> };
+export const InToolbar: Story = {
+  render: () => <ToolbarDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const gaps = canvas.getByRole("button", { name: "Gaps" });
+    const status = canvas.getByRole("button", { name: "Status Overdue" });
+    toolbarCalls.chip.mockClear();
+    toolbarCalls.trigger.mockClear();
+
+    await expect(toolbarRefs.toggle.current).toBe(gaps);
+    await expect(toolbarRefs.chip.current).toBe(status);
+    await expect(toolbarRefs.trigger.current).toBe(status);
+    await expect(gaps).toHaveAttribute("type", "button");
+    await expect(gaps).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(gaps);
+    await expect(gaps).toHaveAttribute("aria-pressed", "false");
+    await userEvent.keyboard(" ");
+    await expect(gaps).toHaveAttribute("aria-pressed", "true");
+    await userEvent.keyboard("{Enter}");
+    await expect(gaps).toHaveAttribute("aria-pressed", "false");
+
+    await userEvent.tab(); // Owner.
+    await userEvent.tab();
+    await expect(status).toHaveFocus();
+    await expect(status).toHaveAttribute("aria-expanded", "false");
+    await expect(status).not.toHaveAttribute("aria-pressed");
+    await userEvent.keyboard("{Enter}");
+    const popup = await body.findByRole("dialog", { name: "Status" });
+    await expect(status).toHaveAttribute("aria-expanded", "true");
+    const draft = within(popup).getByRole("checkbox", { name: "Draft" });
+    await waitFor(() => expect(draft).toHaveFocus());
+    await userEvent.keyboard(" ");
+    await expect(draft).toBeChecked();
+    await expect(status).toHaveTextContent("Status2 chosen");
+    await expect(status).not.toHaveAttribute("aria-pressed");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(status).toHaveFocus());
+    await expect(status).toHaveAttribute("aria-expanded", "false");
+
+    await userEvent.keyboard(" ");
+    const reopened = await body.findByRole("dialog", { name: "Status" });
+    await expect(within(reopened).getByRole("checkbox", { name: "Draft" })).toBeChecked();
+    await userEvent.click(within(reopened).getByRole("button", { name: "Clear" }));
+    await expect(status).toHaveTextContent("Status");
+    await expect(status).not.toHaveTextContent("chosen");
+    await expect(status).not.toHaveAttribute("aria-pressed");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(status).toHaveFocus());
+    await expect(toolbarCalls.chip).toHaveBeenCalledTimes(2);
+    await expect(toolbarCalls.trigger).toHaveBeenCalledTimes(2);
+  },
+};
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
