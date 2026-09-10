@@ -20,7 +20,7 @@ It is for one value on a record that already exists: the owner in the rail, the 
 | Value   | The committed value in `font.body`, one line that truncates. Empty, the `placeholder` in `color.text.subtlest`, or the muted dash.                                          |
 | Mark    | At the end of the row: a Spinner while saving, a check in `color.icon.success` for a moment after, a warning in `color.icon.danger` after a refusal. A chevron on a Select. |
 | Field   | Text, editing: an input of `dimension.control.xsmall` in the value's place, its box reaching `space.050` past the column so the text stays on it.                           |
-| Menu    | Select, editing: the options under the row, the current one marked, and nothing else; a short set is a DropdownMenu, a long one (a roster) a searched list with a field at the top. |
+| Menu    | Select, editing: the options under the row, the current one marked, and nothing else; a short set uses Select; a long set uses Combobox with its search input inside the popup. |
 | Message | Under the row in `font.body.xsmall` and `color.text.danger`: what `validate` refused, or why the save failed.                                                               |
 
 ## Variants
@@ -46,7 +46,7 @@ Each instance accepts one save at a time. While saving, the resting control cann
 | Rest    | The value, flush. Nothing says it edits until the pointer arrives; the rail's rows all edit, so nothing needs to.                      |
 | Hover   | The row tints `color.background.neutral.subtle.hovered`; pressed, `.pressed`.                                                          |
 | Focus   | The kit's focus outline on the row.                                                                                                    |
-| Editing | Text: the field in the value's place, focused, the whole value selected for typing over. Select: the menu or the searched list open under the row. |
+| Editing | Text: the field in the value's place, focused, the existing value ready to edit. Select: the listbox or searchable popup open under the row. |
 | Invalid | Editing, the field's border `color.border.danger` and the message under it, as the reader types. The commit is refused while it shows. |
 | Saving  | The new value shows at once and a Spinner sits at the end of the row.                                                                  |
 | Saved   | A check for `motion.duration.slower` twice, then nothing.                                                                              |
@@ -91,15 +91,15 @@ There is no disabled state. A value the reader cannot change is plain text in th
 
 ## Accessibility
 
-- **The row is a button named by the label and the value:** "Owner: Dana Whitfield". The label is read before the value, so a screen reader hears what the field is where a sighted reader reads the KeyValue's label beside it.
+- **The row is named by the label and the value:** "Owner: Dana Whitfield". The label is read before the value, so a screen reader hears what the field is where a sighted reader reads the KeyValue's label beside it.
 - **The field is named by the label** (`aria-label`) and, invalid, is `aria-invalid` and described by the message.
-- **Keyboard:** Tab reaches the row; Enter or Space opens the field with the value selected; Enter commits and Escape puts the old value back, and either returns focus to the row. Leaving the field by Tab or a click commits and focus goes where the reader sent it. A Select opens with Enter, Space or Down and moves as a menu does.
+- **Keyboard:** Tab reaches the row; Enter or Space opens the field with the existing value; Enter commits and Escape puts the old value back, and either returns focus to the row. Leaving the field by Tab or a click commits and focus goes where the reader sent it. Select and searchable Combobox triggers expose the native combobox role. Enter, Space or Down opens the options; arrows move between them and Enter chooses. Escape closes without changing the value. While saving, the trigger stays focusable and read-only, with `aria-disabled` announcing that another edit must wait.
 - **A landed save is announced:** "Saved", or "Not saved", from a status region under the row; the Spinner says "Saving".
-- **The a11y gate** checks the names and the contrast on the resting rows; the field and the menu are one click away.
+- **The stories** exercise validation, keyboard selection, search, save rejection, rollback, pending guards and focus restoration in both themes.
 
 ## Props
 
-By hand until the generated tables reach a part.
+Editable keeps its value, validation and save contract while composing the shared Input, Select and Combobox. No application API migration is required. The searchable popup follows [shadcn](https://ui.shadcn.com/docs/components/base/combobox#popup) and [Base UI](https://base-ui.com/react/components/combobox#input-inside-popup).
 
 ### Editable.Text
 
@@ -116,7 +116,7 @@ By hand until the generated tables reach a part.
 
 | Prop       | Type                               | What it is                                                      |
 | ---------- | ---------------------------------- | --------------------------------------------------------------- |
-| `label`    | `string`, required                 | The field's name, for the screen reader; the menu has no heading. |
+| `label`    | `string`, required                 | The field's name, for the screen reader; the options have no heading. |
 | `value`    | `T`, required                      | The current option.                                             |
 | `options`  | `readonly T[]`, required           | The set, in the order it shows.                                 |
 | `onChange` | `(next: T) => void`, required      | As Text.                                                        |
@@ -137,7 +137,7 @@ By hand until the generated tables reach a part.
 - [DataTable](?path=/docs/patterns-datatable--docs): columns with `editable`, and Enter moving down the column.
 - [Forms](?path=/docs/patterns-forms--docs): a record that does not exist yet, and values that change together.
 - [Input](?path=/docs/components-input--docs) and [Textarea](?path=/docs/components-textarea--docs): the field in a form.
-- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the menu a Select opens.
+- [Select](?path=/docs/components-select--docs) and [Combobox](?path=/docs/components-combobox--docs): the native selection parts.
 - [Badge](?path=/docs/components-badge--docs): what a status Select renders.
 
 ## Don't

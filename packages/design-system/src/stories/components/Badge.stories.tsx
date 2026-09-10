@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ArrowUpRight, CircleCheck, TriangleAlert } from "lucide-react";
 import { createRef, forwardRef, useState, type ComponentProps, type MouseEvent } from "react";
-import { fn } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
   Badge,
@@ -52,7 +52,6 @@ export const Matrix: Story = {
     />
   ),
   play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     for (const variant of variants) {
       const specimens = canvasElement.querySelectorAll(
@@ -103,7 +102,6 @@ export const NativeAttributes: Story = {
     </Inline>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
     for (const { id, label, ref, tone } of nativeBadges) {
       const badge = within(canvasElement).getByText(label);
       await expect(ref.current).toBe(badge);
@@ -179,7 +177,6 @@ export const RenderLink: Story = {
     </Inline>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const link = canvas.getByRole("link", { name: "Program details" });
     renderCalls.badge.mockClear();
@@ -232,7 +229,6 @@ function ConditionalIconExample() {
 export const ConditionalIcons: Story = {
   render: () => <ConditionalIconExample />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const badge = canvas.getByText("Unverified source");
     await expect(badge.querySelector("svg")).toBeNull();
@@ -264,7 +260,6 @@ export const Recipe: Story = {
     </Specimens>
   ),
   play: async ({ canvasElement }) => {
-    const { expect } = await import("storybook/test");
     for (const variant of variants) {
       const example = canvasElement.querySelector(`[data-recipe-variant="${variant}"]`);
       await expect(example).toHaveTextContent(variant);
@@ -297,7 +292,6 @@ export const States: Story = {
     </Stack>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, waitFor, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const invalidLabel = canvas.getByText("Invalid reference");
     const dangerColor = getComputedStyle(invalidLabel).borderColor;
@@ -334,7 +328,6 @@ export const DenseAndLongContent: Story = {
     </div>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
     const longLabel = within(canvasElement).getByText("Independent verification evidence");
     await expect(longLabel).toBeVisible();
     await expect(getComputedStyle(longLabel).whiteSpace).toBe("nowrap");
@@ -408,7 +401,6 @@ export const SemanticMatrix: Story = {
     />
   ),
   play: async ({ canvasElement }) => {
-    const { expect } = await import("storybook/test");
     for (const tone of tones) {
       const badges = canvasElement.querySelectorAll(`[data-slot="badge"][data-tone="${tone}"]`);
       await expect(badges).toHaveLength(4);
@@ -451,7 +443,6 @@ export const SemanticVariants: Story = {
     />
   ),
   play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const specimens = canvasElement.querySelectorAll('[data-slot="badge"]');
     await expect(specimens).toHaveLength(30);

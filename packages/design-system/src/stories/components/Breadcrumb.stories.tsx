@@ -8,7 +8,7 @@ import {
   type MouseEvent,
   type Ref,
 } from "react";
-import { fn } from "storybook/test";
+import { expect, fn, userEvent, within } from "storybook/test";
 
 import {
   Breadcrumb,
@@ -78,7 +78,6 @@ export const Basic: Story = {
     </Breadcrumb>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const nav = canvas.getByRole("navigation", { name: "breadcrumb" });
     const list = canvas.getByRole("list", { name: "Record hierarchy" });
@@ -153,7 +152,6 @@ function SlashTrail({ label }: { label: string }) {
 export const CustomSeparator: Story = {
   render: () => <SlashTrail label="Control hierarchy" />,
   play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const separators = canvas.getAllByText("/");
     await expect(separators).toHaveLength(2);
@@ -221,7 +219,6 @@ function CollapsedTrail({
 export const Collapsed: Story = {
   render: () => <CollapsedTrail label="Account management hierarchy" ellipsisRef={ellipsisRef} />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const toggle = canvas.getByRole("button", { name: "Show parent levels" });
     await expect(ellipsisRef.current).toBe(toggle.firstElementChild);
@@ -296,7 +293,6 @@ function RenderLinkExample() {
 export const RenderLink: Story = {
   render: () => <RenderLinkExample />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const link = canvas.getByRole("link", { name: "Programs" });
     renderCalls.link.mockClear();
@@ -348,7 +344,6 @@ function LongTrail({ label }: { label: string }) {
 export const LongWrappingTrail: Story = {
   render: () => <LongTrail label="Narrow account hierarchy" />,
   play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const nav = canvas.getByRole("navigation", { name: "Narrow account hierarchy" });
     const first = canvas.getByRole("link", { name: "Programs" });
@@ -419,7 +414,6 @@ function InPlaceTrail({ label }: { label: string }) {
 export const InPlaceButtons: Story = {
   render: () => <InPlaceTrail label="Local record hierarchy" />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const programs = canvas.getByRole("button", { name: "Programs" });
     await expect(programs).toHaveAttribute("type", "button");

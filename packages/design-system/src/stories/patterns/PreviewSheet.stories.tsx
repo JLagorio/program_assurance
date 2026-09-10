@@ -1,3 +1,4 @@
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
@@ -165,7 +166,6 @@ export const PreviewSheetStory: Story = {
   name: "Preview sheet",
   render: () => <PreviewSheetStates />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, waitFor, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
     await userEvent.click(canvas.getByRole("button", { name: "Facts only" }));
@@ -173,8 +173,10 @@ export const PreviewSheetStory: Story = {
       "href",
       "#record",
     );
+    await expect(page.queryByRole("button", { name: "Back" })).toBeNull();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await expect(canvas.getByRole("button", { name: "Facts only" })).toHaveFocus();
     await userEvent.click(canvas.getByRole("button", { name: "With links and actions" }));
     await expect(await page.findByRole("link", { name: "Open component record" })).toHaveAttribute(
       "href",
@@ -182,6 +184,21 @@ export const PreviewSheetStory: Story = {
     );
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    const opener = canvas.getByRole("button", { name: "Compact header, a frame deeper" });
+    await userEvent.click(opener);
+    await userEvent.click(await page.findByRole("button", { name: "REQ-0118" }));
+    await expect(
+      page.getByRole("dialog", { name: "The gateway shall encrypt telemetry in transit" }),
+    ).toBeVisible();
+    await userEvent.click(page.getByRole("button", { name: "Back" }));
+    await expect(page.getByRole("dialog", { name: "Telemetry gateway" })).toBeVisible();
+    await expect(page.queryByRole("button", { name: "Back" })).toBeNull();
+    await expect(page.getByRole("dialog")).toContainElement(
+      canvasElement.ownerDocument.activeElement as HTMLElement,
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await expect(opener).toHaveFocus();
   },
 };
 

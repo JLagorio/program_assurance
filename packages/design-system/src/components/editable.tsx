@@ -1,20 +1,22 @@
-import { AlertCircle, Check, ChevronDown } from "lucide-react";
+import { AlertCircle, Check } from "lucide-react";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 
 import { useLedgerLocale } from "../lib/locale";
-import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "./command";
 
 import { cn } from "../lib/cn";
 import { Bleed } from "../primitives/bleed";
 
+import { Input } from "./input";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "./select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "./dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from "./combobox";
 import { Spinner } from "./spinner";
 import { Absent } from "./typography";
 
@@ -180,7 +182,7 @@ function EditableText({ placeholder, ...props }: EditableTextProps) {
     <div className="flex min-w-0 flex-col gap-025">
       {editing ? (
         <Bleed inline="space.050">
-          <input
+          <Input
             autoFocus
             aria-label={props.label}
             aria-invalid={liveError ? true : undefined}
@@ -207,10 +209,7 @@ function EditableText({ placeholder, ...props }: EditableTextProps) {
                 setEditing(false);
               }
             }}
-            className={cn(
-              "h-control-xsmall w-full rounded-small border bg-input px-050 font-body text-default outline-none focus-visible:outline-focused",
-              liveError ? "border-danger" : "border-input focus-visible:border-focused",
-            )}
+            className="h-control-xsmall rounded-small px-050"
           />
         </Bleed>
       ) : (
@@ -251,7 +250,7 @@ const SEARCH_FROM = 8;
 
 /**
  * One of a fixed set, edited in place: the row opens the options with the current one marked, and
- * choosing commits. A short set is a menu; a long one, a roster of people, is a searched list.
+ * choosing commits. A short set uses Select; a long one uses a searchable Combobox popup.
  * Nothing but the values shows in either: the row's label is for the screen reader.
  */
 function EditableSelect<T extends string>({
@@ -262,82 +261,89 @@ function EditableSelect<T extends string>({
 }: EditableSelectProps<T>) {
   const { t } = useLedgerLocale();
   const { state, error, commit } = useOptimisticCommit(props);
-  const [open, setOpen] = useState(false);
   const messageId = useId();
-  const trigger = (
-    <button
-      type="button"
-      disabled={state === "saving"}
-      aria-describedby={error ? messageId : undefined}
-      className={cn(resting, error && "before:border before:border-danger")}
-    >
-      <span className="sr-only">{props.label}: </span>
-      <span className="relative min-w-0 truncate">
+  const triggerProps = {
+    "aria-labelledby": `${messageId}-label ${messageId}-value`,
+    "aria-describedby": error ? messageId : undefined,
+    "aria-invalid": error ? true : undefined,
+    "aria-disabled": state === "saving" || undefined,
+    className: cn(
+      resting,
+      "h-auto w-full justify-start border-0 bg-transparent px-0 shadow-none hover:bg-transparent focus-visible:bg-transparent data-readonly:bg-transparent data-readonly:hover:bg-transparent",
+      error && "before:border before:border-danger",
+    ),
+  };
+  const triggerContent = (
+    <>
+      <span id={`${messageId}-label`} className="sr-only">
+        {props.label}:
+      </span>
+      <span id={`${messageId}-value`} className="relative min-w-0 truncate">
         {render ? render(props.value) : props.value}
       </span>
       <span className="relative ms-auto flex shrink-0 items-center gap-050">
         <StateIcon state={state} />
-        <ChevronDown aria-hidden className="size-150 icon-subtle" />
       </span>
-    </button>
+    </>
   );
   return (
     <div className="flex min-w-0 flex-col gap-025">
       {searchable ? (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger render={trigger} />
-          <PopoverContent
+        <Combobox<T>
+          items={options}
+          value={props.value}
+          readOnly={state === "saving"}
+          onValueChange={(next, details) => {
+            if (next === null || !commit(next)) details.cancel();
+          }}
+        >
+          <ComboboxTrigger {...triggerProps}>{triggerContent}</ComboboxTrigger>
+          <ComboboxContent
             aria-label={props.label}
             align="start"
             style={{ width: 240 }}
             className="p-0"
           >
-            <Command className="rounded-large">
-              <CommandInput placeholder={t("search")} hint={null} autoFocus></CommandInput>
-              <CommandList style={{ maxHeight: 260 }}>
-                {options.map((o) => (
-                  <CommandItem
-                    key={o}
-                    value={o}
-                    onSelect={() => {
-                      setOpen(false);
-                      commit(o);
-                    }}
-                  >
-                    <span className="min-w-0 flex-1 truncate">{o}</span>
-                    <Check
-                      aria-hidden
-                      className={cn(
-                        "size-icon-small shrink-0",
-                        o === props.value ? "visible" : "invisible",
-                      )}
-                    />
-                  </CommandItem>
-                ))}
-              </CommandList>
-              <CommandEmpty>{t("noMatches")}</CommandEmpty>
-            </Command>
-          </PopoverContent>
-        </Popover>
+            <div className="p-100">
+              <ComboboxInput
+                aria-label={props.label}
+                placeholder={t("search")}
+                showTrigger={false}
+              />
+            </div>
+            <ComboboxEmpty>{t("noMatches")}</ComboboxEmpty>
+            <ComboboxList style={{ maxHeight: 260 }}>
+              {(option: T) => (
+                <ComboboxItem key={option} value={option}>
+                  {option}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
       ) : (
-        <DropdownMenu>
-          <DropdownMenuTrigger render={trigger} />
-          <DropdownMenuContent align="start" style={{ width: 220 }}>
-            <DropdownMenuRadioGroup
-              value={props.value}
-              onValueChange={(value: unknown) => {
-                const option = options.find((o) => o === value);
-                if (option !== undefined) commit(option);
-              }}
-            >
-              {options.map((o) => (
-                <DropdownMenuRadioItem key={o} value={o} closeOnClick>
-                  {render ? render(o) : o}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Select<T>
+          items={options.map((option) => ({ value: option, label: option }))}
+          value={props.value}
+          readOnly={state === "saving"}
+          onValueChange={(next, details) => {
+            if (next === null || !commit(next)) details.cancel();
+          }}
+        >
+          <SelectTrigger {...triggerProps}>{triggerContent}</SelectTrigger>
+          <SelectContent
+            aria-label={props.label}
+            align="start"
+            alignItemWithTrigger={false}
+            style={{ width: 220 }}
+          >
+            {options.map((option) => (
+              <SelectItem key={option} value={option}>
+                {render ? render(option) : option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
       <Message id={messageId} state={state} error={error} />
     </div>

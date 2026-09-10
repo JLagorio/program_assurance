@@ -1,6 +1,6 @@
 import { AlertCircle, Info } from "lucide-react";
 import { useState } from "react";
-import { expect, fn } from "storybook/test";
+import { expect, fn, userEvent, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Alert,
@@ -122,7 +122,6 @@ function NotificationNotice() {
 export const WithAction: Story = {
   render: () => <NotificationNotice />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const notice = canvas.getByRole("status");
     await expect(notice).toHaveAccessibleName("Notifications are paused");

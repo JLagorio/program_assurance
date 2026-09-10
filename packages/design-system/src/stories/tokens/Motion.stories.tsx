@@ -1,3 +1,4 @@
+import { expect, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -179,7 +180,6 @@ export const Preference: Story = {
     </Stack>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     for (const name of ["motion-enter", "motion-exit", "motion-slide"]) {

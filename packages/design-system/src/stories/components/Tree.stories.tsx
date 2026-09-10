@@ -1,3 +1,4 @@
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { FileText, Folder } from "lucide-react";
@@ -318,7 +319,6 @@ function TreeDemo() {
 export const Keyboard: Story = {
   render: () => <TreeDemo />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);
     const tree = canvas.getByRole("tree", { name: "Keyboard hierarchy" });
     const entries = () => tree.querySelectorAll('[role="treeitem"][tabindex="0"]');

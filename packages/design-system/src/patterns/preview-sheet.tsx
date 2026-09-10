@@ -83,15 +83,17 @@ export function PreviewSheet({
       <SheetContent side="end" style={{ maxWidth: width }}>
         <SheetHeader>
           <div className="flex items-start gap-100">
-            <Button
-              aria-label="Back"
-              variant="subtle"
-              size="small"
-              className="size-control-small p-0"
-              onClick={onBack}
-            >
-              <ChevronLeft aria-hidden />
-            </Button>
+            {onBack && (
+              <Button
+                aria-label="Back"
+                variant="subtle"
+                size="small"
+                className="size-control-small p-0"
+                onClick={onBack}
+              >
+                <ChevronLeft aria-hidden />
+              </Button>
+            )}
             <div className="flex min-w-0 flex-1 flex-col gap-025">
               <div className="flex items-center gap-100 pb-025">
                 <>

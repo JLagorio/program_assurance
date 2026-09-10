@@ -1,3 +1,4 @@
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useRef, useState } from "react";
 
@@ -56,7 +57,6 @@ export const Examples: Story = {
     </Stack>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const first = canvas.getByRole("button", { name: "First section" });
     const last = canvas.getByRole("button", { name: "Last section" });
@@ -104,7 +104,6 @@ function ControlledExample() {
 export const ControlledAndRetained: Story = {
   render: () => <ControlledExample />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, waitFor, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const input = canvas.getByRole("textbox", { name: "Draft record-a" });
     await userEvent.clear(input);

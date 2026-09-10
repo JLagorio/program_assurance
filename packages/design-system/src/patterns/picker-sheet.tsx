@@ -88,23 +88,25 @@ export function PickerSheet({
       <SheetContent side="end" style={{ maxWidth: width }}>
         <SheetHeader>
           <div className="flex items-start gap-100">
-            <Button
-              aria-label="Back"
-              variant="subtle"
-              size="small"
-              className="size-control-small p-0"
-              onClick={onBack}
-            >
-              <ChevronLeft aria-hidden />
-            </Button>
+            {onBack && (
+              <Button
+                aria-label="Back"
+                variant="subtle"
+                size="small"
+                className="size-control-small p-0"
+                onClick={onBack}
+              >
+                <ChevronLeft aria-hidden />
+              </Button>
+            )}
             <div className="flex min-w-0 flex-1 flex-col gap-025">
               <SheetTitle>{title}</SheetTitle>
               <SheetDescription>{subtitle}</SheetDescription>
             </div>
           </div>
         </SheetHeader>
-        <div className="shrink-0 border-b border-default px-200 py-100">
-          {hasToolbar ? (
+        {hasToolbar && (
+          <div className="shrink-0 border-b border-default px-200 py-100">
             <div className="flex flex-col gap-100">
               {search || filters ? (
                 <div className="flex flex-wrap items-center gap-100">
@@ -125,8 +127,8 @@ export function PickerSheet({
               ) : null}
               {toolbar}
             </div>
-          ) : undefined}
-        </div>
+          </div>
+        )}
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
           {children}
         </div>

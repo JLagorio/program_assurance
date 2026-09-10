@@ -1,3 +1,4 @@
+import { expect, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronDown } from "lucide-react";
 
@@ -145,7 +146,6 @@ export const EmptyParentLevels: Story = {
     </Stack>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
     const trails = within(canvasElement).getAllByRole("navigation", { name: "breadcrumb" });
     await expect(trails).toHaveLength(2);
     for (const trail of trails) {

@@ -260,9 +260,28 @@ function PickerStates() {
   );
 }
 /** Frame one is a DataTable in the sheet: search, the family and state facets, a sortable id column and a selection that survives the search; frame two is a second DataTable whose responsibility and coverage cells edit in place, with a defaults row and "Does not apply" per row. Open it. */
-export const PickerSheetStory: Story = { name: "Picker sheet", render: () => <PickerStates /> };
-export const PickerSheetMatrix: Story = {
+export const PickerSheetStory: Story = {
+  name: "Picker sheet",
   render: () => <PickerStates />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const opener = canvas.getByRole("button", { name: "Allocate requirements" });
+    await userEvent.click(opener);
+    const dialog = within(await page.findByRole("dialog", { name: "Allocate requirements" }));
+    await expect(dialog.queryByRole("button", { name: "Back" })).toBeNull();
+    await userEvent.click(dialog.getByRole("checkbox", { name: "Select row REQ-0101" }));
+    await userEvent.click(dialog.getByRole("button", { name: "Continue with 1" }));
+    await userEvent.click(dialog.getByRole("button", { name: "Back" }));
+    await expect(dialog.getByRole("button", { name: "Continue with 1" })).toBeEnabled();
+    await expect(dialog.queryByRole("button", { name: "Back" })).toBeNull();
+    await expect(page.getByRole("dialog")).toContainElement(
+      canvasElement.ownerDocument.activeElement as HTMLElement,
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await expect(opener).toHaveFocus();
+  },
 };
 
 /** The sheet's footer, drawn on its own for a pair. */
@@ -335,15 +354,31 @@ export const Dont: Story = {
 
 function ControlledSearchDemo() {
   const [open, setOpen] = useState(false);
+  const [searchable, setSearchable] = useState(true);
   const [query, setQuery] = useState("");
   return (
     <Stack>
-      <Button onClick={() => setOpen(true)}>Open searchable picker</Button>
+      <Button
+        onClick={() => {
+          setSearchable(true);
+          setOpen(true);
+        }}
+      >
+        Open searchable picker
+      </Button>
+      <Button
+        onClick={() => {
+          setSearchable(false);
+          setOpen(true);
+        }}
+      >
+        Open minimal picker
+      </Button>
       <PickerSheet
         open={open}
         onClose={() => setOpen(false)}
         title="Choose records"
-        search={{ value: query, onChange: setQuery }}
+        search={searchable ? { value: query, onChange: setQuery } : undefined}
         selected={0}
         action={{ label: "Link records", onClick: () => undefined }}
       >
@@ -368,5 +403,14 @@ export const ControlledSearch: Story = {
     await expect(dialog.getByRole("button", { name: "Link records" })).toBeDisabled();
     await userEvent.click(dialog.getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    await expect(canvas.getByRole("button", { name: "Open searchable picker" })).toHaveFocus();
+    const opener = canvas.getByRole("button", { name: "Open minimal picker" });
+    await userEvent.click(opener);
+    const minimal = within(await page.findByRole("dialog", { name: "Choose records" }));
+    await expect(minimal.queryByRole("textbox")).toBeNull();
+    await expect(minimal.queryByRole("button", { name: "Back" })).toBeNull();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await expect(opener).toHaveFocus();
   },
 };

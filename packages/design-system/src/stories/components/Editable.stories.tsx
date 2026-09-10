@@ -1,3 +1,4 @@
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { useId, act, useState } from "react";
@@ -25,6 +26,22 @@ const meta = {
 } satisfies Meta;
 export default meta;
 type Story = StoryObj;
+
+// Storybook's userEvent wrapper disables the act environment during async work.
+// Drive these promise-settlement cases with awaited native events in a single act scope.
+const interact = async (event: () => void) => {
+  const environment = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
+  const previous = environment.IS_REACT_ACT_ENVIRONMENT;
+  environment.IS_REACT_ACT_ENVIRONMENT = true;
+  try {
+    await act(async () => {
+      event();
+    });
+  } finally {
+    if (previous === undefined) delete environment.IS_REACT_ACT_ENVIRONMENT;
+    else environment.IS_REACT_ACT_ENVIRONMENT = previous;
+  }
+};
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const statuses = ["Draft", "In review", "Verified", "Overdue"] as const;
@@ -80,8 +97,40 @@ function RailDemo() {
 }
 
 /** A record's facts in its rail: the name, the owner and the status edit in place; the frequency is plain text and lines up with them. Click a value, change it, and it saves. */
-export const Rail: Story = { render: () => <RailDemo /> };
-
+export const Rail: Story = {
+  render: () => <RailDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: /Name: Segregation/ }));
+    const input = canvas.getByRole("textbox", { name: "Name" });
+    await expect(input).toHaveFocus();
+    await userEvent.clear(input);
+    await userEvent.keyboard("{Enter}");
+    await expect(input).toHaveAccessibleDescription("A name is required.");
+    await expect(input).toHaveFocus();
+    await interact(() =>
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+    );
+    await expect(canvas.getByRole("button", { name: /Name: Segregation/ })).toHaveFocus();
+    await userEvent.click(canvas.getByRole("button", { name: "Owner: Unassigned" }));
+    await userEvent.type(canvas.getByRole("textbox", { name: "Owner" }), "Dana Whitfield");
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: /Owner: Dana Whitfield/ })).toBeVisible();
+    const status = canvas.getByRole("combobox", { name: /Status: In review/ });
+    await expect(status).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    const selected = await page.findByRole("option", { name: "In review" });
+    await expect(selected).toHaveAttribute("aria-selected", "true");
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    await waitFor(() => expect(status).toHaveTextContent("Verified"));
+    await expect(status).toHaveAttribute("aria-disabled", "true");
+    await waitFor(() => expect(status).toHaveFocus());
+    await userEvent.keyboard("{Enter}");
+    await expect(page.queryByRole("listbox")).toBeNull();
+    await waitFor(() => expect(status).not.toHaveAttribute("aria-disabled", "true"));
+  },
+};
 const roster = [
   "Amara Bell",
   "Dan Whitfield",
@@ -109,7 +158,12 @@ function RosterDemo() {
           value={owner}
           onChange={setOwner}
           options={roster}
-          save={() => wait(500)}
+          save={(next) =>
+            wait(500).then(() => {
+              if (next === "Elena Vasquez")
+                throw new Error("Elena is not available for assignment.");
+            })
+          }
         />
       </KeyValue>
       <KeyValue label="Reviewer">
@@ -119,15 +173,64 @@ function RosterDemo() {
           onChange={setReviewer}
           options={roster}
           searchable
+          validate={(next) =>
+            next === "Victor Amsel" ? "Victor cannot review this record." : null
+          }
           save={() => wait(500)}
         />
       </KeyValue>
+      <Text size="small" color="color.text.subtle">
+        Assigning Elena demonstrates a failed save; choosing Victor as reviewer demonstrates
+        validation.
+      </Text>
     </Stack>
   );
 }
 
 /** A roster: past eight options the Select is a searched list of names, nothing else in it. */
-export const Roster: Story = { render: () => <RosterDemo /> };
+export const Roster: Story = {
+  render: () => <RosterDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const owner = canvas.getByRole("combobox", { name: /Owner: Marcus Ryde/ });
+    await userEvent.click(owner);
+    let search = await page.findByRole("combobox", { name: "Owner" });
+    await expect(search).toHaveFocus();
+    await userEvent.type(search, "No matching person");
+    await expect(await page.findByText("Nothing matches")).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(owner).toHaveFocus());
+    await expect(owner).toHaveTextContent("Marcus Ryde");
+    await userEvent.keyboard("{Enter}");
+    search = await page.findByRole("combobox", { name: "Owner" });
+    await expect(search).toHaveValue("");
+    await userEvent.type(search, "Priya");
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    await waitFor(() => expect(owner).toHaveTextContent("Priya Raghavan"));
+    await expect(owner).toHaveAttribute("aria-disabled", "true");
+    await waitFor(() => expect(owner).toHaveFocus());
+    await userEvent.keyboard("{Enter}");
+    await expect(page.queryByRole("listbox")).toBeNull();
+    await waitFor(() => expect(owner).not.toHaveAttribute("aria-disabled", "true"));
+    await userEvent.click(owner);
+    search = await page.findByRole("combobox", { name: "Owner" });
+    await userEvent.type(search, "Elena");
+    await userEvent.click(await page.findByRole("option", { name: "Elena Vasquez" }));
+    await waitFor(() =>
+      expect(owner).toHaveAccessibleDescription("Elena is not available for assignment."),
+    );
+    await expect(owner).toHaveTextContent("Priya Raghavan");
+    const reviewer = canvas.getByRole("combobox", { name: /Reviewer: Sarah Chen/ });
+    await userEvent.click(reviewer);
+    await userEvent.type(await page.findByRole("combobox", { name: "Reviewer" }), "Victor");
+    await userEvent.click(await page.findByRole("option", { name: "Victor Amsel" }));
+    await expect(reviewer).toHaveTextContent("Sarah Chen");
+    await expect(reviewer).toHaveAccessibleDescription("Victor cannot review this record.");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(reviewer).toHaveFocus());
+  },
+};
 
 type Row = { id: string; name: string; next: string; status: Status };
 const rows: Row[] = [
@@ -545,23 +648,7 @@ function SerializedSaveDemo() {
 export const SerializedSave: Story = {
   render: () => <SerializedSaveDemo />,
   play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
     const canvas = within(canvasElement);
-    // Storybook's userEvent wrapper disables the act environment during async work.
-    // Drive these promise-settlement cases with awaited native events in a single act scope.
-    const interact = async (event: () => void) => {
-      const environment = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
-      const previous = environment.IS_REACT_ACT_ENVIRONMENT;
-      environment.IS_REACT_ACT_ENVIRONMENT = true;
-      try {
-        await act(async () => {
-          event();
-        });
-      } finally {
-        if (previous === undefined) delete environment.IS_REACT_ACT_ENVIRONMENT;
-        else environment.IS_REACT_ACT_ENVIRONMENT = previous;
-      }
-    };
     const click = async (name: string | RegExp) =>
       interact(() => canvas.getByRole("button", { name }).click());
     const edit = async (current: string, next: string) => {

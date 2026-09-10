@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Check, FileText, RotateCcw, X } from "lucide-react";
 import { useRef, useState } from "react";
-import { fn } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import {
   Attachment,
   Button,
@@ -113,7 +113,6 @@ export const Images: Story = {
     </Attachment.Group>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, within, waitFor } = await import("storybook/test");
     const image = within(canvasElement).getByRole("img", {
       name: "Evidence workflow from collection through review to archive",
     }) as HTMLImageElement;
@@ -215,7 +214,6 @@ function PreviewExample() {
 export const WithActions: Story = {
   render: () => <PreviewExample />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
     const trigger = canvas.getByRole("button", { name: "Preview quarterly-report.pdf" });
@@ -257,7 +255,6 @@ export const WithActions: Story = {
 
 export const UploadStates: Story = {
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const uploading = canvas.getByText("quarterly-report.pdf").closest('[data-slot="attachment"]')!;
     await expect(uploading).toHaveAttribute("aria-busy", "true");
@@ -362,7 +359,6 @@ export const Group: Story = {
     </Box>
   ),
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
     const group = canvas.getByRole("group", { name: "Supporting documents" });
     canvas.getByRole("link", { name: "Open evidence-workflow.svg" }).focus();

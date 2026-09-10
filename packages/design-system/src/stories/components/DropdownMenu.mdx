@@ -32,7 +32,7 @@ Use Group around related items and Label inside that Group. Items compose icons,
 
 Use CheckboxItem with `checked` and `onCheckedChange` for independent options. Use RadioGroup with `value` and `onValueChange`, and RadioItem with `value`, for exclusive options. A change callback's `details.cancel()` rejects the change. The installed Base UI radio value contract is not generic; callers can validate values against their own options.
 
-Ordinary Item actions use `onClick` and close by default. CheckboxItem and RadioItem stay open by default; set `closeOnClick` when selecting should close the menu. Columns keep the menu open while toggling visibility; saved views, sorting and Editable.Select close after a choice. Essential form values still belong in labeled form controls.
+Ordinary Item actions use `onClick` and close by default. CheckboxItem and RadioItem stay open by default; set `closeOnClick` when selecting should close the menu. Columns keep the menu open while toggling visibility; saved views and sorting close after a choice. Essential form values still belong in labeled form controls.
 
 <Canvas of={Stories.Toggles} />
 
