@@ -29,11 +29,11 @@ import {
   SelectSeparator,
   Switch,
   Textarea,
-  useRequired,
 } from "../../components";
-import { revalidateLogic, useForm } from "@tanstack/react-form";
+import { revalidateLogic, useForm, useStore } from "@tanstack/react-form";
 import { z } from "zod";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
+import { expect, userEvent, within, waitFor } from "storybook/test";
 import { useId, useRef, useState } from "react";
 import { Grid, Inline, Stack, Text } from "../../primitives";
 
@@ -259,7 +259,6 @@ function ControlForm() {
 export const Fields: Story = {
   render: () => <ControlForm />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);
     const title = canvas.getByRole("textbox", { name: "Control name" });
     const rationale = canvas.getByRole("textbox", { name: "Rationale" });
@@ -799,130 +798,292 @@ export const RequiredOnSubmit: Story = {
 function BoundCustomControl({
   onChange,
   ...props
-}: Omit<React.ComponentProps<"input">, "onChange"> & { onChange: (value: string) => void }) {
-  return <input {...props} onChange={(event) => onChange(event.target.value)} />;
+}: Omit<React.ComponentProps<typeof Input>, "onChange"> & { onChange: (value: string) => void }) {
+  return <Input {...props} onChange={(event) => onChange(event.target.value)} />;
 }
+const recoverySchema = z
+  .object({
+    name: z.string().trim().min(1, "Required."),
+    email: z.string().trim().min(1, "Required.").pipe(z.string().email("Enter an email address.")),
+    custom: z.string(),
+    status: z.string(),
+    owner: z.string(),
+  })
+  .refine((value) => value.status !== "assigned" || Boolean(value.owner), {
+    path: ["owner"],
+    message: "Choose an owner for assigned work.",
+  });
+const recoveryOwners = [{ value: "alice", label: "Alice" }];
+
 function RecoveryDemo() {
   const fieldId = useId();
-
   const formRef = useRef<HTMLFormElement>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [custom, setCustom] = useState("");
-  const validation = useRequired({ name, email }, undefined, {
-    formRef,
-    validate: { email: (value) => (value.includes("@") ? null : "Enter an email address.") },
+  const selectRef = useRef<HTMLButtonElement>(null);
+  const comboRef = useRef<HTMLInputElement>(null);
+  const [saved, setSaved] = useState(false);
+  const form = useForm({
+    defaultValues: { name: "", email: "", custom: "", status: "open", owner: "" },
+    validationLogic: revalidateLogic({ mode: "submit", modeAfterSubmission: "change" }),
+    validators: {
+      onDynamic: recoverySchema,
+      // A local stand-in for a server response; no request leaves the story.
+      onSubmitAsync: async ({ value }) =>
+        value.email === "taken@example.test"
+          ? { fields: { email: { message: "This email is already registered." } } }
+          : undefined,
+    },
+    onSubmitInvalid: () =>
+      requestAnimationFrame(() =>
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
+      ),
+    onSubmit: () => setSaved(true),
   });
-  const fieldError17 = validation.errorFor("name");
-  const fieldError18 = validation.errorFor("email");
+  const requiresOwner = useStore(form.store, (state) => state.values.status === "assigned");
   return (
-    <form
-      ref={formRef}
-      aria-label="Recovery form"
-      onSubmit={(event) => {
-        event.preventDefault();
-        validation.check();
-      }}
-    >
-      <Field data-invalid={Boolean(fieldError17)}>
-        <FieldLabel id={`${fieldId}-name-17-label`} htmlFor={`${fieldId}-name-17`}>
-          {"Name"}
-          <span aria-hidden="true" className="text-danger">
-            {" "}
-            *
-          </span>
-        </FieldLabel>
-        <div data-testid="field-wrapper">
-          <InputGroup>
-            <Input
-              id={`${fieldId}-name-17`}
-              aria-labelledby={`${fieldId}-name-17-label`}
-              aria-required={true}
-              aria-invalid={Boolean(fieldError17)}
-              aria-describedby={`${fieldId}-name-17-message`}
-              name="name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </InputGroup>
-        </div>
-        {Boolean(fieldError17) ? (
-          <FieldError id={`${fieldId}-name-17-message`}>{fieldError17}</FieldError>
-        ) : (
-          <FieldDescription id={`${fieldId}-name-17-message`}>
-            {"Use the full name."}
-          </FieldDescription>
-        )}
-      </Field>
-      <Field data-invalid={Boolean(fieldError18)}>
-        <FieldLabel id={`${fieldId}-email-18-label`} htmlFor={`${fieldId}-email-18`}>
-          {"Email"}
-          <span aria-hidden="true" className="text-danger">
-            {" "}
-            *
-          </span>
-        </FieldLabel>
-        <>
-          <Input
-            id={`${fieldId}-email-18`}
-            aria-labelledby={`${fieldId}-email-18-label`}
-            aria-required={true}
-            aria-invalid={Boolean(fieldError18)}
-            aria-describedby={fieldError18 ? `${fieldId}-email-18-message` : undefined}
-            name="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            onBlur={() => validation.touch("email")}
-          />
-        </>
-        {Boolean(fieldError18) ? (
-          <FieldError id={`${fieldId}-email-18-message`}>{fieldError18}</FieldError>
-        ) : null}
-      </Field>
-      <Field>
-        <FieldLabel
-          id={`${fieldId}-custom-identifier-19-label`}
-          htmlFor={`${fieldId}-custom-identifier-19`}
-        >
-          {"Custom identifier"}
-        </FieldLabel>
-        <BoundCustomControl
-          id={`${fieldId}-custom-identifier-19`}
-          aria-labelledby={`${fieldId}-custom-identifier-19-label`}
-          aria-describedby={`${fieldId}-custom-identifier-19-message`}
-          value={custom}
-          onChange={setCustom}
-        />
-        <FieldDescription id={`${fieldId}-custom-identifier-19-message`}>
-          {"Native props reach the input through a custom component."}
-        </FieldDescription>
-      </Field>
-      {Object.keys(validation.errors).length ? (
-        <div role="alert">
-          <ul>
-            {Object.entries(validation.errors).map(([key, error]) => (
-              <li key={key}>
-                <button type="button" onClick={() => validation.focus(key as "name" | "email")}>
-                  {key}: {error}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      <Button type="submit">Save details</Button>
-    </form>
+    <Stack space="space.200" className="max-w-[420px]">
+      <form
+        id={fieldId}
+        ref={formRef}
+        aria-label="Recovery form"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSaved(false);
+          void form.handleSubmit();
+        }}
+      >
+        <Stack space="space.200">
+          {(["name", "email"] as const).map((name) => (
+            <form.Field key={name} name={name}>
+              {(field) => {
+                const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                const id = `${fieldId}-${name}`;
+                const input = (
+                  <Input
+                    id={id}
+                    name={field.name}
+                    type={name === "email" ? "email" : "text"}
+                    required
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    aria-invalid={invalid}
+                    aria-describedby={`${id}-message`}
+                  />
+                );
+                return (
+                  <Field data-invalid={invalid}>
+                    <FieldLabel htmlFor={id}>
+                      {name === "name" ? "Name" : "Email"}
+                      <span aria-hidden className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    </FieldLabel>
+                    {name === "name" ? (
+                      <div data-testid="field-wrapper">
+                        <InputGroup>{input}</InputGroup>
+                      </div>
+                    ) : (
+                      input
+                    )}
+                    {invalid ? (
+                      <FieldError id={`${id}-message`} errors={field.state.meta.errors} />
+                    ) : (
+                      <FieldDescription id={`${id}-message`}>
+                        {name === "name"
+                          ? "Use the full name."
+                          : "Use taken@example.test to try a server rejection."}
+                      </FieldDescription>
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
+          ))}
+          <form.Field name="custom">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={`${fieldId}-custom`}>Custom identifier</FieldLabel>
+                <BoundCustomControl
+                  id={`${fieldId}-custom`}
+                  name={field.name}
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  onBlur={field.handleBlur}
+                  aria-describedby={`${fieldId}-custom-hint`}
+                />
+                <FieldDescription id={`${fieldId}-custom-hint`}>
+                  Native props reach the input through a custom component.
+                </FieldDescription>
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="status">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={`${fieldId}-status`}>Status</FieldLabel>
+                <Select
+                  items={{ open: "Open", assigned: "Assigned" }}
+                  name={field.name}
+                  value={field.state.value}
+                  onValueChange={(value) => field.handleChange(value ?? "open")}
+                >
+                  <SelectTrigger
+                    id={`${fieldId}-status`}
+                    ref={selectRef}
+                    data-testid="status-trigger"
+                    className="w-full"
+                    onBlur={field.handleBlur}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent alignItemWithTrigger={false}>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="assigned">Assigned</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="owner">
+            {(field) => {
+              const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={invalid}>
+                  <FieldLabel htmlFor={`${fieldId}-owner`}>
+                    Owner
+                    {requiresOwner && (
+                      <span aria-hidden className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    )}
+                  </FieldLabel>
+                  <Combobox
+                    items={recoveryOwners}
+                    name={field.name}
+                    value={recoveryOwners.find((item) => item.value === field.state.value) ?? null}
+                    onValueChange={(item) => field.handleChange(item?.value ?? "")}
+                  >
+                    <ComboboxInput
+                      id={`${fieldId}-owner`}
+                      ref={comboRef}
+                      onBlur={field.handleBlur}
+                      aria-required={requiresOwner}
+                      aria-invalid={invalid}
+                      aria-describedby={`${fieldId}-owner-message`}
+                    />
+                    <ComboboxContent>
+                      <ComboboxEmpty>No matches.</ComboboxEmpty>
+                      <ComboboxList>
+                        {(item) => (
+                          <ComboboxItem key={item.value} value={item}>
+                            {item.label}
+                          </ComboboxItem>
+                        )}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                  {invalid ? (
+                    <FieldError id={`${fieldId}-owner-message`} errors={field.state.meta.errors} />
+                  ) : (
+                    <FieldDescription id={`${fieldId}-owner-message`}>
+                      Required when status is Assigned.
+                    </FieldDescription>
+                  )}
+                </Field>
+              );
+            }}
+          </form.Field>
+          <form.Subscribe selector={(state) => state.fieldMeta}>
+            {(meta) => (
+              <Inline role="group" aria-label="Validation summary" space="space.200" shouldWrap>
+                {(["name", "email", "owner"] as const)
+                  .filter((key) => meta[key]?.isTouched && meta[key]?.errors.length)
+                  .map((key) => (
+                    <Button
+                      key={key}
+                      type="button"
+                      variant="link"
+                      onClick={() =>
+                        formRef.current
+                          ?.querySelector<HTMLElement>(`[id="${fieldId}-${key}"]`)
+                          ?.focus()
+                      }
+                    >
+                      Review {key}
+                    </Button>
+                  ))}
+              </Inline>
+            )}
+          </form.Subscribe>
+          <Inline space="space.100" shouldWrap>
+            <Button type="button" onClick={() => selectRef.current?.focus()}>
+              Focus status ref
+            </Button>
+            <Button type="button" onClick={() => comboRef.current?.focus()}>
+              Focus owner ref
+            </Button>
+            <Button type="button" onClick={() => form.setFieldValue("owner", "alice")}>
+              Assign Alice
+            </Button>
+          </Inline>
+          <form.Subscribe selector={(state) => state.fieldMeta.status?.isBlurred ?? false}>
+            {(blurred) => (
+              <output aria-label="Status touched">Status touched: {String(blurred)}</output>
+            )}
+          </form.Subscribe>
+          <Inline space="space.100" alignInline="end">
+            <Button
+              type="button"
+              variant="subtle"
+              onClick={() => {
+                form.reset();
+                setSaved(false);
+              }}
+            >
+              Reset
+            </Button>
+            <form.Subscribe selector={(state) => state.isSubmitting}>
+              {(submitting) => (
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? "Saving…" : "Save details"}
+                </Button>
+              )}
+            </form.Subscribe>
+          </Inline>
+          {saved && (
+            <p role="status" aria-label="Saved details">
+              Details saved for this example.
+            </p>
+          )}
+        </Stack>
+      </form>
+      <Combobox
+        items={recoveryOwners}
+        name="external"
+        form={fieldId}
+        value={recoveryOwners[0]}
+        readOnly
+      >
+        <ComboboxInput aria-label="External owner" showTrigger={false} />
+      </Combobox>
+    </Stack>
   );
 }
 
+/** TanStack validation, conditional owner selection, server rejection and native composite-control integration. */
 export const ValidationRecovery: Story = {
-  name: "Legacy useRequired: validation recovery",
+  name: "Validation and recovery",
   render: () => <RecoveryDemo />,
   play: async ({ canvasElement }) => {
-    const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
     const name = canvas.getByRole("textbox", { name: "Name" });
     const email = canvas.getByRole("textbox", { name: "Email" });
+    const owner = canvas.getByRole("combobox", { name: "Owner" });
+    const status = canvas.getByRole("combobox", { name: "Status" });
     await expect(name).toHaveAccessibleDescription("Use the full name.");
     await expect(canvasElement.querySelectorAll(`[id="${name.id}"]`)).toHaveLength(1);
     const label = canvasElement.querySelector<HTMLLabelElement>(`label[for="${name.id}"]`)!;
@@ -932,177 +1093,59 @@ export const ValidationRecovery: Story = {
       canvas.getByRole("textbox", { name: "Custom identifier" }),
     ).toHaveAccessibleDescription("Native props reach the input through a custom component.");
     await userEvent.click(canvas.getByRole("button", { name: "Save details" }));
-    await expect(name).toHaveFocus();
+    await waitFor(() => expect(name).toHaveFocus());
     await expect(name).toHaveAttribute("aria-invalid", "true");
     await expect(email).toHaveAttribute("aria-invalid", "true");
+    await userEvent.click(canvas.getByRole("button", { name: "Review email" }));
+    await expect(email).toHaveFocus();
     await userEvent.type(name, "Alice");
     await waitFor(() => expect(name).not.toHaveAttribute("aria-invalid", "true"));
     await userEvent.type(email, "wrong");
     await expect(email).toHaveAccessibleDescription("Enter an email address.");
     await userEvent.clear(email);
-    await userEvent.type(email, "alice@example.test{Enter}");
-    await expect(name).toHaveValue("Alice");
-    await expect(email).not.toHaveAttribute("aria-invalid", "true");
-  },
-};
-
-function CompositeDemo() {
-  const fieldId = useId();
-
-  const formRef = useRef<HTMLFormElement>(null);
-  const selectRef = useRef<HTMLButtonElement>(null);
-  const comboRef = useRef<HTMLInputElement>(null);
-  const [owner, setOwner] = useState("");
-  const [blurred, setBlurred] = useState(false);
-  const validation = useRequired({ owner }, undefined, { formRef });
-  const ownerItems2 = [{ value: "alice", label: "Alice" }];
-  const aliceItems = [{ value: "alice", label: "Alice" }];
-  const fieldError21 = validation.errorFor("owner");
-  return (
-    <>
-      <form
-        id="composite-controls-form"
-        ref={formRef}
-        onSubmit={(event) => {
-          event.preventDefault();
-          validation.check();
-        }}
-      >
-        <Field>
-          <FieldLabel id={`${fieldId}-status-20-label`} htmlFor={`${fieldId}-status-20`}>
-            {"Status"}
-          </FieldLabel>
-          <Select items={{ open: "Open" }} name="status" defaultValue="open">
-            <SelectTrigger
-              id={`${fieldId}-status-20`}
-              aria-labelledby={`${fieldId}-status-20-label`}
-              className="w-full"
-              ref={selectRef}
-              data-testid="status-trigger"
-              onBlur={() => setBlurred(true)}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent
-              aria-labelledby={`${fieldId}-status-20-label`}
-              align="start"
-              alignItemWithTrigger={false}
-            >
-              <SelectItem value="open">Open</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field data-invalid={Boolean(fieldError21)}>
-          <FieldLabel id={`${fieldId}-owner-21-label`} htmlFor={`${fieldId}-owner-21`}>
-            {"Owner"}
-          </FieldLabel>
-          <Combobox<(typeof ownerItems2)[number]>
-            items={ownerItems2}
-
-            isItemEqualToValue={(item, selected) => item.value === selected.value}
-            filter={(item, query) =>
-              [item.label, item.value, "keywords" in item ? item.keywords : ""]
-                .join(" ")
-                .toLocaleLowerCase()
-                .includes(query.toLocaleLowerCase())
-            }
-            name="owner"
-            value={ownerItems2.find((item) => item.value === owner) ?? null}
-            onValueChange={(item) => setOwner(item?.value ?? "")}
-          >
-            <ComboboxInput
-              id={`${fieldId}-owner-21`}
-              aria-labelledby={`${fieldId}-owner-21-label`}
-              aria-invalid={Boolean(fieldError21)}
-              aria-describedby={fieldError21 ? `${fieldId}-owner-21-message` : undefined}
-              ref={comboRef}
-            />
-            <ComboboxContent>
-              <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
-              <ComboboxList aria-labelledby={`${fieldId}-owner-21-label`}>
-                {(item) => (
-                  <ComboboxItem
-                    key={item.value}
-                    value={item}
-                    disabled={"disabled" in item && Boolean(item.disabled)}
-                  >
-                    <span className="min-w-0 flex-1">{item.label}</span>
-                    {"meta" in item && item.meta ? (
-                      <span className="text-subtle font-body-small">{String(item.meta)}</span>
-                    ) : null}
-                  </ComboboxItem>
-                )}
-              </ComboboxList>
-            </ComboboxContent>
-          </Combobox>
-          {Boolean(fieldError21) ? (
-            <FieldError id={`${fieldId}-owner-21-message`}>{fieldError21}</FieldError>
-          ) : null}
-        </Field>
-        <Button type="submit">Validate owner</Button>
-        <Button onClick={() => selectRef.current?.focus()}>Focus status ref</Button>
-        <Button onClick={() => comboRef.current?.focus()}>Focus owner ref</Button>
-        <Button onClick={() => setOwner("alice")}>Assign Alice</Button>
-        <output aria-label="Status touched">{String(blurred)}</output>
-      </form>
-      <Combobox<(typeof aliceItems)[number]>
-        items={aliceItems}
-
-        isItemEqualToValue={(item, selected) => item.value === selected.value}
-        filter={(item, query) =>
-          [item.label, item.value, "keywords" in item ? item.keywords : ""]
-            .join(" ")
-            .toLocaleLowerCase()
-            .includes(query.toLocaleLowerCase())
-        }
-        name="external"
-        form="composite-controls-form"
-        value={aliceItems.find((item) => item.value === "alice") ?? null}
-        onValueChange={(item) => {}}
-      >
-        <ComboboxInput aria-label="External owner" />
-        <ComboboxContent>
-          <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
-          <ComboboxList>
-            {(item) => (
-              <ComboboxItem
-                key={item.value}
-                value={item}
-                disabled={"disabled" in item && Boolean(item.disabled)}
-              >
-                <span className="min-w-0 flex-1">{item.label}</span>
-                {"meta" in item && item.meta ? (
-                  <span className="text-subtle font-body-small">{String(item.meta)}</span>
-                ) : null}
-              </ComboboxItem>
-            )}
-          </ComboboxList>
-        </ComboboxContent>
-      </Combobox>
-    </>
-  );
-}
-export const CompositeControl: Story = {
-  name: "Legacy useRequired: composite controls",
-  render: () => <CompositeDemo />,
-  play: async ({ canvasElement }) => {
-    const { expect, userEvent, within } = await import("storybook/test");
-    const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole("button", { name: "Validate owner" }));
-    await expect(canvas.getByRole("combobox", { name: "Owner" })).toHaveFocus();
-    await userEvent.click(canvas.getByRole("button", { name: "Focus status ref" }));
-    await expect(canvas.getByRole("combobox", { name: "Status" })).toHaveFocus();
-    await expect(canvas.getByTestId("status-trigger")).toHaveAttribute(
-      "data-testid",
-      "status-trigger",
+    await userEvent.type(email, "taken@example.test{Enter}");
+    await waitFor(() =>
+      expect(email).toHaveAccessibleDescription("This email is already registered."),
     );
+    await expect(name).toHaveValue("Alice");
+    await expect(canvas.queryByRole("status", { name: "Saved details" })).toBeNull();
+    await userEvent.clear(email);
+    await userEvent.type(email, "alice@example.test");
+    await userEvent.click(status);
+    await userEvent.click(await page.findByRole("option", { name: "Assigned" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Save details" }));
+    await waitFor(() => expect(owner).toHaveFocus());
+    await expect(owner).toHaveAccessibleDescription("Choose an owner for assigned work.");
+    // Removing a conditional requirement clears its stale error.
+    await userEvent.click(status);
+    await userEvent.click(await page.findByRole("option", { name: "Open" }));
+    await waitFor(() => expect(owner).not.toHaveAttribute("aria-invalid", "true"));
+    await userEvent.click(canvas.getByRole("button", { name: "Focus status ref" }));
+    await expect(status).toHaveFocus();
+    await expect(status).toHaveAttribute("data-testid", "status-trigger");
     await userEvent.click(canvas.getByRole("button", { name: "Focus owner ref" }));
-    await expect(canvas.getByRole("combobox", { name: "Owner" })).toHaveFocus();
+    await expect(owner).toHaveFocus();
     await expect(canvas.getByLabelText("Status touched")).toHaveTextContent("true");
     await userEvent.click(canvas.getByRole("button", { name: "Assign Alice" }));
-    const data = new FormData(canvasElement.querySelector("form")!);
+    await userEvent.type(canvas.getByRole("textbox", { name: "Custom identifier" }), "REC-1");
+    const data = new FormData(
+      canvas.getByRole("form", { name: "Recovery form" }) as HTMLFormElement,
+    );
     await expect(data.get("status")).toBe("open");
     await expect(data.get("owner")).toBe("alice");
     await expect(data.get("external")).toBe("alice");
+    await expect(data.get("custom")).toBe("REC-1");
+    await userEvent.click(canvas.getByRole("button", { name: "Save details" }));
+    await waitFor(() =>
+      expect(canvas.getByRole("status", { name: "Saved details" })).toHaveTextContent(
+        "Details saved",
+      ),
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Reset" }));
+    await expect(name).toHaveValue("");
+    await expect(email).toHaveValue("");
+    await expect(owner).toHaveValue("");
+    await expect(canvas.queryAllByRole("alert")).toHaveLength(0);
+    await expect(canvas.queryByRole("status", { name: "Saved details" })).toBeNull();
   },
 };

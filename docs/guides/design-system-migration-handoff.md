@@ -31,6 +31,7 @@ Preserve native targets, refs, ARIA, keyboard/focus behavior and render composit
 The package has no direct Radix, Sonner or Vaul dependencies. Command intentionally uses cmdk, which can retain transitive Radix dependencies. Application reference catalogs and their dependencies remain untouched.
 
 - Field uses shadcn's native Field/Label/Description/Error/Set/Legend/Group/Content/Title/Separator composition. The binding context, child cloning and useFieldControl are removed. Callers supply stable IDs, labels, descriptions, invalid and required announcements on the actual control. TanStack owns validation and submission. Custom controls forward native props; grouped choices keep their individual names.
+- The legacy useRequired hook and DatePicker's private focus-target attribute are removed. Package form examples use TanStack directly; the application's useRecordForm remains application-owned. Focus invalid controls with native refs or a form-scoped lookup after validation, and reset through the form library.
 - Alert uses flat Title/Description/Action exports, native div props and shadcn default/destructive variants with Ledger tone. Existing callers explicitly retain their announcement roles and tone; new roots default to role=alert. Ledger actions stay in normal flow.
 - ButtonGroup uses native div props/ref, horizontal/vertical orientation and flat Text/Separator parts. Text uses Base UI useRender/mergeProps. Horizontal corners use logical edges.
 
@@ -51,6 +52,8 @@ The identified shadcn/Base UI migration candidates are complete. Item, Table and
 
 Timeline and Related.Card use Base UI link composition. Supplied link children override the configured title, and caller ids, refs and handlers are preserved. PreviewSheet keeps a small explicit fallback before TextLink composition: even a link with explicitly undefined children must receive its default label.
 
+Form validation consolidation is complete. Input, Textarea and DatePicker no longer depend on a package validation engine. One Forms recovery example replaces the separate legacy validation/composite-control stories, covering conditional requirements, simulated server rejection, native submission, focus and reset. Migration guidance lives in the Forms page.
+
 Review larger compositions for concrete duplication or contract problems. Missing catalog families such as Slider, ContextMenu, Menubar and Carousel are optional additions driven by an application need. Investigate the Combobox/In Dialog ResizeObserver error if it recurs; it has not reproduced in seven focused runs (84 checks), including runs alongside a production build. No Combobox behavior or error handling was changed.
 
 ## Completion workflow
@@ -65,8 +68,8 @@ Run package/application typechecks, lint, API/coverage checks and relevant stori
 
 ## Latest validation
 
-The compatibility cleanup passed 82 focused light/dark Storybook checks, followed by 14 checks for PreviewSheet and Related after retaining the explicit empty-link fallback. The final full suite passed all 1,058 checks (218 files). Package/application typechecks, package lint, API/coverage checks, production/Storybook builds and the packed consumer passed. Package unit tests passed 15; application tests passed 165 with one skipped. Repository lint passed with 52 existing warnings.
+The form consolidation passed all 1,056 light/dark Storybook checks (218 files), followed by 50 focused checks after the final story import and visual fixes. Package/application typechecks, package lint, API/coverage checks, production/Storybook builds and the packed consumer passed. Package unit tests passed 15; application tests passed 165 with one skipped. Repository lint passed with 52 existing warnings.
 
-Coverage reports 280 story-covered exports, 102 family pages and 529 stories, with no gaps. The batch removes ten runtime exports, the Related.Row part, its prop type and six deprecated prop options. Consumer fixtures verify the removals, replacement types, native link refs/attributes and ActionBar state facts. The new record-preview story verifies independent actions, native navigation, refs, Escape and focus restoration; PreviewSheet covers both its default link label and caller-supplied text. Visual review confirmed the card and preview layout.
+Coverage reports 280 story-covered exports, 102 family pages, 528 stories and 734 public API symbols, with no gaps. This batch removes the 91-line validation hook and its export; consumer fixtures verify that the retired API is absent from installed declarations and SSR. Input and Textarea stories now exercise native submission, error repair and reset; Textarea also verifies that Enter keeps its multiline behavior. DatePicker retains its dialog, calendar and focus checks.
 
-The prior Combobox/In Dialog ResizeObserver error did not recur in seven focused runs (84 checks) or either full-suite run. No Combobox code or error suppression changed; this remains an unreproduced timing issue. The first full run's two failures were the new PreviewSheet fallback checks, repaired before the final passing run.
+Visual review confirmed the recovery form's fields and error summary. Dynamic storybook/test imports failed in the development canvas even though Vitest passed; the touched examples now use static imports, and the recovery play completed in the live canvas. The prior Combobox/In Dialog ResizeObserver error did not recur in this full suite. No Combobox code or error suppression changed; this remains an unreproduced timing issue.

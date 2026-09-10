@@ -65,3 +65,6 @@ export type RemovedRow = kit.RelatedRowProps;
 <kit.Stepper.Item state="upcoming" label="Finish" last />;
 // @ts-expect-error Parent items belong in crumbs.
 <kit.ActionBar id="REC-1" title="Record" states={[]} breadcrumb="Parent" />;
+
+// @ts-expect-error Forms use TanStack directly; the legacy validation hook is removed.
+kit.useRequired;

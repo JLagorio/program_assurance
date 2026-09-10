@@ -1,5 +1,8 @@
+import { revalidateLogic, useForm } from "@tanstack/react-form";
+import { z } from "zod";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useId, useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
+import { useId, useRef, useState } from "react";
 
 import {
   FieldLabel,
@@ -9,7 +12,6 @@ import {
   Field,
   Input,
   Textarea,
-  useRequired,
 } from "../../components";
 import { Inline, Stack } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
@@ -174,74 +176,120 @@ export const Rows: Story = {
 
 function FormDemo() {
   const fieldId = useId();
-
-  const [statement, setStatement] = useState("");
-  const [note, setNote] = useState("");
-  const req = useRequired({ statement });
-  const fieldError5 = req.errorFor("statement");
+  const formRef = useRef<HTMLFormElement>(null);
+  const [saved, setSaved] = useState(false);
+  const form = useForm({
+    defaultValues: { statement: "", note: "" },
+    validationLogic: revalidateLogic({ mode: "submit", modeAfterSubmission: "change" }),
+    validators: {
+      onDynamic: z.object({ statement: z.string().trim().min(1, "Required."), note: z.string() }),
+    },
+    onSubmitInvalid: () =>
+      requestAnimationFrame(() =>
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
+      ),
+    onSubmit: () => setSaved(true),
+  });
   return (
-    <div style={{ width: 420 }}>
+    <form
+      ref={formRef}
+      aria-label="Save statement"
+      noValidate
+      style={{ width: "100%", maxWidth: 420 }}
+      onSubmit={(event) => {
+        event.preventDefault();
+        setSaved(false);
+        void form.handleSubmit();
+      }}
+    >
       <Stack space="space.200">
-        <Field data-invalid={Boolean(fieldError5)}>
-          <FieldLabel
-            id={`${fieldId}-implementation-statement-5-label`}
-            htmlFor={`${fieldId}-implementation-statement-5`}
-          >
-            {"Implementation statement"}
-            <span aria-hidden="true" className="text-danger">
-              {" "}
-              *
-            </span>
-          </FieldLabel>
-          <Textarea
-            id={`${fieldId}-implementation-statement-5`}
-            aria-labelledby={`${fieldId}-implementation-statement-5-label`}
-            aria-required={true}
-            aria-invalid={Boolean(fieldError5)}
-            aria-describedby={`${fieldId}-implementation-statement-5-message`}
-            rows={5}
-            value={statement}
-            onChange={(e) => setStatement(e.target.value)}
-          />
-          {Boolean(fieldError5) ? (
-            <FieldError id={`${fieldId}-implementation-statement-5-message`}>
-              {fieldError5}
-            </FieldError>
-          ) : (
-            <FieldDescription id={`${fieldId}-implementation-statement-5-message`}>
-              {"How this system satisfies the control, in terms an assessor can verify."}
-            </FieldDescription>
-          )}
-        </Field>
-        <Field>
-          <FieldLabel id={`${fieldId}-note-6-label`} htmlFor={`${fieldId}-note-6`}>
-            {"Note"}
-          </FieldLabel>
-          <Textarea
-            id={`${fieldId}-note-6`}
-            aria-labelledby={`${fieldId}-note-6-label`}
-            aria-describedby={`${fieldId}-note-6-message`}
-            rows={2}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-          <FieldDescription id={`${fieldId}-note-6-message`}>
-            {"Optional. For the next assessor, not the record."}
-          </FieldDescription>
-        </Field>
+        {(["statement", "note"] as const).map((name) => (
+          <form.Field key={name} name={name}>
+            {(field) => {
+              const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              const id = `${fieldId}-${name}`;
+              return (
+                <Field data-invalid={invalid}>
+                  <FieldLabel htmlFor={id}>
+                    {name === "statement" ? (
+                      <>
+                        Implementation statement
+                        <span aria-hidden className="text-danger">
+                          {" "}
+                          *
+                        </span>
+                      </>
+                    ) : (
+                      "Note"
+                    )}
+                  </FieldLabel>
+                  <Textarea
+                    id={id}
+                    name={field.name}
+                    required={name === "statement"}
+                    rows={name === "statement" ? 5 : 2}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    aria-invalid={invalid}
+                    aria-describedby={`${id}-message`}
+                  />
+                  {invalid ? (
+                    <FieldError id={`${id}-message`} errors={field.state.meta.errors} />
+                  ) : (
+                    <FieldDescription id={`${id}-message`}>
+                      {name === "statement"
+                        ? "How this system satisfies the control, in terms an assessor can verify."
+                        : "Optional. For the next assessor, not the record."}
+                    </FieldDescription>
+                  )}
+                </Field>
+              );
+            }}
+          </form.Field>
+        ))}
         <Inline space="space.100" alignInline="end">
-          <Button variant="subtle">Cancel</Button>
-          <Button variant="primary" onClick={() => req.check()}>
+          <Button
+            type="button"
+            variant="subtle"
+            onClick={() => {
+              form.reset();
+              setSaved(false);
+            }}
+          >
+            Reset
+          </Button>
+          <Button type="submit" variant="primary">
             Save statement
           </Button>
         </Inline>
+        {saved && <p role="status">Statement saved for this example.</p>}
       </Stack>
-    </div>
+    </form>
   );
 }
 
 /** Inside a Field with a label, a hint and, on submit, the error. Press Save with the statement empty. */
-export const InField: Story = { render: () => <FormDemo /> };
+export const InField: Story = {
+  render: () => <FormDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const statement = canvas.getByRole("textbox", { name: "Implementation statement" });
+    await userEvent.click(canvas.getByRole("button", { name: "Save statement" }));
+    await waitFor(() => expect(statement).toHaveFocus());
+    await expect(statement).toHaveAccessibleDescription("Required.");
+    await userEvent.type(statement, "Encrypt data.{Enter}Rotate keys.");
+    await waitFor(() => expect(statement).not.toHaveAttribute("aria-invalid", "true"));
+    await expect(statement).toHaveValue("Encrypt data.\nRotate keys.");
+    await expect(canvas.queryByRole("status")).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Save statement" }));
+    await waitFor(() => expect(canvas.getByRole("status")).toHaveTextContent("Statement saved"));
+    await userEvent.click(canvas.getByRole("button", { name: "Reset" }));
+    await expect(statement).toHaveValue("");
+    await expect(canvas.queryAllByRole("alert")).toHaveLength(0);
+    await expect(canvas.queryByRole("status")).toBeNull();
+  },
+};
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {

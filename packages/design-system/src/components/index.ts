@@ -313,7 +313,6 @@ export {
   type EditableSelectProps,
   type EditableTextProps,
 } from "./editable";
-export { useRequired } from "./form";
 export { Gates, type GateItemProps, type GatesProps } from "./gates";
 export {
   HoverCard,

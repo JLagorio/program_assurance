@@ -1,6 +1,8 @@
+import { revalidateLogic, useForm } from "@tanstack/react-form";
+import { z } from "zod";
 import { Field as BaseField } from "@base-ui/react/field";
 import { useId, useRef, useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, within, waitFor } from "storybook/test";
 import {
   FieldLabel,
   FieldDescription,
@@ -12,7 +14,6 @@ import {
   Field,
   Input,
   InputGroup,
-  useRequired,
 } from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { Search } from "lucide-react";
@@ -111,90 +112,137 @@ export const InputMatrix: Story = {
 
 function FormDemo() {
   const fieldId = useId();
-
-  const [name, setName] = useState("");
-  const [owner, setOwner] = useState("");
-  const req = useRequired({ name, owner });
-  const fieldError2 = req.errorFor("name");
-  const fieldError3 = req.errorFor("owner");
+  const formRef = useRef<HTMLFormElement>(null);
+  const [saved, setSaved] = useState(false);
+  const form = useForm({
+    defaultValues: { name: "", owner: "", acronym: "ATLAS" },
+    validationLogic: revalidateLogic({ mode: "submit", modeAfterSubmission: "change" }),
+    validators: {
+      onDynamic: z.object({
+        name: z.string().trim().min(1, "Required."),
+        owner: z.string().trim().min(1, "Required."),
+        acronym: z.string().max(8),
+      }),
+    },
+    onSubmitInvalid: () =>
+      requestAnimationFrame(() =>
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
+      ),
+    onSubmit: () => setSaved(true),
+  });
+  const fields = [
+    {
+      name: "name",
+      label: "Program name",
+      hint: "As it appears on the authorization package.",
+      required: true,
+    },
+    { name: "owner", label: "Owner", hint: undefined, required: true },
+    {
+      name: "acronym",
+      label: "Acronym",
+      hint: "Up to eight characters. Shown in the side nav and on badges.",
+      required: false,
+    },
+  ] as const;
   return (
-    <div style={{ width: 360 }}>
+    <form
+      ref={formRef}
+      aria-label="Create program"
+      noValidate
+      style={{ width: "100%", maxWidth: 360 }}
+      onSubmit={(event) => {
+        event.preventDefault();
+        setSaved(false);
+        void form.handleSubmit();
+      }}
+    >
       <Stack space="space.200">
-        <Field data-invalid={Boolean(fieldError2)}>
-          <FieldLabel id={`${fieldId}-program-name-2-label`} htmlFor={`${fieldId}-program-name-2`}>
-            {"Program name"}
-            <span aria-hidden="true" className="text-danger">
-              {" "}
-              *
-            </span>
-          </FieldLabel>
-          <Input
-            id={`${fieldId}-program-name-2`}
-            aria-labelledby={`${fieldId}-program-name-2-label`}
-            aria-required={true}
-            aria-invalid={Boolean(fieldError2)}
-            aria-describedby={`${fieldId}-program-name-2-message`}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          {Boolean(fieldError2) ? (
-            <FieldError id={`${fieldId}-program-name-2-message`}>{fieldError2}</FieldError>
-          ) : (
-            <FieldDescription id={`${fieldId}-program-name-2-message`}>
-              {"As it appears on the authorization package."}
-            </FieldDescription>
-          )}
-        </Field>
-        <Field data-invalid={Boolean(fieldError3)}>
-          <FieldLabel id={`${fieldId}-owner-3-label`} htmlFor={`${fieldId}-owner-3`}>
-            {"Owner"}
-            <span aria-hidden="true" className="text-danger">
-              {" "}
-              *
-            </span>
-          </FieldLabel>
-          <Input
-            id={`${fieldId}-owner-3`}
-            aria-labelledby={`${fieldId}-owner-3-label`}
-            aria-required={true}
-            aria-invalid={Boolean(fieldError3)}
-            aria-describedby={fieldError3 ? `${fieldId}-owner-3-message` : undefined}
-            value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-            placeholder="first.last@example.mil"
-          />
-          {Boolean(fieldError3) ? (
-            <FieldError id={`${fieldId}-owner-3-message`}>{fieldError3}</FieldError>
-          ) : null}
-        </Field>
-        <Field>
-          <FieldLabel id={`${fieldId}-acronym-4-label`} htmlFor={`${fieldId}-acronym-4`}>
-            {"Acronym"}
-          </FieldLabel>
-          <Input
-            id={`${fieldId}-acronym-4`}
-            aria-labelledby={`${fieldId}-acronym-4-label`}
-            aria-describedby={`${fieldId}-acronym-4-message`}
-            defaultValue="ATLAS"
-            maxLength={8}
-          />
-          <FieldDescription id={`${fieldId}-acronym-4-message`}>
-            {"Up to eight characters. Shown in the side nav and on badges."}
-          </FieldDescription>
-        </Field>
+        {fields.map(({ name, label, hint, required }) => (
+          <form.Field key={name} name={name}>
+            {(field) => {
+              const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              const id = `${fieldId}-${name}`;
+              return (
+                <Field data-invalid={invalid}>
+                  <FieldLabel htmlFor={id}>
+                    {label}
+                    {required && (
+                      <span aria-hidden className="text-danger">
+                        {" "}
+                        *
+                      </span>
+                    )}
+                  </FieldLabel>
+                  <Input
+                    id={id}
+                    name={field.name}
+                    required={required}
+                    maxLength={name === "acronym" ? 8 : undefined}
+                    placeholder={name === "owner" ? "first.last@example.mil" : undefined}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    aria-invalid={invalid}
+                    aria-describedby={invalid || hint ? `${id}-message` : undefined}
+                  />
+                  {invalid ? (
+                    <FieldError id={`${id}-message`} errors={field.state.meta.errors} />
+                  ) : hint ? (
+                    <FieldDescription id={`${id}-message`}>{hint}</FieldDescription>
+                  ) : null}
+                </Field>
+              );
+            }}
+          </form.Field>
+        ))}
         <Inline space="space.100" alignInline="end">
-          <Button variant="subtle">Cancel</Button>
-          <Button variant="primary" onClick={() => req.check()}>
+          <Button
+            type="button"
+            variant="subtle"
+            onClick={() => {
+              form.reset();
+              setSaved(false);
+            }}
+          >
+            Reset
+          </Button>
+          <Button type="submit" variant="primary">
             Create program
           </Button>
         </Inline>
+        {saved && <p role="status">Program created for this example.</p>}
       </Stack>
-    </div>
+    </form>
   );
 }
 
 /** Inside a Field with a label, a hint and, on submit, the error. Press Create with a field empty. */
-export const InField: Story = { render: () => <FormDemo /> };
+export const InField: Story = {
+  render: () => <FormDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const name = canvas.getByRole("textbox", { name: "Program name" });
+    const owner = canvas.getByRole("textbox", { name: "Owner" });
+    await userEvent.click(canvas.getByRole("button", { name: "Create program" }));
+    await waitFor(() => expect(name).toHaveFocus());
+    await expect(name).toHaveAccessibleDescription("Required.");
+    await expect(owner).toHaveAttribute("aria-invalid", "true");
+    await userEvent.type(name, "Atlas");
+    await waitFor(() => expect(name).not.toHaveAttribute("aria-invalid", "true"));
+    await userEvent.type(owner, "alice@example.test{Enter}");
+    await waitFor(() => expect(canvas.getByRole("status")).toHaveTextContent("Program created"));
+    const data = new FormData(
+      canvas.getByRole("form", { name: "Create program" }) as HTMLFormElement,
+    );
+    await expect(data.get("name")).toBe("Atlas");
+    await expect(data.get("acronym")).toBe("ATLAS");
+    await userEvent.click(canvas.getByRole("button", { name: "Reset" }));
+    await expect(name).toHaveValue("");
+    await expect(canvas.queryAllByRole("alert")).toHaveLength(0);
+    await expect(canvas.queryByRole("status")).toBeNull();
+  },
+};
 
 /** The width says how long the answer is. The layout sets it; the Input fills what it is given. */
 export const Widths: Story = {

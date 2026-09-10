@@ -96,9 +96,9 @@ Compose each [Field](?path=/docs/components-field--docs) from a FieldLabel, cont
 
 Use a visible label for every control. Connect FieldLabel using `htmlFor` and the control’s `id`; connect descriptions and errors using `aria-describedby`. Custom controls forward native IDs, ARIA and refs to their actual input. Groups use a fieldset and legend. On failed submit, focus the first invalid field and present all errors together when a form spans several sections. Keep submitted values after a server failure.
 
-## Props
+## Form libraries
 
-Not applicable: Forms is a composition pattern, with no component props of its own. Import `useForm` from `@tanstack/react-form` and `z` from `zod` (Zod 3.25+ or 4 supports Standard Schema). Applications declare these dependencies themselves; Ledger's controls do not depend on a form library.
+Forms is a composition pattern, with no component props of its own. Import `useForm` from `@tanstack/react-form` and `z` from `zod` (Zod 3.25+ or 4 supports Standard Schema). Applications declare these dependencies themselves; Ledger's controls do not depend on a form library.
 
 ### TanStack and shadcn anatomy
 
@@ -158,11 +158,17 @@ The live examples use `noValidate` to demonstrate schema errors. For production,
 
 Bind Input, and Textarea with `value`, `onBlur={field.handleBlur}` and `onChange` passing `event.target.value`. Select and RadioGroup use `value` and `onValueChange={field.handleChange}`; Checkbox and Switch use boolean `checked` and `onCheckedChange`; a checkbox’s mixed presentation uses the separate boolean `indeterminate` prop. Combobox uses Root `value`/`onValueChange` and forwards blur through ComboboxInput; DatePicker uses `value`/`onChange`. Forward blur to the focusable control. For checkbox arrays, use `form.Field` with `mode="array"` and TanStack's `pushValue`/`removeValue` helpers.
 
-### Existing forms
+### Validation and recovery
 
-Application forms formerly using `useRequired` now use TanStack through the application-owned `useRecordForm` policy: Zod required checks, conditional requirements, validation on submit followed by validation on change, nested drafts, and command selection through submit metadata. Their controls bind through `form.Field`.
+The recovery example combines native inputs, a custom input, Select and Combobox. TanStack owns editable values and metadata; native form submission also includes a control associated from outside the form. Its Zod schema requires an owner only for Assigned status; changing that status clears the obsolete error. A local async validator simulates a server rejection for `taken@example.test`, preserving the draft for correction and resubmission. Error-summary buttons and explicit refs focus the actual controls. Reset clears the draft and validation state.
 
-`useRequired` remains exported for compatibility with older consumers and component examples; it is a custom helper, not TanStack Form. Its legacy interaction examples verify required checks, custom control binding and focus recovery. New forms should use the TanStack pattern above.
+<Canvas of={Stories.ValidationRecovery} />
+
+### Migrating from useRequired
+
+`useRequired` is removed. Use TanStack's `useForm` and `form.Field`, schema validators, and `revalidateLogic({ mode: "submit", modeAfterSubmission: "change" })` for required checks that update as the user repairs a submission. Use `form.reset()` for Reset, and `onSubmitInvalid` with a form-scoped invalid-control lookup or an explicit ref for focus. Return field errors from `onSubmitAsync` for server validation. Simple visual-state examples can pass `aria-invalid` and FieldError directly.
+
+The application-owned `useRecordForm` keeps its record-specific validation and submission policy. Package examples import TanStack directly; they do not import that application helper.
 
 ## Don't
 

@@ -2894,10 +2894,6 @@
       "target": "\"src/components/table-state\".usePage",
       "kind": "value"
     },
-    ".#useRequired": {
-      "target": "\"src/components/form\".useRequired",
-      "kind": "value"
-    },
     ".#useRowDrag": {
       "target": "\"src/patterns/data-table/reorder\".useRowDrag",
       "kind": "value"
@@ -4974,18 +4970,6 @@
       {
         "source": "src/components/field.d.ts",
         "declaration": "export type FieldTitleProps = ComponentProps<\"div\">;"
-      }
-    ],
-    "\"src/components/form\".useRequired": [
-      {
-        "source": "src/components/form.d.ts",
-        "declaration": "export declare function useRequired<K extends string>(values: Record<K, FieldValue>, message?: string, options?: ValidationOptions<K>): {\n    check: () => boolean;\n    reset: () => void;\n    errorFor: (key: K) => Partial<Record<K, string>>[K];\n    missing: K | null;\n    errors: Partial<Record<K, string>>;\n    touched: Partial<Record<K, boolean>>;\n    touch: (key: K) => void;\n    focus: (key: K) => void;\n    setServerErrors: import(\"react\").Dispatch<import(\"react\").SetStateAction<Partial<Record<K, string>>>>;\n    clearServerError: (key: K) => void;\n};"
-      }
-    ],
-    "\"src/components/form\".ValidationOptions": [
-      {
-        "source": "src/components/form.d.ts",
-        "declaration": "export type ValidationOptions<K extends string> = {\n    formRef?: RefObject<HTMLFormElement | null> | undefined;\n    fieldRefs?: Partial<Record<K, RefObject<HTMLElement | null>>> | undefined;\n    validate?: Partial<Record<K, (value: string) => string | null>> | undefined;\n};"
       }
     ],
     "\"src/components/gates\".GateItem": [
@@ -7710,12 +7694,6 @@
       {
         "source": "src/components/field.d.ts",
         "declaration": "fieldVariants: (props?: ({\n    orientation?: \"horizontal\" | \"vertical\" | \"responsive\" | null | undefined;\n} & import(\"class-variance-authority/types\").ClassProp) | undefined) => string"
-      }
-    ],
-    "src/components/form.d.ts#FieldValue": [
-      {
-        "source": "src/components/form.d.ts",
-        "declaration": "type FieldValue = string | null | undefined | false;"
       }
     ],
     "src/components/gates.d.ts#GatesRoot": [

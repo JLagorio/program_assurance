@@ -1,3 +1,5 @@
+import { revalidateLogic, useForm } from "@tanstack/react-form";
+import { z } from "zod";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useId, useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
@@ -16,7 +18,6 @@ import {
   DialogTitle,
   Field,
   Input,
-  useRequired,
 } from "../../components";
 
 import { Inline, Stack } from "../../primitives";
@@ -132,91 +133,93 @@ export const Open: Story = {
 
 function FormDemo() {
   const fieldId = useId();
-
+  const formRef = useRef<HTMLFormElement>(null);
   const [open, setOpen] = useState(false);
-  const [scheduled, setScheduled] = useState("");
-  const [target, setTarget] = useState("2026-10-02");
-  const req = useRequired({ scheduled });
-  const fieldError3 = req.errorFor("scheduled");
+  const form = useForm({
+    defaultValues: { scheduled: "", target: "2026-10-02" },
+    validationLogic: revalidateLogic({ mode: "submit", modeAfterSubmission: "change" }),
+    validators: {
+      onDynamic: z.object({ scheduled: z.string().min(1, "Required."), target: z.string() }),
+    },
+    onSubmitInvalid: () =>
+      requestAnimationFrame(() =>
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
+      ),
+    onSubmit: () => setOpen(false),
+  });
   return (
     <>
       <Button onClick={() => setOpen(true)}>Edit milestone dates</Button>
-      <Dialog
-        open={open}
-        onOpenChange={(next) => {
-          if (!next) {
-            setOpen(false);
-          }
-        }}
-      >
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
           <DialogHeader>
             <DialogTitle>Milestone dates</DialogTitle>
           </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <form
+            ref={formRef}
+            aria-label="Milestone dates"
+            noValidate
+            className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void form.handleSubmit();
+            }}
+          >
             <Stack space="space.200">
-              <Field data-invalid={Boolean(fieldError3)}>
-                <FieldLabel
-                  id={`${fieldId}-scheduled-completion-3-label`}
-                  htmlFor={`${fieldId}-scheduled-completion-3`}
-                >
-                  {"Scheduled completion"}
-                  <span aria-hidden="true" className="text-danger">
-                    {" "}
-                    *
-                  </span>
-                </FieldLabel>
-                <DatePicker
-                  id={`${fieldId}-scheduled-completion-3`}
-                  aria-labelledby={`${fieldId}-scheduled-completion-3-label`}
-                  aria-invalid={Boolean(fieldError3)}
-                  aria-describedby={`${fieldId}-scheduled-completion-3-message`}
-                  value={scheduled}
-                  onChange={setScheduled}
-                />
-                {Boolean(fieldError3) ? (
-                  <FieldError id={`${fieldId}-scheduled-completion-3-message`}>
-                    {fieldError3}
-                  </FieldError>
-                ) : (
-                  <FieldDescription id={`${fieldId}-scheduled-completion-3-message`}>
-                    {"When the milestone is due."}
-                  </FieldDescription>
-                )}
-              </Field>
-              <Field>
-                <FieldLabel
-                  id={`${fieldId}-target-date-4-label`}
-                  htmlFor={`${fieldId}-target-date-4`}
-                >
-                  {"Target date"}
-                </FieldLabel>
-                <DatePicker
-                  id={`${fieldId}-target-date-4`}
-                  aria-labelledby={`${fieldId}-target-date-4-label`}
-                  aria-describedby={`${fieldId}-target-date-4-message`}
-                  value={target}
-                  onChange={setTarget}
-                />
-                <FieldDescription id={`${fieldId}-target-date-4-message`}>
-                  {"Optional. Clear it if the target is not set."}
-                </FieldDescription>
-              </Field>
+              {(["scheduled", "target"] as const).map((name) => (
+                <form.Field key={name} name={name}>
+                  {(field) => {
+                    const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                    const id = `${fieldId}-${name}`;
+                    return (
+                      <Field data-invalid={invalid}>
+                        <FieldLabel htmlFor={id}>
+                          {name === "scheduled" ? (
+                            <>
+                              Scheduled completion
+                              <span aria-hidden className="text-danger">
+                                {" "}
+                                *
+                              </span>
+                            </>
+                          ) : (
+                            "Target date"
+                          )}
+                        </FieldLabel>
+                        <DatePicker
+                          id={id}
+                          name={field.name}
+                          aria-required={name === "scheduled"}
+                          value={field.state.value}
+                          onChange={field.handleChange}
+                          onBlur={field.handleBlur}
+                          aria-invalid={invalid}
+                          aria-describedby={`${id}-message`}
+                        />
+                        {invalid ? (
+                          <FieldError id={`${id}-message`} errors={field.state.meta.errors} />
+                        ) : (
+                          <FieldDescription id={`${id}-message`}>
+                            {name === "scheduled"
+                              ? "When the milestone is due."
+                              : "Optional. Clear it if the target is not set."}
+                          </FieldDescription>
+                        )}
+                      </Field>
+                    );
+                  }}
+                </form.Field>
+              ))}
               <Inline space="space.100" alignInline="end">
-                <Button variant="subtle" onClick={() => setOpen(false)}>
+                <Button type="button" variant="subtle" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    if (req.check()) setOpen(false);
-                  }}
-                >
+                <Button type="submit" variant="primary">
                   Save milestone
                 </Button>
               </Inline>
             </Stack>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </>
@@ -493,51 +496,57 @@ export const NativeForm: Story = {
 
 function FocusIntegrationDemo() {
   const fieldId = useId();
-
-  const formRef = useRef<HTMLFormElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const [date, setDate] = useState("");
-  const [blurred, setBlurred] = useState(false);
-  const validation = useRequired({ date }, undefined, { formRef });
-  const fieldError14 = validation.errorFor("date");
+  const form = useForm({
+    defaultValues: { date: "" },
+    validationLogic: revalidateLogic({ mode: "submit", modeAfterSubmission: "change" }),
+    validators: { onDynamic: z.object({ date: z.string().min(1, "Required.") }) },
+    onSubmitInvalid: () => triggerRef.current?.focus(),
+  });
   return (
     <form
-      ref={formRef}
+      noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        validation.check();
+        void form.handleSubmit();
       }}
     >
-      <Field data-invalid={Boolean(fieldError14)}>
-        <FieldLabel id={`${fieldId}-due-date-14-label`} htmlFor={`${fieldId}-due-date-14`}>
-          {"Due date"}
-          <span aria-hidden="true" className="text-danger">
-            {" "}
-            *
-          </span>
-        </FieldLabel>
-        <DatePicker
-          id={`${fieldId}-due-date-14`}
-          aria-labelledby={`${fieldId}-due-date-14-label`}
-          aria-invalid={Boolean(fieldError14)}
-          aria-describedby={fieldError14 ? `${fieldId}-due-date-14-message` : undefined}
-          ref={triggerRef}
-          name="date"
-          data-testid="date-trigger"
-          value={date}
-          onChange={setDate}
-          onBlur={() => {
-            setBlurred(true);
-            validation.touch("date");
-          }}
-        />
-        {Boolean(fieldError14) ? (
-          <FieldError id={`${fieldId}-due-date-14-message`}>{fieldError14}</FieldError>
-        ) : null}
-      </Field>
+      <form.Field name="date">
+        {(field) => {
+          const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
+          return (
+            <Field data-invalid={invalid}>
+              <FieldLabel htmlFor={fieldId}>
+                Due date
+                <span aria-hidden className="text-danger">
+                  {" "}
+                  *
+                </span>
+              </FieldLabel>
+              <DatePicker
+                id={fieldId}
+                name={field.name}
+                ref={triggerRef}
+                aria-required
+                data-testid="date-trigger"
+                value={field.state.value}
+                onChange={field.handleChange}
+                onBlur={field.handleBlur}
+                aria-invalid={invalid}
+                aria-describedby={invalid ? `${fieldId}-error` : undefined}
+              />
+              {invalid && <FieldError id={`${fieldId}-error`} errors={field.state.meta.errors} />}
+            </Field>
+          );
+        }}
+      </form.Field>
       <Button type="submit">Validate date</Button>
-      <Button onClick={() => triggerRef.current?.focus()}>Focus date ref</Button>
-      <output aria-label="Date touched">{String(blurred)}</output>
+      <Button type="button" onClick={() => triggerRef.current?.focus()}>
+        Focus date ref
+      </Button>
+      <form.Subscribe selector={(state) => state.fieldMeta.date?.isBlurred ?? false}>
+        {(blurred) => <output aria-label="Date touched">{String(blurred)}</output>}
+      </form.Subscribe>
     </form>
   );
 }

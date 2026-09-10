@@ -1439,6 +1439,7 @@ assert.match(frameHtml, /max-width:800px/);
 console.log("Packed Item, Table and Chart native contracts passed");
 
 for (const name of [
+  "useRequired",
   "DensityProvider",
   "DensitySwitch",
   "useDensity",

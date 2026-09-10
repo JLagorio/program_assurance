@@ -105,7 +105,6 @@ export function DatePicker({
         form={form}
         value={current}
         disabled={disabled}
-        data-ds-focus-target={triggerId}
       />
       <Popover open={open && !disabled} onOpenChange={(next) => setOpen(next && !disabled)}>
         <PopoverTrigger

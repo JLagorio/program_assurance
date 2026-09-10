@@ -64,9 +64,9 @@ The stylesheet is three imports after Tailwind, in this order:
 @import "@ledger/design-system/base.css";
 ```
 
-Hooks that belong with parts live in the package too: `useRequired` for legacy consumers,
-`useSort` and `usePage` for a Table, `useCommandPalette` for the ⌘K palette, `useSideNav` for the
-shell. A product keeps no copy of anything generic; the prototype is the test vehicle, and when it
+Hooks that belong with parts live in the package too: `useSort` and `usePage` for a Table,
+`useCommandPalette` for the ⌘K palette, `useSideNav` for the shell. A product keeps no copy of
+anything generic; the prototype is the test vehicle, and when it
 breaks the system is what gets fixed.
 
 The package has no router. `BreadcrumbLink` takes a router link through `render`.
@@ -229,4 +229,4 @@ Screens import the package's documented APIs.
 
 Forms belongs under **Patterns** in Storybook. Use TanStack Form for state and submission, Zod for validation, and Ledger Field and controls for presentation. The [Forms pattern](http://localhost:6007/?path=/docs/patterns-forms--docs) documents the mapping to shadcn's TanStack guidance.
 
-Application record forms use `src/lib/record-form.ts`: `useRecordForm` configures TanStack's validation policy and exposes its `form.Field` render props, values and form ref. It validates on submit, then on change; changing an action's required fields revalidates existing errors. Submission metadata selects the save command, so draft saves and conditional confirmation actions retain their behavior. All former application `useRequired` callers have been migrated; the exported legacy hook remains for package compatibility.
+Application record forms use `src/lib/record-form.ts`: `useRecordForm` configures TanStack's validation policy and exposes its `form.Field` render props, values and form ref. It validates on submit, then on change; changing an action's required fields revalidates existing errors. Submission metadata selects the save command, so draft saves and conditional confirmation actions retain their behavior. Form state and validation stay with TanStack; the package exports presentation controls.
