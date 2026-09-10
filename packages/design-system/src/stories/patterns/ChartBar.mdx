@@ -1,13 +1,13 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../components";
+import { Chart } from "../../patterns";
 import * as Stories from "./ChartBar.stories";
 
 <Meta of={Stories} />
 
 # Bar
 
-Bars per category: the size of each thing, compared. Several series sit side by side or stack into parts of a whole; a bar runs down the side when its name is long; a value that is a `[from, to]` pair floats, which is how a phase window is drawn. Simple, grouped, stacked, horizontal and bullet bar charts are all this one part; a histogram is a bar chart of bins the data layer makes. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame, which names it, keys it and lays it out as a table.
+Bars per category: the size of each thing, compared. Several series sit side by side or stack into parts of a whole; a bar runs down the side when its name is long; a value that is a `[from, to]` pair floats, which is how a phase window is drawn. Simple, grouped, stacked, horizontal and bullet bar charts are all this one part; a histogram is a bar chart of bins the data layer makes. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame, which names it, keys it and lays it out as a table.
 
 <Canvas of={Stories.BarMatrix} />
 
@@ -123,10 +123,10 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 
 ## Related
 
-- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
-- [Line](?path=/docs/components-chart-line--docs): the same categories over time, when the change matters more than the size.
+- [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Line](?path=/docs/patterns-chart-line--docs): the same categories over time, when the change matters more than the size.
 - [Progress](?path=/docs/components-progress--docs): one stacked bar of a register's parts, without axes.
-- [Treemap](?path=/docs/components-chart-treemap--docs): parts of a whole with a hierarchy.
+- [Treemap](?path=/docs/patterns-chart-treemap--docs): parts of a whole with a hierarchy.
 
 ## Don't
 

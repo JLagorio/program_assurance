@@ -1479,3 +1479,43 @@ const actionBarHtml = renderToString(
 assert.match(actionBarHtml, /Assessment/);
 assert.match(actionBarHtml, /Passed/);
 console.log("Packed compatibility removal and record navigation passed");
+
+const treeHtml = renderToString(
+  createElement(
+    ledger.Tree,
+    { id: "packed-tree", label: "Hierarchy", "data-source": "packed", style: { maxWidth: 480 } },
+    createElement(
+      ledger.Tree.Item,
+      { depth: 0, id: "packed-entry", "aria-posinset": 3, "aria-setsize": 10 },
+      "Entry",
+    ),
+  ),
+);
+assert.match(treeHtml, /id="packed-tree"/);
+assert.match(treeHtml, /data-source="packed"/);
+assert.match(treeHtml, /max-width:480px/);
+assert.match(treeHtml, /id="packed-entry"/);
+assert.match(treeHtml, /aria-posinset="3"/);
+assert.match(treeHtml, /aria-setsize="10"/);
+const patternsHtml = renderToString(
+  createElement(
+    "div",
+    null,
+    createElement(ledger.Toolbar, { actions: "Filter actions" }),
+    createElement(
+      ledger.Gates,
+      null,
+      createElement(ledger.Gates.Item, { met: false, label: "Owner required" }),
+    ),
+    createElement(ledger.Editable.Text, {
+      label: "Name",
+      value: "Record",
+      onChange: () => {},
+      save: async () => {},
+    }),
+  ),
+);
+assert.match(patternsHtml, /Filter actions/);
+assert.match(patternsHtml, /Owner required/);
+assert.match(patternsHtml, /Record/);
+console.log("Packed Tree native props and relocated patterns passed");

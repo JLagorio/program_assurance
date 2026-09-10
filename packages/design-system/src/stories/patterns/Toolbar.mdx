@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Toolbar } from "../../components";
+import { Toolbar } from "../../patterns";
 import * as Stories from "./Toolbar.stories";
 
 <Meta of={Stories} />
@@ -70,7 +70,7 @@ The toolbar has no states of its own; its controls have theirs. The search field
 
 ## Accessibility
 
-- **A plain row, not the ARIA `toolbar` role.** That role promises arrow-key movement between its controls; a row of a search field, chips and buttons is better served by Tab in reading order, so the Toolbar is a labelled region and not a `toolbar`.
+- **A plain row, not the ARIA `toolbar` role.** That role promises arrow-key movement between its controls; a row of a search field, chips and buttons is better served by Tab in reading order, so Toolbar renders a plain layout div.
 - **The search field is named** by its placeholder through `aria-label`; the icon is decorative.
 - **Typing narrows the table** under it. The count at the end is the result, in text a screen reader can read back.
 - **The chips say pressed**; a chip that opens a popover says expanded. See FilterChip.

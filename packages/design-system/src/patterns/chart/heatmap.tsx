@@ -3,8 +3,8 @@ import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
-import { toneClasses, type Tone } from "../badge";
-import { Popover } from "../popover";
+import { toneClasses, type Tone } from "../../components/badge";
+import { Popover } from "../../components/popover";
 import {
   CardHead,
   divergingColor,

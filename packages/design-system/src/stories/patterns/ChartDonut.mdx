@@ -1,13 +1,13 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../components";
+import { Chart } from "../../patterns";
 import * as Stories from "./ChartDonut.stories";
 
 <Meta of={Stories} />
 
 # Donut
 
-A ring of slices on a `color.chart.track`, with a number in the middle: one number against its whole, the parts around it. Half a ring is a gauge, a score against a scale with the number at its base. It sits inline, sized in pixels, beside a Stat or in a tile; in a [Chart](?path=/docs/components-chart-overview--docs) Frame it inherits the name and the legend's interaction. There is no pie: the number in the middle is what a pie could not say, and a ring of two slices for one number is a Stat.
+A ring of slices on a `color.chart.track`, with a number in the middle: one number against its whole, the parts around it. Half a ring is a gauge, a score against a scale with the number at its base. It sits inline, sized in pixels, beside a Stat or in a tile; in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame it inherits the name and the legend's interaction. There is no pie: the number in the middle is what a pie could not say, and a ring of two slices for one number is a Stat.
 
 <Canvas of={Stories.DonutMatrix} />
 
@@ -105,10 +105,10 @@ A gauge is half as tall as it is wide, plus 4px for the base. The label fits ins
 
 ## Related
 
-- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
 - [Stat](?path=/docs/components-stat--docs): the number a two-slice ring wants to be.
 - [Progress](?path=/docs/components-progress--docs): one value against a whole as a bar, and a stacked bar of a register's parts.
-- [Bar](?path=/docs/components-chart-bar--docs): five or more parts compared.
+- [Bar](?path=/docs/patterns-chart-bar--docs): five or more parts compared.
 
 ## Don't
 

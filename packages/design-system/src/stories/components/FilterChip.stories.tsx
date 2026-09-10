@@ -11,8 +11,8 @@ import {
   PopoverContent,
   ToggleGroup,
   ToggleGroupItem,
-  Toolbar,
 } from "../../components";
+import { Toolbar } from "../../patterns";
 import { Inline, Stack } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";

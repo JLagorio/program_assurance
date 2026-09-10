@@ -1,13 +1,13 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../components";
+import { Chart } from "../../patterns";
 import * as Stories from "./Chart.stories";
 
 <Meta of={Stories} />
 
 # Chart
 
-Data drawn on the chart tokens. `Chart` is the Frame: the figure that names a plot, keys it, holds its states, keeps the way back from a drill-down, and lays the same numbers out as a table one toggle away. Each kind of plot is its own part with its own page: [Bar](?path=/docs/components-chart-bar--docs), [Line](?path=/docs/components-chart-line--docs), [Area](?path=/docs/components-chart-area--docs), [Donut](?path=/docs/components-chart-donut--docs), [Sparkline](?path=/docs/components-chart-sparkline--docs), [Scatter](?path=/docs/components-chart-scatter--docs), [Treemap](?path=/docs/components-chart-treemap--docs) and [Heatmap](?path=/docs/components-chart-heatmap--docs). Recharts draws; the kit decides the paint, the marks, the grid, the tooltip, the legend and the motion, so a chart reads like the rest of the page in both modes. The colour rules follow the data-visualization method, and the categorical order is validated, not eyeballed.
+Data drawn on the chart tokens. `Chart` is the Frame: the figure that names a plot, keys it, holds its states, keeps the way back from a drill-down, and lays the same numbers out as a table one toggle away. Each kind of plot is its own part with its own page: [Bar](?path=/docs/patterns-chart-bar--docs), [Line](?path=/docs/patterns-chart-line--docs), [Area](?path=/docs/patterns-chart-area--docs), [Donut](?path=/docs/patterns-chart-donut--docs), [Sparkline](?path=/docs/patterns-chart-sparkline--docs), [Scatter](?path=/docs/patterns-chart-scatter--docs), [Treemap](?path=/docs/patterns-chart-treemap--docs) and [Heatmap](?path=/docs/patterns-chart-heatmap--docs). Recharts draws; the kit decides the paint, the marks, the grid, the tooltip, the legend and the motion, so a chart reads like the rest of the page in both modes. The colour rules follow the data-visualization method, and the categorical order is validated, not eyeballed.
 
 <Canvas of={Stories.Framed} />
 
@@ -17,18 +17,18 @@ The data's job picks the kind, and sometimes the right kind is not a chart: one 
 
 | The reader must                                 | Part                                                                 | Colour job                                         |
 | ----------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------- |
-| Compare sizes across categories                 | [`Chart.Bar`](?path=/docs/components-chart-bar--docs)                | One hue; `horizontal` for long names               |
+| Compare sizes across categories                 | [`Chart.Bar`](?path=/docs/patterns-chart-bar--docs)                | One hue; `horizontal` for long names               |
 | See parts of each whole                         | `Chart.Bar` stacked                                                  | Status tones, or the categorical set               |
 | Read actual against planned                     | `Chart.Bar` with `target`                                            | The series' tone; the target is ink                |
 | See when things happen                          | `Chart.Bar` horizontal with `[from, to]` values                      | One hue                                            |
-| Follow a trend                                  | [`Chart.Line`](?path=/docs/components-chart-line--docs)              | `brand`, or a tone per series                      |
-| Follow parts of a whole over time               | [`Chart.Area`](?path=/docs/components-chart-area--docs) stacked      | Status tones, or the categorical set               |
-| See one number against its whole                | [`Chart.Donut`](?path=/docs/components-chart-donut--docs)            | The parts' tones on the track                      |
+| Follow a trend                                  | [`Chart.Line`](?path=/docs/patterns-chart-line--docs)              | `brand`, or a tone per series                      |
+| Follow parts of a whole over time               | [`Chart.Area`](?path=/docs/patterns-chart-area--docs) stacked      | Status tones, or the categorical set               |
+| See one number against its whole                | [`Chart.Donut`](?path=/docs/patterns-chart-donut--docs)            | The parts' tones on the track                      |
 | Read a score against a scale                    | `Chart.Donut` `arc="half"`                                           | The tone the score earns                           |
-| See a trend beside a number                     | [`Chart.Sparkline`](?path=/docs/components-chart-sparkline--docs)    | One tone                                           |
-| Place things on two measures                    | [`Chart.Scatter`](?path=/docs/components-chart-scatter--docs)        | `brand`, or at most three groups                   |
-| See how a total splits, and splits again        | [`Chart.Treemap`](?path=/docs/components-chart-treemap--docs)        | The categorical set, one hue per branch            |
-| Read how much across two dimensions             | [`Chart.Heatmap`](?path=/docs/components-chart-heatmap--docs)        | `sequential`: one hue, light to dark               |
+| See a trend beside a number                     | [`Chart.Sparkline`](?path=/docs/patterns-chart-sparkline--docs)    | One tone                                           |
+| Place things on two measures                    | [`Chart.Scatter`](?path=/docs/patterns-chart-scatter--docs)        | `brand`, or at most three groups                   |
+| See how a total splits, and splits again        | [`Chart.Treemap`](?path=/docs/patterns-chart-treemap--docs)        | The categorical set, one hue per branch            |
+| Read how much across two dimensions             | [`Chart.Heatmap`](?path=/docs/patterns-chart-heatmap--docs)        | `sequential`: one hue, light to dark               |
 | Read above and below across two dimensions      | `Chart.Heatmap` `scale="diverging"`                                  | Two hues around grey                               |
 | Read status by place                            | `Chart.Heatmap` with a tone function                                 | The Badge's fills, values printed                  |
 
@@ -218,7 +218,7 @@ The Frame, `Chart`, accepts native figure attributes, events, styles and refs. `
 
 ## Related
 
-- The parts: [Bar](?path=/docs/components-chart-bar--docs), [Line](?path=/docs/components-chart-line--docs), [Area](?path=/docs/components-chart-area--docs), [Donut](?path=/docs/components-chart-donut--docs), [Sparkline](?path=/docs/components-chart-sparkline--docs), [Scatter](?path=/docs/components-chart-scatter--docs), [Treemap](?path=/docs/components-chart-treemap--docs), [Heatmap](?path=/docs/components-chart-heatmap--docs).
+- The parts: [Bar](?path=/docs/patterns-chart-bar--docs), [Line](?path=/docs/patterns-chart-line--docs), [Area](?path=/docs/patterns-chart-area--docs), [Donut](?path=/docs/patterns-chart-donut--docs), [Sparkline](?path=/docs/patterns-chart-sparkline--docs), [Scatter](?path=/docs/patterns-chart-scatter--docs), [Treemap](?path=/docs/patterns-chart-treemap--docs), [Heatmap](?path=/docs/patterns-chart-heatmap--docs).
 - [Stat](?path=/docs/components-stat--docs): one number, which is not a chart.
 - [Progress](?path=/docs/components-progress--docs): one value against a whole, and a stacked bar of a register's parts.
 - [Table](?path=/docs/components-table--docs): the twin every chart carries, and the answer past seven classes.

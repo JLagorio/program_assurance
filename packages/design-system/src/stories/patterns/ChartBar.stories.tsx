@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Button, Chart, KeyValue } from "../../components";
+import { Button, KeyValue } from "../../components";
+import { Chart } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import {
   assessors,
@@ -21,7 +22,7 @@ import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Components/Chart/Bar",
+  title: "Patterns/Chart/Bar",
   component: Chart.Bar,
   parameters: { layout: "padded" },
   args: { data: byFamily, x: "family", series: statusSeries, label: "Coverage by control family" },

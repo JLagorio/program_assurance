@@ -7,14 +7,13 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   Badge,
   Button,
-  Chart,
   KeyValue,
   Spinner,
   Stat,
   ToggleGroup,
   ToggleGroupItem,
-  type ChartSelection,
 } from "../../components";
+import { Chart, type ChartSelection } from "../../patterns";
 import { Box, Grid, Inline, Stack, Text } from "../../primitives";
 import {
   assessors,
@@ -38,7 +37,7 @@ import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Components/Chart/Overview",
+  title: "Patterns/Chart/Overview",
   component: Chart.Frame,
   parameters: { layout: "padded" },
   args: {

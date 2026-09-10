@@ -1,4 +1,4 @@
-import { InputGroupAddon, InputGroupInput, InputGroup } from "./input-group";
+import { InputGroupAddon, InputGroupInput, InputGroup } from "../components/input-group";
 import { useLedgerLocale } from "../lib/locale";
 import { Search } from "lucide-react";
 import { type ReactNode } from "react";

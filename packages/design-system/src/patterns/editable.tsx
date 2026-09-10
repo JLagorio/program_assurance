@@ -6,8 +6,8 @@ import { useLedgerLocale } from "../lib/locale";
 import { cn } from "../lib/cn";
 import { Bleed } from "../primitives/bleed";
 
-import { Input } from "./input";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "./select";
+import { Input } from "../components/input";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "../components/select";
 import {
   Combobox,
   ComboboxContent,
@@ -16,9 +16,9 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
-} from "./combobox";
-import { Spinner } from "./spinner";
-import { Absent } from "./typography";
+} from "../components/combobox";
+import { Spinner } from "../components/spinner";
+import { Absent } from "../components/typography";
 
 /* A value edited where it sits: the reader clicks it, changes it, and it saves. It commits
    optimistically, rolls back when the save fails, and shows the save state beside the value. At

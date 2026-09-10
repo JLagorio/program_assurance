@@ -1,5 +1,5 @@
 import { createRef } from "react";
-import { Chart, Item, Table } from "@ledger/design-system";
+import { Chart, Item, Table, Tree } from "@ledger/design-system";
 
 <Item
   ref={createRef<HTMLLIElement>()}
@@ -60,3 +60,33 @@ import { Chart, Item, Table } from "@ledger/design-system";
 <Table ref={createRef<HTMLDivElement>()} />;
 // @ts-expect-error A cell ref targets a native table cell.
 <Table.Cell ref={createRef<HTMLDivElement>()} />;
+
+<Tree
+  ref={createRef<HTMLDivElement>()}
+  id="hierarchy"
+  label="Hierarchy"
+  aria-describedby="help"
+  style={{ maxWidth: 480 }}
+  onFocusCapture={(event) => {
+    const root: HTMLDivElement = event.currentTarget;
+    void root;
+  }}
+>
+  <Tree.Item
+    ref={createRef<HTMLDivElement>()}
+    depth={0}
+    id="entry"
+    title="Entry"
+    aria-posinset={3}
+    aria-setsize={10}
+    onKeyDown={(event) => event.preventDefault()}
+    onClick={(event) => event.preventDefault()}
+    onSelect={() => {}}
+  >
+    Entry
+  </Tree.Item>
+</Tree>;
+// @ts-expect-error Tree rows expose div refs.
+<Tree.Item depth={0} ref={createRef<HTMLButtonElement>()}>
+  Entry
+</Tree.Item>;

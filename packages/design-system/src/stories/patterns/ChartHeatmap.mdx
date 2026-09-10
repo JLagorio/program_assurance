@@ -1,13 +1,13 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../components";
+import { Chart } from "../../patterns";
 import * as Stories from "./ChartHeatmap.stories";
 
 <Meta of={Stories} />
 
 # Heatmap
 
-A grid of rows by columns with a value painted in each cell: how much, across two dimensions. One hue from light to dark for a magnitude; two hues around grey for above and below; or the status tones by place, which is the risk matrix. It is a table, in the markup as on the page, so a screen reader reads it as one and the keyboard walks it. `Chart.Scale` is its key. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame.
+A grid of rows by columns with a value painted in each cell: how much, across two dimensions. One hue from light to dark for a magnitude; two hues around grey for above and below; or the status tones by place, which is the risk matrix. It is a table, in the markup as on the page, so a screen reader reads it as one and the keyboard walks it. `Chart.Scale` is its key. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame.
 
 <Canvas of={Stories.HeatmapMatrix} />
 
@@ -109,8 +109,8 @@ A cell is at least 40px wide; the grid scrolls sideways inside its own box past 
 
 ## Related
 
-- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
-- [Scatter](?path=/docs/components-chart-scatter--docs): the same two dimensions as points, when both are measures.
+- [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Scatter](?path=/docs/patterns-chart-scatter--docs): the same two dimensions as points, when both are measures.
 - [Table](?path=/docs/components-table--docs): what a heatmap is, with the values shown and the colour gone.
 - [Badge](?path=/docs/components-badge--docs): the tone table a status cell reads.
 - [Tokens/Color](?path=/docs/tokens-color--docs): the sequential and diverging steps, both modes.

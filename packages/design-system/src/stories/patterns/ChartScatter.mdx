@@ -1,13 +1,13 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../components";
+import { Chart } from "../../patterns";
 import * as Stories from "./ChartScatter.stories";
 
 <Meta of={Stories} />
 
 # Scatter
 
-A point per record on two value axes: where each thing sits on two measures at once. Risks by likelihood and impact; findings by age and severity. Points fall into groups of a tone, three at most; a bubble's area follows a third value; two references make quadrants. Each point is a record, so a click opens its card. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame.
+A point per record on two value axes: where each thing sits on two measures at once. Risks by likelihood and impact; findings by age and severity. Points fall into groups of a tone, three at most; a bubble's area follows a third value; two references make quadrants. Each point is a record, so a click opens its card. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame.
 
 <Canvas of={Stories.ScatterMatrix} />
 
@@ -100,9 +100,9 @@ A point per record on two value axes: where each thing sits on two measures at o
 
 ## Related
 
-- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
-- [Heatmap](?path=/docs/components-chart-heatmap--docs): the same two dimensions when both are ordinal scales, with a count per cell: the risk matrix.
-- [Bar](?path=/docs/components-chart-bar--docs): one measure per category.
+- [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Heatmap](?path=/docs/patterns-chart-heatmap--docs): the same two dimensions when both are ordinal scales, with a count per cell: the risk matrix.
+- [Bar](?path=/docs/patterns-chart-bar--docs): one measure per category.
 
 ## Don't
 

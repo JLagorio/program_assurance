@@ -26,8 +26,8 @@ import {
 
 import { token, tokenValue, type TokenName } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
-import type { Tone } from "../badge";
-import { Popover } from "../popover";
+import type { Tone } from "../../components/badge";
+import { Popover } from "../../components/popover";
 
 /*
  * The furniture every chart part shares, internal to this folder: the tones and the scales, the data
@@ -182,8 +182,6 @@ export const formatCategory: CategoryFormatter = (v) => {
   return String(v);
 };
 
-/** @deprecated the old name of formatCategory, kept for the parts. */
-export const plainCategory = formatCategory;
 
 /** Whether any series in the data goes below zero, so the axis and the baseline must too. */
 export const hasNegative = (data: ChartDatum[], keys: string[]) =>

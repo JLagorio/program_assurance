@@ -9,7 +9,7 @@ import * as Stories from "./Stepper.stories";
 
 Progress through an ordered path: the RMF steps, a program's milestones, a wizard. One step is `current`, the steps behind it are `done`, the ones ahead `upcoming`, and `blocked` is the step that failed. The list knows each step's place and its neighbour's state, so the rail is bold behind every completed step and a hairline ahead.
 
-A path is fixed and has three or more steps. Two steps are a [Badge](?path=/docs/components-badge--docs); a percentage is a [Progress](?path=/docs/components-progress--docs) bar; a set of conditions that are met or not is [Gates](?path=/docs/components-gates--docs); events in time are a [Timeline](?path=/docs/components-timeline--docs).
+A path is fixed and has three or more steps. Two steps are a [Badge](?path=/docs/components-badge--docs); a percentage is a [Progress](?path=/docs/components-progress--docs) bar; a set of conditions that are met or not is [Gates](?path=/docs/patterns-gates--docs); events in time are a [Timeline](?path=/docs/components-timeline--docs).
 
 <Canvas of={Stories.StepperMatrix} />
 
@@ -112,7 +112,7 @@ Here done is green and blocked is red, the product's status tones, because on a 
 ## Related
 
 - [Progress](?path=/docs/components-progress--docs): how much, as a bar.
-- [Gates](?path=/docs/components-gates--docs): conditions met or not, in no order.
+- [Gates](?path=/docs/patterns-gates--docs): conditions met or not, in no order.
 - [Timeline](?path=/docs/components-timeline--docs): what happened, in order, with no fixed end.
 - [Tabs](?path=/docs/components-tabs--docs): sections the reader may take in any order.
 

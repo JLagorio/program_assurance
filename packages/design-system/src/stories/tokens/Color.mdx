@@ -65,7 +65,7 @@ The matrix is complete on purpose: every fill has `hovered` and `pressed`, every
 | `color.icon.warning.inverse`, `color.border.inverse`                                                         | An icon and a border on a bold warning fill; the Box paints its text inverse and icons follow it, so the icon token is reached through `currentColor`. |
 | `elevation.surface.pressed`, `elevation.surface.overlay.{hovered,pressed}`, `elevation.shadow.overflow`      | A pressed page surface, a hovered overlay, a scroll edge.                                                                                              |
 
-Drawn this pass: `color.background.input.pressed`, every field on focus; `color.background.inverse.subtle.hovered` and `.pressed`, the Banner's action under the pointer. The chart tokens are reached at runtime through `tone`, which a name scan cannot see; Components/Chart.
+Drawn this pass: `color.background.input.pressed`, every field on focus; `color.background.inverse.subtle.hovered` and `.pressed`, the Banner's action under the pointer. The chart tokens are reached at runtime through `tone`, which a name scan cannot see; Patterns/Chart.
 
 ## Borders
 
@@ -92,7 +92,7 @@ A status border comes in `default` (3:1) and `subtle` (decorative): `color.borde
 
 ## Chart
 
-A series on a chart is a `color.chart.*` token: a status tone when the series is a status, `brand` for the one the reader is asked to look at, `neutral` for context, or the categorical set, six hues in a fixed order validated for colour vision, then Other. Two scales exist for a heatmap: `sequential`, one hue from near zero to the most, and `diverging`, red against blue around grey. Every step is the same in both modes, and every series tone has a `hovered` step (one darker in light, one lighter in dark) for the mark under the pointer. The parts read these through `tone` on a series; `fill-chart-*`, `stroke-chart-*` and `bg-chart-*` let a bespoke SVG take the same paint. How each is used is on Components/Chart.
+A series on a chart is a `color.chart.*` token: a status tone when the series is a status, `brand` for the one the reader is asked to look at, `neutral` for context, or the categorical set, six hues in a fixed order validated for colour vision, then Other. Two scales exist for a heatmap: `sequential`, one hue from near zero to the most, and `diverging`, red against blue around grey. Every step is the same in both modes, and every series tone has a `hovered` step (one darker in light, one lighter in dark) for the mark under the pointer. The parts read these through `tone` on a series; `fill-chart-*`, `stroke-chart-*` and `bg-chart-*` let a bespoke SVG take the same paint. How each is used is on Patterns/Chart.
 
 <Canvas of={Stories.Chart} />
 

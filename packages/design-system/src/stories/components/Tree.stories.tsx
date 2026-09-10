@@ -1,8 +1,8 @@
-import { expect, userEvent, waitFor, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { FileText, Folder } from "lucide-react";
-import { useState } from "react";
+import { createRef, useState } from "react";
 
 import { Badge, Count, Item, Tree } from "../../components";
 import { Box, Stack } from "../../primitives";
@@ -190,7 +190,39 @@ function FamiliesDemo() {
 }
 
 /** A working tree: click a row to select it, its chevron to open it; Tab in once, then the arrows move and open, Enter selects. A collapsed parent shows its hidden child's selection. */
-export const Families: Story = { render: () => <FamiliesDemo /> };
+export const Families: Story = {
+  render: () => <FamiliesDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const finance = canvas.getByRole("treeitem", { name: /Finance/ });
+    const payables = canvas.getByRole("treeitem", { name: /Payables/ });
+    const control = () => canvas.getByRole("treeitem", { name: /CTRL-0412/ });
+    await userEvent.click(control());
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(payables).toHaveFocus();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(payables).toHaveAttribute("aria-expanded", "false");
+    await expect(payables).toHaveAttribute("aria-selected", "true");
+    await expect(canvas.queryByRole("treeitem", { name: /CTRL-0412/ })).not.toBeInTheDocument();
+    await userEvent.keyboard("{ArrowRight}{ArrowRight}");
+    await expect(control()).toHaveFocus();
+    await userEvent.keyboard("{ArrowDown} ");
+    await expect(canvas.getByRole("treeitem", { name: /CTRL-0418/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await userEvent.keyboard("{ArrowUp}{Home}");
+    await expect(finance).toHaveFocus();
+    await userEvent.keyboard("{End}{Enter}");
+    await expect(canvas.getByRole("treeitem", { name: /Security/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await userEvent.click(within(payables).getByRole("button", { hidden: true }));
+    await expect(payables).toHaveFocus();
+    await expect(payables).toHaveAttribute("aria-expanded", "false");
+  },
+};
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
@@ -335,5 +367,125 @@ export const Keyboard: Story = {
     await waitFor(() => expect(document.activeElement).toHaveTextContent("Beta"));
     await expect(entries()).toHaveLength(1);
     await expect(document.activeElement).toHaveAttribute("aria-setsize", "2");
+  },
+};
+
+const nestedRootRef = createRef<HTMLDivElement>();
+const nestedRowRef = createRef<HTMLDivElement>();
+const nestedFocus = fn();
+const nestedKey = fn();
+const rowClick = fn();
+const rowSelect = fn();
+
+/** An embedded hierarchy keeps its own navigation. Native handlers can reserve a key or cancel selection. */
+function NestedTreesDemo() {
+  const [showEmptyCollection, setShowEmptyCollection] = useState(true);
+  return (
+    <Tree label="Collections" style={{ maxWidth: 640 }}>
+      <Tree.Item
+        depth={0}
+        aria-label="Alpha collection"
+        style={{ height: "auto", minHeight: 64, alignItems: "start" }}
+        trailing={
+          <Tree
+            ref={nestedRootRef}
+            id="embedded-tree"
+            label="Collection entries"
+            data-collection="alpha"
+            style={{ minWidth: 240 }}
+            onFocusCapture={nestedFocus}
+            onKeyDown={(event) => {
+              nestedKey(event.key);
+              if (event.key === "b") event.preventDefault();
+            }}
+          >
+            <Tree.Item
+              ref={nestedRowRef}
+              id="embedded-alpha"
+              title="Alpha entry"
+              depth={0}
+              data-entry="alpha"
+              onClick={(event) => {
+                rowClick();
+                event.preventDefault();
+              }}
+              onSelect={rowSelect}
+              onKeyDown={(event) => {
+                if (event.key === "End") event.preventDefault();
+              }}
+            >
+              Alpha entry (selection locked)
+            </Tree.Item>
+            <Tree.Item
+              depth={0}
+              aria-label="Beta entry"
+              trailing={
+                <button type="button" onClick={() => setShowEmptyCollection(false)}>
+                  Remove empty collection
+                </button>
+              }
+            >
+              Beta entry
+            </Tree.Item>
+          </Tree>
+        }
+      >
+        Alpha collection
+      </Tree.Item>
+      {showEmptyCollection ? <Tree.Item depth={0}>Beta collection</Tree.Item> : null}
+    </Tree>
+  );
+}
+
+export const NestedTrees: Story = {
+  render: () => <NestedTreesDemo />,
+  play: async ({ canvasElement }) => {
+    nestedFocus.mockClear();
+    nestedKey.mockClear();
+    rowClick.mockClear();
+    rowSelect.mockClear();
+    const canvas = within(canvasElement);
+    const root = canvas.getByRole("tree", { name: "Collections" });
+    const inner = canvas.getByRole("tree", { name: "Collection entries" });
+    const alpha = canvas.getByRole("treeitem", { name: "Alpha collection" });
+    const beta = canvas.getByRole("treeitem", { name: "Beta collection" });
+    const innerAlpha = within(inner).getByRole("treeitem", { name: /Alpha entry/ });
+    const innerBeta = within(inner).getByRole("treeitem", { name: "Beta entry" });
+    await expect(nestedRootRef.current).toBe(inner);
+    await expect(nestedRowRef.current).toBe(innerAlpha);
+    await expect(inner).toHaveAttribute("id", "embedded-tree");
+    await expect(inner).toHaveAttribute("data-collection", "alpha");
+    await expect(inner).toHaveStyle({ minWidth: "240px" });
+    await expect(innerAlpha).toHaveAttribute("id", "embedded-alpha");
+    await expect(innerAlpha).toHaveAttribute("data-entry", "alpha");
+    await expect(innerAlpha).toHaveAttribute("title", "Alpha entry");
+    await userEvent.click(alpha);
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(beta).toHaveFocus();
+    await expect(beta).toHaveAttribute("aria-posinset", "2");
+    await expect(beta).toHaveAttribute("aria-setsize", "2");
+    await userEvent.click(innerBeta);
+    await userEvent.keyboard("{Home}");
+    await expect(innerAlpha).toHaveFocus();
+    await userEvent.keyboard("{End}b");
+    await expect(innerAlpha).toHaveFocus();
+    await expect(nestedFocus).toHaveBeenCalled();
+    await expect(nestedKey).toHaveBeenCalledWith("b");
+    await userEvent.click(innerAlpha);
+    await expect(rowClick).toHaveBeenCalledTimes(1);
+    await expect(rowSelect).not.toHaveBeenCalled();
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(innerBeta).toHaveFocus();
+    await userEvent.keyboard("a");
+    await expect(innerAlpha).toHaveFocus();
+    await expect(innerAlpha).toHaveAttribute("aria-setsize", "2");
+    const entries = [...root.querySelectorAll('[role="treeitem"][tabindex="0"]')];
+    await expect(entries).toHaveLength(2);
+    await expect(entries).toContain(beta);
+    await expect(entries).toContain(innerAlpha);
+    const removeCollection = canvas.getByRole("button", { name: "Remove empty collection" });
+    await userEvent.click(removeCollection);
+    await expect(beta).not.toBeInTheDocument();
+    await expect(removeCollection).toHaveFocus();
   },
 };

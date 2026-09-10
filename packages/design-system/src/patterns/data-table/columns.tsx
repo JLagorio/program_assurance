@@ -4,7 +4,7 @@ import { useLedgerLocale } from "../../lib/locale";
 import type { ReactNode } from "react";
 
 import { Badge, type Tone } from "../../components/badge";
-import { Editable } from "../../components/editable";
+import { Editable } from "../editable";
 import { Person } from "../../components/avatar";
 import { Table, type ListItem } from "../../components/table";
 import { Absent } from "../../components/typography";

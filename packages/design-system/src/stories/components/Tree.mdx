@@ -53,7 +53,7 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | Plain    | Text on the surface.                                                                                                                           |
 | Hover    | `color.background.neutral.subtle.hovered` across the row.                                                                                      |
-| Selected | `color.background.selected`; `aria-selected`. The row is the tree's tab stop. If its branch is closed, the parent shows the selection instead. |
+| Selected | `color.background.selected`; `aria-selected`. The row is the initial tab stop; focus can move independently. If its branch is closed, the parent shows the selection instead. |
 | Focus    | The focus outline around the row, on keyboard focus.                                                                                           |
 | Open     | The chevron down; `aria-expanded="true"`; the children rendered under it by the caller.                                                        |
 | Closed   | The chevron right; `aria-expanded="false"`; a Count in `trailing` says how many are beneath.                                                   |
@@ -92,11 +92,21 @@ The tree retains one entry tab stop as rows are selected, removed or collapsed. 
 ## Accessibility
 
 - **It is a tree**: `role="tree"` named by `label`, every row a `treeitem` with `aria-level`, `aria-selected`, and `aria-expanded` on a branch: the ARIA pattern.
-- **One tab stop.** The selected row is tabbable, or the first row when none is; every other row is reached with the arrows: a single tab stop, landing on the selected node.
+- **One entry tab stop per tree.** Initially the selected row is tabbable, or the first row when none is. Arrow navigation moves that tab stop without selecting; returning to the tree retains the last focused row. Removing that row restores focus to a preceding visible row when focus would otherwise be lost.
 - **Keyboard:** Down and Up move between visible rows; Right opens a closed branch, or moves into an open one; Left closes an open branch, or moves to the parent; Home and End go to the ends; Enter or Space selects.
-- **The chevron is for the mouse.** It opens the branch without selecting the row and is hidden from the keyboard and screen readers, which have Right and Left.
+- **The chevron is for the mouse.** It focuses and toggles the branch without selecting it. It is hidden from the keyboard and screen readers, which have Right and Left.
 - **Trailing controls are outside the model.** A button in `trailing` is its own tab stop; keep to a Count, a Badge or a Dot where the tree is long.
 - **The selection is never hidden.** When the selected row's branch is closed, the caller selects the parent, so the reader does not lose their place.
+
+<Canvas of={Stories.Keyboard} />
+
+Tree and Tree.Item accept native div attributes, styles, events and refs. Caller handlers run before their built-in handler; `preventDefault()` cancels that behavior. Use `onKeyDownCapture` on the root to reserve keys before row handling. Item’s `onSelect` is the existing node-selection callback, not the native text-selection event. Tree roles and row levels stay component-owned. An explicit `aria-label` overrides the root’s `label` shorthand; `posInSet`/`setSize` or native sibling metadata overrides inferred counts.
+
+Embedded trees keep separate arrow navigation, typeahead and entry tab stops. Trailing controls keep their own actions and do not select the containing row.
+
+<Canvas of={Stories.NestedTrees} />
+
+The keyboard behavior follows the [WAI-ARIA tree view pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/). Root refs compose through [Base UI useRender](https://base-ui.com/react/utils/use-render#merging-refs).
 
 ## Props
 
@@ -117,7 +127,6 @@ The tree retains one entry tab stop as rows are selected, removed or collapsed. 
 - [Table](?path=/docs/components-table--docs): `Table.Tree`, a hierarchy with columns.
 - [Item](?path=/docs/components-item--docs): one level of nesting, as a collapsible list.
 - [Collapsible](?path=/docs/components-collapsible--docs): one section that opens.
-- [SystemTree](?path=/docs/patterns-systemtree--docs): the product's system hierarchy, built on Tree.
 
 ## Don't
 

@@ -50,7 +50,7 @@ A side panel leaves on the standard curve, not the exit curve, because it stays 
 | A page's content, the panel at the large breakpoint, a Stat tile, a Related card | moderate · enter | | `animate-rise` |
 | The panel's column opening or closing the page | moderate · standard | | `shell-root`'s grid transition |
 | A set of tiles or cards arriving | one stagger step apart | | `stagger-children` on the parent |
-| A chart's marks | slow | | Components/Chart |
+| A chart's marks | slow | | Patterns/Chart |
 
 Base UI components use `data-open`/`data-closed` or starting/ending styles; `src/styles/motion.css` defines the shared token-based animation utilities. Accordion reads Base UI’s `--accordion-panel-height`. Drawer’s `drawer.css` combines measured height, snap offset and swipe progress with Ledger motion tokens, and disables transitions under reduced motion.
 

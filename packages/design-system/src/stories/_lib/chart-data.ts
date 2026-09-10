@@ -1,4 +1,5 @@
-import type { ChartDatum, ChartSeries, Tone } from "../../components";
+import type { Tone } from "../../components";
+import type { ChartDatum, ChartSeries } from "../../patterns";
 
 /* The fixtures the nine Chart pages share: one program's coverage, findings, risks and systems, so a
    reader who moves from the Bar page to the Line page sees the same numbers drawn another way. */

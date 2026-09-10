@@ -1,13 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Button, Chart, KeyValue } from "../../components";
+import { Button, KeyValue } from "../../components";
+import { Chart } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import { assessors, byAssessor, byMonth, byWeek, findingSeries } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Components/Chart/Area",
+  title: "Patterns/Chart/Area",
   component: Chart.Area,
   parameters: { layout: "padded" },
   args: { data: byMonth, x: "month", series: findingSeries, label: "Findings over time" },

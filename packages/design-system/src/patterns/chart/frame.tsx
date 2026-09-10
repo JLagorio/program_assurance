@@ -13,7 +13,13 @@ import {
   type ReactNode,
 } from "react";
 import { useLedgerLocale } from "../../lib/locale";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/dialog";
 
 import { cn } from "../../lib/cn";
 import {
@@ -23,19 +29,19 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "../breadcrumb";
-import { IconButton } from "../button";
+} from "../../components/breadcrumb";
+import { IconButton } from "../../components/button";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../dropdown-menu";
-import { Skeleton } from "../skeleton";
-import { Spinner } from "../spinner";
-import { Table } from "../table";
-import { Toggle } from "../toggle";
+} from "../../components/dropdown-menu";
+import { Skeleton } from "../../components/skeleton";
+import { Spinner } from "../../components/spinner";
+import { Table } from "../../components/table";
+import { Toggle } from "../../components/toggle";
 import {
   FrameContext,
   Swatch,

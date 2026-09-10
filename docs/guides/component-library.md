@@ -23,6 +23,10 @@ the layers below it, by relative path, so the dependency graph stays visible.
 | 5   | **Shell**      | `src/shell`      | The navigation system: banner, top nav, side nav, main, panel, and the items that go in them. It knows nothing about routes.                         |
 | 6   | **Mode**       | `src/mode`       | The colour mode: provider, switch, storage, the before-paint script.                                                                                 |
 
+Editable, Gates, Toolbar and the Chart recipe family live in `src/patterns/`. They own inline-save recovery, readiness checks, search/filter/action layout, and chart exploration/export respectively. Chart remains Recharts-based, as in [shadcn’s chart source](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/chart.tsx); the Ledger family adds coordinated views and actions. Toolbar is the tab-navigated search row, distinct from [Base UI’s arrow-navigated Toolbar](https://base-ui.com/react/components/toolbar). Public imports still come from `@ledger/design-system`.
+
+Stepper, Timeline, Stat, Attachment, Banner, CodeBlock and KeyValue remain components. They describe a step sequence, event feed, metric, file, message, code display or fact; they do not own a wizard, upload service or record workflow. Composing small parts alone does not make a component a pattern.
+
 The standalone Shapes catalog is retired. Its runtime exports remain for existing consumers;
 Block and Inspector still appear in integration stories. ActionBar and WorkPane retain API
 compatibility checks but no dedicated stories. Build new compositions from the maintained

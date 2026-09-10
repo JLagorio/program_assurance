@@ -1,14 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Button, Chart, KeyValue } from "../../components";
+import { Button, KeyValue } from "../../components";
+import { Chart } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import { bySource, bySystem, componentFacts, sourceSeries } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Components/Chart/Treemap",
+  title: "Patterns/Chart/Treemap",
   component: Chart.Treemap,
   parameters: { layout: "padded" },
   args: { data: bySystem, label: "Findings by system and component" },

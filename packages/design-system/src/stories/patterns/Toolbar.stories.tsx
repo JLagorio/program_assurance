@@ -11,8 +11,8 @@ import {
   Table,
   ToggleGroup,
   ToggleGroupItem,
-  Toolbar,
 } from "../../components";
+import { Toolbar } from "../../patterns";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { Download, Plus } from "lucide-react";
 import { useState } from "react";
@@ -20,7 +20,7 @@ import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Components/Toolbar",
+  title: "Patterns/Toolbar",
   component: Toolbar,
   parameters: { layout: "padded" },
   args: { search: "", onSearch: () => {}, placeholder: "Search controls" },

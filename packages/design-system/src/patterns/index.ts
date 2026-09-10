@@ -25,3 +25,48 @@ export {
   type ComposerSuggestions,
 } from "./composer";
 export { TaskRow, type TaskRowProps } from "./task-row";
+
+export {
+  Chart,
+  categoricalTone,
+  chartColor,
+  formatNumber,
+  type ChartAreaProps,
+  type ChartBand,
+  type ChartBarProps,
+  type ChartColumn,
+  type ChartCrumb,
+  type ChartDatum,
+  type ChartDomain,
+  type ChartDonutProps,
+  type ChartFrameProps,
+  type ChartHeatmapProps,
+  type ChartLegendProps,
+  type ChartLineProps,
+  type ChartReference,
+  type ChartScaleProps,
+  type ChartScatterGroup,
+  type ChartScatterProps,
+  type ChartSelection,
+  type ChartSeries,
+  type ChartSize,
+  type ChartSparklineProps,
+  type ChartTone,
+  type ChartTreemapProps,
+  type ChartValue,
+  type DonutSelection,
+  type DonutSlice,
+  type HeatmapScale,
+  type HeatmapSelection,
+  type ScatterSelection,
+  type TreemapNodeInput,
+  type TreemapSelection,
+} from "./chart";
+export {
+  Editable,
+  type EditableProps,
+  type EditableSelectProps,
+  type EditableTextProps,
+} from "./editable";
+export { Gates, type GateItemProps, type GatesProps } from "./gates";
+export { Toolbar, type ToolbarProps } from "./toolbar";

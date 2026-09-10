@@ -1,13 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Chart, Stat, Table } from "../../components";
+import { Stat, Table } from "../../components";
+import { Chart } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { byMonth, families, findingsByFamilyMonth, heatMonths } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Components/Chart/Sparkline",
+  title: "Patterns/Chart/Sparkline",
   component: Chart.Sparkline,
   parameters: { layout: "padded" },
   args: { data: byMonth, y: "open", tone: "danger" },

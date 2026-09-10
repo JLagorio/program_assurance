@@ -1,13 +1,13 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../components";
+import { Chart } from "../../patterns";
 import * as Stories from "./ChartTreemap.stories";
 
 <Meta of={Stories} />
 
 # Treemap
 
-Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of its top-level branch. Findings by system and component; controls by family and enhancement. Where the total goes, and where inside that. A name shows on a tile when it fits; the rest is the tooltip's. A click on a tile drills into its branch, or opens its card. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame, whose legend names the branches.
+Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of its top-level branch. Findings by system and component; controls by family and enhancement. Where the total goes, and where inside that. A name shows on a tile when it fits; the rest is the tooltip's. A click on a tile drills into its branch, or opens its card. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame, whose legend names the branches.
 
 <Canvas of={Stories.TreemapMatrix} />
 
@@ -91,9 +91,9 @@ Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of 
 
 ## Related
 
-- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
-- [Bar](?path=/docs/components-chart-bar--docs): parts compared without a hierarchy.
-- [Donut](?path=/docs/components-chart-donut--docs): parts of one whole with the whole in the middle.
+- [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Bar](?path=/docs/patterns-chart-bar--docs): parts compared without a hierarchy.
+- [Donut](?path=/docs/patterns-chart-donut--docs): parts of one whole with the whole in the middle.
 - [Tree](?path=/docs/components-tree--docs): the same hierarchy as an outline, when the reader wants to walk it.
 
 ## Don't

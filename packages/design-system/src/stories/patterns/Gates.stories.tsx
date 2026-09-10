@@ -1,12 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Button, Gates, Progress, ProgressValue, TextLink } from "../../components";
+import { Button, Progress, ProgressValue, TextLink } from "../../components";
+import { Gates } from "../../patterns";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Matrix } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Components/Gates",
+  title: "Patterns/Gates",
   component: Gates,
   parameters: { layout: "padded" },
   args: { children: <Gates.Item met label="Owner" /> },

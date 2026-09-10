@@ -1,13 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Button, Chart, KeyValue } from "../../components";
+import { Button, KeyValue } from "../../components";
+import { Chart } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import { riskGroups, risks } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Components/Chart/Scatter",
+  title: "Patterns/Chart/Scatter",
   component: Chart.Scatter,
   parameters: { layout: "padded" },
   args: { data: risks, x: "likelihood", y: "impact", name: "id", label: "Risks by likelihood and impact" },

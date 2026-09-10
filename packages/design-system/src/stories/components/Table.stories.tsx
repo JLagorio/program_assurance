@@ -14,10 +14,10 @@ import {
   Person,
   Table,
   type Tone,
-  Toolbar,
   usePage,
   useSort,
 } from "../../components";
+import { Toolbar } from "../../patterns";
 import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 

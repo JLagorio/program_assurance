@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Button, Chart, KeyValue, Stat } from "../../components";
+import { Button, KeyValue, Stat } from "../../components";
+import { Chart } from "../../patterns";
 import { Box, Inline, Stack } from "../../primitives";
 import { byFamily, bySource, statusSeries } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
@@ -22,7 +23,7 @@ const posture = [
 ];
 
 const meta = {
-  title: "Components/Chart/Donut",
+  title: "Patterns/Chart/Donut",
   component: Chart.Donut,
   parameters: { layout: "padded" },
   args: { slices: coverage, label: "80%", caption: "satisfied", name: "Control coverage" },

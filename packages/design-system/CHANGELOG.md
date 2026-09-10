@@ -6,13 +6,15 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ## Unreleased · audit implementation
 
+- Move Editable, Gates, Toolbar and the Chart recipe family into `src/patterns/`, with their Storybook pages and internal dependencies. Package-root imports and runtime contracts are unchanged. Remove the unused internal chart alias `plainCategory`. Tree now forwards native div props/refs and caller handlers, shares scoped row navigation across arrow keys and typeahead, and keeps embedded trees independent. Preserve focus when rows disappear and focus the branch on chevron clicks; `preventDefault()` can cancel row selection or key handling. See [Tree](src/stories/components/Tree.mdx) and the [layer guide](../../docs/guides/component-library.md#layers).
+
 - Editable now composes the shared Input, Select and Base UI Combobox popup while preserving its compact layout, validation and optimistic save/rollback contract. Selection triggers retain focus while saving and expose native combobox semantics. PickerSheet and PreviewSheet render Back only when `onBack` exists; an unused PickerSheet toolbar leaves no empty container or divider. Consolidate the duplicate PickerSheet story and extend existing examples with keyboard, selection recovery, navigation and focus checks. Replace the remaining 27 dynamic `storybook/test` imports across ten files with static imports so their play functions work in the development canvas as well as Vitest.
 
 - Remove the legacy `useRequired` validation hook and DatePicker's unused focus-target attribute. Input, Textarea and DatePicker form examples now use TanStack Form with explicit Field bindings. Consolidate the legacy validation and composite-control stories into one recovery example covering required and format errors, conditional owner selection, simulated server rejection, native form serialization, focus and reset. Use `useForm`, `form.Field`, validators and `onSubmitInvalid` in place of the retired helper; application record forms already use TanStack and require no changes.
 
 - Remove the retired global density runtime exports (`DensityProvider`, `DensitySwitch`, `useDensity`, storage helpers and scripts); retain the `Density` type and each table's setting. Remove `Tiles` in favor of `Stat.Grid`, and `Related.Row`/`RelatedRowProps` in favor of `Item`/`ItemProps`. Remove RecordHeader's `facts`, `breadcrumb` and ignored `back`, ActionBar's legacy `breadcrumb`, and Stepper.Item's ignored `first`/`last`. Use parent `crumbs` and a current `id`, page-rail details, and explicit state-strip content in `below`; ActionBar retains its composed state facts. Timeline and Related card links use Base UI composition and preserve caller ids/refs/handlers; supplied link children override the configured title. PreviewSheet retains its explicit fallback so empty link children still receive the default label. Remove redundant density/header/preview stories and repeated migration summaries; family pages and the changelog own detailed guidance.
 
-- **Item, Table and Chart.Frame forward native DOM props and refs.** Item keeps its configured record id/title/action props, composes links through Base UI useRender, preserves link ids and accepts native cancellable disclosure changes. Table root/cell refs target native elements; its scroll-frame ref supports React 19 cleanup, and overflow tracking observes the table as well as the container. Chart.Frame exposes its original figure without duplicating DOM ids/refs/events into the expanded view. Existing record layouts, selection, sorting, pinning and chart interactions remain. Remove Item's duplicate comparison story and shorten its family page. See [Item](src/stories/components/Item.mdx), [Table](src/stories/components/Table.mdx) and [Chart](src/stories/components/Chart.mdx).
+- **Item, Table and Chart.Frame forward native DOM props and refs.** Item keeps its configured record id/title/action props, composes links through Base UI useRender, preserves link ids and accepts native cancellable disclosure changes. Table root/cell refs target native elements; its scroll-frame ref supports React 19 cleanup, and overflow tracking observes the table as well as the container. Chart.Frame exposes its original figure without duplicating DOM ids/refs/events into the expanded view. Existing record layouts, selection, sorting, pinning and chart interactions remain. Remove Item's duplicate comparison story and shorten its family page. See [Item](src/stories/components/Item.mdx), [Table](src/stories/components/Table.mdx) and [Chart](src/stories/patterns/Chart.mdx).
 
 
 - **Breaking: TextLink and Shell navigation use Base UI render/mergeProps.** Native anchors and refs replace Slot composition. AppLogo defaults to a span; navigation actions explicitly render buttons. Keep item labels outside the rendered router Link so icons and badges remain. Shell's layout, mobile navigation, resizing and persistence are preserved. See [TextLink](src/stories/components/TextLink.mdx) and [Shell](src/stories/patterns/Shell.mdx).
@@ -90,7 +92,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - Sort Storybook components alphabetically, removing the Overlays/Chart priority exceptions; use deterministic English alphabetical sorting in both Storybooks.
 
 - The table at Josef's 2026-09-06 review. `DataTable.Presets` takes `variant="menu"`, one button that reads the current question and opens the list with counts, for a toolbar that also holds search and filters. `DataTable.Settings` is a gear beside `DataTable.Columns` for the rows' density and Reset view; the Columns menu is the columns alone. The checkbox, handle and detail columns are always first and always pinned; the pinned column that touches the middle keeps its hairline while the frame is scrolled (a pseudo-element, since a collapsed table border stays put under a sticky cell); a `Table.Group` heading sticks to the frame's leading edge while the rows scroll sideways. The preview eye sits at the end of the row's first value cell and is there at rest, muted; `Table.Id` draws its eye the same way. `custom` columns take `pin`, `hideable` and `resizable`. Patterns/Data table.
-- `Editable.Select` shows the options and nothing else (the label is for the screen reader), and past eight options, or with `searchable`, it is a searched list of the values as words. Components/Editable.
+- `Editable.Select` shows the options and nothing else (the label is for the screen reader), and past eight options, or with `searchable`, it is a searched list of the values as words. Patterns/Editable.
 - `Composer` takes `actions`, rendered before Cancel and the primary button: a second thing to do with the draft, the product's Task button. Patterns/Composer.
 - `Timeline` takes `wrap`: titles wrap instead of truncating, for a feed whose sentences name a task or a file. Components/Timeline.
 - `color.border.input` is `neutral.400` (dark `darkNeutral.500`) again, the lighter field border Josef asked for on 2026-09-04; the audit's contrast pair for it is a visibility floor, the focus and danger borders keep 3:1.
@@ -140,7 +142,7 @@ Migration: custom controls inside Field must call `useFieldControl` or explicitl
   `text` column passes its header; the prototype's ten call sites pass the row's label.
   `Command.Empty` and `Command.Loading` render after `Command.List`, not inside it: a listbox may
   hold only options and groups, and the a11y gate said so. The kit's Combobox, CommandPalette
-  and RecordPicker moved theirs. Components/Editable, Components/Command.
+  and RecordPicker moved theirs. Patterns/Editable, Components/Command.
 - `Accordion` is `Collapsible.Group`: one part for a section that folds, alone or in a set. A
   Collapsible inside a Group takes the group's keyboard (Up and Down between the titles, Home and
   End, wrapping) and the group's open state, and is written the way it is written alone:
@@ -228,14 +230,14 @@ Migration: custom controls inside Field must call `useFieldControl` or explicitl
   of buttons when the segments click; a clickable segment is named by its title. Without a label it
   stays hidden and the counts beside it carry the values. Components/Progress: Stacked.
 - `Gates.Item` says "Met" or "Not met" before its label to a screen reader; the check and the Dot
-  are hidden, so nothing is said twice. Components/Gates.
+  are hidden, so nothing is said twice. Patterns/Gates.
 - Alert, Banner, Progress, Stat and Gates are on the template. Every prop of the five
   is typed and described, so five more generated tables fill, and the compound parts (`Stat.Tile`,
   `Stat.Grid`, `Progress.Stacked`, `Gates.Item`) have their own. Said on the pages and not built:
   a dismiss on an Alert, an icon per tone, a success or neutral Banner, high and low contrast, an
   indeterminate bar, a stepped bar, a label above and helper text below a bar, a status icon, a trend
   on a Stat, a tinted tile. Components/Alert, Components/Banner, Components/Progress, Components/Stat,
-  Components/Gates.
+  Patterns/Gates.
 - A zero Stat reads muted whether it is the number 0 or the string "0"; the prototype's template
   literals were slipping past. Components/Stat: Matrix.
 - `Indicator` truncates its word when the column is narrower than it, and never shrinks its Dot;
@@ -360,7 +362,7 @@ Migration: custom controls inside Field must call `useFieldControl` or explicitl
   whose child is a plain string carries it as its `title`, so truncated text shows whole on hover,
   as the data-table spec promised. Components/Table: Frame, Dont and Playground stories.
 - `ToolbarProps`, typed and described; the search field is `type="search"` at `size="small"`
-  and named by its placeholder through `aria-label`. Components/Toolbar: Live, Dont, Playground.
+  and named by its placeholder through `aria-label`. Patterns/Toolbar: Live, Dont, Playground.
 - Pages on the template: Table, Pagination, Toolbar, FilterChip and Data table (its prose kept
   under the eleven headings; the Kinds table is Content, the hook's options are Modifiers).
   Twenty pages on the template; 721 gaps grandfathered.
@@ -591,42 +593,42 @@ Migration: custom controls inside Field must call `useFieldControl` or explicitl
   the plot's height with a Skeleton; `empty` and `error` say so in it), `data` and `x` for the
   Table toggle that lays the same numbers out, and `format` and `formatX`, inherited by the plot
   inside. The legend in a Frame is a row of toggle buttons: hover dims the other series to
-  `opacity.disabled`, click isolates one, and a hidden series' swatch hollows. Components/Chart:
+  `opacity.disabled`, click isolates one, and a hidden series' swatch hollows. Patterns/Chart:
   Framed, States.
 - `Chart.Bar` takes `labels="end"`, a `target` key drawn as an ink mark across each bar (a
   bullet chart), a `line` series over the bars, and `[from, to]` values that float. Bars cap at 24px with
   a 2px rounded data end and a square baseline; stacked segments part by a 2px surface gap,
-  grouped bars by 2px. Components/Chart: Bars, Stacked, Horizontal, Targets, Windows.
+  grouped bars by 2px. Patterns/Chart: Bars, Stacked, Horizontal, Targets, Windows.
 - `Chart.Line` and `Chart.Area` take `curve`, `dots`, `labels="end"` (the last values after the
   lines, pushed apart when they would collide), `baseline="auto"`, `bands`, `reference` (a target,
   a limit, a milestone: dashed and labelled at its end) and `connectNulls`. Lines are 2px with
   round joins and an 8px marker ringed in the surface on hover; the wash is the hue at 12%.
-  Components/Chart: Lines, Burndown, Areas, Emphasis.
+  Patterns/Chart: Lines, Burndown, Areas, Emphasis.
 - `Chart.Donut` takes `caption`, `arc="half"` (a gauge, the number at its base), `name` and
   `onSelect`; slices part by a 2px surface gap. `Chart.Sparkline` takes `appearance` (`line`,
-  `area`, `bars`), `endDot`, `reference` and `label`. Components/Chart: Donuts, Sparklines.
+  `area`, `bars`), `endDot`, `reference` and `label`. Patterns/Chart: Donuts, Sparklines.
 - New parts: `Chart.Scatter` (points on two value axes, `groups` of a tone up to three so any two
   stay apart, `z` for a bubble, a hit area three times the point, quadrants from `reference`),
   `Chart.Treemap` (tiles by value with a hierarchy, each system a hue, a name on a surface chip when
   it fits), `Chart.Heatmap` (a table of rows by columns painted on the `sequential`, `diverging` or
   a status scale; status cells are the Badge's fill and text with the value printed) and
-  `Chart.Scale` (the key for a colour scale). Components/Chart: Scatter, Treemap, Heatmaps.
+  `Chart.Scale` (the key for a colour scale). Patterns/Chart: Scatter, Treemap, Heatmaps.
 - Every plot takes `size` (`small` 120px, `medium` 200px, `large` 320px, the axis band included),
   `format`, `formatX`, `label` and `onSelect`. A named plot is a focusable group whose arrow keys
   move the tooltip; an unnamed one is decoration, hidden and not focusable. Ticks thin evenly, a
   long category is cut with its whole as a title, and the tooltip leads with the value and keys
-  each series with the mark's swatch. Components/Chart: Selection.
+  each series with the mark's swatch. Patterns/Chart: Selection.
 - Chart is on the template, checked with the data-visualization method's palette validator. Said on the page and not built:
   a pie, a second value axis, a needle gauge, radar, boxplot, histogram, lollipop, alluvial, word
   cloud, circle pack, maps, zoom, brush, an export toolbar, animation. The axe gate runs the matrix
-  in both modes; the eleven `page:Chart#*` entries leave the allowlist. Components/Chart.
+  in both modes; the eleven `page:Chart#*` entries leave the allowlist. Patterns/Chart.
 - Breaking, with no prototype consumer: `Chart` was a plain object of parts and is now the Frame
   with the parts hung off it (`Chart.Frame` is the same function); `ChartTone` no longer has
   `categorical.8`; `Chart.Donut`'s accessible name is `name`, since `label` is the number in the
   middle; a Sparkline with no `label` is hidden from a screen reader.
-- The family is nine parts in `src/components/chart/`, one file each, and nine pages: Overview
+- The family is nine parts in `src/patterns/chart/`, one file each, and nine pages: Overview
   (the Frame), Bar, Line, Area, Donut, Sparkline, Scatter, Treemap and Heatmap, each on the template
-  with its own Matrix in the axe gate. The `Chart.*` spelling is unchanged. Components/Chart.
+  with its own Matrix in the axe gate. The `Chart.*` spelling is unchanged. Patterns/Chart.
 - Choosing a mark. Every part takes `onSelect` (a click on a bar, a slice, a point, a tile, a cell;
   a click in a point's column on a Line or an Area) and `details`, which opens a card on the chosen
   mark: a Popover anchored to it with the kit's head (the swatch, the name, the category, the value,
@@ -634,7 +636,7 @@ Migration: custom controls inside Field must call `useFieldControl` or explicitl
   it is open; Escape or a click outside closes it and focus returns to the plot. `onSelect` now
   receives one selection object per part (`{ datum, series?, index }` on the cartesian parts,
   `{ slice, share, index }`, `{ datum, group, index }`, `{ name, value, group }`, `{ row, column,
-value }`) in place of positional arguments. Components/Chart/Overview: Details, Filtering; each
+value }`) in place of positional arguments. Patterns/Chart/Overview: Details, Filtering; each
   part's Details.
 - The keyboard chooses too. A named plot's tab stop is recharts' svg; the arrow keys move the
   tooltip across the categories and Enter chooses the one under it, opening its card. The focus
@@ -642,56 +644,56 @@ value }`) in place of positional arguments. Components/Chart/Overview: Details, 
   browser's heuristic (`src/styles/chart.css`, `data-focus` on the plot).
 - Drill-down. The Frame takes `path`, the levels so far as a Breadcrumb under the description,
   every crumb but the last a way back; a click on a bar or a tile redraws the same plot one level
-  down, and the marks move to their new places. Components/Chart/Overview: Drilldown;
-  Components/Chart/Treemap: Drilldown.
+  down, and the marks move to their new places. Patterns/Chart/Overview: Drilldown;
+  Patterns/Chart/Treemap: Drilldown.
 - Motion. Marks arrive over the new `motion.duration.slow` (400ms) on the standard curve, a change
   of data moves them, the tooltip follows over `motion.duration.fast`, and a legend hover fades the
   other series over the same; under `prefers-reduced-motion` the marks draw in place. Tokens/Motion;
-  Components/Chart/Overview: Motion.
+  Patterns/Chart/Overview: Motion.
 - Loading. `status="loading"` on the Frame, or `loading` on a part, draws the plot's own silhouette
   in `color.skeleton` at its height: columns, bars, a line, a wash, dots, tiles, a ring, a grid of
   cells. `status="refreshing"` keeps the last plot at `opacity.loading` with a Spinner beside the
-  title. Components/Chart/Overview: States.
+  title. Patterns/Chart/Overview: States.
 - Bars and lines take `xLabel` and `yLabel` (axis titles); a reference's label on a vertical line
   sits above the plot rather than inside it; a stacked tooltip prints its total; a hovered slice
   grows 2px; a chosen point is ringed on every line; a Heatmap's `showValues` on a colour scale
-  prints the number on a surface chip, so text never sits on a chart colour. Components/Chart/Bar:
-  Windows, Combo; Components/Chart/Heatmap.
+  prints the number on a surface chip, so text never sits on a chart colour. Patterns/Chart/Bar:
+  Windows, Combo; Patterns/Chart/Heatmap.
 - `scripts/ds-check.mjs`: a file named `_x.tsx` under a layer is the folder's shared furniture and
   not an export; a family's Matrix may mention a part by its compound name (`Chart.Bar`).
 - A value axis that pins and reaches below zero. Bar, Line and Area take `domain` (`[0, "auto"]`
   when unsaid) so charts side by side share a scale; a value below zero extends the axis through
   zero, draws the zero line in `color.border.bold`, and hangs the bar from it with its rounded end
-  and its label at the data end. Components/Chart/Bar: Negatives; Components/Chart/Overview: Linked.
+  and its label at the data end. Patterns/Chart/Bar: Negatives; Patterns/Chart/Overview: Linked.
 - A time axis. `scale="time"` on Line and Area reads `x` as dates (a Date, an ISO string or epoch
   milliseconds), spaces the points by time, and picks at most eight ticks by the span: hours, days,
   months (the year on January when the span crosses one) or years, each at a unit's start, in the
   reader's locale. A `reference` and a `band` take dates; `bands` also take `fromX` and `toX` on a
   category axis, an assessment window labelled above its middle. The Frame's table and CSV format a
-  date as "4 Sep 2026". Components/Chart/Line: Dates.
+  date as "4 Sep 2026". Patterns/Chart/Line: Dates.
 - Linked charts. `syncId` on the Frame or a part shares the hover across charts, which with a shared
   `domain` makes small multiples: the method's answer to a dual axis and to more than six series.
-  Components/Chart/Overview: Linked.
+  Patterns/Chart/Overview: Linked.
 - Download and Expand. The Frame's `download` (`["csv", "png"]`) puts a Download menu beside the
   Table toggle: the table twin as CSV (categories formatted, values raw), or the plot as a PNG at
   twice the pixel density with every token resolved and the surface colour behind it. `expandable`
   adds an Expand button that opens the same Frame at `large` in a Dialog. Both are disabled while
-  the plot is loading, empty or failed. Components/Chart/Overview: Downloads.
+  the plot is loading, empty or failed. Patterns/Chart/Overview: Downloads.
 - The header wraps. The title block keeps 200px; below that the legend and the tools drop under it,
-  so a Frame in a 320px rail keeps its plot's height and loses nothing. Components/Chart/Overview:
+  so a Frame in a 320px rail keeps its plot's height and loses nothing. Patterns/Chart/Overview:
   Narrow.
 - Textures. `texture` on the Frame, or on Bar, Area or Donut, gives every series a pattern in its own
   colour (the colour at 30% under 1.5px marks, 8px across) in a fixed order the legend, the tooltip
   and the card repeat: solid, hatch, back-hatch, dots, cross, lines, columns. For print, colour-vision
-  loss and forced colours; a line's stroke stays solid. Components/Chart/Overview: Textured;
-  Components/Chart/Bar, Area, Donut: Textured.
+  loss and forced colours; a line's stroke stays solid. Patterns/Chart/Overview: Textured;
+  Patterns/Chart/Bar, Area, Donut: Textured.
 - `color.chart.<tone>.hovered` for every series tone and categorical step: one step darker in light,
   one lighter in dark. A hovered bar and a hovered slice take
   it in place of the 80% opacity. Tokens/Color: Chart.
 - A series' own `format` (a fraction printed as a percentage in the tooltip, the card and the table), `delta` on Line and Area (each change from
   the point before, signed, in the tooltip and the card), and `summary` on the Frame (one sentence a
-  screen reader hears as the figure's description). Components/Chart/Bar:
-  Rates; Components/Chart/Line: Deltas.
+  screen reader hears as the figure's description). Patterns/Chart/Bar:
+  Rates; Patterns/Chart/Line: Deltas.
 
 ## 0.4.0 · 2026-09-04
 

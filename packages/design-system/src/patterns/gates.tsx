@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
-import { Dot, type Tone } from "./badge";
+import { Dot, type Tone } from "../components/badge";
 
 export type GatesProps = {
   /** Gates.Item rows, in the order they are checked. */

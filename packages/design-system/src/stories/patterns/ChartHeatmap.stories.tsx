@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Badge, Button, Chart, KeyValue } from "../../components";
+import { Badge, Button, KeyValue } from "../../components";
+import { Chart } from "../../patterns";
 import { Grid, Stack } from "../../primitives";
 import {
   families,
@@ -23,7 +24,7 @@ const variance = (r: string, c: string) => varianceByPhase[r]?.[heatMonths.index
 const days = (v: number) => `${v > 0 ? "+" : ""}${v} days`;
 
 const meta = {
-  title: "Components/Chart/Heatmap",
+  title: "Patterns/Chart/Heatmap",
   component: Chart.Heatmap,
   parameters: { layout: "padded" },
   args: {

@@ -1,13 +1,13 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../components";
+import { Chart } from "../../patterns";
 import * as Stories from "./ChartLine.stories";
 
 <Meta of={Stories} />
 
 # Line
 
-A line per series over an ordered axis: a trend, a burndown, one measure against its plan. Two pixels wide with round joins, a ringed marker on hover, the last value printed after the line when asked. Straight segments by default, because the points are what was counted; a smooth curve never overshoots them. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame, which names it, keys it and lays it out as a table.
+A line per series over an ordered axis: a trend, a burndown, one measure against its plan. Two pixels wide with round joins, a ringed marker on hover, the last value printed after the line when asked. Straight segments by default, because the points are what was counted; a smooth curve never overshoots them. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame, which names it, keys it and lays it out as a table.
 
 <Canvas of={Stories.LineMatrix} />
 
@@ -118,10 +118,10 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 
 ## Related
 
-- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
-- [Area](?path=/docs/components-chart-area--docs): the same line with a wash, and stacked parts of a whole over time.
-- [Sparkline](?path=/docs/components-chart-sparkline--docs): a line with no axes beside its number.
-- [Bar](?path=/docs/components-chart-bar--docs): the same categories, when the size matters more than the change.
+- [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Area](?path=/docs/patterns-chart-area--docs): the same line with a wash, and stacked parts of a whole over time.
+- [Sparkline](?path=/docs/patterns-chart-sparkline--docs): a line with no axes beside its number.
+- [Bar](?path=/docs/patterns-chart-bar--docs): the same categories, when the size matters more than the change.
 
 ## Don't
 

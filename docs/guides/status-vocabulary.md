@@ -14,7 +14,7 @@ The names are the token names, so a tone reads straight through to `color.backgr
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `tone: Tone`       | `Badge`, `Dot`, `Indicator`, `Alert`, `Progress` and each `ProgressStacked` segment, `Stat` and `Stat.Tile`, `Gates.Item`, `Timeline.Item`, `Eyebrow`, `Prose`, an `ActionBar` state, a `WorkPane` row, a `RecordPicker` badge |
 | `tone: BannerTone` | `Banner`: `information`, `warning` or `danger`. A banner is never neutral and never a success.                                                                                                                                 |
-| `tone: ChartTone`  | A `Chart` series: a `Tone`, `brand` for the one series the reader is asked to look at, or `categorical.1` to `categorical.8` when the categories carry no status (`packages/design-system/src/components/chart.tsx`).          |
+| `tone: ChartTone`  | A `Chart` series: a `Tone`, `brand` for the one series the reader is asked to look at, or `categorical.1` to `categorical.8` when the categories carry no status (`packages/design-system/src/patterns/chart.tsx`).          |
 
 `AlertDialog`'s `tone` is `primary` or `danger`: the weight of the confirming action, not a status.
 

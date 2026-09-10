@@ -7,21 +7,20 @@ import {
   FieldLabel,
   Badge,
   Button,
-  Editable,
   Fact,
   Field,
   Input,
   KeyValue,
   Table,
-  type EditableTextProps,
   type Tone,
 } from "../../components";
+import { Editable, type EditableTextProps } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Components/Editable",
+  title: "Patterns/Editable",
   parameters: { layout: "padded" },
 } satisfies Meta;
 export default meta;

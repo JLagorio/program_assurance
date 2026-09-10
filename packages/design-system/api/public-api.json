@@ -519,107 +519,107 @@
       "kind": "type"
     },
     ".#categoricalTone": {
-      "target": "\"src/components/chart/_shared\".categoricalTone",
+      "target": "\"src/patterns/chart/_shared\".categoricalTone",
       "kind": "value"
     },
     ".#Chart": {
-      "target": "\"src/components/chart/chart\".Chart",
+      "target": "\"src/patterns/chart/chart\".Chart",
       "kind": "value"
     },
     ".#ChartAreaProps": {
-      "target": "\"src/components/chart/line\".ChartAreaProps",
+      "target": "\"src/patterns/chart/line\".ChartAreaProps",
       "kind": "type"
     },
     ".#ChartBand": {
-      "target": "\"src/components/chart/_shared\".ChartBand",
+      "target": "\"src/patterns/chart/_shared\".ChartBand",
       "kind": "type"
     },
     ".#ChartBarProps": {
-      "target": "\"src/components/chart/bar\".ChartBarProps",
+      "target": "\"src/patterns/chart/bar\".ChartBarProps",
       "kind": "type"
     },
     ".#chartColor": {
-      "target": "\"src/components/chart/_shared\".chartColor",
+      "target": "\"src/patterns/chart/_shared\".chartColor",
       "kind": "value"
     },
     ".#ChartColumn": {
-      "target": "\"src/components/chart/_shared\".ChartColumn",
+      "target": "\"src/patterns/chart/_shared\".ChartColumn",
       "kind": "type"
     },
     ".#ChartCrumb": {
-      "target": "\"src/components/chart/frame\".ChartCrumb",
+      "target": "\"src/patterns/chart/frame\".ChartCrumb",
       "kind": "type"
     },
     ".#ChartDatum": {
-      "target": "\"src/components/chart/_shared\".ChartDatum",
+      "target": "\"src/patterns/chart/_shared\".ChartDatum",
       "kind": "type"
     },
     ".#ChartDomain": {
-      "target": "\"src/components/chart/_shared\".ChartDomain",
+      "target": "\"src/patterns/chart/_shared\".ChartDomain",
       "kind": "type"
     },
     ".#ChartDonutProps": {
-      "target": "\"src/components/chart/donut\".ChartDonutProps",
+      "target": "\"src/patterns/chart/donut\".ChartDonutProps",
       "kind": "type"
     },
     ".#ChartFrameProps": {
-      "target": "\"src/components/chart/frame\".ChartFrameProps",
+      "target": "\"src/patterns/chart/frame\".ChartFrameProps",
       "kind": "type"
     },
     ".#ChartHeatmapProps": {
-      "target": "\"src/components/chart/heatmap\".ChartHeatmapProps",
+      "target": "\"src/patterns/chart/heatmap\".ChartHeatmapProps",
       "kind": "type"
     },
     ".#ChartLegendProps": {
-      "target": "\"src/components/chart/frame\".ChartLegendProps",
+      "target": "\"src/patterns/chart/frame\".ChartLegendProps",
       "kind": "type"
     },
     ".#ChartLineProps": {
-      "target": "\"src/components/chart/line\".ChartLineProps",
+      "target": "\"src/patterns/chart/line\".ChartLineProps",
       "kind": "type"
     },
     ".#ChartReference": {
-      "target": "\"src/components/chart/_shared\".ChartReference",
+      "target": "\"src/patterns/chart/_shared\".ChartReference",
       "kind": "type"
     },
     ".#ChartScaleProps": {
-      "target": "\"src/components/chart/heatmap\".ChartScaleProps",
+      "target": "\"src/patterns/chart/heatmap\".ChartScaleProps",
       "kind": "type"
     },
     ".#ChartScatterGroup": {
-      "target": "\"src/components/chart/scatter\".ChartScatterGroup",
+      "target": "\"src/patterns/chart/scatter\".ChartScatterGroup",
       "kind": "type"
     },
     ".#ChartScatterProps": {
-      "target": "\"src/components/chart/scatter\".ChartScatterProps",
+      "target": "\"src/patterns/chart/scatter\".ChartScatterProps",
       "kind": "type"
     },
     ".#ChartSelection": {
-      "target": "\"src/components/chart/_shared\".ChartSelection",
+      "target": "\"src/patterns/chart/_shared\".ChartSelection",
       "kind": "type"
     },
     ".#ChartSeries": {
-      "target": "\"src/components/chart/_shared\".ChartSeries",
+      "target": "\"src/patterns/chart/_shared\".ChartSeries",
       "kind": "type"
     },
     ".#ChartSize": {
-      "target": "\"src/components/chart/_shared\".ChartSize",
+      "target": "\"src/patterns/chart/_shared\".ChartSize",
       "kind": "type"
     },
     ".#ChartSparklineProps": {
-      "target": "\"src/components/chart/sparkline\".ChartSparklineProps",
+      "target": "\"src/patterns/chart/sparkline\".ChartSparklineProps",
       "kind": "type"
     },
     ".#ChartTone": {
-      "target": "\"src/components/chart/_shared\".ChartTone",
+      "target": "\"src/patterns/chart/_shared\".ChartTone",
       "kind": "type"
     },
     ".#ChartTreemapProps": {
-      "target": "\"src/components/chart/treemap\".ChartTreemapProps",
+      "target": "\"src/patterns/chart/treemap\".ChartTreemapProps",
       "kind": "type"
     },
     ".#ChartValue": {
-      "target": "\"src/components/chart/_shared\".ChartValue",
+      "target": "\"src/patterns/chart/_shared\".ChartValue",
       "kind": "type"
     },
     ".#Checkbox": {
@@ -1115,11 +1115,11 @@
       "kind": "type"
     },
     ".#DonutSelection": {
-      "target": "\"src/components/chart/donut\".DonutSelection",
+      "target": "\"src/patterns/chart/donut\".DonutSelection",
       "kind": "type"
     },
     ".#DonutSlice": {
-      "target": "\"src/components/chart/donut\".DonutSlice",
+      "target": "\"src/patterns/chart/donut\".DonutSlice",
       "kind": "type"
     },
     ".#Dot": {
@@ -1351,7 +1351,7 @@
       "kind": "type"
     },
     ".#Editable": {
-      "target": "\"src/components/editable\".Editable",
+      "target": "\"src/patterns/editable\".Editable",
       "kind": "value"
     },
     ".#EditableOptions": {
@@ -1359,15 +1359,15 @@
       "kind": "type"
     },
     ".#EditableProps": {
-      "target": "\"src/components/editable\".EditableProps",
+      "target": "\"src/patterns/editable\".EditableProps",
       "kind": "type"
     },
     ".#EditableSelectProps": {
-      "target": "\"src/components/editable\".EditableSelectProps",
+      "target": "\"src/patterns/editable\".EditableSelectProps",
       "kind": "type"
     },
     ".#EditableTextProps": {
-      "target": "\"src/components/editable\".EditableTextProps",
+      "target": "\"src/patterns/editable\".EditableTextProps",
       "kind": "type"
     },
     ".#Empty": {
@@ -1551,19 +1551,19 @@
       "kind": "type"
     },
     ".#formatNumber": {
-      "target": "\"src/components/chart/_shared\".formatNumber",
+      "target": "\"src/patterns/chart/_shared\".formatNumber",
       "kind": "value"
     },
     ".#GateItemProps": {
-      "target": "\"src/components/gates\".GateItemProps",
+      "target": "\"src/patterns/gates\".GateItemProps",
       "kind": "type"
     },
     ".#Gates": {
-      "target": "\"src/components/gates\".Gates",
+      "target": "\"src/patterns/gates\".Gates",
       "kind": "value"
     },
     ".#GatesProps": {
-      "target": "\"src/components/gates\".GatesProps",
+      "target": "\"src/patterns/gates\".GatesProps",
       "kind": "type"
     },
     ".#Glance": {
@@ -1603,11 +1603,11 @@
       "kind": "type"
     },
     ".#HeatmapScale": {
-      "target": "\"src/components/chart/heatmap\".HeatmapScale",
+      "target": "\"src/patterns/chart/heatmap\".HeatmapScale",
       "kind": "type"
     },
     ".#HeatmapSelection": {
-      "target": "\"src/components/chart/heatmap\".HeatmapSelection",
+      "target": "\"src/patterns/chart/heatmap\".HeatmapSelection",
       "kind": "type"
     },
     ".#HoverCard": {
@@ -2195,7 +2195,7 @@
       "kind": "value"
     },
     ".#ScatterSelection": {
-      "target": "\"src/components/chart/scatter\".ScatterSelection",
+      "target": "\"src/patterns/chart/scatter\".ScatterSelection",
       "kind": "type"
     },
     ".#ScrollArea": {
@@ -2791,11 +2791,11 @@
       "kind": "value"
     },
     ".#Toolbar": {
-      "target": "\"src/components/toolbar\".Toolbar",
+      "target": "\"src/patterns/toolbar\".Toolbar",
       "kind": "value"
     },
     ".#ToolbarProps": {
-      "target": "\"src/components/toolbar\".ToolbarProps",
+      "target": "\"src/patterns/toolbar\".ToolbarProps",
       "kind": "type"
     },
     ".#Tooltip": {
@@ -2843,11 +2843,11 @@
       "kind": "type"
     },
     ".#TreemapNodeInput": {
-      "target": "\"src/components/chart/treemap\".TreemapNodeInput",
+      "target": "\"src/patterns/chart/treemap\".TreemapNodeInput",
       "kind": "type"
     },
     ".#TreemapSelection": {
-      "target": "\"src/components/chart/treemap\".TreemapSelection",
+      "target": "\"src/patterns/chart/treemap\".TreemapSelection",
       "kind": "type"
     },
     ".#TreeProps": {
@@ -3608,294 +3608,6 @@
       {
         "source": "src/components/card.d.ts",
         "declaration": "export type CardTitleProps = ComponentProps<\"div\">;"
-      }
-    ],
-    "\"src/components/chart/_shared\".categoricalTone": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "categoricalTone: (i: number) => ChartTone"
-      }
-    ],
-    "\"src/components/chart/_shared\".CategoryFormatter": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type CategoryFormatter = (value: string | number | Date) => string;"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartBand": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartBand = {\n    from?: number | undefined;\n    to?: number | undefined;\n    fromX?: string | number | Date | undefined;\n    toX?: string | number | Date | undefined;\n    label?: string | undefined;\n    tone?: ChartTone | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/_shared\".chartColor": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "chartColor: (tone: ChartTone) => string"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartColumn": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartColumn = {\n    key: string;\n    label?: string | undefined;\n    format?: ((value: ChartValue, datum: ChartDatum) => string) | undefined;\n    place?: \"before\" | \"after\" | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartDatum": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartDatum = Record<string, string | number | Date | null | undefined | readonly [\n    number,\n    number\n]>;"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartDomain": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartDomain = readonly [\n    number | \"auto\",\n    number | \"auto\"\n];"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartReference": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartReference = {\n    y?: number | undefined;\n    x?: string | number | Date | undefined;\n    label?: string | undefined;\n    tone?: ChartTone | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartSelection": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartSelection = {\n    datum: ChartDatum;\n    series?: ChartSeries | undefined;\n    index: number;\n};"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartSeries": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartSeries = {\n    key: string;\n    label?: string | undefined;\n    tone?: ChartTone | undefined;\n    format?: Formatter | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartSize": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartSize = \"small\" | \"medium\" | \"large\";"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartTone": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartTone = Tone | \"brand\" | `categorical.${1 | 2 | 3 | 4 | 5 | 6 | 7}`;"
-      }
-    ],
-    "\"src/components/chart/_shared\".ChartValue": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type ChartValue = ChartDatum[string];"
-      }
-    ],
-    "\"src/components/chart/_shared\".formatNumber": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export declare function formatNumber(value: number): string;"
-      }
-    ],
-    "\"src/components/chart/_shared\".Formatter": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type Formatter = (value: number) => string;"
-      }
-    ],
-    "\"src/components/chart/_shared\".SwatchShape": [
-      {
-        "source": "src/components/chart/_shared.d.ts",
-        "declaration": "export type SwatchShape = \"square\" | \"line\" | \"dot\";"
-      }
-    ],
-    "\"src/components/chart/bar\".ChartBar": [
-      {
-        "source": "src/components/chart/bar.d.ts",
-        "declaration": "export declare function ChartBar({ data, x, series, stacked, horizontal, labels, target, line, domain, xLabel, yLabel, texture: textureProp, syncId, size, height, format: formatProp, formatX: formatXProp, reference, label, loading: loadingProp, onSelect, details, className, }: ChartBarProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/bar\".ChartBarProps": [
-      {
-        "source": "src/components/chart/bar.d.ts",
-        "declaration": "export type ChartBarProps = {\n    data: ChartDatum[];\n    x: string;\n    series: ChartSeries[];\n    stacked?: boolean | undefined;\n    horizontal?: boolean | undefined;\n    labels?: \"none\" | \"end\" | undefined;\n    target?: string | undefined;\n    line?: ChartSeries | undefined;\n    domain?: ChartDomain | undefined;\n    xLabel?: string | undefined;\n    yLabel?: string | undefined;\n    texture?: boolean | undefined;\n    syncId?: string | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    reference?: ChartReference[] | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: ChartSelection) => void) | undefined;\n    details?: ((selection: ChartSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/chart\".Chart": [
-      {
-        "source": "src/components/chart/chart.d.ts",
-        "declaration": "Chart: typeof ChartFrame & {\n    Frame: typeof ChartFrame;\n    Bar: typeof ChartBar;\n    Line: typeof ChartLine;\n    Area: typeof ChartArea;\n    Donut: typeof ChartDonut;\n    Sparkline: typeof ChartSparkline;\n    Scatter: typeof ChartScatter;\n    Treemap: typeof ChartTreemap;\n    Heatmap: typeof ChartHeatmap;\n    Scale: typeof ChartScale;\n    Legend: typeof ChartLegend;\n}"
-      }
-    ],
-    "\"src/components/chart/donut\".ChartDonut": [
-      {
-        "source": "src/components/chart/donut.d.ts",
-        "declaration": "export declare function ChartDonut({ slices, label, caption, arc, size, thickness, format: formatProp, name: nameProp, texture: textureProp, loading: loadingProp, onSelect, details, className, }: ChartDonutProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/donut\".ChartDonutProps": [
-      {
-        "source": "src/components/chart/donut.d.ts",
-        "declaration": "export type ChartDonutProps = {\n    slices: DonutSlice[];\n    label?: ReactNode | undefined;\n    caption?: string | undefined;\n    arc?: \"full\" | \"half\" | undefined;\n    size?: number | undefined;\n    thickness?: number | undefined;\n    format?: Formatter | undefined;\n    name?: string | undefined;\n    texture?: boolean | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: DonutSelection) => void) | undefined;\n    details?: ((selection: DonutSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/donut\".DonutSelection": [
-      {
-        "source": "src/components/chart/donut.d.ts",
-        "declaration": "export type DonutSelection = {\n    slice: DonutSlice;\n    share: number;\n    index: number;\n};"
-      }
-    ],
-    "\"src/components/chart/donut\".DonutSlice": [
-      {
-        "source": "src/components/chart/donut.d.ts",
-        "declaration": "export type DonutSlice = {\n    key: string;\n    label: string;\n    value: number;\n    tone?: ChartTone | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/frame\".ChartCrumb": [
-      {
-        "source": "src/components/chart/frame.d.ts",
-        "declaration": "export type ChartCrumb = {\n    label: string;\n    onSelect?: (() => void) | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/frame\".ChartFrame": [
-      {
-        "source": "src/components/chart/frame.d.ts",
-        "declaration": "export declare function ChartFrame(props: ChartFrameProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/frame\".ChartFrameProps": [
-      {
-        "source": "src/components/chart/frame.d.ts",
-        "declaration": "export type ChartFrameProps = Omit<ComponentProps<\"figure\">, \"title\" | \"children\"> & {\n    title: string;\n    description?: ReactNode | undefined;\n    summary?: string | undefined;\n    path?: ChartCrumb[] | undefined;\n    series?: ChartSeries[] | undefined;\n    legend?: \"top\" | \"bottom\" | \"none\" | undefined;\n    swatch?: SwatchShape | undefined;\n    texture?: boolean | undefined;\n    syncId?: string | undefined;\n    actions?: ReactNode | undefined;\n    download?: (\"csv\" | \"png\")[] | undefined;\n    expandable?: boolean | undefined;\n    status?: \"ready\" | \"loading\" | \"refreshing\" | \"empty\" | \"error\" | undefined;\n    statusTitle?: string | undefined;\n    statusText?: string | undefined;\n    data?: ChartDatum[] | undefined;\n    x?: string | undefined;\n    xLabel?: string | undefined;\n    columns?: ChartColumn[] | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/frame\".ChartLegend": [
-      {
-        "source": "src/components/chart/frame.d.ts",
-        "declaration": "export declare function ChartLegend({ series, swatch, texture, className }: ChartLegendProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/frame\".ChartLegendProps": [
-      {
-        "source": "src/components/chart/frame.d.ts",
-        "declaration": "export type ChartLegendProps = {\n    series: ChartSeries[];\n    swatch?: SwatchShape | undefined;\n    texture?: boolean | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/heatmap\".ChartHeatmap": [
-      {
-        "source": "src/components/chart/heatmap.d.ts",
-        "declaration": "export declare function ChartHeatmap({ rows, columns, value, scale, domain, midpoint, showValues, size, format: formatProp, label, rowLabel, columnLabel, loading, onSelect, details, className, }: ChartHeatmapProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/heatmap\".ChartHeatmapProps": [
-      {
-        "source": "src/components/chart/heatmap.d.ts",
-        "declaration": "export type ChartHeatmapProps = {\n    rows: string[];\n    columns: string[];\n    value: (row: string, column: string) => number | null | undefined;\n    scale?: HeatmapScale | undefined;\n    domain?: readonly [\n        number,\n        number\n    ] | undefined;\n    midpoint?: number | undefined;\n    showValues?: boolean | undefined;\n    size?: ChartSize | undefined;\n    format?: Formatter | undefined;\n    label: string;\n    rowLabel?: string | undefined;\n    columnLabel?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: HeatmapSelection) => void) | undefined;\n    details?: ((selection: HeatmapSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/heatmap\".ChartScale": [
-      {
-        "source": "src/components/chart/heatmap.d.ts",
-        "declaration": "export declare function ChartScale({ scale, min, max, mid, className }: ChartScaleProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/heatmap\".ChartScaleProps": [
-      {
-        "source": "src/components/chart/heatmap.d.ts",
-        "declaration": "export type ChartScaleProps = {\n    scale: \"sequential\" | \"diverging\";\n    min: string;\n    max: string;\n    mid?: string | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/heatmap\".HeatmapScale": [
-      {
-        "source": "src/components/chart/heatmap.d.ts",
-        "declaration": "export type HeatmapScale = \"sequential\" | \"diverging\" | ((value: number, row: string, column: string) => Tone);"
-      }
-    ],
-    "\"src/components/chart/heatmap\".HeatmapSelection": [
-      {
-        "source": "src/components/chart/heatmap.d.ts",
-        "declaration": "export type HeatmapSelection = {\n    row: string;\n    column: string;\n    value: number;\n};"
-      }
-    ],
-    "\"src/components/chart/line\".ChartArea": [
-      {
-        "source": "src/components/chart/line.d.ts",
-        "declaration": "export declare function ChartArea({ data, x, series, scale, curve, dots, labels, baseline, domain, bands, connectNulls, delta, stacked, xLabel, yLabel, texture: textureProp, syncId, size, height, format: formatProp, formatX: formatXProp, reference, label, loading: loadingProp, onSelect, details, className, }: ChartAreaProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/line\".ChartAreaProps": [
-      {
-        "source": "src/components/chart/line.d.ts",
-        "declaration": "export type ChartAreaProps = ChartLineProps & {\n    stacked?: boolean | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/line\".ChartLine": [
-      {
-        "source": "src/components/chart/line.d.ts",
-        "declaration": "export declare function ChartLine({ data, x, series, scale, curve, dots, labels, baseline, domain, bands, connectNulls, delta, xLabel, yLabel, texture: textureProp, syncId, size, height, format: formatProp, formatX: formatXProp, reference, label, loading: loadingProp, onSelect, details, className, }: ChartLineProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/line\".ChartLineProps": [
-      {
-        "source": "src/components/chart/line.d.ts",
-        "declaration": "export type ChartLineProps = {\n    data: ChartDatum[];\n    x: string;\n    series: ChartSeries[];\n    scale?: \"category\" | \"time\" | undefined;\n    curve?: \"linear\" | \"smooth\" | undefined;\n    dots?: boolean | undefined;\n    labels?: \"none\" | \"end\" | undefined;\n    baseline?: \"zero\" | \"auto\" | undefined;\n    domain?: ChartDomain | undefined;\n    bands?: ChartBand[] | undefined;\n    connectNulls?: boolean | undefined;\n    delta?: boolean | undefined;\n    xLabel?: string | undefined;\n    yLabel?: string | undefined;\n    texture?: boolean | undefined;\n    syncId?: string | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    reference?: ChartReference[] | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: ChartSelection) => void) | undefined;\n    details?: ((selection: ChartSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/scatter\".ChartScatter": [
-      {
-        "source": "src/components/chart/scatter.d.ts",
-        "declaration": "export declare function ChartScatter({ data, x, y, z, name: nameKey, groupBy, groups, tone, reference, xLabel, yLabel, size, height, format: formatProp, formatX: formatXProp, label, loading: loadingProp, onSelect, details, className, }: ChartScatterProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/scatter\".ChartScatterGroup": [
-      {
-        "source": "src/components/chart/scatter.d.ts",
-        "declaration": "export type ChartScatterGroup = {\n    key: string;\n    label?: string | undefined;\n    tone?: ChartTone | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/scatter\".ChartScatterProps": [
-      {
-        "source": "src/components/chart/scatter.d.ts",
-        "declaration": "export type ChartScatterProps = {\n    data: ChartDatum[];\n    x: string;\n    y: string;\n    z?: string | undefined;\n    name?: string | undefined;\n    groupBy?: string | undefined;\n    groups?: ChartScatterGroup[] | undefined;\n    tone?: ChartTone | undefined;\n    reference?: ChartReference[] | undefined;\n    xLabel?: string | undefined;\n    yLabel?: string | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: ScatterSelection) => void) | undefined;\n    details?: ((selection: ScatterSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/scatter\".ScatterSelection": [
-      {
-        "source": "src/components/chart/scatter.d.ts",
-        "declaration": "export type ScatterSelection = {\n    datum: ChartDatum;\n    group?: ChartScatterGroup | undefined;\n    index: number;\n};"
-      }
-    ],
-    "\"src/components/chart/sparkline\".ChartSparkline": [
-      {
-        "source": "src/components/chart/sparkline.d.ts",
-        "declaration": "export declare function ChartSparkline({ data, y, x, appearance, tone, reference, endDot, width, height, format: formatProp, label, loading: loadingProp, className, }: ChartSparklineProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/sparkline\".ChartSparklineProps": [
-      {
-        "source": "src/components/chart/sparkline.d.ts",
-        "declaration": "export type ChartSparklineProps = {\n    data: ChartDatum[];\n    y: string;\n    x?: string | undefined;\n    appearance?: \"line\" | \"area\" | \"bars\" | undefined;\n    tone?: ChartTone | undefined;\n    reference?: number | undefined;\n    endDot?: boolean | undefined;\n    width?: number | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/treemap\".ChartTreemap": [
-      {
-        "source": "src/components/chart/treemap.d.ts",
-        "declaration": "export declare function ChartTreemap({ data, size, height, format: formatProp, label, loading: loadingProp, onSelect, details, className, }: ChartTreemapProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/chart/treemap\".ChartTreemapProps": [
-      {
-        "source": "src/components/chart/treemap.d.ts",
-        "declaration": "export type ChartTreemapProps = {\n    data: TreemapNodeInput[];\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: TreemapSelection) => void) | undefined;\n    details?: ((selection: TreemapSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/treemap\".TreemapNodeInput": [
-      {
-        "source": "src/components/chart/treemap.d.ts",
-        "declaration": "export type TreemapNodeInput = {\n    name: string;\n    value?: number | undefined;\n    tone?: ChartTone | undefined;\n    children?: TreemapNodeInput[] | undefined;\n};"
-      }
-    ],
-    "\"src/components/chart/treemap\".TreemapSelection": [
-      {
-        "source": "src/components/chart/treemap.d.ts",
-        "declaration": "export type TreemapSelection = {\n    name: string;\n    value: number;\n    group: string;\n};"
       }
     ],
     "\"src/components/checkbox\".Checkbox": [
@@ -4750,30 +4462,6 @@
         "declaration": "export type DropdownMenuTriggerProps<Payload = unknown> = MenuPrimitive.Trigger.Props<Payload>;"
       }
     ],
-    "\"src/components/editable\".Editable": [
-      {
-        "source": "src/components/editable.d.ts",
-        "declaration": "Editable: {\n    Text: typeof EditableText;\n    Select: typeof EditableSelect;\n}"
-      }
-    ],
-    "\"src/components/editable\".EditableProps": [
-      {
-        "source": "src/components/editable.d.ts",
-        "declaration": "export type EditableProps<T extends string> = {\n    label: string;\n    value: T;\n    onChange: (next: T) => void;\n    validate?: ((next: string) => string | null) | undefined;\n    save: (next: T) => Promise<unknown>;\n};"
-      }
-    ],
-    "\"src/components/editable\".EditableSelectProps": [
-      {
-        "source": "src/components/editable.d.ts",
-        "declaration": "export type EditableSelectProps<T extends string> = EditableProps<T> & {\n    options: readonly T[];\n    render?: ((value: T) => ReactNode) | undefined;\n    searchable?: boolean | undefined;\n};"
-      }
-    ],
-    "\"src/components/editable\".EditableTextProps": [
-      {
-        "source": "src/components/editable.d.ts",
-        "declaration": "export type EditableTextProps = EditableProps<string> & {\n    placeholder?: string | undefined;\n};"
-      }
-    ],
     "\"src/components/empty\".Empty": [
       {
         "source": "src/components/empty.d.ts",
@@ -4970,30 +4658,6 @@
       {
         "source": "src/components/field.d.ts",
         "declaration": "export type FieldTitleProps = ComponentProps<\"div\">;"
-      }
-    ],
-    "\"src/components/gates\".GateItem": [
-      {
-        "source": "src/components/gates.d.ts",
-        "declaration": "export declare function GateItem({ met, tone, label, reason, action }: GateItemProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/gates\".GateItemProps": [
-      {
-        "source": "src/components/gates.d.ts",
-        "declaration": "export type GateItemProps = {\n    met: boolean;\n    tone?: Tone | undefined;\n    label: ReactNode;\n    reason?: ReactNode;\n    action?: ReactNode;\n};"
-      }
-    ],
-    "\"src/components/gates\".Gates": [
-      {
-        "source": "src/components/gates.d.ts",
-        "declaration": "Gates: typeof GatesRoot & {\n    Item: typeof GateItem;\n}"
-      }
-    ],
-    "\"src/components/gates\".GatesProps": [
-      {
-        "source": "src/components/gates.d.ts",
-        "declaration": "export type GatesProps = {\n    children: ReactNode;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/components/hover-card\".HoverCard": [
@@ -6196,18 +5860,6 @@
         "declaration": "export type ToggleProps<Value extends string = string> = TogglePrimitive.Props<Value> & VariantProps<typeof toggleVariants>;"
       }
     ],
-    "\"src/components/toolbar\".Toolbar": [
-      {
-        "source": "src/components/toolbar.d.ts",
-        "declaration": "export declare function Toolbar({ search, onSearch, placeholder, children, actions, className, }: ToolbarProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/components/toolbar\".ToolbarProps": [
-      {
-        "source": "src/components/toolbar.d.ts",
-        "declaration": "export type ToolbarProps = {\n    search?: string | undefined;\n    onSearch?: ((value: string) => void) | undefined;\n    placeholder?: string | undefined;\n    children?: ReactNode;\n    actions?: ReactNode;\n    className?: string | undefined;\n};"
-      }
-    ],
     "\"src/components/tooltip\".Tooltip": [
       {
         "source": "src/components/tooltip.d.ts",
@@ -6265,19 +5917,19 @@
     "\"src/components/tree\".TreeItem": [
       {
         "source": "src/components/tree.d.ts",
-        "declaration": "export declare function TreeItem({ depth, posInSet, setSize, lines, hasChildren, expanded, onToggle, isSelected, onSelect, children, trailing, className, }: TreeItemProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function TreeItem({ depth, posInSet, setSize, lines, hasChildren, expanded, onToggle, isSelected, onSelect, children, trailing, className, onClick, onKeyDown, ...props }: TreeItemProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/tree\".TreeItemProps": [
       {
         "source": "src/components/tree.d.ts",
-        "declaration": "export type TreeItemProps = {\n    depth: number;\n    posInSet?: number | undefined;\n    setSize?: number | undefined;\n    lines?: boolean[] | undefined;\n    hasChildren?: boolean | undefined;\n    expanded?: boolean | undefined;\n    onToggle?: (() => void) | undefined;\n    isSelected?: boolean | undefined;\n    onSelect?: (() => void) | undefined;\n    children: ReactNode;\n    trailing?: ReactNode;\n    className?: string | undefined;\n};"
+        "declaration": "export type TreeItemProps = Omit<ComponentProps<\"div\">, \"onSelect\"> & {\n    depth: number;\n    posInSet?: number | undefined;\n    setSize?: number | undefined;\n    lines?: boolean[] | undefined;\n    hasChildren?: boolean | undefined;\n    expanded?: boolean | undefined;\n    onToggle?: (() => void) | undefined;\n    isSelected?: boolean | undefined;\n    onSelect?: (() => void) | undefined;\n    children: ReactNode;\n    trailing?: ReactNode;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/components/tree\".TreeProps": [
       {
         "source": "src/components/tree.d.ts",
-        "declaration": "export type TreeProps = {\n    label: string;\n    size?: TreeSize | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
+        "declaration": "export type TreeProps = ComponentProps<\"div\"> & {\n    label: string;\n    size?: TreeSize | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/components/tree\".TreeSize": [
@@ -6584,6 +6236,294 @@
       {
         "source": "src/patterns/archetypes.d.ts",
         "declaration": "export type ShowPageProps = {\n    header: ReactNode;\n    tabs?: ReactNode;\n    tab?: string | undefined;\n    onTabChange?: ((value: string) => void) | undefined;\n    rail?: ReactNode;\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".categoricalTone": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "categoricalTone: (i: number) => ChartTone"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".CategoryFormatter": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type CategoryFormatter = (value: string | number | Date) => string;"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartBand": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartBand = {\n    from?: number | undefined;\n    to?: number | undefined;\n    fromX?: string | number | Date | undefined;\n    toX?: string | number | Date | undefined;\n    label?: string | undefined;\n    tone?: ChartTone | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".chartColor": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "chartColor: (tone: ChartTone) => string"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartColumn": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartColumn = {\n    key: string;\n    label?: string | undefined;\n    format?: ((value: ChartValue, datum: ChartDatum) => string) | undefined;\n    place?: \"before\" | \"after\" | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartDatum": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartDatum = Record<string, string | number | Date | null | undefined | readonly [\n    number,\n    number\n]>;"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartDomain": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartDomain = readonly [\n    number | \"auto\",\n    number | \"auto\"\n];"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartReference": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartReference = {\n    y?: number | undefined;\n    x?: string | number | Date | undefined;\n    label?: string | undefined;\n    tone?: ChartTone | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartSelection": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartSelection = {\n    datum: ChartDatum;\n    series?: ChartSeries | undefined;\n    index: number;\n};"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartSeries": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartSeries = {\n    key: string;\n    label?: string | undefined;\n    tone?: ChartTone | undefined;\n    format?: Formatter | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartSize": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartSize = \"small\" | \"medium\" | \"large\";"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartTone": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartTone = Tone | \"brand\" | `categorical.${1 | 2 | 3 | 4 | 5 | 6 | 7}`;"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".ChartValue": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type ChartValue = ChartDatum[string];"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".formatNumber": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export declare function formatNumber(value: number): string;"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".Formatter": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type Formatter = (value: number) => string;"
+      }
+    ],
+    "\"src/patterns/chart/_shared\".SwatchShape": [
+      {
+        "source": "src/patterns/chart/_shared.d.ts",
+        "declaration": "export type SwatchShape = \"square\" | \"line\" | \"dot\";"
+      }
+    ],
+    "\"src/patterns/chart/bar\".ChartBar": [
+      {
+        "source": "src/patterns/chart/bar.d.ts",
+        "declaration": "export declare function ChartBar({ data, x, series, stacked, horizontal, labels, target, line, domain, xLabel, yLabel, texture: textureProp, syncId, size, height, format: formatProp, formatX: formatXProp, reference, label, loading: loadingProp, onSelect, details, className, }: ChartBarProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/bar\".ChartBarProps": [
+      {
+        "source": "src/patterns/chart/bar.d.ts",
+        "declaration": "export type ChartBarProps = {\n    data: ChartDatum[];\n    x: string;\n    series: ChartSeries[];\n    stacked?: boolean | undefined;\n    horizontal?: boolean | undefined;\n    labels?: \"none\" | \"end\" | undefined;\n    target?: string | undefined;\n    line?: ChartSeries | undefined;\n    domain?: ChartDomain | undefined;\n    xLabel?: string | undefined;\n    yLabel?: string | undefined;\n    texture?: boolean | undefined;\n    syncId?: string | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    reference?: ChartReference[] | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: ChartSelection) => void) | undefined;\n    details?: ((selection: ChartSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/chart\".Chart": [
+      {
+        "source": "src/patterns/chart/chart.d.ts",
+        "declaration": "Chart: typeof ChartFrame & {\n    Frame: typeof ChartFrame;\n    Bar: typeof ChartBar;\n    Line: typeof ChartLine;\n    Area: typeof ChartArea;\n    Donut: typeof ChartDonut;\n    Sparkline: typeof ChartSparkline;\n    Scatter: typeof ChartScatter;\n    Treemap: typeof ChartTreemap;\n    Heatmap: typeof ChartHeatmap;\n    Scale: typeof ChartScale;\n    Legend: typeof ChartLegend;\n}"
+      }
+    ],
+    "\"src/patterns/chart/donut\".ChartDonut": [
+      {
+        "source": "src/patterns/chart/donut.d.ts",
+        "declaration": "export declare function ChartDonut({ slices, label, caption, arc, size, thickness, format: formatProp, name: nameProp, texture: textureProp, loading: loadingProp, onSelect, details, className, }: ChartDonutProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/donut\".ChartDonutProps": [
+      {
+        "source": "src/patterns/chart/donut.d.ts",
+        "declaration": "export type ChartDonutProps = {\n    slices: DonutSlice[];\n    label?: ReactNode | undefined;\n    caption?: string | undefined;\n    arc?: \"full\" | \"half\" | undefined;\n    size?: number | undefined;\n    thickness?: number | undefined;\n    format?: Formatter | undefined;\n    name?: string | undefined;\n    texture?: boolean | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: DonutSelection) => void) | undefined;\n    details?: ((selection: DonutSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/donut\".DonutSelection": [
+      {
+        "source": "src/patterns/chart/donut.d.ts",
+        "declaration": "export type DonutSelection = {\n    slice: DonutSlice;\n    share: number;\n    index: number;\n};"
+      }
+    ],
+    "\"src/patterns/chart/donut\".DonutSlice": [
+      {
+        "source": "src/patterns/chart/donut.d.ts",
+        "declaration": "export type DonutSlice = {\n    key: string;\n    label: string;\n    value: number;\n    tone?: ChartTone | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/frame\".ChartCrumb": [
+      {
+        "source": "src/patterns/chart/frame.d.ts",
+        "declaration": "export type ChartCrumb = {\n    label: string;\n    onSelect?: (() => void) | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/frame\".ChartFrame": [
+      {
+        "source": "src/patterns/chart/frame.d.ts",
+        "declaration": "export declare function ChartFrame(props: ChartFrameProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/frame\".ChartFrameProps": [
+      {
+        "source": "src/patterns/chart/frame.d.ts",
+        "declaration": "export type ChartFrameProps = Omit<ComponentProps<\"figure\">, \"title\" | \"children\"> & {\n    title: string;\n    description?: ReactNode | undefined;\n    summary?: string | undefined;\n    path?: ChartCrumb[] | undefined;\n    series?: ChartSeries[] | undefined;\n    legend?: \"top\" | \"bottom\" | \"none\" | undefined;\n    swatch?: SwatchShape | undefined;\n    texture?: boolean | undefined;\n    syncId?: string | undefined;\n    actions?: ReactNode | undefined;\n    download?: (\"csv\" | \"png\")[] | undefined;\n    expandable?: boolean | undefined;\n    status?: \"ready\" | \"loading\" | \"refreshing\" | \"empty\" | \"error\" | undefined;\n    statusTitle?: string | undefined;\n    statusText?: string | undefined;\n    data?: ChartDatum[] | undefined;\n    x?: string | undefined;\n    xLabel?: string | undefined;\n    columns?: ChartColumn[] | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/frame\".ChartLegend": [
+      {
+        "source": "src/patterns/chart/frame.d.ts",
+        "declaration": "export declare function ChartLegend({ series, swatch, texture, className }: ChartLegendProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/frame\".ChartLegendProps": [
+      {
+        "source": "src/patterns/chart/frame.d.ts",
+        "declaration": "export type ChartLegendProps = {\n    series: ChartSeries[];\n    swatch?: SwatchShape | undefined;\n    texture?: boolean | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/heatmap\".ChartHeatmap": [
+      {
+        "source": "src/patterns/chart/heatmap.d.ts",
+        "declaration": "export declare function ChartHeatmap({ rows, columns, value, scale, domain, midpoint, showValues, size, format: formatProp, label, rowLabel, columnLabel, loading, onSelect, details, className, }: ChartHeatmapProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/heatmap\".ChartHeatmapProps": [
+      {
+        "source": "src/patterns/chart/heatmap.d.ts",
+        "declaration": "export type ChartHeatmapProps = {\n    rows: string[];\n    columns: string[];\n    value: (row: string, column: string) => number | null | undefined;\n    scale?: HeatmapScale | undefined;\n    domain?: readonly [\n        number,\n        number\n    ] | undefined;\n    midpoint?: number | undefined;\n    showValues?: boolean | undefined;\n    size?: ChartSize | undefined;\n    format?: Formatter | undefined;\n    label: string;\n    rowLabel?: string | undefined;\n    columnLabel?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: HeatmapSelection) => void) | undefined;\n    details?: ((selection: HeatmapSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/heatmap\".ChartScale": [
+      {
+        "source": "src/patterns/chart/heatmap.d.ts",
+        "declaration": "export declare function ChartScale({ scale, min, max, mid, className }: ChartScaleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/heatmap\".ChartScaleProps": [
+      {
+        "source": "src/patterns/chart/heatmap.d.ts",
+        "declaration": "export type ChartScaleProps = {\n    scale: \"sequential\" | \"diverging\";\n    min: string;\n    max: string;\n    mid?: string | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/heatmap\".HeatmapScale": [
+      {
+        "source": "src/patterns/chart/heatmap.d.ts",
+        "declaration": "export type HeatmapScale = \"sequential\" | \"diverging\" | ((value: number, row: string, column: string) => Tone);"
+      }
+    ],
+    "\"src/patterns/chart/heatmap\".HeatmapSelection": [
+      {
+        "source": "src/patterns/chart/heatmap.d.ts",
+        "declaration": "export type HeatmapSelection = {\n    row: string;\n    column: string;\n    value: number;\n};"
+      }
+    ],
+    "\"src/patterns/chart/line\".ChartArea": [
+      {
+        "source": "src/patterns/chart/line.d.ts",
+        "declaration": "export declare function ChartArea({ data, x, series, scale, curve, dots, labels, baseline, domain, bands, connectNulls, delta, stacked, xLabel, yLabel, texture: textureProp, syncId, size, height, format: formatProp, formatX: formatXProp, reference, label, loading: loadingProp, onSelect, details, className, }: ChartAreaProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/line\".ChartAreaProps": [
+      {
+        "source": "src/patterns/chart/line.d.ts",
+        "declaration": "export type ChartAreaProps = ChartLineProps & {\n    stacked?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/line\".ChartLine": [
+      {
+        "source": "src/patterns/chart/line.d.ts",
+        "declaration": "export declare function ChartLine({ data, x, series, scale, curve, dots, labels, baseline, domain, bands, connectNulls, delta, xLabel, yLabel, texture: textureProp, syncId, size, height, format: formatProp, formatX: formatXProp, reference, label, loading: loadingProp, onSelect, details, className, }: ChartLineProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/line\".ChartLineProps": [
+      {
+        "source": "src/patterns/chart/line.d.ts",
+        "declaration": "export type ChartLineProps = {\n    data: ChartDatum[];\n    x: string;\n    series: ChartSeries[];\n    scale?: \"category\" | \"time\" | undefined;\n    curve?: \"linear\" | \"smooth\" | undefined;\n    dots?: boolean | undefined;\n    labels?: \"none\" | \"end\" | undefined;\n    baseline?: \"zero\" | \"auto\" | undefined;\n    domain?: ChartDomain | undefined;\n    bands?: ChartBand[] | undefined;\n    connectNulls?: boolean | undefined;\n    delta?: boolean | undefined;\n    xLabel?: string | undefined;\n    yLabel?: string | undefined;\n    texture?: boolean | undefined;\n    syncId?: string | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    reference?: ChartReference[] | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: ChartSelection) => void) | undefined;\n    details?: ((selection: ChartSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/scatter\".ChartScatter": [
+      {
+        "source": "src/patterns/chart/scatter.d.ts",
+        "declaration": "export declare function ChartScatter({ data, x, y, z, name: nameKey, groupBy, groups, tone, reference, xLabel, yLabel, size, height, format: formatProp, formatX: formatXProp, label, loading: loadingProp, onSelect, details, className, }: ChartScatterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/scatter\".ChartScatterGroup": [
+      {
+        "source": "src/patterns/chart/scatter.d.ts",
+        "declaration": "export type ChartScatterGroup = {\n    key: string;\n    label?: string | undefined;\n    tone?: ChartTone | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/scatter\".ChartScatterProps": [
+      {
+        "source": "src/patterns/chart/scatter.d.ts",
+        "declaration": "export type ChartScatterProps = {\n    data: ChartDatum[];\n    x: string;\n    y: string;\n    z?: string | undefined;\n    name?: string | undefined;\n    groupBy?: string | undefined;\n    groups?: ChartScatterGroup[] | undefined;\n    tone?: ChartTone | undefined;\n    reference?: ChartReference[] | undefined;\n    xLabel?: string | undefined;\n    yLabel?: string | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    formatX?: CategoryFormatter | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: ScatterSelection) => void) | undefined;\n    details?: ((selection: ScatterSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/scatter\".ScatterSelection": [
+      {
+        "source": "src/patterns/chart/scatter.d.ts",
+        "declaration": "export type ScatterSelection = {\n    datum: ChartDatum;\n    group?: ChartScatterGroup | undefined;\n    index: number;\n};"
+      }
+    ],
+    "\"src/patterns/chart/sparkline\".ChartSparkline": [
+      {
+        "source": "src/patterns/chart/sparkline.d.ts",
+        "declaration": "export declare function ChartSparkline({ data, y, x, appearance, tone, reference, endDot, width, height, format: formatProp, label, loading: loadingProp, className, }: ChartSparklineProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/sparkline\".ChartSparklineProps": [
+      {
+        "source": "src/patterns/chart/sparkline.d.ts",
+        "declaration": "export type ChartSparklineProps = {\n    data: ChartDatum[];\n    y: string;\n    x?: string | undefined;\n    appearance?: \"line\" | \"area\" | \"bars\" | undefined;\n    tone?: ChartTone | undefined;\n    reference?: number | undefined;\n    endDot?: boolean | undefined;\n    width?: number | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/treemap\".ChartTreemap": [
+      {
+        "source": "src/patterns/chart/treemap.d.ts",
+        "declaration": "export declare function ChartTreemap({ data, size, height, format: formatProp, label, loading: loadingProp, onSelect, details, className, }: ChartTreemapProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/chart/treemap\".ChartTreemapProps": [
+      {
+        "source": "src/patterns/chart/treemap.d.ts",
+        "declaration": "export type ChartTreemapProps = {\n    data: TreemapNodeInput[];\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: TreemapSelection) => void) | undefined;\n    details?: ((selection: TreemapSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/treemap\".TreemapNodeInput": [
+      {
+        "source": "src/patterns/chart/treemap.d.ts",
+        "declaration": "export type TreemapNodeInput = {\n    name: string;\n    value?: number | undefined;\n    tone?: ChartTone | undefined;\n    children?: TreemapNodeInput[] | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/chart/treemap\".TreemapSelection": [
+      {
+        "source": "src/patterns/chart/treemap.d.ts",
+        "declaration": "export type TreemapSelection = {\n    name: string;\n    value: number;\n    group: string;\n};"
       }
     ],
     "\"src/patterns/command-palette\".CommandPalette": [
@@ -6940,6 +6880,54 @@
         "declaration": "export declare function resetView<TData extends RowData>(table: DataTableInstance<TData>): void;"
       }
     ],
+    "\"src/patterns/editable\".Editable": [
+      {
+        "source": "src/patterns/editable.d.ts",
+        "declaration": "Editable: {\n    Text: typeof EditableText;\n    Select: typeof EditableSelect;\n}"
+      }
+    ],
+    "\"src/patterns/editable\".EditableProps": [
+      {
+        "source": "src/patterns/editable.d.ts",
+        "declaration": "export type EditableProps<T extends string> = {\n    label: string;\n    value: T;\n    onChange: (next: T) => void;\n    validate?: ((next: string) => string | null) | undefined;\n    save: (next: T) => Promise<unknown>;\n};"
+      }
+    ],
+    "\"src/patterns/editable\".EditableSelectProps": [
+      {
+        "source": "src/patterns/editable.d.ts",
+        "declaration": "export type EditableSelectProps<T extends string> = EditableProps<T> & {\n    options: readonly T[];\n    render?: ((value: T) => ReactNode) | undefined;\n    searchable?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/editable\".EditableTextProps": [
+      {
+        "source": "src/patterns/editable.d.ts",
+        "declaration": "export type EditableTextProps = EditableProps<string> & {\n    placeholder?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/gates\".GateItem": [
+      {
+        "source": "src/patterns/gates.d.ts",
+        "declaration": "export declare function GateItem({ met, tone, label, reason, action }: GateItemProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/gates\".GateItemProps": [
+      {
+        "source": "src/patterns/gates.d.ts",
+        "declaration": "export type GateItemProps = {\n    met: boolean;\n    tone?: Tone | undefined;\n    label: ReactNode;\n    reason?: ReactNode;\n    action?: ReactNode;\n};"
+      }
+    ],
+    "\"src/patterns/gates\".Gates": [
+      {
+        "source": "src/patterns/gates.d.ts",
+        "declaration": "Gates: typeof GatesRoot & {\n    Item: typeof GateItem;\n}"
+      }
+    ],
+    "\"src/patterns/gates\".GatesProps": [
+      {
+        "source": "src/patterns/gates.d.ts",
+        "declaration": "export type GatesProps = {\n    children: ReactNode;\n    className?: string | undefined;\n};"
+      }
+    ],
     "\"src/patterns/glance\".Glance": [
       {
         "source": "src/patterns/glance.d.ts",
@@ -7124,6 +7112,18 @@
       {
         "source": "src/patterns/task-row.d.ts",
         "declaration": "export type TaskRowProps = Pick<ItemProps, \"meta\" | \"actions\" | \"link\" | \"onSelect\" | \"className\"> & {\n    title: string;\n    completed?: boolean | undefined;\n    onCompletedChange?: ((completed: boolean) => void) | undefined;\n    completionLabel?: string | undefined;\n    completedLabel?: string | undefined;\n    completionDisabled?: boolean | undefined;\n    assignee?: ReactNode;\n    due?: ReactNode;\n    dueDateTime?: string | undefined;\n    status?: ReactNode;\n};"
+      }
+    ],
+    "\"src/patterns/toolbar\".Toolbar": [
+      {
+        "source": "src/patterns/toolbar.d.ts",
+        "declaration": "export declare function Toolbar({ search, onSearch, placeholder, children, actions, className, }: ToolbarProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/toolbar\".ToolbarProps": [
+      {
+        "source": "src/patterns/toolbar.d.ts",
+        "declaration": "export type ToolbarProps = {\n    search?: string | undefined;\n    onSearch?: ((value: string) => void) | undefined;\n    placeholder?: string | undefined;\n    children?: ReactNode;\n    actions?: ReactNode;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/primitives/_elements\".HeadingElement": [
@@ -7672,18 +7672,6 @@
         "declaration": "type DatePickerOwnProps = {\n    value?: string | undefined;\n    defaultValue?: string | undefined;\n    onChange?: ((iso: string) => void) | undefined;\n    placeholder?: string | undefined;\n    size?: ControlSize | undefined;\n    disabled?: boolean | undefined;\n    name?: string | undefined;\n    form?: string | undefined;\n    id?: string | undefined;\n    \"aria-labelledby\"?: string | undefined;\n    defaultOpen?: boolean | undefined;\n    className?: string | undefined;\n    \"aria-label\"?: string | undefined;\n    \"aria-invalid\"?: boolean | undefined;\n    \"aria-required\"?: boolean | undefined;\n    \"aria-describedby\"?: string | undefined;\n};"
       }
     ],
-    "src/components/editable.d.ts#EditableSelect": [
-      {
-        "source": "src/components/editable.d.ts",
-        "declaration": "declare function EditableSelect<T extends string>({ options, render, searchable, ...props }: EditableSelectProps<T>): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/editable.d.ts#EditableText": [
-      {
-        "source": "src/components/editable.d.ts",
-        "declaration": "declare function EditableText({ placeholder, ...props }: EditableTextProps): import(\"react\").JSX.Element;"
-      }
-    ],
     "src/components/empty.d.ts#emptyMediaVariants": [
       {
         "source": "src/components/empty.d.ts",
@@ -7694,12 +7682,6 @@
       {
         "source": "src/components/field.d.ts",
         "declaration": "fieldVariants: (props?: ({\n    orientation?: \"horizontal\" | \"vertical\" | \"responsive\" | null | undefined;\n} & import(\"class-variance-authority/types\").ClassProp) | undefined) => string"
-      }
-    ],
-    "src/components/gates.d.ts#GatesRoot": [
-      {
-        "source": "src/components/gates.d.ts",
-        "declaration": "declare function GatesRoot({ children, className }: GatesProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/id.d.ts#Mono": [
@@ -7825,7 +7807,7 @@
     "src/components/tree.d.ts#TreeRoot": [
       {
         "source": "src/components/tree.d.ts",
-        "declaration": "declare function TreeRoot({ label, size, children, className }: TreeProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function TreeRoot({ label, size, onFocusCapture, onKeyDown, ...props }: TreeProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/typography.d.ts#FactRoot": [
@@ -7898,6 +7880,24 @@
       {
         "source": "src/patterns/data-table/use-data-table.d.ts",
         "declaration": "type TanStackOptions<TData extends RowData> = Omit<TableOptions<DataTableFeatures, TData>, \"features\" | \"columns\" | \"data\" | \"enableRowSelection\" | \"manualPagination\" | \"meta\">;"
+      }
+    ],
+    "src/patterns/editable.d.ts#EditableSelect": [
+      {
+        "source": "src/patterns/editable.d.ts",
+        "declaration": "declare function EditableSelect<T extends string>({ options, render, searchable, ...props }: EditableSelectProps<T>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/patterns/editable.d.ts#EditableText": [
+      {
+        "source": "src/patterns/editable.d.ts",
+        "declaration": "declare function EditableText({ placeholder, ...props }: EditableTextProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/patterns/gates.d.ts#GatesRoot": [
+      {
+        "source": "src/patterns/gates.d.ts",
+        "declaration": "declare function GatesRoot({ children, className }: GatesProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/patterns/panel.d.ts#PanelRoot": [
