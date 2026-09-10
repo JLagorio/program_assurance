@@ -19,7 +19,6 @@ import {
   Dot,
   Eyebrow,
   Field,
-  FilterChip,
   Grid,
   Id,
   Indicator,
@@ -32,6 +31,8 @@ import {
   Stack,
   Table,
   Textarea,
+  ToggleGroup,
+  ToggleGroupItem,
 } from "@ledger/design-system";
 import { UnavailableAction } from "@/components/app/unavailable-action";
 import { useRecordForm } from "@/lib/record-form";
@@ -259,11 +260,23 @@ export function AuthorizationSection({
             </>
           }
         >
-          <Inline className="pb-100 pt-150" space="space.100" alignBlock="center" shouldWrap>
+          <ToggleGroup
+            className="flex-wrap pb-100 pt-150"
+            aria-label="Observation filter"
+            size="sm"
+            value={[filter]}
+            onValueChange={(values, details) => {
+              const next = values[0];
+              if (next) setFilter(next);
+              else details.cancel();
+            }}
+          >
             {filters.map((f) => (
-              <FilterChip key={f} label={f} isActive={filter === f} onClick={() => setFilter(f)} />
+              <ToggleGroupItem key={f} value={f}>
+                {f}
+              </ToggleGroupItem>
             ))}
-          </Inline>
+          </ToggleGroup>
 
           <Table className="table-fixed">
             <thead>

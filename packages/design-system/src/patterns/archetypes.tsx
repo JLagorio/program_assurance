@@ -6,13 +6,13 @@ import { cn } from "../lib/cn";
 export type IndexPageProps = {
   /** A PageHeader. */
   header: ReactNode;
-  /** One row of FilterChips and a search, between the header and the table. A Toolbar inside the table's Card is the other place. */
+  /** Search, filters or view controls between the header and the main work area. */
   filters?: ReactNode;
-  /** The table, in a Card, or the Empty that replaces it. */
+  /** The main work area: a table, board, list or empty state. */
   children: ReactNode;
 };
 
-/** Header, one filter row, one dense table. The inline detail surface is the preview rail (beside the table) or the preview sheet (over a full-width one); the record is never inline. */
+/** Header, view controls and the main work area. Compose a detail surface when users need to inspect or act on a selected record. */
 export function IndexPage({ header, filters, children }: IndexPageProps) {
   return (
     <div className="flex flex-col gap-200 animate-rise">
@@ -23,7 +23,7 @@ export function IndexPage({ header, filters, children }: IndexPageProps) {
   );
 }
 
-/** RecordHeader, one tab strip running the full width, then the tab body. With `tab`, the page is the Tabs root and the body is the selected tab's panel, so the strip and the body are one ARIA pattern. `rail` renders beside the body, under the tab strip: the record's details and related information, every Inspector group, on the overview tab; every other tab runs full width. The rail column is `dimension.layout.rail` plus its rule. */
+/** RecordHeader, one tab strip running the full width, then the tab body. With `tab`, the page is the Tabs root and the body is the selected tab's panel, so the strip and the body are one ARIA pattern. `rail` renders beside the body, under the tab strip: the record's details and related information, every Inspector group, where that context supports the active task; tabs without a rail run full width. The rail column is `dimension.layout.rail` plus its rule. */
 export type ShowPageProps = {
   /** A RecordHeader. */
   header: ReactNode;
@@ -33,9 +33,9 @@ export type ShowPageProps = {
   tab?: string | undefined;
   /** Called with the tab's value when the reader selects one. */
   onTabChange?: ((value: string) => void) | undefined;
-  /** The record's rail, beside the body of the tab that shows it. Pass it on the overview tab and nothing on the others. */
+  /** The record's rail, beside the body of the tab that shows it. Pass it on the tabs where that context helps the user act. */
   rail?: ReactNode;
-  /** The tab's body: Sections, Cards, a Table. */
+  /** The focused work area for the selected tab. */
   children: ReactNode;
 };
 

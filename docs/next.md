@@ -2,7 +2,12 @@
 
 A living list for the design system and the prototype. Josef owns the decisions; whoever is working owns the work. Tick a box when it lands and move it to Done with the date. Keep it short: one line per item, the reasoning lives in the spec or the audit it points at.
 
-Updated 2026-09-06.
+Updated 2026-09-09.
+
+## Current design-system work
+
+- [x] **Requirement record workflow reference** (2026-09-09). Keep status and owner beside the record identity; make attention items actionable; separate Allocations, Evidence, Activity and Provenance from Overview. Assessment results use compact cards and evidence uses Attachment previews. Preserve the existing editors and domain rules.
+- [ ] **Consolidate record/detail patterns.** Review ShowPage/RecordHeader and Panel/PreviewRail/PreviewSheet against this reference. Favor focused work areas and useful in-place actions; remove duplicated fact presentations and blanket rules that turn every record into a report. Keep DataTable, Editable, Composer and TaskRow as working interaction patterns.
 
 ## Decisions waiting on Josef
 
@@ -24,11 +29,11 @@ Updated 2026-09-06.
 - [ ] **Shell defaults.** The side nav at 228px (min 200, max half the viewport), the panel at 320px (min 240), the banner at 48px: sign-off values in `tokens/dimension.json`.
 - [ ] **Four drifts the token pages found** (2026-09-04): `radius.xlarge` is described as "Dialogs, sheets" but Dialog and Command use `xxlarge`; Palette and the grammar page say six ramps and there are eight (teal and purple for the chart); `poam.tsx` and `conmon.tsx` paint severity as a Badge pill against the Indicator rule; `animate-slide-in-bottom/top` are defined and unused.
 - [ ] **The choice controls on the lighter border** (2026-09-04, restored 2026-09-06 after the audit had darkened it to `neutral.600`). `color.border.input` is `neutral.400` for every field at Josef's ask, so the Checkbox box and the RadioGroup dot are lighter too (1.9:1 on white); the audit's contrast pair for it is now a 1.5:1 visibility floor. Keep, or give the choice controls `color.border.bold`?
-- [x] **Select where the rule says NativeSelect** (2026-09-04; done 2026-09-05: the eight are NativeSelects).
+- [x] **NativeSelect removed.** Product controls now use the shadcn/Base UI Select family; installer reference catalogs remain in place.
 - [ ] **Typed date entry** (2026-09-04). Carbon and Atlassian let the reader type into the date field as well as pick; the kit's DatePicker is pick-only, and the page sends a remembered date to an Input with the format in the hint. Build a typed field with a mask, or keep the rule?
-- [ ] **Exclusive chip sets in the prototype** (2026-09-04). Rows of FilterChips where one is always on: verification's severities (with the row count as the chip's value), scope-control-set's families, authorization's filters. The FilterChip page says one-of-a-few is a ToggleGroup and a count is a Count; the control board's lenses already are. Re-point the three, or let chips stand there?
+- [x] **Routed filter controls** (2026-09-09). Authorization uses a required single-choice ToggleGroup; the scope control set has a searchable family Combobox with every family. The old VerificationSection is not routed; its historical chip row is outside this batch.
 - [ ] **No items-per-page select** (2026-09-04). Carbon and Base Web let the reader change the page size; the Pagination page says the author sets it (25 or 50) and density is the reader's lever. Keep, or build the select?
-- [ ] **Column resizing is pointer-only** (2026-09-04), as it is in Carbon and Base Web; the DataTable page says so and points a keyboard user at Reset view. Leave, or add a keyboard resize to the column menu?
+- [x] **Keyboard column resizing.** DataTable supports keyboard resize and reset; see its current Storybook examples.
 - [ ] **Hand titles in the prototype** (2026-09-04). Twenty-one `title` attributes on spans in ingestion, conmon, te-phases and the system tree show the whole of a truncated value or a joined list. The Tooltip page says a truncated value's whole is the cell's title, so these stand; the ones on a plain span that is not truncated (the tree's "name no control" count) would be a Tooltip on a focusable trigger. Sweep, or leave?
 - [ ] **Staged overlays in the docs** (2026-09-04). An open Dialog or Sheet covers the docs page, so the pages show their states one click away and hold one open in a canvas-only story. Rendering one inside a frame on the page would need `isModal={false}` and a portal `container` on the four blanketed overlays, which is the same prop the non-modal Sheet decision above needs. Add it for both, or leave the states a click away?
 - [ ] **The Drawer has no consumer** (2026-09-04). No prototype screen opens one; it waits for the narrow-screen pass. Keep it in the kit for that, or drop it until then?
@@ -85,17 +90,17 @@ Updated 2026-09-06.
 - [ ] **Tabs forms not built** (2026-09-05): Carbon's contained and vertical tabs, HubSpot's enclosed variant and its More menu on overflow, Base Web's fixed fill. The panel takes focus on Tab after the strip (Radix, Atlassian) rather than only when it has no controls (Carbon). Leave until a screen asks?
 - [ ] **The toast's action button** (2026-09-05). A toast's action (Undo, View) is a 24px `brand.bold` button in the corner, a primary where the Button page allows one per view; `cancel` beside it is the quiet one. Keep the bold, or step it to the `xsmall` secondary?
 - [ ] **Enter folds the pane before the handle only** (2026-09-05). The library's rule: Enter on a Resizable handle collapses the `collapsible` pane before it, never the one after. The page says so and the stories put the folding pane first (a tree). A rail after the handle folds by drag alone; give it a toggle of its own, or accept?
-- [ ] **The Toaster page's matrix is a drawing** (2026-09-05). sonner renders to the viewport, so the page's specimens are drawn with the Toaster's own classes and the live ones are a click away, verified with real clicks. A kit `Toast` component driven through `toast.custom` would make the specimen and the live one the same element. Worth a sitting, or leave the drawing?
+- [x] **Toaster uses live Base UI parts.** The Sonner wrapper and drawn specimens are retired; current stories exercise the native toast stack and actions.
 - [ ] **Not built on this walk** (2026-09-05): a multi-line Editable (a paragraph edited in place hides itself; a Textarea in a Sheet), a date Editable (the typed-date decision above), a highlighted line and a tokenizer on CodeBlock (the caller colours lines), a `scroll` bar mode on ScrollArea (hover and always are enough), tinted toasts (the mark carries the tone).
 - [ ] **Part props tables render nothing** (2026-09-05). `<ArgTypes of={Table.Row} />`, `Shell.SideNav`, `Inspector.Group`, `WorkPane.Row` and now `Tabs.Tab` produce no table and no message: react-docgen-typescript documents a file's exported components, and the parts hang off `Object.assign`. Tabs, Collapsible and Accordion carry hand tables for their parts meanwhile. Export the part functions by name (the ratchet counts index exports only), or a `parameters.docs` map per family? For the audit's plan.
 
 ## Kit
 
-The maturity walk, one part per sitting, each page onto the template (`docs/superpowers/specs/2026-09-04-maturity-check.md`; `Components/Button` and `Components/Input` are the pages to copy; `node scripts/ds-check.mjs` lists what each page is missing). One page per part a product imports by name; Forms, Overlays, Pages, Shapes and Primitives keep an overview.
+The identified shadcn/Base UI component migrations are complete. Current contracts live in Storybook. The next pass is pattern and application composition, using the requirement record as the first workflow reference; missing catalog families are optional additions driven by a real screen.
 
 - [x] Button, IconButton, TextLink (2026-09-04)
 - [x] Input, Field (2026-09-04)
-- [x] Textarea, NativeSelect, InputGroup (2026-09-04). Input and NativeSelect took `size`; Select, Combobox and DatePicker take it in the next sitting.
+- [x] Textarea and InputGroup; NativeSelect was subsequently removed during the Base UI migration.
 - [x] Select, Combobox, DatePicker, Calendar (2026-09-04)
 - [x] Checkbox, RadioGroup, Switch; the Forms overview (2026-09-04)
 - [x] Table, Pagination, Toolbar, FilterChip; DataTable (2026-09-04)
@@ -106,7 +111,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 - [x] Breadcrumb, Item, Avatar, Id, KeyValue, Fact, Typography (2026-09-04)
 - [x] Stepper, Timeline, Tree (2026-09-04)
 - [x] Toggle, ToggleGroup, ButtonGroup, Kbd, Separator, Skeleton, Spinner (2026-09-04)
-- [x] Tabs, Collapsible, Accordion (2026-09-05), and the same day Accordion folded into `Collapsible.Group` on Josef's question (one part, alone or in a set; `multiple` by default, `single` said; the old names deprecated with the lint's rename). Tabs on Radix in four parts with the sliding indicator and automatic or manual activation; ShowPage's `tab` and `onTabChange`; disclosures with a heading level, a hover tint and a disabled state. The twenty-six prototype strips re-pointed by codemod.
+- [x] Tabs, Collapsible and Accordion use their separate shadcn/Base UI parts. Native props, refs, selection and keyboard behavior are covered in current stories.
 - [x] Chart (2026-09-04)
 - [x] Editable, Command, CodeBlock, Resizable, ScrollArea, Toaster (2026-09-05). Editable flush on the column with `label` required; Command's cursor as the menu's, Empty and Loading after the listbox; CodeBlock's Copy and wrap; Resizable's persist and collapsible; ScrollArea's label and always-bar; the kit's `toast` with the error's eight seconds and close. Six defects out of the walk: the Enter-reopens-the-field bug, the listbox's message rows, the loading row stacking, the Editable's 4px indent, the toast's 400ms, the unnamed scroll region.
 - [x] Mode, Density (2026-09-05). Josef: density is a table's setting, never the app's. `Table density`, `useDataTable density`, Compact rows in the Columns menu kept with the view; the app-wide provider, switch and script deprecated as no-ops and gone from the prototype's top bar and root.

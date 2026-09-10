@@ -6,6 +6,12 @@ import {
   SelectContent,
   SelectItem,
   Badge,
+  Attachment,
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
   Block,
   Box,
   Button,
@@ -62,6 +68,7 @@ import { requirementsForProgram } from "@/lib/requirements";
 import { controlSetFor, scopeById, scopesForProgram } from "@/lib/scopes";
 import { Link } from "@tanstack/react-router";
 import { useId, useMemo, useState } from "react";
+import { FileText } from "lucide-react";
 
 const reviewTone = (review: EvidenceReview) =>
   review === "Accepted"
@@ -1035,26 +1042,46 @@ export function RequirementEvidence({
   return (
     <Stack space="space.100">
       {linked.map((artifact) => (
-        <Inline key={artifact.id} space="space.100">
-          <TextLink render={<button type="button" onClick={() => setPreviewId(artifact.id)} />}>
-            {artifact.id} · {artifact.label}
-          </TextLink>
-          {artifact.url ? (
-            <TextLink render={<a href={artifact.url} target="_blank" rel="noreferrer" />}>
-              Open artifact
-            </TextLink>
-          ) : null}
+        <Attachment key={artifact.id} state="done">
+          <Attachment.Media aria-hidden>
+            <FileText />
+          </Attachment.Media>
+          <Attachment.Content>
+            <Attachment.Title title={artifact.label}>{artifact.label}</Attachment.Title>
+            <Attachment.Description>
+              {artifact.id} · {artifact.kind} · {artifact.owner}
+            </Attachment.Description>
+          </Attachment.Content>
           <Badge size="small" tone={reviewTone(artifact.review)}>
             {artifact.review}
           </Badge>
-        </Inline>
+          <Attachment.Trigger
+            aria-label={`Review ${artifact.label}`}
+            onClick={() => setPreviewId(artifact.id)}
+          />
+          {artifact.url ? (
+            <Attachment.Actions>
+              <TextLink render={<a href={artifact.url} target="_blank" rel="noreferrer" />}>
+                Open artifact
+              </TextLink>
+            </Attachment.Actions>
+          ) : null}
+        </Attachment>
       ))}
       {!linked.length ? (
-        <Text as="p" size="small">
-          No supporting evidence linked.
-        </Text>
+        <Empty>
+          <EmptyMedia variant="icon">
+            <FileText aria-hidden />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No supporting evidence</EmptyTitle>
+            <EmptyDescription>
+              Link a program artifact or add evidence for this requirement.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : null}
-      <Inline space="space.100">
+      <Inline space="space.100" shouldWrap>
         <Select<string>
           items={selectedItems}
           value={selected}
@@ -1063,7 +1090,10 @@ export function RequirementEvidence({
             return setSelected(value);
           }}
         >
-          <SelectTrigger className="w-full" aria-label="Evidence to link">
+          <SelectTrigger
+            className="w-full sm:w-auto sm:min-w-0 sm:flex-1"
+            aria-label="Evidence to link"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

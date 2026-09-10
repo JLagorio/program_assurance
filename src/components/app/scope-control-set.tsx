@@ -5,7 +5,12 @@ import {
   Absent,
   Badge,
   Fact,
-  FilterChip,
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxList,
+  ComboboxItem,
   Id,
   Inline,
   Inspector,
@@ -96,14 +101,16 @@ export function ScopeControlSetTab({
   programId: string;
   scope: AssessmentScope;
 }) {
-  const [family, setFamily] = useState("All");
+  const [family, setFamily] = useState<string | null>(null);
   const set = controlSetFor(scope.id);
   if (!set) return null;
 
   const unique = uniqueToScope(scope, set);
   const families = ["All", ...[...new Set(set.controls.map((c) => c.control.family))].sort()];
   const rows =
-    family === "All" ? set.controls : set.controls.filter((c) => c.control.family === family);
+    family === null || family === "All"
+      ? set.controls
+      : set.controls.filter((c) => c.control.family === family);
 
   return (
     <>
@@ -112,11 +119,21 @@ export function ScopeControlSetTab({
       <Section
         title="Controls in force"
         action={
-          <Inline space="space.075" shouldWrap>
-            {families.slice(0, 12).map((f) => (
-              <FilterChip key={f} label={f} isActive={family === f} onClick={() => setFamily(f)} />
-            ))}
-          </Inline>
+          <div style={{ width: 220, maxWidth: "100%" }}>
+            <Combobox items={families} value={family} onValueChange={setFamily} autoHighlight>
+              <ComboboxInput size="small" aria-label="Control family" placeholder="All families" />
+              <ComboboxContent>
+                <ComboboxEmpty>No matching families.</ComboboxEmpty>
+                <ComboboxList>
+                  {(item: string) => (
+                    <ComboboxItem key={item} value={item}>
+                      {item}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+          </div>
         }
       >
         <ControlTable rows={rows} programId={programId} />

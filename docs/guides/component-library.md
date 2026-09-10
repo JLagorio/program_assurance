@@ -139,15 +139,21 @@ every product. A product's own config adds nothing about the kit.
 | `ledger/no-kit-shadow`          | A local component named like a kit part                                 | Import the kit part.                                  |
 | `ledger/button-icon-slot`       | An element with `size-icon-*` inside a Button or IconButton             | `iconBefore`, `iconAfter` or `icon`, passed bare.     |
 
+## Pattern direction
+
+Record screens should make state, ownership and the next action visible before background detail. The requirement record is the first application reference: attention items lead to work, assessment results have a clear status, evidence opens as an artifact, and activity and provenance have their own views. Preserve the full requirement statement and audit information without repeating it across the header, body and rail.
+
+Use list or board views for queues, compact editable properties for ownership and status, and focused detail surfaces for completing work. Linear's [display options](https://linear.app/docs/display-options), HubSpot's [record composition](https://knowledge.hubspot.com/object-settings/customize-records) and Salesforce's [record workspaces](https://trailhead.salesforce.com/content/learn/modules/lightning-experience-for-salesforce-classic-users/work-with-your-data) are references for this direction. Choose the layout around the work the user is doing; adding cards alone does not create a workflow.
+
+Consolidate ShowPage/RecordHeader and Panel/PreviewRail/PreviewSheet around proven application interactions before adding another record pattern. Section is a heading wrapper, not a page template. Keep DataTable, Editable, Composer and TaskRow's existing interaction contracts. Shared patterns own layout, focus and reusable interactions; the application owns requirement gates, approval rules and state transitions.
+
 ## Rules that stay in the head
 
 - A list row carries the name, one status, the number the reader sorts by, at most one bar, and
   the actions. Everything else goes in the peek.
-- A record header carries the trail, title, brief meta and actions; details go in the rail.
-- Hover on an id is a glance (HoverCard, facts only); click is the peek (PreviewSheet, facts and
-  the actions that make sense without leaving); the footer link is the record.
-- Rail beside an index table that leaves room; sheet over a full-width table and wherever the
-  preview carries actions. Never both on one page.
+- A record header carries identity, current state, ownership and useful actions. Supporting properties go in a compact rail or a focused details view.
+- Hover previews provide brief context. A selected-record surface supports the actions that make sense without leaving the queue, with a clear route to the full record.
+- Choose an inline panel or an overlay based on available space and whether the underlying queue must remain usable. Both can contain actions.
 - The shell's Panel is an area, not a feature. The peek is a Sheet over the page and the nav.
   On a record the Panel is the rail, details and related information, always there and never
   dismissed; a panel the reader opens, a thread or a form, has a close and a trigger.

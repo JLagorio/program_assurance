@@ -23,7 +23,7 @@ export type PreviewRailProps = {
   onClose: () => void;
   /** The TextLink to the full record: "Open finding". The rail is a preview, never the record. */
   openTo?: ReactNode;
-  /** Facts in groups: Inspector.Group, KeyValue rows, a short list. No actions. */
+  /** Focused record content, including editable properties or actions useful beside the list. */
   children: ReactNode;
 };
 

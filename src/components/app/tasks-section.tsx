@@ -389,6 +389,7 @@ export function TasksSection({
   const done = all.filter((t) => t.state === "Done");
   const [showDone, setShowDone] = useState(false);
   const [adding, setAdding] = useState(false);
+  const visible = showDone ? [...open, ...done] : open;
 
   return (
     <Section
@@ -401,9 +402,9 @@ export function TasksSection({
       }
     >
       <Stack space="space.100" className="pt-100">
-        <Task.List empty={extra ? undefined : "No tasks. Ask for something from the log bar."}>
+        <Task.List empty={extra ? undefined : "No open tasks."}>
           {extra}
-          <TaskRows tasks={showDone ? [...open, ...done] : open} me={me} />
+          {visible.length ? <TaskRows tasks={visible} me={me} /> : null}
         </Task.List>
         {done.length ? (
           <Inline>

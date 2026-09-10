@@ -65,6 +65,8 @@ Stepper, Stat, KeyValue and Banner now forward native DOM props and refs. Target
 
 FilterChip now exposes its native button ref, including composition with PopoverTrigger. Its existing toolbar story verifies both refs and click handlers on the same button, standalone toggle activation, keyboard opening, selection, Escape and focus return. The current custom `render` targets in the package and application were checked for ref support, including the child triggers passed through the application hover wrappers; no further ref-exclusion gaps were found among those targets. Workspace and packed-consumer fixtures cover the public FilterChip ref type. Continue from concrete application integration needs.
 
+The requirement record is now the first workflow reference for pattern cleanup: editable state and owner, actionable attention items, compact assessment results, and separate Allocations, Evidence, Activity and Provenance views. Activity drafts and evidence selection survive tab changes. Routed authorization filters use a required single-choice ToggleGroup; scope controls expose every family through a searchable Combobox. Next, consolidate ShowPage/RecordHeader and Panel/PreviewRail/PreviewSheet around this reference; see [Pattern direction](component-library.md#pattern-direction).
+
 ## Completion workflow
 
 Follow [Adding to the kit](component-library.md#adding-to-the-kit): implementation and affected consumers, representative stories, one accurate family page, changelog and relevant checks. Keep assertions on useful examples and remove duplicate stories/filler as a family is touched.
@@ -76,6 +78,8 @@ Only intentional public contract changes need `npm run ds:api:update`; review it
 Run package/application typechecks, lint, API/coverage checks and relevant stories in both modes. Shared behavior can justify the full Storybook suite. Run package tests, the packed consumer, production/Storybook builds and visual review. Inspect `git diff --check`; preserve concurrent application work and report any unrelated validation failures separately.
 
 ## Latest validation
+
+The requirement-workflow batch passed application typecheck, targeted application lint (two existing store-version memo warnings), package lint, API/coverage checks and the production build. Application tests passed 178 with one skipped. Live checks covered filter selection and keyboard behavior, tab action focus, activity draft retention, evidence linking and preview, and desktop light/dark plus 390px layouts. Axe reported no violations on the reference Overview. No package runtime API changed in this batch.
 
 The native-display batch passed all 36 focused light/dark checks across Stepper, Stat, KeyValue and Banner. Package/application typechecks, package lint, API/coverage checks, production/Storybook builds and the offline packed consumer passed. The installed package fixture checks native attributes through SSR and refs through TypeScript, plus Vite and consumer CSS. Package tests passed 15; application tests passed 165 with one skipped. The earlier Tree/pattern-boundary batch passed the full 1,056-check suite; this pass used the affected families’ checks.
 

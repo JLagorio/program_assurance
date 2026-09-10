@@ -5,7 +5,7 @@ import {
   ComboboxList,
   ComboboxItem,
   Badge,
-  Block,
+  Card,
   Box,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -17,7 +17,6 @@ import {
   Combobox,
   Count,
   Editable,
-  Fact,
   Gates,
   Id,
   Indicator,
@@ -28,15 +27,15 @@ import {
   Section,
   ShowPage,
   Stack,
-  Table,
   TabsList,
   TabsTrigger,
   Text,
   TextLink,
 } from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowRight, ChevronDown, ClipboardCheck, FileText, UserRound } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { evidenceForTarget, useEvidenceVersion } from "@/lib/evidence-catalog";
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
 import { LinkControlsSheet } from "@/components/app/link-controls";
 import { RequirementEvidence } from "@/components/app/program-evidence";
@@ -62,7 +61,6 @@ import {
   allocationsFor,
   ancestorsOfRequirement,
   childrenOfRequirement,
-  derivationSourceTone,
   getRequirement,
   qualityGates,
   requirementMethodLabel,
@@ -75,14 +73,8 @@ import {
 } from "@/lib/requirements";
 import { resolvedObjectiveResult, runById } from "@/lib/test-execution";
 
-/**
- * Two tabs, not four. Each pane holds one to four rows — a requirement carries
- * at most three derivation sources and four allocations — so splitting
- * allocation, decomposition and verification into their own tabs would mean
- * clicking to reach almost nothing. Provenance earns its own pane only because
- * the rationale column is the one thing the rail cannot hold.
- */
-const requirementTabs = ["Overview", "Provenance"] as const;
+// Keep each work surface directly addressable; Overview retains existing record links.
+const requirementTabs = ["Overview", "Allocations", "Evidence", "Activity", "Provenance"] as const;
 type RequirementTab = (typeof requirementTabs)[number];
 
 export const Route = createFileRoute("/programs/$programId_/requirements/$requirementId")({
@@ -138,6 +130,11 @@ function RequirementRecord() {
   const currencyVersion = useLinkCurrencyVersion();
   const [allocating, setAllocating] = useState(false);
   const [linking, setLinking] = useState(false);
+  const [showGates, setShowGates] = useState(false);
+  const assessmentRef = useRef<HTMLInputElement>(null);
+  const checksRef = useRef<HTMLButtonElement>(null);
+  const tabRefs = useRef<Partial<Record<RequirementTab, HTMLButtonElement | null>>>({});
+  useEvidenceVersion();
   const requirement = useMemo(
     () => getRequirement(requirementId) ?? null,
     [requirementId, storeVersion],
@@ -190,8 +187,11 @@ function RequirementRecord() {
   const objectives = objectivesForRequirement(requirement.id);
   const candidates = unlinkedObjectives(requirement.id);
   const go = (next: RequirementTab) =>
-    navigate({ search: { tab: next, element: elementId }, replace: true });
+    navigate({ search: { tab: next, element: elementId }, replace: true }).then(() => {
+      tabRefs.current[next]?.focus();
+    });
   const me = currentSession().name;
+  const evidence = evidenceForTarget(programId, "requirement", requirement.id);
 
   const choiceItems = candidates.map((o) => ({
     value: o.id,
@@ -207,16 +207,6 @@ function RequirementRecord() {
             tab === "Overview" ? (
               <>
                 <Inspector.Group title="Details">
-                  <KeyValue label="Type">{requirement.type}</KeyValue>
-                  <KeyValue label="Revision">{`r${requirement.revision}`}</KeyValue>
-                  <KeyValue label="Owner">
-                    <Editable.Text
-                      label="Owner"
-                      value={requirement.owner}
-                      onChange={(next) => setRequirementField(requirement.id, { owner: next })}
-                      save={(next) => saveRequirementField(`${requirement.id} owner`, next)}
-                    />
-                  </KeyValue>
                   <KeyValue label="Method">
                     {requirement.assessmentMethod ? (
                       <Editable.Select
@@ -273,10 +263,17 @@ function RequirementRecord() {
                     )}
                   </KeyValue>
                 </Inspector.Group>
-                <Collapsible defaultOpen className="border-t border-default first:border-t-0">
+                <Collapsible
+                  open={showGates}
+                  onOpenChange={setShowGates}
+                  className="border-t border-default first:border-t-0"
+                >
                   <h3>
-                    <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                      Gates
+                    <CollapsibleTrigger
+                      ref={checksRef}
+                      className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered"
+                    >
+                      Approval checks
                       {unmet.length > 0 ? <Count value={unmet.length} /> : null}
                       <ChevronDown
                         aria-hidden="true"
@@ -299,31 +296,6 @@ function RequirementRecord() {
                     </Box>
                   </CollapsibleContent>
                 </Collapsible>
-                <Inspector.Group title="Sources">
-                  {requirement.derivations.map((d) => (
-                    <KeyValue
-                      key={`${d.sourceType}-${d.sourceId}`}
-                      label={
-                        d.sourceType === "Control statement" || d.sourceType === "Overlay"
-                          ? d.relation === "mapped"
-                            ? "Mapped to"
-                            : "Derived from"
-                          : d.sourceType
-                      }
-                    >
-                      <Stack as="span" space="space.025">
-                        <SourceRef derivation={d} programId={programId} elementId={elementId} />
-                        <span className="font-body-xsmall text-subtle">{d.sourceLabel}</span>
-                      </Stack>
-                    </KeyValue>
-                  ))}
-                  <KeyValue label="Rationale">
-                    <Button onClick={() => go("Provenance")} variant="link">
-                      {requirement.derivations.length} on the Provenance tab
-                    </Button>
-                  </KeyValue>
-                </Inspector.Group>
-
                 <Inspector.Group title="Position">
                   <KeyValue label="Parent">
                     {parent ? (
@@ -343,7 +315,6 @@ function RequirementRecord() {
                     )}
                   </KeyValue>
                   <KeyValue label="Children">{children.length || "None"}</KeyValue>
-                  <KeyValue label="Revision">{requirement.revision}</KeyValue>
                   <KeyValue label="Workstream">
                     {requirement.workstream ? (
                       <TextLink
@@ -402,14 +373,14 @@ function RequirementRecord() {
               }
               id={requirement.id}
               title={requirement.text}
-              actions={
-                <Inline space="space.100" alignBlock="center">
-                  <Button size="small" variant="primary" onClick={() => setAllocating(true)}>
-                    Allocate
-                  </Button>
-                  <Button size="small" onClick={() => setLinking(true)}>
-                    Link controls
-                  </Button>
+              below={
+                <Inline
+                  space="space.300"
+                  rowSpace="space.100"
+                  alignBlock="center"
+                  shouldWrap
+                  className="pb-050"
+                >
                   <Editable.Select
                     label="Lifecycle status"
                     options={requirementStates}
@@ -427,6 +398,28 @@ function RequirementRecord() {
                       </Badge>
                     )}
                   />
+                  <Inline space="space.075" alignBlock="center" className="font-body-small">
+                    <UserRound aria-hidden className="size-icon-small text-subtle" />
+                    <Editable.Text
+                      label="Owner"
+                      value={requirement.owner}
+                      onChange={(next) => setRequirementField(requirement.id, { owner: next })}
+                      save={(next) => saveRequirementField(`${requirement.id} owner`, next)}
+                    />
+                  </Inline>
+                  <span className="font-body-small text-subtle">
+                    {requirement.type} · r{requirement.revision}
+                  </span>
+                </Inline>
+              }
+              actions={
+                <Inline space="space.100" alignBlock="center">
+                  <Button size="small" variant="primary" onClick={() => setAllocating(true)}>
+                    Allocate
+                  </Button>
+                  <Button size="small" onClick={() => setLinking(true)}>
+                    Link controls
+                  </Button>
                 </Inline>
               }
             />
@@ -435,11 +428,20 @@ function RequirementRecord() {
             <TabsList className="w-full justify-start" variant="line" activateOnFocus>
               {(
                 [
-                  ["Overview", allocations.length || null],
+                  ["Overview", null],
+                  ["Allocations", allocations.length || null],
+                  ["Evidence", evidence.length || null],
+                  ["Activity", null],
                   ["Provenance", requirement.derivations.length || null],
                 ] as [RequirementTab, number | null][]
               ).map(([key, count]) => (
-                <TabsTrigger key={key} value={key}>
+                <TabsTrigger
+                  key={key}
+                  value={key}
+                  ref={(node) => {
+                    tabRefs.current[key] = node;
+                  }}
+                >
                   {key}
                   {count ? <Count value={count} max={9999} /> : null}
                 </TabsTrigger>
@@ -450,77 +452,70 @@ function RequirementRecord() {
           {tab === "Overview" ? (
             <>
               {needs.length ? (
-                <Block title="Needs" count={needs.length}>
-                  <Gates>
-                    {needs.map((n) => (
-                      <Gates.Item
-                        key={n.key}
-                        met={false}
-                        label={n.label}
-                        reason={n.reason}
-                        action={
-                          n.key === "allocate" ? (
-                            <Button size="small" variant="link" onClick={() => setAllocating(true)}>
-                              Allocate
-                            </Button>
-                          ) : undefined
-                        }
-                      />
-                    ))}
-                  </Gates>
-                </Block>
+                <Card className="gap-0 overflow-hidden" role="region" aria-label="Needs attention">
+                  <Inline
+                    space="space.100"
+                    alignBlock="center"
+                    className="border-b border-default px-200 py-100"
+                  >
+                    <h2 className="font-body font-semibold">Needs attention</h2>
+                    <Count value={needs.length} />
+                  </Inline>
+                  {needs.map((need) => (
+                    <Stack
+                      key={need.key}
+                      space="space.150"
+                      className="border-b border-default px-200 py-150 last:border-b-0"
+                    >
+                      <Inline space="space.100" alignBlock="baseline">
+                        <span
+                          className="size-075 shrink-0 rounded-full bg-warning-bold"
+                          aria-hidden
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-body font-medium">{need.label}</p>
+                          <p className="font-body-small text-subtle">{need.reason}</p>
+                        </div>
+                      </Inline>
+                      <Inline space="space.100" shouldWrap>
+                        <Button
+                          size="small"
+                          iconAfter={<ArrowRight />}
+                          disabled={need.key === "verify" && candidates.length === 0}
+                          onClick={() => {
+                            if (need.key === "allocate") setAllocating(true);
+                            else if (need.key === "quality" || need.key === "criterion") {
+                              setShowGates(true);
+                              checksRef.current?.focus();
+                            } else if (need.key === "verify") assessmentRef.current?.focus();
+                            else void go("Allocations");
+                          }}
+                        >
+                          {need.key === "allocate"
+                            ? "Allocate"
+                            : need.key === "quality" || need.key === "criterion"
+                              ? "View checks"
+                              : need.key === "verify"
+                                ? "Link assessment"
+                                : "Review allocations"}
+                        </Button>
+                        {need.key === "review" ? (
+                          <Button size="small" variant="subtle" onClick={() => go("Provenance")}>
+                            Review sources
+                          </Button>
+                        ) : null}
+                      </Inline>
+                    </Stack>
+                  ))}
+                </Card>
               ) : null}
-              <Section
-                title="Allocated to"
-                action={
-                  <Button size="small" onClick={() => setAllocating(true)}>
-                    Allocate
-                  </Button>
-                }
-              >
-                <AllocationTable allocations={allocations} programId={programId} editable />
-              </Section>
-
-              <Section
-                title="Linked controls"
-                action={
-                  <Button size="small" onClick={() => setLinking(true)}>
-                    Link controls
-                  </Button>
-                }
-              >
-                {controlSources.length ? (
-                  <ProvenanceTable
-                    derivations={controlSources}
-                    programId={programId}
-                    requirementId={requirement.id}
-                  />
-                ) : (
-                  <Text as="p" size="small" color="color.text.subtle">
-                    Independent — no linked controls.
-                  </Text>
-                )}
-              </Section>
-
-              {children.length > 0 ? (
-                <Section title="Decomposed into">
-                  <RequirementTable
-                    requirements={children}
-                    programId={programId}
-                    allocationCount={(id) => allocationsFor(id).length}
-                    elementId={elementId}
-                  />
-                </Section>
-              ) : null}
-
-              <Section
-                title="Assessment result"
-                action={
-                  candidates.length ? (
+              <Stack as="section" space="space.150">
+                <Inline space="space.150" alignBlock="center" spread="space-between" shouldWrap>
+                  <h2 className="font-body font-medium">Assessment result</h2>
+                  {candidates.length ? (
                     <div style={{ width: 260, maxWidth: "100%" }}>
                       <Combobox<(typeof choiceItems)[number]>
                         items={choiceItems}
-
                         isItemEqualToValue={(item, selected) => item.value === selected.value}
                         filter={(item, query) =>
                           [item.label, item.value, "keywords" in item ? item.keywords : ""]
@@ -535,6 +530,7 @@ function RequirementRecord() {
                         }}
                       >
                         <ComboboxInput
+                          ref={assessmentRef}
                           aria-label="Link an assessment objective"
                           placeholder="Link an assessment objective…"
                         />
@@ -559,107 +555,163 @@ function RequirementRecord() {
                         </ComboboxContent>
                       </Combobox>
                     </div>
-                  ) : null
-                }
-              >
-                {objectives.length ? (
-                  <Table className="pt-050">
-                    <thead>
-                      <Table.Row>
-                        <Table.Header width={80}>Objective</Table.Header>
-                        <Table.Header>Statement</Table.Header>
-                        <Table.Header width={220}>Event</Table.Header>
-                        <Table.Header width={220}>Assessed on</Table.Header>
-                        <Table.Header width={120}>Result</Table.Header>
-                        <Table.Header width={96}>Evidence</Table.Header>
-                      </Table.Row>
-                    </thead>
-                    <tbody>
-                      {objectives.map((o) => {
-                        const event = o.event ? eventById.get(o.event) : undefined;
-                        const campaign = event ? campaignById.get(event.campaign) : undefined;
-                        const result = resolvedObjectiveResult(o.id);
-                        const assessedNodes = result.run ? runById(result.run)?.nodes : o.nodes;
-                        return (
-                          <Table.Row key={o.id}>
-                            <Table.Cell>
-                              <Id>{o.id}</Id>
-                            </Table.Cell>
-                            <Table.Cell className="truncate" title={o.statement}>
-                              {o.statement}
-                            </Table.Cell>
-                            <Table.Cell className="truncate">
-                              {event && campaign ? (
-                                <TextLink
-                                  render={
-                                    <Link
-                                      to="/programs/$programId"
-                                      params={{ programId }}
-                                      search={{
-                                        tab: "Assessments",
-                                        assessmentId: campaign.id,
-                                      }}
-                                      title={event.window}
-                                    />
-                                  }
-                                >
-                                  {event.name}
-                                </TextLink>
-                              ) : (
-                                "—"
-                              )}
-                            </Table.Cell>
-                            <Table.Cell>
-                              {assessedNodes?.length
-                                ? assessedNodes.map((id) => nodeById.get(id)?.name ?? id).join(", ")
-                                : "Not recorded"}
-                            </Table.Cell>
-                            <Table.Cell>
+                  ) : null}
+                </Inline>
+                <Stack space="space.100">
+                  {objectives.map((objective) => {
+                    const event = objective.event ? eventById.get(objective.event) : undefined;
+                    const campaign = event ? campaignById.get(event.campaign) : undefined;
+                    const result = resolvedObjectiveResult(objective.id);
+                    const assessedNodes = result.run ? runById(result.run)?.nodes : objective.nodes;
+                    const collected = objectiveEvidence(objective.id);
+                    return (
+                      <Card key={objective.id} className="gap-100 p-150">
+                        <Inline space="space.100" alignBlock="start">
+                          <ClipboardCheck
+                            aria-hidden
+                            className="size-icon-medium shrink-0 text-subtle"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <Inline
+                              space="space.100"
+                              alignBlock="center"
+                              spread="space-between"
+                              shouldWrap
+                            >
+                              <Id className="font-body-small text-subtle">{objective.id}</Id>
                               <Indicator tone={objectiveTone(result.result)}>
                                 {result.result}
                               </Indicator>
-                            </Table.Cell>
-                            <Table.Cell>
-                              <Id.List ids={objectiveEvidence(o.id)} empty="None collected" />
-                            </Table.Cell>
-                          </Table.Row>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                ) : null}
-                <Fact.Group className="pt-150">
-                  <Fact label="Method">{requirementMethodLabel(requirement)}</Fact>
-                  <Fact label="Success criteria">
-                    <span className="font-body font-regular">
-                      <Editable.Text
-                        label="Success criteria"
-                        value={requirement.successCriteria}
-                        onChange={(next) =>
-                          setRequirementField(requirement.id, { successCriteria: next })
-                        }
-                        save={(next) =>
-                          saveRequirementField(`${requirement.id} success criteria`, next)
-                        }
-                      />
-                    </span>
-                  </Fact>
-                </Fact.Group>
-              </Section>
-              <RequirementEvidence programId={programId} requirementId={requirement.id} />
+                            </Inline>
+                            <Text as="p" className="pt-050">
+                              {objective.statement}
+                            </Text>
+                          </div>
+                        </Inline>
+                        <Inline
+                          space="space.100"
+                          alignBlock="center"
+                          spread="space-between"
+                          shouldWrap
+                          className="border-t border-default pt-100"
+                        >
+                          {event && campaign ? (
+                            <TextLink
+                              render={
+                                <Link
+                                  to="/programs/$programId"
+                                  params={{ programId }}
+                                  search={{ tab: "Assessments", assessmentId: campaign.id }}
+                                  title={event.window}
+                                />
+                              }
+                            >
+                              {event.name}
+                            </TextLink>
+                          ) : (
+                            <span className="font-body-small text-subtle">No assessment event</span>
+                          )}
+                          <Inline
+                            as="span"
+                            space="space.050"
+                            alignBlock="center"
+                            className="font-body-small text-subtle"
+                          >
+                            <FileText aria-hidden className="size-icon-small" />
+                            {collected.length} evidence
+                          </Inline>
+                        </Inline>
+                        {assessedNodes?.length ? (
+                          <Text as="p" size="small" color="color.text.subtle">
+                            {assessedNodes.map((id) => nodeById.get(id)?.name ?? id).join(", ")}
+                          </Text>
+                        ) : null}
+                        {collected.length ? <Id.List ids={collected} /> : null}
+                      </Card>
+                    );
+                  })}
+                  {!objectives.length ? (
+                    <Inline
+                      space="space.150"
+                      alignBlock="center"
+                      className="rounded-medium border border-dashed border-default p-200"
+                    >
+                      <ClipboardCheck aria-hidden className="size-icon-medium text-subtle" />
+                      <div>
+                        <p className="font-body font-medium">No assessment linked</p>
+                        <p className="font-body-small text-subtle">
+                          Choose an objective to track its result here.
+                        </p>
+                      </div>
+                    </Inline>
+                  ) : null}
+                </Stack>
+                <div>
+                  <p className="pb-050 font-body-small font-medium text-subtle">
+                    Success criteria · {requirementMethodLabel(requirement)}
+                  </p>
+                  <div className="font-body">
+                    <Editable.Text
+                      label="Success criteria"
+                      value={requirement.successCriteria}
+                      onChange={(next) =>
+                        setRequirementField(requirement.id, { successCriteria: next })
+                      }
+                      save={(next) =>
+                        saveRequirementField(`${requirement.id} success criteria`, next)
+                      }
+                    />
+                  </div>
+                </div>
+              </Stack>
               <TasksSection
-                program={programId}
-                subject={{ kind: "requirement", id: requirement.id, label: requirement.text }}
-                me={me}
-              />
-
-              <RecordActivity
                 program={programId}
                 subject={{ kind: "requirement", id: requirement.id, label: requirement.text }}
                 me={me}
               />
             </>
           ) : null}
+
+          {tab === "Allocations" ? (
+            <>
+              <Section
+                title="Allocated to"
+                action={
+                  <Button size="small" onClick={() => setAllocating(true)}>
+                    Allocate
+                  </Button>
+                }
+              >
+                <AllocationTable allocations={allocations} programId={programId} editable />
+              </Section>
+
+              {children.length > 0 ? (
+                <Section title="Decomposed into">
+                  <RequirementTable
+                    requirements={children}
+                    programId={programId}
+                    allocationCount={(id) => allocationsFor(id).length}
+                    elementId={elementId}
+                  />
+                </Section>
+              ) : null}
+            </>
+          ) : null}
+          <div hidden={tab !== "Evidence"}>
+            <Section title="Supporting evidence" count={evidence.length}>
+              <Box paddingBlockStart="space.150">
+                <RequirementEvidence programId={programId} requirementId={requirement.id} />
+              </Box>
+            </Section>
+          </div>
+          <div hidden={tab !== "Activity"}>
+            <RecordActivity
+              program={programId}
+              subject={{ kind: "requirement", id: requirement.id, label: requirement.text }}
+              me={me}
+              filters
+            />
+          </div>
 
           {tab === "Provenance" ? (
             <Section
@@ -693,72 +745,5 @@ function RequirementRecord() {
         />
       </>
     </Shell>
-  );
-}
-
-/** Compact linked source for the rail. */
-function SourceRef({
-  derivation,
-  programId,
-}: {
-  derivation: { sourceType: string; sourceId: string };
-  programId: string;
-  elementId?: string | undefined;
-}) {
-  const { sourceType, sourceId } = derivation;
-  const tone = derivationSourceTone[sourceType as keyof typeof derivationSourceTone];
-
-  if (sourceType === "Control statement" || sourceType === "Overlay") {
-    return (
-      <TextLink
-        render={
-          <Link
-            to="/programs/$programId/controls/$controlId"
-            params={{ programId, controlId: sourceId }}
-            search={{ tab: undefined }}
-          />
-        }
-      >
-        <Id>{sourceId}</Id>
-      </TextLink>
-    );
-  }
-  if (sourceType === "Threat") {
-    return (
-      <TextLink
-        render={
-          <Link
-            to="/programs/$programId/te-phases"
-            params={{ programId }}
-            search={{ tab: "Threat scenarios", scenario: sourceId }}
-          />
-        }
-      >
-        <Id>{sourceId}</Id>
-      </TextLink>
-    );
-  }
-  if (sourceId.startsWith("CMP-")) {
-    return (
-      <TextLink
-        render={<Link to="/library/components/$componentKey" params={{ componentKey: sourceId }} />}
-      >
-        <Id>{sourceId}</Id>
-      </TextLink>
-    );
-  }
-  if (sourceId.startsWith("WS-")) {
-    return (
-      <TextLink
-        render={<Link to="/workstreams/$workstreamId" params={{ workstreamId: sourceId }} />}
-      >
-        <Id>{sourceId}</Id>
-      </TextLink>
-    );
-  }
-  return (
-    <Badge variant="secondary" size="xsmall" tone={tone}>
-      {sourceId}
-    </Badge>
   );
 }
