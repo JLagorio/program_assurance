@@ -1,0 +1,13 @@
+/* Keep conversation-level element defaults from overriding Ledger's utilities. */
+@import "tailwindcss" source(none) important;
+@source "./*.tsx";
+@import "@ledger/design-system/reset.css";
+@import "@ledger/design-system/ledger.css";
+@import "@ledger/design-system/base.css";
+
+/* The preview uses Ledger's component styles without local visual overrides. */
+#assurance-workflow-preview {
+  isolation: isolate;
+  width: 100%;
+  min-width: 0;
+}

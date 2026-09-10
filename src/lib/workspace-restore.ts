@@ -1,3 +1,4 @@
+import { restoreLibrary } from "@/lib/assurance-library";
 import { restoreAssessments } from "@/lib/assessment-store";
 import { restoreAssuranceRecords } from "@/lib/assurance-record-store";
 import { restoreCompositionChanges } from "@/lib/composition-store";
@@ -21,6 +22,7 @@ export function restoreWorkspaceRecords(): string[] {
     ["Program actions", restoreProgramCommands],
     ["System boundaries", restoreProgramSetups],
     ["System tree", restoreCompositionChanges],
+    ["Components and overlays", restoreLibrary],
     ["Requirements", restoreRequirements],
     ["Assessments", restoreAssessments],
     ["Verification links", restoreVerificationLinks],

@@ -79,7 +79,8 @@ const navGroups: {
     items: [
       { label: "Control catalog", to: "/controls", icon: FileCheck2 },
       { label: "STIG & SRG library", to: "/stigs", icon: Boxes },
-      { label: "Providers", to: "/library/components", icon: Library },
+      { label: "Components", to: "/library/components", icon: Library },
+      { label: "Overlays", to: "/library/overlays", icon: ShieldCheck },
       { label: "Evidence", to: "/evidence", icon: Archive },
     ],
   },

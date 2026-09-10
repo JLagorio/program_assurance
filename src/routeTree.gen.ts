@@ -36,6 +36,8 @@ import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstream
 import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
 import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
 import { Route as LibraryComponentsComponentKeyRouteImport } from './routes/library.components.$componentKey'
+import { Route as LibraryOverlaysIndexRouteImport } from './routes/library.overlays.index'
+import { Route as LibraryOverlaysOverlayKeyRouteImport } from './routes/library.overlays.$overlayKey'
 import { Route as ProgramsProgramIdAuthorizationRouteImport } from './routes/programs.$programId_.authorization'
 import { Route as ProgramsProgramIdBaselineRouteImport } from './routes/programs.$programId_.baseline'
 import { Route as ProgramsProgramIdCompositionRouteImport } from './routes/programs.$programId_.composition'
@@ -190,6 +192,17 @@ const LibraryComponentsComponentKeyRoute =
     path: '/library/components/$componentKey',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LibraryOverlaysIndexRoute = LibraryOverlaysIndexRouteImport.update({
+  id: '/library/overlays/',
+  path: '/library/overlays/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryOverlaysOverlayKeyRoute =
+  LibraryOverlaysOverlayKeyRouteImport.update({
+    id: '/library/overlays/$overlayKey',
+    path: '/library/overlays/$overlayKey',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ProgramsProgramIdAuthorizationRoute =
   ProgramsProgramIdAuthorizationRouteImport.update({
     id: '/$programId_/authorization',
@@ -314,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/overlays/$overlayKey': typeof LibraryOverlaysOverlayKeyRoute
   '/programs/$programId/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
@@ -328,6 +342,7 @@ export interface FileRoutesByFullPath {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
+  '/library/overlays/': typeof LibraryOverlaysIndexRoute
   '/programs/$programId/components/$componentId': typeof ProgramsProgramIdComponentsComponentIdRoute
   '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
   '/programs/$programId/requirements/$requirementId': typeof ProgramsProgramIdRequirementsRequirementIdRoute
@@ -360,6 +375,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/overlays/$overlayKey': typeof LibraryOverlaysOverlayKeyRoute
   '/programs/$programId/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
@@ -374,6 +390,7 @@ export interface FileRoutesByTo {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components': typeof LibraryComponentsIndexRoute
+  '/library/overlays': typeof LibraryOverlaysIndexRoute
   '/programs/$programId/components/$componentId': typeof ProgramsProgramIdComponentsComponentIdRoute
   '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
   '/programs/$programId/requirements/$requirementId': typeof ProgramsProgramIdRequirementsRequirementIdRoute
@@ -407,6 +424,7 @@ export interface FileRoutesById {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/overlays/$overlayKey': typeof LibraryOverlaysOverlayKeyRoute
   '/programs/$programId_/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId_/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId_/composition': typeof ProgramsProgramIdCompositionRoute
@@ -421,6 +439,7 @@ export interface FileRoutesById {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
+  '/library/overlays/': typeof LibraryOverlaysIndexRoute
   '/programs/$programId_/components/$componentId': typeof ProgramsProgramIdComponentsComponentIdRoute
   '/programs/$programId_/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
   '/programs/$programId_/requirements/$requirementId': typeof ProgramsProgramIdRequirementsRequirementIdRoute
@@ -455,6 +474,7 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/library/overlays/$overlayKey'
     | '/programs/$programId/authorization'
     | '/programs/$programId/baseline'
     | '/programs/$programId/composition'
@@ -469,6 +489,7 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
+    | '/library/overlays/'
     | '/programs/$programId/components/$componentId'
     | '/programs/$programId/controls/$controlId'
     | '/programs/$programId/requirements/$requirementId'
@@ -501,6 +522,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/library/overlays/$overlayKey'
     | '/programs/$programId/authorization'
     | '/programs/$programId/baseline'
     | '/programs/$programId/composition'
@@ -515,6 +537,7 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components'
+    | '/library/overlays'
     | '/programs/$programId/components/$componentId'
     | '/programs/$programId/controls/$controlId'
     | '/programs/$programId/requirements/$requirementId'
@@ -547,6 +570,7 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/library/overlays/$overlayKey'
     | '/programs/$programId_/authorization'
     | '/programs/$programId_/baseline'
     | '/programs/$programId_/composition'
@@ -561,6 +585,7 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
+    | '/library/overlays/'
     | '/programs/$programId_/components/$componentId'
     | '/programs/$programId_/controls/$controlId'
     | '/programs/$programId_/requirements/$requirementId'
@@ -590,9 +615,11 @@ export interface RootRouteChildren {
   RegisterIndexRoute: typeof RegisterIndexRoute
   FindingsAssetsAssetIdRoute: typeof FindingsAssetsAssetIdRoute
   LibraryComponentsComponentKeyRoute: typeof LibraryComponentsComponentKeyRoute
+  LibraryOverlaysOverlayKeyRoute: typeof LibraryOverlaysOverlayKeyRoute
   RegisterPoamPoamIdRoute: typeof RegisterPoamPoamIdRoute
   RegisterRisksRiskIdRoute: typeof RegisterRisksRiskIdRoute
   LibraryComponentsIndexRoute: typeof LibraryComponentsIndexRoute
+  LibraryOverlaysIndexRoute: typeof LibraryOverlaysIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -784,6 +811,20 @@ declare module '@tanstack/react-router' {
       path: '/library/components/$componentKey'
       fullPath: '/library/components/$componentKey'
       preLoaderRoute: typeof LibraryComponentsComponentKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/overlays/': {
+      id: '/library/overlays/'
+      path: '/library/overlays'
+      fullPath: '/library/overlays/'
+      preLoaderRoute: typeof LibraryOverlaysIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/overlays/$overlayKey': {
+      id: '/library/overlays/$overlayKey'
+      path: '/library/overlays/$overlayKey'
+      fullPath: '/library/overlays/$overlayKey'
+      preLoaderRoute: typeof LibraryOverlaysOverlayKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programs/$programId_/authorization': {
@@ -1000,9 +1041,11 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterIndexRoute: RegisterIndexRoute,
   FindingsAssetsAssetIdRoute: FindingsAssetsAssetIdRoute,
   LibraryComponentsComponentKeyRoute: LibraryComponentsComponentKeyRoute,
+  LibraryOverlaysOverlayKeyRoute: LibraryOverlaysOverlayKeyRoute,
   RegisterPoamPoamIdRoute: RegisterPoamPoamIdRoute,
   RegisterRisksRiskIdRoute: RegisterRisksRiskIdRoute,
   LibraryComponentsIndexRoute: LibraryComponentsIndexRoute,
+  LibraryOverlaysIndexRoute: LibraryOverlaysIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

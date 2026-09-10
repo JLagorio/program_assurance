@@ -170,7 +170,48 @@ export type ControlWork = {
   source?: PlatformSourceRecord;
   /** False when the imported component narrative has no implementation-status claim. */
   implementationRecorded?: boolean;
+  /** Exact accepted source decisions used for this program determination. */
+  sourceBasis?: string;
 };
+
+export type ControlSourceDependencies = {
+  fingerprint: string;
+  confirmed: number;
+  deficiency: string | null;
+};
+let controlSourceProvider: ((work: ControlWork) => ControlSourceDependencies) | undefined;
+
+/** The library registers its projection without making control work import its store. */
+export function registerControlSourceProvider(
+  provider: (work: ControlWork) => ControlSourceDependencies,
+): void {
+  controlSourceProvider = provider;
+}
+
+/** Source facts are already persisted by their owner; invalidate the effective conclusion only. */
+export function refreshControlSourceDependencies(): void {
+  if (!controlSourceProvider) return;
+  let changed = false;
+  for (const item of work) {
+    if (
+      item.assessment !== "Satisfied" ||
+      item.sourceBasis === undefined ||
+      item.sourceBasis === controlSourceProvider(item).fingerprint
+    )
+      continue;
+    item.assessment = "Not assessed";
+    item.submitted = false;
+    delete item.assessedOn;
+    log(item.id, "transition", "Source dependencies changed", {
+      field: "assessment",
+      before: "Satisfied",
+      after: "Not assessed",
+      note: "Source decisions changed; reassessment required.",
+    });
+    changed = true;
+  }
+  if (changed) notifyWork();
+}
 
 /** Where the work sits, derived from the two axes rather than stored. */
 export function positionOf(work: ControlWork): string {
@@ -388,14 +429,16 @@ export function offersFor(work: ControlWork, context: WorkContext, role: Role): 
     .map((def) => {
       const missing = def.requires.map((k) => byKey.get(k)!).filter((g) => !g.met);
       const roleOk = def.roles.includes(role);
+      const sourceDeficiency =
+        def.key === "satisfy" ? controlSourceProvider?.(work).deficiency : null;
       return {
         def,
-        allowed: roleOk && missing.length === 0,
+        allowed: roleOk && missing.length === 0 && !sourceDeficiency,
         blocked: !roleOk
           ? `${def.roles.join(" or ")} only — signed in as ${role}`
           : missing.length
             ? `Needs ${missing.map((g) => g.label.toLowerCase()).join(", ")}`
-            : null,
+            : (sourceDeficiency ?? null),
         missing,
         roleBlocked: !roleOk,
       };
@@ -870,6 +913,11 @@ export function perform(
   const priorImplementation = w.implementation;
   changeWork(w, () => {
     const summary = offer.def.apply(w, note.trim());
+    if (actionKey === "satisfy") {
+      const sources = controlSourceProvider?.(w);
+      if (sources && sources.confirmed > 0) w.sourceBasis = sources.fingerprint;
+      else delete w.sourceBasis;
+    }
     if (w.implementation !== priorImplementation) w.implementationRecorded = true;
     log(workId, "transition", summary, {
       field: "position",
@@ -1396,6 +1444,7 @@ export function restoreWork() {
     workSeq = Math.max(workSeq, data.workSeq);
   }
   workRestored = true;
+  refreshControlSourceDependencies();
   version += 1;
   listeners.forEach((listener) => listener());
 }

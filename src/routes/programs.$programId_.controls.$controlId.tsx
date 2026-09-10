@@ -53,11 +53,13 @@ import {
   StatementList,
 } from "@/components/app/control-text";
 import { MapRequirementsSheet } from "@/components/app/map-requirements";
+import { LibraryControlSources } from "@/components/app/library-control-sources";
 import { RecordActivity } from "@/components/app/record-activity";
 import { ControlRequirementTable } from "@/components/app/requirements";
 import { Shell } from "@/components/app/shell";
 import { TasksSection } from "@/components/app/tasks-section";
 import { controlDetail } from "@/lib/control-detail";
+import { librarySourcesForScope, useLibraryVersion } from "@/lib/assurance-library";
 import {
   assessmentTone,
   assignOwner,
@@ -128,8 +130,9 @@ function ControlRecord() {
 
   const workVersion = useWorkVersion();
   const requirementsVersion = useRequirementsVersion();
+  const libraryVersion = useLibraryVersion();
   useTasksVersion();
-  const scopes = useMemo(() => scopesForProgram(programId), [programId]);
+  const scopes = useMemo(() => scopesForProgram(programId), [programId, rows, libraryVersion]);
   const requestedScope = Route.useSearch().scope;
   const requestedElement = Route.useSearch().element;
   const navigate = Route.useNavigate();
@@ -172,19 +175,26 @@ function ControlRecord() {
     () => controlRequirementsInElement(programId, controlId, elementId),
     [controlId, programId, elementId, requirementsVersion],
   );
+  const librarySources = useMemo(
+    () => (elementId ? librarySourcesForScope(programId, elementId, controlId) : []),
+    [programId, elementId, controlId, libraryVersion],
+  );
   const context = useMemo(() => {
     const allocated = derived.reduce(
       (n, r) => n + controlAllocationCount(programId, r.id, elementId),
       0,
     );
+    const confirmed = librarySources.filter((source) => source.decision === "Confirmed").length;
+    const contributors = [
+      allocated ? `${derived.length} requirements, ${allocated} allocations` : "",
+      confirmed ? `${confirmed} confirmed library source${confirmed === 1 ? "" : "s"}` : "",
+    ].filter(Boolean);
     return {
-      contributors: allocated,
-      contributorDetail: allocated
-        ? `${derived.length} requirements, ${allocated} allocations`
-        : "No allocated requirement",
+      contributors: allocated + confirmed,
+      contributorDetail: contributors.join(" · ") || "No allocated requirement",
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [derived, workVersion, programId, elementId]);
+  }, [derived, workVersion, programId, elementId, librarySources]);
 
   const inScope = useMemo(() => {
     const ids = new Set(controlSetFor(scopeId)?.controls.map((row) => row.control.id) ?? []);
@@ -518,6 +528,12 @@ function ControlRecord() {
             <Narrative key={work.id} work={work} elementId={originElementId} onChange={refresh} />
           </Box>
         </Section>
+
+        <LibraryControlSources
+          programId={programId}
+          controlId={controlId}
+          sources={librarySources}
+        />
 
         <Section
           title="Requirements"

@@ -1,3 +1,4 @@
+import { ProgramLibrary } from "@/components/app/program-library";
 import {
   FieldLabel,
   FieldError,
@@ -177,6 +178,7 @@ type Tab =
   | "System"
   | "Requirements"
   | "Controls"
+  | "Library"
   | "Schedule"
   | "Assessments"
   | "Findings"
@@ -187,6 +189,7 @@ type Tab =
 const tabOrder: Tab[] = [
   "Overview",
   "System",
+  "Library",
   "Requirements",
   "Controls",
   "Assessments",
@@ -697,6 +700,7 @@ function ProgramDetail() {
                 [
                   ["Overview", null],
                   ["System", elements.length || null],
+                  ["Library", null],
                   ["Requirements", requirementCount || null],
                   ["Controls", programControls.length || null],
                   ["Assessments", assessmentCount || null],
@@ -879,6 +883,7 @@ function ProgramDetail() {
             />
           ) : null}
 
+          {tab === "Library" ? <ProgramLibrary programId={program.id} /> : null}
           {tab === "System" ? (
             <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
           ) : null}

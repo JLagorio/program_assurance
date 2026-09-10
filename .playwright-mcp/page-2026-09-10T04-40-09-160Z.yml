@@ -1,0 +1,6 @@
+- generic [active] [ref=f4e1]:
+  - status [ref=f4e3]: Loading workspace…
+  - button "Switch user" [ref=f4e5]:
+    - img "Priya Raghavan" [ref=f4e6]:
+      - generic [ref=f4e7]: PR
+    - generic [ref=f4e8]: Systems security engineer

@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["./preview.tsx"],
+  "compilerOptions": {
+    "paths": { "@ledger/design-system": ["../../packages/design-system/src/index.ts"] }
+  }
+}
