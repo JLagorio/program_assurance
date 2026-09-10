@@ -1519,3 +1519,120 @@ assert.match(patternsHtml, /Filter actions/);
 assert.match(patternsHtml, /Owner required/);
 assert.match(patternsHtml, /Record/);
 console.log("Packed Tree native props and relocated patterns passed");
+
+const displayHtml = renderToString(
+  createElement(
+    "div",
+    null,
+    createElement(
+      ledger.Stepper,
+      {
+        id: "native-path",
+        label: "Default label",
+        "aria-label": "Program setup",
+        "data-path": "setup",
+        style: { minWidth: 0 },
+      },
+      createElement(ledger.Stepper.Item, {
+        id: "native-step",
+        state: "current",
+        label: "Program",
+        title: "Program details",
+        "data-step": "program",
+        style: { scrollMarginTop: 32 },
+        onSelect: () => {},
+      }),
+    ),
+    createElement(ledger.Stat, {
+      id: "native-stat",
+      label: "Coverage",
+      value: "80%",
+      "data-metric": "coverage",
+      style: { maxWidth: 240 },
+    }),
+    createElement(
+      ledger.Stat.Grid,
+      {
+        id: "native-grid",
+        "aria-label": "Metrics",
+        role: "group",
+        style: { backgroundColor: "transparent" },
+      },
+      createElement(ledger.Stat.Tile, {
+        id: "native-tile",
+        label: "Blocked",
+        value: 0,
+        note: "None waiting",
+        className: "py-200",
+      }),
+    ),
+    createElement(
+      ledger.KeyValue,
+      {
+        id: "native-fact",
+        label: "Owner",
+        "data-field": "owner",
+        style: { gridTemplateColumns: "120px 1fr" },
+      },
+      "Dana",
+    ),
+    createElement(
+      ledger.Banner,
+      {
+        id: "native-banner",
+        role: "region",
+        "aria-label": "Catalogue notice",
+        "aria-live": "off",
+        style: { maxWidth: 720 },
+        action: createElement(
+          "a",
+          {
+            id: "native-banner-action",
+            href: "/catalogue",
+            "data-revision": "5.2",
+            style: { letterSpacing: "0.01em" },
+          },
+          "Review",
+        ),
+      },
+      "Catalogue changed",
+    ),
+  ),
+);
+for (const id of [
+  "native-path",
+  "native-step",
+  "native-stat",
+  "native-grid",
+  "native-tile",
+  "native-fact",
+  "native-banner",
+  "native-banner-action",
+]) {
+  assert.equal(
+    (displayHtml.match(new RegExp('id="' + id + '"', "g")) ?? []).length,
+    1,
+    id,
+  );
+}
+assert.match(displayHtml, /aria-label="Program setup"/);
+assert.doesNotMatch(displayHtml, /Default label/);
+assert.match(displayHtml, /aria-current="step"/);
+assert.match(displayHtml, /title="Program details"/);
+assert.match(displayHtml, /min-width:0/);
+assert.match(displayHtml, /scroll-margin-top:32px/);
+assert.match(displayHtml, /data-metric="coverage"/);
+assert.match(displayHtml, /background-color:transparent/);
+assert.match(displayHtml, /text-subtlest[^>]*>0</);
+assert.match(
+  displayHtml,
+  /<dl[^>]*data-field="owner"[^>]*grid-template-columns:120px 1fr/,
+);
+assert.match(displayHtml, /<dt[^>]*>Owner<\/dt>/);
+assert.match(displayHtml, /<dd[^>]*title="Dana"[^>]*>Dana<\/dd>/);
+assert.match(
+  displayHtml,
+  /role="region"[^>]*aria-label="Catalogue notice"[^>]*aria-live="off"/,
+);
+assert.match(displayHtml, /data-revision="5.2"[^>]*letter-spacing:0.01em/);
+console.log("Packed Stepper, Stat, KeyValue and Banner native props passed");

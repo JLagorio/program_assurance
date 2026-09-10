@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { createRef } from "react";
+import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Badge, Absent, KeyValue, Person, TextLink } from "../../components";
 import { Box, Stack } from "../../primitives";
@@ -61,10 +63,23 @@ export const KeyValueMatrix: Story = {
 };
 
 /** A rail: one label width down the column, the facts in the order the reader asks for them. */
+const ownerRef = createRef<HTMLDListElement>();
+const inspectOwner = fn();
+
 export const InRail: Story = {
   render: () => (
     <Box style={{ width: 300 }} className="border-s border-default ps-200">
-      <KeyValue label="Owner">
+      <KeyValue
+        ref={ownerRef}
+        id="record-owner"
+        data-field="owner"
+        title="Record owner"
+        label="Owner"
+        labelWidth={160}
+        className="py-075"
+        style={{ gridTemplateColumns: "104px minmax(0, 1fr)", maxWidth: 300 }}
+        onMouseEnter={inspectOwner}
+      >
         <Person name="Dana Whitfield" />
       </KeyValue>
       <KeyValue label="Frequency">Quarterly</KeyValue>
@@ -80,6 +95,25 @@ export const InRail: Story = {
       </KeyValue>
     </Box>
   ),
+  play: async ({ canvasElement }) => {
+    inspectOwner.mockClear();
+    const canvas = within(canvasElement);
+    const owner = canvas.getByTitle("Record owner");
+    await expect(ownerRef.current).toBe(owner);
+    await expect(owner.tagName).toBe("DL");
+    await expect(owner).toHaveAttribute("id", "record-owner");
+    await expect(owner).toHaveAttribute("data-field", "owner");
+    await expect(owner).toHaveClass("grid", "py-075");
+    await expect(owner).not.toHaveClass("py-050");
+    await expect(owner.style.gridTemplateColumns).toBe("104px minmax(0px, 1fr)");
+    await expect(owner).toHaveStyle({ maxWidth: "300px" });
+    await expect(within(owner).getByRole("term")).toHaveTextContent("Owner");
+    await expect(within(owner).getByRole("definition")).toHaveTextContent("Dana Whitfield");
+    await userEvent.hover(owner);
+    await expect(inspectOwner).toHaveBeenCalledTimes(1);
+    const frequency = canvas.getByText("Quarterly");
+    await expect(frequency).toHaveAttribute("title", "Quarterly");
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */

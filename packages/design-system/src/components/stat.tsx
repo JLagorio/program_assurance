@@ -1,10 +1,10 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 import { toneClasses, type Tone } from "./badge";
 
-export type StatProps = {
+export type StatProps = Omit<ComponentProps<"div">, "children"> & {
   /** What the number counts, in small subtle text: "Open findings". */
   label: string;
   /** The number, or a short string such as "80%" or "41/80". Zero reads muted. */
@@ -18,22 +18,31 @@ export type StatTileProps = StatProps & {
   note?: string | undefined;
 };
 
-export type StatGridProps = {
+export type StatGridProps = ComponentProps<"div"> & {
   /** Columns from the small breakpoint up, two below it. Six is three on a small screen. */
   cols?: 2 | 3 | 4 | 5 | 6 | undefined;
   /** `card` frames the row with a border and rounded corners; `band` runs edge to edge between two rules. */
   frame?: "card" | "band" | undefined;
   /** Stat.Tile cells. */
   children: ReactNode;
-  className?: string | undefined;
 };
 
 const isZero = (value: ReactNode) => value === 0 || value === "0";
 
 /** One cell of a Stat.Grid: label, big tabular number, one-line note. Zero reads muted. */
-export function StatTile({ label, value, note, tone = "neutral" }: StatTileProps) {
+export function StatTile({
+  label,
+  value,
+  note,
+  tone = "neutral",
+  className,
+  ...props
+}: StatTileProps) {
   return (
-    <div className="flex flex-col gap-025 bg-surface px-200 py-150 animate-rise">
+    <div
+      {...props}
+      className={cn("flex flex-col gap-025 bg-surface px-200 py-150 animate-rise", className)}
+    >
       <div className="font-body-small text-subtle">{label}</div>
       <div
         className={cn(
@@ -53,9 +62,9 @@ export function StatTile({ label, value, note, tone = "neutral" }: StatTileProps
 }
 
 /** Bare number over its label, for an unframed summary row. */
-function StatRoot({ label, value, tone = "neutral" }: StatProps) {
+function StatRoot({ label, value, tone = "neutral", className, ...props }: StatProps) {
   return (
-    <div className="flex flex-col gap-050 py-100">
+    <div {...props} className={cn("flex flex-col gap-050 py-100", className)}>
       <div
         className={cn(
           "font-heading-small font-semibold tabular-nums",
@@ -82,9 +91,17 @@ const gridCols: Record<2 | 3 | 4 | 5 | 6, string> = {
 };
 
 /** A row of Stat.Tile cells separated by hairlines. `card` frames it; `band` runs edge to edge between two rules. The gutter is painted with the border token. */
-export function StatGrid({ cols = 4, frame = "card", children, className }: StatGridProps) {
+export function StatGrid({
+  cols = 4,
+  frame = "card",
+  children,
+  className,
+  style,
+  ...props
+}: StatGridProps) {
   return (
     <div
+      {...props}
       className={cn(
         "grid grid-cols-2 gap-px stagger-children",
         frame === "card"
@@ -93,7 +110,7 @@ export function StatGrid({ cols = 4, frame = "card", children, className }: Stat
         gridCols[cols],
         className,
       )}
-      style={{ backgroundColor: token("color.border") }}
+      style={{ backgroundColor: token("color.border"), ...style }}
     >
       {children}
     </div>

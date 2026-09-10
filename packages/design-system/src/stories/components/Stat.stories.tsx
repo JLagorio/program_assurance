@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { createRef } from "react";
+import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Stat, tones } from "../../components";
 import { Box, Grid, Stack, Text } from "../../primitives";
@@ -72,14 +74,36 @@ export const StatMatrix: Story = {
 };
 
 /** The three frames: a card at the top of a record, a band between two sections, and bare Stats in a row of a Section. */
+const statRef = createRef<HTMLDivElement>();
+const tileRef = createRef<HTMLDivElement>();
+const gridRef = createRef<HTMLDivElement>();
+const inspectStat = fn();
+
 export const Frames: Story = {
   render: () => (
     <Stack space="space.400">
-      <Stat.Grid cols={4}>
+      <Stat.Grid
+        ref={gridRef}
+        id="record-metrics"
+        role="group"
+        aria-label="Record metrics"
+        data-columns="four"
+        style={{ maxWidth: 960, backgroundColor: "transparent" }}
+      >
         <Stat.Tile label="Controls" value={80} note="Across 6 families" />
         <Stat.Tile label="Verified" value={41} tone="success" note="51% of scope" />
         <Stat.Tile label="Overdue" value={3} tone="danger" note="Oldest 12 days" />
-        <Stat.Tile label="Blocked" value={0} note="Nothing waiting on you" />
+        <Stat.Tile
+          ref={tileRef}
+          id="blocked-metric"
+          role="group"
+          aria-label="Blocked metric"
+          className="py-200"
+          style={{ minWidth: 0 }}
+          label="Blocked"
+          value={0}
+          note="Nothing waiting on you"
+        />
       </Stat.Grid>
       <Stat.Grid cols={3} frame="band">
         <Stat.Tile label="Evidence items" value={214} />
@@ -90,13 +114,53 @@ export const Frames: Story = {
         columnGap="space.400"
         templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }}
       >
-        <Stat label="Objectives in scope" value={124} />
+        <Stat
+          ref={statRef}
+          id="scope-metric"
+          role="group"
+          aria-label="Scope metric"
+          data-metric="scope"
+          className="py-150"
+          style={{ minWidth: 0 }}
+          onMouseEnter={inspectStat}
+          label="Objectives in scope"
+          value={124}
+        />
         <Stat label="With a procedure" value={118} tone="warning" />
         <Stat label="Objectives run" value={97} />
         <Stat label="Steps with no artifact" value={0} />
       </Grid>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    inspectStat.mockClear();
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("group", { name: "Record metrics" });
+    const tile = canvas.getByRole("group", { name: "Blocked metric" });
+    const stat = canvas.getByRole("group", { name: "Scope metric" });
+    await expect(gridRef.current).toBe(grid);
+    await expect(tileRef.current).toBe(tile);
+    await expect(statRef.current).toBe(stat);
+    await expect(grid).toHaveAttribute("id", "record-metrics");
+    await expect(grid).toHaveAttribute("data-columns", "four");
+    await expect(grid).toHaveStyle({ maxWidth: "960px" });
+    await expect(grid.style.backgroundColor).toBe("transparent");
+    await expect(getComputedStyle(grid).backgroundColor).toBe("rgba(0, 0, 0, 0)");
+    await expect(grid).toHaveClass("grid", "sm:grid-cols-4", "border-default");
+    await expect(tile).toHaveAttribute("id", "blocked-metric");
+    await expect(tile).toHaveClass("py-200", "bg-surface");
+    await expect(tile).not.toHaveClass("py-150");
+    await expect(tile).toHaveStyle({ minWidth: "0px" });
+    await expect(within(tile).getByText("0")).toHaveClass("text-subtlest");
+    await expect(tile).toHaveTextContent("Nothing waiting on you");
+    await expect(stat).toHaveAttribute("id", "scope-metric");
+    await expect(stat).toHaveAttribute("data-metric", "scope");
+    await expect(stat).toHaveClass("py-150");
+    await expect(stat).not.toHaveClass("py-100");
+    await expect(stat).toHaveStyle({ minWidth: "0px" });
+    await userEvent.hover(stat);
+    await expect(inspectStat).toHaveBeenCalledTimes(1);
+  },
 };
 
 /** Six tiles: three across on a small screen, six from the large breakpoint. Resize the canvas. */

@@ -2,6 +2,7 @@ import { CircleAlert, Info, TriangleAlert } from "lucide-react";
 import {
   cloneElement,
   isValidElement,
+  type ComponentProps,
   type ComponentType,
   type ReactElement,
   type ReactNode,
@@ -18,14 +19,13 @@ const icons: Record<BannerTone, ComponentType<{ className?: string | undefined }
   danger: CircleAlert,
 };
 
-export type BannerProps = {
+export type BannerProps = ComponentProps<"div"> & {
   /** `information` for something that changed, `warning` for something about to, `danger` for something lost. `warning` is the default; there is no success banner. */
   tone?: BannerTone | undefined;
   /** Replaces the tone's icon. */
   icon?: ComponentType<{ className?: string | undefined }> | undefined;
   /** One link or button, rendered in the banner's own colour: an anchor, a button, or the router's Link. */
   action?: ReactElement<{ className?: string | undefined }> | undefined;
-  className?: string | undefined;
   /** The message, one line. It truncates rather than wraps. */
   children: ReactNode;
 };
@@ -35,18 +35,26 @@ export type BannerProps = {
  * function, or something about the whole site that changes what the reader can do. One at a time,
  * never dismissible, gone when no longer true. It truncates rather than wraps, so it is one line.
  */
-export function Banner({ tone = "warning", icon, action, className, children }: BannerProps) {
+export function Banner({
+  tone = "warning",
+  icon,
+  action,
+  className,
+  children,
+  ...props
+}: BannerProps) {
   const Icon = icon ?? icons[tone];
   return (
     <div
       role={tone === "danger" ? "alert" : "status"}
+      {...props}
       className={cn(
         "flex h-layout-banner items-center justify-center gap-100 px-200 font-body font-medium",
         toneClasses[tone].bold,
         className,
       )}
     >
-      <Icon className="size-icon-small shrink-0" />
+      <Icon aria-hidden="true" className="size-icon-small shrink-0" />
       <span className="min-w-0 truncate">{children}</span>
       {action && isValidElement(action)
         ? cloneElement(action, {

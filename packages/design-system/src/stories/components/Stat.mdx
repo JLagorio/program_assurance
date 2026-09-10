@@ -82,6 +82,10 @@ The toned value is Badge's text colour for the tone, so a danger count and a dan
 
 ## Props
 
+Stat, Stat.Tile and Stat.Grid forward native `div` props and refs to their outer elements. IDs, ARIA, data attributes and events are preserved; `className` merges with each part’s defaults. Styles override the Grid’s default gutter background and accept ordinary sizing on all three parts.
+
+Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose tiles through Stat.Grid’s children. Zero remains muted, and tones, responsive columns and frames retain their existing defaults.
+
 <ArgTypes of={Stat} />
 
 ### Stat.Tile

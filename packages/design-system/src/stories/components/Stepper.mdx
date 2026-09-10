@@ -97,6 +97,10 @@ Here done is green and blocked is red, the product's status tones, because on a 
 
 ## Props
 
+Native `ol` props and refs target Stepper; native `li` props and refs target Stepper.Item. IDs, data attributes, styles, classes and events reach those elements. An explicit `aria-label` overrides the root’s `label` shorthand, and caller styles override the horizontal minimum width. Item’s native `title` now belongs to the `li`, so it also applies when hovering its label.
+
+`onSelect` remains the existing step-action callback. Use `onClickCapture` on the item or list and call `event.preventDefault()` to cancel selection before its button runs. A bubble-phase `onClick` runs after the button, following normal DOM event order. Step state still owns `aria-current`; step actions remain native buttons with Enter/Space activation.
+
 <ArgTypes of={Stepper} />
 
 ### Stepper.Item

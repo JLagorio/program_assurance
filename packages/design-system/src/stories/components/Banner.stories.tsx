@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { createRef } from "react";
+import { expect, fn, userEvent, within } from "storybook/test";
 
 import { AlertTitle, Dot, Alert, Banner } from "../../components";
 import { Stack } from "../../primitives";
@@ -38,10 +40,37 @@ export const BannerMatrix: Story = {
 };
 
 /** The three messages a banner carries: something changed, something is about to, something is lost. */
+const bannerRef = createRef<HTMLDivElement>();
+const actionRef = createRef<HTMLButtonElement>();
+const bannerClick = fn();
+const actionClick = fn();
+
 export const Banners: Story = {
   render: () => (
     <Stack space="space.100">
-      <Banner tone="information" action={<button type="button">See what changed</button>}>
+      <Banner
+        ref={bannerRef}
+        id="catalogue-notice"
+        role="region"
+        aria-label="Catalogue notice"
+        data-revision="5.2"
+        className="px-300"
+        style={{ maxWidth: 720 }}
+        onClick={bannerClick}
+        tone="information"
+        action={
+          <button
+            ref={actionRef}
+            id="catalogue-action"
+            type="button"
+            className="font-semibold"
+            style={{ letterSpacing: "0.01em" }}
+            onClick={actionClick}
+          >
+            See what changed
+          </button>
+        }
+      >
         The control catalogue moved to revision 5.2 overnight.
       </Banner>
       <Banner tone="warning" action={<a href="#renew">Ask for an extension</a>}>
@@ -52,6 +81,31 @@ export const Banners: Story = {
       </Banner>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    bannerClick.mockClear();
+    actionClick.mockClear();
+    const canvas = within(canvasElement);
+    const notice = canvas.getByRole("region", { name: "Catalogue notice" });
+    const action = within(notice).getByRole("button", { name: "See what changed" });
+    await expect(bannerRef.current).toBe(notice);
+    await expect(actionRef.current).toBe(action);
+    await expect(notice).toHaveAttribute("id", "catalogue-notice");
+    await expect(notice).toHaveAttribute("data-revision", "5.2");
+    await expect(notice).toHaveClass("px-300", "h-layout-banner");
+    await expect(notice).not.toHaveClass("px-200");
+    await expect(notice).toHaveStyle({ maxWidth: "720px" });
+    await expect(action).toHaveAttribute("id", "catalogue-action");
+    await expect(action).toHaveClass("font-semibold", "underline");
+    await expect(action.style.letterSpacing).toBe("0.01em");
+    await userEvent.click(action);
+    await userEvent.keyboard("{Enter}");
+    await expect(action).toHaveFocus();
+    await expect(actionClick).toHaveBeenCalledTimes(2);
+    await expect(bannerClick).toHaveBeenCalledTimes(2);
+    await expect(canvas.getByRole("status")).toHaveTextContent("The audit window closes");
+    await expect(canvas.getByRole("alert")).toHaveTextContent("We have lost the connection");
+    await expect(notice.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */

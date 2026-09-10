@@ -3391,13 +3391,13 @@
     "\"src/components/banner\".Banner": [
       {
         "source": "src/components/banner.d.ts",
-        "declaration": "export declare function Banner({ tone, icon, action, className, children }: BannerProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Banner({ tone, icon, action, className, children, ...props }: BannerProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/banner\".BannerProps": [
       {
         "source": "src/components/banner.d.ts",
-        "declaration": "export type BannerProps = {\n    tone?: BannerTone | undefined;\n    icon?: ComponentType<{\n        className?: string | undefined;\n    }> | undefined;\n    action?: ReactElement<{\n        className?: string | undefined;\n    }> | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
+        "declaration": "export type BannerProps = ComponentProps<\"div\"> & {\n    tone?: BannerTone | undefined;\n    icon?: ComponentType<{\n        className?: string | undefined;\n    }> | undefined;\n    action?: ReactElement<{\n        className?: string | undefined;\n    }> | undefined;\n    children: ReactNode;\n};"
       }
     ],
     "\"src/components/banner\".BannerTone": [
@@ -4849,13 +4849,13 @@
     "\"src/components/key-value\".KeyValue": [
       {
         "source": "src/components/key-value.d.ts",
-        "declaration": "export declare function KeyValue({ label, labelWidth, wrap, children }: KeyValueProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function KeyValue({ label, labelWidth, wrap, children, className, style, ...props }: KeyValueProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/key-value\".KeyValueProps": [
       {
         "source": "src/components/key-value.d.ts",
-        "declaration": "export type KeyValueProps = {\n    label: string;\n    labelWidth?: number | undefined;\n    wrap?: boolean | undefined;\n    children: ReactNode;\n};"
+        "declaration": "export type KeyValueProps = ComponentProps<\"dl\"> & {\n    label: string;\n    labelWidth?: number | undefined;\n    wrap?: boolean | undefined;\n    children: ReactNode;\n};"
       }
     ],
     "\"src/components/pagination\".Pagination": [
@@ -5467,25 +5467,25 @@
     "\"src/components/stat\".StatGrid": [
       {
         "source": "src/components/stat.d.ts",
-        "declaration": "export declare function StatGrid({ cols, frame, children, className }: StatGridProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function StatGrid({ cols, frame, children, className, style, ...props }: StatGridProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/stat\".StatGridProps": [
       {
         "source": "src/components/stat.d.ts",
-        "declaration": "export type StatGridProps = {\n    cols?: 2 | 3 | 4 | 5 | 6 | undefined;\n    frame?: \"card\" | \"band\" | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
+        "declaration": "export type StatGridProps = ComponentProps<\"div\"> & {\n    cols?: 2 | 3 | 4 | 5 | 6 | undefined;\n    frame?: \"card\" | \"band\" | undefined;\n    children: ReactNode;\n};"
       }
     ],
     "\"src/components/stat\".StatProps": [
       {
         "source": "src/components/stat.d.ts",
-        "declaration": "export type StatProps = {\n    label: string;\n    value: ReactNode;\n    tone?: Tone | undefined;\n};"
+        "declaration": "export type StatProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    label: string;\n    value: ReactNode;\n    tone?: Tone | undefined;\n};"
       }
     ],
     "\"src/components/stat\".StatTile": [
       {
         "source": "src/components/stat.d.ts",
-        "declaration": "export declare function StatTile({ label, value, note, tone }: StatTileProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function StatTile({ label, value, note, tone, className, ...props }: StatTileProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/stat\".StatTileProps": [
@@ -5503,13 +5503,13 @@
     "\"src/components/stepper\".StepperItem": [
       {
         "source": "src/components/stepper.d.ts",
-        "declaration": "export declare function StepperItem({ state, label, meta, title, onSelect, children }: StepperItemProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function StepperItem({ state, label, meta, onSelect, children, className, ...props }: StepperItemProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/stepper\".StepperItemProps": [
       {
         "source": "src/components/stepper.d.ts",
-        "declaration": "export type StepperItemProps = {\n    state: StepState;\n    label: ReactNode;\n    meta?: ReactNode;\n    title?: string | undefined;\n    onSelect?: (() => void) | undefined;\n    children?: ReactNode;\n};"
+        "declaration": "export type StepperItemProps = Omit<ComponentProps<\"li\">, \"onSelect\"> & {\n    state: StepState;\n    label: ReactNode;\n    meta?: ReactNode;\n    onSelect?: (() => void) | undefined;\n    children?: ReactNode;\n};"
       }
     ],
     "\"src/components/stepper\".StepperOrientation": [
@@ -5521,7 +5521,7 @@
     "\"src/components/stepper\".StepperProps": [
       {
         "source": "src/components/stepper.d.ts",
-        "declaration": "export type StepperProps = {\n    orientation?: StepperOrientation | undefined;\n    numbered?: boolean | undefined;\n    label?: string | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n    style?: CSSProperties | undefined;\n};"
+        "declaration": "export type StepperProps = ComponentProps<\"ol\"> & {\n    orientation?: StepperOrientation | undefined;\n    numbered?: boolean | undefined;\n    label?: string | undefined;\n    children: ReactNode;\n};"
       }
     ],
     "\"src/components/stepper\".StepState": [
@@ -7705,13 +7705,13 @@
     "src/components/stat.d.ts#StatRoot": [
       {
         "source": "src/components/stat.d.ts",
-        "declaration": "declare function StatRoot({ label, value, tone }: StatProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function StatRoot({ label, value, tone, className, ...props }: StatProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/stepper.d.ts#StepperRoot": [
       {
         "source": "src/components/stepper.d.ts",
-        "declaration": "declare function StepperRoot({ orientation, numbered, label, children, className, style, }: StepperProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function StepperRoot({ orientation, numbered, label, children, className, style, ...props }: StepperProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/table-state.d.ts#Readers": [

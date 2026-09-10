@@ -13,6 +13,8 @@ import {
 } from "../../components";
 import { ChevronDown } from "lucide-react";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
+import { createRef } from "react";
+import { expect, fn, userEvent, within } from "storybook/test";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -88,33 +90,58 @@ export const StepperMatrix: Story = {
 };
 
 /** Where a path is drawn: a milestone header on a record, and a wizard's rail. */
+const stepperRef = createRef<HTMLOListElement>();
+const stepRef = createRef<HTMLLIElement>();
+const selectStep = fn();
+const stepperClick = fn();
+const guardStep = fn();
+
 export const Paths: Story = {
   render: () => (
     <Stack space="space.600">
-      <Stepper label="Milestones" style={{ minWidth: 640 }}>
+      <Stepper
+        ref={stepperRef}
+        id="milestone-path"
+        data-path="milestones"
+        label="Milestones"
+        aria-label="Milestone navigation"
+        style={{ minWidth: 640 }}
+        className="gap-100"
+        onClick={stepperClick}
+      >
         <Stepper.Item
+          ref={stepRef}
+          id="milestone-a"
+          data-step="a"
+          title="Milestone A"
+          className="rounded-medium"
+          style={{ scrollMarginTop: 32 }}
           state="done"
           label="MS-A"
           meta="4 Mar · Complete"
-          onSelect={() => undefined}
+          onSelect={() => selectStep("MS-A")}
         />
         <Stepper.Item
           state="done"
           label="MS-B"
           meta="29 Jul · Complete"
-          onSelect={() => undefined}
+          onSelect={() => selectStep("MS-B")}
         />
         <Stepper.Item
           state="current"
           label="MS-C"
           meta="18 Sep · 10d out"
-          onSelect={() => undefined}
+          onSelect={() => selectStep("MS-C")}
         />
         <Stepper.Item
           state="blocked"
           label="MS-D"
           meta="2 Dec · 2 findings"
-          onSelect={() => undefined}
+          onClickCapture={(event) => {
+            guardStep();
+            event.preventDefault();
+          }}
+          onSelect={() => selectStep("MS-D")}
         />
         <Stepper.Item state="upcoming" label="MS-E" meta="14 Jan" onSelect={() => undefined} />
       </Stepper>
@@ -133,6 +160,48 @@ export const Paths: Story = {
       </Box>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    selectStep.mockClear();
+    stepperClick.mockClear();
+    guardStep.mockClear();
+    const canvas = within(canvasElement);
+    const list = canvas.getByRole("list", { name: "Milestone navigation" });
+    const step = canvas.getByTitle("Milestone A");
+    const first = within(step).getByRole("button", { name: /MS-A/ });
+    const blocked = within(list).getByRole("button", { name: /MS-D/ });
+    await expect(stepperRef.current).toBe(list);
+    await expect(stepRef.current).toBe(step);
+    await expect(list.tagName).toBe("OL");
+    await expect(step.tagName).toBe("LI");
+    await expect(list).toHaveAttribute("id", "milestone-path");
+    await expect(list).toHaveAttribute("data-path", "milestones");
+    await expect(list).toHaveAttribute("data-orientation", "horizontal");
+    await expect(list).toHaveClass("group/stepper", "gap-100");
+    await expect(list).toHaveStyle({ minWidth: "640px" });
+    await expect(step).toHaveAttribute("id", "milestone-a");
+    await expect(step).toHaveAttribute("data-step", "a");
+    await expect(step).toHaveClass("group/step", "rounded-medium");
+    await expect(step).toHaveStyle({ scrollMarginTop: "32px" });
+    await userEvent.click(first);
+    await userEvent.keyboard(" ");
+    await expect(selectStep).toHaveBeenCalledTimes(2);
+    await expect(selectStep).toHaveBeenLastCalledWith("MS-A");
+    await expect(stepperClick).toHaveBeenCalledTimes(2);
+    await userEvent.tab();
+    await userEvent.keyboard("{Enter}");
+    await expect(selectStep).toHaveBeenLastCalledWith("MS-B");
+    await userEvent.click(blocked);
+    await userEvent.keyboard("{Enter}");
+    await expect(guardStep).toHaveBeenCalledTimes(2);
+    await expect(selectStep).toHaveBeenCalledTimes(3);
+    await expect(within(list).getByRole("button", { name: /MS-C/ }).closest("li")).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+    const vertical = canvas.getByRole("list", { name: "Program setup" });
+    await expect(vertical).toHaveAttribute("data-orientation", "vertical");
+    await expect(vertical.style.minWidth).toBe("");
+  },
 };
 
 /** A rail of milestones: each step carries its record under the label, the owner and the open task behind a Collapsible, and the rail runs past it. */

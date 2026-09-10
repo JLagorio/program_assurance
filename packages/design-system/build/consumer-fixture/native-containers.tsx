@@ -1,5 +1,5 @@
 import { createRef } from "react";
-import { Chart, Item, Table, Tree } from "@ledger/design-system";
+import { Banner, Chart, Item, KeyValue, Stat, Stepper, Table, Tree } from "@ledger/design-system";
 
 <Item
   ref={createRef<HTMLLIElement>()}
@@ -90,3 +90,111 @@ import { Chart, Item, Table, Tree } from "@ledger/design-system";
 <Tree.Item depth={0} ref={createRef<HTMLButtonElement>()}>
   Entry
 </Tree.Item>;
+
+<Stepper
+  ref={createRef<HTMLOListElement>()}
+  id="setup"
+  label="Setup"
+  aria-label="Program setup"
+  className="gap-100"
+  style={{ minWidth: 0 }}
+  onFocus={(event) => {
+    const list: HTMLOListElement = event.currentTarget;
+    void list;
+  }}
+>
+  <Stepper.Item
+    ref={createRef<HTMLLIElement>()}
+    id="program-step"
+    value={2}
+    title="Program details"
+    state="current"
+    label="Program"
+    style={{ scrollMarginTop: 32 }}
+    onClickCapture={(event) => event.preventDefault()}
+    onSelect={() => {}}
+  />
+</Stepper>;
+<Stat
+  ref={createRef<HTMLDivElement>()}
+  id="coverage"
+  label="Coverage"
+  value="80%"
+  className="py-150"
+  style={{ minWidth: 0 }}
+  onFocus={(event) => {
+    const stat: HTMLDivElement = event.currentTarget;
+    void stat;
+  }}
+/>;
+<Stat.Grid
+  ref={createRef<HTMLDivElement>()}
+  id="metrics"
+  role="group"
+  aria-label="Metrics"
+  style={{ backgroundColor: "transparent" }}
+>
+  <Stat.Tile
+    ref={createRef<HTMLDivElement>()}
+    id="blocked"
+    label="Blocked"
+    value={0}
+    note="None waiting"
+    className="py-200"
+    style={{ minWidth: 0 }}
+  />
+</Stat.Grid>;
+<KeyValue
+  ref={createRef<HTMLDListElement>()}
+  id="owner"
+  label="Owner"
+  title="Record owner"
+  className="py-075"
+  style={{ gridTemplateColumns: "120px 1fr" }}
+  onFocus={(event) => {
+    const fact: HTMLDListElement = event.currentTarget;
+    void fact;
+  }}
+>
+  Dana Whitfield
+</KeyValue>;
+<Banner
+  ref={createRef<HTMLDivElement>()}
+  id="notice"
+  tone="information"
+  role="region"
+  aria-label="Catalogue notice"
+  aria-live="off"
+  style={{ maxWidth: 720 }}
+  onClick={(event) => {
+    const notice: HTMLDivElement = event.currentTarget;
+    void notice;
+  }}
+  action={
+    <a
+      ref={createRef<HTMLAnchorElement>()}
+      href="/catalogue"
+      onClick={(event) => event.preventDefault()}
+    >
+      Review
+    </a>
+  }
+>
+  The catalogue changed.
+</Banner>;
+// @ts-expect-error Stepper refs target ordered lists.
+<Stepper ref={createRef<HTMLDivElement>()}>Steps</Stepper>;
+// @ts-expect-error Stepper.Item refs target list items.
+<Stepper.Item ref={createRef<HTMLDivElement>()} state="current" label="Program" />;
+// @ts-expect-error KeyValue refs target definition lists.
+<KeyValue ref={createRef<HTMLDivElement>()} label="Owner">
+  Dana
+</KeyValue>;
+// @ts-expect-error Stat uses its value slot, not arbitrary root children.
+<Stat label="Coverage" value="80%">
+  Ignored
+</Stat>;
+// @ts-expect-error Metric refs target divs, not buttons.
+<Stat.Tile ref={createRef<HTMLButtonElement>()} label="Blocked" value={0} />;
+// @ts-expect-error Banner refs target the outer div, not its action.
+<Banner ref={createRef<HTMLButtonElement>()}>Notice</Banner>;

@@ -1,5 +1,12 @@
 import { Check, X } from "lucide-react";
-import { Children, createContext, useContext, type CSSProperties, type ReactNode } from "react";
+import {
+  Children,
+  createContext,
+  useContext,
+  type ComponentProps,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 
 import { cn } from "../lib/cn";
 
@@ -21,7 +28,7 @@ type Slot = {
 
 const StepperContext = createContext<Slot | null>(null);
 
-export type StepperProps = {
+export type StepperProps = ComponentProps<"ol"> & {
   /** `horizontal` puts labels under markers on one line, for a header; `vertical` stacks them down the left, preferred wherever it fits: a wizard's rail, a panel. */
   orientation?: StepperOrientation | undefined;
   /** Markers show the step's number in place of the dot; done and blocked keep their icon: numbers make the order plain. */
@@ -30,8 +37,6 @@ export type StepperProps = {
   label?: string | undefined;
   /** Stepper.Item rows, in order. */
   children: ReactNode;
-  className?: string | undefined;
-  style?: CSSProperties | undefined;
 };
 
 /** Progress through an ordered path: milestones, RMF steps, a wizard. One step is `current`; `blocked` is the step that failed. */
@@ -42,6 +47,7 @@ function StepperRoot({
   children,
   className,
   style,
+  ...props
 }: StepperProps) {
   const items = Children.toArray(children);
   const states = items.map((c) =>
@@ -51,7 +57,8 @@ function StepperRoot({
   );
   return (
     <ol
-      aria-label={label}
+      {...props}
+      aria-label={props["aria-label"] ?? label}
       data-orientation={orientation}
       className={cn(
         "group/stepper",
@@ -91,15 +98,13 @@ const spoken: Record<StepState, string> = {
   blocked: "Blocked: ",
 };
 
-export type StepperItemProps = {
+export type StepperItemProps = Omit<ComponentProps<"li">, "onSelect"> & {
   /** `done`, `current`, `upcoming`, or `blocked` for the step that failed. */
   state: StepState;
   /** One or two words, sentence case: "Categorize", "Select controls". Sixteen characters at most. It truncates. */
   label: ReactNode;
   /** Helper text under the label: a date, who has it, why it is blocked. It may wrap. */
   meta?: ReactNode;
-  /** The full text as a tooltip when the label truncates. */
-  title?: string | undefined;
   /** Makes the step a button the reader can move to. Without it the step only reports. */
   onSelect?: (() => void) | undefined;
   /** Under the label, when the rail is a list of milestones rather than a wizard's: a Collapsible with the owner and the open task, a sentence, a Badge. Anything interactive in it is its own stop beside the step's button. */
@@ -107,7 +112,15 @@ export type StepperItemProps = {
 };
 
 /** One step. It reads its place and its neighbour from the list, so it draws its own rails. */
-export function StepperItem({ state, label, meta, title, onSelect, children }: StepperItemProps) {
+export function StepperItem({
+  state,
+  label,
+  meta,
+  onSelect,
+  children,
+  className,
+  ...props
+}: StepperItemProps) {
   const slot = useContext(StepperContext);
   const index = slot?.index ?? 0;
   const count = slot?.count ?? 1;
@@ -147,7 +160,6 @@ export function StepperItem({ state, label, meta, title, onSelect, children }: S
   const text = (
     <>
       <span
-        title={title}
         className={cn(
           "max-w-full truncate font-body-small",
           state === "current" ? "font-semibold text-default" : "font-medium",
@@ -165,11 +177,22 @@ export function StepperItem({ state, label, meta, title, onSelect, children }: S
     </>
   );
   const Tag = onSelect ? "button" : "span";
-  const tagProps = onSelect ? { type: "button" as const, onClick: onSelect } : {};
+  const tagProps = onSelect
+    ? {
+        type: "button" as const,
+        onClick: (event: MouseEvent<HTMLButtonElement>) => {
+          if (!event.defaultPrevented) onSelect();
+        },
+      }
+    : {};
   return (
     <li
+      {...props}
       aria-current={state === "current" ? "step" : undefined}
-      className="group/step relative flex min-w-0 flex-1 group-data-[orientation=vertical]/stepper:flex-none"
+      className={cn(
+        "group/step relative flex min-w-0 flex-1 group-data-[orientation=vertical]/stepper:flex-none",
+        className,
+      )}
     >
       <div className="flex w-full min-w-0 flex-col items-center text-center group-data-[orientation=vertical]/stepper:flex-row group-data-[orientation=vertical]/stepper:items-stretch group-data-[orientation=vertical]/stepper:gap-150 group-data-[orientation=vertical]/stepper:text-left">
         <span className="flex w-full items-center group-data-[orientation=vertical]/stepper:hidden">

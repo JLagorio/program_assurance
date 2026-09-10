@@ -80,6 +80,10 @@ The bold fills are Badge's bold appearance, so a danger banner and a danger bold
 
 ## Props
 
+Native `div` props and refs target the outer message. IDs, ARIA, data attributes, styles and handlers are forwarded; `className` merges with the default layout. The default role remains `status`, or `alert` for danger. An explicit `role` or live-region attribute controls delivery when the enclosing page needs different announcement behavior.
+
+The `action` keeps its own element, ref, ID, attributes, styles and handlers while receiving the banner’s action classes. A root click handler receives the action’s bubbled click. Default icons are decorative.
+
 <ArgTypes of={Banner} />
 
 ### Playground
