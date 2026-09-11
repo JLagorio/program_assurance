@@ -1164,6 +1164,8 @@ export type ShellPanelProps = Omit<ComponentProps<"aside">, "title"> & {
   title?: ReactNode;
   /** Used when no visible title is supplied. */
   label?: string;
+  /** Route-owned navigation controls immediately before Close. */
+  actions?: ReactNode;
   onClose: () => void;
   defaultWidth?: number;
 };
@@ -1183,6 +1185,7 @@ function PanelSurface({
   title,
   label = "Details",
   onClose,
+  actions,
   defaultWidth,
   className,
   children,
@@ -1257,6 +1260,7 @@ function PanelSurface({
         <h2 id={titleId} className="min-w-0 flex-1 break-words font-body font-semibold">
           {title ?? label}
         </h2>
+        {actions}
         <IconButton
           label="Close details"
           variant="subtle"

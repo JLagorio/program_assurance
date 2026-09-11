@@ -18,7 +18,6 @@ import { ControlSetApprovals } from "@/components/app/control-set-approvals";
 import { useControlSetVersion } from "@/lib/control-set";
 import { pendingRevisions } from "@/lib/control-set";
 import { profileSummaries, type ProfileSummary } from "@/lib/profiles";
-import { useScopesVersion } from "@/lib/scopes";
 
 export const Route = createFileRoute("/profiles/")({
   head: () => ({
@@ -41,7 +40,6 @@ type Tab = (typeof tabs)[number];
 
 function ProfilesIndex() {
   const [tab, setTab] = useState<Tab>("Profiles");
-  useScopesVersion();
   useControlSetVersion();
   const rows = profileSummaries();
   const pending = pendingRevisions().length;
@@ -52,8 +50,8 @@ function ProfilesIndex() {
         <div className="min-w-0">
           <PageHeader.Title>{"Profiles"}</PageHeader.Title>
           <p className="pt-050 font-body-small text-subtle">
-            A profile selects controls from a catalog. The four SP 800-53B baselines are NIST's own;
-            the rest were resolved here from them.
+            A profile takes a catalog and tailors it up or down. The four SP 800-53B baselines are
+            NIST's own; the rest were resolved here from them.
           </p>
         </div>
       </PageHeader>
@@ -79,7 +77,6 @@ function ProfilesIndex() {
 const kindTone = {
   Baseline: "information",
   Tailored: "success",
-  Scope: "neutral",
 } as const;
 
 /** The row the table sorts, filters and exports: every column id is a real key. */
@@ -140,16 +137,6 @@ function ProfilesTable({ rows }: { rows: ProfileSummary[] }) {
     <DataTable
       table={table}
       onRowClick={(row) => {
-        // A scope's control set already has a record on its element. Sending the
-        // reader there beats building a second screen over the same data.
-        if (row.record.on === "element") {
-          void navigate({
-            to: "/programs/$programId/components/$componentId",
-            params: { programId: row.record.programId, componentId: row.record.componentId },
-            search: { tab: "Control set" },
-          });
-          return;
-        }
         void navigate({ to: "/profiles/$profileId", params: { profileId: row.id } });
       }}
       empty={{ title: "No profiles match", description: "Clear the search or the filters." }}

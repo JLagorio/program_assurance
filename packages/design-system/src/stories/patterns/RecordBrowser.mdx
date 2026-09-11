@@ -1,0 +1,40 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as Stories from "./RecordBrowser.stories";
+
+<Meta of={Stories} />
+
+# RecordBrowser
+
+Find, compare and select related records without leaving the current record. Use this for evidence, assessment objectives and other collections where a compact picker cannot show enough information to make a decision.
+
+<Canvas of={Stories.BrowseAndLink} />
+
+## Anatomy
+
+A Base UI Dialog occupies 90% of the viewport. Its header names the relationship task; search, column filters and permanent actions sit above a selectable DataTable. Preview uses the table's existing eye in the first value cell, visible on row hover, keyboard focus or while active. A separate preview pane shows the complete record, previous/next controls and a selection checkbox. The footer keeps the selection count, Cancel and the linking action visible.
+
+The caller supplies eligible records, columns including a `c.id` column, preview content and the linking callback. The pattern connects the ID column's existing preview callbacks and owns the temporary search, filters, sort, pagination, selection and preview state. Business rules and record content stay in the application.
+
+## Behavior
+
+Previewing never selects or links a record. Checkboxes select; only the footer confirms. Selection survives search, filtering, pagination and preview navigation. Clear selection resets it. Closing the dialog discards the selection; reopening starts a new session. Link failures show an error and preserve selection for retry.
+
+Arrows traverse the rows on the current table page in their displayed order. At the ends they are disabled. When a preview is outside the filtered results, its arrows are disabled and its selection remains available.
+
+At narrow dialog widths the preview replaces the results area while keeping the table mounted. Back to results restores the previous view and focus. Table scrolling stays within its own region.
+
+## Accessibility
+
+The dialog uses the existing [shadcn Base UI composition](https://ui.shadcn.com/docs/components/base/dialog) and [Base UI focus management](https://base-ui.com/react/components/dialog). Opening a preview focuses its heading; closing it restores the row's preview button. Escape closes the internal preview first, then the dialog. Nested filter menus consume their own Escape. Closing the dialog returns focus to its opener.
+
+Name each column and provide a clear `recordTitle`. Preview content can contain ordinary disclosures for related information. Keep related previews inside this dialog.
+
+## Props
+
+`records` contains eligible records with stable IDs. `columns` uses `defineColumns`; `filters` names filterable columns. `recordTitle` and `renderPreview` describe the preview. `onConfirm` receives all selected records, including selections hidden by filters or pagination; it may return a promise. `confirmLabel` names the action. `context` is optional relationship context; `actions` holds permanent controls such as New evidence reference.
+
+## Related
+
+Use RecordPicker for quick single-record selection. PickerSheet remains useful for allocation workflows with extra relationship fields. RecordBrowser is the comparison and bulk-linking experience; it composes Dialog, Toolbar and DataTable.
+
+<Canvas of={Stories.FailedLink} />

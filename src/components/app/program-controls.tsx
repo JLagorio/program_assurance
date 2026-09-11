@@ -1,3 +1,4 @@
+import { usePreviewSequence, type PreviewRow } from "./preview-navigation";
 import { Funnel } from "@/components/app/control-board";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { buildBoard, stageKeys, stageLabels } from "@/lib/control-board";
@@ -54,10 +55,12 @@ export function ProgramControls({
   coverageStatus,
   onClearCoverage,
   previewId,
+  onPreviewRowsChange,
   onPreview,
 }: {
   programId: string;
   previewId?: string | undefined;
+  onPreviewRowsChange?: ((rows: PreviewRow[]) => void) | undefined;
   onPreview: (controlId: string, scopeId: string) => void;
   elementId?: string | undefined;
   coverageFamily?: string | undefined;
@@ -201,6 +204,8 @@ export function ProgramControls({
       columnVisibility: { family: false, coverage: false, progressStage: false },
     },
   });
+  usePreviewSequence(table, onPreviewRowsChange);
+
   // This field connects metric clicks to the Filters menu; it is not a displayed column.
   // Apply it after restoring older saved views that predate the field.
   const hiddenMetricFor = useRef<string | null>(null);

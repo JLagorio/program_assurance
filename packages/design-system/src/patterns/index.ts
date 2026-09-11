@@ -75,3 +75,5 @@ export {
 } from "./inspector";
 export { Toolbar, type ToolbarProps } from "./toolbar";
 export { WorkPane, type WorkPaneProps, type WorkPaneRowProps } from "./work-pane";
+
+export { RecordBrowser, type RecordBrowserProps } from "./record-browser";

@@ -1,3 +1,4 @@
+import { PreviewNavigation, type PreviewRow } from "@/components/app/preview-navigation";
 import { CoverageBand } from "@/components/app/coverage";
 import { CdrPackageModal } from "@/components/app/digital-thread";
 import { ProgramAssessments } from "@/components/app/program-assessments";
@@ -328,6 +329,8 @@ const segmentStatus: Record<string, ControlStatus> = {
 };
 
 function ProgramDetail() {
+  const [requirementRows, setRequirementRows] = useState<PreviewRow[]>([]);
+  const [controlRows, setControlRows] = useState<PreviewRow[]>([]);
   const fieldId = useId();
 
   const alertCancelRef = useRef<HTMLButtonElement>(null);
@@ -817,6 +820,35 @@ function ProgramDetail() {
                 <Shell.Panel
                   title={search.controlId}
                   label="Control preview"
+                  actions={
+                    <PreviewNavigation
+                      rows={controlRows}
+                      currentId={search.controlId}
+                      onNavigate={(row) =>
+                        void navigate({
+                          search: (previous) => ({
+                            ...previous,
+                            controlId: row.id,
+                            controlScope: row.scopeId,
+                          }),
+                          resetScroll: false,
+                        })
+                      }
+                      openTo={
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId: program.id, controlId: search.controlId }}
+                          search={{
+                            scope: search.controlScope,
+                            element: selectedElement?.id,
+                            tab: search.controlTab,
+                          }}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      }
+                    />
+                  }
                   defaultWidth={640}
                   onClose={() => {
                     void navigate({
@@ -856,6 +888,27 @@ function ProgramDetail() {
                 <Shell.Panel
                   title={search.requirementId}
                   label="Requirement preview"
+                  actions={
+                    <PreviewNavigation
+                      rows={requirementRows}
+                      currentId={search.requirementId}
+                      onNavigate={(row) =>
+                        void navigate({
+                          search: (previous) => ({ ...previous, requirementId: row.id }),
+                          resetScroll: false,
+                        })
+                      }
+                      openTo={
+                        <Link
+                          to="/programs/$programId/requirements/$requirementId"
+                          params={{ programId: program.id, requirementId: search.requirementId }}
+                          search={{ element: selectedElement?.id, tab: search.requirementTab }}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      }
+                    />
+                  }
                   defaultWidth={640}
                   onClose={() => {
                     void navigate({
@@ -888,6 +941,7 @@ function ProgramDetail() {
                   programId={program.id}
                   elementId={selectedElement?.id}
                   previewId={search.controlId}
+                  onPreviewRowsChange={setControlRows}
                   onPreview={(controlId, controlScope) => {
                     void navigate({
                       search: (previous) => ({
@@ -1011,6 +1065,7 @@ function ProgramDetail() {
                   programId={program.id}
                   elementId={selectedElement?.id}
                   previewId={search.requirementId}
+                  onPreviewRowsChange={setRequirementRows}
                   onPreview={(requirementId) => {
                     void navigate({
                       search: (previous) => ({

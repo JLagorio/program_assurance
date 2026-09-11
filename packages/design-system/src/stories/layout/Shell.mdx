@@ -16,6 +16,8 @@ Aside contains supporting context. Panel contains dismissible selected-record or
 
 SideNav retains its existing collapse, persistence, keyboard and resize behavior. Main uses document scrolling; Panel scrolls inside the available viewport. The layout owns placement, so content patterns do not add sticky rails or nested page frames.
 
+`Shell.Panel.actions` places route-owned controls immediately before Close. Collection previews use it for previous/next navigation through the table's displayed rows and a native link that opens the full record in a new tab. The route owns row order, destinations and endpoint availability; Shell only supplies their position.
+
 See [page composition](?path=/docs/layout-pages--docs) for route and tab examples.
 
 <ArgTypes of={Shell} />

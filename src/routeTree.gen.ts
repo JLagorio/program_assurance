@@ -143,9 +143,9 @@ const PeoplePersonIdRoute = PeoplePersonIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfilesIndexRoute = ProfilesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProfilesRoute,
+  id: '/profiles/',
+  path: '/profiles/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProfilesProfileIdRoute = ProfilesProfileIdRouteImport.update({
   id: '/profiles/$profileId',
@@ -624,6 +624,7 @@ export interface RootRouteChildren {
   WorkstreamsWorkstreamIdRoute: typeof WorkstreamsWorkstreamIdRoute
   FindingsIndexRoute: typeof FindingsIndexRoute
   PackagesIndexRoute: typeof PackagesIndexRoute
+  ProfilesIndexRoute: typeof ProfilesIndexRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
   FindingsAssetsAssetIdRoute: typeof FindingsAssetsAssetIdRoute
   LibraryComponentsComponentKeyRoute: typeof LibraryComponentsComponentKeyRoute
@@ -757,10 +758,10 @@ declare module '@tanstack/react-router' {
     }
     '/profiles/': {
       id: '/profiles/'
-      path: '/'
+      path: '/profiles'
       fullPath: '/profiles/'
       preLoaderRoute: typeof ProfilesIndexRouteImport
-      parentRoute: typeof ProfilesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/profiles/$profileId': {
       id: '/profiles/$profileId'
@@ -1057,6 +1058,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkstreamsWorkstreamIdRoute: WorkstreamsWorkstreamIdRoute,
   FindingsIndexRoute: FindingsIndexRoute,
   PackagesIndexRoute: PackagesIndexRoute,
+  ProfilesIndexRoute: ProfilesIndexRoute,
   RegisterIndexRoute: RegisterIndexRoute,
   FindingsAssetsAssetIdRoute: FindingsAssetsAssetIdRoute,
   LibraryComponentsComponentKeyRoute: LibraryComponentsComponentKeyRoute,

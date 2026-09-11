@@ -2082,6 +2082,14 @@
       "target": "\"src/patterns/data-table/view-state\".readView",
       "kind": "value"
     },
+    ".#RecordBrowser": {
+      "target": "\"src/patterns/record-browser\".RecordBrowser",
+      "kind": "value"
+    },
+    ".#RecordBrowserProps": {
+      "target": "\"src/patterns/record-browser\".RecordBrowserProps",
+      "kind": "type"
+    },
     ".#RecordPicker": {
       "target": "\"src/patterns/record-picker\".RecordPicker",
       "kind": "value"
@@ -6089,7 +6097,7 @@
     "\"src/layout/shell\".ShellPanelProps": [
       {
         "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellPanelProps = Omit<ComponentProps<\"aside\">, \"title\"> & {\n    title?: ReactNode;\n    label?: string;\n    onClose: () => void;\n    defaultWidth?: number;\n};"
+        "declaration": "export type ShellPanelProps = Omit<ComponentProps<\"aside\">, \"title\"> & {\n    title?: ReactNode;\n    label?: string;\n    actions?: ReactNode;\n    onClose: () => void;\n    defaultWidth?: number;\n};"
       }
     ],
     "\"src/layout/shell\".ShellProps": [
@@ -7116,6 +7124,18 @@
       {
         "source": "src/patterns/preview-sheet.d.ts",
         "declaration": "export type PreviewSheetProps = {\n    open: boolean;\n    onClose: () => void;\n    onBack?: (() => void) | undefined;\n    id: ReactNode;\n    title: ReactNode;\n    subtitle?: ReactNode;\n    status?: ReactNode;\n    facts?: ReactNode;\n    openTo: ReactElement<{\n        children?: ReactNode;\n    }>;\n    links?: ReactNode;\n    actions?: ReactNode;\n    width?: number | undefined;\n    initialFocus?: SheetContentProps[\"initialFocus\"];\n    finalFocus?: SheetContentProps[\"finalFocus\"];\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/patterns/record-browser\".RecordBrowser": [
+      {
+        "source": "src/patterns/record-browser.d.ts",
+        "declaration": "export declare function RecordBrowser<T extends {\n    id: string;\n}>({ open, onClose, ...props }: RecordBrowserProps<T>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/record-browser\".RecordBrowserProps": [
+      {
+        "source": "src/patterns/record-browser.d.ts",
+        "declaration": "export type RecordBrowserProps<T extends {\n    id: string;\n}> = {\n    open: boolean;\n    onClose: () => void;\n    title: string;\n    description: string;\n    records: readonly T[];\n    columns: readonly DataTableColumn<T>[];\n    filters?: readonly string[];\n    recordTitle: (record: T) => ReactNode;\n    renderPreview: (record: T) => ReactNode;\n    onConfirm: (records: T[]) => void | Promise<void>;\n    confirmLabel: string;\n    context?: ReactNode;\n    actions?: ReactNode;\n};"
       }
     ],
     "\"src/patterns/record-picker\".PickerRecord": [

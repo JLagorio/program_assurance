@@ -16,7 +16,6 @@
  * a named delta on a control selection. The library's policy entries used to
  * share the word and never tailored anything; they are components now.
  */
-import { currentRevision, triadLabel } from "@/lib/control-set";
 import {
   nistBaselineCatalogVersion,
   nistBaselineOrder,
@@ -26,12 +25,6 @@ import {
 } from "@/lib/nist-baselines";
 import { platformProgramId } from "@/lib/platform-ids";
 import { platformSeed, type PlatformProfile } from "@/lib/platform-seed";
-import {
-  assessmentScopes,
-  controlSetFor,
-  liveScopeSelectionSource,
-  type AssessmentScope,
-} from "@/lib/scopes";
 
 export type Profile = PlatformProfile;
 export type ProfileOverlay = Profile["overlays"][number];
@@ -135,21 +128,20 @@ export function unexplainedControlIds(profile: Profile): string[] {
 /**
  * Every profile in the product, as one list.
  *
- * There is more than one, which the nav hid: the four SP 800-53B baselines are
- * NIST's own OSCAL *profile* documents, not a separate kind of thing, and each
- * assessment scope resolves a selection of its own from its CNSSI 1253
- * categorization. Listing them together is what makes the tailored profile
- * legible — "starting baseline 370" stops being a number and becomes a row you
- * can open.
+ * There is more than one, which the nav hid: SP 800-53B ships as four OSCAL
+ * *profile* documents, not as a separate kind of thing. Listing them beside the
+ * program's tailored profile is what makes that profile legible — "starting
+ * baseline 370" stops being a number and becomes a row you can open.
  *
- * The three kinds differ in where they come from and in whether they can be
- * edited, and the register says which is which rather than flattening them:
- *
- *   Baseline  published upstream, read-only, authoritative
- *   Tailored  resolved by the generator against the real corpus, with a trail
- *   Scope     resolved live from the scope's categorization, approved by revision
+ * What is NOT here: a scope's control set. A profile is a selection document —
+ * it takes a catalog and tailors it up or down, and it is a thing in its own
+ * right whatever system happens to use it. A scope's set is the *result of
+ * applying* a categorization to one system, and it lives on that system's
+ * record. The configuration pattern behind it ("CNSSI 1253 at C-I-A H-H-H")
+ * would be a profile; the app does not author one today, it resolves the set
+ * inline per scope. Listing the scopes here put program records in a library.
  */
-export type ProfileKind = "Baseline" | "Tailored" | "Scope";
+export type ProfileKind = "Baseline" | "Tailored";
 
 /** Route ids for the published baselines. Stable — they appear in URLs. */
 export const baselineProfileIds: Record<NistBaselineId, string> = {
@@ -168,23 +160,18 @@ export function baselineIdFromProfileId(profileId: string): NistBaselineId | nul
 }
 
 export type ProfileSummary = {
-  /** Row key, and the `$profileId` param for profiles that have their own record. */
+  /** Row key, and the `$profileId` param for the record. */
   id: string;
   name: string;
   kind: ProfileKind;
   /** The catalog or profile this one resolves from. */
   importsFrom: string;
-  /** Controls in force. */
+  /** Controls the profile selects. */
   controls: number;
-  /** A release version for a published profile; the revision state for a scope. */
+  /** A release version for a published profile; the tailoring size for a derived one. */
   status: string;
   /** True only for a machine-readable release from the body that owns the document. */
   authoritative: boolean;
-  /**
-   * Where the record lives. A scope's control set already has a home on its
-   * element record — the register links there rather than building a second one.
-   */
-  record: { on: "profile" } | { on: "element"; programId: string; componentId: string };
 };
 
 function baselineSummary(id: NistBaselineId): ProfileSummary {
@@ -197,7 +184,6 @@ function baselineSummary(id: NistBaselineId): ProfileSummary {
     controls: baseline.controlIds.length,
     status: baseline.version ?? nistBaselineCatalogVersion,
     authoritative: nistBaselineProvenance[id].authoritative,
-    record: { on: "profile" },
   };
 }
 
@@ -213,37 +199,10 @@ function tailoredSummary(profile: Profile): ProfileSummary {
     // Resolved locally against the corpus. The sources behind it are named on
     // the record; the resolution itself is ours, so it is not a publication.
     authoritative: false,
-    record: { on: "profile" },
   };
 }
 
-function scopeSummary(scope: AssessmentScope): ProfileSummary {
-  const set = controlSetFor(scope.id);
-  const revision = currentRevision(scope.id);
-  return {
-    id: scope.id,
-    name: scope.name,
-    kind: "Scope",
-    importsFrom:
-      liveScopeSelectionSource(scope)?.label ??
-      `CNSSI 1253 · C-I-A ${triadLabel(scope.parameters)}`,
-    controls: set?.total ?? 0,
-    status: revision ? `${revision.state} · rev ${revision.number}` : "No revision",
-    authoritative: false,
-    record: { on: "element", programId: scope.program, componentId: scope.element },
-  };
-}
-
-/**
- * The register, in resolution order: what the catalog publishes, then what the
- * program derived from it, then what each scope holds in force. A function
- * rather than a constant because the scope rows move when a revision is
- * approved — callers subscribe through `useScopesVersion` / `useControlSetVersion`.
- */
+/** The register: what the catalog publishes, then what was tailored from it. */
 export function profileSummaries(): ProfileSummary[] {
-  return [
-    ...nistBaselineOrder.map(baselineSummary),
-    ...profiles.map(tailoredSummary),
-    ...assessmentScopes.map(scopeSummary),
-  ];
+  return [...nistBaselineOrder.map(baselineSummary), ...profiles.map(tailoredSummary)];
 }

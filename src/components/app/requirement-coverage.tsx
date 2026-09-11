@@ -1,3 +1,4 @@
+import { usePreviewSequence, type PreviewRow } from "./preview-navigation";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Columns3, Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -124,11 +125,13 @@ export function RequirementCoverage({
   programId,
   elementId,
   previewId,
+  onPreviewRowsChange,
   onPreview,
 }: {
   programId: string;
   elementId?: string | undefined;
   previewId?: string | undefined;
+  onPreviewRowsChange?: ((rows: PreviewRow[]) => void) | undefined;
   onPreview: (requirementId: string) => void;
 }) {
   const navigate = useNavigate();
@@ -378,6 +381,8 @@ export function RequirementCoverage({
       ),
     initialState: { columnVisibility: { currency: false, allocation: false } },
   });
+
+  usePreviewSequence(table, onPreviewRowsChange);
 
   const newRequirement = (
     <Button size="small" variant="primary" iconBefore={<Plus />} onClick={() => setAdding(true)}>

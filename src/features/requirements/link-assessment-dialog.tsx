@@ -1,28 +1,110 @@
-import { eventById, objectiveTone } from "@/lib/campaigns";
+import { EvidenceRecordDetails } from "@/features/evidence/evidence-record-details";
+import { campaignById, eventById, objectiveTone, type TestObjective } from "@/lib/campaigns";
+import { nodeById } from "@/lib/composition";
 import { currentSession } from "@/lib/control-work";
+import { evidenceById, useEvidenceVersion } from "@/lib/evidence-catalog";
 import {
   linkVerification,
+  objectiveEvidence,
+  requirementsForObjective,
   unlinkedObjectives,
   useVerificationVersion,
 } from "@/lib/requirement-verification";
 import { resolvedObjectiveResult } from "@/lib/test-execution";
 import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Id,
-  Indicator,
-  Input,
-  RadioGroup,
-  RadioGroupItem,
+  Badge,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  defineColumns,
+  KeyValue,
+  RecordBrowser,
+  Section,
+  Stack,
 } from "@ledger/design-system";
-import { useId, useState } from "react";
+import { useMemo } from "react";
 
-/** Search, compare and explicitly confirm one assessment relationship. */
+type ObjectiveRow = TestObjective & { assessment: string; campaign: string };
+const columns = defineColumns<ObjectiveRow>((c) => [
+  c.id("id", { header: "Objective", width: 104, hideable: false }),
+  c.text("statement", { header: "Statement", minWidth: 260, hideable: false }),
+  c.text("assessment", { header: "Assessment", width: 200 }),
+  c.text("method", { header: "Method", width: 136 }),
+  c.status("result", { header: "Result", width: 136, tone: (row) => objectiveTone(row.result) }),
+]);
+
+function ObjectiveDetails({ objective }: { objective: ObjectiveRow }) {
+  const event = objective.event ? eventById.get(objective.event) : undefined;
+  const evidence = objectiveEvidence(objective.id);
+  const requirements = requirementsForObjective(objective.id);
+  return (
+    <Stack space="space.250">
+      <div>
+        <KeyValue wrap label="Result">
+          <Badge tone={objectiveTone(objective.result)}>{objective.result}</Badge>
+        </KeyValue>
+        <KeyValue wrap label="Method">
+          {objective.method}
+        </KeyValue>
+        <KeyValue wrap label="Assessment">
+          {objective.assessment}
+        </KeyValue>
+        <KeyValue wrap label="Campaign">
+          {objective.campaign || "Not recorded"}
+        </KeyValue>
+        <KeyValue wrap label="Team">
+          {event?.team || "Not recorded"}
+        </KeyValue>
+        <KeyValue wrap label="Window">
+          {event?.window || "Not recorded"}
+        </KeyValue>
+      </div>
+      {event?.notes ? (
+        <Section title="Assessment context">
+          <p className="whitespace-pre-wrap break-words font-body">{event.notes}</p>
+        </Section>
+      ) : null}
+      <Section title="Coverage">
+        <KeyValue wrap label="Controls">
+          {objective.controls?.join(", ") || "Not recorded"}
+        </KeyValue>
+        <KeyValue wrap label="CCIs">
+          {objective.ccis.join(", ") || "Not recorded"}
+        </KeyValue>
+        <KeyValue wrap label="Elements">
+          {objective.nodes?.map((id) => nodeById.get(id)?.name ?? id).join(", ") || "Not recorded"}
+        </KeyValue>
+        <KeyValue wrap label="Requirements">
+          {requirements.join(", ") || "No requirements linked"}
+        </KeyValue>
+      </Section>
+      <Section title="Evidence" count={evidence.length}>
+        {evidence.map((id) => {
+          const artifact = evidenceById(id);
+          return artifact ? (
+            <Collapsible key={id} className="border-b border-default py-100">
+              <CollapsibleTrigger className="w-full text-left font-body text-brand hover:underline">
+                {id}: {artifact.label}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-150">
+                <EvidenceRecordDetails artifact={artifact} />
+              </CollapsibleContent>
+            </Collapsible>
+          ) : (
+            <p key={id} className="py-100 font-body text-subtle">
+              {id} — record unavailable
+            </p>
+          );
+        })}
+        {!evidence.length ? (
+          <p className="font-body text-subtle">No evidence recorded for this objective.</p>
+        ) : null}
+      </Section>
+    </Stack>
+  );
+}
+
+/** Bulk relationship selection with inspection, scoped to the requirement's program. */
 export function LinkAssessmentDialog({
   requirementId,
   onClose,
@@ -30,105 +112,37 @@ export function LinkAssessmentDialog({
   requirementId: string;
   onClose: () => void;
 }) {
-  useVerificationVersion();
-  const id = useId();
-  const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const candidates = unlinkedObjectives(requirementId);
-  const rows = candidates.filter((objective) =>
-    `${objective.id} ${objective.statement} ${eventById.get(objective.event ?? "")?.name ?? ""}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
+  const version = useVerificationVersion();
+  useEvidenceVersion();
+  const records = useMemo(
+    () =>
+      unlinkedObjectives(requirementId).map((objective): ObjectiveRow => {
+        const event = objective.event ? eventById.get(objective.event) : undefined;
+        return {
+          ...objective,
+          result: resolvedObjectiveResult(objective.id).result,
+          assessment: event?.name ?? "No assessment event",
+          campaign: event ? (campaignById.get(event.campaign)?.name ?? "") : "",
+        };
+      }),
+    [requirementId, version],
   );
-  const chosen = candidates.find((objective) => objective.id === selected);
-  const apply = () => {
-    if (!chosen) return;
-    try {
-      linkVerification(requirementId, chosen.id, currentSession().name);
-      onClose();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The assessment could not be linked.");
-    }
-  };
   return (
-    <Dialog
+    <RecordBrowser
       open
-      onOpenChange={(open) => {
-        if (!open) onClose();
+      onClose={onClose}
+      title="Link assessment objectives"
+      description={`Find and preview the objectives that verify ${requirementId}, then select the records to link.`}
+      records={records}
+      columns={columns}
+      filters={["assessment", "method", "result"]}
+      recordTitle={(record) => record.statement}
+      renderPreview={(record) => <ObjectiveDetails objective={record} />}
+      confirmLabel="Link objectives"
+      onConfirm={(selected) => {
+        for (const record of selected)
+          linkVerification(requirementId, record.id, currentSession().name);
       }}
-    >
-      <DialogContent style={{ maxWidth: 720 }}>
-        <DialogHeader>
-          <DialogTitle>Link assessment objective</DialogTitle>
-          <DialogDescription>
-            Choose the objective that verifies {requirementId}, then confirm the link.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="shrink-0 px-250 py-150">
-          <Input
-            autoFocus
-            type="search"
-            aria-label="Find assessment objectives"
-            placeholder="Search objectives or assessments"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </div>
-        <div className="min-h-0 overflow-y-auto px-250 pb-200">
-          <RadioGroup
-            value={selected}
-            onValueChange={setSelected}
-            aria-label="Assessment objectives"
-            className="gap-0 divide-y divide-default"
-          >
-            {rows.map((objective) => (
-              <label
-                key={objective.id}
-                htmlFor={`${id}-${objective.id}`}
-                className="flex cursor-pointer items-start gap-150 py-150"
-              >
-                <RadioGroupItem
-                  id={`${id}-${objective.id}`}
-                  value={objective.id}
-                  className="mt-025 shrink-0"
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center justify-between gap-100">
-                    <Id className="text-subtle">{objective.id}</Id>
-                    <Indicator tone={objectiveTone(resolvedObjectiveResult(objective.id).result)}>
-                      {resolvedObjectiveResult(objective.id).result}
-                    </Indicator>
-                  </span>
-                  <span className="block whitespace-normal break-words pt-050 font-body">
-                    {objective.statement}
-                  </span>
-                  <span className="block pt-050 font-body-small text-subtle">
-                    {eventById.get(objective.event ?? "")?.name ?? "No assessment event"}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </RadioGroup>
-          {!rows.length ? (
-            <p className="py-200 font-body text-subtle">No objectives match this search.</p>
-          ) : null}
-          {error ? (
-            <p role="alert" className="font-body-small text-danger">
-              {error}
-            </p>
-          ) : null}
-        </div>
-        <DialogFooter>
-          <span className="me-auto font-body-small text-subtle">
-            {chosen ? `${chosen.id} selected` : "Select an objective"}
-          </span>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" disabled={!chosen} onClick={apply}>
-            Link objective
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    />
   );
 }

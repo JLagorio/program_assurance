@@ -14,6 +14,8 @@ Updated 2026-09-10.
 
 - [x] **Record and queue UX feedback** (2026-09-10). Keep editors out of page/preview headers; one Actions menu; filter-only toolbar overflow with persistent settings/actions; title actions stay inline at every width; plain preview identifiers; contained panel scrolling and readable allocation lists. Success criteria edits directly in a multiline cell with full text; assessment objectives use a confirmable chooser and compact result rows.
 
+- [x] **Preview navigation and relationship browser** (2026-09-10). Requirement/control previews follow displayed table rows and open full records in a new tab. Reusable RecordBrowser gives objective and evidence linking a 90% viewport dialog with search, filters, multi-selection and in-dialog record details; selections survive browsing until confirmation.
+
 ## Decisions waiting on Josef
 
 - [ ] **Tasks are a table** (2026-09-06). The program's Tasks tab and My work sit on the kit's DataTable: bands by due, assignee, record or state; a saved view per question with its count, chosen from one menu in the toolbar; the assignee, the due and the state edited in the row; a row opening in a panel beside the list with ⌘↑ ⌘↓ stepping; the task a record at `/tasks/$taskId` with its own log. Two calls: My work has no Add task (a task needs a record to sit on; the record's own Tasks section and log bar make one), and the compact list under a record still edits through the dialog while the table and the panel edit in place.

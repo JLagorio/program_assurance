@@ -1,3 +1,4 @@
+import { EvidenceBrowser } from "@/features/evidence/evidence-browser";
 import { AddEvidenceDialog, EvidencePreview } from "@/components/app/program-evidence";
 import { descendantsOf, nodeById } from "@/lib/composition";
 import { availableControlEvidence, controlEvidence } from "@/lib/control-evidence";
@@ -31,12 +32,6 @@ import {
   Badge,
   Box,
   Button,
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -435,8 +430,6 @@ export function EvidenceBlock({
   const [adding, setAdding] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [targetId, setTargetId] = useState("implementation");
-  const [artifactId, setArtifactId] = useState("");
-  const [error, setError] = useState("");
   const target: EvidenceLink =
     targetId === "implementation"
       ? { kind: "control", id: work.control, scopeId: work.scope }
@@ -450,27 +443,13 @@ export function EvidenceBlock({
   );
   const chooseTarget = (id: string) => {
     setTargetId(id);
-    setArtifactId("");
-    setError("");
   };
-  const link = () => {
-    try {
-      if (target.kind === "control") linkEvidence(work.id, artifactId);
-      else linkArtifact(artifactId, target);
-      setPicking(false);
-      setArtifactId("");
-      onChange();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Evidence could not be linked.");
-    }
-  };
-
   const targetIdItems = [
     {
       value: "implementation",
       label: (
         <>
-          {work.control}implementation · {scopeById.get(work.scope)?.name}
+          {work.control} implementation · {scopeById.get(work.scope)?.name}
         </>
       ),
     },
@@ -483,12 +462,6 @@ export function EvidenceBlock({
       ),
     })),
   ];
-  const artifactIdItems = unlinked.map((artifact) => ({
-    value: artifact.id,
-    label: `${artifact.id} · ${artifact.label}`,
-    keywords: `${artifact.kind} ${artifact.provenance} ${artifact.owner}`,
-    meta: artifact.review,
-  }));
   return (
     <div>
       {rows.length ? (
@@ -569,7 +542,7 @@ export function EvidenceBlock({
         <p className="font-body text-subtle">No supporting evidence linked.</p>
       )}
 
-      <Inline space="space.100" className="pt-100">
+      <div className="pt-100">
         <Button
           ref={linkButtonRef}
           size="small"
@@ -578,140 +551,63 @@ export function EvidenceBlock({
             setPicking(true);
           }}
         >
-          Link evidence…
-        </Button>
-        <Button
-          size="small"
-          onClick={() => {
-            chooseTarget("implementation");
-            setAdding(true);
-          }}
-        >
           Add evidence
         </Button>
-      </Inline>
-      {adding ? (
-        <AddEvidenceDialog
-          programId={work.program}
-          open
-          onClose={() => setAdding(false)}
-          initialLink={target}
-          onCreated={(artifact) => {
-            setSelectedId(artifact.id);
+      </div>
+      {picking ? (
+        <EvidenceBrowser
+          key={targetId}
+          records={unlinked}
+          description={`Select evidence available to ${work.control} in ${scopeById.get(work.scope)?.name ?? work.scope}.`}
+          onClose={() => setPicking(false)}
+          onLink={(records) => {
+            for (const artifact of records) {
+              if (target.kind === "control") linkEvidence(work.id, artifact.id);
+              else linkArtifact(artifact.id, target);
+            }
             onChange();
           }}
-        />
-      ) : null}
-
-      <Dialog
-        open={picking}
-        onOpenChange={(next) => {
-          if (!next) {
-            setPicking(false);
-          }
-        }}
-      >
-        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
-          <DialogHeader>
-            <DialogTitle>Link evidence</DialogTitle>
-          </DialogHeader>
-          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
-            <Stack space="space.150">
-              <Field>
-                <FieldLabel id={`${fieldId}-supports-2-label`} htmlFor={`${fieldId}-supports-2`}>
-                  {"Supports"}
-                </FieldLabel>
-                <Select<string>
-                  items={targetIdItems}
-                  value={targetId}
-                  onValueChange={(value) => {
-                    if (value === null) return;
-                    return chooseTarget(value);
-                  }}
-                >
-                  <SelectTrigger
-                    id={`${fieldId}-supports-2`}
-                    aria-labelledby={`${fieldId}-supports-2-label`}
-                    className="w-full"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent aria-labelledby={`${fieldId}-supports-2-label`}>
-                    {targetIdItems.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field>
-                <FieldLabel id={`${fieldId}-evidence-3-label`} htmlFor={`${fieldId}-evidence-3`}>
-                  {"Evidence"}
-                </FieldLabel>
-                <Combobox<(typeof artifactIdItems)[number]>
-                  items={artifactIdItems}
-
-                  isItemEqualToValue={(item, selected) => item.value === selected.value}
-                  filter={(item, query) =>
-                    [item.label, item.value, "keywords" in item ? item.keywords : ""]
-                      .join(" ")
-                      .toLocaleLowerCase()
-                      .includes(query.toLocaleLowerCase())
-                  }
-                  value={artifactIdItems.find((item) => item.value === artifactId) ?? null}
-                  onValueChange={(item) => setArtifactId(item?.value ?? "")}
-                >
-                  <ComboboxInput
-                    id={`${fieldId}-evidence-3`}
-                    aria-labelledby={`${fieldId}-evidence-3-label`}
-                    placeholder="Find an existing artifact"
-                  />
-                  <ComboboxContent>
-                    <ComboboxEmpty>{"No matching evidence in this system scope."}</ComboboxEmpty>
-                    <ComboboxList aria-labelledby={`${fieldId}-evidence-3-label`}>
-                      {(item) => (
-                        <ComboboxItem
-                          key={item.value}
-                          value={item}
-                          disabled={"disabled" in item && Boolean(item.disabled)}
-                        >
-                          <span className="min-w-0 flex-1">{item.label}</span>
-                          {"meta" in item && item.meta ? (
-                            <span className="text-subtle font-body-small">{String(item.meta)}</span>
-                          ) : null}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
-              </Field>
-              <Button
-                size="small"
-                onClick={() => {
-                  setPicking(false);
-                  setAdding(true);
+          context={
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-supports`}>Supports</FieldLabel>
+              <Select<string>
+                items={targetIdItems}
+                value={targetId}
+                onValueChange={(value) => {
+                  if (value) chooseTarget(value);
                 }}
               >
-                Add a new evidence reference
-              </Button>
-              {error ? (
-                <p role="alert" className="font-body-small text-danger">
-                  {error}
-                </p>
-              ) : null}
-            </Stack>
-          </Box>
-          <DialogFooter>
+                <SelectTrigger id={`${fieldId}-supports`} className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {targetIdItems.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          }
+          actions={
             <>
-              <Button onClick={() => setPicking(false)}>Cancel</Button>
-              <Button variant="primary" disabled={!artifactId} onClick={link}>
-                Link evidence
+              <Button size="small" onClick={() => setAdding(true)}>
+                New evidence reference
               </Button>
+              {adding ? (
+                <AddEvidenceDialog
+                  programId={work.program}
+                  open
+                  onClose={() => setAdding(false)}
+                  initialLink={target}
+                  onCreated={() => onChange()}
+                />
+              ) : null}
             </>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          }
+        />
+      ) : null}
       {selectedId ? (
         <EvidencePreview
           programId={work.program}

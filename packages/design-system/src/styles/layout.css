@@ -202,3 +202,22 @@
     display: none;
   }
 }
+
+/* A relationship chooser owns its internal preview, independently of the page shell. */
+[data-record-browser] {
+  container-type: inline-size;
+}
+[data-record-browser-preview] {
+  width: 40%;
+  min-width: 320px;
+}
+@container (width < 800px) {
+  [data-record-browser-body][data-preview="open"] > [data-record-browser-results] {
+    display: none;
+  }
+  [data-record-browser-preview] {
+    width: 100%;
+    min-width: 0;
+    border-inline-start: 0;
+  }
+}

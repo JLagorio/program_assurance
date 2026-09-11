@@ -6,6 +6,8 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ## Unreleased · audit implementation
 
+- Add [RecordBrowser](src/stories/patterns/RecordBrowser.mdx): a 90% viewport relationship chooser with a searchable, filterable table, independent record preview, persistent multi-selection and explicit confirmation. Preview navigation and Escape restore focus within the dialog; failed linking preserves the selection. `Shell.Panel.actions` accepts route-owned previous/next and full-record navigation beside Close.
+
 - Toolbar collapses only its explicit `filters` slot; view controls and actions stay visible. Header actions remain beside wrapping titles at all widths. Editable.Text supports multiline cell editing with newline, commit and cancel keyboard behavior.
 
 - Keep Toolbar on one row by moving filters and actions into a Base UI popover when its container narrows; preserve search, filter state and keyboard focus across resizing. PageHeader examples keep fields in the work area and use a single Actions menu. Shell.Panel contains horizontal overflow while nested scroll areas remain usable. See Toolbar’s Constrained story and the layout examples.

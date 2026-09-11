@@ -1,3 +1,4 @@
+import { EvidenceBrowser } from "@/features/evidence/evidence-browser";
 import {
   currentSession,
   linkEvidence,
@@ -1042,22 +1043,12 @@ export function RequirementEvidence({
 }) {
   useEvidenceVersion();
   const [adding, setAdding] = useState(false);
-  const [selected, setSelected] = useState("");
+  const [picking, setPicking] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const linked = evidenceForTarget(programId, "requirement", requirementId);
-  const selectedItems = [
-    { value: "", label: "Choose program evidence…" },
-    ...evidenceForProgram(programId)
-      .filter((artifact) => !linked.some((row) => row.id === artifact.id))
-      .map((artifact) => ({
-        value: artifact.id,
-        label: (
-          <>
-            {artifact.id} · {artifact.label}
-          </>
-        ),
-      })),
-  ];
+  const available = evidenceForProgram(programId).filter(
+    (artifact) => !linked.some((row) => row.id === artifact.id),
+  );
   return (
     <Stack space="space.100">
       {linked.map((artifact) => (
@@ -1100,64 +1091,42 @@ export function RequirementEvidence({
           </EmptyHeader>
         </Empty>
       ) : null}
-      <Inline space="space.100" shouldWrap>
-        <Select<string>
-          items={selectedItems}
-          value={selected}
-          onValueChange={(value) => {
-            if (value === null) return;
-            return setSelected(value);
-          }}
-        >
-          <SelectTrigger
-            className="w-full sm:w-auto sm:min-w-0 sm:flex-1"
-            aria-label="Evidence to link"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {selectedItems.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button
-          size="small"
-          disabled={!selected}
-          onClick={() => {
-            try {
-              linkArtifact(selected, { kind: "requirement", id: requirementId });
-              setSelected("");
-            } catch (error) {
-              toast.add({
-                title: error instanceof Error ? error.message : "Evidence could not be linked",
-                type: "error",
-                timeout: 8000,
-              });
-            }
-          }}
-        >
-          Link evidence
-        </Button>
-        <Button size="small" onClick={() => setAdding(true)}>
+      <div>
+        <Button size="small" onClick={() => setPicking(true)}>
           Add evidence
         </Button>
-      </Inline>
+      </div>
+      {picking ? (
+        <EvidenceBrowser
+          records={available}
+          description={`Find and preview program evidence to support ${requirementId}.`}
+          onClose={() => setPicking(false)}
+          onLink={(records) => {
+            for (const artifact of records)
+              linkArtifact(artifact.id, { kind: "requirement", id: requirementId });
+          }}
+          actions={
+            <>
+              <Button size="small" onClick={() => setAdding(true)}>
+                New evidence reference
+              </Button>
+              {adding ? (
+                <AddEvidenceDialog
+                  programId={programId}
+                  open
+                  onClose={() => setAdding(false)}
+                  initialLink={{ kind: "requirement", id: requirementId }}
+                />
+              ) : null}
+            </>
+          }
+        />
+      ) : null}
       {previewId ? (
         <EvidencePreview
           programId={programId}
           evidenceId={previewId}
           onClose={() => setPreviewId(null)}
-        />
-      ) : null}
-      {adding ? (
-        <AddEvidenceDialog
-          programId={programId}
-          open
-          onClose={() => setAdding(false)}
-          initialLink={{ kind: "requirement", id: requirementId }}
         />
       ) : null}
     </Stack>

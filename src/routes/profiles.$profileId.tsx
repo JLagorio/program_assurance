@@ -36,6 +36,7 @@ import { nistBaselineProvenance, nistBaselines } from "@/lib/nist-baselines";
 import { nistControlById } from "@/lib/nist-catalog";
 import {
   baselineIdFromProfileId,
+  baselineProfileIds,
   countsOf,
   derivationFor,
   eventsForControl,
@@ -170,29 +171,8 @@ function BaselineRecord({ baseline }: { baseline: import("@/lib/nist-baselines")
         <ProfileTrail name={`SP 800-53B ${definition.name}`} />
         <div className="min-w-0">
           <PageHeader.Title>{`SP 800-53B ${definition.name} baseline`}</PageHeader.Title>
-          <p className="pt-050 font-body-small text-subtle">
-            {`${definition.controlIds.length} controls · release ${definition.version ?? "—"} · published by NIST`}
-          </p>
         </div>
-        <PageHeader.Actions>
-          <Badge variant="secondary" tone="success">
-            Authoritative
-          </Badge>
-        </PageHeader.Actions>
       </PageHeader>
-
-      <Section title="Source">
-        <Stack space="space.050">
-          <span className="font-body-small">{referenceSourceName(provenance)}</span>
-          <span className="font-body-small text-subtle">{provenance.citation}</span>
-          <TextLink href={provenance.sourceUrl} target="_blank" rel="noreferrer">
-            {provenance.sourceUrl}
-          </TextLink>
-          {provenance.sha256 ? (
-            <Id className="text-subtle">{`sha256 ${provenance.sha256}`}</Id>
-          ) : null}
-        </Stack>
-      </Section>
 
       <DataTable
         table={table}
@@ -211,6 +191,47 @@ function BaselineRecord({ baseline }: { baseline: import("@/lib/nist-baselines")
           </Inline>
         }
       />
+
+      {/* Everything about the profile itself lives in the rail, so the page is
+          a header and the selection it names. The control panel is a different
+          thing — a row the reader opened — and stays a Panel. */}
+      <Shell.Aside label="Record properties">
+        <>
+          <Inspector.Group title="Profile">
+            <KeyValue label="Controls">{definition.controlIds.length}</KeyValue>
+            <KeyValue label="Release">{definition.version ?? "—"}</KeyValue>
+            <KeyValue label="Published by" wrap>
+              {provenance.authority}
+            </KeyValue>
+            <KeyValue label="Standing">
+              <Badge variant="secondary" tone="success">
+                Authoritative
+              </Badge>
+            </KeyValue>
+          </Inspector.Group>
+          <Inspector.Group title="Source">
+            <KeyValue label="Dataset" wrap>
+              {referenceSourceName(provenance)}
+            </KeyValue>
+            <KeyValue label="Citation" wrap>
+              {provenance.citation}
+            </KeyValue>
+            <KeyValue label="Fetched from">
+              <TextLink href={provenance.sourceUrl} target="_blank" rel="noreferrer">
+                {provenance.sourceUrl}
+              </TextLink>
+            </KeyValue>
+            {provenance.sha256 ? (
+              <KeyValue label="sha256" wrap>
+                <Id className="break-all text-subtle">{provenance.sha256}</Id>
+              </KeyValue>
+            ) : null}
+            <KeyValue label="Rights" wrap>
+              {provenance.rights}
+            </KeyValue>
+          </Inspector.Group>
+        </>
+      </Shell.Aside>
 
       {selected ? (
         <Shell.Panel title={selected.id} onClose={() => setControlId(null)}>
@@ -236,6 +257,7 @@ function TailoredRecord({ profileId }: { profileId: string }) {
 
   if (!profile) return null;
   const counts = countsOf(profile);
+  const unexplained = unexplainedControlIds(profile);
 
   return (
     <Stack className="animate-rise" space="space.200">
@@ -243,9 +265,6 @@ function TailoredRecord({ profileId }: { profileId: string }) {
         <ProfileTrail name={profile.name} />
         <div className="min-w-0">
           <PageHeader.Title>{profile.name}</PageHeader.Title>
-          <p className="pt-050 font-body-small text-subtle">
-            {`${counts.effective} controls · resolved from the SP 800-53B High baseline (${counts.startingBaseline})`}
-          </p>
         </div>
       </PageHeader>
 
@@ -274,6 +293,52 @@ function TailoredRecord({ profileId }: { profileId: string }) {
           {tab === "Overlays" ? <Overlays profile={profile} /> : null}
         </TabsContent>
       </Tabs>
+
+      <Shell.Aside label="Record properties">
+        <>
+          <Inspector.Group title="Profile">
+            <KeyValue label="Controls">{counts.effective}</KeyValue>
+            <KeyValue label="Imports" wrap>
+              {/* The baseline is a profile of its own in the register; a reader
+                  asking where 370 came from should be able to open it. */}
+              <TextLink
+                render={
+                  <Link to="/profiles/$profileId" params={{ profileId: baselineProfileIds.high }} />
+                }
+              >
+                {`SP 800-53B High baseline (${counts.startingBaseline})`}
+              </TextLink>
+            </KeyValue>
+            <KeyValue label="Catalog" wrap>
+              {`SP 800-53 Rev. 5 (${counts.catalog})`}
+            </KeyValue>
+            <KeyValue label="Standing">
+              <Badge variant="secondary" tone="neutral">
+                Derived here
+              </Badge>
+            </KeyValue>
+          </Inspector.Group>
+          <Inspector.Group title="Tailoring">
+            <KeyValue label="Overlays">{counts.overlays}</KeyValue>
+            <KeyValue label="Events">{counts.events}</KeyValue>
+            <KeyValue label="ODP values">{counts.withOdp}</KeyValue>
+          </Inspector.Group>
+          <Inspector.Group title="Accounted for">
+            {unexplained.length === 0 ? (
+              <span className="font-body-small text-subtle">
+                {`All ${counts.effective} controls carry a selection trail. A control in the set with no trail is one nobody could defend in an assessment, so it is checked rather than assumed.`}
+              </span>
+            ) : (
+              <Stack space="space.100">
+                <span className="font-body-small text-danger">
+                  {`${unexplained.length} controls are in the set with no recorded basis.`}
+                </span>
+                <Id>{unexplained.join(", ")}</Id>
+              </Stack>
+            )}
+          </Inspector.Group>
+        </>
+      </Shell.Aside>
 
       {controlId ? (
         <ControlTrail profile={profile} controlId={controlId} onClose={() => setControlId(null)} />
@@ -311,14 +376,6 @@ function Derivation({ profile }: { profile: Profile }) {
 
   return (
     <Stack space="space.200" className="min-w-0 pt-100">
-      <Inline space="space.400" shouldWrap>
-        <KeyValue label="Catalog">{counts.catalog}</KeyValue>
-        <KeyValue label="Starting baseline">{counts.startingBaseline}</KeyValue>
-        <KeyValue label="Effective">{counts.effective}</KeyValue>
-        <KeyValue label="Tailoring events">{counts.events}</KeyValue>
-        <KeyValue label="ODP starting values">{counts.withOdp}</KeyValue>
-      </Inline>
-
       <Section title="Stages">
         <Table>
           <thead>
@@ -350,7 +407,7 @@ function Derivation({ profile }: { profile: Profile }) {
                       ) : null}
                     </Stack>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell className="whitespace-normal py-100 align-top">
                     <Stack space="space.050">
                       {input ? <span>{input}</span> : null}
                       <Inline space="space.100" shouldWrap>
@@ -372,23 +429,6 @@ function Derivation({ profile }: { profile: Profile }) {
             })}
           </tbody>
         </Table>
-      </Section>
-
-      <Section title="Every control is accounted for">
-        {unexplained.length === 0 ? (
-          <p className="font-body-small text-subtle">
-            All {counts.effective} effective controls carry a selection trail. A control in the set
-            with no trail is one nobody could defend in an assessment, so it is checked rather than
-            assumed.
-          </p>
-        ) : (
-          <Stack space="space.100">
-            <p className="font-body-small text-danger">
-              {unexplained.length} controls are in the set with no recorded basis.
-            </p>
-            <Id>{unexplained.join(", ")}</Id>
-          </Stack>
-        )}
       </Section>
     </Stack>
   );
