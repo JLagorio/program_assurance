@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
-import { Chart } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import {
   assessors,

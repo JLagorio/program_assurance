@@ -1,8 +1,14 @@
+import { currentSession, useWorkVersion } from "@/lib/control-work";
+import { findings } from "@/lib/findings";
+import { programs, risks } from "@/lib/grc-data";
+import { useProgramsVersion } from "@/lib/program-store";
+import { useRisksVersion } from "@/lib/risk-store";
+import { openTasks, tasksAssignedTo, useTasksVersion } from "@/lib/tasks";
 import {
-  avatarHue,
-  AvatarFallback,
-  avatarInitials,
   Avatar,
+  AvatarFallback,
+  avatarHue,
+  avatarInitials,
   Box,
   Button,
   buttonVariants,
@@ -12,10 +18,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  Shell as DsShell,
   IconButton,
   ModeSwitch,
-  Shell as DsShell,
   Stack,
+  useSideNav,
 } from "@ledger/design-system";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
@@ -38,20 +45,9 @@ import {
   Sparkle,
   Users,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
-import { currentSession, useWorkVersion } from "@/lib/control-work";
-import { findings } from "@/lib/findings";
-import { programs, risks } from "@/lib/grc-data";
-import { useProgramsVersion } from "@/lib/program-store";
-import { useRisksVersion } from "@/lib/risk-store";
-import { openTasks, tasksAssignedTo, useTasksVersion } from "@/lib/tasks";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-/**
- * The product's frame on the package's navigation system. The side nav holds objects and queues;
- * it never holds phases, because a phase is a state of a program, reached by opening it. A record's
- * rail is its ShowPage's, beside the overview tab; a route renders the detail of a selected row into
- * DsShell.Panel from wherever it is, and the shell places it.
- */
+/** Persistent product navigation. Routes own Main content and contribute Shell.Aside / Shell.Panel. */
 const navGroups: {
   label: string;
   items: { label: string; to: string; icon: typeof Gauge; badge?: string }[];
@@ -99,7 +95,7 @@ const topNavEnd = [
   [Settings, "Settings"],
 ] as const;
 
-export function Shell({ children }: { children: ReactNode }) {
+export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   useTasksVersion();
   useWorkVersion();
@@ -113,6 +109,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const openCount = openTasks(tasksAssignedTo(currentSession().name)).length;
   return (
     <DsShell sideNavShortcut persist>
+      <RouteNavigation pathname={pathname} />
       <DsShell.TopNav>
         <DsShell.TopNav.Start toggle={<DsShell.SideNav.ToggleButton />}>
           <DsShell.AppLogo
@@ -286,4 +283,23 @@ export function Shell({ children }: { children: ReactNode }) {
       </Dialog>
     </DsShell>
   );
+}
+
+/** Route navigation closes the mobile flyout without remounting the persistent frame. */
+function RouteNavigation({ pathname }: { pathname: string }) {
+  const { collapse } = useSideNav();
+  const collapseRef = useRef(collapse);
+  collapseRef.current = collapse;
+  const previous = useRef(pathname);
+  useEffect(() => {
+    if (previous.current === pathname) return;
+    previous.current = pathname;
+    if (!window.matchMedia("(min-width: 64rem)").matches) {
+      collapseRef.current();
+      const frame = requestAnimationFrame(() => document.querySelector("main")?.focus());
+      return () => cancelAnimationFrame(frame);
+    }
+    return undefined;
+  }, [pathname]);
+  return null;
 }

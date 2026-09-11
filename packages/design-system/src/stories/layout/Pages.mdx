@@ -1,0 +1,31 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as Stories from "./Pages.stories";
+
+<Meta of={Stories} />
+
+# Page composition
+
+Mount the application shell once around the router outlet. Routes compose normal primitives and components inside Main and contribute optional Aside or Panel content. There are no collection-page or record-page wrapper APIs.
+
+<Canvas of={Stories.Record} />
+<Canvas of={Stories.QueueWithPanel} />
+<Canvas of={Stories.CompactQueue} />
+
+## Regions and behavior
+
+- **Main** contains the page header, filters, tabs and work area. Keep these visible controls in the route.
+- **Aside** provides supporting context, such as properties. It follows Main below 1200px and sits beside it above that. When a Panel is also open, Aside follows Main until 1760px.
+- **Panel** holds a selected record or task. It is resizable beside Main from 1280px. Below that it replaces the visible work area while Main stays mounted. Close or Escape returns focus to the opener when it still exists.
+- **Sheet** is the modal surface for a workflow that needs focus containment. Compose it with the existing Base UI components.
+
+A route contributes at most one Aside and one Panel. Their portal destinations remain stable across route updates. Route React context travels with the contribution, and unmounting the route removes it. Slots appear after mounting; server rendering does not render portaled region content. The application restores its browser workspace before rendering routes.
+
+## Tabs and accessibility
+
+Keep each tab's primary content inside its TabsContent. Supporting context is a separate labelled landmark and is conditional on the selected tab. Give pages one h1, panels an h2, and contextual regions meaningful names. Avoid placing modal semantics on a panel that leaves global navigation available.
+
+The examples test route cleanup, retained context, tab relationships, queue state, resizing and focus return. Responsive behavior is also checked in the application.
+
+## Extending
+
+Compose a new route from Stack, Inline, Grid, PageHeader and the controls it needs. Add a pattern when a repeated interaction earns one—for example record selection, coordinated filtering, or calendar scheduling. Layout ownership stays in Shell.

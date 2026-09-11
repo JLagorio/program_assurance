@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ReactNode } from "react";
 
+import { Glance } from "../..";
 import {
   Badge,
   HoverCard,
@@ -10,7 +11,6 @@ import {
   Indicator,
   TextLink,
 } from "../../components";
-import { Glance } from "../../patterns";
 import { Box, Inline } from "../../primitives";
 
 const meta = {

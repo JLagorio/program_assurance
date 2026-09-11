@@ -1,8 +1,8 @@
 import type { Decorator, Preview } from "@storybook/react-vite";
 import { useEffect } from "react";
 
-import { LedgerProvider } from "../src/lib/locale";
 import { TooltipProvider } from "../src/components/tooltip";
+import { LedgerProvider } from "../src/lib/locale";
 import "../src/styles/storybook.css";
 
 /**
@@ -60,9 +60,9 @@ const preview: Preview = {
           "Primitives",
           ["Overview"],
           "Components",
+          "Layout",
+          ["Shell", "Pages", "PageHeader", "Section", "PageSkeleton"],
           "Patterns",
-          ["Pages"],
-          "Shell",
         ],
       },
     },

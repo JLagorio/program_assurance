@@ -1,13 +1,14 @@
-import { TablePagination } from "../../patterns/data-table/pagination";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { TablePagination } from "../../patterns/data-table/pagination";
 
 import { Filter, Plus } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
 
+import { Toolbar } from "../..";
 import {
-  Badge,
   Absent,
+  Badge,
   Button,
   FilterChip,
   Indicator,
@@ -17,7 +18,6 @@ import {
   usePage,
   useSort,
 } from "../../components";
-import { Toolbar } from "../../patterns";
 import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 

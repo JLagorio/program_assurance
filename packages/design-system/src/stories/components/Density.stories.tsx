@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { DataTable, defineColumns, useDataTable } from "../..";
 import { Badge, Table, type Tone } from "../../components";
-import { DataTable, defineColumns, useDataTable } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 
 const meta = {

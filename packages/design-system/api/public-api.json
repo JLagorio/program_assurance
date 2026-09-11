@@ -43,19 +43,19 @@
       "kind": "type"
     },
     ".#ActionBar": {
-      "target": "\"src/shapes/action-bar\".ActionBar",
+      "target": "\"src/patterns/action-bar\".ActionBar",
       "kind": "value"
     },
     ".#ActionBarAction": {
-      "target": "\"src/shapes/action-bar\".ActionBarAction",
+      "target": "\"src/patterns/action-bar\".ActionBarAction",
       "kind": "type"
     },
     ".#ActionBarProps": {
-      "target": "\"src/shapes/action-bar\".ActionBarProps",
+      "target": "\"src/patterns/action-bar\".ActionBarProps",
       "kind": "type"
     },
     ".#ActionBarState": {
-      "target": "\"src/shapes/action-bar\".ActionBarState",
+      "target": "\"src/patterns/action-bar\".ActionBarState",
       "kind": "type"
     },
     ".#Alert": {
@@ -187,7 +187,7 @@
       "kind": "type"
     },
     ".#AppLogoProps": {
-      "target": "\"src/shell/shell\".AppLogoProps",
+      "target": "\"src/layout/shell\".AppLogoProps",
       "kind": "type"
     },
     ".#applyMode": {
@@ -195,7 +195,7 @@
       "kind": "value"
     },
     ".#AppSwitcherProps": {
-      "target": "\"src/shell/shell\".AppSwitcherProps",
+      "target": "\"src/layout/shell\".AppSwitcherProps",
       "kind": "type"
     },
     ".#Attachment": {
@@ -352,14 +352,6 @@
     },
     ".#BleedToken": {
       "target": "\"src/generated/space\".BleedToken",
-      "kind": "type"
-    },
-    ".#Block": {
-      "target": "\"src/shapes/block\".Block",
-      "kind": "value"
-    },
-    ".#BlockProps": {
-      "target": "\"src/shapes/block\".BlockProps",
       "kind": "type"
     },
     ".#Box": {
@@ -1654,14 +1646,6 @@
       "target": "\"src/components/id\".IdProps",
       "kind": "type"
     },
-    ".#IndexPage": {
-      "target": "\"src/patterns/archetypes\".IndexPage",
-      "kind": "value"
-    },
-    ".#IndexPageProps": {
-      "target": "\"src/patterns/archetypes\".IndexPageProps",
-      "kind": "type"
-    },
     ".#Indicator": {
       "target": "\"src/components/badge\".Indicator",
       "kind": "value"
@@ -1727,19 +1711,19 @@
       "kind": "type"
     },
     ".#Inspector": {
-      "target": "\"src/shapes/inspector\".Inspector",
+      "target": "\"src/patterns/inspector\".Inspector",
       "kind": "value"
     },
     ".#InspectorGroupData": {
-      "target": "\"src/shapes/inspector\".InspectorGroupData",
+      "target": "\"src/patterns/inspector\".InspectorGroupData",
       "kind": "type"
     },
     ".#InspectorGroupProps": {
-      "target": "\"src/shapes/inspector\".InspectorGroupProps",
+      "target": "\"src/patterns/inspector\".InspectorGroupProps",
       "kind": "type"
     },
     ".#InspectorProps": {
-      "target": "\"src/shapes/inspector\".InspectorProps",
+      "target": "\"src/patterns/inspector\".InspectorProps",
       "kind": "type"
     },
     ".#Item": {
@@ -1839,19 +1823,19 @@
       "kind": "value"
     },
     ".#PageHeader": {
-      "target": "\"src/patterns/page-header\".PageHeader",
+      "target": "\"src/layout/page-header\".PageHeader",
       "kind": "value"
     },
     ".#PageHeaderProps": {
-      "target": "\"src/patterns/page-header\".PageHeaderProps",
+      "target": "\"src/layout/page-header\".PageHeaderProps",
       "kind": "type"
     },
     ".#PageSkeleton": {
-      "target": "\"src/patterns/page-skeleton\".PageSkeleton",
+      "target": "\"src/layout/page-skeleton\".PageSkeleton",
       "kind": "value"
     },
     ".#PageSkeletonProps": {
-      "target": "\"src/patterns/page-skeleton\".PageSkeletonProps",
+      "target": "\"src/layout/page-skeleton\".PageSkeletonProps",
       "kind": "type"
     },
     ".#Pagination": {
@@ -1916,18 +1900,6 @@
     },
     ".#PaletteCommand": {
       "target": "\"src/patterns/command-palette\".PaletteCommand",
-      "kind": "type"
-    },
-    ".#Panel": {
-      "target": "\"src/patterns/panel\".Panel",
-      "kind": "value"
-    },
-    ".#PanelProps": {
-      "target": "\"src/patterns/panel\".PanelProps",
-      "kind": "type"
-    },
-    ".#PanelTriggerProps": {
-      "target": "\"src/patterns/panel\".PanelTriggerProps",
       "kind": "type"
     },
     ".#Person": {
@@ -2014,14 +1986,6 @@
       "target": "\"src/patterns/data-table/filter\".Preset",
       "kind": "type"
     },
-    ".#PreviewRail": {
-      "target": "\"src/patterns/preview-rail\".PreviewRail",
-      "kind": "value"
-    },
-    ".#PreviewRailProps": {
-      "target": "\"src/patterns/preview-rail\".PreviewRailProps",
-      "kind": "type"
-    },
     ".#PreviewSheet": {
       "target": "\"src/patterns/preview-sheet\".PreviewSheet",
       "kind": "value"
@@ -2030,16 +1994,8 @@
       "target": "\"src/patterns/preview-sheet\".PreviewSheetProps",
       "kind": "type"
     },
-    ".#PreviewSplit": {
-      "target": "\"src/patterns/preview-split\".PreviewSplit",
-      "kind": "value"
-    },
-    ".#PreviewSplitProps": {
-      "target": "\"src/patterns/preview-split\".PreviewSplitProps",
-      "kind": "type"
-    },
     ".#ProfileProps": {
-      "target": "\"src/shell/shell\".ProfileProps",
+      "target": "\"src/layout/shell\".ProfileProps",
       "kind": "type"
     },
     ".#Progress": {
@@ -2126,14 +2082,6 @@
       "target": "\"src/patterns/data-table/view-state\".readView",
       "kind": "value"
     },
-    ".#RecordHeader": {
-      "target": "\"src/patterns/record-header\".RecordHeader",
-      "kind": "value"
-    },
-    ".#RecordHeaderProps": {
-      "target": "\"src/patterns/record-header\".RecordHeaderProps",
-      "kind": "type"
-    },
     ".#RecordPicker": {
       "target": "\"src/patterns/record-picker\".RecordPicker",
       "kind": "value"
@@ -2215,11 +2163,11 @@
       "kind": "type"
     },
     ".#Section": {
-      "target": "\"src/patterns/section\".Section",
+      "target": "\"src/layout/section\".Section",
       "kind": "value"
     },
     ".#SectionProps": {
-      "target": "\"src/patterns/section\".SectionProps",
+      "target": "\"src/layout/section\".SectionProps",
       "kind": "type"
     },
     ".#Select": {
@@ -2375,91 +2323,87 @@
       "kind": "type"
     },
     ".#Shell": {
-      "target": "\"src/shell/shell\".Shell",
+      "target": "\"src/layout/shell\".Shell",
       "kind": "value"
     },
     ".#SHELL_STORAGE_KEY": {
-      "target": "\"src/shell/storage\".SHELL_STORAGE_KEY",
+      "target": "\"src/layout/storage\".SHELL_STORAGE_KEY",
       "kind": "value"
     },
+    ".#ShellAsideProps": {
+      "target": "\"src/layout/shell\".ShellAsideProps",
+      "kind": "type"
+    },
     ".#ShellBannerProps": {
-      "target": "\"src/shell/shell\".ShellBannerProps",
+      "target": "\"src/layout/shell\".ShellBannerProps",
       "kind": "type"
     },
     ".#ShellMainProps": {
-      "target": "\"src/shell/shell\".ShellMainProps",
+      "target": "\"src/layout/shell\".ShellMainProps",
       "kind": "type"
     },
     ".#ShellPanelProps": {
-      "target": "\"src/shell/shell\".ShellPanelProps",
+      "target": "\"src/layout/shell\".ShellPanelProps",
       "kind": "type"
     },
     ".#ShellProps": {
-      "target": "\"src/shell/shell\".ShellProps",
+      "target": "\"src/layout/shell\".ShellProps",
       "kind": "type"
     },
     ".#shellScript": {
-      "target": "\"src/shell/storage\".shellScript",
+      "target": "\"src/layout/storage\".shellScript",
       "kind": "value"
     },
     ".#shellScriptFor": {
-      "target": "\"src/shell/storage\".shellScriptFor",
+      "target": "\"src/layout/storage\".shellScriptFor",
       "kind": "value"
     },
     ".#ShellSplitterProps": {
-      "target": "\"src/shell/shell\".ShellSplitterProps",
+      "target": "\"src/layout/shell\".ShellSplitterProps",
       "kind": "type"
     },
     ".#ShellStored": {
-      "target": "\"src/shell/storage\".ShellStored",
+      "target": "\"src/layout/storage\".ShellStored",
       "kind": "type"
     },
     ".#ShellTopNavEndProps": {
-      "target": "\"src/shell/shell\".ShellTopNavEndProps",
+      "target": "\"src/layout/shell\".ShellTopNavEndProps",
       "kind": "type"
     },
     ".#ShellTopNavMiddleProps": {
-      "target": "\"src/shell/shell\".ShellTopNavMiddleProps",
+      "target": "\"src/layout/shell\".ShellTopNavMiddleProps",
       "kind": "type"
     },
     ".#ShellTopNavProps": {
-      "target": "\"src/shell/shell\".ShellTopNavProps",
+      "target": "\"src/layout/shell\".ShellTopNavProps",
       "kind": "type"
     },
     ".#ShellTopNavStartProps": {
-      "target": "\"src/shell/shell\".ShellTopNavStartProps",
-      "kind": "type"
-    },
-    ".#ShowPage": {
-      "target": "\"src/patterns/archetypes\".ShowPage",
-      "kind": "value"
-    },
-    ".#ShowPageProps": {
-      "target": "\"src/patterns/archetypes\".ShowPageProps",
+      "target": "\"src/layout/shell\".ShellTopNavStartProps",
       "kind": "type"
     },
     ".#SideNavExpandableProps": {
-      "target": "\"src/shell/shell\".SideNavExpandableProps",
+      "target": "\"src/layout/shell\".SideNavExpandableProps",
       "kind": "type"
     },
     ".#SideNavItemProps": {
-      "target": "\"src/shell/shell\".SideNavItemProps",
+      "target": "\"src/layout/shell\".SideNavItemProps",
       "kind": "type"
     },
     ".#SideNavProps": {
-      "target": "\"src/shell/shell\".SideNavProps",
+      "target": "\"src/layout/shell\".SideNavProps",
       "kind": "type"
     },
     ".#SideNavSectionProps": {
-      "target": "\"src/shell/shell\".SideNavSectionProps",
+      "target": "\"src/layout/shell\".SideNavSectionProps",
       "kind": "type"
     },
     ".#SideNavSlotProps": {
-      "target": "\"src/shell/shell\".SideNavSlotProps",
+      "target": "\"src/layout/shell\".SideNavSlotProps",
       "kind": "type"
     },
     ".#SideNavToggleButtonProps": {
-      "target": "\"src/shell/shell\".SideNavToggleButtonProps",
+      "target": "\"src/layout/shell\".SideNavToggleButtonProps",
       "kind": "type"
     },
     ".#Skeleton": {
@@ -2899,7 +2843,7 @@
       "kind": "value"
     },
     ".#useSideNav": {
-      "target": "\"src/shell/shell\".useSideNav",
+      "target": "\"src/layout/shell\".useSideNav",
       "kind": "value"
     },
     ".#useSort": {
@@ -2923,15 +2867,15 @@
       "kind": "value"
     },
     ".#WorkPane": {
-      "target": "\"src/shapes/work-pane\".WorkPane",
+      "target": "\"src/patterns/work-pane\".WorkPane",
       "kind": "value"
     },
     ".#WorkPaneProps": {
-      "target": "\"src/shapes/work-pane\".WorkPaneProps",
+      "target": "\"src/patterns/work-pane\".WorkPaneProps",
       "kind": "type"
     },
     ".#WorkPaneRowProps": {
-      "target": "\"src/shapes/work-pane\".WorkPaneRowProps",
+      "target": "\"src/patterns/work-pane\".WorkPaneRowProps",
       "kind": "type"
     },
     ".#writeMode": {
@@ -6064,6 +6008,192 @@
         "declaration": "utilities: readonly [\n    \"bg-accent-blue-bolder\",\n    \"bg-accent-blue-subtler\",\n    \"bg-accent-green-bolder\",\n    \"bg-accent-green-subtler\",\n    \"bg-accent-orange-bolder\",\n    \"bg-accent-orange-subtler\",\n    \"bg-accent-purple-bolder\",\n    \"bg-accent-purple-subtler\",\n    \"bg-accent-red-bolder\",\n    \"bg-accent-red-subtler\",\n    \"bg-accent-teal-bolder\",\n    \"bg-accent-teal-subtler\",\n    \"bg-blanket\",\n    \"bg-brand-bold\",\n    \"bg-brand-bold-hovered\",\n    \"bg-brand-bold-pressed\",\n    \"bg-brand-boldest\",\n    \"bg-brand-boldest-hovered\",\n    \"bg-brand-boldest-pressed\",\n    \"bg-brand-subtlest\",\n    \"bg-brand-subtlest-hovered\",\n    \"bg-brand-subtlest-pressed\",\n    \"bg-chart-brand\",\n    \"bg-chart-brand-hovered\",\n    \"bg-chart-categorical-1\",\n    \"bg-chart-categorical-1-hovered\",\n    \"bg-chart-categorical-2\",\n    \"bg-chart-categorical-2-hovered\",\n    \"bg-chart-categorical-3\",\n    \"bg-chart-categorical-3-hovered\",\n    \"bg-chart-categorical-4\",\n    \"bg-chart-categorical-4-hovered\",\n    \"bg-chart-categorical-5\",\n    \"bg-chart-categorical-5-hovered\",\n    \"bg-chart-categorical-6\",\n    \"bg-chart-categorical-6-hovered\",\n    \"bg-chart-categorical-7\",\n    \"bg-chart-categorical-7-hovered\",\n    \"bg-chart-categorical-8\",\n    \"bg-chart-danger\",\n    \"bg-chart-danger-hovered\",\n    \"bg-chart-diverging-midpoint\",\n    \"bg-chart-diverging-negative\",\n    \"bg-chart-diverging-negative-bold\",\n    \"bg-chart-diverging-positive\",\n    \"bg-chart-diverging-positive-bold\",\n    \"bg-chart-information\",\n    \"bg-chart-information-hovered\",\n    \"bg-chart-neutral\",\n    \"bg-chart-neutral-hovered\",\n    \"bg-chart-sequential-1\",\n    \"bg-chart-sequential-2\",\n    \"bg-chart-sequential-3\",\n    \"bg-chart-sequential-4\",\n    \"bg-chart-sequential-5\",\n    \"bg-chart-success\",\n    \"bg-chart-success-hovered\",\n    \"bg-chart-track\",\n    \"bg-chart-warning\",\n    \"bg-chart-warning-hovered\",\n    \"bg-danger\",\n    \"bg-danger-bold\",\n    \"bg-danger-bold-hovered\",\n    \"bg-danger-bold-pressed\",\n    \"bg-danger-hovered\",\n    \"bg-danger-pressed\",\n    \"bg-danger-subtle\",\n    \"bg-danger-subtler\",\n    \"bg-danger-subtler-hovered\",\n    \"bg-danger-subtler-pressed\",\n    \"bg-disabled\",\n    \"bg-information\",\n    \"bg-information-bold\",\n    \"bg-information-bold-hovered\",\n    \"bg-information-bold-pressed\",\n    \"bg-information-hovered\",\n    \"bg-information-pressed\",\n    \"bg-information-subtle\",\n    \"bg-information-subtler\",\n    \"bg-information-subtler-hovered\",\n    \"bg-information-subtler-pressed\",\n    \"bg-input\",\n    \"bg-input-hovered\",\n    \"bg-input-pressed\",\n    \"bg-inverse-subtle\",\n    \"bg-inverse-subtle-hovered\",\n    \"bg-inverse-subtle-pressed\",\n    \"bg-neutral\",\n    \"bg-neutral-bold\",\n    \"bg-neutral-bold-hovered\",\n    \"bg-neutral-bold-pressed\",\n    \"bg-neutral-hovered\",\n    \"bg-neutral-pressed\",\n    \"bg-neutral-subtle\",\n    \"bg-neutral-subtle-hovered\",\n    \"bg-neutral-subtle-pressed\",\n    \"bg-selected\",\n    \"bg-selected-bold\",\n    \"bg-selected-bold-hovered\",\n    \"bg-selected-bold-pressed\",\n    \"bg-selected-hovered\",\n    \"bg-selected-pressed\",\n    \"bg-skeleton\",\n    \"bg-skeleton-subtle\",\n    \"bg-success\",\n    \"bg-success-bold\",\n    \"bg-success-bold-hovered\",\n    \"bg-success-bold-pressed\",\n    \"bg-success-hovered\",\n    \"bg-success-pressed\",\n    \"bg-success-subtle\",\n    \"bg-success-subtler\",\n    \"bg-success-subtler-hovered\",\n    \"bg-success-subtler-pressed\",\n    \"bg-surface\",\n    \"bg-surface-current\",\n    \"bg-surface-hovered\",\n    \"bg-surface-overlay\",\n    \"bg-surface-overlay-hovered\",\n    \"bg-surface-overlay-pressed\",\n    \"bg-surface-pressed\",\n    \"bg-surface-raised\",\n    \"bg-surface-raised-hovered\",\n    \"bg-surface-raised-pressed\",\n    \"bg-surface-sunken\",\n    \"bg-warning\",\n    \"bg-warning-bold\",\n    \"bg-warning-bold-hovered\",\n    \"bg-warning-bold-pressed\",\n    \"bg-warning-hovered\",\n    \"bg-warning-pressed\",\n    \"bg-warning-subtle\",\n    \"bg-warning-subtler\",\n    \"bg-warning-subtler-hovered\",\n    \"bg-warning-subtler-pressed\",\n    \"border-bold\",\n    \"border-brand\",\n    \"border-danger\",\n    \"border-danger-subtle\",\n    \"border-default\",\n    \"border-disabled\",\n    \"border-focused\",\n    \"border-information\",\n    \"border-information-subtle\",\n    \"border-input\",\n    \"border-inverse\",\n    \"border-selected\",\n    \"border-success\",\n    \"border-success-subtle\",\n    \"border-w-default\",\n    \"border-w-focused\",\n    \"border-w-selected\",\n    \"border-warning\",\n    \"border-warning-subtle\",\n    \"duration-fast\",\n    \"duration-medium\",\n    \"duration-micro\",\n    \"duration-moderate\",\n    \"duration-slow\",\n    \"duration-slower\",\n    \"ease-enter\",\n    \"ease-exit\",\n    \"ease-standard\",\n    \"fill-chart-brand\",\n    \"fill-chart-brand-hovered\",\n    \"fill-chart-categorical-1\",\n    \"fill-chart-categorical-1-hovered\",\n    \"fill-chart-categorical-2\",\n    \"fill-chart-categorical-2-hovered\",\n    \"fill-chart-categorical-3\",\n    \"fill-chart-categorical-3-hovered\",\n    \"fill-chart-categorical-4\",\n    \"fill-chart-categorical-4-hovered\",\n    \"fill-chart-categorical-5\",\n    \"fill-chart-categorical-5-hovered\",\n    \"fill-chart-categorical-6\",\n    \"fill-chart-categorical-6-hovered\",\n    \"fill-chart-categorical-7\",\n    \"fill-chart-categorical-7-hovered\",\n    \"fill-chart-categorical-8\",\n    \"fill-chart-danger\",\n    \"fill-chart-danger-hovered\",\n    \"fill-chart-diverging-midpoint\",\n    \"fill-chart-diverging-negative\",\n    \"fill-chart-diverging-negative-bold\",\n    \"fill-chart-diverging-positive\",\n    \"fill-chart-diverging-positive-bold\",\n    \"fill-chart-information\",\n    \"fill-chart-information-hovered\",\n    \"fill-chart-neutral\",\n    \"fill-chart-neutral-hovered\",\n    \"fill-chart-sequential-1\",\n    \"fill-chart-sequential-2\",\n    \"fill-chart-sequential-3\",\n    \"fill-chart-sequential-4\",\n    \"fill-chart-sequential-5\",\n    \"fill-chart-success\",\n    \"fill-chart-success-hovered\",\n    \"fill-chart-track\",\n    \"fill-chart-warning\",\n    \"fill-chart-warning-hovered\",\n    \"font-body\",\n    \"font-body-large\",\n    \"font-body-small\",\n    \"font-body-xsmall\",\n    \"font-code\",\n    \"font-heading-large\",\n    \"font-heading-medium\",\n    \"font-heading-small\",\n    \"font-heading-xsmall\",\n    \"font-heading-xxsmall\",\n    \"font-medium\",\n    \"font-regular\",\n    \"font-semibold\",\n    \"h-control-large\",\n    \"h-control-medium\",\n    \"h-control-small\",\n    \"h-control-xsmall\",\n    \"h-layout-banner\",\n    \"h-layout-topnav\",\n    \"h-row\",\n    \"h-row-compact\",\n    \"h-row-header\",\n    \"h-row-menu\",\n    \"icon-brand\",\n    \"icon-danger\",\n    \"icon-default\",\n    \"icon-disabled\",\n    \"icon-information\",\n    \"icon-inverse\",\n    \"icon-selected\",\n    \"icon-subtle\",\n    \"icon-subtlest\",\n    \"icon-success\",\n    \"icon-warning\",\n    \"icon-warning-inverse\",\n    \"m-negative-025\",\n    \"m-negative-050\",\n    \"m-negative-075\",\n    \"m-negative-100\",\n    \"m-negative-150\",\n    \"m-negative-200\",\n    \"m-negative-250\",\n    \"m-negative-300\",\n    \"m-negative-400\",\n    \"max-w-layout-measure\",\n    \"min-w-control-large\",\n    \"min-w-control-medium\",\n    \"min-w-control-small\",\n    \"min-w-control-xsmall\",\n    \"mx-negative-025\",\n    \"mx-negative-050\",\n    \"mx-negative-075\",\n    \"mx-negative-100\",\n    \"mx-negative-150\",\n    \"mx-negative-200\",\n    \"mx-negative-250\",\n    \"mx-negative-300\",\n    \"mx-negative-400\",\n    \"my-negative-025\",\n    \"my-negative-050\",\n    \"my-negative-075\",\n    \"my-negative-100\",\n    \"my-negative-150\",\n    \"my-negative-200\",\n    \"my-negative-250\",\n    \"my-negative-300\",\n    \"my-negative-400\",\n    \"opacity-disabled\",\n    \"opacity-loading\",\n    \"outline-danger\",\n    \"outline-focused\",\n    \"rounded-full\",\n    \"rounded-large\",\n    \"rounded-medium\",\n    \"rounded-small\",\n    \"rounded-xlarge\",\n    \"rounded-xsmall\",\n    \"rounded-xxlarge\",\n    \"shadow-overflow\",\n    \"shadow-overlay\",\n    \"shadow-raised\",\n    \"size-control-large\",\n    \"size-control-medium\",\n    \"size-control-small\",\n    \"size-control-xsmall\",\n    \"size-icon-medium\",\n    \"size-icon-small\",\n    \"stroke-chart-brand\",\n    \"stroke-chart-brand-hovered\",\n    \"stroke-chart-categorical-1\",\n    \"stroke-chart-categorical-1-hovered\",\n    \"stroke-chart-categorical-2\",\n    \"stroke-chart-categorical-2-hovered\",\n    \"stroke-chart-categorical-3\",\n    \"stroke-chart-categorical-3-hovered\",\n    \"stroke-chart-categorical-4\",\n    \"stroke-chart-categorical-4-hovered\",\n    \"stroke-chart-categorical-5\",\n    \"stroke-chart-categorical-5-hovered\",\n    \"stroke-chart-categorical-6\",\n    \"stroke-chart-categorical-6-hovered\",\n    \"stroke-chart-categorical-7\",\n    \"stroke-chart-categorical-7-hovered\",\n    \"stroke-chart-categorical-8\",\n    \"stroke-chart-danger\",\n    \"stroke-chart-danger-hovered\",\n    \"stroke-chart-diverging-midpoint\",\n    \"stroke-chart-diverging-negative\",\n    \"stroke-chart-diverging-negative-bold\",\n    \"stroke-chart-diverging-positive\",\n    \"stroke-chart-diverging-positive-bold\",\n    \"stroke-chart-information\",\n    \"stroke-chart-information-hovered\",\n    \"stroke-chart-neutral\",\n    \"stroke-chart-neutral-hovered\",\n    \"stroke-chart-sequential-1\",\n    \"stroke-chart-sequential-2\",\n    \"stroke-chart-sequential-3\",\n    \"stroke-chart-sequential-4\",\n    \"stroke-chart-sequential-5\",\n    \"stroke-chart-success\",\n    \"stroke-chart-success-hovered\",\n    \"stroke-chart-track\",\n    \"stroke-chart-warning\",\n    \"stroke-chart-warning-hovered\",\n    \"text-accent-blue\",\n    \"text-accent-green\",\n    \"text-accent-orange\",\n    \"text-accent-purple\",\n    \"text-accent-red\",\n    \"text-accent-teal\",\n    \"text-brand\",\n    \"text-danger\",\n    \"text-danger-bolder\",\n    \"text-default\",\n    \"text-disabled\",\n    \"text-information\",\n    \"text-information-bolder\",\n    \"text-inverse\",\n    \"text-selected\",\n    \"text-subtle\",\n    \"text-subtlest\",\n    \"text-success\",\n    \"text-success-bolder\",\n    \"text-warning\",\n    \"text-warning-bolder\",\n    \"text-warning-inverse\",\n    \"w-layout-list\",\n    \"w-layout-panel\",\n    \"w-layout-rail\",\n    \"w-layout-sidenav\"\n]"
       }
     ],
+    "\"src/layout/page-header\".PageHeader": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "PageHeader: typeof PageHeaderRoot & {\n    Title: typeof Title;\n    Description: typeof Description;\n    Actions: typeof Actions;\n}"
+      }
+    ],
+    "\"src/layout/page-header\".PageHeaderProps": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export type PageHeaderProps = ComponentProps<\"header\">;"
+      }
+    ],
+    "\"src/layout/page-skeleton\".PageSkeleton": [
+      {
+        "source": "src/layout/page-skeleton.d.ts",
+        "declaration": "export declare function PageSkeleton({ rows }: PageSkeletonProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/page-skeleton\".PageSkeletonProps": [
+      {
+        "source": "src/layout/page-skeleton.d.ts",
+        "declaration": "export type PageSkeletonProps = {\n    rows?: number | undefined;\n};"
+      }
+    ],
+    "\"src/layout/section\".Section": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export declare function Section({ title, count, description, action, divided, className, children, ...props }: SectionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/section\".SectionProps": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export type SectionProps = Omit<ComponentProps<\"section\">, \"title\"> & {\n    title: ReactNode;\n    count?: number | string | null | undefined;\n    description?: ReactNode;\n    action?: ReactNode;\n    divided?: boolean;\n};"
+      }
+    ],
+    "\"src/layout/shell\".AppLogoProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type AppLogoProps = useRender.ComponentProps<\"span\"> & {\n    mark?: ReactNode;\n    name: string;\n    secondaryName?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell\".AppSwitcherProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type AppSwitcherProps = {\n    label?: string | undefined;\n    onClick?: (() => void) | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ProfileProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ProfileProps = {\n    avatar: ReactNode;\n    name: string;\n    role?: string | undefined;\n    onClick?: (() => void) | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell\".Shell": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "Shell: typeof ShellRoot & {\n    Banner: typeof BannerArea;\n    TopNav: typeof TopNavRoot & {\n        Start: typeof TopNavStart;\n        Middle: typeof TopNavMiddle;\n        End: typeof TopNavEnd;\n    };\n    SideNav: typeof SideNavRoot & {\n        Header: typeof SideNavHeader;\n        Body: typeof SideNavBody;\n        Footer: typeof SideNavFooter;\n        Section: typeof SideNavSection;\n        Item: typeof SideNavItem;\n        Expandable: typeof SideNavExpandable;\n        ToggleButton: typeof SideNavToggleButton;\n        Splitter: typeof SideNavSplitter;\n    };\n    Main: typeof Main;\n    Aside: typeof Aside;\n    Panel: typeof PanelRoot;\n    AppLogo: typeof AppLogo;\n    AppSwitcher: typeof AppSwitcher;\n    Mark: typeof Mark;\n    Profile: typeof Profile;\n}"
+      }
+    ],
+    "\"src/layout/shell\".ShellAsideProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellAsideProps = ComponentProps<\"aside\"> & {\n    label?: string;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ShellBannerProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellBannerProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ShellMainProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellMainProps = ComponentProps<\"main\"> & {\n    label?: string;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ShellPanelProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellPanelProps = Omit<ComponentProps<\"aside\">, \"title\"> & {\n    title?: ReactNode;\n    label?: string;\n    onClose: () => void;\n    defaultWidth?: number;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ShellProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellProps = {\n    children: ReactNode;\n    defaultSideNavCollapsed?: boolean | undefined;\n    sideNavShortcut?: boolean | undefined;\n    persist?: string | boolean | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ShellSplitterProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellSplitterProps = {\n    label: string;\n    onResizeStart?: ((args: {\n        initialWidth: number;\n    }) => void) | undefined;\n    onResizeEnd?: ((args: {\n        initialWidth: number;\n        finalWidth: number;\n    }) => void) | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ShellTopNavEndProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellTopNavEndProps = {\n    label?: string | undefined;\n    moreLabel?: string | undefined;\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ShellTopNavMiddleProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellTopNavMiddleProps = {\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ShellTopNavProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellTopNavProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell\".ShellTopNavStartProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type ShellTopNavStartProps = {\n    toggle?: ReactNode;\n    children?: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell\".SideNavExpandableProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type SideNavExpandableProps = {\n    label: string;\n    icon?: ComponentType<{\n        className?: string | undefined;\n        strokeWidth?: number;\n    }> | undefined;\n    badge?: ReactNode;\n    defaultOpen?: boolean | undefined;\n    open?: boolean | undefined;\n    onOpenChange?: ((open: boolean) => void) | undefined;\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell\".SideNavItemProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type SideNavItemProps = useRender.ComponentProps<\"a\"> & {\n    isActive?: boolean | undefined;\n    icon?: ComponentType<{\n        className?: string | undefined;\n        strokeWidth?: number;\n    }> | undefined;\n    badge?: ReactNode;\n    children: ReactNode;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell\".SideNavProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type SideNavProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    defaultWidth?: number | undefined;\n    onCollapse?: ((args: {\n        trigger: Trigger;\n    }) => void) | undefined;\n    onExpand?: ((args: {\n        trigger: Trigger;\n    }) => void) | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell\".SideNavSectionProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type SideNavSectionProps = {\n    heading?: string | undefined;\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell\".SideNavSlotProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type SideNavSlotProps = {\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell\".SideNavToggleButtonProps": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export type SideNavToggleButtonProps = {\n    collapseLabel?: string | undefined;\n    expandLabel?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell\".useSideNav": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "export declare function useSideNav(): {\n    isExpanded: boolean;\n    expand: () => void;\n    collapse: () => void;\n    toggle: () => void;\n};"
+      }
+    ],
+    "\"src/layout/storage\".SHELL_STORAGE_KEY": [
+      {
+        "source": "src/layout/storage.d.ts",
+        "declaration": "SHELL_STORAGE_KEY = \"ledger.shell\""
+      }
+    ],
+    "\"src/layout/storage\".shellScript": [
+      {
+        "source": "src/layout/storage.d.ts",
+        "declaration": "shellScript: string"
+      }
+    ],
+    "\"src/layout/storage\".shellScriptFor": [
+      {
+        "source": "src/layout/storage.d.ts",
+        "declaration": "shellScriptFor: (key: string) => string"
+      }
+    ],
+    "\"src/layout/storage\".ShellStored": [
+      {
+        "source": "src/layout/storage.d.ts",
+        "declaration": "export type ShellStored = {\n    collapsed?: boolean | undefined;\n    sideNavWidth?: number | undefined;\n    panelWidth?: number | undefined;\n};"
+      }
+    ],
     "\"src/lib/cn\".cn": [
       {
         "source": "src/lib/cn.d.ts",
@@ -6214,28 +6344,28 @@
         "declaration": "export declare function writeMode(mode: ColorMode, key?: string): void;"
       }
     ],
-    "\"src/patterns/archetypes\".IndexPage": [
+    "\"src/patterns/action-bar\".ActionBar": [
       {
-        "source": "src/patterns/archetypes.d.ts",
-        "declaration": "export declare function IndexPage({ header, filters, children }: IndexPageProps): import(\"react\").JSX.Element;"
+        "source": "src/patterns/action-bar.d.ts",
+        "declaration": "export declare function ActionBar({ crumbs, id, title, context, states, actions, tabs }: ActionBarProps): import(\"react\").JSX.Element;"
       }
     ],
-    "\"src/patterns/archetypes\".IndexPageProps": [
+    "\"src/patterns/action-bar\".ActionBarAction": [
       {
-        "source": "src/patterns/archetypes.d.ts",
-        "declaration": "export type IndexPageProps = {\n    header: ReactNode;\n    filters?: ReactNode;\n    children: ReactNode;\n};"
+        "source": "src/patterns/action-bar.d.ts",
+        "declaration": "export type ActionBarAction = {\n    label: string;\n    onSelect: () => void;\n    primary?: boolean | undefined;\n    blocked?: string | null | undefined;\n};"
       }
     ],
-    "\"src/patterns/archetypes\".ShowPage": [
+    "\"src/patterns/action-bar\".ActionBarProps": [
       {
-        "source": "src/patterns/archetypes.d.ts",
-        "declaration": "export declare function ShowPage({ header, tabs, tab, onTabChange, rail, children }: ShowPageProps): import(\"react\").JSX.Element;"
+        "source": "src/patterns/action-bar.d.ts",
+        "declaration": "export type ActionBarProps = {\n    crumbs?: ReactNode;\n    id: ReactNode;\n    title: ReactNode;\n    context?: ReactNode;\n    states: ActionBarState[];\n    actions?: ActionBarAction[] | undefined;\n    tabs?: ReactNode;\n};"
       }
     ],
-    "\"src/patterns/archetypes\".ShowPageProps": [
+    "\"src/patterns/action-bar\".ActionBarState": [
       {
-        "source": "src/patterns/archetypes.d.ts",
-        "declaration": "export type ShowPageProps = {\n    header: ReactNode;\n    tabs?: ReactNode;\n    tab?: string | undefined;\n    onTabChange?: ((value: string) => void) | undefined;\n    rail?: ReactNode;\n    children: ReactNode;\n};"
+        "source": "src/patterns/action-bar.d.ts",
+        "declaration": "export type ActionBarState = {\n    label: string;\n    value: string;\n    tone: Tone;\n    control?: ReactNode;\n};"
       }
     ],
     "\"src/patterns/chart/_shared\".categoricalTone": [
@@ -6940,46 +7070,28 @@
         "declaration": "export type GlanceProps = {\n    id: ReactNode;\n    title: ReactNode;\n    meta?: ReactNode;\n    status?: ReactNode;\n    facts?: {\n        label: string;\n        value: ReactNode;\n    }[] | undefined;\n};"
       }
     ],
-    "\"src/patterns/page-header\".PageHeader": [
+    "\"src/patterns/inspector\".Inspector": [
       {
-        "source": "src/patterns/page-header.d.ts",
-        "declaration": "export declare function PageHeader({ eyebrow, title, description, actions }: PageHeaderProps): import(\"react\").JSX.Element;"
+        "source": "src/patterns/inspector.d.ts",
+        "declaration": "Inspector: typeof InspectorRoot & {\n    Group: typeof InspectorGroup;\n}"
       }
     ],
-    "\"src/patterns/page-header\".PageHeaderProps": [
+    "\"src/patterns/inspector\".InspectorGroupData": [
       {
-        "source": "src/patterns/page-header.d.ts",
-        "declaration": "export type PageHeaderProps = {\n    eyebrow?: ReactNode;\n    title: string;\n    description?: string | undefined;\n    actions?: ReactNode;\n};"
+        "source": "src/patterns/inspector.d.ts",
+        "declaration": "export type InspectorGroupData = {\n    title: string;\n    rows: {\n        label: string;\n        value: ReactNode;\n    }[];\n};"
       }
     ],
-    "\"src/patterns/page-skeleton\".PageSkeleton": [
+    "\"src/patterns/inspector\".InspectorGroupProps": [
       {
-        "source": "src/patterns/page-skeleton.d.ts",
-        "declaration": "export declare function PageSkeleton({ rows }: PageSkeletonProps): import(\"react\").JSX.Element;"
+        "source": "src/patterns/inspector.d.ts",
+        "declaration": "export type InspectorGroupProps = {\n    title: string;\n    children: ReactNode;\n    action?: ReactNode;\n};"
       }
     ],
-    "\"src/patterns/page-skeleton\".PageSkeletonProps": [
+    "\"src/patterns/inspector\".InspectorProps": [
       {
-        "source": "src/patterns/page-skeleton.d.ts",
-        "declaration": "export type PageSkeletonProps = {\n    rows?: number | undefined;\n};"
-      }
-    ],
-    "\"src/patterns/panel\".Panel": [
-      {
-        "source": "src/patterns/panel.d.ts",
-        "declaration": "Panel: typeof PanelRoot & {\n    Trigger: typeof PanelTrigger;\n}"
-      }
-    ],
-    "\"src/patterns/panel\".PanelProps": [
-      {
-        "source": "src/patterns/panel.d.ts",
-        "declaration": "export type PanelProps = {\n    title?: ReactNode;\n    icon?: ReactNode;\n    onBack?: (() => void) | undefined;\n    actions?: ReactNode;\n    onClose?: (() => void) | undefined;\n    subheader?: ReactNode;\n    footer?: ReactNode;\n    flush?: boolean | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/patterns/panel\".PanelTriggerProps": [
-      {
-        "source": "src/patterns/panel.d.ts",
-        "declaration": "export type PanelTriggerProps = {\n    isOpen: boolean;\n    onClick: () => void;\n    label?: string | undefined;\n};"
+        "source": "src/patterns/inspector.d.ts",
+        "declaration": "export type InspectorProps = {\n    groups: InspectorGroupData[];\n    footer?: ReactNode;\n};"
       }
     ],
     "\"src/patterns/picker-sheet\".PickerSheet": [
@@ -6994,52 +7106,16 @@
         "declaration": "export type PickerSheetProps = {\n    open: boolean;\n    onClose: () => void;\n    onBack?: (() => void) | undefined;\n    title: ReactNode;\n    subtitle?: ReactNode;\n    search?: {\n        value: string;\n        onChange: (value: string) => void;\n        placeholder?: string | undefined;\n    } | undefined;\n    filters?: ReactNode;\n    toolbar?: ReactNode;\n    selected: number;\n    total?: number | undefined;\n    onClear?: (() => void) | undefined;\n    action: {\n        label: ReactNode;\n        onClick: () => void;\n        disabled?: boolean | undefined;\n    };\n    secondary?: ReactNode;\n    width?: number | undefined;\n    children: ReactNode;\n};"
       }
     ],
-    "\"src/patterns/preview-rail\".PreviewRail": [
-      {
-        "source": "src/patterns/preview-rail.d.ts",
-        "declaration": "export declare function PreviewRail({ id, title, subtitle, status, onClose, openTo, children, }: PreviewRailProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/patterns/preview-rail\".PreviewRailProps": [
-      {
-        "source": "src/patterns/preview-rail.d.ts",
-        "declaration": "export type PreviewRailProps = {\n    id: ReactNode;\n    title?: ReactNode;\n    subtitle?: ReactNode;\n    status?: ReactNode;\n    onClose: () => void;\n    openTo?: ReactNode;\n    children: ReactNode;\n};"
-      }
-    ],
     "\"src/patterns/preview-sheet\".PreviewSheet": [
       {
         "source": "src/patterns/preview-sheet.d.ts",
-        "declaration": "export declare function PreviewSheet({ open, onClose, onBack, id, title, subtitle, status, facts, openTo, links, actions, width, children, }: PreviewSheetProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function PreviewSheet({ open, onClose, onBack, id, title, subtitle, status, facts, openTo, links, actions, width, initialFocus, finalFocus, children, }: PreviewSheetProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/patterns/preview-sheet\".PreviewSheetProps": [
       {
         "source": "src/patterns/preview-sheet.d.ts",
-        "declaration": "export type PreviewSheetProps = {\n    open: boolean;\n    onClose: () => void;\n    onBack?: (() => void) | undefined;\n    id: ReactNode;\n    title: ReactNode;\n    subtitle?: ReactNode;\n    status?: ReactNode;\n    facts?: ReactNode;\n    openTo: ReactElement<{\n        children?: ReactNode;\n    }>;\n    links?: ReactNode;\n    actions?: ReactNode;\n    width?: number | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/patterns/preview-split\".PreviewSplit": [
-      {
-        "source": "src/patterns/preview-split.d.ts",
-        "declaration": "export declare function PreviewSplit({ open, children }: PreviewSplitProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/patterns/preview-split\".PreviewSplitProps": [
-      {
-        "source": "src/patterns/preview-split.d.ts",
-        "declaration": "export type PreviewSplitProps = {\n    open: boolean;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/patterns/record-header\".RecordHeader": [
-      {
-        "source": "src/patterns/record-header.d.ts",
-        "declaration": "export declare function RecordHeader({ crumbs, id, title, meta, actions, below }: RecordHeaderProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/patterns/record-header\".RecordHeaderProps": [
-      {
-        "source": "src/patterns/record-header.d.ts",
-        "declaration": "export type RecordHeaderProps = {\n    crumbs?: ReactNode;\n    id?: ReactNode;\n    title: ReactNode;\n    meta?: ReactNode;\n    actions?: ReactNode;\n    below?: ReactNode;\n};"
+        "declaration": "export type PreviewSheetProps = {\n    open: boolean;\n    onClose: () => void;\n    onBack?: (() => void) | undefined;\n    id: ReactNode;\n    title: ReactNode;\n    subtitle?: ReactNode;\n    status?: ReactNode;\n    facts?: ReactNode;\n    openTo: ReactElement<{\n        children?: ReactNode;\n    }>;\n    links?: ReactNode;\n    actions?: ReactNode;\n    width?: number | undefined;\n    initialFocus?: SheetContentProps[\"initialFocus\"];\n    finalFocus?: SheetContentProps[\"finalFocus\"];\n    children: ReactNode;\n};"
       }
     ],
     "\"src/patterns/record-picker\".PickerRecord": [
@@ -7090,18 +7166,6 @@
         "declaration": "export type RelatedProps = {\n    title: ReactNode;\n    count?: number | undefined;\n    action?: ReactNode;\n    footer?: ReactNode;\n    layout?: RelatedLayout | undefined;\n    size?: ItemSize | undefined;\n    empty?: RelatedEmpty | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n};"
       }
     ],
-    "\"src/patterns/section\".Section": [
-      {
-        "source": "src/patterns/section.d.ts",
-        "declaration": "export declare function Section({ title, count, description, action, children, className }: SectionProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/patterns/section\".SectionProps": [
-      {
-        "source": "src/patterns/section.d.ts",
-        "declaration": "export type SectionProps = {\n    title: ReactNode;\n    count?: number | string | null | undefined;\n    description?: ReactNode;\n    action?: ReactNode;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
     "\"src/patterns/task-row\".TaskRow": [
       {
         "source": "src/patterns/task-row.d.ts",
@@ -7124,6 +7188,24 @@
       {
         "source": "src/patterns/toolbar.d.ts",
         "declaration": "export type ToolbarProps = {\n    search?: string | undefined;\n    onSearch?: ((value: string) => void) | undefined;\n    placeholder?: string | undefined;\n    children?: ReactNode;\n    actions?: ReactNode;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/work-pane\".WorkPane": [
+      {
+        "source": "src/patterns/work-pane.d.ts",
+        "declaration": "WorkPane: typeof WorkPaneRoot & {\n    Row: typeof WorkPaneRow;\n}"
+      }
+    ],
+    "\"src/patterns/work-pane\".WorkPaneProps": [
+      {
+        "source": "src/patterns/work-pane.d.ts",
+        "declaration": "export type WorkPaneProps = {\n    listLabel?: ReactNode;\n    list: ReactNode;\n    detail: ReactNode;\n    empty?: ReactNode;\n    listWidth?: number | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/work-pane\".WorkPaneRowProps": [
+      {
+        "source": "src/patterns/work-pane.d.ts",
+        "declaration": "export type WorkPaneRowProps = {\n    id: ReactNode;\n    title: ReactNode;\n    meta?: ReactNode;\n    tone?: Tone | undefined;\n    isActive?: boolean | undefined;\n    onSelect: () => void;\n};"
       }
     ],
     "\"src/primitives/_elements\".HeadingElement": [
@@ -7262,228 +7344,6 @@
       {
         "source": "src/primitives/tokens.d.ts",
         "declaration": "export type TextColorToken = Extract<ClassToken, \"color.text\" | `color.text.${string}`>;"
-      }
-    ],
-    "\"src/shapes/action-bar\".ActionBar": [
-      {
-        "source": "src/shapes/action-bar.d.ts",
-        "declaration": "export declare function ActionBar({ crumbs, id, title, context, states, actions, tabs }: ActionBarProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/shapes/action-bar\".ActionBarAction": [
-      {
-        "source": "src/shapes/action-bar.d.ts",
-        "declaration": "export type ActionBarAction = {\n    label: string;\n    onSelect: () => void;\n    primary?: boolean | undefined;\n    blocked?: string | null | undefined;\n};"
-      }
-    ],
-    "\"src/shapes/action-bar\".ActionBarProps": [
-      {
-        "source": "src/shapes/action-bar.d.ts",
-        "declaration": "export type ActionBarProps = {\n    crumbs?: ReactNode;\n    id: ReactNode;\n    title: ReactNode;\n    context?: ReactNode;\n    states: ActionBarState[];\n    actions?: ActionBarAction[] | undefined;\n    tabs?: ReactNode;\n};"
-      }
-    ],
-    "\"src/shapes/action-bar\".ActionBarState": [
-      {
-        "source": "src/shapes/action-bar.d.ts",
-        "declaration": "export type ActionBarState = {\n    label: string;\n    value: string;\n    tone: Tone;\n    control?: ReactNode;\n};"
-      }
-    ],
-    "\"src/shapes/block\".Block": [
-      {
-        "source": "src/shapes/block.d.ts",
-        "declaration": "export declare function Block({ title, count, action, children }: BlockProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "\"src/shapes/block\".BlockProps": [
-      {
-        "source": "src/shapes/block.d.ts",
-        "declaration": "export type BlockProps = {\n    title: ReactNode;\n    count?: number | string | null | undefined;\n    action?: ReactNode;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shapes/inspector\".Inspector": [
-      {
-        "source": "src/shapes/inspector.d.ts",
-        "declaration": "Inspector: typeof InspectorRoot & {\n    Group: typeof InspectorGroup;\n}"
-      }
-    ],
-    "\"src/shapes/inspector\".InspectorGroupData": [
-      {
-        "source": "src/shapes/inspector.d.ts",
-        "declaration": "export type InspectorGroupData = {\n    title: string;\n    rows: {\n        label: string;\n        value: ReactNode;\n    }[];\n};"
-      }
-    ],
-    "\"src/shapes/inspector\".InspectorGroupProps": [
-      {
-        "source": "src/shapes/inspector.d.ts",
-        "declaration": "export type InspectorGroupProps = {\n    title: string;\n    children: ReactNode;\n    action?: ReactNode;\n};"
-      }
-    ],
-    "\"src/shapes/inspector\".InspectorProps": [
-      {
-        "source": "src/shapes/inspector.d.ts",
-        "declaration": "export type InspectorProps = {\n    groups: InspectorGroupData[];\n    footer?: ReactNode;\n    sticky?: boolean | undefined;\n};"
-      }
-    ],
-    "\"src/shapes/work-pane\".WorkPane": [
-      {
-        "source": "src/shapes/work-pane.d.ts",
-        "declaration": "WorkPane: typeof WorkPaneRoot & {\n    Row: typeof WorkPaneRow;\n}"
-      }
-    ],
-    "\"src/shapes/work-pane\".WorkPaneProps": [
-      {
-        "source": "src/shapes/work-pane.d.ts",
-        "declaration": "export type WorkPaneProps = {\n    listLabel?: ReactNode;\n    list: ReactNode;\n    detail: ReactNode;\n    empty?: ReactNode;\n    listWidth?: number | undefined;\n};"
-      }
-    ],
-    "\"src/shapes/work-pane\".WorkPaneRowProps": [
-      {
-        "source": "src/shapes/work-pane.d.ts",
-        "declaration": "export type WorkPaneRowProps = {\n    id: ReactNode;\n    title: ReactNode;\n    meta?: ReactNode;\n    tone?: Tone | undefined;\n    isActive?: boolean | undefined;\n    onSelect: () => void;\n};"
-      }
-    ],
-    "\"src/shell/shell\".AppLogoProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type AppLogoProps = useRender.ComponentProps<\"span\"> & {\n    mark?: ReactNode;\n    name: string;\n    secondaryName?: string | undefined;\n};"
-      }
-    ],
-    "\"src/shell/shell\".AppSwitcherProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type AppSwitcherProps = {\n    label?: string | undefined;\n    onClick?: (() => void) | undefined;\n};"
-      }
-    ],
-    "\"src/shell/shell\".ProfileProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ProfileProps = {\n    avatar: ReactNode;\n    name: string;\n    role?: string | undefined;\n    onClick?: (() => void) | undefined;\n};"
-      }
-    ],
-    "\"src/shell/shell\".Shell": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "Shell: typeof ShellRoot & {\n    Banner: typeof BannerArea;\n    TopNav: typeof TopNavRoot & {\n        Start: typeof TopNavStart;\n        Middle: typeof TopNavMiddle;\n        End: typeof TopNavEnd;\n    };\n    SideNav: typeof SideNavRoot & {\n        Header: typeof SideNavHeader;\n        Body: typeof SideNavBody;\n        Footer: typeof SideNavFooter;\n        Section: typeof SideNavSection;\n        Item: typeof SideNavItem;\n        Expandable: typeof SideNavExpandable;\n        ToggleButton: typeof SideNavToggleButton;\n        Splitter: typeof SideNavSplitter;\n    };\n    Main: typeof Main;\n    Panel: typeof PanelRoot & {\n        Splitter: typeof PanelSplitter;\n    };\n    AppLogo: typeof AppLogo;\n    AppSwitcher: typeof AppSwitcher;\n    Mark: typeof Mark;\n    Profile: typeof Profile;\n}"
-      }
-    ],
-    "\"src/shell/shell\".ShellBannerProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ShellBannerProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".ShellMainProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ShellMainProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".ShellPanelProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ShellPanelProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    defaultWidth?: number | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".ShellProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ShellProps = {\n    children: ReactNode;\n    defaultSideNavCollapsed?: boolean | undefined;\n    sideNavShortcut?: boolean | undefined;\n    persist?: string | boolean | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/shell/shell\".ShellSplitterProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ShellSplitterProps = {\n    label: string;\n    onResizeStart?: ((args: {\n        initialWidth: number;\n    }) => void) | undefined;\n    onResizeEnd?: ((args: {\n        initialWidth: number;\n        finalWidth: number;\n    }) => void) | undefined;\n};"
-      }
-    ],
-    "\"src/shell/shell\".ShellTopNavEndProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ShellTopNavEndProps = {\n    label?: string | undefined;\n    moreLabel?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".ShellTopNavMiddleProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ShellTopNavMiddleProps = {\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".ShellTopNavProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ShellTopNavProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".ShellTopNavStartProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type ShellTopNavStartProps = {\n    toggle?: ReactNode;\n    children?: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".SideNavExpandableProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type SideNavExpandableProps = {\n    label: string;\n    icon?: ComponentType<{\n        className?: string | undefined;\n        strokeWidth?: number;\n    }> | undefined;\n    badge?: ReactNode;\n    defaultOpen?: boolean | undefined;\n    open?: boolean | undefined;\n    onOpenChange?: ((open: boolean) => void) | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".SideNavItemProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type SideNavItemProps = useRender.ComponentProps<\"a\"> & {\n    isActive?: boolean | undefined;\n    icon?: ComponentType<{\n        className?: string | undefined;\n        strokeWidth?: number;\n    }> | undefined;\n    badge?: ReactNode;\n    children: ReactNode;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/shell/shell\".SideNavProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type SideNavProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    defaultWidth?: number | undefined;\n    onCollapse?: ((args: {\n        trigger: Trigger;\n    }) => void) | undefined;\n    onExpand?: ((args: {\n        trigger: Trigger;\n    }) => void) | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".SideNavSectionProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type SideNavSectionProps = {\n    heading?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".SideNavSlotProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type SideNavSlotProps = {\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/shell/shell\".SideNavToggleButtonProps": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export type SideNavToggleButtonProps = {\n    collapseLabel?: string | undefined;\n    expandLabel?: string | undefined;\n};"
-      }
-    ],
-    "\"src/shell/shell\".useSideNav": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "export declare function useSideNav(): {\n    isExpanded: boolean;\n    expand: () => void;\n    collapse: () => void;\n    toggle: () => void;\n};"
-      }
-    ],
-    "\"src/shell/storage\".SHELL_STORAGE_KEY": [
-      {
-        "source": "src/shell/storage.d.ts",
-        "declaration": "SHELL_STORAGE_KEY = \"ledger.shell\""
-      }
-    ],
-    "\"src/shell/storage\".shellScript": [
-      {
-        "source": "src/shell/storage.d.ts",
-        "declaration": "shellScript: string"
-      }
-    ],
-    "\"src/shell/storage\".shellScriptFor": [
-      {
-        "source": "src/shell/storage.d.ts",
-        "declaration": "shellScriptFor: (key: string) => string"
-      }
-    ],
-    "\"src/shell/storage\".ShellStored": [
-      {
-        "source": "src/shell/storage.d.ts",
-        "declaration": "export type ShellStored = {\n    collapsed?: boolean | undefined;\n    sideNavWidth?: number | undefined;\n    panelWidth?: number | undefined;\n};"
       }
     ],
     "src/components/accordion.d.ts#Accordion": [
@@ -7816,6 +7676,168 @@
         "declaration": "declare function FactRoot({ label, children }: FactProps): import(\"react\").JSX.Element;"
       }
     ],
+    "src/layout/page-header.d.ts#Actions": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "declare function Actions({ className, ...props }: ComponentProps<\"div\">): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/page-header.d.ts#Description": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "declare function Description({ className, ...props }: ComponentProps<\"p\">): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/page-header.d.ts#PageHeaderRoot": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "declare function PageHeaderRoot({ className, ...props }: PageHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/page-header.d.ts#Title": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "declare function Title({ className, ...props }: ComponentProps<\"h1\">): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#AppLogo": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function AppLogo({ mark, name, secondaryName, render, className, children, ...props }: AppLogoProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+      }
+    ],
+    "src/layout/shell.d.ts#AppSwitcher": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function AppSwitcher({ label, onClick }: AppSwitcherProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#Aside": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function Aside({ children, label, className, ...props }: ShellAsideProps): import(\"react\").JSX.Element | null;"
+      }
+    ],
+    "src/layout/shell.d.ts#BannerArea": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function BannerArea({ id, label, children }: ShellBannerProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#Main": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function Main({ id, label, className, children, ...props }: ShellMainProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#Mark": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function Mark(): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#PanelRoot": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function PanelRoot(props: ShellPanelProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#Profile": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function Profile({ avatar, name, role, onClick }: ProfileProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#ShellRoot": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function ShellRoot({ children, defaultSideNavCollapsed, sideNavShortcut, persist, className, }: ShellProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#SideNavBody": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function SideNavBody({ children }: SideNavSlotProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#SideNavExpandable": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function SideNavExpandable({ label, icon: Icon, badge, defaultOpen, open, onOpenChange, children, }: SideNavExpandableProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#SideNavFooter": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function SideNavFooter({ children }: SideNavSlotProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#SideNavHeader": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function SideNavHeader({ children }: SideNavSlotProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#SideNavItem": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function SideNavItem({ render, isActive, icon: Icon, badge, className, children, ...props }: SideNavItemProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+      }
+    ],
+    "src/layout/shell.d.ts#SideNavRoot": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function SideNavRoot({ id, label, defaultWidth, onCollapse, onExpand, className, children, }: SideNavProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#SideNavSection": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function SideNavSection({ heading, children }: SideNavSectionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#SideNavSplitter": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function SideNavSplitter(props: ShellSplitterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#SideNavToggleButton": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function SideNavToggleButton({ collapseLabel, expandLabel, }: SideNavToggleButtonProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#TopNavEnd": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function TopNavEnd({ label, moreLabel, children }: ShellTopNavEndProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#TopNavMiddle": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function TopNavMiddle({ children }: ShellTopNavMiddleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#TopNavRoot": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function TopNavRoot({ id, label, className, children }: ShellTopNavProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#TopNavStart": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "declare function TopNavStart({ toggle, children }: ShellTopNavStartProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/layout/shell.d.ts#Trigger": [
+      {
+        "source": "src/layout/shell.d.ts",
+        "declaration": "type Trigger = \"toggle-button\" | \"shortcut\" | \"splitter\" | \"scrim\" | \"escape\" | \"hook\" | \"viewport\";"
+      }
+    ],
     "src/mode/mode.d.ts#ModeContextValue": [
       {
         "source": "src/mode/mode.d.ts",
@@ -7900,16 +7922,16 @@
         "declaration": "declare function GatesRoot({ children, className }: GatesProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/patterns/panel.d.ts#PanelRoot": [
+    "src/patterns/inspector.d.ts#InspectorGroup": [
       {
-        "source": "src/patterns/panel.d.ts",
-        "declaration": "declare function PanelRoot({ title, icon, onBack, actions, onClose, subheader, footer, flush, className, children, }: PanelProps): import(\"react\").JSX.Element;"
+        "source": "src/patterns/inspector.d.ts",
+        "declaration": "declare function InspectorGroup({ title, children, action }: InspectorGroupProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/patterns/panel.d.ts#PanelTrigger": [
+    "src/patterns/inspector.d.ts#InspectorRoot": [
       {
-        "source": "src/patterns/panel.d.ts",
-        "declaration": "declare function PanelTrigger({ isOpen, onClick, label }: PanelTriggerProps): import(\"react\").JSX.Element;"
+        "source": "src/patterns/inspector.d.ts",
+        "declaration": "declare function InspectorRoot({ groups, footer }: InspectorProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/patterns/related.d.ts#RelatedCard": [
@@ -7922,6 +7944,18 @@
       {
         "source": "src/patterns/related.d.ts",
         "declaration": "declare function RelatedRoot({ title, count, action, footer, layout, size, empty, className, children, }: RelatedProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/patterns/work-pane.d.ts#WorkPaneRoot": [
+      {
+        "source": "src/patterns/work-pane.d.ts",
+        "declaration": "declare function WorkPaneRoot({ list, detail, listLabel, empty, listWidth }: WorkPaneProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/patterns/work-pane.d.ts#WorkPaneRow": [
+      {
+        "source": "src/patterns/work-pane.d.ts",
+        "declaration": "declare function WorkPaneRow({ id, title, meta, tone, isActive, onSelect }: WorkPaneRowProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/primitives/flex.d.ts#alignItems": [
@@ -8018,168 +8052,6 @@
       {
         "source": "src/primitives/text.d.ts",
         "declaration": "weight: {\n    readonly regular: \"font-regular\";\n    readonly medium: \"font-medium\";\n    readonly semibold: \"font-semibold\";\n}"
-      }
-    ],
-    "src/shapes/inspector.d.ts#InspectorGroup": [
-      {
-        "source": "src/shapes/inspector.d.ts",
-        "declaration": "declare function InspectorGroup({ title, children, action }: InspectorGroupProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shapes/inspector.d.ts#InspectorRoot": [
-      {
-        "source": "src/shapes/inspector.d.ts",
-        "declaration": "declare function InspectorRoot({ groups, footer, sticky }: InspectorProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shapes/work-pane.d.ts#WorkPaneRoot": [
-      {
-        "source": "src/shapes/work-pane.d.ts",
-        "declaration": "declare function WorkPaneRoot({ list, detail, listLabel, empty, listWidth }: WorkPaneProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shapes/work-pane.d.ts#WorkPaneRow": [
-      {
-        "source": "src/shapes/work-pane.d.ts",
-        "declaration": "declare function WorkPaneRow({ id, title, meta, tone, isActive, onSelect }: WorkPaneRowProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#AppLogo": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function AppLogo({ mark, name, secondaryName, render, className, children, ...props }: AppLogoProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
-      }
-    ],
-    "src/shell/shell.d.ts#AppSwitcher": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function AppSwitcher({ label, onClick }: AppSwitcherProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#BannerArea": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function BannerArea({ id, label, children }: ShellBannerProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#Main": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function Main({ id, label, className, children }: ShellMainProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#Mark": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function Mark(): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#PanelRoot": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function PanelRoot({ id, label, defaultWidth, className, children }: ShellPanelProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#PanelSplitter": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function PanelSplitter(props: ShellSplitterProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#Profile": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function Profile({ avatar, name, role, onClick }: ProfileProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#ShellRoot": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function ShellRoot({ children, defaultSideNavCollapsed, sideNavShortcut, persist, className, }: ShellProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#SideNavBody": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavBody({ children }: SideNavSlotProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#SideNavExpandable": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavExpandable({ label, icon: Icon, badge, defaultOpen, open, onOpenChange, children, }: SideNavExpandableProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#SideNavFooter": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavFooter({ children }: SideNavSlotProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#SideNavHeader": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavHeader({ children }: SideNavSlotProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#SideNavItem": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavItem({ render, isActive, icon: Icon, badge, className, children, ...props }: SideNavItemProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
-      }
-    ],
-    "src/shell/shell.d.ts#SideNavRoot": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavRoot({ id, label, defaultWidth, onCollapse, onExpand, className, children, }: SideNavProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#SideNavSection": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavSection({ heading, children }: SideNavSectionProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#SideNavSplitter": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavSplitter(props: ShellSplitterProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#SideNavToggleButton": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function SideNavToggleButton({ collapseLabel, expandLabel, }: SideNavToggleButtonProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#TopNavEnd": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function TopNavEnd({ label, moreLabel, children }: ShellTopNavEndProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#TopNavMiddle": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function TopNavMiddle({ children }: ShellTopNavMiddleProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#TopNavRoot": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function TopNavRoot({ id, label, className, children }: ShellTopNavProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#TopNavStart": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "declare function TopNavStart({ toggle, children }: ShellTopNavStartProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/shell/shell.d.ts#Trigger": [
-      {
-        "source": "src/shell/shell.d.ts",
-        "declaration": "type Trigger = \"toggle-button\" | \"shortcut\" | \"splitter\" | \"scrim\" | \"escape\" | \"hook\" | \"viewport\";"
       }
     ]
   },

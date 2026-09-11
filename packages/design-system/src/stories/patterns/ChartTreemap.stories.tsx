@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
-import { Chart } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import { bySource, bySystem, componentFacts, sourceSeries } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
@@ -36,7 +36,12 @@ export const TreemapMatrix: Story = {
       </Specimens>
       <Specimens title="Loading">
         <Box style={{ width: 420 }}>
-          <Chart.Treemap data={bySystem} size="small" label="Findings by system and component" loading />
+          <Chart.Treemap
+            data={bySystem}
+            size="small"
+            label="Findings by system and component"
+            loading
+          />
         </Box>
       </Specimens>
     </Stack>
@@ -47,7 +52,11 @@ export const TreemapMatrix: Story = {
 export const Systems: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Findings by system and component" description="Open findings, sized by count" series={systems}>
+      <Chart
+        title="Findings by system and component"
+        description="Open findings, sized by count"
+        series={systems}
+      >
         <Chart.Treemap data={bySystem} size="large" />
       </Chart>
     </Box>
@@ -62,7 +71,11 @@ function Drilling() {
       <Chart.Frame
         title="Findings by system and component"
         description={system ? `Components of ${system}` : "Click a tile for its system"}
-        path={system ? [{ label: "All systems", onSelect: () => setSystem(null) }, { label: system }] : undefined}
+        path={
+          system
+            ? [{ label: "All systems", onSelect: () => setSystem(null) }, { label: system }]
+            : undefined
+        }
         series={system ? undefined : systems}
       >
         <Chart.Treemap
@@ -135,13 +148,23 @@ export const Dont: Story = {
       <Pair
         do={
           <Chart title="Findings by source" size="small">
-            <Chart.Bar data={bySource} x="source" series={sourceSeries} horizontal labels="end" size="small" />
+            <Chart.Bar
+              data={bySource}
+              x="source"
+              series={sourceSeries}
+              horizontal
+              labels="end"
+              size="small"
+            />
           </Chart>
         }
         doText="A flat list of five is bars: length compares, and every name fits."
         dont={
           <Chart title="Findings by source" size="small">
-            <Chart.Treemap data={bySource.map((s) => ({ name: s.source, value: s.n }))} size="small" />
+            <Chart.Treemap
+              data={bySource.map((s) => ({ name: s.source, value: s.n }))}
+              size="small"
+            />
           </Chart>
         }
         dontText="A treemap with no hierarchy. Five tiles in five hues compare area, which the eye reads poorly, and the small ones lose their names."

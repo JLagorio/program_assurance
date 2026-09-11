@@ -1,14 +1,16 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { risks, riskStatusTone } from "@/lib/grc-data";
+import { useRecordForm } from "@/lib/record-form";
+import { addRiskTreatment, treatmentsForRisk, useRisksVersion } from "@/lib/risk-store";
 import {
-  FieldLabel,
-  FieldError,
-  FieldDescription,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
   Badge,
   Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
   Button,
   buttonVariants,
   DatePicker,
@@ -19,33 +21,38 @@ import {
   DialogHeader,
   DialogTitle,
   Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
   Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
   Grid,
   IconButton,
   Id,
   Inline,
   Inspector,
   KeyValue,
+  PageHeader,
   Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Shell,
   Stack,
   Table,
   Textarea,
   TextLink,
   Timeline,
   toast,
-  EmptyHeader,
-  EmptyContent,
-  EmptyTitle,
-  EmptyDescription,
 } from "@ledger/design-system";
-import { UnavailableAction } from "@/components/app/unavailable-action";
-import { useRecordForm } from "@/lib/record-form";
-import { addRiskTreatment, treatmentsForRisk, useRisksVersion } from "@/lib/risk-store";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, MoreHorizontal, Paperclip } from "lucide-react";
+import { MoreHorizontal, Paperclip } from "lucide-react";
 import { useCallback, useId, useState, type SetStateAction } from "react";
-import { Shell } from "@/components/app/shell";
-import { risks, riskStatusTone } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/risks/$riskId")({
   loader: ({ params }) => {
@@ -139,19 +146,17 @@ function RiskDetail() {
 
   if (!risk)
     return (
-      <Shell>
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>Risk not found</EmptyTitle>
-            <EmptyDescription>The record may be stored in another browser.</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Link to="/risks" className={buttonVariants({ variant: "secondary" })}>
-              Back to risks
-            </Link>
-          </EmptyContent>
-        </Empty>
-      </Shell>
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>Risk not found</EmptyTitle>
+          <EmptyDescription>The record may be stored in another browser.</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Link to="/risks" className={buttonVariants({ variant: "secondary" })}>
+            Back to risks
+          </Link>
+        </EmptyContent>
+      </Empty>
     );
   const savedTreatments = treatmentsForRisk(risk.id);
   const saveTreatment = () => {
@@ -175,37 +180,22 @@ function RiskDetail() {
   };
 
   return (
-    <Shell>
+    <>
       <Stack className="animate-rise" space="space.250">
-        <Inline space="space.150" alignBlock="center" spread="space-between" shouldWrap>
-          <Inline className="min-w-0" space="space.100" alignBlock="center" shouldWrap>
-            <Link
-              to="/risks"
-              aria-label="Back to risks"
-              className="text-subtle transition-colors hover:text-default"
-            >
-              <ChevronLeft className="size-icon-medium" />
-            </Link>
-            <h1 className="truncate font-heading-small font-semibold">{risk.title}</h1>
-            <Badge variant="secondary" tone={riskStatusTone[risk.status]}>
-              {risk.status}
-            </Badge>
-            <Inline
-              className="min-w-0 font-body-small text-subtle"
-              as="span"
-              space="space.100"
-              alignBlock="center"
-            >
-              <Id>{risk.id}</Id>
-              <span className="text-subtlest">·</span>
-              <span className="truncate">
-                {risk.framework} {risk.control}
-              </span>
-              <span className="text-subtlest">·</span>
-              <span className="truncate">Owned by {risk.owner}</span>
-            </Inline>
-          </Inline>
-          <Inline space="space.100" alignBlock="center">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/risks" />}>Risks</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{risk.id}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <PageHeader.Title>{risk.title}</PageHeader.Title>
+          <PageHeader.Actions>
             <UnavailableAction
               reason="Reassignment is not available in this view."
               variant="secondary"
@@ -228,12 +218,26 @@ function RiskDetail() {
               disabled
               title="No additional risk actions are available."
             />
+          </PageHeader.Actions>
+          <Inline
+            className="col-span-full font-body-small text-subtle"
+            space="space.150"
+            alignBlock="center"
+            shouldWrap
+          >
+            <Badge variant="secondary" tone={riskStatusTone[risk.status]}>
+              {risk.status}
+            </Badge>
+            <span>
+              {risk.framework} {risk.control}
+            </span>
+            <span>Owned by {risk.owner}</span>
           </Inline>
-        </Inline>
+        </PageHeader>
 
         <Box className="border-t border-default" paddingBlockStart="space.250">
-          <div className="grid gap-400 lg:grid-cols-main-rail lg:gap-0">
-            <Stack space="space.300" className="lg:pe-300">
+          <>
+            <Stack space="space.300">
               {savedTreatments.length ? (
                 <Section title="Treatment plans">
                   <Stack space="space.150">
@@ -299,7 +303,7 @@ function RiskDetail() {
                 </Timeline>
               </Section>
             </Stack>
-            <aside className="border-t border-default pt-300 lg:border-s lg:border-t-0 lg:ps-300 lg:pt-0">
+            <Shell.Aside label="Risk properties">
               <Inspector.Group title="Properties">
                 <KeyValue label="Risk ID">
                   <Id>{risk.id}</Id>
@@ -330,11 +334,10 @@ function RiskDetail() {
                   View {risk.control}
                 </TextLink>
               </Inspector.Group>
-            </aside>
-          </div>
+            </Shell.Aside>
+          </>
         </Box>
       </Stack>
-
       <Dialog
         open={treating}
         onOpenChange={(next) => {
@@ -578,6 +581,6 @@ function RiskDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Shell>
+    </>
   );
 }

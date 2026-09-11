@@ -145,6 +145,7 @@ function forEachClass(context, cb) {
 
 // Structure, not design: display, position, alignment, overflow, text flow, interaction. No colour, size, space, type, radius, shadow.
 const structural = [
+  /^page-header$/, // Composable layout header; columns defined in styles/layout.css.
   /^drawer-(popup|overlay|content|swipe-handle)$/, // drawer.css: Base UI swipe geometry
   /^(block|inline-block|inline|flex|inline-flex|grid|inline-grid|contents|hidden|flow-root|table|table-(row|cell|caption|header-group|row-group|footer-group|column|column-group)|list-item)$/,
   /^(static|relative|absolute|fixed|sticky)$/,

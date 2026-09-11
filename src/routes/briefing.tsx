@@ -2,9 +2,8 @@ import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BriefingRoom } from "@/components/app/authorization";
-import { Badge, Button, Id, Inline, Stack } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 import { authorization } from "@/lib/authorization";
+import { Badge, Id, Inline, PageHeader, Stack } from "@ledger/design-system";
 
 export const Route = createFileRoute("/briefing")({
   head: () => ({
@@ -30,41 +29,33 @@ export const Route = createFileRoute("/briefing")({
 
 function BriefingPage() {
   return (
-    <Shell>
-      <Stack className="animate-rise" space="space.250">
-        <Inline space="space.150" alignBlock="center" spread="space-between" shouldWrap>
-          <div className="min-w-0">
-            <Inline className="min-w-0" space="space.100" alignBlock="center" shouldWrap>
-              <h1 className="truncate font-heading-small font-semibold">ATO briefing room</h1>
-              <Badge variant="secondary" tone="warning">
-                {authorization.decision}
-              </Badge>
-              <Inline
-                className="min-w-0 font-body-small text-subtle"
-                as="span"
-                space="space.100"
-                alignBlock="center"
-              >
-                <Id>PRG-1041</Id>
-                <span className="text-subtlest">·</span>
-                <span className="truncate">Trident UUV C2</span>
-                <span className="text-subtlest">·</span>
-                <span>Briefing {authorization.briefing}</span>
-              </Inline>
-            </Inline>
-          </div>
-          <Inline space="space.100" alignBlock="center">
-            <UnavailableAction
-              reason="Presentation export is not available. Review the briefing on this page."
-              variant="secondary"
-            >
-              Export briefing deck
-            </UnavailableAction>
-          </Inline>
+    <Stack className="animate-rise" space="space.250">
+      <PageHeader>
+        <PageHeader.Title>ATO briefing room</PageHeader.Title>
+        <PageHeader.Actions>
+          <UnavailableAction
+            reason="Presentation export is not available. Review the briefing on this page."
+            variant="secondary"
+          >
+            Export briefing deck
+          </UnavailableAction>
+        </PageHeader.Actions>
+        <Inline
+          className="col-span-full font-body-small text-subtle"
+          space="space.150"
+          alignBlock="center"
+          shouldWrap
+        >
+          <Badge variant="secondary" tone="warning">
+            {authorization.decision}
+          </Badge>
+          <Id>PRG-1041</Id>
+          <span>Trident UUV C2</span>
+          <span>Briefing {authorization.briefing}</span>
         </Inline>
+      </PageHeader>
 
-        <BriefingRoom />
-      </Stack>
-    </Shell>
+      <BriefingRoom />
+    </Stack>
   );
 }

@@ -1,11 +1,7 @@
+import { useRecordForm } from "@/lib/record-form";
 import {
-  FieldLabel,
-  FieldDescription,
-  FieldError,
-  AlertTitle,
-  Dot,
-  AlertDescription,
   Alert,
+  AlertDescription,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -14,8 +10,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertTitle,
   Badge,
-  Block,
   Box,
   Button,
   Dialog,
@@ -24,24 +20,28 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Dot,
   Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
   Grid,
   Id,
   Indicator,
   Inline,
   Input,
+  Section,
   Stack,
   Table,
   Text,
-  Textarea,
   TextLink,
+  Textarea,
   Timeline,
   toast,
 } from "@ledger/design-system";
-import { useRecordForm } from "@/lib/record-form";
 
 import { Link } from "@tanstack/react-router";
-import { useId, useCallback, useMemo, useRef, useState, type SetStateAction } from "react";
+import { useCallback, useId, useMemo, useRef, useState, type SetStateAction } from "react";
 
 import {
   approvalConsequence,
@@ -471,7 +471,7 @@ export function RevisionReview({
 
   return (
     <>
-      <Block title={`v${revision.number} · ${revision.state}`}>
+      <Section title={`v${revision.number} · ${revision.state}`}>
         <Grid
           gap={compact ? "space.150" : "space.200"}
           templateColumns={compact ? undefined : { lg: "minmax(0, 1fr) 280px" }}
@@ -537,7 +537,7 @@ export function RevisionReview({
             </Stack>
           ) : null}
         </Grid>
-      </Block>
+      </Section>
 
       <DeltaBlock delta={delta} base={base} programId={programId} compact={compact} />
 
@@ -571,7 +571,7 @@ export function ControlSetRevisions({
   if (open) return <RevisionReview revision={open} programId={programId} />;
 
   return (
-    <Block
+    <Section
       title={inForce ? `v${inForce.number} in force` : "No control set yet"}
       action={<ProposeChange scopeId={scopeId} />}
     >
@@ -582,7 +582,7 @@ export function ControlSetRevisions({
           Propose the first revision to categorize and tailor this scope.
         </p>
       )}
-    </Block>
+    </Section>
   );
 }
 
@@ -593,7 +593,7 @@ export function RevisionHistory({ scopeId }: { scopeId: string }) {
   const events = useMemo(() => eventsForScope(scopeId), [scopeId, version]);
   return (
     <>
-      <Block title="Revisions" count={history.length}>
+      <Section title="Revisions" count={history.length}>
         <Table>
           <thead>
             <Table.Row>
@@ -632,9 +632,9 @@ export function RevisionHistory({ scopeId }: { scopeId: string }) {
             ))}
           </tbody>
         </Table>
-      </Block>
+      </Section>
 
-      <Block title="History" count={events.length}>
+      <Section title="History" count={events.length}>
         <Timeline>
           {events.map((e) => (
             <Timeline.Item
@@ -648,7 +648,7 @@ export function RevisionHistory({ scopeId }: { scopeId: string }) {
             </Timeline.Item>
           ))}
         </Timeline>
-      </Block>
+      </Section>
     </>
   );
 }
@@ -718,7 +718,7 @@ function DeltaBlock({
 }) {
   const against = base ? `against v${base.number}` : "first revision";
   return (
-    <Block
+    <Section
       title="What changes"
       count={delta.empty ? "nothing" : `+${delta.added} −${delta.removed} · ${against}`}
     >
@@ -763,7 +763,6 @@ function DeltaBlock({
           ))}
         </dl>
       ) : null}
-
       {delta.controls.length ? (
         <Table>
           <thead>
@@ -846,6 +845,6 @@ function DeltaBlock({
             : ""}
         </p>
       ) : null}
-    </Block>
+    </Section>
   );
 }

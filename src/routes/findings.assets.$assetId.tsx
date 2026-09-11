@@ -1,30 +1,34 @@
 import { UnavailableAction } from "@/components/app/unavailable-action";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  PageHeader,
+  Shell,
+  Stack,
+} from "@ledger/design-system";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { BomTree, type BomTreeNode } from "@/components/app/composition";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  Badge,
-  Button,
-  Id,
-  Indicator,
-  Inline,
-  Inspector,
-  KeyValue,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Stack,
-  Table,
-  TextLink,
-} from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 import type { CompositionNode } from "@/lib/composition";
 import { childrenOf, nodeForAsset, pathOf, useCompositionGraph } from "@/lib/composition";
 import { assets, bySeverity, findingsByAsset, isOpen } from "@/lib/findings";
 import { assetPosture, postureOf } from "@/lib/graph-posture";
 import { severityTone, statusTone } from "@/lib/spine";
+import {
+  Badge,
+  BreadcrumbLink,
+  Indicator,
+  Inspector,
+  KeyValue,
+  Section,
+  Table,
+  TextLink,
+} from "@ledger/design-system";
 
 export const Route = createFileRoute("/findings/assets/$assetId")({
   head: ({ params }) => {
@@ -71,14 +75,12 @@ function AssetRecord() {
 
   if (!asset) {
     return (
-      <Shell>
-        <Stack space="space.150">
-          <h1 className="font-heading-small font-semibold">Asset not found</h1>
-          <TextLink size="medium" render={<Link to="/findings" />}>
-            Back to findings
-          </TextLink>
-        </Stack>
-      </Shell>
+      <Stack space="space.150">
+        <h1 className="font-heading-small font-semibold">Asset not found</h1>
+        <TextLink size="medium" render={<Link to="/findings" />}>
+          Back to findings
+        </TextLink>
+      </Stack>
     );
   }
 
@@ -93,183 +95,185 @@ function AssetRecord() {
   const delta = tracked && asset.scanAvailable !== false ? declaredTotal - tracked.open : null;
 
   return (
-    <Shell>
-      <>
-        <ShowPage
-          rail={
-            <>
-              <Inspector.Group title="Inventory">
-                <KeyValue label="Asset">
-                  <Id>{asset.id}</Id>
-                </KeyValue>
-                <KeyValue label="Kind">{asset.kind}</KeyValue>
-                <KeyValue label="Technology">{asset.technology}</KeyValue>
-                <KeyValue label="Environment">{asset.environment}</KeyValue>
-                <KeyValue label="Owner">{asset.owner}</KeyValue>
-                <KeyValue label="Program">
-                  <TextLink
-                    render={
-                      <Link to="/programs/$programId" params={{ programId: asset.program }} />
-                    }
-                  >
-                    <Id>{asset.program}</Id>
-                  </TextLink>
-                </KeyValue>
-              </Inspector.Group>
-              <Inspector.Group title="Posture">
-                <KeyValue label="Last scan">{asset.lastScan}</KeyValue>
-                <KeyValue label="CCIs covered">
-                  {asset.scanAvailable === false ? "—" : asset.ccisCovered}
-                </KeyValue>
-              </Inspector.Group>
-              <Inspector.Group title="Open findings">
-                <KeyValue label="Scanner declared">
-                  {asset.scanAvailable === false ? (
-                    "Not supplied"
-                  ) : (
-                    <span className="tabular-nums">
-                      <span className={asset.openCatI ? "font-medium text-danger" : ""}>
-                        {asset.openCatI}
-                      </span>
-                      <span className="text-subtle">
-                        {" "}
-                        / {asset.openCatII} / {asset.openCatIII}
-                      </span>
-                    </span>
-                  )}
-                </KeyValue>
-                <KeyValue label="As of">{asset.lastScan}</KeyValue>
-                <KeyValue label="Register tracked">
-                  {tracked ? (
-                    <span className="tabular-nums">
-                      <span className={tracked.catI ? "font-medium text-danger" : ""}>
-                        {tracked.catI}
-                      </span>
-                      <span className="text-subtle">
-                        {" "}
-                        / {tracked.catII} / {tracked.catIII}
-                      </span>
-                    </span>
-                  ) : (
-                    "—"
-                  )}
-                </KeyValue>
-                <KeyValue label="Delta">
-                  {delta === null ? (
-                    "—"
-                  ) : (
-                    <span className={delta === 0 ? "tabular-nums" : "tabular-nums text-warning"}>
-                      {delta > 0 ? `+${delta}` : delta}
-                    </span>
-                  )}
-                </KeyValue>
-              </Inspector.Group>
-            </>
-          }
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/findings" />}>
-                      Findings & assets
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id={asset.id}
-              title={asset.name}
-              meta={`${asset.kind} · ${asset.technology} · ${asset.environment}`}
-              actions={
-                <UnavailableAction
-                  reason="A scanning service must be connected before this asset can be scanned."
-                  variant="secondary"
-                >
-                  Re-scan asset
-                </UnavailableAction>
-              }
-            />
-          }
-          tabs={<div className="border-b border-default" />}
-        >
-          {anchor && tree ? (
-            <Section
-              title="Composition"
-              description={`${asset.name} is anchored at ${anchor.id}. Findings resolve to the exact hardware, firmware or software part beneath it, not to the host.`}
-            >
-              <Inline
-                className="pb-150 pt-150 font-body-small"
-                space="space.050"
-                alignBlock="center"
-                shouldWrap
-              >
-                {trail.map((n, i) => {
-                  const last = i === trail.length - 1;
-                  return (
-                    <Inline
-                      key={n.id}
-                      as="span"
-                      display="inline-flex"
-                      space="space.050"
-                      alignBlock="center"
-                    >
-                      {i > 0 ? <span className="text-subtle">/</span> : null}
-                      <span className={last ? "font-medium" : "text-subtle"}>{n.name}</span>
-                    </Inline>
-                  );
-                })}
-              </Inline>
-              <BomTree root={tree} defaultExpandedDepth={2} />
-            </Section>
-          ) : null}
-
-          <Section
-            title="Findings on this asset"
-            description={`${open} open of ${rows.length} raised. Every row joins to a CCI through its rule or procedure.`}
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink render={<Link to="/findings" />}>Findings & assets</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{asset.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{asset.name}</PageHeader.Title>
+          <Inline
+            space="space.100"
+            alignBlock="center"
+            shouldWrap
+            className="pt-050 font-body-small text-subtle"
+          >{`${asset.kind} · ${asset.technology} · ${asset.environment}`}</Inline>
+        </div>
+        <PageHeader.Actions>
+          <UnavailableAction
+            reason="A scanning service must be connected before this asset can be scanned."
+            variant="secondary"
           >
-            <Table className="table-fixed">
-              <thead>
-                <tr>
-                  <Table.Header width={112}>Finding</Table.Header>
-                  <Table.Header>Title</Table.Header>
-                  <Table.Header width={104}>CCI</Table.Header>
-                  <Table.Header width={124}>Source</Table.Header>
-                  <Table.Header width={78}>Severity</Table.Header>
-                  <Table.Header width={112}>Lifecycle</Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((f) => (
-                  <Table.Row key={f.id}>
-                    <Table.Cell>
-                      <TextLink
-                        render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
-                      >
-                        <Id>{f.id}</Id>
-                      </TextLink>
-                    </Table.Cell>
-                    <Table.Cell className="truncate">{f.title}</Table.Cell>
-                    <Table.Cell>
-                      <Id>{f.cci}</Id>
-                    </Table.Cell>
-                    <Table.Cell className="truncate">{f.source}</Table.Cell>
-                    <Table.Cell>
-                      <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                        {f.mitigatedSeverity}
-                      </Indicator>
-                    </Table.Cell>
-                    <Table.Cell className="truncate">
-                      <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
-                        {f.lifecycle}
-                      </Badge>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </tbody>
-            </Table>
+            Re-scan asset
+          </UnavailableAction>
+        </PageHeader.Actions>
+      </PageHeader>
+      <div className="border-b border-default" />
+      <Stack space="space.300" className="min-w-0 pt-200">
+        {anchor && tree ? (
+          <Section
+            title="Composition"
+            description={`${asset.name} is anchored at ${anchor.id}. Findings resolve to the exact hardware, firmware or software part beneath it, not to the host.`}
+          >
+            <Inline
+              className="pb-150 pt-150 font-body-small"
+              space="space.050"
+              alignBlock="center"
+              shouldWrap
+            >
+              {trail.map((n, i) => {
+                const last = i === trail.length - 1;
+                return (
+                  <Inline
+                    key={n.id}
+                    as="span"
+                    display="inline-flex"
+                    space="space.050"
+                    alignBlock="center"
+                  >
+                    {i > 0 ? <span className="text-subtle">/</span> : null}
+                    <span className={last ? "font-medium" : "text-subtle"}>{n.name}</span>
+                  </Inline>
+                );
+              })}
+            </Inline>
+            <BomTree root={tree} defaultExpandedDepth={2} />
           </Section>
-        </ShowPage>
-      </>
-    </Shell>
+        ) : null}
+        <Section
+          title="Findings on this asset"
+          description={`${open} open of ${rows.length} raised. Every row joins to a CCI through its rule or procedure.`}
+        >
+          <Table className="table-fixed">
+            <thead>
+              <tr>
+                <Table.Header width={112}>Finding</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header width={104}>CCI</Table.Header>
+                <Table.Header width={124}>Source</Table.Header>
+                <Table.Header width={78}>Severity</Table.Header>
+                <Table.Header width={112}>Lifecycle</Table.Header>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((f) => (
+                <Table.Row key={f.id}>
+                  <Table.Cell>
+                    <TextLink
+                      render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
+                    >
+                      <Id>{f.id}</Id>
+                    </TextLink>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{f.title}</Table.Cell>
+                  <Table.Cell>
+                    <Id>{f.cci}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{f.source}</Table.Cell>
+                  <Table.Cell>
+                    <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                      {f.mitigatedSeverity}
+                    </Indicator>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
+                    <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
+                      {f.lifecycle}
+                    </Badge>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </tbody>
+          </Table>
+        </Section>
+      </Stack>
+      <Shell.Aside label="Record properties">
+        <>
+          <Inspector.Group title="Inventory">
+            <KeyValue label="Asset">
+              <Id>{asset.id}</Id>
+            </KeyValue>
+            <KeyValue label="Kind">{asset.kind}</KeyValue>
+            <KeyValue label="Technology">{asset.technology}</KeyValue>
+            <KeyValue label="Environment">{asset.environment}</KeyValue>
+            <KeyValue label="Owner">{asset.owner}</KeyValue>
+            <KeyValue label="Program">
+              <TextLink
+                render={<Link to="/programs/$programId" params={{ programId: asset.program }} />}
+              >
+                <Id>{asset.program}</Id>
+              </TextLink>
+            </KeyValue>
+          </Inspector.Group>
+          <Inspector.Group title="Posture">
+            <KeyValue label="Last scan">{asset.lastScan}</KeyValue>
+            <KeyValue label="CCIs covered">
+              {asset.scanAvailable === false ? "—" : asset.ccisCovered}
+            </KeyValue>
+          </Inspector.Group>
+          <Inspector.Group title="Open findings">
+            <KeyValue label="Scanner declared">
+              {asset.scanAvailable === false ? (
+                "Not supplied"
+              ) : (
+                <span className="tabular-nums">
+                  <span className={asset.openCatI ? "font-medium text-danger" : ""}>
+                    {asset.openCatI}
+                  </span>
+                  <span className="text-subtle">
+                    {" "}
+                    / {asset.openCatII} / {asset.openCatIII}
+                  </span>
+                </span>
+              )}
+            </KeyValue>
+            <KeyValue label="As of">{asset.lastScan}</KeyValue>
+            <KeyValue label="Register tracked">
+              {tracked ? (
+                <span className="tabular-nums">
+                  <span className={tracked.catI ? "font-medium text-danger" : ""}>
+                    {tracked.catI}
+                  </span>
+                  <span className="text-subtle">
+                    {" "}
+                    / {tracked.catII} / {tracked.catIII}
+                  </span>
+                </span>
+              ) : (
+                "—"
+              )}
+            </KeyValue>
+            <KeyValue label="Delta">
+              {delta === null ? (
+                "—"
+              ) : (
+                <span className={delta === 0 ? "tabular-nums" : "tabular-nums text-warning"}>
+                  {delta > 0 ? `+${delta}` : delta}
+                </span>
+              )}
+            </KeyValue>
+          </Inspector.Group>
+        </>
+      </Shell.Aside>
+    </Stack>
   );
 }

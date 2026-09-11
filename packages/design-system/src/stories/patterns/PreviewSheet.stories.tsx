@@ -1,14 +1,11 @@
-import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import type { ReactNode } from "react";
-
+import { PreviewSheet, Section } from "../..";
 import { Badge, Button, Fact, Id, Table, TextLink } from "../../components";
-import { PreviewSheet, Section } from "../../patterns";
-import { Inline, Stack, Text } from "../../primitives";
+import { Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Patterns/PreviewSheet",
@@ -173,6 +170,15 @@ export const PreviewSheetStory: Story = {
       "href",
       "#record",
     );
+    await expect(page.getByRole("heading", { name: "Telemetry gateway" })).toHaveFocus();
+    // Verify modal behavior rather than prescribing Base UI's background-hiding technique.
+    await expect(page.queryByRole("button", { name: "Facts only" })).toBeNull();
+    for (let index = 0; index < 4; index += 1) {
+      await userEvent.tab();
+      await expect(page.getByRole("dialog")).toContainElement(
+        canvasElement.ownerDocument.activeElement as HTMLElement,
+      );
+    }
     await expect(page.queryByRole("button", { name: "Back" })).toBeNull();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
@@ -202,69 +208,49 @@ export const PreviewSheetStory: Story = {
   },
 };
 
-/** The sheet's footer, drawn on its own for a pair. */
-function Footer({ children }: { children: ReactNode }) {
+/** Completing work may remove the opener; the surviving queue control is the return target. */
+function CompletePreview() {
+  const [open, setOpen] = useState(false);
+  const [done, setDone] = useState(false);
+  const queueRef = useRef<HTMLButtonElement>(null);
   return (
-    <div className="flex w-full items-center justify-between gap-150 rounded-medium border border-default bg-surface-sunken px-200 py-100">
-      {children}
-    </div>
+    <>
+      <Button ref={queueRef}>Requirement queue</Button>
+      {!done ? <Button onClick={() => setOpen(true)}>Review requirement</Button> : null}
+      <PreviewSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        id="REQ-0118"
+        title="Review telemetry requirement"
+        finalFocus={queueRef}
+        openTo={<a href="#requirement">Open requirement</a>}
+        actions={
+          <Button
+            onClick={() => {
+              setDone(true);
+              setOpen(false);
+            }}
+          >
+            Complete review
+          </Button>
+        }
+      >
+        Evidence is ready for review.
+      </PreviewSheet>
+    </>
   );
 }
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <Footer>
-            <TextLink weight="medium" href="#record">
-              Open the full record
-            </TextLink>
-            <Inline space="space.100">
-              <Button>Propose change</Button>
-              <Button variant="primary">Allocate</Button>
-            </Inline>
-          </Footer>
-        }
-        doText="The first thing in the footer is the way to the record, a link. The actions that make sense without leaving sit at the end."
-        dont={
-          <Footer>
-            <span />
-            <Inline space="space.100" shouldWrap>
-              <Button>Propose change</Button>
-              <Button>Allocate</Button>
-              <Button>Export</Button>
-              <Button>Archive</Button>
-              <Button variant="primary">Open</Button>
-            </Inline>
-          </Footer>
-        }
-        dontText="Five buttons and Open as the primary. The way to a page is a link, and a preview that does everything is the record."
-      />
-      <Pair
-        do={
-          <Fact.Group>
-            <Fact label="Method">Test</Fact>
-            <Fact label="Owner">Dan Whitlock</Fact>
-            <Fact label="Allocated to">2 elements</Fact>
-          </Fact.Group>
-        }
-        doText="At most three facts under the sheet's title: the ones the reader acts on. The body has the rest."
-        dont={
-          <Fact.Group>
-            <Fact label="Method">Test</Fact>
-            <Fact label="Owner">Dan Whitlock</Fact>
-            <Fact label="Allocated to">2 elements</Fact>
-            <Fact label="Source">SRD 4.2.1</Fact>
-            <Fact label="Priority">High</Fact>
-            <Fact label="Revision">3</Fact>
-            <Fact label="Created">3 Aug 2026</Fact>
-            <Fact label="Updated">2h ago</Fact>
-          </Fact.Group>
-        }
-        dontText="Eight facts in the header. It wraps to three lines and the body starts below the fold."
-      />
-    </Stack>
-  ),
+export const CompleteReview: Story = {
+  render: () => <CompletePreview />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Review requirement" }));
+    const dialog = await page.findByRole("dialog", { name: "Review telemetry requirement" });
+    await expect(dialog).not.toHaveAttribute("aria-describedby");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Complete review" }));
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await expect(canvas.queryByRole("button", { name: "Review requirement" })).toBeNull();
+    await expect(canvas.getByRole("button", { name: "Requirement queue" })).toHaveFocus();
+  },
 };

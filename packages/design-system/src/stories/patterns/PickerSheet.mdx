@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
 
-import { PickerSheet } from "../../patterns";
+import { PickerSheet } from "../..";
 import * as Stories from "./PickerSheet.stories";
 
 <Meta of={Stories} />
@@ -15,22 +15,22 @@ Choosing many from hundreds: the association panel. A [Sheet](?path=/docs/compon
 
 Back is rendered only when `onBack` is supplied. The toolbar and its divider are omitted when `search`, `filters` and `toolbar` are all absent.
 
-| Part     | What it is                                                                                                  |
-| -------- | ----------------------------------------------------------------------------------------------------------- |
-| Back     | A chevron before the title on the second frame.                                                             |
-| Title    | The task: "Allocate requirements".                                                                          |
-| Subtitle | What the chosen rows will be attached to: "Flight computer · 14 allocated today".                           |
-| Toolbar  | The search field and the FilterChips; on the second frame, the defaults row. It does not scroll.            |
-| Body     | Frame one: the DataTable with Table.Selection. Frame two: the chosen rows with editable cells.               |
-| Count    | At the start of the footer: "12 chosen of 28", "28 to choose from", with Clear beside it.                   |
-| Actions  | At the end of the footer: a lesser button, Cancel, then the primary named in full.                          |
+| Part     | What it is                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------------ |
+| Back     | A chevron before the title on the second frame.                                                  |
+| Title    | The task: "Allocate requirements".                                                               |
+| Subtitle | What the chosen rows will be attached to: "Flight computer · 14 allocated today".                |
+| Toolbar  | The search field and the FilterChips; on the second frame, the defaults row. It does not scroll. |
+| Body     | Frame one: the DataTable with Table.Selection. Frame two: the chosen rows with editable cells.   |
+| Count    | At the start of the footer: "12 chosen of 28", "28 to choose from", with Clear beside it.        |
+| Actions  | At the end of the footer: a lesser button, Cancel, then the primary named in full.               |
 
 ## Variants
 
-| Frame     | Use                                                                                                          |
-| --------- | ------------------------------------------------------------------------------------------------------------ |
-| Choosing  | Search, filters, the sortable table, the selection, the count. The primary continues or attaches.            |
-| Details   | The chosen rows as a compact table with editable cells and a defaults row; "Does not apply" per row; back keeps the selection. |
+| Frame    | Use                                                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Choosing | Search, filters, the sortable table, the selection, the count. The primary continues or attaches.                              |
+| Details  | The chosen rows as a compact table with editable cells and a defaults row; "Does not apply" per row; back keeps the selection. |
 
 Not built, and why: a Combobox with hundreds of options, because the many are found by attribute and a table sorts and filters; the selection lost on search, because the reader searches several times before attaching; a wizard of three frames, because choosing and describing are the two steps there are; a picker that attaches one at a time, because the footer attaches all at once and says how many.
 
@@ -40,12 +40,12 @@ One: 760px, room for a table of four columns; `width` for more. On a narrow scre
 
 ## States
 
-| State          | What changes                                                                   |
-| -------------- | ------------------------------------------------------------------------------ |
-| Nothing chosen | The footer says what there is to choose from; the primary waits, disabled.     |
-| Some chosen    | The count and Clear; the primary is live and names the number.                 |
-| Filtered       | The count says "of" the rows on offer; the selection is kept.                  |
-| Frame two      | The back chevron; the toolbar is the defaults row.                             |
+| State          | What changes                                                               |
+| -------------- | -------------------------------------------------------------------------- |
+| Nothing chosen | The footer says what there is to choose from; the primary waits, disabled. |
+| Some chosen    | The count and Clear; the primary is live and names the number.             |
+| Filtered       | The count says "of" the rows on offer; the selection is kept.              |
+| Frame two      | The back chevron; the toolbar is the defaults row.                         |
 
 ## Modifiers
 
@@ -63,12 +63,12 @@ One: 760px, room for a table of four columns; `width` for more. On a narrow scre
 
 ## Style
 
-| Element | Token                                                                                              |
-| ------- | -------------------------------------------------------------------------------------------------- |
-| Sheet   | Sheet's: `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` behind         |
-| Toolbar | `space.200` inline · `space.100` block · `color.border` under · `space.100` between its rows       |
-| Search  | InputGroup 240px · Input small                                                                     |
-| Body    | The DataTable without its own frame, edge to edge                                                  |
+| Element | Token                                                                                                                                  |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Sheet   | Sheet's: `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` behind                                             |
+| Toolbar | `space.200` inline · `space.100` block · `color.border` under · `space.100` between its rows                                           |
+| Search  | InputGroup 240px · Input small                                                                                                         |
+| Body    | The DataTable without its own frame, edge to edge                                                                                      |
 | Footer  | `elevation.surface.sunken` · `color.border` above · `font.body.small` `color.text.subtle` count, tabular · `space.100` between buttons |
 
 ## Accessibility
@@ -85,7 +85,7 @@ One: 760px, room for a table of four columns; `width` for more. On a narrow scre
 
 ## Related
 
-- [Pages · Choosing many](?path=/docs/patterns-pages--docs#choosing-many): the two frames, what the kit owns and what the caller owns, and the spec.
+- [Pages · Choosing many](?path=/docs/layout-pages--docs#choosing-many): the two frames, what the kit owns and what the caller owns, and the spec.
 - [DataTable](?path=/docs/patterns-data-table--docs): frame one is a DataTable in the sheet.
 - [Sheet](?path=/docs/components-sheet--docs): the frame.
 - [RecordPicker](?path=/docs/patterns-recordpicker--docs): picking one record from a list.

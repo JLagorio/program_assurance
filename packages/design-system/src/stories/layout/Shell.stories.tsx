@@ -1,31 +1,11 @@
-import {
-  avatarHue,
-  AvatarFallback,
-  avatarInitials,
-  InputGroupAddon,
-  InputGroupText,
-  InputGroupInput,
-  Badge,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  Avatar,
-  Banner,
-  Button,
-  Count,
-  Fact,
-  IconButton,
-  InputGroup,
-  TabsList,
-  TabsTrigger,
-} from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import {
   Archive,
   Bell,
   Boxes,
   Bug,
-  CircleHelp,
   ChevronDown,
+  CircleHelp,
   ClipboardList,
   Command as CommandIcon,
   FileCheck2,
@@ -41,11 +21,45 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inspector,
+  PageHeader,
+  Section,
+  Shell,
+  SHELL_STORAGE_KEY,
+  shellScript,
+  shellScriptFor,
+  Stack,
+  Tabs,
+  TabsContent,
+  useSideNav,
+} from "../..";
+import {
+  Avatar,
+  AvatarFallback,
+  avatarHue,
+  avatarInitials,
+  Badge,
+  Banner,
+  BreadcrumbLink,
+  Button,
+  Count,
+  IconButton,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+  TabsList,
+  TabsTrigger,
+} from "../../components";
 import { ModeSwitch } from "../../mode";
-import { PageHeader, RecordHeader, ShowPage } from "../../patterns";
-import { Box, Inline, Stack, Text } from "../../primitives";
-import { Block, Inspector } from "../../shapes";
-import { SHELL_STORAGE_KEY, Shell, shellScript, shellScriptFor, useSideNav } from "../../shell";
+import { Box, Inline, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
@@ -175,14 +189,14 @@ function Demo({
               aria-label="Search"
               className="h-control-small"
             />
-            <InputGroupAddon>{<Search />}</InputGroupAddon>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
             <InputGroupAddon align="inline-end">
               <InputGroupText>
-                {
-                  <span className="flex items-center gap-025">
-                    <CommandIcon className="size-100" />K
-                  </span>
-                }
+                <span className="flex items-center gap-025">
+                  <CommandIcon className="size-100" />K
+                </span>
               </InputGroupText>
             </InputGroupAddon>
           </InputGroup>
@@ -219,11 +233,15 @@ function Demo({
         <Shell.SideNav.Splitter label="Resize side navigation" />
       </Shell.SideNav>
       <Shell.Main>
-        <PageHeader
-          eyebrow="Work"
-          title="Programs"
-          description="Every programme in flight, with its phase and its next gate."
-          actions={
+        <PageHeader>
+          <div className="col-span-full font-body text-subtle">{"Work"}</div>
+          <div className="min-w-0">
+            <PageHeader.Title>{"Programs"}</PageHeader.Title>
+            <PageHeader.Description>
+              {"Every programme in flight, with its phase and its next gate."}
+            </PageHeader.Description>
+          </div>
+          <PageHeader.Actions>
             <>
               <Button onClick={() => setShowBanner((v) => !v)}>
                 {showBanner ? "Drop the banner" : "Raise a banner"}
@@ -233,8 +251,8 @@ function Demo({
               </Button>
               <SideNavControls />
             </>
-          }
-        />
+          </PageHeader.Actions>
+        </PageHeader>
         <Stack space="space.100" className="pt-300">
           {programs.map((p) => (
             <Inline
@@ -255,8 +273,7 @@ function Demo({
         </Stack>
       </Shell.Main>
       {showPanel ? (
-        <Shell.Panel label="Preview">
-          <Shell.Panel.Splitter label="Resize preview" />
+        <Shell.Panel label="Preview" onClose={() => setShowPanel(false)}>
           <Inline
             space="space.100"
             alignBlock="center"
@@ -274,8 +291,7 @@ function Demo({
           <Box padding="space.200">
             <Stack space="space.150">
               <Text color="color.text.subtle">
-                Whatever the product puts here: a PreviewRail, a thread, a form. The area is the
-                shell's; the preview is not.
+                The selected record, a thread, or a form. The shell owns placement and focus.
               </Text>
               <Text>
                 Phase: Authorise. Owner: Sarah Chen. Next gate: SCA sign-off, 12 September.
@@ -500,7 +516,7 @@ const railGroups = [
 ];
 const tabs = ["Overview", "Controls", "Evidence", "Findings"] as const;
 
-/** A record page: the header keeps its facts; the rail, every Inspector group, is the ShowPage's, beside the body of the overview tab under the tab strip; every other tab runs full width. */
+/** A route composes its header, tabs and supporting context inside the persistent shell. */
 function RecordDemo() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Overview");
   return (
@@ -521,7 +537,9 @@ function RecordDemo() {
               aria-label="Search"
               className="h-control-small"
             />
-            <InputGroupAddon>{<Search />}</InputGroupAddon>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
           </InputGroup>
         </Shell.TopNav.Middle>
         <Shell.TopNav.End>
@@ -534,30 +552,39 @@ function RecordDemo() {
         </Shell.SideNav.Body>
       </Shell.SideNav>
       <Shell.Main>
-        <ShowPage
-          tab={tab}
-          onTabChange={(value) => setTab(value as typeof tab)}
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id="PRG-014"
-              title="Payload integration"
-              meta="Authorise · Sarah Chen"
-              actions={
-                <>
-                  <Button>Export</Button>
-                  <Button variant="primary">Submit for assessment</Button>
-                </>
-              }
-            />
-          }
-          tabs={
+        <Stack space="space.200" className="min-w-0">
+          <PageHeader>
+            <Breadcrumb className="col-span-full">
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>
+                    <Id>{"PRG-014"}</Id>
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+            <div className="min-w-0">
+              <PageHeader.Title>{"Payload integration"}</PageHeader.Title>
+              <div className="pt-050 flex flex-wrap items-center gap-100 font-body-small text-subtle">
+                {"Authorise · Sarah Chen"}
+              </div>
+            </div>
+            <PageHeader.Actions>
+              <>
+                <Button>Export</Button>
+                <Button variant="primary">Submit for assessment</Button>
+              </>
+            </PageHeader.Actions>
+          </PageHeader>
+          <Tabs
+            value={tab}
+            onValueChange={(value) => setTab(value as typeof tab)}
+            className="gap-150"
+          >
             <TabsList
               variant="line"
               activateOnFocus
@@ -570,41 +597,48 @@ function RecordDemo() {
                 </TabsTrigger>
               ))}
             </TabsList>
-          }
-          rail={tab === "Overview" ? <Inspector groups={railGroups} /> : null}
-        >
-          <Block title={tab} count={tab === "Overview" ? undefined : 12}>
-            <Stack space="space.100">
-              <Text color="color.text.subtle">
-                {tab === "Overview"
-                  ? "The overview's work, beside the rail."
-                  : `The ${tab} tab's work, the full width.`}
-              </Text>
-              {programs.slice(0, 8).map((p) => (
-                <Inline
-                  key={p.id}
-                  space="space.200"
-                  alignBlock="center"
-                  className="border-b border-default py-100"
-                >
-                  <Text size="small" color="color.text.subtle" className="tabular-nums">
-                    {p.id}
+            <TabsContent value={tab}>
+              <Stack space="space.300" className="min-w-0 pt-200">
+                <Section title={tab} count={tab === "Overview" ? undefined : 12}>
+                  <Stack space="space.100">
+                    <Text color="color.text.subtle">
+                      {tab === "Overview"
+                        ? "The overview's work, beside the rail."
+                        : `The ${tab} tab's work, the full width.`}
+                    </Text>
+                    {programs.slice(0, 8).map((p) => (
+                      <Inline
+                        key={p.id}
+                        space="space.200"
+                        alignBlock="center"
+                        className="border-b border-default py-100"
+                      >
+                        <Text size="small" color="color.text.subtle" className="tabular-nums">
+                          {p.id}
+                        </Text>
+                        <Text>{p.title}</Text>
+                      </Inline>
+                    ))}
+                  </Stack>
+                </Section>
+                <Section title="Gates" count={3}>
+                  <Text color="color.text.subtle">
+                    What this record still needs before it moves.
                   </Text>
-                  <Text>{p.title}</Text>
-                </Inline>
-              ))}
-            </Stack>
-          </Block>
-          <Block title="Gates" count={3}>
-            <Text color="color.text.subtle">What this record still needs before it moves.</Text>
-          </Block>
-        </ShowPage>
+                </Section>
+              </Stack>
+            </TabsContent>
+            <Shell.Aside label="Record properties">
+              {tab === "Overview" ? <Inspector groups={railGroups} /> : null}
+            </Shell.Aside>
+          </Tabs>
+        </Stack>
       </Shell.Main>
     </Shell>
   );
 }
 
-/** The record's rail: details and related information, every Inspector group, in the ShowPage's rail beside the overview tab, under the tab strip; the other tabs run full width. The shell's panel holds the detail of a selected row or a panel the reader opens, never the rail; the peek is a Sheet. */
+/** Context occupies Aside; selected work occupies Panel; modal flows use Sheet. */
 export const RecordRail: Story = { name: "Record rail", render: () => <RecordDemo /> };
 
 /** A side nav column on its own, for a pair. */

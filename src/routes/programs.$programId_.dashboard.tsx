@@ -1,30 +1,32 @@
 import {
   Badge,
   Box,
+  Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
   BreadcrumbSeparator,
   Dot,
   Eyebrow,
   Grid,
   Id,
   Inline,
+  PageHeader,
   Person,
   Progress,
   ProgressStacked,
-  RecordHeader,
   Section,
-  ShowPage,
+  Stack,
   Table,
   TextLink,
 } from "@ledger/design-system";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
-import { type ReactNode, useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { ControlMatrixSection } from "@/components/app/control-matrix";
 import { FamilyCoverageChart } from "@/components/app/coverage-chart";
-import { Shell } from "@/components/app/shell";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { isOpen } from "@/lib/findings";
 import { gateKindTone, gatesForProgram, lifecyclePhases, programs } from "@/lib/grc-data";
@@ -218,42 +220,53 @@ function ProgramDashboard() {
   );
 
   return (
-    <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            crumbs={
-              <>
-                <BreadcrumbItem>
-                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-                  >
-                    {program.name}
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-              </>
-            }
-            id={program.id}
-            title={`${program.name} — dashboard`}
-            meta={`${program.baseline} · ${catalogVersion} · ${coverage.total} tailored controls`}
-            actions={
-              <TextLink
-                size="small"
-                className="inline-flex items-center gap-025"
-                render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-              >
-                Program record
-                <ChevronRight className="size-icon-small" />
-              </TextLink>
-            }
-          />
-        }
-        tabs={<div className="border-b border-default" />}
-      >
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                >
+                  {program.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{program.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{`${program.name} — dashboard`}</PageHeader.Title>
+          <Inline
+            space="space.100"
+            alignBlock="center"
+            shouldWrap
+            className="pt-050 font-body-small text-subtle"
+          >{`${program.baseline} · ${catalogVersion} · ${coverage.total} tailored controls`}</Inline>
+        </div>
+        <PageHeader.Actions>
+          <TextLink
+            size="small"
+            className="inline-flex items-center gap-025"
+            render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+          >
+            Program record
+            <ChevronRight className="size-icon-small" />
+          </TextLink>
+        </PageHeader.Actions>
+      </PageHeader>
+      <div className="border-b border-default" />
+      <Stack space="space.300" className="min-w-0 pt-200">
         <Section title="Where the program stands">
           <Grid
             className="pt-200"
@@ -317,7 +330,6 @@ function ProgramDashboard() {
             </DashboardStat>
           </Grid>
         </Section>
-
         <FamilyCoverageChart
           coverage={coverage}
           baseline={`${program.baseline} — ${program.impact} impact`}
@@ -326,7 +338,6 @@ function ProgramDashboard() {
             setStatusFilter(status);
           }}
         />
-
         <Section
           title="Remaining gates"
           description={`${outlook.completed} of ${outlook.total} closed. A gate cannot pass while the controls under it are other than satisfied.`}
@@ -420,7 +431,6 @@ function ProgramDashboard() {
             </tbody>
           </Table>
         </Section>
-
         <Section title="Next RMF deadlines">
           <Table className="table-fixed">
             <thead>
@@ -445,7 +455,6 @@ function ProgramDashboard() {
             </tbody>
           </Table>
         </Section>
-
         <div id="control-matrix">
           <ControlMatrixSection
             programId={program.id}
@@ -457,7 +466,7 @@ function ProgramDashboard() {
             families={families}
           />
         </div>
-      </ShowPage>
-    </Shell>
+      </Stack>
+    </Stack>
   );
 }

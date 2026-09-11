@@ -13,23 +13,23 @@ Columns and rows on a template. The template is a string, the CSS value itself, 
 
 ## Anatomy
 
-| Part      | What it is                                                                                                                         |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Container | A grid: a `div`, or the layout element `as` names. `as="dl"` for label and value pairs.                                            |
+| Part      | What it is                                                                                                                                            |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Container | A grid: a `div`, or the layout element `as` names. `as="dl"` for label and value pairs.                                                               |
 | Template  | `templateColumns`, a `grid-template-columns` value, or `{ base, sm, md, lg, xl }`, each applying from that width up; `templateRows`; `templateAreas`. |
-| Gap       | `gap` on both axes; `rowGap` and `columnGap` over it. Tokens.                                                                       |
-| Alignment | `alignItems` on the block axis, `justifyContent` on the inline axis.                                                               |
-| Flow      | `autoFlow`: `row`, `column`, `dense`, `row-dense`, `column-dense`.                                                                  |
+| Gap       | `gap` on both axes; `rowGap` and `columnGap` over it. Tokens.                                                                                         |
+| Alignment | `alignItems` on the block axis, `justifyContent` on the inline axis.                                                                                  |
+| Flow      | `autoFlow`: `row`, `column`, `dense`, `row-dense`, `column-dense`.                                                                                    |
 
 ## Variants
 
-| Grid             | Use                                                                                                                              |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Equal columns    | `repeat(n, minmax(0, 1fr))`: cards, stats, fields of a form.                                                                      |
-| Label and value  | `104px 1fr` as a `dl`: the facts of a rail, a settings list. KeyValue draws one row of it.                                        |
-| Main and rail    | `minmax(0, 1fr) 272px`: the record page's body and its rail, at `dimension.layout.rail`. The Shell's `grid-cols-main-rail` is this with the rail's rule. |
-| Named areas      | `templateAreas` with `templateRows`: a head over two columns, a form with a full-width row.                                       |
-| Responsive       | One template per breakpoint: one column, two from `md`, main and rail from `lg`.                                                  |
+| Grid            | Use                                                                                                                                                      |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Equal columns   | `repeat(n, minmax(0, 1fr))`: cards, stats, fields of a form.                                                                                             |
+| Label and value | `104px 1fr` as a `dl`: the facts of a rail, a settings list. KeyValue draws one row of it.                                                               |
+| Main and rail   | `minmax(0, 1fr) 272px`: the record page's body and its rail, at `dimension.layout.rail`. The Shell's `grid-cols-main-rail` is this with the rail's rule. |
+| Named areas     | `templateAreas` with `templateRows`: a head over two columns, a form with a full-width row.                                                              |
+| Responsive      | One template per breakpoint: one column, two from `md`, main and rail from `lg`.                                                                         |
 
 Not built, and why: a column count per breakpoint as a number (the template says the widths as well as the count, and `repeat(3, minmax(0, 1fr))` is one string); a page grid with gutters and margins (the Shell's areas and the page's gutter tokens do this, and a page here is a form or a register, not a magazine); `justifyItems` and `alignContent` (no layout here has needed them, and a cell that sits differently carries its own class); `templateAreas` as an array of rows (one string is the CSS value, and the reader can paste it).
 
@@ -37,13 +37,13 @@ Not built, and why: a column count per breakpoint as a number (the template says
 
 The gaps are the space scale: `space.050` between facts, `space.100` between cells, `space.200` between cards and form fields, `space.300` between the main column and the rail. The breakpoints, from Tailwind's defaults:
 
-| Key    | From    |
-| ------ | ------- |
-| `base` | 0       |
-| `sm`   | 640px   |
-| `md`   | 768px   |
-| `lg`   | 1024px  |
-| `xl`   | 1280px  |
+| Key    | From   |
+| ------ | ------ |
+| `base` | 0      |
+| `sm`   | 640px  |
+| `md`   | 768px  |
+| `lg`   | 1024px |
+| `xl`   | 1280px |
 
 The widths a template names come from the layout tokens where one exists: `dimension.layout.rail` 272px, `.panel` 320px, `.list` 340px, `.measure` 720px, on the [Metrics](?path=/docs/tokens-metrics--docs) sheet.
 
@@ -66,12 +66,12 @@ The widths a template names come from the layout tokens where one exists: `dimen
 
 ## Style
 
-| Element   | Token                                                                       |
-| --------- | --------------------------------------------------------------------------- |
-| Gap       | `space.*`, as `gap-*`, `gap-x-*`, `gap-y-*`                                 |
+| Element   | Token                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------------- |
+| Gap       | `space.*`, as `gap-*`, `gap-x-*`, `gap-y-*`                                                                         |
 | Template  | Inline `grid-template-columns` for a string; `grid-cols-(--ds-grid-<bp>)` per breakpoint, the value in the variable |
-| Widths    | `dimension.layout.rail`, `.panel`, `.list`, `.measure` where the template names a layout width |
-| Alignment | `items-*`, `justify-*`, `grid-flow-*`                                        |
+| Widths    | `dimension.layout.rail`, `.panel`, `.list`, `.measure` where the template names a layout width                      |
+| Alignment | `items-*`, `justify-*`, `grid-flow-*`                                                                               |
 
 ## Accessibility
 
@@ -96,7 +96,7 @@ The widths a template names come from the layout tokens where one exists: `dimen
 - [Flex](?path=/docs/primitives-flex--docs): a row or a column distributed, without widths.
 - [KeyValue](?path=/docs/components-keyvalue--docs): one row of the label and value grid.
 - [Stat](?path=/docs/components-stat--docs): `Stat.Grid`, a grid of tiles with the grid's own rules.
-- [Pages](?path=/docs/patterns-pages--docs): the record page's main column and rail, on `grid-cols-main-rail`.
+- [Pages](?path=/docs/layout-pages--docs): the record page's main column and rail, on `grid-cols-main-rail`.
 - [Space](?path=/docs/tokens-space--docs) and [Metrics](?path=/docs/tokens-metrics--docs): the gaps and the layout widths.
 
 ## Don't

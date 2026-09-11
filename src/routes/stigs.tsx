@@ -1,23 +1,22 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { benchmarkById, benchmarks, rules } from "@/lib/catalog";
+import { severityTone } from "@/lib/spine";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
   Badge,
   Id,
-  IndexPage,
   Indicator,
   PageHeader,
   Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Stack,
   Table,
 } from "@ledger/design-system";
-import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Shell } from "@/components/app/shell";
-import { benchmarkById, benchmarks, rules } from "@/lib/catalog";
-import { severityTone } from "@/lib/spine";
 
 export const Route = createFileRoute("/stigs")({
   head: () => ({
@@ -63,142 +62,138 @@ function StigLibrary() {
     })),
   ];
   return (
-    <Shell>
-      <IndexPage
-        header={
-          <PageHeader
-            title="STIG & SRG library"
-            actions={
-              <UnavailableAction
-                reason="Benchmark import is not connected. This library is read-only."
-                variant="secondary"
-              >
-                Import benchmark
-              </UnavailableAction>
-            }
-          />
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <div className="min-w-0">
+          <PageHeader.Title>{"STIG & SRG library"}</PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
+          <UnavailableAction
+            reason="Benchmark import is not connected. This library is read-only."
+            variant="secondary"
+          >
+            Import benchmark
+          </UnavailableAction>
+        </PageHeader.Actions>
+      </PageHeader>
+      <Section
+        title="Benchmarks"
+        description={
+          drifted.length
+            ? `${drifted.length} of ${benchmarks.length} benchmarks are behind the current DISA release.`
+            : "Every benchmark is at the current DISA release."
         }
       >
-        <Section
-          title="Benchmarks"
-          description={
-            drifted.length
-              ? `${drifted.length} of ${benchmarks.length} benchmarks are behind the current DISA release.`
-              : "Every benchmark is at the current DISA release."
-          }
-        >
-          <Table className="table-fixed">
-            <thead>
-              <tr>
-                <Table.Header width={96}>ID</Table.Header>
-                <Table.Header>Benchmark</Table.Header>
-                <Table.Header width={168}>Technology</Table.Header>
-                <Table.Header width={76}>Current</Table.Header>
-                <Table.Header width={96}>Released</Table.Header>
-                <Table.Header width={132}>Applied</Table.Header>
-                <Table.Header width={72} className="text-right">
-                  Rules
-                </Table.Header>
-                <Table.Header width={148} className="text-right">
-                  CAT I / II / III
-                </Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {benchmarks.map((b) => (
-                <Table.Row key={b.id}>
-                  <Table.Cell>
-                    <Id>{b.id}</Id>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">{b.name}</Table.Cell>
-                  <Table.Cell className="truncate">{b.technology}</Table.Cell>
-                  <Table.Cell>
-                    <Id>{b.version}</Id>
-                  </Table.Cell>
-                  <Table.Cell>{b.released}</Table.Cell>
-                  <Table.Cell>
-                    {b.appliedVersion === b.version ? (
-                      <span className="text-subtle">{b.appliedVersion}</span>
-                    ) : (
-                      <Badge variant="secondary" tone="warning">
-                        {b.appliedVersion} behind
-                      </Badge>
-                    )}
-                  </Table.Cell>
-                  <Table.Cell className="tabular-nums text-right">{b.rules}</Table.Cell>
-                  <Table.Cell className="tabular-nums text-right">
-                    {b.catI} / {b.catII} / {b.catIII}
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-        </Section>
-
-        <Section
-          title="Rule to CCI mapping"
-          action={
-            <Select<string>
-              items={benchmarkItems}
-              value={benchmark}
-              onValueChange={(value) => {
-                if (value === null) return;
-                return setBenchmark(value);
-              }}
+        <Table className="table-fixed">
+          <thead>
+            <tr>
+              <Table.Header width={96}>ID</Table.Header>
+              <Table.Header>Benchmark</Table.Header>
+              <Table.Header width={168}>Technology</Table.Header>
+              <Table.Header width={76}>Current</Table.Header>
+              <Table.Header width={96}>Released</Table.Header>
+              <Table.Header width={132}>Applied</Table.Header>
+              <Table.Header width={72} className="text-right">
+                Rules
+              </Table.Header>
+              <Table.Header width={148} className="text-right">
+                CAT I / II / III
+              </Table.Header>
+            </tr>
+          </thead>
+          <tbody>
+            {benchmarks.map((b) => (
+              <Table.Row key={b.id}>
+                <Table.Cell>
+                  <Id>{b.id}</Id>
+                </Table.Cell>
+                <Table.Cell className="truncate">{b.name}</Table.Cell>
+                <Table.Cell className="truncate">{b.technology}</Table.Cell>
+                <Table.Cell>
+                  <Id>{b.version}</Id>
+                </Table.Cell>
+                <Table.Cell>{b.released}</Table.Cell>
+                <Table.Cell>
+                  {b.appliedVersion === b.version ? (
+                    <span className="text-subtle">{b.appliedVersion}</span>
+                  ) : (
+                    <Badge variant="secondary" tone="warning">
+                      {b.appliedVersion} behind
+                    </Badge>
+                  )}
+                </Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{b.rules}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">
+                  {b.catI} / {b.catII} / {b.catIII}
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </tbody>
+        </Table>
+      </Section>
+      <Section
+        title="Rule to CCI mapping"
+        action={
+          <Select<string>
+            items={benchmarkItems}
+            value={benchmark}
+            onValueChange={(value) => {
+              if (value === null) return;
+              return setBenchmark(value);
+            }}
+          >
+            <SelectTrigger
+              className="w-full"
+              aria-label="Benchmark"
+              style={{ width: 224, maxWidth: "100%" }}
             >
-              <SelectTrigger
-                className="w-full"
-                aria-label="Benchmark"
-                style={{ width: 224, maxWidth: "100%" }}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {benchmarkItems.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          }
-        >
-          <Table className="table-fixed">
-            <thead>
-              <tr>
-                <Table.Header width={104}>Rule</Table.Header>
-                <Table.Header>Title</Table.Header>
-                <Table.Header width={160}>Technology</Table.Header>
-                <Table.Header width={72}>Severity</Table.Header>
-                <Table.Header width={200}>Satisfies CCI</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleRules.map((r) => (
-                <Table.Row key={r.id}>
-                  <Table.Cell>
-                    <Id>{r.id}</Id>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">{r.title}</Table.Cell>
-                  <Table.Cell className="truncate">
-                    {benchmarkById.get(r.benchmark)?.technology}
-                  </Table.Cell>
-                  <Table.Cell>
-                    {r.severity === "CAT III" ? (
-                      <span className="text-subtle">CAT III</span>
-                    ) : (
-                      <Indicator tone={severityTone(r.severity)}>{r.severity}</Indicator>
-                    )}
-                  </Table.Cell>
-                  <Table.Cell className="truncate">
-                    <Id>{r.ccis.join(", ")}</Id>
-                  </Table.Cell>
-                </Table.Row>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {benchmarkItems.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
               ))}
-            </tbody>
-          </Table>
-        </Section>
-      </IndexPage>
-    </Shell>
+            </SelectContent>
+          </Select>
+        }
+      >
+        <Table className="table-fixed">
+          <thead>
+            <tr>
+              <Table.Header width={104}>Rule</Table.Header>
+              <Table.Header>Title</Table.Header>
+              <Table.Header width={160}>Technology</Table.Header>
+              <Table.Header width={72}>Severity</Table.Header>
+              <Table.Header width={200}>Satisfies CCI</Table.Header>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleRules.map((r) => (
+              <Table.Row key={r.id}>
+                <Table.Cell>
+                  <Id>{r.id}</Id>
+                </Table.Cell>
+                <Table.Cell className="truncate">{r.title}</Table.Cell>
+                <Table.Cell className="truncate">
+                  {benchmarkById.get(r.benchmark)?.technology}
+                </Table.Cell>
+                <Table.Cell>
+                  {r.severity === "CAT III" ? (
+                    <span className="text-subtle">CAT III</span>
+                  ) : (
+                    <Indicator tone={severityTone(r.severity)}>{r.severity}</Indicator>
+                  )}
+                </Table.Cell>
+                <Table.Cell className="truncate">
+                  <Id>{r.ccis.join(", ")}</Id>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </tbody>
+        </Table>
+      </Section>
+    </Stack>
   );
 }

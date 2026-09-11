@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../patterns";
+import { Chart } from "../..";
 import * as Stories from "./ChartScatter.stories";
 
 <Meta of={Stories} />
@@ -13,24 +13,24 @@ A point per record on two value axes: where each thing sits on two measures at o
 
 ## Anatomy
 
-| Part      | What it is                                                                                                                                 |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Point     | 8px across in its group's tone, ringed 2px in the surface so overlapping points stay apart, with a hit area 24px across.                   |
-| Bubble    | With `z`, a point whose area follows the value (twice the value, twice the ink), at 70% so what is under it shows.                          |
+| Part      | What it is                                                                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Point     | 8px across in its group's tone, ringed 2px in the surface so overlapping points stay apart, with a hit area 24px across.                         |
+| Bubble    | With `z`, a point whose area follows the value (twice the value, twice the ink), at 70% so what is under it shows.                               |
 | Axes      | Both value axes, a hairline on the category side, ticks in `color.text.subtlest`, titles in `color.text.subtle` when the keys do not say enough. |
-| Grid      | Hairlines both ways, since both axes are values.                                                                                          |
-| Reference | A dashed hairline at a value on either axis; one on each makes quadrants.                                                                  |
-| Tooltip   | The point's name and group, then each axis as name and value. Per point, not per column.                                                   |
-| Card      | On a chosen point: its name, group and axes, then the caller's facts and a way to the record.                                              |
+| Grid      | Hairlines both ways, since both axes are values.                                                                                                 |
+| Reference | A dashed hairline at a value on either axis; one on each makes quadrants.                                                                        |
+| Tooltip   | The point's name and group, then each axis as name and value. Per point, not per column.                                                         |
+| Card      | On a chosen point: its name, group and axes, then the caller's facts and a way to the record.                                                    |
 
 ## Variants
 
-| Variant   | Use                                                                                                                       |
-| --------- | ------------------------------------------------------------------------------------------------------------------------- |
-| One tone  | Every point in `brand`: the shape of the cloud is the point.                                                              |
-| `groups`  | Up to three groups by a key, each a tone: status groups in the status tones, kinds in the first three categorical hues.    |
-| `z`       | A bubble: exposure, cost, count.                                                                                           |
-| Quadrants | A `reference` on each axis: the four corners the reader names ("treat", "accept").                                        |
+| Variant   | Use                                                                                                                     |
+| --------- | ----------------------------------------------------------------------------------------------------------------------- |
+| One tone  | Every point in `brand`: the shape of the cloud is the point.                                                            |
+| `groups`  | Up to three groups by a key, each a tone: status groups in the status tones, kinds in the first three categorical hues. |
+| `z`       | A bubble: exposure, cost, count.                                                                                        |
+| Quadrants | A `reference` on each axis: the four corners the reader names ("treat", "accept").                                      |
 
 <Canvas of={Stories.Groups} />
 <Canvas of={Stories.Bubbles} />
@@ -41,13 +41,13 @@ A point per record on two value axes: where each thing sits on two measures at o
 
 ## States
 
-| State    | What changes                                                                                                                       |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Hover    | The tooltip at the point. No cursor band, since there is no category.                                                              |
-| Isolated | A group hidden from the Frame's legend leaves the plot.                                                                            |
+| State    | What changes                                                                                                                                          |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The tooltip at the point. No cursor band, since there is no category.                                                                                 |
+| Isolated | A group hidden from the Frame's legend leaves the plot.                                                                                               |
 | Chosen   | With `onSelect` or `details`: the points take the pointer, a click chooses one, the others dim and the chosen one gains a halo; the card opens on it. |
-| Loading  | Eight skeleton dots on two hairlines, pulsing, at the plot's height.                                                               |
-| Entering | The points arrive over `motion.duration.slow`.                                                                                     |
+| Loading  | Eight skeleton dots on two hairlines, pulsing, at the plot's height.                                                                                  |
+| Entering | The points arrive over `motion.duration.slow`.                                                                                                        |
 
 <Canvas of={Stories.Details} />
 
@@ -70,15 +70,15 @@ A point per record on two value axes: where each thing sits on two measures at o
 
 ## Style
 
-| Element   | Token                                                                                     |
-| --------- | ----------------------------------------------------------------------------------------- |
-| Point     | `color.chart.<tone>` · 8px · 2px `elevation.surface` ring · 24px hit area                 |
-| Bubble    | The same at 70% · area from 64 to 900 square pixels                                       |
-| Grid      | `color.border` · 1px both ways                                                            |
-| Reference | `color.chart.neutral` · 1px dashed 4 3                                                    |
-| Chosen    | The point's tone: a halo 8px wider at 20%                                                 |
-| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                           |
-| Skeleton  | `color.skeleton` dots on `color.border` hairlines                                         |
+| Element   | Token                                                                     |
+| --------- | ------------------------------------------------------------------------- |
+| Point     | `color.chart.<tone>` · 8px · 2px `elevation.surface` ring · 24px hit area |
+| Bubble    | The same at 70% · area from 64 to 900 square pixels                       |
+| Grid      | `color.border` · 1px both ways                                            |
+| Reference | `color.chart.neutral` · 1px dashed 4 3                                    |
+| Chosen    | The point's tone: a halo 8px wider at 20%                                 |
+| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                           |
+| Skeleton  | `color.skeleton` dots on `color.border` hairlines                         |
 
 ## Accessibility
 

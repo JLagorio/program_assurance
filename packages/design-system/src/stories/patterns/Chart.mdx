@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../patterns";
+import { Chart } from "../..";
 import * as Stories from "./Chart.stories";
 
 <Meta of={Stories} />
@@ -15,52 +15,52 @@ Data drawn on the chart tokens. `Chart` is the Frame: the figure that names a pl
 
 The data's job picks the kind, and sometimes the right kind is not a chart: one number is a [Stat](?path=/docs/components-stat--docs), one ratio against a limit is a [Progress](?path=/docs/components-progress--docs) bar, and more than seven classes that all carry meaning is a [Table](?path=/docs/components-table--docs).
 
-| The reader must                                 | Part                                                                 | Colour job                                         |
-| ----------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------- |
-| Compare sizes across categories                 | [`Chart.Bar`](?path=/docs/patterns-chart-bar--docs)                | One hue; `horizontal` for long names               |
-| See parts of each whole                         | `Chart.Bar` stacked                                                  | Status tones, or the categorical set               |
-| Read actual against planned                     | `Chart.Bar` with `target`                                            | The series' tone; the target is ink                |
-| See when things happen                          | `Chart.Bar` horizontal with `[from, to]` values                      | One hue                                            |
-| Follow a trend                                  | [`Chart.Line`](?path=/docs/patterns-chart-line--docs)              | `brand`, or a tone per series                      |
-| Follow parts of a whole over time               | [`Chart.Area`](?path=/docs/patterns-chart-area--docs) stacked      | Status tones, or the categorical set               |
-| See one number against its whole                | [`Chart.Donut`](?path=/docs/patterns-chart-donut--docs)            | The parts' tones on the track                      |
-| Read a score against a scale                    | `Chart.Donut` `arc="half"`                                           | The tone the score earns                           |
-| See a trend beside a number                     | [`Chart.Sparkline`](?path=/docs/patterns-chart-sparkline--docs)    | One tone                                           |
-| Place things on two measures                    | [`Chart.Scatter`](?path=/docs/patterns-chart-scatter--docs)        | `brand`, or at most three groups                   |
-| See how a total splits, and splits again        | [`Chart.Treemap`](?path=/docs/patterns-chart-treemap--docs)        | The categorical set, one hue per branch            |
-| Read how much across two dimensions             | [`Chart.Heatmap`](?path=/docs/patterns-chart-heatmap--docs)        | `sequential`: one hue, light to dark               |
-| Read above and below across two dimensions      | `Chart.Heatmap` `scale="diverging"`                                  | Two hues around grey                               |
-| Read status by place                            | `Chart.Heatmap` with a tone function                                 | The Badge's fills, values printed                  |
+| The reader must                            | Part                                                            | Colour job                              |
+| ------------------------------------------ | --------------------------------------------------------------- | --------------------------------------- |
+| Compare sizes across categories            | [`Chart.Bar`](?path=/docs/patterns-chart-bar--docs)             | One hue; `horizontal` for long names    |
+| See parts of each whole                    | `Chart.Bar` stacked                                             | Status tones, or the categorical set    |
+| Read actual against planned                | `Chart.Bar` with `target`                                       | The series' tone; the target is ink     |
+| See when things happen                     | `Chart.Bar` horizontal with `[from, to]` values                 | One hue                                 |
+| Follow a trend                             | [`Chart.Line`](?path=/docs/patterns-chart-line--docs)           | `brand`, or a tone per series           |
+| Follow parts of a whole over time          | [`Chart.Area`](?path=/docs/patterns-chart-area--docs) stacked   | Status tones, or the categorical set    |
+| See one number against its whole           | [`Chart.Donut`](?path=/docs/patterns-chart-donut--docs)         | The parts' tones on the track           |
+| Read a score against a scale               | `Chart.Donut` `arc="half"`                                      | The tone the score earns                |
+| See a trend beside a number                | [`Chart.Sparkline`](?path=/docs/patterns-chart-sparkline--docs) | One tone                                |
+| Place things on two measures               | [`Chart.Scatter`](?path=/docs/patterns-chart-scatter--docs)     | `brand`, or at most three groups        |
+| See how a total splits, and splits again   | [`Chart.Treemap`](?path=/docs/patterns-chart-treemap--docs)     | The categorical set, one hue per branch |
+| Read how much across two dimensions        | [`Chart.Heatmap`](?path=/docs/patterns-chart-heatmap--docs)     | `sequential`: one hue, light to dark    |
+| Read above and below across two dimensions | `Chart.Heatmap` `scale="diverging"`                             | Two hues around grey                    |
+| Read status by place                       | `Chart.Heatmap` with a tone function                            | The Badge's fills, values printed       |
 
 Not built, and why: no pie (a ring with the number in the middle says more, and a two-slice pie is a Stat); no second value axis (two measures of different scale are two charts, or one indexed; a dual axis invents a correlation); no gauge with a needle (the half ring reads the same and its number is text); no radar, boxplot, histogram, lollipop, alluvial, word cloud, circle pack or map (none of the four products has asked, and a histogram is a bar chart of bins the data layer makes); no zoom, brush or export toolbar (a range is a control in the Frame's `actions`, a drill-down is the Frame's `path`, and export is the register's).
 
 ## Anatomy
 
-| Part        | What it is                                                                                                                                                              |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Title       | `font.body` medium in `color.text`, a noun phrase: what the chart shows. It names the plot to a screen reader.                                                           |
-| Description | `font.body.small` in `color.text.subtle`, one line under the title: the period, the unit, the source.                                                                   |
-| Path        | A [Breadcrumb](?path=/docs/components-breadcrumb--docs) under the description while a drill-down is open: every level so far, every crumb but the last a way back.      |
+| Part        | What it is                                                                                                                                                                                                                                    |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Title       | `font.body` medium in `color.text`, a noun phrase: what the chart shows. It names the plot to a screen reader.                                                                                                                                |
+| Description | `font.body.small` in `color.text.subtle`, one line under the title: the period, the unit, the source.                                                                                                                                         |
+| Path        | A [Breadcrumb](?path=/docs/components-breadcrumb--docs) under the description while a drill-down is open: every level so far, every crumb but the last a way back.                                                                            |
 | Legend      | Swatch and label per series, `font.body.small` in `color.text.subtle`, at the end of the header. A square for a fill, a stroke for a line, a dot for a point. Present for two or more series; a single series needs none, the title names it. |
-| Actions     | Controls at the end of the header: a range, a filter, a Retry. Then the tools: the Table toggle, the Download menu (the table twin as CSV, the plot as PNG), the Expand button. |
-| Plot        | The part's marks on a hairline grid. Ticks are `font.body.xsmall` in `color.text.subtlest`; grid lines and the axis line are `color.border`, solid, 1px. Focusable when named, with the kit's focus ring on the keyboard only. |
-| Tooltip     | The overlay surface. The category first, then every series at that point: the name, then the value in `font.body.small` medium, keyed by the mark's swatch. A stack adds its total. |
-| Card        | The details on a chosen mark: a Popover anchored to it, the kit's head (swatch, name, category, value; or every series at a category), then whatever the caller adds.   |
-| Table       | The same numbers as a [Table](?path=/docs/components-table--docs), one toggle away: the category column, then a column per series.                                      |
+| Actions     | Controls at the end of the header: a range, a filter, a Retry. Then the tools: the Table toggle, the Download menu (the table twin as CSV, the plot as PNG), the Expand button.                                                               |
+| Plot        | The part's marks on a hairline grid. Ticks are `font.body.xsmall` in `color.text.subtlest`; grid lines and the axis line are `color.border`, solid, 1px. Focusable when named, with the kit's focus ring on the keyboard only.                |
+| Tooltip     | The overlay surface. The category first, then every series at that point: the name, then the value in `font.body.small` medium, keyed by the mark's swatch. A stack adds its total.                                                           |
+| Card        | The details on a chosen mark: a Popover anchored to it, the kit's head (swatch, name, category, value; or every series at a category), then whatever the caller adds.                                                                         |
+| Table       | The same numbers as a [Table](?path=/docs/components-table--docs), one toggle away: the category column, then a column per series.                                                                                                            |
 
 ## Variants
 
-| Variant                     | Use                                                                                                                    |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `Chart` (the Frame)         | Every chart on a page. Title, description, legend, actions, the states, the path, the table twin, the legend's interaction. |
-| `legend="top"`, `"bottom"`, `"none"` | The legend at the end of the header (the default for two or more series), under the plot when the header is busy, or nowhere for one series. |
-| `path`                      | The Frame of a drill-down: the levels so far as crumbs, the last being the current one.                                |
-| `download`, `expandable`    | The tools: a Download menu with the table twin as CSV and the plot as a PNG at twice the pixel density; an Expand button that opens the same chart in a large Dialog. |
-| `columns`                   | Columns for the table twin and the CSV beyond the series, each a key in the datum: a name beside the category (`place: "before"`), a total, a share, an owner after the series. Facts the plot does not draw, so the twin is the record's table and not only the plot's. |
-| `syncId`                    | Charts that share their hover: small multiples, one hover across them, on one `domain`.                               |
-| `texture`                   | Every series wears a pattern as well as its colour, in the plot, the legend, the tooltip and the card.                 |
-| `Chart.Legend`              | The key on its own, outside a Frame: beside a Donut, under a stacked bar. Inside a Frame it is the interactive one.     |
-| The parts                   | One per kind, each on its own page. A part inside the Frame inherits its name, its formats, its loading state and its legend's state. |
+| Variant                              | Use                                                                                                                                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Chart` (the Frame)                  | Every chart on a page. Title, description, legend, actions, the states, the path, the table twin, the legend's interaction.                                                                                                                                              |
+| `legend="top"`, `"bottom"`, `"none"` | The legend at the end of the header (the default for two or more series), under the plot when the header is busy, or nowhere for one series.                                                                                                                             |
+| `path`                               | The Frame of a drill-down: the levels so far as crumbs, the last being the current one.                                                                                                                                                                                  |
+| `download`, `expandable`             | The tools: a Download menu with the table twin as CSV and the plot as a PNG at twice the pixel density; an Expand button that opens the same chart in a large Dialog.                                                                                                    |
+| `columns`                            | Columns for the table twin and the CSV beyond the series, each a key in the datum: a name beside the category (`place: "before"`), a total, a share, an owner after the series. Facts the plot does not draw, so the twin is the record's table and not only the plot's. |
+| `syncId`                             | Charts that share their hover: small multiples, one hover across them, on one `domain`.                                                                                                                                                                                  |
+| `texture`                            | Every series wears a pattern as well as its colour, in the plot, the legend, the tooltip and the card.                                                                                                                                                                   |
+| `Chart.Legend`                       | The key on its own, outside a Frame: beside a Donut, under a stacked bar. Inside a Frame it is the interactive one.                                                                                                                                                      |
+| The parts                            | One per kind, each on its own page. A part inside the Frame inherits its name, its formats, its loading state and its legend's state.                                                                                                                                    |
 
 <Canvas of={Stories.Drilldown} />
 <Canvas of={Stories.Details} />
@@ -86,16 +86,16 @@ The width is the container's. Below about 480px the header wraps: the legend and
 
 ## States
 
-| State      | What changes                                                                                                                                                           |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| State      | What changes                                                                                                                                                                                                                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Hover      | The tooltip, for every series at that point; a hovered bar and a hovered slice take the tone's `hovered` step, a slice grows 2px, a line's marker appears. Synced charts show their tooltips together. A hovered legend item dims the other series to `opacity.disabled`, faded over `motion.duration.fast`. |
-| Isolated   | A clicked legend item hides its series; the swatch hollows. Clicking the last visible one shows everything again.                                                       |
-| Chosen     | A clicked mark, or the category Enter chose on the focused plot: the other marks dim, the card opens on it. Escape or a click outside closes the card and focus returns to the plot. |
-| Loading    | The plot's own silhouette in `color.skeleton`, pulsing, at the plot's height: columns, a line, a ring, dots, tiles. The header stays.                                   |
-| Refreshing | The last plot stays, dimmed to `opacity.loading`, with a Spinner beside the title. For a refetch, so the reader keeps what they had.                                    |
-| Empty      | A dashed frame at the plot's height: "Nothing to show yet" and one line of why.                                                                                        |
-| Error      | The same frame, the title in `color.text.danger`, and a Retry in `actions`.                                                                                            |
-| Table      | The Table toggle swaps the plot for the same numbers as a Table; the legend and the actions stay.                                                                      |
+| Isolated   | A clicked legend item hides its series; the swatch hollows. Clicking the last visible one shows everything again.                                                                                                                                                                                            |
+| Chosen     | A clicked mark, or the category Enter chose on the focused plot: the other marks dim, the card opens on it. Escape or a click outside closes the card and focus returns to the plot.                                                                                                                         |
+| Loading    | The plot's own silhouette in `color.skeleton`, pulsing, at the plot's height: columns, a line, a ring, dots, tiles. The header stays.                                                                                                                                                                        |
+| Refreshing | The last plot stays, dimmed to `opacity.loading`, with a Spinner beside the title. For a refetch, so the reader keeps what they had.                                                                                                                                                                         |
+| Empty      | A dashed frame at the plot's height: "Nothing to show yet" and one line of why.                                                                                                                                                                                                                              |
+| Error      | The same frame, the title in `color.text.danger`, and a Retry in `actions`.                                                                                                                                                                                                                                  |
+| Table      | The Table toggle swaps the plot for the same numbers as a Table; the legend and the actions stay.                                                                                                                                                                                                            |
 
 <Canvas of={Stories.States} />
 
@@ -137,13 +137,13 @@ Marks arrive once, over `motion.duration.slow` (400ms) on the standard curve: ba
 
 Every series names a `color.chart.*` token through its `tone`. A status tone on a chart is data, the same rule as a Badge or a Stat, and a series that is not a status never wears one.
 
-| Tone                                            | Use                                                                                                     |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `success`, `warning`, `danger`, `information`   | The series carries a status: satisfied, at risk, overdue, in progress.                                  |
-| `brand`                                         | The one series the reader is asked to look at.                                                          |
-| `neutral`                                       | Context: totals, the remainder, last period, the plan. Also a target line and Other.                    |
-| `categorical.1` to `categorical.6`              | Categories with no status, in this order: blue, orange, teal, red, purple, green. The default when a series has no tone. |
-| `categorical.7`                                 | Other: the fold for everything past the sixth. Grey.                                                    |
+| Tone                                          | Use                                                                                                                      |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `success`, `warning`, `danger`, `information` | The series carries a status: satisfied, at risk, overdue, in progress.                                                   |
+| `brand`                                       | The one series the reader is asked to look at.                                                                           |
+| `neutral`                                     | Context: totals, the remainder, last period, the plan. Also a target line and Other.                                     |
+| `categorical.1` to `categorical.6`            | Categories with no status, in this order: blue, orange, teal, red, purple, green. The default when a series has no tone. |
+| `categorical.7`                               | Other: the fold for everything past the sixth. Grey.                                                                     |
 
 The order is not cosmetic. It was chosen by enumerating every order of the six hues and keeping the ones whose neighbours stay apart under deutan and protan vision: the worst neighbouring pair sits at ΔE 12.7 in both modes, above the floor of 8, and the first three validate against each other in every pairing, which is why a Scatter takes three groups at most. Assign in order, never by rank: a filter that hides a series must not repaint the survivors. Past six, fold the tail into Other, split into small charts, or make a table; never a seventh hue.
 
@@ -164,24 +164,24 @@ Two more scales exist for a Heatmap: `color.chart.sequential.1` to `5`, blue fro
 
 ## Style
 
-| Element      | Token                                                                                                                              |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Series       | `color.chart.<tone>` · the same step in both modes                                                                                 |
-| Grid, axis   | `color.border` · 1px solid                                                                                                         |
-| Ticks        | `font.body.xsmall` · `color.text.subtlest` · tabular                                                                               |
-| Axis titles  | `font.body.xsmall` · `color.text.subtle`                                                                                           |
-| Labels       | `font.body.xsmall` · `color.text.subtle` · tabular                                                                                 |
-| Tooltip      | `elevation.surface.overlay` · `color.border` · `radius.medium` · `elevation.shadow.overlay` · `space.150` inline, `space.100` block |
+| Element      | Token                                                                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Series       | `color.chart.<tone>` · the same step in both modes                                                                                                   |
+| Grid, axis   | `color.border` · 1px solid                                                                                                                           |
+| Ticks        | `font.body.xsmall` · `color.text.subtlest` · tabular                                                                                                 |
+| Axis titles  | `font.body.xsmall` · `color.text.subtle`                                                                                                             |
+| Labels       | `font.body.xsmall` · `color.text.subtle` · tabular                                                                                                   |
+| Tooltip      | `elevation.surface.overlay` · `color.border` · `radius.medium` · `elevation.shadow.overlay` · `space.150` inline, `space.100` block                  |
 | Card         | `elevation.surface.overlay` · `color.border` · `radius.large` · `elevation.shadow.overlay` · `space.150` · 280px · the value in `font.heading.small` |
-| Hover cursor | `color.background.neutral.subtle.hovered` behind a bar · `color.border.bold` across a line chart                                   |
-| Reference    | `color.chart.<tone>` · 1px dashed 4 3 · label `font.body.xsmall` in `color.text.subtlest`, above the plot for a vertical line       |
-| Hovered mark | `color.chart.<tone>.hovered`: one step darker in light, one lighter in dark                                                        |
-| Texture      | The series colour at 30% under 1.5px marks in the colour · 8px repeat · `radius` 2px on a swatch                                    |
-| Dimmed       | `opacity.disabled`, over `motion.duration.fast`                                                                                    |
-| Refreshing   | `opacity.loading`                                                                                                                  |
-| Skeleton     | `color.skeleton` and `color.skeleton.subtle`, pulsing                                                                              |
-| Focus        | `color.border.focused` on the plot, keyboard only                                                                                  |
-| Motion       | `motion.duration.slow` on `motion.easing.standard` for the marks · `motion.duration.fast` for the tooltip and the dimming          |
+| Hover cursor | `color.background.neutral.subtle.hovered` behind a bar · `color.border.bold` across a line chart                                                     |
+| Reference    | `color.chart.<tone>` · 1px dashed 4 3 · label `font.body.xsmall` in `color.text.subtlest`, above the plot for a vertical line                        |
+| Hovered mark | `color.chart.<tone>.hovered`: one step darker in light, one lighter in dark                                                                          |
+| Texture      | The series colour at 30% under 1.5px marks in the colour · 8px repeat · `radius` 2px on a swatch                                                     |
+| Dimmed       | `opacity.disabled`, over `motion.duration.fast`                                                                                                      |
+| Refreshing   | `opacity.loading`                                                                                                                                    |
+| Skeleton     | `color.skeleton` and `color.skeleton.subtle`, pulsing                                                                                                |
+| Focus        | `color.border.focused` on the plot, keyboard only                                                                                                    |
+| Motion       | `motion.duration.slow` on `motion.easing.standard` for the marks · `motion.duration.fast` for the tooltip and the dimming                            |
 
 Every chart colour clears 3:1 on `elevation.surface` in both modes. Text never wears a chart colour: values, labels and legends stay in the text tokens, and a coloured mark beside them carries identity. The one place text sits on a chart colour is a status Heatmap cell, which is the Badge's fill and text, already in the contrast test.
 

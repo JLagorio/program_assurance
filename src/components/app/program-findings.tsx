@@ -1,37 +1,3 @@
-import {
-  FieldLabel,
-  FieldDescription,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Badge,
-  Block,
-  Box,
-  Button,
-  DataTable,
-  defineColumns,
-  Fact,
-  Field,
-  Grid,
-  Id,
-  Inline,
-  Input,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  Stack,
-  Text,
-  Textarea,
-  TextLink,
-  toast,
-  useDataTable,
-  type Preset,
-} from "@ledger/design-system";
 import { EvidencePreview } from "@/components/app/program-evidence";
 import { NewPoamSheet, PoamRecordSheet } from "@/components/app/program-poams";
 import {
@@ -57,6 +23,40 @@ import {
 import { scopeById, scopesForProgram } from "@/lib/scopes";
 import { severityTone, statusTone, type FindingSeverity } from "@/lib/spine";
 import { resolvedObjectiveResult, runById } from "@/lib/test-execution";
+import {
+  Badge,
+  Box,
+  Button,
+  DataTable,
+  defineColumns,
+  Fact,
+  Field,
+  FieldDescription,
+  FieldLabel,
+  Grid,
+  Id,
+  Inline,
+  Input,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  Stack,
+  Text,
+  Textarea,
+  TextLink,
+  toast,
+  useDataTable,
+  type Preset,
+} from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useCallback, useId, useMemo, useState } from "react";
@@ -951,7 +951,7 @@ function FindingEditor({
                     onChange={(event) => setTitle(event.target.value)}
                   />
                 </Field>
-                <Block title="Observed condition">
+                <Section title="Observed condition">
                   <Field>
                     <FieldLabel
                       id={`${fieldId}-observed-condition-15-label`}
@@ -1000,7 +1000,7 @@ function FindingEditor({
                       </TextLink>
                     ))}
                   </Inline>
-                </Block>
+                </Section>
                 <Grid templateColumns="1fr 1fr" gap="space.150">
                   <Field>
                     <FieldLabel id={`${fieldId}-owner-16-label`} htmlFor={`${fieldId}-owner-16`}>
@@ -1078,7 +1078,7 @@ function FindingEditor({
                     onChange={(event) => setMitigation(event.target.value)}
                   />
                 </Field>
-                <Block title="Supporting evidence" count={evidenceIds.length}>
+                <Section title="Supporting evidence" count={evidenceIds.length}>
                   {evidenceIds.length ? (
                     <Stack space="space.100">
                       {evidenceIds.map((id) => (
@@ -1153,8 +1153,8 @@ function FindingEditor({
                     Assessed by {finding.assessment.assessedBy} ·{" "}
                     {findingDate(finding.assessment.assessedOn)}
                   </p>
-                </Block>
-                <Block title="Remediation commitment">
+                </Section>
+                <Section title="Remediation commitment">
                   {finding.poam ? (
                     <Button
                       type="button"
@@ -1175,8 +1175,8 @@ function FindingEditor({
                       Create POA&M from finding
                     </Button>
                   )}
-                </Block>
-                <Block title="Retest and closure" count={finding.retests?.length ?? 0}>
+                </Section>
+                <Section title="Retest and closure" count={finding.retests?.length ?? 0}>
                   {finding.sourceStatus === "closed" && !finding.retests?.length ? (
                     <Badge tone="warning">Imported closure · passing retest not recorded</Badge>
                   ) : null}
@@ -1352,7 +1352,7 @@ function FindingEditor({
                       </Button>
                     </Stack>
                   ) : null}
-                </Block>
+                </Section>
               </Stack>
             </form>
           </Box>

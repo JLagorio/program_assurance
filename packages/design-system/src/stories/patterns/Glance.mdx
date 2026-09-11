@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Glance } from "../../patterns";
+import { Glance } from "../..";
 import * as Stories from "./Glance.stories";
 
 <Meta of={Stories} />
@@ -13,12 +13,12 @@ A compact record summary: an id and status, a title, a meta line and selected fa
 
 ## Anatomy
 
-| Part | Behavior |
-| --- | --- |
+| Part          | Behavior                                                                              |
+| ------------- | ------------------------------------------------------------------------------------- |
 | Id and status | The id uses small subtle text; the optional status sits at the other end of the line. |
-| Title | Medium body text, clamped to two lines. |
-| Meta | Small subtle text for kind, path, owner or other context. |
-| Facts | Up to four KeyValue rows with 88px labels. Additional facts are omitted. |
+| Title         | Medium body text, clamped to two lines.                                               |
+| Meta          | Small subtle text for kind, path, owner or other context.                             |
+| Facts         | Up to four KeyValue rows with 88px labels. Additional facts are omitted.              |
 
 Use a Badge or Indicator with a text label for status. Select facts that help readers decide whether to open the record; keep any essential information available at the destination.
 
@@ -42,4 +42,4 @@ When rendered on a page, Glance's text reads in order: id, status, title, meta, 
 
 ## Related
 
-[HoverCard](?path=/docs/components-hovercard--docs) · [PreviewSheet](?path=/docs/patterns-previewsheet--docs) · [KeyValue](?path=/docs/components-keyvalue--docs) · [Pages](?path=/docs/patterns-pages--docs)
+[HoverCard](?path=/docs/components-hovercard--docs) · [PreviewSheet](?path=/docs/patterns-previewsheet--docs) · [KeyValue](?path=/docs/components-keyvalue--docs) · [Pages](?path=/docs/layout-pages--docs)

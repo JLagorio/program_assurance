@@ -1,35 +1,4 @@
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Badge,
-  Box,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Empty,
-  Grid,
-  Inline,
-  Panel,
-  RecordHeader,
-  Section,
-  Shell as DsShell,
-  ShowPage,
-  Stack,
-  TabsList,
-  TabsTrigger,
-  Count,
-  TextLink,
-  Toolbar,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
-import {
   BuildRail,
   BuildTable,
   ChangeRail,
@@ -41,7 +10,6 @@ import {
   RetestSummary,
   UnrecordedChangeNotice,
 } from "@/components/app/baselines";
-import { Shell } from "@/components/app/shell";
 import {
   acknowledgeChange,
   authorizedBuild,
@@ -55,6 +23,41 @@ import { impactOf, retestQueue, setControlTextIndex } from "@/lib/change-impact"
 import { useCompositionGraph } from "@/lib/composition";
 import { programs } from "@/lib/grc-data";
 import { buildControlTextIndex } from "@/lib/sctm";
+import {
+  Badge,
+  Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Grid,
+  Id,
+  Inline,
+  PageHeader,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Shell,
+  Stack,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+  Toolbar,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
 
 const baselineTabs = ["Builds", "Changes", "Impact", "Retest queue"] as const;
 type BaselineTab = (typeof baselineTabs)[number];
@@ -301,254 +304,255 @@ function ProgramBaseline() {
     ) : null;
 
   return (
-    <Shell>
-      <>
-        <ShowPage
-          tab={tab}
-          onTabChange={(value) => go(value as typeof tab)}
-          header={
-            <RecordHeader
-              crumbs={
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to={"/programs"} />}>{"Programs"}</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    render={<Link to={"/programs/$programId"} params={{ programId: program.id }} />}
+                  >
+                    {program.name}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{program.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{`${program.name} — configuration baseline`}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >{`${builds.length} builds · ${changes.length} change records · ${diff.length} pins moved · ${retests.length} re-tests owed`}</Inline>
+          </div>
+          <PageHeader.Actions>
+            <>
+              {unrecorded.length > 0 ? (
+                <Badge variant="secondary" tone="danger">
+                  {unrecorded.length} unrecorded change{unrecorded.length === 1 ? "" : "s"}
+                </Badge>
+              ) : (
+                <Badge variant="secondary" tone="success">
+                  Every movement recorded
+                </Badge>
+              )}
+              <Badge variant="secondary" tone={invalidatedRows.size > 0 ? "warning" : "success"}>
+                {invalidatedRows.size} rows invalidated
+              </Badge>
+              <TextLink
+                size="small"
+                render={<Link to="/programs/$programId/sctm" params={{ programId: program.id }} />}
+              >
+                SCTM
+              </TextLink>
+            </>
+          </PageHeader.Actions>
+        </PageHeader>
+        <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {baselineTabs.map((key) => (
+              <TabsTrigger key={key} value={key}>
+                {key}
+                {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {tab === "Builds" ? (
                 <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to={"/programs"} />}>{"Programs"}</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      render={
-                        <Link to={"/programs/$programId"} params={{ programId: program.id }} />
+                  <Section
+                    title="Configuration baselines"
+                    description={`A determination is only ever true of a configuration. ${
+                      authorized
+                        ? `${authorized.id} is what ${program.id} is authorized to operate; ${
+                            candidate
+                              ? `${candidate.id} is what it is working toward.`
+                              : "no candidate is under test."
+                          }`
+                        : "No build is authorized, so nothing this program claims can be tied to a known configuration."
+                    } Every node in the composition is pinned in both, because a baseline that pins only the interesting parts cannot prove the rest did not move.`}
+                  >
+                    <BuildTable
+                      builds={builds}
+                      selected={selectedBuild?.id ?? null}
+                      onSelect={selectBuild}
+                    />
+                  </Section>
+
+                  {authorized && candidate ? (
+                    <Section
+                      title={`${authorized.id} against ${candidate.id}`}
+                      description={`${diff.length} pins differ between the authorized baseline and the candidate. The diff is mechanical — it compares versions, digests and part numbers and makes no judgement about any of them. What the movement costs is decided one column to the right, by the change record.`}
+                      action={
+                        <span className="tabular-nums font-body-small text-subtle">
+                          {diff.length - unrecorded.length} recorded · {unrecorded.length} not
+                        </span>
                       }
                     >
-                      {program.name}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id={program.id}
-              title={`${program.name} — configuration baseline`}
-              meta={`${builds.length} builds · ${changes.length} change records · ${diff.length} pins moved · ${retests.length} re-tests owed`}
-              actions={
-                <>
-                  {unrecorded.length > 0 ? (
-                    <Badge variant="secondary" tone="danger">
-                      {unrecorded.length} unrecorded change{unrecorded.length === 1 ? "" : "s"}
-                    </Badge>
+                      <Stack className="pt-200" space="space.200">
+                        <UnrecordedChangeNotice
+                          rows={unrecorded}
+                          from={authorized.id}
+                          to={candidate.id}
+                          nodeName={nodeName}
+                        />
+                        <PinDiffTable rows={diff} nodeName={nodeName} />
+                      </Stack>
+                    </Section>
                   ) : (
-                    <Badge variant="secondary" tone="success">
-                      Every movement recorded
-                    </Badge>
+                    <Section title="Baseline comparison">
+                      <Box paddingBlockStart="space.200">
+                        <Empty>
+                          <EmptyHeader>
+                            <EmptyTitle>{"Nothing to compare"}</EmptyTitle>
+                            <EmptyDescription>{`${program.id} has no pair of an authorized baseline and a build under test, so there is no movement to analyse.`}</EmptyDescription>
+                          </EmptyHeader>
+                        </Empty>
+                      </Box>
+                    </Section>
                   )}
-                  <Badge
-                    variant="secondary"
-                    tone={invalidatedRows.size > 0 ? "warning" : "success"}
-                  >
-                    {invalidatedRows.size} rows invalidated
-                  </Badge>
-                  <TextLink
-                    size="small"
-                    render={
-                      <Link to="/programs/$programId/sctm" params={{ programId: program.id }} />
+
+                  {selectedBuild ? (
+                    <Section title={`Parameters in force — ${selectedBuild.id}`}>
+                      <ParameterTable parameters={selectedBuild.parameters} />
+                    </Section>
+                  ) : null}
+                </>
+              ) : null}
+              {tab === "Changes" ? (
+                <>
+                  <Section
+                    title="Change records"
+                    description={`${changes.length} changes proposed against this program's baselines, each carrying a written CM-3(2) security impact analysis. ${containedAll.length} were analysed and contained; ${cascadedAll.length} were found significant and cascaded. The contained ones are not the boring rows — they are the ones that prove the gate is doing work.`}
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {changes.length - live.length} acknowledged
+                      </span>
                     }
                   >
-                    SCTM
-                  </TextLink>
-                </>
-              }
-            />
-          }
-          tabs={
-            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-              {baselineTabs.map((key) => (
-                <TabsTrigger key={key} value={key}>
-                  {key}
-                  {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          }
-        >
-          {tab === "Builds" ? (
-            <>
-              <Section
-                title="Configuration baselines"
-                description={`A determination is only ever true of a configuration. ${
-                  authorized
-                    ? `${authorized.id} is what ${program.id} is authorized to operate; ${
-                        candidate
-                          ? `${candidate.id} is what it is working toward.`
-                          : "no candidate is under test."
-                      }`
-                    : "No build is authorized, so nothing this program claims can be tied to a known configuration."
-                } Every node in the composition is pinned in both, because a baseline that pins only the interesting parts cannot prove the rest did not move.`}
-              >
-                <BuildTable
-                  builds={builds}
-                  selected={selectedBuild?.id ?? null}
-                  onSelect={selectBuild}
-                />
-              </Section>
-
-              {authorized && candidate ? (
-                <Section
-                  title={`${authorized.id} against ${candidate.id}`}
-                  description={`${diff.length} pins differ between the authorized baseline and the candidate. The diff is mechanical — it compares versions, digests and part numbers and makes no judgement about any of them. What the movement costs is decided one column to the right, by the change record.`}
-                  action={
-                    <span className="tabular-nums font-body-small text-subtle">
-                      {diff.length - unrecorded.length} recorded · {unrecorded.length} not
-                    </span>
-                  }
-                >
-                  <Stack className="pt-200" space="space.200">
-                    <UnrecordedChangeNotice
-                      rows={unrecorded}
-                      from={authorized.id}
-                      to={candidate.id}
+                    <ChangeTable
+                      changes={changes}
+                      impacts={impacts}
+                      selected={change?.id ?? null}
+                      onSelect={selectChange}
                       nodeName={nodeName}
                     />
-                    <PinDiffTable rows={diff} nodeName={nodeName} />
-                  </Stack>
-                </Section>
-              ) : (
-                <Section title="Baseline comparison">
-                  <Box paddingBlockStart="space.200">
-                    <Empty>
-                      <EmptyHeader>
-                        <EmptyTitle>{"Nothing to compare"}</EmptyTitle>
-                        <EmptyDescription>{`${program.id} has no pair of an authorized baseline and a build under test, so there is no movement to analyse.`}</EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  </Box>
-                </Section>
-              )}
+                  </Section>
 
-              {selectedBuild ? (
-                <Section title={`Parameters in force — ${selectedBuild.id}`}>
-                  <ParameterTable parameters={selectedBuild.parameters} />
-                </Section>
+                  <Section title="What the gate decided">
+                    <Grid
+                      className="pt-200"
+                      gap="space.150"
+                      templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
+                    >
+                      <Box
+                        className="rounded-large border border-default bg-surface-sunken"
+                        paddingInline="space.200"
+                        paddingBlock="space.150"
+                      >
+                        <Inline space="space.100" alignBlock="baseline">
+                          <span className="tabular-nums font-heading-small font-semibold">
+                            {containedAll.length}
+                          </span>
+                          <span className="font-body-small font-medium">contained</span>
+                        </Inline>
+                        <p className="pt-075 font-body-small text-subtle">
+                          Analysed as no impact or administrative. Nothing was invalidated, no
+                          evidence was superseded and no re-test is owed — and the written reason
+                          for each is on the record, where a package reviewer can argue with it.
+                        </p>
+                      </Box>
+                      <Box
+                        className="rounded-large border border-warning-subtle bg-warning"
+                        paddingInline="space.200"
+                        paddingBlock="space.150"
+                      >
+                        <Inline space="space.100" alignBlock="baseline">
+                          <span className="tabular-nums font-heading-small font-semibold text-warning">
+                            {cascadedAll.length}
+                          </span>
+                          <span className="font-body-small font-medium">cascaded</span>
+                        </Inline>
+                        <p className="pt-075 font-body-small text-subtle">
+                          Analysed as significant. The {cascaded.length} still live invalidate{" "}
+                          {invalidatedRows.size} requirement rows — {withdrawnRows.size}{" "}
+                          determinations withdrawn outright and {retainedRows} deficiencies and
+                          scoping decisions left standing with a re-test owed — and flag{" "}
+                          {suspectRows.size} further rows for the assessor, across {retests.length}{" "}
+                          re-tests. Significant is caution, not failure: a program that never
+                          records one is not doing impact analysis.
+                        </p>
+                      </Box>
+                    </Grid>
+                  </Section>
+                </>
               ) : null}
-            </>
-          ) : null}
-
-          {tab === "Changes" ? (
-            <>
-              <Section
-                title="Change records"
-                description={`${changes.length} changes proposed against this program's baselines, each carrying a written CM-3(2) security impact analysis. ${containedAll.length} were analysed and contained; ${cascadedAll.length} were found significant and cascaded. The contained ones are not the boring rows — they are the ones that prove the gate is doing work.`}
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {changes.length - live.length} acknowledged
-                  </span>
-                }
-              >
-                <ChangeTable
-                  changes={changes}
-                  impacts={impacts}
-                  selected={change?.id ?? null}
-                  onSelect={selectChange}
-                  nodeName={nodeName}
-                />
-              </Section>
-
-              <Section title="What the gate decided">
-                <Grid
-                  className="pt-200"
-                  gap="space.150"
-                  templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
-                >
-                  <Box
-                    className="rounded-large border border-default bg-surface-sunken"
-                    paddingInline="space.200"
-                    paddingBlock="space.150"
+              {tab === "Impact" ? (
+                <>
+                  {picker}
+                  {change ? (
+                    <ImpactView
+                      change={change}
+                      impact={impact}
+                      nodeName={nodeName}
+                      onAcknowledge={setAck}
+                    />
+                  ) : (
+                    <Section title="Change impact">
+                      <Box paddingBlockStart="space.200">
+                        <Empty>
+                          <EmptyHeader>
+                            <EmptyTitle>{"No change to analyse"}</EmptyTitle>
+                            <EmptyDescription>{`${program.id} carries no change records, so there is no security impact analysis to read and nothing for the cascade to act on.`}</EmptyDescription>
+                          </EmptyHeader>
+                        </Empty>
+                      </Box>
+                    </Section>
+                  )}
+                </>
+              ) : null}
+              {tab === "Retest queue" ? (
+                <>
+                  <Section
+                    title="Re-test queue"
+                    description={`Everything the ${cascaded.length} live significant change${
+                      cascaded.length === 1 ? "" : "s"
+                    } put back on the assessor, de-duplicated to distinct requirement, component and method. Acknowledging a change removes its rows from here; it is the operator saying the work was done, and it fabricates no evidence.`}
                   >
-                    <Inline space="space.100" alignBlock="baseline">
-                      <span className="tabular-nums font-heading-small font-semibold">
-                        {containedAll.length}
-                      </span>
-                      <span className="font-body-small font-medium">contained</span>
-                    </Inline>
-                    <p className="pt-075 font-body-small text-subtle">
-                      Analysed as no impact or administrative. Nothing was invalidated, no evidence
-                      was superseded and no re-test is owed — and the written reason for each is on
-                      the record, where a package reviewer can argue with it.
-                    </p>
-                  </Box>
-                  <Box
-                    className="rounded-large border border-warning-subtle bg-warning"
-                    paddingInline="space.200"
-                    paddingBlock="space.150"
-                  >
-                    <Inline space="space.100" alignBlock="baseline">
-                      <span className="tabular-nums font-heading-small font-semibold text-warning">
-                        {cascadedAll.length}
-                      </span>
-                      <span className="font-body-small font-medium">cascaded</span>
-                    </Inline>
-                    <p className="pt-075 font-body-small text-subtle">
-                      Analysed as significant. The {cascaded.length} still live invalidate{" "}
-                      {invalidatedRows.size} requirement rows — {withdrawnRows.size} determinations
-                      withdrawn outright and {retainedRows} deficiencies and scoping decisions left
-                      standing with a re-test owed — and flag {suspectRows.size} further rows for
-                      the assessor, across {retests.length} re-tests. Significant is caution, not
-                      failure: a program that never records one is not doing impact analysis.
-                    </p>
-                  </Box>
-                </Grid>
-              </Section>
-            </>
-          ) : null}
+                    <Box paddingBlockStart="space.200">
+                      <RetestSummary items={retests} />
+                    </Box>
+                  </Section>
 
-          {tab === "Impact" ? (
-            <>
-              {picker}
-              {change ? (
-                <ImpactView
-                  change={change}
-                  impact={impact}
-                  nodeName={nodeName}
-                  onAcknowledge={setAck}
-                />
-              ) : (
-                <Section title="Change impact">
-                  <Box paddingBlockStart="space.200">
-                    <Empty>
-                      <EmptyHeader>
-                        <EmptyTitle>{"No change to analyse"}</EmptyTitle>
-                        <EmptyDescription>{`${program.id} carries no change records, so there is no security impact analysis to read and nothing for the cascade to act on.`}</EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  </Box>
-                </Section>
-              )}
-            </>
-          ) : null}
-
-          {tab === "Retest queue" ? (
-            <>
-              <Section
-                title="Re-test queue"
-                description={`Everything the ${cascaded.length} live significant change${
-                  cascaded.length === 1 ? "" : "s"
-                } put back on the assessor, de-duplicated to distinct requirement, component and method. Acknowledging a change removes its rows from here; it is the operator saying the work was done, and it fabricates no evidence.`}
-              >
-                <Box paddingBlockStart="space.200">
-                  <RetestSummary items={retests} />
-                </Box>
-              </Section>
-
-              <Section title="Work outstanding">
-                <RetestQueueTable items={retests} nodeName={nodeName} />
-              </Section>
-            </>
-          ) : null}
-        </ShowPage>
-        {railBody !== null ? (
-          <DsShell.Panel label="Details">
-            <DsShell.Panel.Splitter label="Resize details" />
-            <Panel flush>{railBody}</Panel>
-          </DsShell.Panel>
-        ) : null}
-      </>
-    </Shell>
+                  <Section title="Work outstanding">
+                    <RetestQueueTable items={retests} nodeName={nodeName} />
+                  </Section>
+                </>
+              ) : null}
+            </Stack>
+          </TabsContent>
+        </Tabs>
+      </Stack>
+      {(search.change || search.build) && railBody !== null ? (
+        <Shell.Panel label="Details" onClose={() => navigate({ search: { tab }, replace: true })}>
+          {railBody}
+        </Shell.Panel>
+      ) : null}
+    </>
   );
 }

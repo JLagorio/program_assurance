@@ -1,11 +1,9 @@
 import {
   Badge,
-  Block,
   Box,
   Button,
   Count,
   Id,
-  IndexPage,
   Indicator,
   Inline,
   Item,
@@ -29,7 +27,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import { RevisionActions, RevisionReview } from "@/components/app/control-set-revisions";
-import { Shell } from "@/components/app/shell";
 import {
   decidedRevisions,
   openStates,
@@ -111,8 +108,13 @@ function ScopeApprovals() {
   const reviewedScope = reviewed ? scopeById.get(reviewed.scope) : null;
 
   return (
-    <Shell>
-      <IndexPage header={<PageHeader title="Control-set approvals" />}>
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <div className="min-w-0">
+            <PageHeader.Title>{"Control-set approvals"}</PageHeader.Title>
+          </div>
+        </PageHeader>
         <ToggleGroup<(typeof filters)[number]>
           aria-label="State"
           size="sm"
@@ -227,8 +229,7 @@ function ScopeApprovals() {
             </tbody>
           </Table>
         </Section>
-
-        <Block title="Requirements" count={needing.length}>
+        <Section title="Requirements" count={needing.length}>
           <Table>
             <thead>
               <tr>
@@ -287,8 +288,7 @@ function ScopeApprovals() {
               ))}
             </tbody>
           </Table>
-        </Block>
-
+        </Section>
         <Section title="Decision notes">
           <Item.Group empty="No decision has carried a note yet.">
             {all
@@ -305,8 +305,7 @@ function ScopeApprovals() {
               ))}
           </Item.Group>
         </Section>
-      </IndexPage>
-
+      </Stack>
       <Sheet
         open={!!reviewed}
         onOpenChange={(next) => {
@@ -365,6 +364,6 @@ function ScopeApprovals() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
-    </Shell>
+    </>
   );
 }

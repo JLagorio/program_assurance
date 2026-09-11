@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../patterns";
+import { Chart } from "../..";
 import * as Stories from "./ChartArea.stories";
 
 <Meta of={Stories} />
@@ -13,21 +13,21 @@ A [Line](?path=/docs/patterns-chart-line--docs) with a wash under it: the hue at
 
 ## Anatomy
 
-| Part    | What it is                                                                                                    |
-| ------- | ------------------------------------------------------------------------------------------------------------- |
-| Line    | 2px in the series' tone, round joins, as on a Line.                                                           |
-| Wash    | The series' tone at 12% from the line to the baseline; in a stack, from the line to the series below. With `texture`, the series' pattern in its colour instead. |
-| Marker  | 8px ringed, on hover, or on every point with `dots`.                                                          |
-| The rest | End labels, bands, references, gaps and axes as on a Line.                                                   |
+| Part     | What it is                                                                                                                                                       |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Line     | 2px in the series' tone, round joins, as on a Line.                                                                                                              |
+| Wash     | The series' tone at 12% from the line to the baseline; in a stack, from the line to the series below. With `texture`, the series' pattern in its colour instead. |
+| Marker   | 8px ringed, on hover, or on every point with `dots`.                                                                                                             |
+| The rest | End labels, bands, references, gaps and axes as on a Line.                                                                                                       |
 
 ## Variants
 
-| Variant     | Use                                                                                                          |
-| ----------- | ------------------------------------------------------------------------------------------------------------ |
-| One series  | A count whose size matters: open findings, month by month. The wash gives it weight.                         |
-| `stacked`   | Parts of a whole over time: open and closed as parts of the month's total. The tooltip totals the stack.      |
-| `texture`   | Each wash its pattern: four assessors stacked read apart in print.                                           |
-| `curve="smooth"`, `labels="end"`, `baseline="auto"`, `domain`, `scale="time"`, `delta`, `bands`, `reference` | As on a Line.       |
+| Variant                                                                                                      | Use                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| One series                                                                                                   | A count whose size matters: open findings, month by month. The wash gives it weight.                     |
+| `stacked`                                                                                                    | Parts of a whole over time: open and closed as parts of the month's total. The tooltip totals the stack. |
+| `texture`                                                                                                    | Each wash its pattern: four assessors stacked read apart in print.                                       |
+| `curve="smooth"`, `labels="end"`, `baseline="auto"`, `domain`, `scale="time"`, `delta`, `bands`, `reference` | As on a Line.                                                                                            |
 
 <Canvas of={Stories.Single} />
 <Canvas of={Stories.Stacked} />
@@ -39,13 +39,13 @@ A [Line](?path=/docs/patterns-chart-line--docs) with a wash under it: the hue at
 
 ## States
 
-| State    | What changes                                                                                                                            |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Hover    | A hairline across the plot at the category, a marker on every line there, the tooltip.                                                  |
-| Isolated | A series hidden from the Frame's legend leaves the plot; a stack closes up.                                                              |
+| State    | What changes                                                                                                                                                                            |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | A hairline across the plot at the category, a marker on every line there, the tooltip.                                                                                                  |
+| Isolated | A series hidden from the Frame's legend leaves the plot; a stack closes up.                                                                                                             |
 | Chosen   | With `onSelect` or `details`: a click in a category's column, or Enter on the focused plot, chooses it; the card opens on the point. On an unstacked area every series is ringed there. |
-| Loading  | A skeleton line with a `color.skeleton.subtle` wash, pulsing, at the plot's height.                                                     |
-| Entering | The areas draw in over `motion.duration.slow`.                                                                                          |
+| Loading  | A skeleton line with a `color.skeleton.subtle` wash, pulsing, at the plot's height.                                                                                                     |
+| Entering | The areas draw in over `motion.duration.slow`.                                                                                                                                          |
 
 <Canvas of={Stories.Details} />
 
@@ -63,13 +63,13 @@ A [Line](?path=/docs/patterns-chart-line--docs) with a wash under it: the hue at
 
 ## Style
 
-| Element  | Token                                                                            |
-| -------- | -------------------------------------------------------------------------------- |
-| Line     | `color.chart.<tone>` · 2px · round joins                                         |
+| Element  | Token                                                                             |
+| -------- | --------------------------------------------------------------------------------- |
+| Line     | `color.chart.<tone>` · 2px · round joins                                          |
 | Wash     | `color.chart.<tone>` at 12% · or its pattern: the colour at 30% under 1.5px marks |
-| Marker   | 8px · 2px `elevation.surface` ring                                               |
-| Skeleton | `color.skeleton` path over a `color.skeleton.subtle` wash                        |
-| The rest | As on a Line                                                                     |
+| Marker   | 8px · 2px `elevation.surface` ring                                                |
+| Skeleton | `color.skeleton` path over a `color.skeleton.subtle` wash                         |
+| The rest | As on a Line                                                                      |
 
 ## Accessibility
 

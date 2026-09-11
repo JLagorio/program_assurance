@@ -1,18 +1,9 @@
 import { UnavailableAction } from "@/components/app/unavailable-action";
+import { Inline, PageHeader, Stack } from "@ledger/design-system";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Card,
-  Id,
-  IndexPage,
-  Inline,
-  PageHeader,
-  Progress,
-  Table,
-} from "@ledger/design-system";
+import { Badge, Card, Id, Progress, Table } from "@ledger/design-system";
 
 export const Route = createFileRoute("/vendors")({
   head: () => ({
@@ -111,86 +102,83 @@ const vendors: Vendor[] = [
 
 function Vendors() {
   return (
-    <Shell>
-      <IndexPage
-        header={
-          <PageHeader
-            title="Vendor registry"
-            actions={
-              <>
-                <UnavailableAction
-                  reason="No questionnaire delivery service is connected."
-                  variant="secondary"
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <div className="min-w-0">
+          <PageHeader.Title>{"Vendor registry"}</PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
+          <>
+            <UnavailableAction
+              reason="No questionnaire delivery service is connected."
+              variant="secondary"
+            >
+              Send questionnaire
+            </UnavailableAction>
+            <UnavailableAction
+              reason="Vendor creation is not available in this workspace."
+              variant="primary"
+              iconBefore={<Plus />}
+            >
+              Add vendor
+            </UnavailableAction>
+          </>
+        </PageHeader.Actions>
+      </PageHeader>
+      <Card className="overflow-hidden">
+        <Table>
+          <thead>
+            <tr>
+              <Table.Header>Vendor</Table.Header>
+              <Table.Header width={132}>Data accessed</Table.Header>
+              <Table.Header width={96}>Tier</Table.Header>
+              <Table.Header width={132}>Assurance</Table.Header>
+              <Table.Header width={148}>Risk score</Table.Header>
+              <Table.Header className="text-right" width={124}>
+                Next review
+              </Table.Header>
+            </tr>
+          </thead>
+          <tbody>
+            {vendors.map((vendor) => (
+              <Table.Row key={vendor.name}>
+                <Table.Cell>
+                  <div className="font-medium">{vendor.name}</div>
+                  <Id>{vendor.domain}</Id>
+                </Table.Cell>
+                <Table.Cell>{vendor.data}</Table.Cell>
+                <Table.Cell>{vendor.tier}</Table.Cell>
+                <Table.Cell>
+                  <Badge variant="secondary" tone={vendor.reportTone}>
+                    {vendor.report}
+                  </Badge>
+                </Table.Cell>
+                <Table.Cell>
+                  <Inline space="space.100" alignBlock="center">
+                    <Progress
+                      value={vendor.score}
+                      tone={
+                        vendor.score > 60 ? "danger" : vendor.score > 30 ? "warning" : "success"
+                      }
+                      aria-hidden
+                    />
+                    <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
+                      {vendor.score}
+                    </span>
+                  </Inline>
+                </Table.Cell>
+                <Table.Cell
+                  className={
+                    vendor.review.startsWith("Overdue") ? "text-right text-danger" : "text-right"
+                  }
                 >
-                  Send questionnaire
-                </UnavailableAction>
-                <UnavailableAction
-                  reason="Vendor creation is not available in this workspace."
-                  variant="primary"
-                  iconBefore={<Plus />}
-                >
-                  Add vendor
-                </UnavailableAction>
-              </>
-            }
-          />
-        }
-      >
-        <Card className="overflow-hidden">
-          <Table>
-            <thead>
-              <tr>
-                <Table.Header>Vendor</Table.Header>
-                <Table.Header width={132}>Data accessed</Table.Header>
-                <Table.Header width={96}>Tier</Table.Header>
-                <Table.Header width={132}>Assurance</Table.Header>
-                <Table.Header width={148}>Risk score</Table.Header>
-                <Table.Header className="text-right" width={124}>
-                  Next review
-                </Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {vendors.map((vendor) => (
-                <Table.Row key={vendor.name}>
-                  <Table.Cell>
-                    <div className="font-medium">{vendor.name}</div>
-                    <Id>{vendor.domain}</Id>
-                  </Table.Cell>
-                  <Table.Cell>{vendor.data}</Table.Cell>
-                  <Table.Cell>{vendor.tier}</Table.Cell>
-                  <Table.Cell>
-                    <Badge variant="secondary" tone={vendor.reportTone}>
-                      {vendor.report}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Inline space="space.100" alignBlock="center">
-                      <Progress
-                        value={vendor.score}
-                        tone={
-                          vendor.score > 60 ? "danger" : vendor.score > 30 ? "warning" : "success"
-                        }
-                        aria-hidden
-                      />
-                      <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
-                        {vendor.score}
-                      </span>
-                    </Inline>
-                  </Table.Cell>
-                  <Table.Cell
-                    className={
-                      vendor.review.startsWith("Overdue") ? "text-right text-danger" : "text-right"
-                    }
-                  >
-                    {vendor.review}
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-        </Card>
-      </IndexPage>
-    </Shell>
+                  {vendor.review}
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </tbody>
+        </Table>
+      </Card>
+    </Stack>
   );
 }

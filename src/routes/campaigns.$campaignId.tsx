@@ -1,30 +1,19 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  PageHeader,
+  Stack,
+  Tabs,
+  TabsContent,
+} from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  Badge,
-  Box,
-  Empty,
-  Id,
-  Inline,
-  Panel,
-  RecordHeader,
-  Section,
-  Shell as DsShell,
-  ShowPage,
-  Stack,
-  TabsList,
-  TabsTrigger,
-  Count,
-  TextLink,
-  Eyebrow,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 import {
   ExecutionSummary,
   ObjectiveExecutionTable,
@@ -42,6 +31,11 @@ import {
   type RunListRow,
 } from "@/components/app/test-execution";
 import {
+  assessmentEventState,
+  assessmentState,
+  useAssessmentsVersion,
+} from "@/lib/assessment-store";
+import {
   campaignById,
   eventsByCampaign,
   objectiveById,
@@ -49,27 +43,38 @@ import {
 } from "@/lib/campaigns";
 import { statusTone } from "@/lib/spine";
 import {
-  assessmentEventState,
-  assessmentState,
-  useAssessmentsVersion,
-} from "@/lib/assessment-store";
-import {
   campaignExecution,
   completionBlockedBy,
   objectiveDisagrees,
   objectivesForCampaign,
+  procedureById,
   proceduresForCampaign,
   proceduresForObjective,
   regressionsForCampaign,
   resolvedObjectiveResult,
-  runVerdict,
   runsForCampaign,
   runsForObjective,
   runsForProcedure,
-  procedureById,
+  runVerdict,
   setRunState,
   useTestRuns,
 } from "@/lib/test-execution";
+import {
+  Badge,
+  Box,
+  BreadcrumbLink,
+  Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Eyebrow,
+  Section,
+  Shell,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+} from "@ledger/design-system";
 
 const campaignTabs = ["Execution", "Procedures", "Runs", "Regression"] as const;
 type CampaignTab = (typeof campaignTabs)[number];
@@ -259,265 +264,275 @@ function CampaignRecord() {
   const blocked = selectedRun ? completionBlockedBy(selectedRun.run.id) : null;
 
   return (
-    <Shell>
-      <>
-        <ShowPage
-          tab={tab}
-          onTabChange={(value) => go(value as typeof tab)}
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/campaigns" />}>
-                      Test campaigns
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id={campaign.id}
-              title={campaign.name}
-              meta={`${campaign.program} · ${campaign.trigger} · ${campaign.gate} gate · lead ${campaign.lead} · ${campaign.opened} → ${campaign.target}`}
-              actions={
-                <>
-                  <Badge variant="secondary" tone={statusTone(state)}>
-                    {state}
-                  </Badge>
-                  {disagreements.length > 0 ? (
-                    <Badge variant="secondary" tone="warning">
-                      {disagreements.length} declared{" "}
-                      {disagreements.length === 1 ? "result disagrees" : "results disagree"}
-                    </Badge>
-                  ) : null}
-                  {execution.unproceduredObjectives.length > 0 ? (
-                    <Badge variant="secondary" tone="danger">
-                      {execution.unproceduredObjectives.length} without a procedure
-                    </Badge>
-                  ) : null}
-                </>
-              }
-              below={<p className="max-w-layout-measure font-body text-subtle">{campaign.scope}</p>}
-            />
-          }
-          tabs={
-            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-              {campaignTabs.map((t) => (
-                <TabsTrigger key={t} value={t}>
-                  {t}
-                  {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          }
-        >
-          {tab === "Execution" ? (
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/campaigns" />}>Test campaigns</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{campaign.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{campaign.name}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >{`${campaign.program} · ${campaign.trigger} · ${campaign.gate} gate · lead ${campaign.lead} · ${campaign.opened} → ${campaign.target}`}</Inline>
+          </div>
+          <PageHeader.Actions>
             <>
-              {objectiveRows.length > 0 ? (
-                <ExecutionSummary execution={execution} gaps={gaps} disagreements={disagreements} />
+              <Badge variant="secondary" tone={statusTone(state)}>
+                {state}
+              </Badge>
+              {disagreements.length > 0 ? (
+                <Badge variant="secondary" tone="warning">
+                  {disagreements.length} declared{" "}
+                  {disagreements.length === 1 ? "result disagrees" : "results disagree"}
+                </Badge>
               ) : null}
-
-              <Section
-                title="Declared result versus executed result"
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {objectiveRows.length} objectives · {events.length} events
-                  </span>
-                }
-              >
-                <ObjectiveExecutionTable
-                  rows={objectiveRows}
-                  selected={objective}
-                  onSelect={(row) =>
-                    setObjective((current) => (current === row.objective ? null : row.objective))
-                  }
-                />
-              </Section>
+              {execution.unproceduredObjectives.length > 0 ? (
+                <Badge variant="secondary" tone="danger">
+                  {execution.unproceduredObjectives.length} without a procedure
+                </Badge>
+              ) : null}
             </>
-          ) : null}
-
-          {tab === "Procedures" ? (
-            <>
-              <Section
-                title="Written procedures"
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {procedureRows.length} procedures · {execution.withProcedure} of{" "}
-                    {objectiveRows.length} objectives covered
-                  </span>
-                }
-              >
-                <ProcedureList
-                  rows={procedureRows}
-                  selected={procedure}
-                  onSelect={(row) =>
-                    setProcedure((current) =>
-                      current === row.procedure.id ? null : row.procedure.id,
-                    )
-                  }
-                />
-              </Section>
-
-              {selectedProcedure ? (
+          </PageHeader.Actions>
+          <div className="col-span-full">
+            <p className="max-w-layout-measure font-body text-subtle">{campaign.scope}</p>
+          </div>
+        </PageHeader>
+        <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {campaignTabs.map((t) => (
+              <TabsTrigger key={t} value={t}>
+                {t}
+                {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {tab === "Execution" ? (
                 <>
+                  {objectiveRows.length > 0 ? (
+                    <ExecutionSummary
+                      execution={execution}
+                      gaps={gaps}
+                      disagreements={disagreements}
+                    />
+                  ) : null}
+
                   <Section
-                    title={
-                      <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
-                        <Id>{selectedProcedure.procedure.id}</Id>
-                        <span>Preconditions</span>
-                      </Inline>
+                    title="Declared result versus executed result"
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {objectiveRows.length} objectives · {events.length} events
+                      </span>
                     }
-                    description="What has to be true before the first step is taken. A run started outside these conditions does not prove the objective."
                   >
-                    <Box paddingBlockStart="space.100">
-                      <PreconditionList items={selectedProcedure.procedure.preconditions} />
-                    </Box>
-                  </Section>
-
-                  <Section
-                    title="Steps"
-                    description={`${selectedProcedure.procedure.steps.length} steps · ${selectedProcedure.procedure.duration} minutes · ${selectedProcedure.procedure.method} · ${selectedProcedure.procedure.author} ${selectedProcedure.procedure.version}`}
-                  >
-                    <StepTable steps={selectedProcedure.procedure.steps} />
+                    <ObjectiveExecutionTable
+                      rows={objectiveRows}
+                      selected={objective}
+                      onSelect={(row) =>
+                        setObjective((current) =>
+                          current === row.objective ? null : row.objective,
+                        )
+                      }
+                    />
                   </Section>
                 </>
-              ) : procedureRows.length > 0 ? (
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyTitle>{"Select a procedure"}</EmptyTitle>
-                    <EmptyDescription>
-                      {
-                        "Open a row above to read its preconditions and the step-by-step action, pass criterion and artifact to collect."
-                      }
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
               ) : null}
-            </>
-          ) : null}
-
-          {tab === "Runs" ? (
-            <>
-              <Section
-                title="Runs"
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {runRows.filter((r) => r.run.state === "Complete").length} complete of{" "}
-                    {runRows.length}
-                  </span>
-                }
-              >
-                <RunTable
-                  rows={runRows}
-                  selected={run}
-                  onSelect={(row) =>
-                    setRun((current) => (current === row.run.id ? null : row.run.id))
-                  }
-                />
-              </Section>
-
-              {selectedRun ? (
-                <RunRecordView
-                  run={selectedRun.run}
-                  procedure={selectedRun.procedure}
-                  verdict={selectedRun.verdict}
-                  blockedReason={blocked}
-                  onComplete={() => setRunState(selectedRun.run.id, "Complete")}
-                />
-              ) : runRows.length > 0 ? (
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyTitle>{"Select a run"}</EmptyTitle>
-                    <EmptyDescription>
-                      {
-                        "Open a row above to read every step record: what was observed, what was collected, and why the verdict is what it is."
-                      }
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              ) : null}
-            </>
-          ) : null}
-
-          {tab === "Regression" ? (
-            <Section
-              title="Step movement across retests"
-              action={
-                <span className="tabular-nums font-body-small text-subtle">
-                  {regressionRows.filter((r) => r.state === "Regressed").length} regressed ·{" "}
-                  {regressionRows.filter((r) => r.state === "Fixed").length} fixed
-                </span>
-              }
-            >
-              <RegressionTable rows={regressionRows} />
-            </Section>
-          ) : null}
-
-          <Section title="Events under this campaign">
-            {events.length === 0 ? (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyTitle>{"This campaign has no events"}</EmptyTitle>
-                  <EmptyDescription>{`${campaign.id} was opened on the ${campaign.trigger.toLowerCase()} trigger but nothing was scheduled under it, so no objective is in scope and nothing can be executed.`}</EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : (
-              <Stack className="pt-100" space="space.100">
-                {events.map((e) => (
-                  <Inline
-                    key={e.id}
-                    space="space.150"
-                    rowSpace="space.050"
-                    alignBlock="baseline"
-                    shouldWrap
+              {tab === "Procedures" ? (
+                <>
+                  <Section
+                    title="Written procedures"
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {procedureRows.length} procedures · {execution.withProcedure} of{" "}
+                        {objectiveRows.length} objectives covered
+                      </span>
+                    }
                   >
-                    <TextLink
-                      className="shrink-0"
-                      render={<Link to="/campaigns" aria-label={`Back to campaigns for ${e.id}`} />}
-                    >
-                      <Id>{e.id}</Id>
-                    </TextLink>
-                    <span className="font-body font-medium">{e.name}</span>
-                    <Badge variant="secondary" tone={statusTone(assessmentEventState(e))}>
-                      {assessmentEventState(e)}
-                    </Badge>
-                    <span className="font-body-small text-subtle">{e.kind}</span>
-                    <span className="tabular-nums font-body-small text-subtle">{e.window}</span>
-                    <span className="font-body-small text-subtle">{e.team}</span>
-                  </Inline>
-                ))}
-              </Stack>
-            )}
-          </Section>
-        </ShowPage>
-        {showRail ? (
-          <DsShell.Panel label="Details">
-            <DsShell.Panel.Splitter label="Resize details" />
-            <Panel flush>
-              {showRail ? (
-                <div>
-                  <Inline className="pb-150" space="space.100" alignBlock="center">
-                    <Eyebrow as="span">{railTitle}</Eyebrow>
-                    <Id>{railId}</Id>
-                    <button
-                      onClick={closeRail}
-                      className="ml-auto font-body-small text-subtle hover:text-default"
-                    >
-                      Close
-                    </button>
-                  </Inline>
-                  {tab === "Execution" && selectedObjective ? (
-                    <ObjectiveRail row={selectedObjective} />
+                    <ProcedureList
+                      rows={procedureRows}
+                      selected={procedure}
+                      onSelect={(row) =>
+                        setProcedure((current) =>
+                          current === row.procedure.id ? null : row.procedure.id,
+                        )
+                      }
+                    />
+                  </Section>
+
+                  {selectedProcedure ? (
+                    <>
+                      <Section
+                        title={
+                          <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
+                            <Id>{selectedProcedure.procedure.id}</Id>
+                            <span>Preconditions</span>
+                          </Inline>
+                        }
+                        description="What has to be true before the first step is taken. A run started outside these conditions does not prove the objective."
+                      >
+                        <Box paddingBlockStart="space.100">
+                          <PreconditionList items={selectedProcedure.procedure.preconditions} />
+                        </Box>
+                      </Section>
+
+                      <Section
+                        title="Steps"
+                        description={`${selectedProcedure.procedure.steps.length} steps · ${selectedProcedure.procedure.duration} minutes · ${selectedProcedure.procedure.method} · ${selectedProcedure.procedure.author} ${selectedProcedure.procedure.version}`}
+                      >
+                        <StepTable steps={selectedProcedure.procedure.steps} />
+                      </Section>
+                    </>
+                  ) : procedureRows.length > 0 ? (
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"Select a procedure"}</EmptyTitle>
+                        <EmptyDescription>
+                          {
+                            "Open a row above to read its preconditions and the step-by-step action, pass criterion and artifact to collect."
+                          }
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   ) : null}
-                  {tab === "Procedures" && selectedProcedure ? (
-                    <ProcedureRail row={selectedProcedure} />
-                  ) : null}
-                  {tab === "Runs" && selectedRun ? <RunRail row={selectedRun} /> : null}
-                </div>
+                </>
               ) : null}
-            </Panel>
-          </DsShell.Panel>
-        ) : null}
-      </>
-    </Shell>
+              {tab === "Runs" ? (
+                <>
+                  <Section
+                    title="Runs"
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {runRows.filter((r) => r.run.state === "Complete").length} complete of{" "}
+                        {runRows.length}
+                      </span>
+                    }
+                  >
+                    <RunTable
+                      rows={runRows}
+                      selected={run}
+                      onSelect={(row) =>
+                        setRun((current) => (current === row.run.id ? null : row.run.id))
+                      }
+                    />
+                  </Section>
+
+                  {selectedRun ? (
+                    <RunRecordView
+                      run={selectedRun.run}
+                      procedure={selectedRun.procedure}
+                      verdict={selectedRun.verdict}
+                      blockedReason={blocked}
+                      onComplete={() => setRunState(selectedRun.run.id, "Complete")}
+                    />
+                  ) : runRows.length > 0 ? (
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"Select a run"}</EmptyTitle>
+                        <EmptyDescription>
+                          {
+                            "Open a row above to read every step record: what was observed, what was collected, and why the verdict is what it is."
+                          }
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  ) : null}
+                </>
+              ) : null}
+              {tab === "Regression" ? (
+                <Section
+                  title="Step movement across retests"
+                  action={
+                    <span className="tabular-nums font-body-small text-subtle">
+                      {regressionRows.filter((r) => r.state === "Regressed").length} regressed ·{" "}
+                      {regressionRows.filter((r) => r.state === "Fixed").length} fixed
+                    </span>
+                  }
+                >
+                  <RegressionTable rows={regressionRows} />
+                </Section>
+              ) : null}
+              <Section title="Events under this campaign">
+                {events.length === 0 ? (
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyTitle>{"This campaign has no events"}</EmptyTitle>
+                      <EmptyDescription>{`${campaign.id} was opened on the ${campaign.trigger.toLowerCase()} trigger but nothing was scheduled under it, so no objective is in scope and nothing can be executed.`}</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : (
+                  <Stack className="pt-100" space="space.100">
+                    {events.map((e) => (
+                      <Inline
+                        key={e.id}
+                        space="space.150"
+                        rowSpace="space.050"
+                        alignBlock="baseline"
+                        shouldWrap
+                      >
+                        <TextLink
+                          className="shrink-0"
+                          render={
+                            <Link to="/campaigns" aria-label={`Back to campaigns for ${e.id}`} />
+                          }
+                        >
+                          <Id>{e.id}</Id>
+                        </TextLink>
+                        <span className="font-body font-medium">{e.name}</span>
+                        <Badge variant="secondary" tone={statusTone(assessmentEventState(e))}>
+                          {assessmentEventState(e)}
+                        </Badge>
+                        <span className="font-body-small text-subtle">{e.kind}</span>
+                        <span className="tabular-nums font-body-small text-subtle">{e.window}</span>
+                        <span className="font-body-small text-subtle">{e.team}</span>
+                      </Inline>
+                    ))}
+                  </Stack>
+                )}
+              </Section>
+            </Stack>
+          </TabsContent>
+        </Tabs>
+      </Stack>
+      {showRail ? (
+        <Shell.Panel label="Details" onClose={closeRail}>
+          {showRail ? (
+            <div>
+              <Inline className="pb-150" space="space.100" alignBlock="center">
+                <Eyebrow as="span">{railTitle}</Eyebrow>
+                <Id>{railId}</Id>
+                <button
+                  onClick={closeRail}
+                  className="ml-auto font-body-small text-subtle hover:text-default"
+                >
+                  Close
+                </button>
+              </Inline>
+              {tab === "Execution" && selectedObjective ? (
+                <ObjectiveRail row={selectedObjective} />
+              ) : null}
+              {tab === "Procedures" && selectedProcedure ? (
+                <ProcedureRail row={selectedProcedure} />
+              ) : null}
+              {tab === "Runs" && selectedRun ? <RunRail row={selectedRun} /> : null}
+            </div>
+          ) : null}
+        </Shell.Panel>
+      ) : null}
+    </>
   );
 }

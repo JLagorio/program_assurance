@@ -2,12 +2,13 @@
 
 A living list for the design system and the prototype. Josef owns the decisions; whoever is working owns the work. Tick a box when it lands and move it to Done with the date. Keep it short: one line per item, the reasoning lives in the spec or the audit it points at.
 
-Updated 2026-09-09.
+Updated 2026-09-10.
 
 ## Current design-system work
 
 - [x] **Requirement record workflow reference** (2026-09-09). Keep status and owner beside the record identity; make attention items actionable; separate Allocations, Evidence, Activity and Provenance from Overview. Assessment results use compact cards and evidence uses Attachment previews. Preserve the existing editors and domain rules.
-- [ ] **Consolidate record/detail patterns.** Review ShowPage/RecordHeader and Panel/PreviewRail/PreviewSheet against this reference. Favor focused work areas and useful in-place actions; remove duplicated fact presentations and blanket rules that turn every record into a report. Keep DataTable, Editable, Composer and TaskRow as working interaction patterns.
+- [x] **Separate layout from patterns** (2026-09-10). Persistent root shell; child-route Aside/Panel slots; one composable PageHeader; direct page and tab composition; optional Section. Remove the overlapping page/preview wrappers and Shapes category. Layout owns responsive placement, scrolling and focus.
+- [ ] **Apply the workflow reference to record bodies.** Review Section/Gates/Inspector usage on controls and programs; prioritize editable properties, evidence and next actions over repeated narrative and facts.
 
 ## Decisions waiting on Josef
 
@@ -65,7 +66,7 @@ Updated 2026-09-09.
 - [x] **Related, or a titled Item.Group** (2026-09-05, decided the same day by Josef's review: Related is the card of linked records, in a rail as rows and in the body of a page as cards with hover actions, with a proper empty state; the POA&M's titled Item.Group of related observations moves onto it when the prototype sweep gets a go).
 - [x] **The arrow after the rail's link** (2026-09-05; done the same day: the twelve arrows dropped, "Open →" is "Open campaign").
 - [ ] **A row's meta in a narrow list** (2026-09-05). In an Item row the title and the meta both shrink, in proportion to their length, so in a 270px rail card "CAT I" beside a long title shrinks to "C". The Related page routes the state to `trailing` for now. The fix is in Item: the meta keeps its words and the title truncates, with a bound so a long meta cannot crowd the title out. Small; wants a decision on the bound.
-- [ ] **The chart tokens' typed map** (2026-09-05, from the audit). `color.chart.*` is reached only through `token(\`color.chart.${tone}\`)` in `chart/_shared.tsx`, so a name scan reports thirty-five chart tokens unused and `no-deprecated-token` cannot fix a chart token. `ChartTone` as a union of token names and the lookup as a typed map. The chart files were the other session's; untouched here.
+- [ ] **The chart tokens' typed map** (2026-09-05, from the audit). `color.chart.*` is reached only through `token(\`color.chart.${tone}\`)`in`chart/_shared.tsx`, so a name scan reports thirty-five chart tokens unused and `no-deprecated-token`cannot fix a chart token.`ChartTone` as a union of token names and the lookup as a typed map. The chart files were the other session's; untouched here.
 - [ ] **Token file roots and provenance** (2026-09-05, from the audit). `shape.json` has two roots (`radius`, `border`) and `elevation.json` two (`elevation`, `utility`); 186 of 381 tokens carry `introduced: null`. Renaming roots renames tokens, which is a deprecation round; stamping provenance is a one-off script. Neither changes a pixel. Say if either is worth a sitting.
 - [ ] **Private CSS shipped as public** (2026-09-05, from the audit). Eight `shell-*` utilities and `sticky-bar` are read by one component each and marked structural in the lint. Move them into a component stylesheet or prefix them, so the public utility set is the token set. Cosmetic; your call.
 - [ ] **Icon stroke overrides in the prototype** (2026-09-05). The Icons page sets Lucide's stroke of 2 at both sizes. The prototype overrides `strokeWidth` in nine places (1, 1.5, 2.5 and 3). Sweep them out, or say which glyphs earn a heavier stroke.

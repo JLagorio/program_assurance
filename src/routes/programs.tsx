@@ -7,7 +7,6 @@ import {
   Calendar,
   Count,
   DataTable,
-  defineColumns,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -15,24 +14,24 @@ import {
   DialogHeader,
   DialogTitle,
   Glance,
-  IndexPage,
   Inline,
   PageHeader,
   Progress,
+  Stack,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
   TextLink,
+  defineColumns,
   toast,
-  type ColumnFiltersState,
   useDataTable,
+  type ColumnFiltersState,
 } from "@ledger/design-system";
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Download, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Shell } from "@/components/app/shell";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { controlMatrix } from "@/lib/control-matrix";
 import { useControlSetVersion } from "@/lib/control-set";
@@ -67,11 +66,7 @@ export const Route = createFileRoute("/programs")({
 function ProgramsLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   if (pathname !== "/programs") return <Outlet />;
-  return (
-    <Shell>
-      <ProgramList />
-    </Shell>
-  );
+  return <ProgramList />;
 }
 
 const tabLabels = [
@@ -142,13 +137,10 @@ const programColumns = defineColumns<Program>((c) => [
   c.custom("baseline", {
     header: "Baseline",
     width: 120,
-    cell: (p) => (
-      <>
-        {scopesForProgram(p.id).some((scope) => scope.selectionSource)
-          ? p.baseline
-          : `Rev. 5 · ${p.impact}`}
-      </>
-    ),
+    cell: (p) =>
+      scopesForProgram(p.id).some((scope) => scope.selectionSource)
+        ? p.baseline
+        : `Rev. 5 · ${p.impact}`,
   }),
   c.custom("assessment", {
     header: "Assessment",
@@ -260,42 +252,41 @@ function ProgramList() {
   const selected = table.getSelectedRowModel().rows.map((r) => r.original.id);
 
   return (
-    <IndexPage
-      header={
-        <PageHeader
-          title="Programs"
-          actions={
-            <>
-              <Button
-                variant="secondary"
-                isLoading={exporting}
-                iconBefore={<Download />}
-                onClick={() => {
-                  downloadText(
-                    "program-register.json",
-                    JSON.stringify(
-                      table.getRowModel().rows.map((row) => row.original),
-                      null,
-                      2,
-                    ),
-                    "application/json",
-                  );
-                }}
-              >
-                Export programs
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => void navigate({ to: "/programs/new" })}
-                iconBefore={<Plus />}
-              >
-                New program
-              </Button>
-            </>
-          }
-        />
-      }
-    >
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <div className="min-w-0">
+          <PageHeader.Title>{"Programs"}</PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
+          <>
+            <Button
+              variant="secondary"
+              isLoading={exporting}
+              iconBefore={<Download />}
+              onClick={() => {
+                downloadText(
+                  "program-register.json",
+                  JSON.stringify(
+                    table.getRowModel().rows.map((row) => row.original),
+                    null,
+                    2,
+                  ),
+                  "application/json",
+                );
+              }}
+            >
+              Export programs
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => void navigate({ to: "/programs/new" })}
+              iconBefore={<Plus />}
+            >
+              New program
+            </Button>
+          </>
+        </PageHeader.Actions>
+      </PageHeader>
       <Tabs
         value={showArchived ? "Archived" : tab}
         onValueChange={(value) => setTab(value)}
@@ -420,6 +411,6 @@ function ProgramList() {
           </Dialog>
         </TabsContent>
       </Tabs>
-    </IndexPage>
+    </Stack>
   );
 }

@@ -1,60 +1,43 @@
+import { platformProgramId } from "@/lib/platform-ids";
 import {
   buildPlatformProfile,
-  platformOscalFilenames,
   platformExportSnapshot,
+  platformOscalFilenames,
 } from "@/lib/platform-oscal";
-import { platformProgramId } from "@/lib/platform-ids";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  PageHeader,
+  Stack,
+  Tabs,
+  TabsContent,
+} from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import {
   BundleManifest,
   DownloadButton,
+  downloadText,
   EmassTable,
   OscalViewer,
   ReconcileTable,
   ReconcileVerdict,
-  downloadText,
 } from "@/components/app/export";
 import {
-  Absent,
-  Badge,
-  Box,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Empty,
-  Id,
-  Indicator,
-  Inline,
-  RecordHeader,
-  Section,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  ShowPage,
-  Stack,
-  Table,
-  TabsList,
-  TabsTrigger,
-  Count,
-  TextLink,
-  Toolbar,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
-import {
+  buildBundle,
   bundleArtifactText,
   bundleManifest,
-  buildBundle,
   digestAlgorithm,
   receivedBundlesFor,
   reconcile,
 } from "@/lib/airgap";
+import { objectiveTone } from "@/lib/campaigns";
 import {
   emassCsv,
   emassExportFor,
@@ -63,22 +46,44 @@ import {
   type EmassExportKind,
 } from "@/lib/emass";
 import { programs } from "@/lib/grc-data";
-import { objectiveTone } from "@/lib/campaigns";
-import { rtm, rtmCsv, useVerificationVersion } from "@/lib/requirement-verification";
 import {
   oscalAssessmentPlan,
   oscalAssessmentResults,
+  oscalDocumentVersion,
   oscalJson,
   oscalModelLabels,
   oscalModels,
   oscalPoam,
   oscalSsp,
   oscalVersion,
-  oscalDocumentVersion,
   type OscalDocument,
   type OscalModel,
 } from "@/lib/oscal";
+import { rtm, rtmCsv, useVerificationVersion } from "@/lib/requirement-verification";
 import { useSctm, type SctmRow } from "@/lib/sctm";
+import {
+  Absent,
+  Badge,
+  Box,
+  BreadcrumbLink,
+  Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Indicator,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Table,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+  Toolbar,
+} from "@ledger/design-system";
 
 const exportTabs = ["OSCAL", "eMASS", "RTM", "Air-gap bundle", "Reconciliation"] as const;
 type ExportTab = (typeof exportTabs)[number];
@@ -257,360 +262,394 @@ function ProgramExport() {
   };
 
   return (
-    <Shell>
-      <ShowPage
-        tab={tab}
-        onTabChange={(value) => navigate({ search: { tab: value as typeof tab }, replace: true })}
-        header={
-          <RecordHeader
-            crumbs={
-              <>
-                <BreadcrumbItem>
-                  <BreadcrumbLink render={<Link to={"/programs"} />}>{"Programs"}</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    render={<Link to={"/programs/$programId"} params={{ programId: program.id }} />}
-                  >
-                    {program.name}
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-              </>
-            }
-            id={program.id}
-            title="Export and cross-domain transfer"
-            meta={`${program.acronym} · OSCAL ${documentVersion} · eMASS sheets · generated ${sctm.generated}`}
-            actions={
-              <>
-                <Badge variant="secondary" tone="neutral">
-                  {sctm.counts.total} exported requirement rows
-                </Badge>
-                <TextLink
-                  size="medium"
-                  render={<Link to="/programs/$programId/sctm" params={{ programId }} />}
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to={"/programs"} />}>{"Programs"}</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  render={<Link to={"/programs/$programId"} params={{ programId: program.id }} />}
                 >
-                  Open SCTM
-                </TextLink>
-              </>
-            }
-            below={
-              <p className="max-w-layout-measure font-body-small text-subtle">
-                <span className="font-medium text-default">Export basis.</span> Every artifact on
-                this page is generated from the same {sctm.counts.total} exported requirement rows,
-                covering {basis.controls} controls: {basis.cciRows} rows keyed to a DISA CCI across{" "}
-                {basis.cciControls} controls, and one row each for the {basis.controlRows} controls
-                the catalog publishes no CCI for. The SCTM page rows those same controls per 800-53A
-                assessment objective and so reports a larger total — a different unit, not a
-                different program. That basis is not used here because eMASS Control Information is
-                a per-control sheet with no column an objective row could fill, and the media
-                reconciled below was written on the row set above, so switching would make every
-                line of both manifests differ and bury the two-determination difference the
-                reconciliation exists to surface.
-              </p>
-            }
-          />
-        }
-        tabs={
-          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-            {exportTabs.map((t) => (
-              <TabsTrigger key={t} value={t}>
-                {t}
-                {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        }
+                  {program.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{program.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{"Export and cross-domain transfer"}</PageHeader.Title>
+          <Inline
+            space="space.100"
+            alignBlock="center"
+            shouldWrap
+            className="pt-050 font-body-small text-subtle"
+          >{`${program.acronym} · OSCAL ${documentVersion} · eMASS sheets · generated ${sctm.generated}`}</Inline>
+        </div>
+        <PageHeader.Actions>
+          <>
+            <Badge variant="secondary" tone="neutral">
+              {sctm.counts.total} exported requirement rows
+            </Badge>
+            <TextLink
+              size="medium"
+              render={<Link to="/programs/$programId/sctm" params={{ programId }} />}
+            >
+              Open SCTM
+            </TextLink>
+          </>
+        </PageHeader.Actions>
+        <div className="col-span-full">
+          <p className="max-w-layout-measure font-body-small text-subtle">
+            <span className="font-medium text-default">Export basis.</span> Every artifact on this
+            page is generated from the same {sctm.counts.total} exported requirement rows, covering{" "}
+            {basis.controls} controls: {basis.cciRows} rows keyed to a DISA CCI across{" "}
+            {basis.cciControls} controls, and one row each for the {basis.controlRows} controls the
+            catalog publishes no CCI for. The SCTM page rows those same controls per 800-53A
+            assessment objective and so reports a larger total — a different unit, not a different
+            program. That basis is not used here because eMASS Control Information is a per-control
+            sheet with no column an objective row could fill, and the media reconciled below was
+            written on the row set above, so switching would make every line of both manifests
+            differ and bury the two-determination difference the reconciliation exists to surface.
+          </p>
+        </div>
+      </PageHeader>
+      <Tabs
+        value={tab}
+        onValueChange={(value) => navigate({ search: { tab: value as typeof tab }, replace: true })}
+        className="gap-150"
       >
-        {tab === "OSCAL" && doc ? (
-          <Section
-            title={`OSCAL ${documentVersion} documents`}
-            action={
-              profile ? (
-                <DownloadButton
-                  filename={profile.filename}
-                  text={profile.text}
-                  mime="application/json"
-                  label="Download profile"
-                />
-              ) : undefined
-            }
-          >
-            <Toolbar
-              actions={
-                <span className="font-body-small text-subtle">
-                  Import target: any OSCAL {documentVersion} consumer
-                </span>
-              }
-            >
-              <Select<OscalModel>
-                items={oscalModelLabels}
-                value={model}
-                onValueChange={(value) => {
-                  if (value !== null) setModel(value);
-                }}
+        <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+          {exportTabs.map((t) => (
+            <TabsTrigger key={t} value={t}>
+              {t}
+              {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={tab}>
+          <Stack space="space.300" className="min-w-0 pt-200">
+            {tab === "OSCAL" && doc ? (
+              <Section
+                title={`OSCAL ${documentVersion} documents`}
+                action={
+                  profile ? (
+                    <DownloadButton
+                      filename={profile.filename}
+                      text={profile.text}
+                      mime="application/json"
+                      label="Download profile"
+                    />
+                  ) : undefined
+                }
               >
-                <SelectTrigger className="w-full" aria-label="OSCAL model" style={{ width: 268 }}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent aria-label="OSCAL model" align="start" alignItemWithTrigger={false}>
-                  {oscalModels.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {oscalModelLabels[m]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Toolbar>
-
-            <Box paddingBlockStart="space.100">
-              <OscalViewer
-                doc={doc}
-                text={json}
-                label={oscalModelLabels[doc.model]}
-                filename={`${slug}-${doc.model}.json`}
-              />
-            </Box>
-          </Section>
-        ) : null}
-
-        {tab === "eMASS" && sheet ? (
-          <Section
-            title="eMASS import sheets"
-            action={
-              <DownloadButton
-                filename={`${slug}-${emassFileNames[sheet.kind]}`}
-                text={sheetCsv}
-                mime="text/csv;charset=utf-8"
-                label="Download CSV"
-                variant="primary"
-              />
-            }
-          >
-            <Toolbar
-              actions={
-                <span className="font-body-small text-subtle">RFC 4180, CRLF line endings</span>
-              }
-            >
-              <Select<EmassExportKind>
-                value={sheetKind}
-                onValueChange={(value) => {
-                  if (value !== null) setSheetKind(value);
-                }}
-              >
-                <SelectTrigger className="w-full" aria-label="eMASS sheet" style={{ width: 224 }}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent aria-label="eMASS sheet" align="start" alignItemWithTrigger={false}>
-                  {emassExportKinds.map((kind) => (
-                    <SelectItem key={kind} value={kind}>
-                      {kind}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Toolbar>
-
-            <Box paddingBlockStart="space.100">
-              <EmassTable key={sheet.kind} sheet={sheet} />
-            </Box>
-          </Section>
-        ) : null}
-
-        {tab === "RTM" ? (
-          <Section
-            title="Requirements traceability matrix"
-            action={
-              <DownloadButton
-                filename={`${slug}-rtm.csv`}
-                text={matrixCsv}
-                mime="text/csv;charset=utf-8"
-                label="Download CSV"
-                variant="primary"
-              />
-            }
-          >
-            <Box paddingBlockStart="space.100">
-              <Table>
-                <thead>
-                  <Table.Row>
-                    <Table.Header width={104}>Requirement</Table.Header>
-                    <Table.Header>Statement</Table.Header>
-                    <Table.Header width={96}>Source</Table.Header>
-                    <Table.Header width={180}>Allocated to</Table.Header>
-                    <Table.Header width={96}>Method</Table.Header>
-                    <Table.Header width={80}>Objective</Table.Header>
-                    {matrix.events.map((e) => (
-                      <Table.Header key={e.id} width={112} title={`${e.name} · ${e.window}`}>
-                        {e.id}
-                      </Table.Header>
-                    ))}
-                    <Table.Header width={96}>Evidence</Table.Header>
-                  </Table.Row>
-                </thead>
-                <tbody>
-                  {matrix.rows.map((r) => (
-                    <Table.Row key={`${r.requirement}-${r.objective ?? "none"}`}>
-                      <Table.Cell width={104}>
-                        <Id>{r.requirement}</Id>
-                      </Table.Cell>
-                      <Table.Cell className="truncate" title={r.statement}>
-                        {r.statement}
-                      </Table.Cell>
-                      <Table.Cell className="truncate" width={96}>
-                        {r.sources.length ? r.sources.join(", ") : <Absent />}
-                      </Table.Cell>
-                      <Table.Cell className="truncate" width={180} title={r.allocatedTo.join(", ")}>
-                        {r.allocatedTo.length ? r.allocatedTo.join(", ") : <Absent />}
-                      </Table.Cell>
-                      <Table.Cell className="truncate" width={96}>
-                        {r.method}
-                      </Table.Cell>
-                      <Table.Cell width={80} title={r.objectiveStatement}>
-                        {r.objective ? <Id>{r.objective}</Id> : <Absent />}
-                      </Table.Cell>
-                      {matrix.events.map((e) => {
-                        const result = r.results[e.id];
-                        return (
-                          <Table.Cell key={e.id} width={112}>
-                            {result ? (
-                              <Indicator tone={objectiveTone(result)}>{result}</Indicator>
-                            ) : null}
-                          </Table.Cell>
-                        );
-                      })}
-                      <Table.Cell width={96}>
-                        {r.evidence ? <Id>{r.evidence}</Id> : <Absent />}
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            </Box>
-          </Section>
-        ) : null}
-
-        {tab === "Air-gap bundle" && bundle ? (
-          <Section
-            title="Outbound transfer bundle"
-            action={
-              <DownloadButton
-                filename={`${slug}-${bundle.id.toLowerCase()}-manifest.txt`}
-                text={manifest}
-                mime="text/plain;charset=utf-8"
-                label="Download manifest"
-                variant="primary"
-              />
-            }
-          >
-            <Box paddingBlockStart="space.150">
-              <BundleManifest
-                bundle={bundle}
-                manifest={manifest}
-                onDownloadArtifact={(artifact) => {
-                  const text = bundleArtifactText(bundle.id, artifact.path);
-                  if (text === null) return;
-                  const name = artifact.path.split("/").pop() ?? artifact.path;
-                  downloadText(
-                    `${slug}-${name}`,
-                    text,
-                    name.endsWith(".json")
-                      ? "application/json;charset=utf-8"
-                      : name.endsWith(".csv")
-                        ? "text/csv;charset=utf-8"
-                        : "text/plain;charset=utf-8",
-                  );
-                }}
-              />
-            </Box>
-          </Section>
-        ) : null}
-
-        {tab === "Reconciliation" ? (
-          reconciliation && activeReceived && bundle ? (
-            <Section
-              title="Received media against what this side generates"
-              description={`Every path on either manifest, compared by ${digestAlgorithm}. The verdict is what a receiving ISSM acts on; the rows underneath are the comparison it rests on, down to the first differing line of each artifact this side also holds.`}
-              action={
-                received.length > 1 ? (
-                  <Select
-                    items={received.map((b) => ({ value: b.id, label: `${b.id} · ${b.created}` }))}
-                    value={activeReceived.id}
-                    onValueChange={setReceivedId}
+                <Toolbar
+                  actions={
+                    <span className="font-body-small text-subtle">
+                      Import target: any OSCAL {documentVersion} consumer
+                    </span>
+                  }
+                >
+                  <Select<OscalModel>
+                    items={oscalModelLabels}
+                    value={model}
+                    onValueChange={(value) => {
+                      if (value !== null) setModel(value);
+                    }}
                   >
                     <SelectTrigger
                       className="w-full"
-                      style={{ width: 200 }}
-                      aria-label="Received media"
+                      aria-label="OSCAL model"
+                      style={{ width: 268 }}
                     >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent
-                      aria-label="Received media"
+                      aria-label="OSCAL model"
                       align="start"
                       alignItemWithTrigger={false}
                     >
-                      {received.map((b) => (
-                        <SelectItem key={b.id} value={b.id}>
-                          {b.id} · {b.created}
+                      {oscalModels.map((m) => (
+                        <SelectItem key={m} value={m}>
+                          {oscalModelLabels[m]}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                ) : (
-                  <span className="font-body-small text-subtle">
-                    Media created {activeReceived.created}
-                  </span>
-                )
-              }
-            >
-              <Stack className="pt-150" space="space.200">
-                <ReconcileVerdict reconciliation={reconciliation} />
+                </Toolbar>
 
-                <Inline
-                  className="font-body-small"
-                  space="space.400"
-                  rowSpace="space.100"
-                  shouldWrap
+                <Box paddingBlockStart="space.100">
+                  <OscalViewer
+                    doc={doc}
+                    text={json}
+                    label={oscalModelLabels[doc.model]}
+                    filename={`${slug}-${doc.model}.json`}
+                  />
+                </Box>
+              </Section>
+            ) : null}
+            {tab === "eMASS" && sheet ? (
+              <Section
+                title="eMASS import sheets"
+                action={
+                  <DownloadButton
+                    filename={`${slug}-${emassFileNames[sheet.kind]}`}
+                    text={sheetCsv}
+                    mime="text/csv;charset=utf-8"
+                    label="Download CSV"
+                    variant="primary"
+                  />
+                }
+              >
+                <Toolbar
+                  actions={
+                    <span className="font-body-small text-subtle">RFC 4180, CRLF line endings</span>
+                  }
                 >
-                  <span>
-                    <span className="text-subtle">Received bundle</span>{" "}
-                    <Id>{activeReceived.id}</Id>
-                  </span>
-                  <span>
-                    <span className="text-subtle">From</span> {activeReceived.createdBy}
-                  </span>
-                  <span>
-                    <span className="text-subtle">Baseline</span> <Id>{activeReceived.build}</Id>
-                  </span>
-                  <span>
-                    <span className="text-subtle">Local bundle</span> <Id>{bundle.id}</Id>
-                  </span>
-                </Inline>
+                  <Select<EmassExportKind>
+                    value={sheetKind}
+                    onValueChange={(value) => {
+                      if (value !== null) setSheetKind(value);
+                    }}
+                  >
+                    <SelectTrigger
+                      className="w-full"
+                      aria-label="eMASS sheet"
+                      style={{ width: 224 }}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent
+                      aria-label="eMASS sheet"
+                      align="start"
+                      alignItemWithTrigger={false}
+                    >
+                      {emassExportKinds.map((kind) => (
+                        <SelectItem key={kind} value={kind}>
+                          {kind}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Toolbar>
 
-                <p className="font-body-small text-subtle">{activeReceived.note}</p>
+                <Box paddingBlockStart="space.100">
+                  <EmassTable key={sheet.kind} sheet={sheet} />
+                </Box>
+              </Section>
+            ) : null}
+            {tab === "RTM" ? (
+              <Section
+                title="Requirements traceability matrix"
+                action={
+                  <DownloadButton
+                    filename={`${slug}-rtm.csv`}
+                    text={matrixCsv}
+                    mime="text/csv;charset=utf-8"
+                    label="Download CSV"
+                    variant="primary"
+                  />
+                }
+              >
+                <Box paddingBlockStart="space.100">
+                  <Table>
+                    <thead>
+                      <Table.Row>
+                        <Table.Header width={104}>Requirement</Table.Header>
+                        <Table.Header>Statement</Table.Header>
+                        <Table.Header width={96}>Source</Table.Header>
+                        <Table.Header width={180}>Allocated to</Table.Header>
+                        <Table.Header width={96}>Method</Table.Header>
+                        <Table.Header width={80}>Objective</Table.Header>
+                        {matrix.events.map((e) => (
+                          <Table.Header key={e.id} width={112} title={`${e.name} · ${e.window}`}>
+                            {e.id}
+                          </Table.Header>
+                        ))}
+                        <Table.Header width={96}>Evidence</Table.Header>
+                      </Table.Row>
+                    </thead>
+                    <tbody>
+                      {matrix.rows.map((r) => (
+                        <Table.Row key={`${r.requirement}-${r.objective ?? "none"}`}>
+                          <Table.Cell width={104}>
+                            <Id>{r.requirement}</Id>
+                          </Table.Cell>
+                          <Table.Cell className="truncate" title={r.statement}>
+                            {r.statement}
+                          </Table.Cell>
+                          <Table.Cell className="truncate" width={96}>
+                            {r.sources.length ? r.sources.join(", ") : <Absent />}
+                          </Table.Cell>
+                          <Table.Cell
+                            className="truncate"
+                            width={180}
+                            title={r.allocatedTo.join(", ")}
+                          >
+                            {r.allocatedTo.length ? r.allocatedTo.join(", ") : <Absent />}
+                          </Table.Cell>
+                          <Table.Cell className="truncate" width={96}>
+                            {r.method}
+                          </Table.Cell>
+                          <Table.Cell width={80} title={r.objectiveStatement}>
+                            {r.objective ? <Id>{r.objective}</Id> : <Absent />}
+                          </Table.Cell>
+                          {matrix.events.map((e) => {
+                            const result = r.results[e.id];
+                            return (
+                              <Table.Cell key={e.id} width={112}>
+                                {result ? (
+                                  <Indicator tone={objectiveTone(result)}>{result}</Indicator>
+                                ) : null}
+                              </Table.Cell>
+                            );
+                          })}
+                          <Table.Cell width={96}>
+                            {r.evidence ? <Id>{r.evidence}</Id> : <Absent />}
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </tbody>
+                  </Table>
+                </Box>
+              </Section>
+            ) : null}
+            {tab === "Air-gap bundle" && bundle ? (
+              <Section
+                title="Outbound transfer bundle"
+                action={
+                  <DownloadButton
+                    filename={`${slug}-${bundle.id.toLowerCase()}-manifest.txt`}
+                    text={manifest}
+                    mime="text/plain;charset=utf-8"
+                    label="Download manifest"
+                    variant="primary"
+                  />
+                }
+              >
+                <Box paddingBlockStart="space.150">
+                  <BundleManifest
+                    bundle={bundle}
+                    manifest={manifest}
+                    onDownloadArtifact={(artifact) => {
+                      const text = bundleArtifactText(bundle.id, artifact.path);
+                      if (text === null) return;
+                      const name = artifact.path.split("/").pop() ?? artifact.path;
+                      downloadText(
+                        `${slug}-${name}`,
+                        text,
+                        name.endsWith(".json")
+                          ? "application/json;charset=utf-8"
+                          : name.endsWith(".csv")
+                            ? "text/csv;charset=utf-8"
+                            : "text/plain;charset=utf-8",
+                      );
+                    }}
+                  />
+                </Box>
+              </Section>
+            ) : null}
+            {tab === "Reconciliation" ? (
+              reconciliation && activeReceived && bundle ? (
+                <Section
+                  title="Received media against what this side generates"
+                  description={`Every path on either manifest, compared by ${digestAlgorithm}. The verdict is what a receiving ISSM acts on; the rows underneath are the comparison it rests on, down to the first differing line of each artifact this side also holds.`}
+                  action={
+                    received.length > 1 ? (
+                      <Select
+                        items={received.map((b) => ({
+                          value: b.id,
+                          label: `${b.id} · ${b.created}`,
+                        }))}
+                        value={activeReceived.id}
+                        onValueChange={setReceivedId}
+                      >
+                        <SelectTrigger
+                          className="w-full"
+                          style={{ width: 200 }}
+                          aria-label="Received media"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent
+                          aria-label="Received media"
+                          align="start"
+                          alignItemWithTrigger={false}
+                        >
+                          {received.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>
+                              {b.id} · {b.created}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <span className="font-body-small text-subtle">
+                        Media created {activeReceived.created}
+                      </span>
+                    )
+                  }
+                >
+                  <Stack className="pt-150" space="space.200">
+                    <ReconcileVerdict reconciliation={reconciliation} />
 
-                <ReconcileTable reconciliation={reconciliation} />
-              </Stack>
-            </Section>
-          ) : (
-            <Section title="Received media">
-              <Box paddingBlockStart="space.150">
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyTitle>{`No media has been received for ${program.id}`}</EmptyTitle>
-                    <EmptyDescription>
-                      {
-                        "When a bundle arrives from the far side, its manifest is registered here and every path on either side is compared by digest — identical, changed, present only here, or present only on the media — with the manifest's own digest re-derived rather than trusted."
-                      }
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              </Box>
-            </Section>
-          )
-        ) : null}
-      </ShowPage>
-    </Shell>
+                    <Inline
+                      className="font-body-small"
+                      space="space.400"
+                      rowSpace="space.100"
+                      shouldWrap
+                    >
+                      <span>
+                        <span className="text-subtle">Received bundle</span>{" "}
+                        <Id>{activeReceived.id}</Id>
+                      </span>
+                      <span>
+                        <span className="text-subtle">From</span> {activeReceived.createdBy}
+                      </span>
+                      <span>
+                        <span className="text-subtle">Baseline</span>{" "}
+                        <Id>{activeReceived.build}</Id>
+                      </span>
+                      <span>
+                        <span className="text-subtle">Local bundle</span> <Id>{bundle.id}</Id>
+                      </span>
+                    </Inline>
+
+                    <p className="font-body-small text-subtle">{activeReceived.note}</p>
+
+                    <ReconcileTable reconciliation={reconciliation} />
+                  </Stack>
+                </Section>
+              ) : (
+                <Section title="Received media">
+                  <Box paddingBlockStart="space.150">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{`No media has been received for ${program.id}`}</EmptyTitle>
+                        <EmptyDescription>
+                          {
+                            "When a bundle arrives from the far side, its manifest is registered here and every path on either side is compared by digest — identical, changed, present only here, or present only on the media — with the manifest's own digest re-derived rather than trusted."
+                          }
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  </Box>
+                </Section>
+              )
+            ) : null}
+          </Stack>
+        </TabsContent>
+      </Tabs>
+    </Stack>
   );
 }

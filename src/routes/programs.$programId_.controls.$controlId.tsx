@@ -1,65 +1,25 @@
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Count,
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-  Badge,
-  Box,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Button,
-  Editable,
-  Gates,
-  Id,
-  Indicator,
-  Inspector,
-  KeyValue,
-  Person,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Stack,
-  Table,
-  TextLink,
-} from "@ledger/design-system";
-import {
-  controlAllocationCount,
-  controlRequirementsInElement,
-  programControlRows,
-} from "@/lib/program-controls";
-import { resolveProgramElement } from "@/lib/program-scope";
-import { controlEvidence } from "@/lib/control-evidence";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import {
-  ControlActions,
-  Determination,
-  EvidenceBlock,
-  Narrative,
-} from "@/components/app/control-work";
-import {
   MethodList,
   ObjectiveList,
   ParameterTable,
   ReferenceList,
   StatementList,
 } from "@/components/app/control-text";
-import { MapRequirementsSheet } from "@/components/app/map-requirements";
+import {
+  ControlActions,
+  Determination,
+  EvidenceBlock,
+  Narrative,
+} from "@/components/app/control-work";
 import { LibraryControlSources } from "@/components/app/library-control-sources";
+import { MapRequirementsSheet } from "@/components/app/map-requirements";
 import { RecordActivity } from "@/components/app/record-activity";
 import { ControlRequirementTable } from "@/components/app/requirements";
-import { Shell } from "@/components/app/shell";
 import { TasksSection } from "@/components/app/tasks-section";
-import { controlDetail } from "@/lib/control-detail";
 import { librarySourcesForScope, useLibraryVersion } from "@/lib/assurance-library";
+import { controlDetail } from "@/lib/control-detail";
+import { controlEvidence } from "@/lib/control-evidence";
+import { useControlMatrix } from "@/lib/control-matrix";
 import {
   assessmentTone,
   assignOwner,
@@ -70,15 +30,58 @@ import {
   useWorkVersion,
   workFor,
 } from "@/lib/control-work";
-import { useControlMatrix } from "@/lib/control-matrix";
 import { isOpen } from "@/lib/findings";
 import { programs } from "@/lib/grc-data";
 import { catalogVersion } from "@/lib/nist-catalog";
 import { mentionablePeople } from "@/lib/people";
+import {
+  controlAllocationCount,
+  controlRequirementsInElement,
+  programControlRows,
+} from "@/lib/program-controls";
+import { resolveProgramElement } from "@/lib/program-scope";
 import { useRequirementsVersion } from "@/lib/requirements";
 import { controlSetFor, scopesForProgram } from "@/lib/scopes";
 import { severityTone } from "@/lib/spine";
 import { askFor, createTask, gateTaskFor, resolveGateTasks, useTasksVersion } from "@/lib/tasks";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Badge,
+  Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  Count,
+  Editable,
+  Gates,
+  Id,
+  Indicator,
+  Inline,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  Person,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Shell,
+  Stack,
+  Table,
+  TextLink,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 /**
  * The control record: where the loop lives. The header is the trail, the name
@@ -210,23 +213,21 @@ function ControlRecord() {
 
   if (!row || !work) {
     return (
-      <Shell>
-        <Stack space="space.150">
-          <h1 className="font-heading-small font-semibold">Control not in scope</h1>
-          <TextLink
-            size="medium"
-            render={
-              <Link
-                to="/programs/$programId"
-                params={{ programId }}
-                search={{ tab: "Controls", element: originElementId }}
-              />
-            }
-          >
-            Back to controls
-          </TextLink>
-        </Stack>
-      </Shell>
+      <Stack space="space.150">
+        <h1 className="font-heading-small font-semibold">Control not in scope</h1>
+        <TextLink
+          size="medium"
+          render={
+            <Link
+              to="/programs/$programId"
+              params={{ programId }}
+              search={{ tab: "Controls", element: originElementId }}
+            />
+          }
+        >
+          Back to controls
+        </TextLink>
+      </Stack>
     );
   }
 
@@ -431,12 +432,11 @@ function ControlRecord() {
   );
 
   return (
-    <Shell>
-      <ShowPage
-        rail={rail}
-        header={
-          <RecordHeader
-            crumbs={
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
               <>
                 <BreadcrumbItem>
                   <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
@@ -456,160 +456,170 @@ function ControlRecord() {
                   </BreadcrumbLink>
                 </BreadcrumbItem>
               </>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{controlId}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{row.fullTitle}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >
+              {scope?.name}
+            </Inline>
+          </div>
+          <PageHeader.Actions>
+            <ControlActions work={work} context={context} onChange={refresh} />
+          </PageHeader.Actions>
+        </PageHeader>
+        <Stack space="space.300" className="min-w-0 pt-200">
+          {unmet.length ? (
+            <Section title="Next" count={unmet.length}>
+              <Box paddingBlockStart="space.100">
+                <Gates>
+                  {unmet.map((g) => {
+                    const existing = gateTaskFor(scopeId, controlId, g.key);
+                    return (
+                      <Gates.Item
+                        key={g.key}
+                        met={false}
+                        label={askFor(g.key)}
+                        reason={g.detail}
+                        action={
+                          existing ? (
+                            <span className="font-body-small text-subtle">
+                              Task with {existing.assignee}
+                            </span>
+                          ) : (
+                            <Button
+                              size="small"
+                              onClick={() => {
+                                createTask({
+                                  program: programId,
+                                  title: askFor(g.key),
+                                  subject,
+                                  assignee: work.owner ?? me,
+                                  requester: me,
+                                  gate: { scope: scopeId, control: controlId, key: g.key },
+                                });
+                              }}
+                            >
+                              Add task
+                            </Button>
+                          )
+                        }
+                      />
+                    );
+                  })}
+                </Gates>
+              </Box>
+            </Section>
+          ) : null}
+          <Section
+            title="Implementation"
+            action={
+              <Button
+                size="small"
+                render={
+                  <Link
+                    to="/programs/$programId/export"
+                    params={{ programId }}
+                    search={{ tab: "OSCAL" }}
+                  />
+                }
+              >
+                View SSP
+              </Button>
             }
-            id={controlId}
-            title={row.fullTitle}
-            meta={scope?.name}
-            actions={<ControlActions work={work} context={context} onChange={refresh} />}
-          />
-        }
-      >
-        {unmet.length ? (
-          <Section title="Next" count={unmet.length}>
+          >
             <Box paddingBlockStart="space.100">
-              <Gates>
-                {unmet.map((g) => {
-                  const existing = gateTaskFor(scopeId, controlId, g.key);
-                  return (
-                    <Gates.Item
-                      key={g.key}
-                      met={false}
-                      label={askFor(g.key)}
-                      reason={g.detail}
-                      action={
-                        existing ? (
-                          <span className="font-body-small text-subtle">
-                            Task with {existing.assignee}
-                          </span>
-                        ) : (
-                          <Button
-                            size="small"
-                            onClick={() => {
-                              createTask({
-                                program: programId,
-                                title: askFor(g.key),
-                                subject,
-                                assignee: work.owner ?? me,
-                                requester: me,
-                                gate: { scope: scopeId, control: controlId, key: g.key },
-                              });
-                            }}
-                          >
-                            Add task
-                          </Button>
-                        )
-                      }
-                    />
-                  );
-                })}
-              </Gates>
+              <Narrative key={work.id} work={work} elementId={originElementId} onChange={refresh} />
             </Box>
           </Section>
-        ) : null}
-
-        <Section
-          title="Implementation"
-          action={
-            <Button
-              size="small"
-              render={
-                <Link
-                  to="/programs/$programId/export"
-                  params={{ programId }}
-                  search={{ tab: "OSCAL" }}
-                />
-              }
-            >
-              View SSP
-            </Button>
-          }
-        >
-          <Box paddingBlockStart="space.100">
-            <Narrative key={work.id} work={work} elementId={originElementId} onChange={refresh} />
-          </Box>
-        </Section>
-
-        <LibraryControlSources
-          programId={programId}
-          controlId={controlId}
-          sources={librarySources}
-        />
-
-        <Section
-          title="Requirements"
-          count={derived.length || null}
-          action={
-            <Button size="small" iconBefore={<Plus />} onClick={() => setMapping(true)}>
-              Map requirements
-            </Button>
-          }
-        >
-          <Box paddingBlockStart="space.100">
-            <ControlRequirementTable
-              requirements={derived}
-              programId={programId}
-              controlId={controlId}
-              elementId={originElementId}
-              allocationCount={(id: string) => controlAllocationCount(programId, id, elementId)}
-            />
-          </Box>
-        </Section>
-
-        <Section title="Supporting evidence" count={controlEvidence(work).length || null}>
-          <Box paddingBlockStart="space.100">
-            <EvidenceBlock
-              key={work.id}
-              work={work}
-              elementId={originElementId}
-              onChange={refresh}
-            />
-          </Box>
-        </Section>
-
-        <TasksSection program={programId} subject={subject} me={me} />
-
-        <Section title="Assessment" count={open.length || null}>
-          <Stack space="space.200" className="pt-100">
-            <Determination key={work.id} work={work} onChange={refresh} />
-            {open.length ? (
-              <Table>
-                <tbody>
-                  {open.map((f) => (
-                    <Table.Row key={f.id}>
-                      <Table.Cell className="max-w-none" width={104}>
-                        <TextLink
-                          render={
-                            <Link
-                              to="/programs/$programId"
-                              params={{ programId }}
-                              search={{
-                                tab: "Findings",
-                                findingId: f.id,
-                                element: originElementId,
-                              }}
-                            />
-                          }
-                        >
-                          <Id>{f.id}</Id>
-                        </TextLink>
-                      </Table.Cell>
-                      <Table.Cell width={88}>
-                        <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                          {f.mitigatedSeverity}
-                        </Indicator>
-                      </Table.Cell>
-                      <Table.Cell className="truncate">{f.title}</Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            ) : null}
-          </Stack>
-        </Section>
-
-        <RecordActivity program={programId} subject={subject} me={me} />
-      </ShowPage>
-
+          <LibraryControlSources
+            programId={programId}
+            controlId={controlId}
+            sources={librarySources}
+          />
+          <Section
+            title="Requirements"
+            count={derived.length || null}
+            action={
+              <Button size="small" iconBefore={<Plus />} onClick={() => setMapping(true)}>
+                Map requirements
+              </Button>
+            }
+          >
+            <Box paddingBlockStart="space.100">
+              <ControlRequirementTable
+                requirements={derived}
+                programId={programId}
+                controlId={controlId}
+                elementId={originElementId}
+                allocationCount={(id: string) => controlAllocationCount(programId, id, elementId)}
+              />
+            </Box>
+          </Section>
+          <Section title="Supporting evidence" count={controlEvidence(work).length || null}>
+            <Box paddingBlockStart="space.100">
+              <EvidenceBlock
+                key={work.id}
+                work={work}
+                elementId={originElementId}
+                onChange={refresh}
+              />
+            </Box>
+          </Section>
+          <TasksSection program={programId} subject={subject} me={me} />
+          <Section title="Assessment" count={open.length || null}>
+            <Stack space="space.200" className="pt-100">
+              <Determination key={work.id} work={work} onChange={refresh} />
+              {open.length ? (
+                <Table>
+                  <tbody>
+                    {open.map((f) => (
+                      <Table.Row key={f.id}>
+                        <Table.Cell className="max-w-none" width={104}>
+                          <TextLink
+                            render={
+                              <Link
+                                to="/programs/$programId"
+                                params={{ programId }}
+                                search={{
+                                  tab: "Findings",
+                                  findingId: f.id,
+                                  element: originElementId,
+                                }}
+                              />
+                            }
+                          >
+                            <Id>{f.id}</Id>
+                          </TextLink>
+                        </Table.Cell>
+                        <Table.Cell width={88}>
+                          <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                            {f.mitigatedSeverity}
+                          </Indicator>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{f.title}</Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : null}
+            </Stack>
+          </Section>
+          <RecordActivity program={programId} subject={subject} me={me} />
+        </Stack>
+        <Shell.Aside label="Record properties">{rail}</Shell.Aside>
+      </Stack>
       <MapRequirementsSheet
         open={mapping}
         onClose={() => setMapping(false)}
@@ -620,6 +630,6 @@ function ControlRecord() {
         actor={me}
         scopeName={scope?.name}
       />
-    </Shell>
+    </>
   );
 }

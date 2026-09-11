@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { PageSkeleton } from "../..";
 import { Skeleton, Spinner } from "../../components";
-import { PageSkeleton } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Patterns/PageSkeleton",
+  title: "Layout/PageSkeleton",
   component: PageSkeleton,
   parameters: { layout: "padded" },
   args: {},

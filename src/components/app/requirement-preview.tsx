@@ -1,20 +1,20 @@
+import { Section } from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 
 import {
   Badge,
-  Block,
   Button,
   Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
   Fact,
   Inline,
   PreviewSheet,
   Stack,
   Text,
   TextLink,
-  EmptyHeader,
-  EmptyContent,
-  EmptyTitle,
-  EmptyDescription,
 } from "@ledger/design-system";
 
 import { CoverageBar } from "@/components/app/coverage-bar";
@@ -136,7 +136,7 @@ export function RequirementPreviewSheet({
     >
       {requirement && coverage ? (
         <Stack space="space.050">
-          <Block
+          <Section
             title={
               childrenOfRequirement(requirement.id).length
                 ? "Child assessment results"
@@ -150,8 +150,8 @@ export function RequirementPreviewSheet({
                 {requirement.successCriteria}
               </Text>
             ) : null}
-          </Block>
-          <Block title="Allocated to" count={allocations.length}>
+          </Section>
+          <Section title="Allocated to" count={allocations.length}>
             {allocations.length ? (
               <AllocationTable allocations={allocations} programId={programId} />
             ) : (
@@ -165,8 +165,8 @@ export function RequirementPreviewSheet({
                 {allocate ? <EmptyContent>{allocate}</EmptyContent> : null}
               </Empty>
             )}
-          </Block>
-          <Block title="Linked controls" count={controls.length}>
+          </Section>
+          <Section title="Linked controls" count={controls.length}>
             {controls.length ? (
               <ProvenanceTable
                 derivations={controls}
@@ -178,16 +178,16 @@ export function RequirementPreviewSheet({
                 Independent — no linked controls.
               </Text>
             )}
-          </Block>
+          </Section>
           {otherSources.length ? (
-            <Block title="Other sources" count={otherSources.length}>
+            <Section title="Other sources" count={otherSources.length}>
               <ProvenanceTable
                 derivations={otherSources}
                 programId={programId}
                 requirementId={requirement.id}
                 elementId={elementId}
               />
-            </Block>
+            </Section>
           ) : null}
         </Stack>
       ) : null}

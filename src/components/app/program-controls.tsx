@@ -1,22 +1,3 @@
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Badge,
-  Block,
-  Button,
-  DataTable,
-  Fact,
-  Inline,
-  PreviewSheet,
-  Stack,
-  Table,
-  TextLink,
-  defineColumns,
-  useDataTable,
-} from "@ledger/design-system";
 import { Funnel } from "@/components/app/control-board";
 import {
   ControlActions,
@@ -47,6 +28,25 @@ import { closestProgramScope, programElementIds } from "@/lib/program-scope";
 import { useRequirementsVersion } from "@/lib/requirements";
 import { scopeById, useScopesVersion } from "@/lib/scopes";
 import { useControlText, useSctm } from "@/lib/sctm";
+import {
+  Badge,
+  Button,
+  DataTable,
+  Fact,
+  Inline,
+  PreviewSheet,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Stack,
+  Table,
+  TextLink,
+  defineColumns,
+  useDataTable,
+} from "@ledger/design-system";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -438,10 +438,10 @@ function ControlPreview({
       >
         {work ? (
           <Stack space="space.200">
-            <Block title="Implementation">
+            <Section title="Implementation">
               <Narrative key={work.id} work={work} elementId={elementId} onChange={changed} />
-            </Block>
-            <Block title="Requirements" count={requirements.length}>
+            </Section>
+            <Section title="Requirements" count={requirements.length}>
               <ControlRequirementTable
                 requirements={requirements}
                 programId={programId}
@@ -449,24 +449,24 @@ function ControlPreview({
                 allocationCount={count}
                 elementId={elementId}
               />
-            </Block>
-            <Block title="Supporting evidence" count={controlEvidence(work).length}>
+            </Section>
+            <Section title="Supporting evidence" count={controlEvidence(work).length}>
               <EvidenceBlock key={work.id} work={work} elementId={elementId} onChange={changed} />
-            </Block>
-            <Block title="Assessment">
+            </Section>
+            <Section title="Assessment">
               <Determination key={work.id} work={work} onChange={changed} />
-            </Block>
+            </Section>
           </Stack>
         ) : (
           <Stack space="space.200">
-            <Block title="Implementation">
+            <Section title="Implementation">
               <p className="font-body text-subtle">
                 {applies
                   ? `No component implementation recorded. This control is inherited from ${scope?.name ?? "the parent scope"}.`
                   : "This control no longer applies to the selected scope."}
               </p>
-            </Block>
-            <Block title="Requirements" count={requirements.length}>
+            </Section>
+            <Section title="Requirements" count={requirements.length}>
               <ControlRequirementTable
                 requirements={requirements}
                 programId={programId}
@@ -474,7 +474,7 @@ function ControlPreview({
                 allocationCount={count}
                 elementId={elementId}
               />
-            </Block>
+            </Section>
           </Stack>
         )}
       </PreviewSheet>

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
-import { Chart } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import { assessors, byAssessor, byMonth, byWeek, findingSeries } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
@@ -27,26 +27,70 @@ export const AreaMatrix: Story = {
           <Chart.Area data={byMonth} x="month" series={open} size="small" label="Open findings" />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Area data={byMonth} x="month" series={findingSeries} stacked size="small" label="Findings, stacked" />
+          <Chart.Area
+            data={byMonth}
+            x="month"
+            series={findingSeries}
+            stacked
+            size="small"
+            label="Findings, stacked"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Area data={byMonth} x="month" series={findingSeries} curve="smooth" labels="end" size="small" label="Findings over time" />
+          <Chart.Area
+            data={byMonth}
+            x="month"
+            series={findingSeries}
+            curve="smooth"
+            labels="end"
+            size="small"
+            label="Findings over time"
+          />
         </Box>
       </Specimens>
       <Specimens title="Textured · a time axis · a shared domain">
         <Box style={{ width: 300 }}>
-          <Chart.Area data={byAssessor} x="week" series={assessors.slice(0, 4)} stacked texture size="small" label="Reviews by assessor, textured" />
+          <Chart.Area
+            data={byAssessor}
+            x="week"
+            series={assessors.slice(0, 4)}
+            stacked
+            texture
+            size="small"
+            label="Reviews by assessor, textured"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Area data={byWeek} x="date" scale="time" series={open} size="small" label="Open findings by week" />
+          <Chart.Area
+            data={byWeek}
+            x="date"
+            scale="time"
+            series={open}
+            size="small"
+            label="Open findings by week"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Area data={byMonth} x="month" series={open} domain={[0, 40]} size="small" label="Open findings, to 40" />
+          <Chart.Area
+            data={byMonth}
+            x="month"
+            series={open}
+            domain={[0, 40]}
+            size="small"
+            label="Open findings, to 40"
+          />
         </Box>
       </Specimens>
       <Specimens title="Baseline auto · a band and a limit · loading">
         <Box style={{ width: 300 }}>
-          <Chart.Area data={byMonth} x="month" series={[{ key: "assessed", label: "Assessed", tone: "brand" }]} baseline="auto" size="small" label="Controls assessed" />
+          <Chart.Area
+            data={byMonth}
+            x="month"
+            series={[{ key: "assessed", label: "Assessed", tone: "brand" }]}
+            baseline="auto"
+            size="small"
+            label="Controls assessed"
+          />
         </Box>
         <Box style={{ width: 300 }}>
           <Chart.Area
@@ -60,7 +104,15 @@ export const AreaMatrix: Story = {
           />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Area data={byMonth} x="month" series={findingSeries} stacked size="small" label="Findings over time" loading />
+          <Chart.Area
+            data={byMonth}
+            x="month"
+            series={findingSeries}
+            stacked
+            size="small"
+            label="Findings over time"
+            loading
+          />
         </Box>
       </Specimens>
     </Stack>
@@ -71,7 +123,14 @@ export const AreaMatrix: Story = {
 export const Single: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Open findings" description="At the end of each month, this year" series={open} data={byMonth} x="month" xLabel="Month">
+      <Chart
+        title="Open findings"
+        description="At the end of each month, this year"
+        series={open}
+        data={byMonth}
+        x="month"
+        xLabel="Month"
+      >
         <Chart.Area data={byMonth} x="month" series={open} labels="end" />
       </Chart>
     </Box>
@@ -82,7 +141,14 @@ export const Single: Story = {
 export const Stacked: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Findings, open and closed" description="Parts of the month's total" series={findingSeries} data={byMonth} x="month" xLabel="Month">
+      <Chart
+        title="Findings, open and closed"
+        description="Parts of the month's total"
+        series={findingSeries}
+        data={byMonth}
+        x="month"
+        xLabel="Month"
+      >
         <Chart.Area data={byMonth} x="month" series={findingSeries} stacked />
       </Chart>
     </Box>
@@ -93,7 +159,15 @@ export const Stacked: Story = {
 export const Textured: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Reviews by assessor" description="Per week, stacked and textured" series={assessors.slice(0, 4)} texture data={byAssessor} x="week" xLabel="Week">
+      <Chart
+        title="Reviews by assessor"
+        description="Per week, stacked and textured"
+        series={assessors.slice(0, 4)}
+        texture
+        data={byAssessor}
+        x="week"
+        xLabel="Week"
+      >
         <Chart.Area data={byAssessor} x="week" series={assessors.slice(0, 4)} stacked />
       </Chart>
     </Box>
@@ -104,7 +178,14 @@ export const Textured: Story = {
 export const Details: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Findings, open and closed" description="Click a month" series={findingSeries} data={byMonth} x="month" xLabel="Month">
+      <Chart
+        title="Findings, open and closed"
+        description="Click a month"
+        series={findingSeries}
+        data={byMonth}
+        x="month"
+        xLabel="Month"
+      >
         <Chart.Area
           data={byMonth}
           x="month"
@@ -115,7 +196,10 @@ export const Details: Story = {
               <KeyValue label="Total" labelWidth={88}>
                 {String(Number(s.datum["open"]) + Number(s.datum["closed"]))}
               </KeyValue>
-              <Button size="small" variant="secondary">{`Findings in ${String(s.datum["month"])}`}</Button>
+              <Button
+                size="small"
+                variant="secondary"
+              >{`Findings in ${String(s.datum["month"])}`}</Button>
             </Stack>
           )}
         />
@@ -130,14 +214,25 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <Chart title="Reviews by assessor" series={assessors.slice(0, 3)} swatch="line" size="small">
+          <Chart
+            title="Reviews by assessor"
+            series={assessors.slice(0, 3)}
+            swatch="line"
+            size="small"
+          >
             <Chart.Line data={byAssessor} x="week" series={assessors.slice(0, 3)} size="small" />
           </Chart>
         }
         doText="Series that are not parts of one whole are lines: each reads on its own against the axis."
         dont={
           <Chart title="Reviews by assessor" series={assessors.slice(0, 3)} size="small">
-            <Chart.Area data={byAssessor} x="week" series={assessors.slice(0, 3)} stacked size="small" />
+            <Chart.Area
+              data={byAssessor}
+              x="week"
+              series={assessors.slice(0, 3)}
+              stacked
+              size="small"
+            />
           </Chart>
         }
         dontText="Three assessors stacked. The top of the stack is a number nobody asked for, and the middle series has no baseline to read against."

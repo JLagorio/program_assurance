@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { Chart } from "../..";
 import { Button, KeyValue, Stat } from "../../components";
-import { Chart } from "../../patterns";
 import { Box, Inline, Stack } from "../../primitives";
 import { byFamily, bySource, statusSeries } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
@@ -49,18 +49,47 @@ export const DonutMatrix: Story = {
             { key: "c", label: "Closed", value: 59, tone: "neutral" },
           ]}
         />
-        <Chart.Donut arc="half" size={160} thickness={16} label="72" caption="posture" name="Risk posture" slices={posture} />
+        <Chart.Donut
+          arc="half"
+          size={160}
+          thickness={16}
+          label="72"
+          caption="posture"
+          name="Risk posture"
+          slices={posture}
+        />
       </Specimens>
       <Specimens title="Textured · beside its textured legend">
         <Inline space="space.200" alignBlock="center">
-          <Chart.Donut label="80%" caption="satisfied" name="Coverage, textured" slices={coverage} texture />
+          <Chart.Donut
+            label="80%"
+            caption="satisfied"
+            name="Coverage, textured"
+            slices={coverage}
+            texture
+          />
           <Chart.Legend series={statusSeries} texture />
         </Inline>
       </Specimens>
       <Specimens title="One slice on the track · loading · a gauge loading">
-        <Chart.Donut label="62%" caption="assessed" name="Assessed" slices={[{ key: "a", label: "Assessed", value: 62, tone: "brand" }, { key: "r", label: "Left", value: 38, tone: "neutral" }]} />
+        <Chart.Donut
+          label="62%"
+          caption="assessed"
+          name="Assessed"
+          slices={[
+            { key: "a", label: "Assessed", value: 62, tone: "brand" },
+            { key: "r", label: "Left", value: 38, tone: "neutral" },
+          ]}
+        />
         <Chart.Donut name="Coverage" slices={coverage} loading />
-        <Chart.Donut arc="half" size={160} thickness={16} name="Risk posture" slices={posture} loading />
+        <Chart.Donut
+          arc="half"
+          size={160}
+          thickness={16}
+          name="Risk posture"
+          slices={posture}
+          loading
+        />
       </Specimens>
     </Stack>
   ),
@@ -83,7 +112,15 @@ export const BesideStat: Story = {
 export const Gauge: Story = {
   render: () => (
     <Inline space="space.600" alignBlock="end">
-      <Chart.Donut arc="half" size={200} thickness={20} label="72" caption="risk posture" name="Risk posture" slices={posture} />
+      <Chart.Donut
+        arc="half"
+        size={200}
+        thickness={20}
+        label="72"
+        caption="risk posture"
+        name="Risk posture"
+        slices={posture}
+      />
       <Chart.Donut
         arc="half"
         size={200}
@@ -116,7 +153,10 @@ export const Details: Story = {
             <KeyValue label="Families" labelWidth={88}>
               {`${byFamily.filter((f) => f[s.slice.key === "s" ? "satisfied" : s.slice.key === "p" ? "partial" : s.slice.key === "o" ? "other" : "notAssessed"] > 0).length} of 6`}
             </KeyValue>
-            <Button size="small" variant="secondary">{`Controls ${s.slice.label.toLowerCase()}`}</Button>
+            <Button
+              size="small"
+              variant="secondary"
+            >{`Controls ${s.slice.label.toLowerCase()}`}</Button>
           </Stack>
         )}
       />
@@ -132,7 +172,12 @@ export const Dont: Story = {
       <Pair
         do={
           <Box style={{ width: 200 }}>
-            <Stat.Tile label="Open findings" value={5} note="Of 64 raised this year" tone="danger" />
+            <Stat.Tile
+              label="Open findings"
+              value={5}
+              note="Of 64 raised this year"
+              tone="danger"
+            />
           </Box>
         }
         doText="One number is a Stat. The number is the chart."
@@ -151,14 +196,35 @@ export const Dont: Story = {
       <Pair
         do={
           <Chart title="Findings by source" size="small">
-            <Chart.Bar data={bySource} x="source" series={[{ key: "n", label: "Findings", tone: "neutral" }]} horizontal labels="end" size="small" />
+            <Chart.Bar
+              data={bySource}
+              x="source"
+              series={[{ key: "n", label: "Findings", tone: "neutral" }]}
+              horizontal
+              labels="end"
+              size="small"
+            />
           </Chart>
         }
         doText="Five sources compared are bars: the eye reads length far better than angle."
         dont={
           <Inline space="space.200" alignBlock="center">
-            <Chart.Donut name="Findings by source" slices={bySource.map((s, i) => ({ key: s.source, label: s.source, value: s.n, tone: `categorical.${(i + 1) as 1 | 2 | 3 | 4 | 5}` as const }))} />
-            <Chart.Legend series={bySource.map((s, i) => ({ key: s.source, label: s.source, tone: `categorical.${(i + 1) as 1 | 2 | 3 | 4 | 5}` as const }))} />
+            <Chart.Donut
+              name="Findings by source"
+              slices={bySource.map((s, i) => ({
+                key: s.source,
+                label: s.source,
+                value: s.n,
+                tone: `categorical.${(i + 1) as 1 | 2 | 3 | 4 | 5}` as const,
+              }))}
+            />
+            <Chart.Legend
+              series={bySource.map((s, i) => ({
+                key: s.source,
+                label: s.source,
+                tone: `categorical.${(i + 1) as 1 | 2 | 3 | 4 | 5}` as const,
+              }))}
+            />
           </Inline>
         }
         dontText="Five sources as slices. Which is bigger, ACAS or code scan? Five hues for a question the legend has to answer."

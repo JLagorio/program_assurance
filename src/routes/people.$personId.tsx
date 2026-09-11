@@ -1,27 +1,30 @@
 import {
-  Badge,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Id,
-  Inline,
-  Inspector,
-  KeyValue,
-  Progress,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Table,
-  TextLink,
-} from "@ledger/design-system";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Shell } from "@/components/app/shell";
-import {
   allocationFor,
   personById,
   workstreamsForPerson,
   workstreamStatusTone,
 } from "@/lib/people";
+import {
+  Badge,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  Progress,
+  Section,
+  Shell,
+  Stack,
+  Table,
+  TextLink,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/people/$personId")({
   loader: ({ params }) => {
@@ -65,164 +68,170 @@ function PersonDetail() {
   );
 
   return (
-    <Shell>
-      <>
-        <ShowPage
-          rail={
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
             <>
-              <Inspector.Group title="Profile">
-                <KeyValue label="Discipline">{person.discipline}</KeyValue>
-                <KeyValue label="Org">{person.org}</KeyValue>
-                <KeyValue label="Clearance">{person.clearance}</KeyValue>
-                <KeyValue label="Site">{person.site}</KeyValue>
-                <KeyValue label="Email">
-                  <span className="truncate font-body-small">{person.email}</span>
-                </KeyValue>
-              </Inspector.Group>
-
-              <Inspector.Group title="Load">
-                <KeyValue label="Workstreams">{streams.length}</KeyValue>
-                <KeyValue label="Allocation">
-                  <Inline as="span" space="space.100" alignBlock="center">
-                    <span className="w-600">
-                      <Progress
-                        value={Math.min(alloc, 100)}
-                        tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"}
-                        aria-hidden
-                      />
-                    </span>
-                    <span className={alloc > 100 ? "tabular-nums text-danger" : "tabular-nums"}>
-                      {alloc}%
-                    </span>
-                  </Inline>
-                </KeyValue>
-              </Inspector.Group>
-
-              <Inspector.Group title="Controls touched">
-                <Inline className="py-050" space="space.075" shouldWrap>
-                  {controls.length ? (
-                    controls.map((c) => (
-                      <Id key={c} className="text-subtle">
-                        {c}
-                      </Id>
-                    ))
-                  ) : (
-                    <span className="font-body-small text-subtle">—</span>
-                  )}
-                </Inline>
-              </Inspector.Group>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  render={
+                    <Link
+                      to="/programs/$programId"
+                      params={{ programId: streams[0]?.program ?? "PRG-1041" }}
+                    />
+                  }
+                >
+                  {streams[0]?.program ?? "PRG-1041"}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
             </>
-          }
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      render={
-                        <Link
-                          to="/programs/$programId"
-                          params={{ programId: streams[0]?.program ?? "PRG-1041" }}
-                        />
-                      }
-                    >
-                      {streams[0]?.program ?? "PRG-1041"}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id={person.id}
-              title={person.name}
-              meta={`${person.title} · ${person.org} · ${person.site}`}
-              actions={
-                <Badge variant="secondary" tone="neutral">
-                  {person.discipline}
-                </Badge>
-              }
-            />
-          }
-          tabs={<div className="border-b border-default" />}
-        >
-          <Section title="Workstreams">
-            <Table className="table-fixed">
-              <thead>
-                <tr>
-                  <Table.Header width={104}>Workstream</Table.Header>
-                  <Table.Header>Title</Table.Header>
-                  <Table.Header width={200}>Role</Table.Header>
-                  <Table.Header width={92}>Status</Table.Header>
-                  <Table.Header width={88} className="text-right">
-                    Allocation
-                  </Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                {streams.map((w) => {
-                  const m = w.members.find((x) => x.person === person.id);
-                  return (
-                    <Table.Row key={w.id}>
-                      <Table.Cell>
-                        <TextLink
-                          render={
-                            <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }} />
-                          }
-                        >
-                          <Id>{w.id}</Id>
-                        </TextLink>
-                      </Table.Cell>
-                      <Table.Cell className="truncate">{w.title}</Table.Cell>
-                      <Table.Cell className="truncate">
-                        {m?.role ?? (w.lead === person.id ? "Workstream lead" : "—")}
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Badge variant="secondary" tone={workstreamStatusTone(w.status)}>
-                          {w.status}
-                        </Badge>
-                      </Table.Cell>
-                      <Table.Cell className="tabular-nums text-right">
-                        {m ? `${m.allocation}%` : "—"}
-                      </Table.Cell>
-                    </Table.Row>
-                  );
-                })}
-              </tbody>
-            </Table>
-          </Section>
-
-          <Section title="Works with">
-            <Table className="table-fixed">
-              <thead>
-                <tr>
-                  <Table.Header width={104}>Person</Table.Header>
-                  <Table.Header width={176}>Name</Table.Header>
-                  <Table.Header>Title</Table.Header>
-                  <Table.Header width={156}>Discipline</Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                {collaborators.map((c) => (
-                  <Table.Row key={c.id}>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{person.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{person.name}</PageHeader.Title>
+          <Inline
+            space="space.100"
+            alignBlock="center"
+            shouldWrap
+            className="pt-050 font-body-small text-subtle"
+          >{`${person.title} · ${person.org} · ${person.site}`}</Inline>
+        </div>
+        <PageHeader.Actions>
+          <Badge variant="secondary" tone="neutral">
+            {person.discipline}
+          </Badge>
+        </PageHeader.Actions>
+      </PageHeader>
+      <div className="border-b border-default" />
+      <Stack space="space.300" className="min-w-0 pt-200">
+        <Section title="Workstreams">
+          <Table className="table-fixed">
+            <thead>
+              <tr>
+                <Table.Header width={104}>Workstream</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header width={200}>Role</Table.Header>
+                <Table.Header width={92}>Status</Table.Header>
+                <Table.Header width={88} className="text-right">
+                  Allocation
+                </Table.Header>
+              </tr>
+            </thead>
+            <tbody>
+              {streams.map((w) => {
+                const m = w.members.find((x) => x.person === person.id);
+                return (
+                  <Table.Row key={w.id}>
                     <Table.Cell>
                       <TextLink
-                        render={<Link to="/people/$personId" params={{ personId: c.id }} />}
+                        render={
+                          <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }} />
+                        }
                       >
-                        <Id>{c.id}</Id>
+                        <Id>{w.id}</Id>
                       </TextLink>
                     </Table.Cell>
-                    <Table.Cell className="truncate">{c.name}</Table.Cell>
-                    <Table.Cell className="truncate">{c.title}</Table.Cell>
-                    <Table.Cell className="truncate">{c.discipline}</Table.Cell>
+                    <Table.Cell className="truncate">{w.title}</Table.Cell>
+                    <Table.Cell className="truncate">
+                      {m?.role ?? (w.lead === person.id ? "Workstream lead" : "—")}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge variant="secondary" tone={workstreamStatusTone(w.status)}>
+                        {w.status}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell className="tabular-nums text-right">
+                      {m ? `${m.allocation}%` : "—"}
+                    </Table.Cell>
                   </Table.Row>
-                ))}
-              </tbody>
-            </Table>
-          </Section>
-        </ShowPage>
-      </>
-    </Shell>
+                );
+              })}
+            </tbody>
+          </Table>
+        </Section>
+        <Section title="Works with">
+          <Table className="table-fixed">
+            <thead>
+              <tr>
+                <Table.Header width={104}>Person</Table.Header>
+                <Table.Header width={176}>Name</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header width={156}>Discipline</Table.Header>
+              </tr>
+            </thead>
+            <tbody>
+              {collaborators.map((c) => (
+                <Table.Row key={c.id}>
+                  <Table.Cell>
+                    <TextLink render={<Link to="/people/$personId" params={{ personId: c.id }} />}>
+                      <Id>{c.id}</Id>
+                    </TextLink>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{c.name}</Table.Cell>
+                  <Table.Cell className="truncate">{c.title}</Table.Cell>
+                  <Table.Cell className="truncate">{c.discipline}</Table.Cell>
+                </Table.Row>
+              ))}
+            </tbody>
+          </Table>
+        </Section>
+      </Stack>
+      <Shell.Aside label="Record properties">
+        <>
+          <Inspector.Group title="Profile">
+            <KeyValue label="Discipline">{person.discipline}</KeyValue>
+            <KeyValue label="Org">{person.org}</KeyValue>
+            <KeyValue label="Clearance">{person.clearance}</KeyValue>
+            <KeyValue label="Site">{person.site}</KeyValue>
+            <KeyValue label="Email">
+              <span className="truncate font-body-small">{person.email}</span>
+            </KeyValue>
+          </Inspector.Group>
+
+          <Inspector.Group title="Load">
+            <KeyValue label="Workstreams">{streams.length}</KeyValue>
+            <KeyValue label="Allocation">
+              <Inline as="span" space="space.100" alignBlock="center">
+                <span className="w-600">
+                  <Progress
+                    value={Math.min(alloc, 100)}
+                    tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"}
+                    aria-hidden
+                  />
+                </span>
+                <span className={alloc > 100 ? "tabular-nums text-danger" : "tabular-nums"}>
+                  {alloc}%
+                </span>
+              </Inline>
+            </KeyValue>
+          </Inspector.Group>
+
+          <Inspector.Group title="Controls touched">
+            <Inline className="py-050" space="space.075" shouldWrap>
+              {controls.length ? (
+                controls.map((c) => (
+                  <Id key={c} className="text-subtle">
+                    {c}
+                  </Id>
+                ))
+              ) : (
+                <span className="font-body-small text-subtle">—</span>
+              )}
+            </Inline>
+          </Inspector.Group>
+        </>
+      </Shell.Aside>
+    </Stack>
   );
 }

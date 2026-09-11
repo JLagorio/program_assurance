@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../patterns";
+import { Chart } from "../..";
 import * as Stories from "./ChartBar.stories";
 
 <Meta of={Stories} />
@@ -13,33 +13,33 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 
 ## Anatomy
 
-| Part         | What it is                                                                                                                                                  |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bar          | 24px thick at most, the data end rounded 2px and the baseline end square; `barCategoryGap` a quarter of the slot. Grouped bars sit 2px apart.               |
-| Segment      | In a stack, a part of the bar in its series' tone, with a 2px `elevation.surface` gap from the next, so the parts count.                                    |
-| Floating bar | A `[from, to]` value: the bar starts at `from`. For windows in time.                                                                                         |
-| Negative bar | A value below zero hangs from the zero line, which is drawn in `color.border.bold`; its rounded end and its label are at the data end, below.                |
-| Texture      | With `texture`, each series' fill is its pattern in its colour; the first series stays solid.                                                                |
-| End label    | The value at the bar's end in `font.body.xsmall` and `color.text.subtle`, outside the bar. `labels="end"`, for a few bars and no stack.                      |
-| Target       | A 2px mark in `color.text` across the bar at the datum's `target` value: actual reads against planned.                                                      |
-| Line         | A series drawn as a 2px line over the bars on the same axis: a cumulative, a rate, a plan.                                                                  |
+| Part         | What it is                                                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bar          | 24px thick at most, the data end rounded 2px and the baseline end square; `barCategoryGap` a quarter of the slot. Grouped bars sit 2px apart.                        |
+| Segment      | In a stack, a part of the bar in its series' tone, with a 2px `elevation.surface` gap from the next, so the parts count.                                             |
+| Floating bar | A `[from, to]` value: the bar starts at `from`. For windows in time.                                                                                                 |
+| Negative bar | A value below zero hangs from the zero line, which is drawn in `color.border.bold`; its rounded end and its label are at the data end, below.                        |
+| Texture      | With `texture`, each series' fill is its pattern in its colour; the first series stays solid.                                                                        |
+| End label    | The value at the bar's end in `font.body.xsmall` and `color.text.subtle`, outside the bar. `labels="end"`, for a few bars and no stack.                              |
+| Target       | A 2px mark in `color.text` across the bar at the datum's `target` value: actual reads against planned.                                                               |
+| Line         | A series drawn as a 2px line over the bars on the same axis: a cumulative, a rate, a plan.                                                                           |
 | Axes         | The category axis with a hairline; the value axis from zero, no line, ticks in `color.text.subtlest`. Titles in `color.text.subtle` when the keys do not say enough. |
-| Tooltip      | The category, every series at it keyed by a square, and the total when stacked. A hovered bar lightens to 80%.                                              |
+| Tooltip      | The category, every series at it keyed by a square, and the total when stacked. A hovered bar lightens to 80%.                                                       |
 
 ## Variants
 
-| Variant                | Use                                                                                                                       |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| One series             | Findings by source. `brand` when the reader is asked to look, `neutral` when it is context. No legend; the title names it. |
-| Grouped                | Two or three series side by side, in the categorical set. Past three the groups blur: stack, or emphasise one as a Line.  |
-| `stacked`              | Parts of each whole, in the status tones or the categorical set. The tooltip totals them.                                 |
-| `horizontal`           | Long names, or many categories: the names read whole down the side.                                                       |
-| `target`               | A mark across each bar at its target: a bullet chart, without the qualitative bands.                               |
-| `[from, to]` values    | Floating bars: phase windows, with `horizontal` and a `reference` for today.                                              |
-| `line`                 | One series as a line over the bars, on the same axis: closed against the plan.                                            |
-| Below zero             | Variance, change, balance: the bars hang from the zero line. The axis reaches below zero on its own.                      |
-| `domain`               | The value axis pinned, so charts side by side share a scale: small multiples.                                             |
-| `texture`              | Patterns as well as colours, for print and colour-vision loss.                                                            |
+| Variant             | Use                                                                                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| One series          | Findings by source. `brand` when the reader is asked to look, `neutral` when it is context. No legend; the title names it. |
+| Grouped             | Two or three series side by side, in the categorical set. Past three the groups blur: stack, or emphasise one as a Line.   |
+| `stacked`           | Parts of each whole, in the status tones or the categorical set. The tooltip totals them.                                  |
+| `horizontal`        | Long names, or many categories: the names read whole down the side.                                                        |
+| `target`            | A mark across each bar at its target: a bullet chart, without the qualitative bands.                                       |
+| `[from, to]` values | Floating bars: phase windows, with `horizontal` and a `reference` for today.                                               |
+| `line`              | One series as a line over the bars, on the same axis: closed against the plan.                                             |
+| Below zero          | Variance, change, balance: the bars hang from the zero line. The axis reaches below zero on its own.                       |
+| `domain`            | The value axis pinned, so charts side by side share a scale: small multiples.                                              |
+| `texture`           | Patterns as well as colours, for print and colour-vision loss.                                                             |
 
 <Canvas of={Stories.Single} />
 <Canvas of={Stories.Grouped} />
@@ -58,13 +58,13 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 
 ## States
 
-| State    | What changes                                                                                                                                   |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| State    | What changes                                                                                                                                                                                                  |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Hover    | The tooltip for the category; a `color.background.neutral.subtle.hovered` band behind the slot; the bar under the pointer in its tone's `hovered` step (a textured bar at 85%). Synced charts hover together. |
-| Isolated | A series hidden from the Frame's legend leaves the plot; the others keep their places.                                                          |
+| Isolated | A series hidden from the Frame's legend leaves the plot; the others keep their places.                                                                                                                        |
 | Chosen   | With `onSelect` or `details`: the bars take the pointer, a click on one chooses it and the other categories dim; Enter on the focused plot chooses the category under the tooltip. The card opens on the bar. |
-| Loading  | Eight skeleton columns on a hairline, pulsing, at the plot's height; five skeleton bars when `horizontal`.                                     |
-| Entering | The bars grow from the baseline over `motion.duration.slow`; a change of data moves them.                                                      |
+| Loading  | Eight skeleton columns on a hairline, pulsing, at the plot's height; five skeleton bars when `horizontal`.                                                                                                    |
+| Entering | The bars grow from the baseline over `motion.duration.slow`; a change of data moves them.                                                                                                                     |
 
 <Canvas of={Stories.Details} />
 
@@ -88,19 +88,19 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 
 ## Style
 
-| Element   | Token                                                                                                  |
-| --------- | ------------------------------------------------------------------------------------------------------ |
+| Element   | Token                                                                                                      |
+| --------- | ---------------------------------------------------------------------------------------------------------- |
 | Bar       | `color.chart.<tone>` · 24px at most · `radius` 2px at the data end · hover in `color.chart.<tone>.hovered` |
-| Zero line | `color.border.bold` · 1px                                                                              |
-| Texture   | The colour at 30% under 1.5px marks · 8px repeat                                                       |
-| Stack gap | 2px `elevation.surface`                                                                                |
-| Group gap | 2px                                                                                                    |
-| End label | `font.body.xsmall` · `color.text.subtle` · tabular · 4px off the end                                   |
-| Target    | `color.text` · 2px · 24px across                                                                       |
-| Line      | `color.chart.<tone>` · 2px · round joins · a ringed 8px marker on hover                                |
-| Cursor    | `color.background.neutral.subtle.hovered` behind the slot                                              |
-| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                                        |
-| Skeleton  | `color.skeleton` columns on a `color.border` hairline                                                  |
+| Zero line | `color.border.bold` · 1px                                                                                  |
+| Texture   | The colour at 30% under 1.5px marks · 8px repeat                                                           |
+| Stack gap | 2px `elevation.surface`                                                                                    |
+| Group gap | 2px                                                                                                        |
+| End label | `font.body.xsmall` · `color.text.subtle` · tabular · 4px off the end                                       |
+| Target    | `color.text` · 2px · 24px across                                                                           |
+| Line      | `color.chart.<tone>` · 2px · round joins · a ringed 8px marker on hover                                    |
+| Cursor    | `color.background.neutral.subtle.hovered` behind the slot                                                  |
+| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                                            |
+| Skeleton  | `color.skeleton` columns on a `color.border` hairline                                                      |
 
 ## Accessibility
 

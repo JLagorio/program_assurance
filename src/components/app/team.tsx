@@ -1,3 +1,4 @@
+import { Id, Inline, Shell, Stack } from "@ledger/design-system";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
@@ -16,15 +17,10 @@ import {
   Badge,
   Box,
   Count,
-  Id,
-  Inline,
   Inspector,
   KeyValue,
-  PreviewRail,
-  PreviewSplit,
   Progress,
   Section,
-  Stack,
   Table,
   Tabs,
   TabsContent,
@@ -74,7 +70,7 @@ export function TeamSection({ programId }: { programId: string }) {
           ))}
         </TabsList>
         <TabsContent value={tab} className="contents">
-          <PreviewSplit open={Boolean(railOpen)}>
+          <>
             <Box className="min-w-0 lg:pe-300" paddingBlockStart="space.200">
               {tab === "Workstreams" ? (
                 <Table className="table-fixed">
@@ -242,100 +238,100 @@ export function TeamSection({ programId }: { programId: string }) {
                 </Table>
               ) : null}
             </Box>
-
             {tab === "Workstreams" && ws ? (
-              <PreviewRail
-                id={ws.id}
-                title={ws.title}
-                onClose={() => setWs(null)}
-                openTo={
-                  <TextLink
-                    render={
-                      <Link to="/workstreams/$workstreamId" params={{ workstreamId: ws.id }} />
-                    }
-                  >
-                    Open workstream
-                  </TextLink>
-                }
-              >
-                <p className="font-body-small text-subtle">{ws.objective}</p>
-                <Box paddingBlockStart="space.150">
-                  <Inspector.Group title="Workstream">
-                    <KeyValue label="Lead">{personById.get(ws.lead)?.name ?? "—"}</KeyValue>
-                    <KeyValue label="Status">
-                      <Badge variant="secondary" tone={workstreamStatusTone(ws.status)}>
-                        {ws.status}
-                      </Badge>
-                    </KeyValue>
-                    <KeyValue label="Stage">{ws.stage}</KeyValue>
-                    <KeyValue label="Gate">{ws.gate}</KeyValue>
-                    <KeyValue label="Due">{ws.due}</KeyValue>
-                  </Inspector.Group>
-                  <Inspector.Group title="Joins">
-                    <KeyValue label="Controls">
-                      <Id>{ws.controls.join(", ")}</Id>
-                    </KeyValue>
-                    <KeyValue label="CCIs">
-                      {ws.ccis.length ? <Id>{ws.ccis.join(", ")}</Id> : "—"}
-                    </KeyValue>
-                    <KeyValue label="Depends on">
-                      {ws.dependsOn.length ? <Id>{ws.dependsOn.join(", ")}</Id> : "—"}
-                    </KeyValue>
-                  </Inspector.Group>
-                </Box>
-              </PreviewRail>
+              <Shell.Panel title={ws.title} onClose={() => setWs(null)}>
+                <Stack space="space.150" className="min-w-0">
+                  <Inline space="space.100" alignBlock="center" shouldWrap>
+                    <Id>{ws.id}</Id>
+                  </Inline>
+                  <div className="font-body">
+                    <TextLink
+                      render={
+                        <Link to="/workstreams/$workstreamId" params={{ workstreamId: ws.id }} />
+                      }
+                    >
+                      Open workstream
+                    </TextLink>
+                  </div>
+                  <p className="font-body-small text-subtle">{ws.objective}</p>
+                  <Box paddingBlockStart="space.150">
+                    <Inspector.Group title="Workstream">
+                      <KeyValue label="Lead">{personById.get(ws.lead)?.name ?? "—"}</KeyValue>
+                      <KeyValue label="Status">
+                        <Badge variant="secondary" tone={workstreamStatusTone(ws.status)}>
+                          {ws.status}
+                        </Badge>
+                      </KeyValue>
+                      <KeyValue label="Stage">{ws.stage}</KeyValue>
+                      <KeyValue label="Gate">{ws.gate}</KeyValue>
+                      <KeyValue label="Due">{ws.due}</KeyValue>
+                    </Inspector.Group>
+                    <Inspector.Group title="Joins">
+                      <KeyValue label="Controls">
+                        <Id>{ws.controls.join(", ")}</Id>
+                      </KeyValue>
+                      <KeyValue label="CCIs">
+                        {ws.ccis.length ? <Id>{ws.ccis.join(", ")}</Id> : "—"}
+                      </KeyValue>
+                      <KeyValue label="Depends on">
+                        {ws.dependsOn.length ? <Id>{ws.dependsOn.join(", ")}</Id> : "—"}
+                      </KeyValue>
+                    </Inspector.Group>
+                  </Box>
+                </Stack>
+              </Shell.Panel>
             ) : null}
-
             {tab === "People" && person ? (
-              <PreviewRail
-                id={person.id}
-                title={person.name}
-                onClose={() => setPerson(null)}
-                openTo={
-                  <TextLink
-                    render={<Link to="/people/$personId" params={{ personId: person.id }} />}
-                  >
-                    Open person
-                  </TextLink>
-                }
-              >
-                <Box paddingBlockStart="space.050">
-                  <Inspector.Group title="Profile">
-                    <KeyValue label="Title">{person.title}</KeyValue>
-                    <KeyValue label="Discipline">{person.discipline}</KeyValue>
-                    <KeyValue label="Org">{person.org}</KeyValue>
-                    <KeyValue label="Clearance">{person.clearance}</KeyValue>
-                    <KeyValue label="Site">{person.site}</KeyValue>
-                  </Inspector.Group>
-                  <Inspector.Group title="Workstreams">
-                    <Stack className="font-body-small" space="space.075">
-                      {workstreamsForPerson(person.id).map((w) => (
-                        <Inline
-                          key={w.id}
-                          space="space.100"
-                          alignBlock="baseline"
-                          spread="space-between"
-                        >
-                          <TextLink
-                            className="min-w-0 truncate"
-                            render={
-                              <Link
-                                to="/workstreams/$workstreamId"
-                                params={{ workstreamId: w.id }}
-                              />
-                            }
+              <Shell.Panel title={person.name} onClose={() => setPerson(null)}>
+                <Stack space="space.150" className="min-w-0">
+                  <Inline space="space.100" alignBlock="center" shouldWrap>
+                    <Id>{person.id}</Id>
+                  </Inline>
+                  <div className="font-body">
+                    <TextLink
+                      render={<Link to="/people/$personId" params={{ personId: person.id }} />}
+                    >
+                      Open person
+                    </TextLink>
+                  </div>
+                  <Box paddingBlockStart="space.050">
+                    <Inspector.Group title="Profile">
+                      <KeyValue label="Title">{person.title}</KeyValue>
+                      <KeyValue label="Discipline">{person.discipline}</KeyValue>
+                      <KeyValue label="Org">{person.org}</KeyValue>
+                      <KeyValue label="Clearance">{person.clearance}</KeyValue>
+                      <KeyValue label="Site">{person.site}</KeyValue>
+                    </Inspector.Group>
+                    <Inspector.Group title="Workstreams">
+                      <Stack className="font-body-small" space="space.075">
+                        {workstreamsForPerson(person.id).map((w) => (
+                          <Inline
+                            key={w.id}
+                            space="space.100"
+                            alignBlock="baseline"
+                            spread="space-between"
                           >
-                            {w.title}
-                          </TextLink>
-                          <span className="shrink-0 font-body-small text-subtle">{w.status}</span>
-                        </Inline>
-                      ))}
-                    </Stack>
-                  </Inspector.Group>
-                </Box>
-              </PreviewRail>
+                            <TextLink
+                              className="min-w-0 truncate"
+                              render={
+                                <Link
+                                  to="/workstreams/$workstreamId"
+                                  params={{ workstreamId: w.id }}
+                                />
+                              }
+                            >
+                              {w.title}
+                            </TextLink>
+                            <span className="shrink-0 font-body-small text-subtle">{w.status}</span>
+                          </Inline>
+                        ))}
+                      </Stack>
+                    </Inspector.Group>
+                  </Box>
+                </Stack>
+              </Shell.Panel>
             ) : null}
-          </PreviewSplit>
+          </>
         </TabsContent>
       </Tabs>
     </Section>

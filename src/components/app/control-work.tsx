@@ -1,47 +1,5 @@
-import {
-  FieldLabel,
-  FieldError,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxList,
-  ComboboxItem,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  ActionBar,
-  ActionBarAction,
-  Badge,
-  Block,
-  Box,
-  Button,
-  Combobox,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Field,
-  Grid,
-  IconButton,
-  Inline,
-  Stack,
-  Table,
-  Textarea,
-  TextLink,
-} from "@ledger/design-system";
 import { AddEvidenceDialog, EvidencePreview } from "@/components/app/program-evidence";
 import { descendantsOf, nodeById } from "@/lib/composition";
-import { useRecordForm } from "@/lib/record-form";
-import { scopeById } from "@/lib/scopes";
-import { Link } from "@tanstack/react-router";
-import { useId, useCallback, useState, type SetStateAction } from "react";
 import { availableControlEvidence, controlEvidence } from "@/lib/control-evidence";
 import {
   activityFor,
@@ -65,8 +23,50 @@ import {
 } from "@/lib/control-work";
 import { linkArtifact, useEvidenceVersion, type EvidenceLink } from "@/lib/evidence-catalog";
 import { controlRequirementsInElement } from "@/lib/program-controls";
+import { useRecordForm } from "@/lib/record-form";
+import { scopeById } from "@/lib/scopes";
+import {
+  ActionBar,
+  ActionBarAction,
+  Badge,
+  Box,
+  Button,
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Field,
+  FieldError,
+  FieldLabel,
+  Grid,
+  IconButton,
+  Inline,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Stack,
+  Table,
+  Textarea,
+  TextLink,
+} from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
+import { Link } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
+import { useCallback, useId, useState, type SetStateAction } from "react";
 
 /**
  * The control work surface.
@@ -908,9 +908,9 @@ export function AxisControls({ work, context }: { work: ControlWork; context: Wo
           </SelectContent>
         </Select>
       </Field>
-      <Block title="Gates">
+      <Section title="Gates">
         <GateList work={work} context={context} />
-      </Block>
+      </Section>
     </Stack>
   );
 }

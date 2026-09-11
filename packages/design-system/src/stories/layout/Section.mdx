@@ -1,0 +1,15 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Section } from "../..";
+import * as Stories from "./Section.stories";
+
+<Meta of={Stories} />
+
+# Section
+
+Optional presentation for a titled content region. It supplies an h2, optional count, description and actions. Native section props and refs pass through. A rule is opt-in with `divided`.
+
+<Canvas of={Stories.Presentation} />
+
+Use Stack or Grid directly when no titled region is needed. Compose Collapsible when disclosure helps the workflow. Section imposes no distinction between work, reference, forms or narrative.
+
+<ArgTypes of={Section} />

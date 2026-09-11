@@ -1,40 +1,4 @@
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Badge,
-  Box,
-  Button,
-  Empty,
-  Grid,
-  Id,
-  Inline,
-  Inspector,
-  KeyValue,
-  Panel,
-  RecordHeader,
-  Section,
-  Shell as DsShell,
-  ShowPage,
-  Table,
-  TabsList,
-  TabsTrigger,
-  Count,
-  TextLink,
-  Toolbar,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { Shell } from "@/components/app/shell";
-import {
   AttackChain,
   AttackSurfaceSummary,
   CriteriaTable,
@@ -60,8 +24,8 @@ import {
 import { programs } from "@/lib/grc-data";
 import { statusTone } from "@/lib/spine";
 import {
-  attackSurfaceCoverage,
   criteria as allCriteria,
+  attackSurfaceCoverage,
   effectsForScenario,
   missionEffects,
   phaseById,
@@ -76,6 +40,45 @@ import {
   type TePhase,
   type TePhaseId,
 } from "@/lib/te-phases";
+import {
+  Badge,
+  Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Grid,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Shell,
+  Stack,
+  Table,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+  Toolbar,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
 
 const teTabs = ["Phases", "Gate readiness", "Threat scenarios", "Mission effects"] as const;
 type TeTab = (typeof teTabs)[number];
@@ -403,519 +406,533 @@ function ProgramTePhases() {
     };
   });
   return (
-    <Shell>
-      <>
-        <ShowPage
-          tab={tab}
-          onTabChange={(value) => go(value as typeof tab)}
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-                    >
-                      {program.name}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id={program.id}
-              title={`${program.name} — cyber test & evaluation`}
-              meta={`${phases.length} phases · ${programCriteria.length} gate criteria · ${scenarios.length} threat scenarios · ${effects.length} mission effects`}
-              actions={
-                <>
-                  {/* A program with no phase record has neither a clean gate nor a
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                  >
+                    {program.name}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{program.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{`${program.name} — cyber test & evaluation`}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >{`${phases.length} phases · ${programCriteria.length} gate criteria · ${scenarios.length} threat scenarios · ${effects.length} mission effects`}</Inline>
+          </div>
+          <PageHeader.Actions>
+            <>
+              {/* A program with no phase record has neither a clean gate nor a
                     dirty one, and claiming "no phase blocked" over an empty
                     record would be the laundering this page exists to avoid. */}
-                  {phases.length === 0 ? (
-                    <Badge variant="secondary" tone="neutral">
-                      No cyber T&amp;E record
-                    </Badge>
-                  ) : (
-                    <>
-                      <Badge variant="secondary" tone={blockedPhases > 0 ? "warning" : "success"}>
-                        {blockedPhases === 0
-                          ? "No phase blocked"
-                          : `${blockedPhases} phase${blockedPhases === 1 ? "" : "s"} blocked`}
-                      </Badge>
-                      <Badge variant="secondary" tone={unsignedCount > 0 ? "danger" : "success"}>
-                        {unsignedCount === 0
-                          ? "Every attestation signed"
-                          : `${unsignedCount} unsigned attestation${unsignedCount === 1 ? "" : "s"}`}
-                      </Badge>
-                    </>
-                  )}
-                  <TextLink
-                    size="small"
-                    render={
-                      <Link
-                        to="/programs/$programId/composition"
-                        params={{ programId: program.id }}
-                      />
-                    }
-                  >
-                    Composition
-                  </TextLink>
-                  <TextLink
-                    size="small"
-                    render={
-                      <Link to="/programs/$programId/baseline" params={{ programId: program.id }} />
-                    }
-                  >
-                    Baseline
-                  </TextLink>
+              {phases.length === 0 ? (
+                <Badge variant="secondary" tone="neutral">
+                  No cyber T&amp;E record
+                </Badge>
+              ) : (
+                <>
+                  <Badge variant="secondary" tone={blockedPhases > 0 ? "warning" : "success"}>
+                    {blockedPhases === 0
+                      ? "No phase blocked"
+                      : `${blockedPhases} phase${blockedPhases === 1 ? "" : "s"} blocked`}
+                  </Badge>
+                  <Badge variant="secondary" tone={unsignedCount > 0 ? "danger" : "success"}>
+                    {unsignedCount === 0
+                      ? "Every attestation signed"
+                      : `${unsignedCount} unsigned attestation${unsignedCount === 1 ? "" : "s"}`}
+                  </Badge>
                 </>
-              }
-            />
-          }
-          tabs={
-            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-              {teTabs.map((key) => (
-                <TabsTrigger key={key} value={key}>
-                  {key}
-                  {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          }
-        >
-          {tab === "Phases" ? (
-            <>
-              <Section
-                title="The six-phase model"
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {phases.filter((p) => p.state === "Complete").length} complete ·{" "}
-                    {phases.filter((p) => p.kind === "Developmental").length} developmental ·{" "}
-                    {phases.filter((p) => p.kind === "Operational").length} operational
-                  </span>
+              )}
+              <TextLink
+                size="small"
+                render={
+                  <Link to="/programs/$programId/composition" params={{ programId: program.id }} />
                 }
               >
-                {phases.length === 0 ? (
+                Composition
+              </TextLink>
+              <TextLink
+                size="small"
+                render={
+                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }} />
+                }
+              >
+                Baseline
+              </TextLink>
+            </>
+          </PageHeader.Actions>
+        </PageHeader>
+        <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {teTabs.map((key) => (
+              <TabsTrigger key={key} value={key}>
+                {key}
+                {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {tab === "Phases" ? (
+                <>
+                  <Section
+                    title="The six-phase model"
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {phases.filter((p) => p.state === "Complete").length} complete ·{" "}
+                        {phases.filter((p) => p.kind === "Developmental").length} developmental ·{" "}
+                        {phases.filter((p) => p.kind === "Operational").length} operational
+                      </span>
+                    }
+                  >
+                    {phases.length === 0 ? (
+                      <Box paddingBlockStart="space.200">
+                        <Empty>
+                          <EmptyHeader>
+                            <EmptyTitle>{"No cyber T&E phases recorded"}</EmptyTitle>
+                            <EmptyDescription>{`${program.id} carries no phase record, so there is no gate to judge and no threat portrayal to execute against.`}</EmptyDescription>
+                          </EmptyHeader>
+                        </Empty>
+                      </Box>
+                    ) : (
+                      <PhaseTrack
+                        phases={phases}
+                        readiness={readiness}
+                        selected={selectedPhase?.id ?? null}
+                        onSelect={selectPhase}
+                        campaignName={campaignName}
+                      />
+                    )}
+                  </Section>
+
+                  {phases.length === 0 ? null : (
+                    <Section title="What each phase is executing">
+                      <Table className="table-fixed">
+                        <thead>
+                          <tr>
+                            <Table.Header width={72}>Phase</Table.Header>
+                            <Table.Header width={120}>Regime</Table.Header>
+                            <Table.Header width={124}>Campaign</Table.Header>
+                            <Table.Header>Scope</Table.Header>
+                            <Table.Header width={168}>Campaign lead</Table.Header>
+                            <Table.Header width={116}>Campaign state</Table.Header>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {phases.flatMap((phase) =>
+                            phase.campaigns.length === 0
+                              ? [
+                                  <Table.Row key={phase.id}>
+                                    <Table.Cell>
+                                      <Id>{phase.id}</Id>
+                                    </Table.Cell>
+                                    <Table.Cell>{phase.kind}</Table.Cell>
+                                    <Table.Cell>—</Table.Cell>
+                                    <Table.Cell className="truncate">
+                                      No campaign — {phase.short} produces the record later phases
+                                      are judged against
+                                    </Table.Cell>
+                                    <Table.Cell>—</Table.Cell>
+                                    <Table.Cell>—</Table.Cell>
+                                  </Table.Row>,
+                                ]
+                              : phase.campaigns.map((id) => {
+                                  const campaign = campaignById.get(id) ?? null;
+                                  return (
+                                    <Table.Row key={`${phase.id}-${id}`}>
+                                      <Table.Cell>
+                                        <Id>{phase.id}</Id>
+                                      </Table.Cell>
+                                      <Table.Cell>{phase.kind}</Table.Cell>
+                                      <Table.Cell>
+                                        <TextLink
+                                          render={
+                                            <Link
+                                              to="/campaigns/$campaignId"
+                                              params={{ campaignId: id }}
+                                            />
+                                          }
+                                        >
+                                          <Id>{id}</Id>
+                                        </TextLink>
+                                      </Table.Cell>
+                                      <Table.Cell
+                                        className="truncate"
+                                        title={campaign?.scope ?? ""}
+                                      >
+                                        {campaign ? `${campaign.name} — ${campaign.scope}` : "—"}
+                                      </Table.Cell>
+                                      <Table.Cell className="truncate">
+                                        {campaign?.lead ?? "—"}
+                                      </Table.Cell>
+                                      <Table.Cell>
+                                        {campaign ? (
+                                          <Badge
+                                            variant="secondary"
+                                            tone={statusTone(campaign.state)}
+                                          >
+                                            {campaign.state}
+                                          </Badge>
+                                        ) : (
+                                          <span className="text-subtle">—</span>
+                                        )}
+                                      </Table.Cell>
+                                    </Table.Row>
+                                  );
+                                }),
+                          )}
+                        </tbody>
+                      </Table>
+                    </Section>
+                  )}
+                </>
+              ) : null}
+              {tab === "Gate readiness" ? (
+                selectedPhase && selectedReadiness ? (
+                  <>
+                    <Toolbar
+                      actions={
+                        <span className="tabular-nums font-body-small text-subtle">
+                          {derivedCount} derived · {attestedCount} attested · {unsignedCount}{" "}
+                          unsigned
+                        </span>
+                      }
+                    >
+                      <span className="font-body-small text-subtle">Phase</span>
+                      <Select<string>
+                        items={idItems}
+                        value={selectedPhase.id}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          const next = value;
+                          if (isPhaseId(next)) selectPhase(next);
+                        }}
+                      >
+                        <SelectTrigger
+                          className={"w-full " + "h-control-small font-body"}
+                          aria-label="Phase"
+                          style={{ width: 560, maxWidth: "100%" }}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {idItems.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Toolbar>
+
+                    <Section
+                      title={`${selectedPhase.id} — ${selectedPhase.name}`}
+                      description={selectedPhase.purpose}
+                      action={
+                        <span className="font-body-small text-subtle">
+                          Informs {selectedPhase.gate}
+                        </span>
+                      }
+                    >
+                      <PhaseReadinessSummary
+                        phase={selectedPhase}
+                        readiness={selectedReadiness}
+                        criteria={phaseCriteria}
+                      />
+                    </Section>
+
+                    <Section title="Entry criteria">
+                      <CriteriaTable
+                        criteria={phaseCriteria}
+                        results={criterionResults}
+                        kind="Entry"
+                      />
+                    </Section>
+
+                    <Section title="Exit criteria">
+                      <CriteriaTable
+                        criteria={phaseCriteria}
+                        results={criterionResults}
+                        kind="Exit"
+                      />
+                    </Section>
+
+                    <Section title="Why two kinds of criterion">
+                      <Grid
+                        className="pt-200"
+                        gap="space.150"
+                        templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
+                      >
+                        <Box
+                          className="rounded-large border border-brand bg-selected"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold text-brand">
+                              {derivedCount}
+                            </span>
+                            <span className="font-body-small font-medium">derived</span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            Computed from records the platform already holds, and re-computed every
+                            time anything underneath them moves. Each one prints the sentence it
+                            produced, with the real numbers in it and the ids it read, so a reader
+                            can go and disagree with the arithmetic rather than with the verdict.
+                          </p>
+                        </Box>
+                        <Box
+                          className="rounded-large border border-default bg-surface-sunken"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold">
+                              {attestedCount}
+                            </span>
+                            <span className="font-body-small font-medium">attested</span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            A signed test plan, an approved threat portrayal, an ROE agreement, an
+                            operational test agency concurrence. No selector can judge these, so the
+                            platform does not pretend to — it records who signed and when, and{" "}
+                            {unsignedCount === 0
+                              ? "every one of them is on file."
+                              : `${unsignedCount} of them ${unsignedCount === 1 ? "has" : "have"} no signature at all, which is rendered as the gap it is rather than as a pending computation.`}
+                          </p>
+                        </Box>
+                      </Grid>
+                    </Section>
+                  </>
+                ) : (
                   <Box paddingBlockStart="space.200">
                     <Empty>
                       <EmptyHeader>
-                        <EmptyTitle>{"No cyber T&E phases recorded"}</EmptyTitle>
-                        <EmptyDescription>{`${program.id} carries no phase record, so there is no gate to judge and no threat portrayal to execute against.`}</EmptyDescription>
+                        <EmptyTitle>{"No phase to judge"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} carries no cyber T&E phase record, so there is no entry or exit criterion to evaluate.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  </Box>
+                )
+              ) : null}
+              {tab === "Threat scenarios" ? (
+                scenarios.length === 0 ? (
+                  <Box paddingBlockStart="space.200">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"No threat scenario written"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} carries no threat portrayal, so there is no attack surface characterised and nothing for a red team to execute against.`}</EmptyDescription>
                       </EmptyHeader>
                     </Empty>
                   </Box>
                 ) : (
-                  <PhaseTrack
-                    phases={phases}
-                    readiness={readiness}
-                    selected={selectedPhase?.id ?? null}
-                    onSelect={selectPhase}
-                    campaignName={campaignName}
-                  />
-                )}
-              </Section>
-
-              {phases.length === 0 ? null : (
-                <Section title="What each phase is executing">
-                  <Table className="table-fixed">
-                    <thead>
-                      <tr>
-                        <Table.Header width={72}>Phase</Table.Header>
-                        <Table.Header width={120}>Regime</Table.Header>
-                        <Table.Header width={124}>Campaign</Table.Header>
-                        <Table.Header>Scope</Table.Header>
-                        <Table.Header width={168}>Campaign lead</Table.Header>
-                        <Table.Header width={116}>Campaign state</Table.Header>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {phases.flatMap((phase) =>
-                        phase.campaigns.length === 0
-                          ? [
-                              <Table.Row key={phase.id}>
-                                <Table.Cell>
-                                  <Id>{phase.id}</Id>
-                                </Table.Cell>
-                                <Table.Cell>{phase.kind}</Table.Cell>
-                                <Table.Cell>—</Table.Cell>
-                                <Table.Cell className="truncate">
-                                  No campaign — {phase.short} produces the record later phases are
-                                  judged against
-                                </Table.Cell>
-                                <Table.Cell>—</Table.Cell>
-                                <Table.Cell>—</Table.Cell>
-                              </Table.Row>,
-                            ]
-                          : phase.campaigns.map((id) => {
-                              const campaign = campaignById.get(id) ?? null;
-                              return (
-                                <Table.Row key={`${phase.id}-${id}`}>
-                                  <Table.Cell>
-                                    <Id>{phase.id}</Id>
-                                  </Table.Cell>
-                                  <Table.Cell>{phase.kind}</Table.Cell>
-                                  <Table.Cell>
-                                    <TextLink
-                                      render={
-                                        <Link
-                                          to="/campaigns/$campaignId"
-                                          params={{ campaignId: id }}
-                                        />
-                                      }
-                                    >
-                                      <Id>{id}</Id>
-                                    </TextLink>
-                                  </Table.Cell>
-                                  <Table.Cell className="truncate" title={campaign?.scope ?? ""}>
-                                    {campaign ? `${campaign.name} — ${campaign.scope}` : "—"}
-                                  </Table.Cell>
-                                  <Table.Cell className="truncate">
-                                    {campaign?.lead ?? "—"}
-                                  </Table.Cell>
-                                  <Table.Cell>
-                                    {campaign ? (
-                                      <Badge variant="secondary" tone={statusTone(campaign.state)}>
-                                        {campaign.state}
-                                      </Badge>
-                                    ) : (
-                                      <span className="text-subtle">—</span>
-                                    )}
-                                  </Table.Cell>
-                                </Table.Row>
-                              );
-                            }),
-                      )}
-                    </tbody>
-                  </Table>
-                </Section>
-              )}
-            </>
-          ) : null}
-
-          {tab === "Gate readiness" ? (
-            <>
-              {selectedPhase && selectedReadiness ? (
-                <>
-                  <Toolbar
-                    actions={
-                      <span className="tabular-nums font-body-small text-subtle">
-                        {derivedCount} derived · {attestedCount} attested · {unsignedCount} unsigned
-                      </span>
-                    }
-                  >
-                    <span className="font-body-small text-subtle">Phase</span>
-                    <Select<string>
-                      items={idItems}
-                      value={selectedPhase.id}
-                      onValueChange={(value) => {
-                        if (value === null) return;
-                        const next = value;
-                        if (isPhaseId(next)) selectPhase(next);
-                      }}
+                  <>
+                    <Section
+                      title="Attack surface exercised"
+                      action={
+                        <span className="tabular-nums font-body-small text-subtle">
+                          {brokenPaths === 0
+                            ? "Every path traversable"
+                            : `${brokenPaths} unwalkable path${brokenPaths === 1 ? "" : "s"}`}
+                        </span>
+                      }
                     >
-                      <SelectTrigger
-                        className={"w-full " + "h-control-small font-body"}
-                        aria-label="Phase"
-                        style={{ width: 560, maxWidth: "100%" }}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {idItems.map((item) => (
-                          <SelectItem key={item.value} value={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Toolbar>
+                      <AttackSurfaceSummary coverage={coverage} scenarios={scenarios} />
+                    </Section>
 
-                  <Section
-                    title={`${selectedPhase.id} — ${selectedPhase.name}`}
-                    description={selectedPhase.purpose}
-                    action={
-                      <span className="font-body-small text-subtle">
-                        Informs {selectedPhase.gate}
-                      </span>
-                    }
-                  >
-                    <PhaseReadinessSummary
-                      phase={selectedPhase}
-                      readiness={selectedReadiness}
-                      criteria={phaseCriteria}
-                    />
-                  </Section>
-
-                  <Section title="Entry criteria">
-                    <CriteriaTable
-                      criteria={phaseCriteria}
-                      results={criterionResults}
-                      kind="Entry"
-                    />
-                  </Section>
-
-                  <Section title="Exit criteria">
-                    <CriteriaTable
-                      criteria={phaseCriteria}
-                      results={criterionResults}
-                      kind="Exit"
-                    />
-                  </Section>
-
-                  <Section title="Why two kinds of criterion">
-                    <Grid
-                      className="pt-200"
-                      gap="space.150"
-                      templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
+                    <Section
+                      title="Threat scenarios"
+                      action={
+                        <span className="tabular-nums font-body-small text-subtle">
+                          {coverage.exercised} executed of {scenarios.length}
+                        </span>
+                      }
                     >
-                      <Box
-                        className="rounded-large border border-brand bg-selected"
-                        paddingInline="space.200"
-                        paddingBlock="space.150"
-                      >
-                        <Inline space="space.100" alignBlock="baseline">
-                          <span className="tabular-nums font-heading-small font-semibold text-brand">
-                            {derivedCount}
-                          </span>
-                          <span className="font-body-small font-medium">derived</span>
-                        </Inline>
-                        <p className="pt-075 font-body-small text-subtle">
-                          Computed from records the platform already holds, and re-computed every
-                          time anything underneath them moves. Each one prints the sentence it
-                          produced, with the real numbers in it and the ids it read, so a reader can
-                          go and disagree with the arithmetic rather than with the verdict.
-                        </p>
+                      <Box paddingBlockStart="space.100">
+                        <ScenarioTable
+                          scenarios={scenarios}
+                          selected={selectedScenario?.id ?? null}
+                          onSelect={selectScenario}
+                          phaseShort={phaseShort}
+                          showPhase
+                        />
                       </Box>
-                      <Box
-                        className="rounded-large border border-default bg-surface-sunken"
-                        paddingInline="space.200"
-                        paddingBlock="space.150"
-                      >
-                        <Inline space="space.100" alignBlock="baseline">
-                          <span className="tabular-nums font-heading-small font-semibold">
-                            {attestedCount}
-                          </span>
-                          <span className="font-body-small font-medium">attested</span>
-                        </Inline>
-                        <p className="pt-075 font-body-small text-subtle">
-                          A signed test plan, an approved threat portrayal, an ROE agreement, an
-                          operational test agency concurrence. No selector can judge these, so the
-                          platform does not pretend to — it records who signed and when, and{" "}
-                          {unsignedCount === 0
-                            ? "every one of them is on file."
-                            : `${unsignedCount} of them ${unsignedCount === 1 ? "has" : "have"} no signature at all, which is rendered as the gap it is rather than as a pending computation.`}
-                        </p>
-                      </Box>
-                    </Grid>
-                  </Section>
-                </>
-              ) : (
-                <Box paddingBlockStart="space.200">
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyTitle>{"No phase to judge"}</EmptyTitle>
-                      <EmptyDescription>{`${program.id} carries no cyber T&E phase record, so there is no entry or exit criterion to evaluate.`}</EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                </Box>
-              )}
-            </>
-          ) : null}
+                    </Section>
 
-          {tab === "Threat scenarios" ? (
-            scenarios.length === 0 ? (
-              <Box paddingBlockStart="space.200">
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyTitle>{"No threat scenario written"}</EmptyTitle>
-                    <EmptyDescription>{`${program.id} carries no threat portrayal, so there is no attack surface characterised and nothing for a red team to execute against.`}</EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              </Box>
-            ) : (
-              <>
-                <Section
-                  title="Attack surface exercised"
-                  action={
-                    <span className="tabular-nums font-body-small text-subtle">
-                      {brokenPaths === 0
-                        ? "Every path traversable"
-                        : `${brokenPaths} unwalkable path${brokenPaths === 1 ? "" : "s"}`}
-                    </span>
-                  }
-                >
-                  <AttackSurfaceSummary coverage={coverage} scenarios={scenarios} />
-                </Section>
-
-                <Section
-                  title="Threat scenarios"
-                  action={
-                    <span className="tabular-nums font-body-small text-subtle">
-                      {coverage.exercised} executed of {scenarios.length}
-                    </span>
-                  }
-                >
-                  <Box paddingBlockStart="space.100">
-                    <ScenarioTable
-                      scenarios={scenarios}
-                      selected={selectedScenario?.id ?? null}
-                      onSelect={selectScenario}
-                      phaseShort={phaseShort}
-                      showPhase
-                    />
-                  </Box>
-                </Section>
-
-                {selectedScenario ? (
-                  <Section
-                    title="Chain and path"
-                    action={
-                      <TextLink
-                        size="small"
-                        render={
-                          <Link
-                            to="/programs/$programId/composition"
-                            params={{ programId: program.id }}
-                            // The entry point is where the reader wants to land: the
-                            // composition tree opens on the assumed foothold rather
-                            // than on the system root.
-                            search={
-                              selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}
+                    {selectedScenario ? (
+                      <Section
+                        title="Chain and path"
+                        action={
+                          <TextLink
+                            size="small"
+                            render={
+                              <Link
+                                to="/programs/$programId/composition"
+                                params={{ programId: program.id }}
+                                // The entry point is where the reader wants to land: the
+                                // composition tree opens on the assumed foothold rather
+                                // than on the system root.
+                                search={
+                                  selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}
+                                }
+                              />
                             }
-                          />
+                          >
+                            Open in composition
+                          </TextLink>
                         }
                       >
-                        Open in composition
-                      </TextLink>
-                    }
-                  >
-                    <Box paddingBlockStart="space.200">
-                      <AttackChain
-                        scenario={selectedScenario}
-                        path={scenarioPath}
-                        hops={scenarioHops}
-                        effects={scenarioEffects}
-                      />
-                    </Box>
-                  </Section>
-                ) : null}
-              </>
-            )
-          ) : null}
-
-          {tab === "Mission effects" ? (
-            effects.length === 0 ? (
-              <Box paddingBlockStart="space.200">
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyTitle>{"No mission effect recorded"}</EmptyTitle>
-                    <EmptyDescription>{`${program.id} has executed no scenario against a mission function, so there is nothing to score. An adversarial assessment with no recorded effect has not been run — it is not a clean result.`}</EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              </Box>
-            ) : (
-              <>
-                <Section
-                  title="What the adversary did to the mission"
-                  action={
-                    <span className="tabular-nums font-body-small text-subtle">
-                      {effects.filter((e) => e.effect === "No effect").length} of {effects.length}{" "}
-                      with no effect
-                    </span>
-                  }
-                >
-                  <Grid
-                    className="pt-200"
-                    gap="space.150"
-                    templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}
-                  >
-                    <Box
-                      className="rounded-large border border-danger-subtle bg-danger"
-                      paddingInline="space.200"
-                      paddingBlock="space.150"
-                    >
-                      <Inline space="space.100" alignBlock="baseline">
-                        <span className="tabular-nums font-heading-small font-semibold text-danger">
-                          {
-                            effects.filter(
-                              (e) =>
-                                e.effect === "Denied" ||
-                                e.effect === "Destroyed" ||
-                                e.effect === "Exfiltrated",
-                            ).length
-                          }
-                        </span>
-                        <span className="font-body-small font-medium">mission denied or taken</span>
-                      </Inline>
-                      <p className="pt-075 font-body-small text-subtle">
-                        The adversary stopped the mission, destroyed what it runs on, or took the
-                        data it runs on. These are the results a findings count cannot express.
-                      </p>
-                    </Box>
-                    <Box
-                      className="rounded-large border border-warning-subtle bg-warning"
-                      paddingInline="space.200"
-                      paddingBlock="space.150"
-                    >
-                      <Inline space="space.100" alignBlock="baseline">
-                        <span className="tabular-nums font-heading-small font-semibold text-warning">
-                          {
-                            effects.filter(
-                              (e) => e.effect === "Degraded" || e.effect === "Manipulated",
-                            ).length
-                          }
-                        </span>
-                        <span className="font-body-small font-medium">degraded or manipulated</span>
-                      </Inline>
-                      <p className="pt-075 font-body-small text-subtle">
-                        The mission continued, worse or wrong. A degraded effect with a workaround
-                        is still an effect: the workaround is manual, and the page names it so the
-                        cost is visible.
-                      </p>
-                    </Box>
-                    <Box
-                      className="rounded-large border border-success-subtle bg-success"
-                      paddingInline="space.200"
-                      paddingBlock="space.150"
-                    >
-                      <Inline space="space.100" alignBlock="baseline">
-                        <span className="tabular-nums font-heading-small font-semibold text-success">
-                          {effects.filter((e) => e.effect === "No effect").length}
-                        </span>
-                        <span className="font-body-small font-medium">no effect</span>
-                      </Inline>
-                      <p className="pt-075 font-body-small text-subtle">
-                        Executed, and the objective was not achieved — the control held and refused
-                        the adversary. That is a result, and a product that records only the
-                        successes is lying about what the assessment found.
-                      </p>
-                    </Box>
-                  </Grid>
-                </Section>
-
-                <Section title="Confirmed effects">
-                  <Box paddingBlockStart="space.100">
-                    <MissionEffectTable effects={effects} scenarioName={scenarioName} />
+                        <Box paddingBlockStart="space.200">
+                          <AttackChain
+                            scenario={selectedScenario}
+                            path={scenarioPath}
+                            hops={scenarioHops}
+                            effects={scenarioEffects}
+                          />
+                        </Box>
+                      </Section>
+                    ) : null}
+                  </>
+                )
+              ) : null}
+              {tab === "Mission effects" ? (
+                effects.length === 0 ? (
+                  <Box paddingBlockStart="space.200">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"No mission effect recorded"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} has executed no scenario against a mission function, so there is nothing to score. An adversarial assessment with no recorded effect has not been run — it is not a clean result.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   </Box>
-                </Section>
+                ) : (
+                  <>
+                    <Section
+                      title="What the adversary did to the mission"
+                      action={
+                        <span className="tabular-nums font-body-small text-subtle">
+                          {effects.filter((e) => e.effect === "No effect").length} of{" "}
+                          {effects.length} with no effect
+                        </span>
+                      }
+                    >
+                      <Grid
+                        className="pt-200"
+                        gap="space.150"
+                        templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}
+                      >
+                        <Box
+                          className="rounded-large border border-danger-subtle bg-danger"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold text-danger">
+                              {
+                                effects.filter(
+                                  (e) =>
+                                    e.effect === "Denied" ||
+                                    e.effect === "Destroyed" ||
+                                    e.effect === "Exfiltrated",
+                                ).length
+                              }
+                            </span>
+                            <span className="font-body-small font-medium">
+                              mission denied or taken
+                            </span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            The adversary stopped the mission, destroyed what it runs on, or took
+                            the data it runs on. These are the results a findings count cannot
+                            express.
+                          </p>
+                        </Box>
+                        <Box
+                          className="rounded-large border border-warning-subtle bg-warning"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold text-warning">
+                              {
+                                effects.filter(
+                                  (e) => e.effect === "Degraded" || e.effect === "Manipulated",
+                                ).length
+                              }
+                            </span>
+                            <span className="font-body-small font-medium">
+                              degraded or manipulated
+                            </span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            The mission continued, worse or wrong. A degraded effect with a
+                            workaround is still an effect: the workaround is manual, and the page
+                            names it so the cost is visible.
+                          </p>
+                        </Box>
+                        <Box
+                          className="rounded-large border border-success-subtle bg-success"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold text-success">
+                              {effects.filter((e) => e.effect === "No effect").length}
+                            </span>
+                            <span className="font-body-small font-medium">no effect</span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            Executed, and the objective was not achieved — the control held and
+                            refused the adversary. That is a result, and a product that records only
+                            the successes is lying about what the assessment found.
+                          </p>
+                        </Box>
+                      </Grid>
+                    </Section>
 
-                <Section title="Mission functions touched">
-                  <MissionFunctionTable effects={effects} />
-                </Section>
-              </>
-            )
-          ) : null}
-        </ShowPage>
-        {railBody !== null ? (
-          <DsShell.Panel label="Details">
-            <DsShell.Panel.Splitter label="Resize details" />
-            <Panel flush>{railBody}</Panel>
-          </DsShell.Panel>
-        ) : null}
-      </>
-    </Shell>
+                    <Section title="Confirmed effects">
+                      <Box paddingBlockStart="space.100">
+                        <MissionEffectTable effects={effects} scenarioName={scenarioName} />
+                      </Box>
+                    </Section>
+
+                    <Section title="Mission functions touched">
+                      <MissionFunctionTable effects={effects} />
+                    </Section>
+                  </>
+                )
+              ) : null}
+            </Stack>
+          </TabsContent>
+        </Tabs>
+      </Stack>
+      {(search.phase || search.scenario) && railBody !== null ? (
+        <Shell.Panel label="Details" onClose={() => navigate({ search: { tab }, replace: true })}>
+          {railBody}
+        </Shell.Panel>
+      ) : null}
+    </>
   );
 }
 

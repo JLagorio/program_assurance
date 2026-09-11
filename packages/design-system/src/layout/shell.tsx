@@ -7,6 +7,7 @@ import {
   MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
+  X,
 } from "lucide-react";
 import {
   Children,
@@ -15,15 +16,17 @@ import {
   useContext,
   useEffect,
   useId,
+  useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  type ComponentPropsWithoutRef,
+  type ComponentProps,
   type ComponentType,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react";
 
@@ -34,13 +37,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../com
 import { Eyebrow } from "../components/typography";
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
+import { Slot, SlotsContext } from "./slots";
 import { applyShell, readShell, SHELL_STORAGE_KEY, writeShell } from "./storage";
 
 /**
  * The navigation system. Shell is the root; its areas are its immediate children in a fixed
- * order, which is also the keyboard and landmark order: Banner, TopNav, SideNav, Main, Panel.
+ * order: Banner, TopNav, SideNav, Main, Aside, Panel. Routes contribute Aside and Panel through
+ * stable portal destinations; their content and state belong to the route.
  * The package owns the areas and their behaviour: the side nav collapses, resizes, flies out on
- * hover and overlays the page on a narrow viewport; the panel resizes and overlays; the banner
+ * hover and overlays the page on a narrow viewport; the panel resizes and replaces Main on compact screens; the banner
  * pushes everything down. The product owns what goes in them: the nav data, the router, the
  * search, the actions, whatever fills the panel. The product composes router links with Base UI render.
  */
@@ -56,7 +61,7 @@ const DESKTOP = "(min-width: 64rem)";
 /** The medium breakpoint, `md`: the top nav's end items fold into one button below it. */
 const PEEK_CLOSE_DELAY = 200;
 
-type SkipLink = { id: string; label: string };
+type SkipLink = { id: string; label: string; area?: string | undefined };
 type Trigger = "toggle-button" | "shortcut" | "splitter" | "scrim" | "escape" | "hook" | "viewport";
 
 type ShellApi = {
@@ -129,11 +134,11 @@ export function useSideNav() {
   };
 }
 
-function useSkipLink(idProp: string | undefined, label: string) {
+function useSkipLink(idProp: string | undefined, label: string, area?: string) {
   const generated = useId();
   const id = idProp ?? `shell-${generated.replace(/[^\w-]/g, "")}`;
   const { registerSkipLink } = useShell();
-  useEffect(() => registerSkipLink({ id, label }), [registerSkipLink, id, label]);
+  useEffect(() => registerSkipLink({ id, label, area }), [registerSkipLink, id, label, area]);
   return id;
 }
 
@@ -218,13 +223,9 @@ export type ShellSplitterProps = {
   onResizeEnd?: ((args: { initialWidth: number; finalWidth: number }) => void) | undefined;
 };
 
-export type ShellMainProps = {
-  id?: string | undefined;
+export type ShellMainProps = ComponentProps<"main"> & {
   /** The landmark's name, "Main content" by default. */
-  label?: string | undefined;
-  className?: string | undefined;
-  /** The page. */
-  children: ReactNode;
+  label?: string;
 };
 
 export type ShellProps = {
@@ -390,6 +391,14 @@ function ShellRoot({
     return () => setSkipLinks((links) => links.filter((l) => l.id !== link.id));
   }, []);
 
+  const [asideSlot, setAsideSlot] = useState<HTMLDivElement | null>(null);
+  const [panelSlot, setPanelSlot] = useState<HTMLDivElement | null>(null);
+  const opener = useRef<HTMLElement | null>(null);
+  const slots = useMemo(
+    () => ({ aside: asideSlot, panel: panelSlot, opener }),
+    [asideSlot, panelSlot],
+  );
+
   const api = useMemo<ShellApi>(
     () => ({
       isDesktop,
@@ -443,9 +452,28 @@ function ShellRoot({
   return (
     <ShellContext.Provider value={api}>
       <TooltipProvider delay={300} timeout={300}>
-        <div className={cn("shell-root bg-surface text-default", className)} style={vars}>
+        <div
+          className={cn("shell-root bg-surface text-default", className)}
+          style={vars}
+          onFocusCapture={(event) => {
+            if (event.target.closest(".shell-main")) opener.current = event.target;
+          }}
+          onPointerDownCapture={(event) => {
+            const target = event.target as HTMLElement;
+            if (target.closest(".shell-main")) {
+              const control = target.closest<HTMLElement>(
+                "button, a[href], input, textarea, select, [tabindex]",
+              );
+              if (control) opener.current = control;
+            }
+          }}
+        >
           <SkipLinks />
-          {children}
+          <SlotsContext.Provider value={slots}>
+            {children}
+            <div ref={setAsideSlot} data-shell-slot="aside" className="min-w-0" />
+            <div ref={setPanelSlot} data-shell-slot="panel" className="min-w-0" />
+          </SlotsContext.Provider>
         </div>
       </TooltipProvider>
     </ShellContext.Provider>
@@ -461,6 +489,7 @@ function SkipLinks() {
       {skipLinks.map((l) => (
         <a
           key={l.id}
+          data-shell-skip={l.area}
           href={`#${l.id}`}
           onClick={(e) => {
             e.preventDefault();
@@ -1091,8 +1120,8 @@ const SideNav = Object.assign(SideNavRoot, {
 /* ---------- main ---------- */
 
 /** The page. It fills what the side nav and the panel leave and uses the body scroll. */
-function Main({ id, label = "Main content", className, children }: ShellMainProps) {
-  const skipId = useSkipLink(id, label);
+function Main({ id, label = "Main content", className, children, ...props }: ShellMainProps) {
+  const skipId = useSkipLink(id, label, "main");
   return (
     <main
       aria-label={label}
@@ -1102,44 +1131,141 @@ function Main({ id, label = "Main content", className, children }: ShellMainProp
         "shell-main w-full px-200 pb-300 pt-200 outline-none lg:px-300 lg:pb-400",
         className,
       )}
+      {...props}
     >
       {children}
     </main>
   );
 }
 
-/* ---------- panel ---------- */
+/* ---------- route slots ---------- */
 
-export type ShellPanelProps = {
-  id?: string | undefined;
-  /** The landmark's name: say what is in it, "Preview" or "Comments", not "Panel". */
-  label?: string | undefined;
-  /** The width on first render. Keep it current from the splitter's onResizeEnd. */
-  defaultWidth?: number | undefined;
-  className?: string | undefined;
-  children: ReactNode;
+export type ShellAsideProps = ComponentProps<"aside"> & { label?: string };
+
+/** Supporting page context. It follows Main on smaller screens and sits beside it when space permits. */
+function Aside({ children, label = "Page context", className, ...props }: ShellAsideProps) {
+  if (children === null || children === undefined || children === false) return null;
+  return (
+    <Slot name="aside">
+      <aside
+        data-shell-area="aside"
+        aria-label={label}
+        className={cn("min-w-0 p-200 lg:p-300", className)}
+        {...props}
+      >
+        {children}
+      </aside>
+    </Slot>
+  );
+}
+
+export type ShellPanelProps = Omit<ComponentProps<"aside">, "title"> & {
+  /** The task or selected record, also used as the accessible heading. */
+  title?: ReactNode;
+  /** Used when no visible title is supplied. */
+  label?: string;
+  onClose: () => void;
+  defaultWidth?: number;
 };
 
-/** The area beside the page, at the end. Render it anywhere under the Shell, a route or a page: it is fixed beside the page and the root reserves its column, on the server as on the client. Mount it when there is something to show and unmount it when there is not; below the large breakpoint it overlays the page. What is in it is the product's: a Panel with the record's rail, a thread, a form. */
-function PanelRoot({ id, label = "Panel", defaultWidth, className, children }: ShellPanelProps) {
+/** A route-owned contribution to the persistent shell. Mount to open; unmount to close. */
+function PanelRoot(props: ShellPanelProps) {
+  return (
+    <Slot name="panel">
+      <PanelSurface {...props} />
+    </Slot>
+  );
+}
+
+function PanelSurface({
+  ref,
+  id,
+  title,
+  label = "Details",
+  onClose,
+  defaultWidth,
+  className,
+  children,
+  ...props
+}: ShellPanelProps) {
   const shell = useShell();
   const skipId = useSkipLink(id, label);
-  // The first width only; later widths come from the splitter.
+  const titleId = useId();
+  const slots = useContext(SlotsContext);
+  const panelRef = useRef<HTMLElement>(null);
+  useImperativeHandle(ref, () => panelRef.current!, []);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  // Capture before the compact layout hides Main. Restore only while focus still belongs to this panel.
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    const doc = panel.ownerDocument;
+    const opener =
+      slots?.opener.current ??
+      (doc.activeElement instanceof HTMLElement ? doc.activeElement : null);
+    const compact = window.matchMedia("(max-width: 79.999rem)");
+    const focusPanel = () => {
+      if (
+        compact.matches &&
+        (doc.activeElement === doc.body ||
+          doc.activeElement === opener ||
+          doc.activeElement?.closest(".shell-main"))
+      )
+        panel.focus();
+    };
+    focusPanel();
+    compact.addEventListener("change", focusPanel);
+    return () => {
+      compact.removeEventListener("change", focusPanel);
+      const returnFocus = panel.contains(doc.activeElement) || doc.activeElement === doc.body;
+      requestAnimationFrame(() => {
+        if (
+          returnFocus &&
+          opener?.isConnected &&
+          (doc.activeElement === doc.body || panel.contains(doc.activeElement))
+        )
+          opener.focus();
+      });
+    };
+  }, []);
   useEffect(() => {
     if (defaultWidth) shell.setPanelWidth(defaultWidth);
   }, []);
   return (
     <aside
+      {...props}
       id={skipId}
+      ref={panelRef}
       tabIndex={-1}
-      aria-label={label}
+      aria-labelledby={titleId}
       data-shell-area="panel"
       className={cn(
-        "shell-panel flex flex-col overflow-y-auto overscroll-none border-s border-default bg-surface shadow-overlay outline-none max-lg:animate-slide-in-end lg:animate-rise lg:shadow-none",
+        "shell-panel flex min-w-0 flex-col overflow-y-auto overscroll-none border-default bg-surface outline-none",
         className,
       )}
+      onKeyDown={(event) => {
+        props.onKeyDown?.(event);
+        if (event.key === "Escape" && !event.defaultPrevented) {
+          event.preventDefault();
+          closeRef.current();
+        }
+      }}
     >
-      {children}
+      <PanelSplitter label="Resize details" />
+      <div className="sticky top-0 z-10 flex items-start gap-100 border-b border-default bg-surface px-200 py-150">
+        <h2 id={titleId} className="min-w-0 flex-1 break-words font-body font-semibold">
+          {title ?? label}
+        </h2>
+        <IconButton
+          label="Close details"
+          variant="subtle"
+          size="small"
+          onClick={onClose}
+          icon={<X />}
+        />
+      </div>
+      <div className="min-w-0 flex-1 p-200">{children}</div>
     </aside>
   );
 }
@@ -1158,8 +1284,6 @@ function PanelSplitter(props: ShellSplitterProps) {
   );
 }
 
-const Panel = Object.assign(PanelRoot, { Splitter: PanelSplitter });
-
 /* ---------- export ---------- */
 
 export const Shell = Object.assign(ShellRoot, {
@@ -1167,7 +1291,8 @@ export const Shell = Object.assign(ShellRoot, {
   TopNav,
   SideNav,
   Main,
-  Panel,
+  Aside,
+  Panel: PanelRoot,
   AppLogo,
   AppSwitcher,
   Mark,

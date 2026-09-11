@@ -1,44 +1,3 @@
-import {
-  FieldLabel,
-  FieldError,
-  FieldDescription,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Badge,
-  Block,
-  Box,
-  Button,
-  DataTable,
-  defineColumns,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Empty,
-  Fact,
-  Field,
-  Grid,
-  Id,
-  Inline,
-  Input,
-  PreviewSheet,
-  Stack,
-  Text,
-  Textarea,
-  TextLink,
-  toast,
-  type Preset,
-  useDataTable,
-  EmptyHeader,
-  EmptyContent,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
 import { RunRecordView } from "@/components/app/test-execution";
 import {
   assessmentState,
@@ -70,16 +29,57 @@ import {
   proceduresForCampaign,
   recordStep,
   resolvedObjectiveResult,
-  runVerdict,
   runsForCampaign,
+  runVerdict,
   setRunState,
   useTestRuns,
   type StepResult,
   type TestRun,
 } from "@/lib/test-execution";
+import {
+  Badge,
+  Box,
+  Button,
+  DataTable,
+  defineColumns,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Fact,
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  Grid,
+  Id,
+  Inline,
+  Input,
+  PreviewSheet,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Stack,
+  Text,
+  Textarea,
+  TextLink,
+  toast,
+  useDataTable,
+  type Preset,
+} from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
-import { useId, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ZodError } from "zod";
 
 const presets: Preset[] = [
@@ -303,7 +303,7 @@ export function ProgramAssessments({
       >
         {campaign ? (
           <Stack space="space.200">
-            <Block title="Objectives and requirements">
+            <Section title="Objectives and requirements">
               <Stack space="space.150">
                 {eventsByCampaign(campaign.id)
                   .flatMap((event) => objectivesForEvent(event.id))
@@ -346,9 +346,9 @@ export function ProgramAssessments({
                     </div>
                   ))}
               </Stack>
-            </Block>
+            </Section>
             {assessmentFindings.length ? (
-              <Block title="Findings" count={assessmentFindings.length}>
+              <Section title="Findings" count={assessmentFindings.length}>
                 <Stack space="space.100">
                   {assessmentFindings.map((f) => (
                     <TextLink
@@ -365,7 +365,7 @@ export function ProgramAssessments({
                     </TextLink>
                   ))}
                 </Stack>
-              </Block>
+              </Section>
             ) : null}
             {run ? (
               <>
@@ -417,7 +417,7 @@ export function ProgramAssessments({
                   />
                 </div>
                 {run.state !== "Complete" && procedure ? (
-                  <Block title="Record an observation">
+                  <Section title="Record an observation">
                     <Inline space="space.100" shouldWrap>
                       {procedure.steps.map((s) => (
                         <Button key={s.id} size="small" onClick={() => setRecording(s.id)}>
@@ -425,7 +425,7 @@ export function ProgramAssessments({
                         </Button>
                       ))}
                     </Inline>
-                  </Block>
+                  </Section>
                 ) : null}
               </>
             ) : (

@@ -38,4 +38,5 @@ Program Assurance UI Kit
 storybook-static/
 
 # Optional design-system API reports
-/artifacts/design-system-api/
+artifacts
+.playwright-mcp

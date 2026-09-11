@@ -7,7 +7,7 @@ import * as Stories from "./Skeleton.stories";
 
 # Skeleton
 
-A placeholder that holds the space of loading content. It follows shadcn's native div contract, with Ledger's line, heading, circle and block options. Use [PageSkeleton](?path=/docs/patterns-pageskeleton--docs) for a page's first paint and [Spinner](?path=/docs/components-spinner--docs) for an action in progress.
+A placeholder that holds the space of loading content. It follows shadcn's native div contract, with Ledger's line, heading, circle and block options. Use [PageSkeleton](?path=/docs/layout-pageskeleton--docs) for a page's first paint and [Spinner](?path=/docs/components-spinner--docs) for an action in progress.
 
 <Canvas of={Stories.SkeletonMatrix} />
 
@@ -19,12 +19,12 @@ Native attributes, events and refs always belong to the outer div. IDs, labels a
 
 ## Shapes and sizing
 
-| Shape | Default geometry | Use |
-| --- | --- | --- |
-| `line` | 12px tall, full width, `radius.small` | Body text. Use `lines` for a paragraph. |
-| `heading` | 20px tall, full width, `radius.small` | A title or record name. |
-| `circle` | 32px square, `radius.full` | An avatar or icon. `width` also sets its height unless `height` is supplied. |
-| `block` | 96px tall, full width, `radius.medium` | A card, chart or image. |
+| Shape     | Default geometry                       | Use                                                                          |
+| --------- | -------------------------------------- | ---------------------------------------------------------------------------- |
+| `line`    | 12px tall, full width, `radius.small`  | Body text. Use `lines` for a paragraph.                                      |
+| `heading` | 20px tall, full width, `radius.small`  | A title or record name.                                                      |
+| `circle`  | 32px square, `radius.full`             | An avatar or icon. `width` also sets its height unless `height` is supplied. |
+| `block`   | 96px tall, full width, `radius.medium` | A card, chart or image.                                                      |
 
 `width` and `height` accept a number in pixels or a CSS length. On a single shape, explicit `style` values override those dimensions. Existing className overrides continue through the package's class merger.
 
@@ -72,7 +72,7 @@ Existing shapes, line counts, dimensions and style overrides retain their behavi
 
 ## Related
 
-- [PageSkeleton](?path=/docs/patterns-pageskeleton--docs): the page's first paint.
+- [PageSkeleton](?path=/docs/layout-pageskeleton--docs): the page's first paint.
 - [Spinner](?path=/docs/components-spinner--docs): progress for an action.
 - [Chart](?path=/docs/patterns-chart-overview--docs): loading layouts for plots.
 - [Empty](?path=/docs/components-empty--docs): a region with no content to load.

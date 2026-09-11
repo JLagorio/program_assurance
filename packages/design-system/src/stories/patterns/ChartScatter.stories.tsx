@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
-import { Chart } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import { riskGroups, risks } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
@@ -11,7 +11,13 @@ const meta = {
   title: "Patterns/Chart/Scatter",
   component: Chart.Scatter,
   parameters: { layout: "padded" },
-  args: { data: risks, x: "likelihood", y: "impact", name: "id", label: "Risks by likelihood and impact" },
+  args: {
+    data: risks,
+    x: "likelihood",
+    y: "impact",
+    name: "id",
+    label: "Risks by likelihood and impact",
+  },
 } satisfies Meta<typeof Chart.Scatter>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -24,21 +30,66 @@ export const ScatterMatrix: Story = {
     <Stack space="space.400">
       <Specimens title="One tone · three groups · a bubble with quadrants">
         <Box style={{ width: 340 }}>
-          <Chart.Scatter data={risks} x="likelihood" y="impact" name="id" tone="brand" size="small" label="Risks" />
+          <Chart.Scatter
+            data={risks}
+            x="likelihood"
+            y="impact"
+            name="id"
+            tone="brand"
+            size="small"
+            label="Risks"
+          />
         </Box>
         <Box style={{ width: 340 }}>
-          <Chart.Scatter data={risks} x="likelihood" y="impact" name="id" groupBy="status" groups={riskGroups} size="small" label="Risks by status" />
+          <Chart.Scatter
+            data={risks}
+            x="likelihood"
+            y="impact"
+            name="id"
+            groupBy="status"
+            groups={riskGroups}
+            size="small"
+            label="Risks by status"
+          />
         </Box>
         <Box style={{ width: 340 }}>
-          <Chart.Scatter data={risks} x="likelihood" y="impact" z="exposure" name="id" tone="brand" reference={[{ x: 3 }, { y: 3 }]} size="small" label="Risks by exposure" />
+          <Chart.Scatter
+            data={risks}
+            x="likelihood"
+            y="impact"
+            z="exposure"
+            name="id"
+            tone="brand"
+            reference={[{ x: 3 }, { y: 3 }]}
+            size="small"
+            label="Risks by exposure"
+          />
         </Box>
       </Specimens>
       <Specimens title="Axis titles · loading">
         <Box style={{ width: 340 }}>
-          <Chart.Scatter data={risks} x="likelihood" y="impact" name="id" tone="brand" xLabel="Likelihood" yLabel="Impact" size="small" label="Risks" />
+          <Chart.Scatter
+            data={risks}
+            x="likelihood"
+            y="impact"
+            name="id"
+            tone="brand"
+            xLabel="Likelihood"
+            yLabel="Impact"
+            size="small"
+            label="Risks"
+          />
         </Box>
         <Box style={{ width: 340 }}>
-          <Chart.Scatter data={risks} x="likelihood" y="impact" name="id" size="small" label="Risks" loading />
+          <Chart.Scatter
+            data={risks}
+            x="likelihood"
+            y="impact"
+            name="id"
+            size="small"
+            label="Risks"
+            loading
+          />
         </Box>
       </Specimens>
     </Stack>
@@ -49,8 +100,23 @@ export const ScatterMatrix: Story = {
 export const Groups: Story = {
   render: () => (
     <Box style={{ width: 560 }}>
-      <Chart title="Risks by likelihood and impact" description="Open risks in the register" series={riskGroups} swatch="dot">
-        <Chart.Scatter data={risks} x="likelihood" y="impact" name="id" groupBy="status" groups={riskGroups} xLabel="Likelihood" yLabel="Impact" size="large" />
+      <Chart
+        title="Risks by likelihood and impact"
+        description="Open risks in the register"
+        series={riskGroups}
+        swatch="dot"
+      >
+        <Chart.Scatter
+          data={risks}
+          x="likelihood"
+          y="impact"
+          name="id"
+          groupBy="status"
+          groups={riskGroups}
+          xLabel="Likelihood"
+          yLabel="Impact"
+          size="large"
+        />
       </Chart>
     </Box>
   ),
@@ -60,7 +126,12 @@ export const Groups: Story = {
 export const Bubbles: Story = {
   render: () => (
     <Box style={{ width: 560 }}>
-      <Chart title="Risks by likelihood and impact" description="Sized by exposure in $K; the lines split the register into quadrants" series={riskGroups} swatch="dot">
+      <Chart
+        title="Risks by likelihood and impact"
+        description="Sized by exposure in $K; the lines split the register into quadrants"
+        series={riskGroups}
+        swatch="dot"
+      >
         <Chart.Scatter
           data={risks}
           x="likelihood"
@@ -83,7 +154,12 @@ export const Bubbles: Story = {
 export const Details: Story = {
   render: () => (
     <Box style={{ width: 560 }}>
-      <Chart title="Risks by likelihood and impact" description="Click a risk" series={riskGroups} swatch="dot">
+      <Chart
+        title="Risks by likelihood and impact"
+        description="Click a risk"
+        series={riskGroups}
+        swatch="dot"
+      >
         <Chart.Scatter
           data={risks}
           x="likelihood"
@@ -120,14 +196,35 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <Chart title="Risks by likelihood and impact" series={riskGroups} swatch="dot" size="small">
-            <Chart.Scatter data={risks} x="likelihood" y="impact" name="id" groupBy="status" groups={riskGroups} size="small" />
+          <Chart
+            title="Risks by likelihood and impact"
+            series={riskGroups}
+            swatch="dot"
+            size="small"
+          >
+            <Chart.Scatter
+              data={risks}
+              x="likelihood"
+              y="impact"
+              name="id"
+              groupBy="status"
+              groups={riskGroups}
+              size="small"
+            />
           </Chart>
         }
         doText="Three groups, in the status tones, because the groups are statuses. Anything finer is the tooltip's, or a filter's."
         dont={
           <Chart title="Risks by owner" series={owners} swatch="dot" size="small">
-            <Chart.Scatter data={risks} x="likelihood" y="impact" name="id" groupBy="owner" groups={owners} size="small" />
+            <Chart.Scatter
+              data={risks}
+              x="likelihood"
+              y="impact"
+              name="id"
+              groupBy="owner"
+              groups={owners}
+              size="small"
+            />
           </Chart>
         }
         dontText="Five owners in five hues. Two points that sit close in the fourth and fifth hues stop being distinguishable under deutan vision, and the legend is longer than the plot."

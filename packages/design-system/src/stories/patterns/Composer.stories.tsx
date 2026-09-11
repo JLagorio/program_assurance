@@ -1,8 +1,8 @@
-import { avatarHue, AvatarFallback, avatarInitials, Avatar, Button } from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { Composer, type ComposerProps } from "../../patterns";
+import { Composer, type ComposerProps } from "../..";
+import { Avatar, AvatarFallback, avatarHue, avatarInitials, Button } from "../../components";
 import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 

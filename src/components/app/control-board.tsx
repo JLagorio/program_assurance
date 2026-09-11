@@ -1,62 +1,16 @@
-import {
-  FieldLabel,
-  FieldError,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Badge,
-  Block,
-  Box,
-  Button,
-  DataTable,
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  Empty,
-  Field,
-  Grid,
-  Id,
-  Inline,
-  Stack,
-  Table,
-  Textarea,
-  TextLink,
-  Toolbar,
-  Eyebrow,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
-import {
-  useId,
-  useCallback,
-  type SetStateAction,
-  useMemo,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
-import { useRecordForm } from "@/lib/record-form";
-import { Link } from "@tanstack/react-router";
-import { ChevronDown, ListFilter, X } from "lucide-react";
-import { nodeById } from "@/lib/composition";
 import { Determination, EvidenceBlock, GateList, Narrative } from "@/components/app/control-work";
 import { ControlRequirementTable } from "@/components/app/requirements";
+import { nodeById } from "@/lib/composition";
 import {
   buildBoard,
   groupBoard,
   lensLabels,
   type BoardControl,
+  type Bucket,
   type FunnelStage,
   type Lens,
   type Stage,
   type StageKey,
-  type Bucket,
 } from "@/lib/control-board";
 import {
   assignOwner,
@@ -71,10 +25,56 @@ import {
 } from "@/lib/control-work";
 import { evidenceCatalog } from "@/lib/evidence-catalog";
 import { peopleForProgram } from "@/lib/people";
+import { useRecordForm } from "@/lib/record-form";
 import { allocationsFor, requirementsForControl } from "@/lib/requirements";
-import { determinationTone, rowCurrencyTone, useControlText, useSctm } from "@/lib/sctm";
 import { controlSetFor, scopesForProgram } from "@/lib/scopes";
+import { determinationTone, rowCurrencyTone, useControlText, useSctm } from "@/lib/sctm";
+import {
+  Badge,
+  Box,
+  Button,
+  DataTable,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Eyebrow,
+  Field,
+  FieldError,
+  FieldLabel,
+  Grid,
+  Id,
+  Inline,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Stack,
+  Table,
+  Textarea,
+  TextLink,
+  Toolbar,
+} from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
+import { Link } from "@tanstack/react-router";
+import { ChevronDown, ListFilter, X } from "lucide-react";
+import {
+  useCallback,
+  useId,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 
 /**
  * The control board: the SCTM as a working surface rather than an artifact.
@@ -798,7 +798,7 @@ function BoardDetail({
 
       <Stack className="px-200 py-150" space="space.200">
         {stage === "selected" ? (
-          <Block title="Selected">
+          <Section title="Selected">
             <dl className="space-y-050">
               <DetailRow label="Origination">{control.origination}</DetailRow>
               <DetailRow label="Responsible">{control.responsibleParty}</DetailRow>
@@ -809,12 +809,12 @@ function BoardDetail({
                 {owed.length} owed · {control.rows.length - owed.length} not applicable
               </DetailRow>
             </dl>
-          </Block>
+          </Section>
         ) : null}
 
         {stage === "allocated" ? (
           <>
-            <Block title="Allocated to" count={control.nodes.length}>
+            <Section title="Allocated to" count={control.nodes.length}>
               {control.nodes.length ? (
                 <Stack className="font-body" as="ul" space="space.025">
                   {control.nodes.map((n) => (
@@ -836,8 +836,8 @@ function BoardDetail({
               ) : (
                 <p className="font-body text-subtle">Nothing allocated.</p>
               )}
-            </Block>
-            <Block title="Requirements" count={derived.length}>
+            </Section>
+            <Section title="Requirements" count={derived.length}>
               {derived.length ? (
                 <ControlRequirementTable
                   requirements={derived}
@@ -850,7 +850,7 @@ function BoardDetail({
                   No requirement derived from this control yet.
                 </p>
               )}
-            </Block>
+            </Section>
           </>
         ) : null}
 
@@ -861,13 +861,13 @@ function BoardDetail({
                 the same view, so a reader never mistakes the first for both. */}
             {control.origination !== "System specific" ? (
               <>
-                <Block title="What the provider gives">
+                <Section title="What the provider gives">
                   <p className="font-body">{control.responsibleParty}</p>
                   {first.inheritanceReason !== "—" ? (
                     <p className="pt-050 font-body-small text-subtle">{first.inheritanceReason}</p>
                   ) : null}
-                </Block>
-                <Block title="What stays with you">
+                </Section>
+                <Section title="What stays with you">
                   <p
                     className={cn(
                       "font-body",
@@ -880,17 +880,17 @@ function BoardDetail({
                         : "Not stated. A hybrid control without a stated consumer half is an unknown."
                       : first.consumerResponsibility}
                   </p>
-                </Block>
+                </Section>
               </>
             ) : null}
             {work && control.origination !== "Common" ? (
               <>
-                <Block title="Implementation statement">
+                <Section title="Implementation statement">
                   <Narrative work={work} onChange={refresh} />
-                </Block>
-                <Block title="Gates">
+                </Section>
+                <Section title="Gates">
                   <GateList work={work} context={context} />
-                </Block>
+                </Section>
               </>
             ) : null}
           </>
@@ -899,11 +899,11 @@ function BoardDetail({
         {stage === "evidenced" ? (
           <>
             {work ? (
-              <Block title="Evidence" count={work.evidence.length}>
+              <Section title="Evidence" count={work.evidence.length}>
                 <EvidenceBlock work={work} available={evidenceCatalog} onChange={refresh} />
-              </Block>
+              </Section>
             ) : null}
-            <Block title="On the matrix" count={owed.filter((r) => r.evidence.length).length}>
+            <Section title="On the matrix" count={owed.filter((r) => r.evidence.length).length}>
               <RowTable
                 rows={owed}
                 cell={(r) => (
@@ -912,18 +912,18 @@ function BoardDetail({
                   </span>
                 )}
               />
-            </Block>
+            </Section>
           </>
         ) : null}
 
         {stage === "assessed" ? (
           <>
             {work ? (
-              <Block title="Determination">
+              <Section title="Determination">
                 <Determination work={work} onChange={refresh} />
-              </Block>
+              </Section>
             ) : null}
-            <Block title="By requirement" count={owed.length}>
+            <Section title="By requirement" count={owed.length}>
               <RowTable
                 rows={owed}
                 cell={(r) => (
@@ -936,12 +936,12 @@ function BoardDetail({
                   </Badge>
                 )}
               />
-            </Block>
+            </Section>
           </>
         ) : null}
 
         {stage === "current" ? (
-          <Block title="Currency" count={stale.length || null}>
+          <Section title="Currency" count={stale.length || null}>
             {stale.length ? (
               <RowTable
                 rows={stale}
@@ -971,14 +971,14 @@ function BoardDetail({
                 Open configuration baseline
               </TextLink>
             </Box>
-          </Block>
+          </Section>
         ) : null}
 
         {/* Every derived state can explain itself. This is the bridge in
             words: which scope selected the control, whose claim it stands on,
             why it is allocated where it is, what would take the determination
             away, and who may change any of it. */}
-        <Block title="Why is this here?">
+        <Section title="Why is this here?">
           <dl className="space-y-050">
             <DetailRow label="Selected by">
               {control.selectedBy.length ? (
@@ -1035,7 +1035,7 @@ function BoardDetail({
               )}
             </DetailRow>
           </dl>
-        </Block>
+        </Section>
       </Stack>
     </aside>
   );

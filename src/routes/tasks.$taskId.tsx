@@ -1,26 +1,33 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  PageHeader,
+  Shell,
+  Stack,
+} from "@ledger/design-system";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo } from "react";
 
 import {
   Badge,
   Box,
-  BreadcrumbItem,
   BreadcrumbLink,
-  BreadcrumbSeparator,
   Button,
   Editable,
   Empty,
-  Inspector,
-  RecordHeader,
-  Section,
-  ShowPage,
+  EmptyDescription,
   EmptyHeader,
   EmptyTitle,
-  EmptyDescription,
+  Inspector,
+  Section,
 } from "@ledger/design-system";
 
 import { RecordActivity } from "@/components/app/record-activity";
-import { Shell } from "@/components/app/shell";
 import { stateTone, TaskProperties } from "@/components/app/task-table";
 import { useActivityVersion } from "@/lib/activity";
 import { currentSession } from "@/lib/control-work";
@@ -64,82 +71,86 @@ function TaskPage() {
   );
   if (!task)
     return (
-      <Shell>
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>{tasksRestored() ? "Task not found" : "Loading task"}</EmptyTitle>
-            <EmptyDescription>
-              {tasksRestored()
-                ? "This task is not available in this workspace."
-                : "Restoring your saved tasks."}
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </Shell>
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{tasksRestored() ? "Task not found" : "Loading task"}</EmptyTitle>
+          <EmptyDescription>
+            {tasksRestored()
+              ? "This task is not available in this workspace."
+              : "Restoring your saved tasks."}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   const program = programs.find((p) => p.id === task.program);
   const done = task.state === "Done";
 
   return (
-    <Shell>
-      <ShowPage
-        rail={
-          <Inspector.Group title="Details">
-            <TaskProperties task={task} me={me} people={people} />
-          </Inspector.Group>
-        }
-        header={
-          <RecordHeader
-            crumbs={
-              <>
-                <BreadcrumbItem>
-                  <BreadcrumbLink render={<Link to="/work" />}>My work</BreadcrumbLink>
-                </BreadcrumbItem>
-                {program ? (
-                  <>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
-                      <BreadcrumbLink
-                        render={
-                          <Link
-                            to="/programs/$programId"
-                            params={{ programId: program.id }}
-                            search={{ tab: "Schedule", scheduleView: "Tasks", peek: undefined }}
-                          />
-                        }
-                      >
-                        {program.name}
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                  </>
-                ) : null}
-              </>
-            }
-            id={task.id}
-            title={
-              <Editable.Text
-                label="Title"
-                value={task.title}
-                onChange={noop}
-                save={async (next) => renameTask(task.id, next, me)}
-              />
-            }
-            meta={
-              <Badge variant="secondary" tone={stateTone(task.state)}>
-                {task.state}
-              </Badge>
-            }
-            actions={
-              <Button
-                variant={done ? "secondary" : "primary"}
-                onClick={() => (done ? reopenTask(task.id, me) : completeTask(task.id, me))}
-              >
-                {done ? "Reopen" : "Complete"}
-              </Button>
-            }
-          />
-        }
-      >
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/work" />}>My work</BreadcrumbLink>
+              </BreadcrumbItem>
+              {program ? (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink
+                      render={
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId: program.id }}
+                          search={{ tab: "Schedule", scheduleView: "Tasks", peek: undefined }}
+                        />
+                      }
+                    >
+                      {program.name}
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                </>
+              ) : null}
+            </>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{task.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>
+            <Editable.Text
+              label="Title"
+              value={task.title}
+              onChange={noop}
+              save={async (next) => renameTask(task.id, next, me)}
+            />
+          </PageHeader.Title>
+          <Inline
+            space="space.100"
+            alignBlock="center"
+            shouldWrap
+            className="pt-050 font-body-small text-subtle"
+          >
+            <Badge variant="secondary" tone={stateTone(task.state)}>
+              {task.state}
+            </Badge>
+          </Inline>
+        </div>
+        <PageHeader.Actions>
+          <Button
+            variant={done ? "secondary" : "primary"}
+            onClick={() => (done ? reopenTask(task.id, me) : completeTask(task.id, me))}
+          >
+            {done ? "Reopen" : "Complete"}
+          </Button>
+        </PageHeader.Actions>
+      </PageHeader>
+      <Stack space="space.300" className="min-w-0 pt-200">
         <Section title="Note">
           <Box paddingBlockStart="space.100">
             <Editable.Text
@@ -156,7 +167,12 @@ function TaskPage() {
           subject={{ kind: "task", id: task.id, label: task.title }}
           me={me}
         />
-      </ShowPage>
-    </Shell>
+      </Stack>
+      <Shell.Aside label="Record properties">
+        <Inspector.Group title="Details">
+          <TaskProperties task={task} me={me} people={people} />
+        </Inspector.Group>
+      </Shell.Aside>
+    </Stack>
   );
 }

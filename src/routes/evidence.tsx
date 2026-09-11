@@ -1,18 +1,16 @@
+import { ProgramEvidence } from "@/components/app/program-evidence";
+import { programs } from "@/lib/grc-data";
 import {
+  PageHeader,
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
-  IndexPage,
-  PageHeader,
+  SelectTrigger,
+  SelectValue,
   Stack,
 } from "@ledger/design-system";
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ProgramEvidence } from "@/components/app/program-evidence";
-import { Shell } from "@/components/app/shell";
-import { programs } from "@/lib/grc-data";
+import { useState } from "react";
 
 export const Route = createFileRoute("/evidence")({
   head: () => ({
@@ -31,31 +29,34 @@ function Evidence() {
   const [programId, setProgramId] = useState(programs[0]?.id ?? "");
   const programIdItems = programs.map((program) => ({ value: program.id, label: program.name }));
   return (
-    <Shell>
-      <IndexPage header={<PageHeader title="Evidence" />}>
-        <Stack space="space.200">
-          <Select<string>
-            items={programIdItems}
-            value={programId}
-            onValueChange={(value) => {
-              if (value === null) return;
-              return setProgramId(value);
-            }}
-          >
-            <SelectTrigger className="w-full" aria-label="Evidence program">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {programIdItems.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {programId ? <ProgramEvidence key={programId} programId={programId} /> : null}
-        </Stack>
-      </IndexPage>
-    </Shell>
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <div className="min-w-0">
+          <PageHeader.Title>{"Evidence"}</PageHeader.Title>
+        </div>
+      </PageHeader>
+      <Stack space="space.200">
+        <Select<string>
+          items={programIdItems}
+          value={programId}
+          onValueChange={(value) => {
+            if (value === null) return;
+            return setProgramId(value);
+          }}
+        >
+          <SelectTrigger className="w-full" aria-label="Evidence program">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {programIdItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {programId ? <ProgramEvidence key={programId} programId={programId} /> : null}
+      </Stack>
+    </Stack>
   );
 }

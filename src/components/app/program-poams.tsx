@@ -1,37 +1,3 @@
-import {
-  FieldLabel,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Badge,
-  Block,
-  Box,
-  Button,
-  DataTable,
-  defineColumns,
-  Fact,
-  Field,
-  Grid,
-  Id,
-  Inline,
-  Input,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  Stack,
-  Table,
-  Text,
-  Textarea,
-  TextLink,
-  toast,
-  type Preset,
-  useDataTable,
-} from "@ledger/design-system";
 import { FindingRecordSheet } from "@/components/app/program-findings";
 import {
   addPoamMilestone,
@@ -46,6 +12,40 @@ import { currentSession } from "@/lib/control-work";
 import { isDeficiency, programFindings } from "@/lib/findings";
 import { findingsForPoam, poamsForProgram, type PoamItem } from "@/lib/register";
 import { statusTone } from "@/lib/spine";
+import {
+  Badge,
+  Box,
+  Button,
+  DataTable,
+  defineColumns,
+  Fact,
+  Field,
+  FieldLabel,
+  Grid,
+  Id,
+  Inline,
+  Input,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  Stack,
+  Table,
+  Text,
+  Textarea,
+  TextLink,
+  toast,
+  useDataTable,
+  type Preset,
+} from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useCallback, useId, useMemo, useState } from "react";
@@ -385,13 +385,13 @@ export function NewPoamSheet({
                 />
               </Field>
               {members.length ? (
-                <Block title="Linked findings">
+                <Section title="Linked findings">
                   {members.map((finding) => (
                     <p key={finding.id} className="font-body">
                       <Id>{finding.id}</Id> · {finding.title}
                     </p>
                   ))}
-                </Block>
+                </Section>
               ) : (
                 <Field>
                   <FieldLabel
@@ -715,7 +715,7 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
                     onChange={(event) => set("milestoneNote", event.target.value)}
                   />
                 </Field>
-                <Block title="Linked findings" count={members.length}>
+                <Section title="Linked findings" count={members.length}>
                   {item.sourceStatus === "completed" &&
                   members.some(
                     (finding) => finding.sourceStatus === "closed" && !finding.retests?.length,
@@ -841,8 +841,8 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
                       </Button>
                     </Inline>
                   ) : null}
-                </Block>
-                <Block title="Milestones" count={item.milestones?.length ?? 0}>
+                </Section>
+                <Section title="Milestones" count={item.milestones?.length ?? 0}>
                   {item.milestones?.length ? (
                     <Table>
                       <thead>
@@ -942,7 +942,7 @@ function PoamEditor({ item, onClose }: { item: PoamItem; onClose: () => void }) 
                       Add milestone
                     </Button>
                   </Stack>
-                </Block>
+                </Section>
                 <Text size="small" color="color.text.subtle">
                   Completion requires resolved findings and completed milestones. Passing retests
                   and supporting evidence are recorded on each finding.

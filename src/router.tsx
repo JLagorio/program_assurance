@@ -2,7 +2,6 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 
 import { PageSkeleton } from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 
 import { routeTree } from "./routeTree.gen";
 
@@ -10,11 +9,7 @@ import { routeTree } from "./routeTree.gen";
    the page area pulses. Sync loaders never trip it; the routes that import the
    catalog text on demand do. */
 function Pending() {
-  return (
-    <Shell>
-      <PageSkeleton />
-    </Shell>
-  );
+  return <PageSkeleton />;
 }
 
 export const getRouter = () => {

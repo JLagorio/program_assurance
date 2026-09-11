@@ -6,11 +6,21 @@ const density: kit.Density = "compact";
 <kit.Stat.Grid>
   <kit.Stat.Tile label="Records" value={3} />
 </kit.Stat.Grid>;
-<kit.RecordHeader
-  title="Record"
-  crumbs={<kit.BreadcrumbItem>Parent</kit.BreadcrumbItem>}
-  id="REC-1"
-/>;
+<kit.PageHeader ref={createRef<HTMLElement>()} aria-label="Record identity">
+  <kit.PageHeader.Title ref={createRef<HTMLHeadingElement>()}>Record</kit.PageHeader.Title>
+  <kit.PageHeader.Actions>
+    <kit.Button>Edit</kit.Button>
+  </kit.PageHeader.Actions>
+</kit.PageHeader>;
+<kit.Shell.Aside ref={createRef<HTMLElement>()} label="Properties">
+  <kit.KeyValue label="Owner">Alex</kit.KeyValue>
+</kit.Shell.Aside>;
+<kit.Shell.Panel ref={createRef<HTMLElement>()} title="Record" onClose={() => {}}>
+  Details
+</kit.Shell.Panel>;
+<kit.Section title="Evidence" ref={createRef<HTMLElement>()} divided>
+  Files
+</kit.Section>;
 <kit.Related title="Records">
   <kit.Item title="Record" />
 </kit.Related>;
@@ -24,6 +34,8 @@ const density: kit.Density = "compact";
   onClose={() => {}}
   title="Record"
   id="REC-1"
+  initialFocus={createRef<HTMLHeadingElement>()}
+  finalFocus={createRef<HTMLButtonElement>()}
   openTo={<a href="/record" ref={createRef<HTMLAnchorElement>()} />}
 >
   Details

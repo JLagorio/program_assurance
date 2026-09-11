@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
-import { Chart } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import {
   assessmentWindow,
@@ -38,13 +38,34 @@ export const LineMatrix: Story = {
     <Stack space="space.400">
       <Specimens title="Plain · smooth with dots · end labels">
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" label="Findings over time" />
+          <Chart.Line
+            data={byMonth}
+            x="month"
+            series={findingSeries}
+            size="small"
+            label="Findings over time"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byMonth} x="month" series={findingSeries} curve="smooth" dots size="small" label="Findings over time" />
+          <Chart.Line
+            data={byMonth}
+            x="month"
+            series={findingSeries}
+            curve="smooth"
+            dots
+            size="small"
+            label="Findings over time"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byMonth} x="month" series={findingSeries} labels="end" size="small" label="Findings over time" />
+          <Chart.Line
+            data={byMonth}
+            x="month"
+            series={findingSeries}
+            labels="end"
+            size="small"
+            label="Findings over time"
+          />
         </Box>
       </Specimens>
       <Specimens title="A band, a limit and a milestone · baseline auto · a gap where the data was not there">
@@ -63,10 +84,24 @@ export const LineMatrix: Story = {
           />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byMonth} x="month" series={[{ key: "plan", label: "Plan", tone: "neutral" }]} baseline="auto" size="small" label="Plan, cropped" />
+          <Chart.Line
+            data={byMonth}
+            x="month"
+            series={[{ key: "plan", label: "Plan", tone: "neutral" }]}
+            baseline="auto"
+            size="small"
+            label="Plan, cropped"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byMonthGaps} x="month" series={findingSeries} dots size="small" label="Findings, with gaps" />
+          <Chart.Line
+            data={byMonthGaps}
+            x="month"
+            series={findingSeries}
+            dots
+            size="small"
+            label="Findings, with gaps"
+          />
         </Box>
       </Specimens>
       <Specimens title="A time axis with a date band and a milestone · a shared domain · deltas in the tooltip">
@@ -76,28 +111,65 @@ export const LineMatrix: Story = {
             x="date"
             scale="time"
             series={findingSeries}
-            bands={[{ fromX: assessmentWindow.from, toX: assessmentWindow.to, label: "Assessment" }]}
+            bands={[
+              { fromX: assessmentWindow.from, toX: assessmentWindow.to, label: "Assessment" },
+            ]}
             reference={[{ x: authorizationDate, label: "ATO" }]}
             size="small"
             label="Findings by week"
           />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byMonth} x="month" series={open} domain={[0, 40]} size="small" label="Open findings, to 40" />
+          <Chart.Line
+            data={byMonth}
+            x="month"
+            series={open}
+            domain={[0, 40]}
+            size="small"
+            label="Open findings, to 40"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byMonth} x="month" series={findingSeries} delta size="small" label="Findings over time, with deltas" />
+          <Chart.Line
+            data={byMonth}
+            x="month"
+            series={findingSeries}
+            delta
+            size="small"
+            label="Findings over time, with deltas"
+          />
         </Box>
       </Specimens>
       <Specimens title="Emphasis (brand and neutral) · axis titles · loading">
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byAssessor} x="week" series={assessorsEmphasised} size="small" label="Reviews by assessor" />
+          <Chart.Line
+            data={byAssessor}
+            x="week"
+            series={assessorsEmphasised}
+            size="small"
+            label="Reviews by assessor"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byMonth} x="month" series={open} xLabel="Month" yLabel="Findings" size="small" label="Open findings" />
+          <Chart.Line
+            data={byMonth}
+            x="month"
+            series={open}
+            xLabel="Month"
+            yLabel="Findings"
+            size="small"
+            label="Open findings"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" label="Findings over time" loading />
+          <Chart.Line
+            data={byMonth}
+            x="month"
+            series={findingSeries}
+            size="small"
+            label="Findings over time"
+            loading
+          />
         </Box>
       </Specimens>
     </Stack>
@@ -108,7 +180,15 @@ export const LineMatrix: Story = {
 export const Lines: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Findings over time" description="At the end of each month, this year" series={findingSeries} swatch="line" data={byMonth} x="month" xLabel="Month">
+      <Chart
+        title="Findings over time"
+        description="At the end of each month, this year"
+        series={findingSeries}
+        swatch="line"
+        data={byMonth}
+        x="month"
+        xLabel="Month"
+      >
         <Chart.Line data={byMonth} x="month" series={findingSeries} labels="end" />
       </Chart>
     </Box>
@@ -119,7 +199,14 @@ export const Lines: Story = {
 export const Smooth: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Open findings" description="Monthly count" series={open} data={byMonth} x="month" xLabel="Month">
+      <Chart
+        title="Open findings"
+        description="Monthly count"
+        series={open}
+        data={byMonth}
+        x="month"
+        xLabel="Month"
+      >
         <Chart.Line data={byMonth} x="month" series={open} curve="smooth" dots />
       </Chart>
     </Box>
@@ -159,8 +246,21 @@ export const Burndown: Story = {
 export const Cropped: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Controls assessed" description="Cumulative; the axis starts at the first month's count" series={[{ key: "assessed", label: "Assessed", tone: "brand" }]} data={byMonth} x="month" xLabel="Month">
-        <Chart.Line data={byMonth} x="month" series={[{ key: "assessed", label: "Assessed", tone: "brand" }]} baseline="auto" labels="end" />
+      <Chart
+        title="Controls assessed"
+        description="Cumulative; the axis starts at the first month's count"
+        series={[{ key: "assessed", label: "Assessed", tone: "brand" }]}
+        data={byMonth}
+        x="month"
+        xLabel="Month"
+      >
+        <Chart.Line
+          data={byMonth}
+          x="month"
+          series={[{ key: "assessed", label: "Assessed", tone: "brand" }]}
+          baseline="auto"
+          labels="end"
+        />
       </Chart>
     </Box>
   ),
@@ -170,7 +270,15 @@ export const Cropped: Story = {
 export const Gaps: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Findings over time" description="The register was down in April and July" series={findingSeries} swatch="line" data={byMonthGaps} x="month" xLabel="Month">
+      <Chart
+        title="Findings over time"
+        description="The register was down in April and July"
+        series={findingSeries}
+        swatch="line"
+        data={byMonthGaps}
+        x="month"
+        xLabel="Month"
+      >
         <Chart.Line data={byMonthGaps} x="month" series={findingSeries} dots />
       </Chart>
     </Box>
@@ -197,7 +305,9 @@ export const Dates: Story = {
           scale="time"
           series={findingSeries}
           labels="end"
-          bands={[{ fromX: assessmentWindow.from, toX: assessmentWindow.to, label: "Assessment window" }]}
+          bands={[
+            { fromX: assessmentWindow.from, toX: assessmentWindow.to, label: "Assessment window" },
+          ]}
           reference={[{ x: authorizationDate, label: "ATO" }]}
         />
       </Chart>
@@ -209,7 +319,15 @@ export const Dates: Story = {
 export const Deltas: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Findings over time" description="Hover a month for the change since the one before" series={findingSeries} swatch="line" data={byMonth} x="month" xLabel="Month">
+      <Chart
+        title="Findings over time"
+        description="Hover a month for the change since the one before"
+        series={findingSeries}
+        swatch="line"
+        data={byMonth}
+        x="month"
+        xLabel="Month"
+      >
         <Chart.Line data={byMonth} x="month" series={findingSeries} delta details={() => null} />
       </Chart>
     </Box>
@@ -220,7 +338,15 @@ export const Deltas: Story = {
 export const Details: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Findings over time" description="Click a month" series={findingSeries} swatch="line" data={byMonth} x="month" xLabel="Month">
+      <Chart
+        title="Findings over time"
+        description="Click a month"
+        series={findingSeries}
+        swatch="line"
+        data={byMonth}
+        x="month"
+        xLabel="Month"
+      >
         <Chart.Line
           data={byMonth}
           x="month"
@@ -235,7 +361,10 @@ export const Details: Story = {
                   {`${String(s.datum["plan"])} open`}
                 </KeyValue>
               </div>
-              <Button size="small" variant="secondary">{`Findings in ${String(s.datum["month"])}`}</Button>
+              <Button
+                size="small"
+                variant="secondary"
+              >{`Findings in ${String(s.datum["month"])}`}</Button>
             </Stack>
           )}
         />
@@ -250,7 +379,12 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <Chart title="Reviews by assessor" series={assessorsEmphasised} swatch="line" size="small">
+          <Chart
+            title="Reviews by assessor"
+            series={assessorsEmphasised}
+            swatch="line"
+            size="small"
+          >
             <Chart.Line data={byAssessor} x="week" series={assessorsEmphasised} size="small" />
           </Chart>
         }
@@ -271,21 +405,40 @@ export const Dont: Story = {
         doText="Label the end. The axis and the tooltip carry the rest."
         dont={
           <Chart title="Findings over time" series={findingSeries} swatch="line" size="small">
-            <Chart.Line data={byMonth} x="month" series={findingSeries} dots size="small" label="Findings over time, every point labelled" />
+            <Chart.Line
+              data={byMonth}
+              x="month"
+              series={findingSeries}
+              dots
+              size="small"
+              label="Findings over time, every point labelled"
+            />
           </Chart>
         }
         dontText="A number on every point. It is chaos, and it goes unread. (The kit has no such prop; dots on every point is the closest it comes.)"
       />
       <Pair
         do={
-          <Chart title="Findings over time" description="The register was down in April and July" series={findingSeries} swatch="line" size="small">
+          <Chart
+            title="Findings over time"
+            description="The register was down in April and July"
+            series={findingSeries}
+            swatch="line"
+            size="small"
+          >
             <Chart.Line data={byMonthGaps} x="month" series={findingSeries} size="small" />
           </Chart>
         }
         doText="A gap where the data was not there, and the description says why."
         dont={
           <Chart title="Findings over time" series={findingSeries} swatch="line" size="small">
-            <Chart.Line data={byMonthGaps} x="month" series={findingSeries} connectNulls size="small" />
+            <Chart.Line
+              data={byMonthGaps}
+              x="month"
+              series={findingSeries}
+              connectNulls
+              size="small"
+            />
           </Chart>
         }
         dontText="A line drawn across the missing months. Two counts that never happened, read as real."

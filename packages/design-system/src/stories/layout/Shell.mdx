@@ -1,0 +1,21 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Shell } from "../..";
+import * as Stories from "./Shell.stories";
+
+<Meta of={Stories} />
+
+# Shell
+
+The persistent application frame, inspired by [Atlassian's navigation layout](https://atlassian.design/components/navigation-system/layout/). It owns navigation, page gutters, responsive placement and panel scrolling. Product code supplies navigation links and route content.
+
+<Canvas of={Stories.Frame} />
+
+Mount Shell once in a shared router layout. Place Banner, TopNav, SideNav and Main there. Child routes render Shell.Aside or Shell.Panel to contribute to the frame's stable region slots. Contributions preserve route React context and disappear when their route unmounts. They mount on the client after slot destinations exist.
+
+Aside contains supporting context. Panel contains dismissible selected-record or task content and includes a heading, close control and keyboard resizer. Panel.onClose is required. Main, Aside and Panel forward native props and refs. The built-in resizer replaces manual Shell.Panel.Splitter composition. The panel replaces the visible Main area below 1280px while retaining its state, and returns focus on close. Global navigation remains available; use Sheet for modal work.
+
+SideNav retains its existing collapse, persistence, keyboard and resize behavior. Main uses document scrolling; Panel scrolls inside the available viewport. The layout owns placement, so content patterns do not add sticky rails or nested page frames.
+
+See [page composition](?path=/docs/layout-pages--docs) for route and tab examples.
+
+<ArgTypes of={Shell} />

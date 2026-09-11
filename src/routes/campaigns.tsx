@@ -1,53 +1,45 @@
 import { UnavailableAction } from "@/components/app/unavailable-action";
+import { Id, Inline, PageHeader, Shell, Stack } from "@ledger/design-system";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 
 import {
-  Badge,
-  Box,
-  Button,
-  Id,
-  IndexPage,
-  Indicator,
-  Inline,
-  Inspector,
-  KeyValue,
-  PageHeader,
-  PreviewRail,
-  PreviewSplit,
-  Stack,
-  Table,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-  Count,
-  TextLink,
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
+  assessmentEventState,
+  assessmentState,
+  useAssessmentsVersion,
+} from "@/lib/assessment-store";
 import {
   campaignById,
   campaignCoverage,
   campaigns,
   ccisForEvent,
   events,
-  objectives,
-  objectiveTone,
-  objectivesForEvent,
   eventsByCampaign,
+  objectives,
+  objectivesForEvent,
+  objectiveTone,
   type TestEvent,
 } from "@/lib/campaigns";
 import { assetById, findings } from "@/lib/findings";
-import {
-  assessmentEventState,
-  assessmentState,
-  useAssessmentsVersion,
-} from "@/lib/assessment-store";
 import { severityTone, statusTone } from "@/lib/spine";
 import { useRunLogVersion } from "@/lib/test-execution";
+import {
+  Badge,
+  Box,
+  Count,
+  Indicator,
+  Inspector,
+  KeyValue,
+  Table,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@ledger/design-system";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
@@ -103,218 +95,214 @@ function CampaignsPage() {
   };
 
   return (
-    <Shell>
-      <IndexPage
-        header={
-          <PageHeader
-            title="Test campaigns"
-            actions={
-              <UnavailableAction
-                reason="Campaign creation is not available. Open an existing campaign from the table."
-                variant="primary"
-                iconBefore={<Plus />}
-              >
-                Open campaign
-              </UnavailableAction>
-            }
-          />
-        }
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <div className="min-w-0">
+          <PageHeader.Title>{"Test campaigns"}</PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
+          <UnavailableAction
+            reason="Campaign creation is not available. Open an existing campaign from the table."
+            variant="primary"
+            iconBefore={<Plus />}
+          >
+            Open campaign
+          </UnavailableAction>
+        </PageHeader.Actions>
+      </PageHeader>
+      <Tabs
+        value={tab}
+        onValueChange={(value) => {
+          setTab(value as typeof tab);
+          setSelected(null);
+        }}
+        className="contents"
       >
-        <Tabs
-          value={tab}
-          onValueChange={(value) => {
-            setTab(value as typeof tab);
-            setSelected(null);
-          }}
-          className="contents"
-        >
-          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-            {tabs.map((t) => (
-              <TabsTrigger key={t} value={t}>
-                {t}
-                {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value={tab} className="contents">
-            {tab === "Events" ? (
-              <Inline className="pt-050" space="space.050" alignBlock="center" shouldWrap>
-                <ToggleGroup
-                  aria-label="Campaign"
-                  size="sm"
-                  value={[campaign]}
-                  onValueChange={([next]) => {
-                    if (next !== undefined) setCampaign(next);
-                  }}
-                >
-                  {["All", ...campaigns.map((c) => c.id)].map((c) => (
-                    <ToggleGroupItem key={c} value={c}>
-                      {c}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </Inline>
-            ) : null}
+        <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+          {tabs.map((t) => (
+            <TabsTrigger key={t} value={t}>
+              {t}
+              {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={tab} className="contents">
+          {tab === "Events" ? (
+            <Inline className="pt-050" space="space.050" alignBlock="center" shouldWrap>
+              <ToggleGroup
+                aria-label="Campaign"
+                size="sm"
+                value={[campaign]}
+                onValueChange={([next]) => {
+                  if (next !== undefined) setCampaign(next);
+                }}
+              >
+                {["All", ...campaigns.map((c) => c.id)].map((c) => (
+                  <ToggleGroupItem key={c} value={c}>
+                    {c}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </Inline>
+          ) : null}
 
-            <PreviewSplit open={selected !== null}>
-              <div className="min-w-0 lg:pe-300">
-                {tab === "Campaigns" ? (
-                  <Table className="table-fixed">
-                    <thead>
-                      <tr>
-                        <Table.Header width={88}>Campaign</Table.Header>
-                        <Table.Header>Name</Table.Header>
-                        <Table.Header width={132}>Trigger</Table.Header>
-                        <Table.Header width={64}>Gate</Table.Header>
-                        <Table.Header width={108}>State</Table.Header>
-                        <Table.Header width={148}>Lead</Table.Header>
-                        <Table.Header width={96} className="text-right">
-                          Obj. run
-                        </Table.Header>
-                        <Table.Header width={88} className="text-right">
-                          Findings
-                        </Table.Header>
-                        <Table.Header width={72} />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {campaigns.map((c) => {
-                        const cov = campaignCoverage(c.id);
-                        return (
-                          <Table.Row
-                            key={c.id}
-                            className="cursor-pointer"
-                            onClick={() => {
-                              setCampaign(c.id);
-                              setTab("Events");
-                            }}
-                          >
-                            <Table.Id id={c.id} />
-                            <Table.Cell className="truncate">{c.name}</Table.Cell>
-                            <Table.Cell className="truncate">{c.trigger}</Table.Cell>
-                            <Table.Cell>{c.gate}</Table.Cell>
-                            <Table.Cell className="truncate">{assessmentState(c)}</Table.Cell>
-                            <Table.Cell className="truncate">{c.lead}</Table.Cell>
-                            <Table.Cell className="tabular-nums text-right">
-                              {cov.run}/{cov.objectives}
-                            </Table.Cell>
-                            <Table.Cell className="tabular-nums text-right">
-                              {cov.findings}
-                            </Table.Cell>
-                            <Table.Cell className="text-right">
-                              <TextLink
-                                size="small"
-                                render={
-                                  <Link
-                                    to="/campaigns/$campaignId"
-                                    params={{ campaignId: c.id }}
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                }
-                              >
-                                Open campaign
-                              </TextLink>
-                            </Table.Cell>
-                          </Table.Row>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                ) : null}
-
-                {tab === "Events" ? (
-                  <Table className="table-fixed">
-                    <thead>
-                      <tr>
-                        <Table.Header width={88}>Event</Table.Header>
-                        <Table.Header>Name</Table.Header>
-                        <Table.Header width={108}>Type</Table.Header>
-                        <Table.Header width={128}>State</Table.Header>
-                        <Table.Header width={148}>Window</Table.Header>
-                        <Table.Header width={64} className="text-right">
-                          CCIs
-                        </Table.Header>
-                        <Table.Header width={72} className="text-right">
-                          Findings
-                        </Table.Header>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {eventRows.map((e) => (
+          <>
+            <div className="min-w-0 lg:pe-300">
+              {tab === "Campaigns" ? (
+                <Table className="table-fixed">
+                  <thead>
+                    <tr>
+                      <Table.Header width={88}>Campaign</Table.Header>
+                      <Table.Header>Name</Table.Header>
+                      <Table.Header width={132}>Trigger</Table.Header>
+                      <Table.Header width={64}>Gate</Table.Header>
+                      <Table.Header width={108}>State</Table.Header>
+                      <Table.Header width={148}>Lead</Table.Header>
+                      <Table.Header width={96} className="text-right">
+                        Obj. run
+                      </Table.Header>
+                      <Table.Header width={88} className="text-right">
+                        Findings
+                      </Table.Header>
+                      <Table.Header width={72} />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {campaigns.map((c) => {
+                      const cov = campaignCoverage(c.id);
+                      return (
                         <Table.Row
-                          key={e.id}
-                          onClick={() => setSelected(e)}
-                          className={
-                            selected?.id === e.id
-                              ? "cursor-pointer bg-surface-sunken"
-                              : "cursor-pointer"
-                          }
+                          key={c.id}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setCampaign(c.id);
+                            setTab("Events");
+                          }}
                         >
-                          <Table.Id id={e.id} />
-                          <Table.Cell className="truncate">{e.name}</Table.Cell>
-                          <Table.Cell className="truncate">{e.kind}</Table.Cell>
-                          <Table.Cell className="truncate">
-                            <Badge variant="secondary" tone={statusTone(assessmentEventState(e))}>
-                              {assessmentEventState(e)}
-                            </Badge>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{e.window}</Table.Cell>
+                          <Table.Id id={c.id} />
+                          <Table.Cell className="truncate">{c.name}</Table.Cell>
+                          <Table.Cell className="truncate">{c.trigger}</Table.Cell>
+                          <Table.Cell>{c.gate}</Table.Cell>
+                          <Table.Cell className="truncate">{assessmentState(c)}</Table.Cell>
+                          <Table.Cell className="truncate">{c.lead}</Table.Cell>
                           <Table.Cell className="tabular-nums text-right">
-                            {ccisForEvent(e.id).length}
+                            {cov.run}/{cov.objectives}
                           </Table.Cell>
                           <Table.Cell className="tabular-nums text-right">
-                            {e.findings.length}
+                            {cov.findings}
+                          </Table.Cell>
+                          <Table.Cell className="text-right">
+                            <TextLink
+                              size="small"
+                              render={
+                                <Link
+                                  to="/campaigns/$campaignId"
+                                  params={{ campaignId: c.id }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              }
+                            >
+                              Open campaign
+                            </TextLink>
                           </Table.Cell>
                         </Table.Row>
-                      ))}
-                    </tbody>
-                  </Table>
-                ) : null}
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              ) : null}
 
-                {tab === "Objectives" ? (
-                  <Table className="table-fixed">
-                    <thead>
-                      <tr>
-                        <Table.Header width={80}>Objective</Table.Header>
-                        <Table.Header>Statement</Table.Header>
-                        <Table.Header width={168}>CCIs covered</Table.Header>
-                        <Table.Header width={120}>Method</Table.Header>
-                        <Table.Header width={88}>Event</Table.Header>
-                        <Table.Header width={116}>Result</Table.Header>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {objectives.map((o) => (
-                        <Table.Row key={o.id}>
-                          <Table.Cell>
-                            <Id>{o.id}</Id>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{o.statement}</Table.Cell>
-                          <Table.Cell className="truncate">
-                            <Id>{o.ccis.join(", ")}</Id>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{o.method}</Table.Cell>
-                          <Table.Cell>{o.event ? <Id>{o.event}</Id> : "—"}</Table.Cell>
-                          <Table.Cell className="truncate">
-                            <Badge variant="secondary" tone={objectiveTone(o.result)}>
-                              {o.result}
-                            </Badge>
-                          </Table.Cell>
-                        </Table.Row>
-                      ))}
-                    </tbody>
-                  </Table>
-                ) : null}
-              </div>
+              {tab === "Events" ? (
+                <Table className="table-fixed">
+                  <thead>
+                    <tr>
+                      <Table.Header width={88}>Event</Table.Header>
+                      <Table.Header>Name</Table.Header>
+                      <Table.Header width={108}>Type</Table.Header>
+                      <Table.Header width={128}>State</Table.Header>
+                      <Table.Header width={148}>Window</Table.Header>
+                      <Table.Header width={64} className="text-right">
+                        CCIs
+                      </Table.Header>
+                      <Table.Header width={72} className="text-right">
+                        Findings
+                      </Table.Header>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {eventRows.map((e) => (
+                      <Table.Row
+                        key={e.id}
+                        onClick={() => setSelected(e)}
+                        className={
+                          selected?.id === e.id
+                            ? "cursor-pointer bg-surface-sunken"
+                            : "cursor-pointer"
+                        }
+                      >
+                        <Table.Id id={e.id} />
+                        <Table.Cell className="truncate">{e.name}</Table.Cell>
+                        <Table.Cell className="truncate">{e.kind}</Table.Cell>
+                        <Table.Cell className="truncate">
+                          <Badge variant="secondary" tone={statusTone(assessmentEventState(e))}>
+                            {assessmentEventState(e)}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{e.window}</Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">
+                          {ccisForEvent(e.id).length}
+                        </Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">
+                          {e.findings.length}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : null}
 
-              {selected ? (
-                <PreviewRail
-                  id={selected.id}
-                  title={selected.name}
-                  onClose={() => setSelected(null)}
-                >
+              {tab === "Objectives" ? (
+                <Table className="table-fixed">
+                  <thead>
+                    <tr>
+                      <Table.Header width={80}>Objective</Table.Header>
+                      <Table.Header>Statement</Table.Header>
+                      <Table.Header width={168}>CCIs covered</Table.Header>
+                      <Table.Header width={120}>Method</Table.Header>
+                      <Table.Header width={88}>Event</Table.Header>
+                      <Table.Header width={116}>Result</Table.Header>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {objectives.map((o) => (
+                      <Table.Row key={o.id}>
+                        <Table.Cell>
+                          <Id>{o.id}</Id>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{o.statement}</Table.Cell>
+                        <Table.Cell className="truncate">
+                          <Id>{o.ccis.join(", ")}</Id>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{o.method}</Table.Cell>
+                        <Table.Cell>{o.event ? <Id>{o.event}</Id> : "—"}</Table.Cell>
+                        <Table.Cell className="truncate">
+                          <Badge variant="secondary" tone={objectiveTone(o.result)}>
+                            {o.result}
+                          </Badge>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : null}
+            </div>
+            {selected ? (
+              <Shell.Panel title={selected.name} onClose={() => setSelected(null)}>
+                <Stack space="space.150" className="min-w-0">
+                  <Inline space="space.100" alignBlock="center" shouldWrap>
+                    <Id>{selected.id}</Id>
+                  </Inline>
                   <p className="font-body-small text-subtle">{selected.notes}</p>
-
                   <Box paddingBlockStart="space.150">
                     <Inspector.Group title="Execution">
                       <KeyValue label="Campaign">
@@ -424,12 +412,12 @@ function CampaignsPage() {
                       </Stack>
                     </Inspector.Group>
                   </Box>
-                </PreviewRail>
-              ) : null}
-            </PreviewSplit>
-          </TabsContent>
-        </Tabs>
-      </IndexPage>
-    </Shell>
+                </Stack>
+              </Shell.Panel>
+            ) : null}
+          </>
+        </TabsContent>
+      </Tabs>
+    </Stack>
   );
 }

@@ -1,5 +1,5 @@
+import type { ChartDatum, ChartSeries } from "../..";
 import type { Tone } from "../../components";
-import type { ChartDatum, ChartSeries } from "../../patterns";
 
 /* The fixtures the nine Chart pages share: one program's coverage, findings, risks and systems, so a
    reader who moves from the Bar page to the Line page sees the same numbers drawn another way. */
@@ -104,14 +104,78 @@ export const windows: ChartDatum[] = [
 ];
 
 export const risks = [
-  { id: "RSK-014", title: "Unpatched hypervisor", likelihood: 4, impact: 5, exposure: 420, status: "open", owner: "D. Whitfield" },
-  { id: "RSK-021", title: "Shared service account", likelihood: 5, impact: 3, exposure: 260, status: "open", owner: "A. Okafor" },
-  { id: "RSK-007", title: "Backup restore untested", likelihood: 3, impact: 4, exposure: 180, status: "treating", owner: "M. Ryde" },
-  { id: "RSK-030", title: "Vendor SBOM missing", likelihood: 2, impact: 4, exposure: 120, status: "treating", owner: "G. Hoppel" },
-  { id: "RSK-011", title: "Log retention 30 days", likelihood: 3, impact: 2, exposure: 90, status: "treating", owner: "S. Lind" },
-  { id: "RSK-002", title: "Stale firewall rules", likelihood: 2, impact: 2, exposure: 40, status: "accepted", owner: "A. Okafor" },
-  { id: "RSK-019", title: "Legacy TLS on printer", likelihood: 1, impact: 2, exposure: 20, status: "accepted", owner: "S. Lind" },
-  { id: "RSK-025", title: "Single admin for PKI", likelihood: 2, impact: 5, exposure: 210, status: "open", owner: "D. Whitfield" },
+  {
+    id: "RSK-014",
+    title: "Unpatched hypervisor",
+    likelihood: 4,
+    impact: 5,
+    exposure: 420,
+    status: "open",
+    owner: "D. Whitfield",
+  },
+  {
+    id: "RSK-021",
+    title: "Shared service account",
+    likelihood: 5,
+    impact: 3,
+    exposure: 260,
+    status: "open",
+    owner: "A. Okafor",
+  },
+  {
+    id: "RSK-007",
+    title: "Backup restore untested",
+    likelihood: 3,
+    impact: 4,
+    exposure: 180,
+    status: "treating",
+    owner: "M. Ryde",
+  },
+  {
+    id: "RSK-030",
+    title: "Vendor SBOM missing",
+    likelihood: 2,
+    impact: 4,
+    exposure: 120,
+    status: "treating",
+    owner: "G. Hoppel",
+  },
+  {
+    id: "RSK-011",
+    title: "Log retention 30 days",
+    likelihood: 3,
+    impact: 2,
+    exposure: 90,
+    status: "treating",
+    owner: "S. Lind",
+  },
+  {
+    id: "RSK-002",
+    title: "Stale firewall rules",
+    likelihood: 2,
+    impact: 2,
+    exposure: 40,
+    status: "accepted",
+    owner: "A. Okafor",
+  },
+  {
+    id: "RSK-019",
+    title: "Legacy TLS on printer",
+    likelihood: 1,
+    impact: 2,
+    exposure: 20,
+    status: "accepted",
+    owner: "S. Lind",
+  },
+  {
+    id: "RSK-025",
+    title: "Single admin for PKI",
+    likelihood: 2,
+    impact: 5,
+    exposure: 210,
+    status: "open",
+    owner: "D. Whitfield",
+  },
 ];
 export const riskGroups = [
   { key: "open", label: "Open", tone: "danger" as const },
@@ -135,8 +199,20 @@ export const bySystem = [
       { name: "PKI", value: 9 },
     ],
   },
-  { name: "Reporting", children: [{ name: "Warehouse", value: 12 }, { name: "Dashboards", value: 4 }] },
-  { name: "Network", children: [{ name: "Edge", value: 6 }, { name: "Core", value: 3 }] },
+  {
+    name: "Reporting",
+    children: [
+      { name: "Warehouse", value: 12 },
+      { name: "Dashboards", value: 4 },
+    ],
+  },
+  {
+    name: "Network",
+    children: [
+      { name: "Edge", value: 6 },
+      { name: "Core", value: 3 },
+    ],
+  },
 ];
 /** The systems as bars: the top level of a drill-down. */
 export const systemTotals = bySystem.map((s) => ({
@@ -201,7 +277,10 @@ export const byWeek = Array.from({ length: 26 }, (_, i) => {
   const date = new Date(2026, 2, 2 + i * 7);
   return {
     date,
-    open: [22, 24, 23, 26, 25, 21, 19, 20, 18, 17, 19, 16, 14, 15, 13, 12, 12, 11, 9, 10, 8, 8, 7, 6, 6, 5][i],
+    open: [
+      22, 24, 23, 26, 25, 21, 19, 20, 18, 17, 19, 16, 14, 15, 13, 12, 12, 11, 9, 10, 8, 8, 7, 6, 6,
+      5,
+    ][i],
     closed: [1, 2, 3, 2, 4, 5, 4, 3, 6, 5, 4, 7, 6, 5, 8, 6, 7, 9, 8, 7, 9, 10, 8, 9, 11, 10][i],
   };
 });
@@ -217,7 +296,9 @@ export const varianceRows = [
   { phase: "Authorize", days: 4 },
   { phase: "Monitor", days: -1 },
 ];
-export const varianceSeries: ChartSeries[] = [{ key: "days", label: "Days against plan", tone: "brand" }];
+export const varianceSeries: ChartSeries[] = [
+  { key: "days", label: "Days against plan", tone: "brand" },
+];
 
 /** Monthly rates beside counts: a per-series format. */
 export const byMonthRates = byMonth.map((d) => {

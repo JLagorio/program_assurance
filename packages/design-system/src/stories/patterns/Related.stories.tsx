@@ -1,33 +1,33 @@
+import { type Meta, type StoryObj } from "@storybook/react-vite";
+import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
+import { PreviewSheet, Related } from "../..";
 import {
-  avatarHue,
+  Avatar,
   AvatarFallback,
+  avatarHue,
   avatarInitials,
   Badge,
-  Avatar,
   Button,
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
   Dot,
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
   IconButton,
   Indicator,
   Item,
   Table,
   TextLink,
   Timeline,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardAction,
-  CardContent,
-  Card,
 } from "../../components";
-import { type Meta, type StoryObj } from "@storybook/react-vite";
-import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
-import { PreviewSheet, Related } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -360,11 +360,9 @@ export const RelatedTable: Story = {
         </CardTitle>
         <CardDescription>{"14 findings, by severity"}</CardDescription>
         <CardAction>
-          {
-            <Button size="small" variant="subtle" iconBefore={<Plus />}>
-              Link a finding
-            </Button>
-          }
+          <Button size="small" variant="subtle" iconBefore={<Plus />}>
+            Link a finding
+          </Button>
         </CardAction>
       </CardHeader>
       <Table label="Linked findings">

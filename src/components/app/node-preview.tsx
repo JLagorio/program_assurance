@@ -1,10 +1,10 @@
+import { Section } from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import {
   Absent,
   Badge,
-  Block,
   Button,
   Fact,
   Grid,
@@ -171,7 +171,7 @@ export function NodePreviewSheet({
     >
       {node ? (
         <Stack space="space.050">
-          <Block title="Element">
+          <Section title="Element">
             <Grid
               as="dl"
               columnGap="space.300"
@@ -188,7 +188,7 @@ export function NodePreviewSheet({
                 {node.note}
               </Text>
             ) : null}
-          </Block>
+          </Section>
 
           <Inline space="space.200" alignBlock="center" shouldWrap className="py-100">
             <TextLink
@@ -226,7 +226,7 @@ export function NodePreviewSheet({
           </Inline>
 
           {scope && triad && set ? (
-            <Block
+            <Section
               title="Control set"
               count={inForce ? `v${inForce.number} in force · ${set.total} controls` : "none yet"}
               action={open ? null : <ProposeChange scopeId={scope.id} />}
@@ -254,12 +254,12 @@ export function NodePreviewSheet({
               <Text as="p" size="small" color="color.text.subtle" className="pt-100">
                 Overlays: {set.overlays.map((o) => o.name).join(", ") || "none"}.
               </Text>
-            </Block>
+            </Section>
           ) : null}
 
           {open ? <RevisionReview revision={open} programId={programId} compact /> : null}
 
-          <Block
+          <Section
             title="Allocated requirements"
             count={allocations.length}
             action={
@@ -337,10 +337,10 @@ export function NodePreviewSheet({
                 Nothing is allocated to this element or its parts.
               </Text>
             )}
-          </Block>
+          </Section>
 
           {!scope ? (
-            <Block title="Controls linked through requirements" count={reached.size}>
+            <Section title="Controls linked through requirements" count={reached.size}>
               {reached.size ? (
                 <Table>
                   <thead>
@@ -406,11 +406,11 @@ export function NodePreviewSheet({
                   First 20 of {reached.size}.
                 </Text>
               ) : null}
-            </Block>
+            </Section>
           ) : null}
 
           {parts.length ? (
-            <Block title="Contains" count={parts.length}>
+            <Section title="Contains" count={parts.length}>
               <Table>
                 <thead>
                   <Table.Row>
@@ -454,7 +454,7 @@ export function NodePreviewSheet({
                   })}
                 </tbody>
               </Table>
-            </Block>
+            </Section>
           ) : null}
 
           {allocating ? (

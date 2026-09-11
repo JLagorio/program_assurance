@@ -1,37 +1,4 @@
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Badge,
-  Box,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Button,
-  Count,
-  Eyebrow,
-  Id,
-  Inline,
-  Panel,
-  Progress,
-  ProgressValue,
-  RecordHeader,
-  Section,
-  Shell as DsShell,
-  ShowPage,
-  Table,
-  TabsList,
-  TabsTrigger,
-  TextLink,
-  Toolbar,
-} from "@ledger/design-system";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { FileDown } from "lucide-react";
-import { useMemo, useState } from "react";
 import { SctmRail, SctmSummary, SctmTable } from "@/components/app/sctm";
-import { Shell } from "@/components/app/shell";
 import { controlMatrix } from "@/lib/control-matrix";
 import { programs } from "@/lib/grc-data";
 import { catalogVersion } from "@/lib/nist-catalog";
@@ -42,7 +9,43 @@ import {
   type RowCurrency,
   type SctmRow,
 } from "@/lib/sctm";
+import {
+  Badge,
+  Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  Count,
+  Eyebrow,
+  Id,
+  Inline,
+  PageHeader,
+  Progress,
+  ProgressValue,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Shell,
+  Stack,
+  Table,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+  Toolbar,
+} from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { FileDown } from "lucide-react";
+import { useMemo, useState } from "react";
 
 const sctmTabs = ["Matrix", "Coverage", "Gaps"] as const;
 type SctmTab = (typeof sctmTabs)[number];
@@ -271,367 +274,391 @@ function ProgramSctm() {
     { value: "Suspect", label: <>Suspect ({sctm.counts.suspect})</> },
   ];
   return (
-    <Shell>
-      <>
-        <ShowPage
-          tab={tab}
-          onTabChange={(value) => go(value as typeof tab)}
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-                    >
-                      {program.name}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id={program.id}
-              title="Security controls traceability matrix"
-              meta={`${program.acronym} · ${program.impact} baseline · ${catalogVersion} · generated ${sctm.generated}`}
-              actions={
-                <>
-                  <Badge variant="secondary" tone={sctm.gaps > 0 ? "danger" : "success"}>
-                    {sctm.gaps > 0 ? `${sctm.gaps} rows cannot ship` : "No gaps"}
-                  </Badge>
-                  <Button
-                    variant="primary"
-                    onClick={() => downloadCsv(`${program.id}-sctm.csv`, sctmCsv(sctm))}
-                    iconBefore={<FileDown />}
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
                   >
-                    Export CSV
-                  </Button>
-                </>
-              }
-            />
-          }
-          tabs={
-            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-              {sctmTabs.map((t) => (
-                <TabsTrigger key={t} value={t}>
-                  {t}
-                  {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          }
-        >
-          {tab === "Matrix" ? (
-            <Section
-              title="Requirement rows"
-              action={
-                <span className="tabular-nums font-body-small text-subtle">
-                  {shown.length === visible.length
-                    ? `${visible.length} of ${sctm.counts.total} rows`
-                    : `${shown.length} of ${visible.length} shown · ${sctm.counts.total} total`}
-                </span>
-              }
-            >
-              <Toolbar
-                search={query}
-                onSearch={(v) => refilter(() => setQuery(v))}
-                placeholder="Control, CCI, statement"
-                actions={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {allFamilies
-                      ? `${familyStats.length} families`
-                      : `1 of ${familyStats.length} families`}
-                  </span>
-                }
-              >
-                <Select<string>
-                  items={activeFamilyItems}
-                  value={activeFamily}
-                  disabled={allFamilies}
-                  onValueChange={(value) => {
-                    if (value === null) return;
-                    return refilter(() => setFamily(value));
-                  }}
-                >
-                  <SelectTrigger
-                    className={"w-full " + "h-control-small font-body"}
-                    aria-label="Control family"
-                    style={{ width: 248, maxWidth: "100%" }}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activeFamilyItems.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  size="small"
-                  variant={allFamilies ? "primary" : "secondary"}
-                  onClick={() => refilter(() => setAllFamilies((v) => !v))}
-                >
-                  {allFamilies ? "Show one family" : "Show all families"}
-                </Button>
-                <Select<string>
-                  items={currencyItems}
-                  value={currency ?? ""}
-                  onValueChange={(value) => {
-                    if (value === null) return;
-                    return refilter(() => {
-                      const next = (value || null) as RowCurrency | null;
-                      setCurrency(next);
-                      if (next !== null) setAllFamilies(true);
-                    });
-                  }}
-                >
-                  <SelectTrigger
-                    className={"w-full " + "h-control-small font-body"}
-                    aria-label="Link currency"
-                    style={{ width: 208, maxWidth: "100%" }}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currencyItems.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Toolbar>
-
-              {currency !== null ? (
-                <p className="pb-100 font-body-small text-subtle">
-                  {currency === "Invalidated"
-                    ? "Invalidated rows were determined against a configuration that is no longer in force. A retracted Satisfied claim is shown struck through beside the Not assessed it became; a deficiency keeps its determination and is owed a re-test."
-                    : currency === "Suspect"
-                      ? "Suspect rows keep their determination — the assessor is asked to look again, not told the row is wrong. Hover the marker for the change that raised it."
-                      : "Current rows were determined against the build in force; no recorded change reaches the components they are allocated to."}
-                </p>
-              ) : null}
-
-              {allFamilies && visible.length > PAGE ? (
-                <p className="pb-100 font-body-small text-subtle">
-                  All {familyStats.length} families are in scope — {visible.length} requirement
-                  rows. The table pages {PAGE} at a time; the CSV export carries every row.
-                </p>
-              ) : null}
-
-              <SctmTable rows={shown} onSelect={(r) => setSelected(r.key)} selected={selected} />
-
-              {visible.length > shown.length ? (
-                <Box paddingBlockStart="space.150">
-                  <Button size="small" onClick={() => setLimit((n) => n + PAGE)}>
-                    Show {Math.min(PAGE, visible.length - shown.length)} more ·{" "}
-                    {visible.length - shown.length} remaining
-                  </Button>
-                </Box>
-              ) : null}
-            </Section>
-          ) : null}
-
-          {tab === "Coverage" ? (
+                    {program.name}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{program.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{"Security controls traceability matrix"}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >{`${program.acronym} · ${program.impact} baseline · ${catalogVersion} · generated ${sctm.generated}`}</Inline>
+          </div>
+          <PageHeader.Actions>
             <>
-              <SctmSummary sctm={sctm} />
-
-              <Section title="Coverage by control family">
-                <Table className="table-fixed">
-                  <thead>
-                    <tr>
-                      <Table.Header width={52}>Family</Table.Header>
-                      <Table.Header>Name</Table.Header>
-                      <Table.Header width={72} className="text-right">
-                        Rows
-                      </Table.Header>
-                      <Table.Header width={80} className="text-right">
-                        Satisfied
-                      </Table.Header>
-                      <Table.Header width={80} className="text-right">
-                        Other
-                      </Table.Header>
-                      <Table.Header width={96} className="text-right">
-                        Not assessed
-                      </Table.Header>
-                      <Table.Header width={72} className="text-right">
-                        Gaps
-                      </Table.Header>
-                      <Table.Header width={148}>Coverage</Table.Header>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {familyStats.map((f) => (
-                      <Table.Row
-                        key={f.id}
-                        className="cursor-pointer"
-                        onClick={() => {
-                          refilter(() => {
-                            setFamily(f.id);
-                            setAllFamilies(false);
-                          });
-                          navigate({ search: { tab: "Matrix" }, replace: true });
-                        }}
-                      >
-                        <Table.Id id={f.id} />
-                        <Table.Cell className="truncate">{f.name}</Table.Cell>
-                        <Table.Cell className="tabular-nums text-right">{f.rows}</Table.Cell>
-                        <Table.Cell className="tabular-nums text-right">{f.satisfied}</Table.Cell>
-                        <Table.Cell className="tabular-nums text-right">{f.other}</Table.Cell>
-                        <Table.Cell className="tabular-nums text-right">{f.notAssessed}</Table.Cell>
-                        <Table.Cell
-                          className={cn("tabular-nums text-right", f.gaps > 0 ? "text-danger" : "")}
-                        >
-                          {f.gaps}
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Progress
-                            value={f.coverage}
-                            tone={
-                              f.coverage >= 90 ? "success" : f.coverage >= 60 ? "warning" : "danger"
-                            }
-                            aria-hidden
-                            className="flex-nowrap [&_[data-slot=progress-track]]:order-first [&_[data-slot=progress-track]]:min-w-0 [&_[data-slot=progress-track]]:flex-1"
-                          >
-                            <ProgressValue />
-                          </Progress>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-              </Section>
+              <Badge variant="secondary" tone={sctm.gaps > 0 ? "danger" : "success"}>
+                {sctm.gaps > 0 ? `${sctm.gaps} rows cannot ship` : "No gaps"}
+              </Badge>
+              <Button
+                variant="primary"
+                onClick={() => downloadCsv(`${program.id}-sctm.csv`, sctmCsv(sctm))}
+                iconBefore={<FileDown />}
+              >
+                Export CSV
+              </Button>
             </>
-          ) : null}
-
-          {tab === "Gaps" ? (
-            <>
-              <Section
-                title="Why rows cannot ship"
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {sctm.gaps} of {sctm.counts.total} rows
-                  </span>
-                }
-              >
-                <Table className="table-fixed">
-                  <thead>
-                    <tr>
-                      <Table.Header>Gap</Table.Header>
-                      <Table.Header width={72} className="text-right">
-                        Rows
-                      </Table.Header>
-                      <Table.Header width={168}>Share of all rows</Table.Header>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {gapReasons.map((g) => (
-                      <Table.Row
-                        key={g.reason}
-                        className={cn("cursor-pointer", gapReason === g.reason && "bg-selected")}
-                        onClick={() =>
-                          refilter(() => setGapReason(gapReason === g.reason ? null : g.reason))
-                        }
+          </PageHeader.Actions>
+        </PageHeader>
+        <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {sctmTabs.map((t) => (
+              <TabsTrigger key={t} value={t}>
+                {t}
+                {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {tab === "Matrix" ? (
+                <Section
+                  title="Requirement rows"
+                  action={
+                    <span className="tabular-nums font-body-small text-subtle">
+                      {shown.length === visible.length
+                        ? `${visible.length} of ${sctm.counts.total} rows`
+                        : `${shown.length} of ${visible.length} shown · ${sctm.counts.total} total`}
+                    </span>
+                  }
+                >
+                  <Toolbar
+                    search={query}
+                    onSearch={(v) => refilter(() => setQuery(v))}
+                    placeholder="Control, CCI, statement"
+                    actions={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {allFamilies
+                          ? `${familyStats.length} families`
+                          : `1 of ${familyStats.length} families`}
+                      </span>
+                    }
+                  >
+                    <Select<string>
+                      items={activeFamilyItems}
+                      value={activeFamily}
+                      disabled={allFamilies}
+                      onValueChange={(value) => {
+                        if (value === null) return;
+                        return refilter(() => setFamily(value));
+                      }}
+                    >
+                      <SelectTrigger
+                        className={"w-full " + "h-control-small font-body"}
+                        aria-label="Control family"
+                        style={{ width: 248, maxWidth: "100%" }}
                       >
-                        <Table.Cell className="truncate text-danger">{g.reason}</Table.Cell>
-                        <Table.Cell className="tabular-nums text-right">{g.count}</Table.Cell>
-                        <Table.Cell>
-                          <Progress
-                            value={Math.round((g.count / (sctm.counts.total || 1)) * 100)}
-                            tone="danger"
-                            aria-hidden
-                          />
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                    {gapReasons.length === 0 ? (
-                      <Table.Row>
-                        <Table.Cell>
-                          Every requirement row carries a determination, an assertion, an allocation
-                          and evidence.
-                        </Table.Cell>
-                        <Table.Cell className="tabular-nums text-right">0</Table.Cell>
-                        <Table.Cell>—</Table.Cell>
-                      </Table.Row>
-                    ) : null}
-                  </tbody>
-                </Table>
-              </Section>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {activeFamilyItems.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="small"
+                      variant={allFamilies ? "primary" : "secondary"}
+                      onClick={() => refilter(() => setAllFamilies((v) => !v))}
+                    >
+                      {allFamilies ? "Show one family" : "Show all families"}
+                    </Button>
+                    <Select<string>
+                      items={currencyItems}
+                      value={currency ?? ""}
+                      onValueChange={(value) => {
+                        if (value === null) return;
+                        return refilter(() => {
+                          const next = (value || null) as RowCurrency | null;
+                          setCurrency(next);
+                          if (next !== null) setAllFamilies(true);
+                        });
+                      }}
+                    >
+                      <SelectTrigger
+                        className={"w-full " + "h-control-small font-body"}
+                        aria-label="Link currency"
+                        style={{ width: 208, maxWidth: "100%" }}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currencyItems.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Toolbar>
 
-              <Section
-                title={gapReason ?? "Rows that cannot ship"}
-                description={
-                  gapReason
-                    ? "Filtered to one gap reason. Select it again to clear the filter."
-                    : "Every row the package review would reject, across all control families."
-                }
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {shown.length === visible.length
-                      ? `${visible.length} rows`
-                      : `${shown.length} of ${visible.length} shown`}
-                  </span>
-                }
-              >
-                <Box paddingBlockStart="space.150">
+                  {currency !== null ? (
+                    <p className="pb-100 font-body-small text-subtle">
+                      {currency === "Invalidated"
+                        ? "Invalidated rows were determined against a configuration that is no longer in force. A retracted Satisfied claim is shown struck through beside the Not assessed it became; a deficiency keeps its determination and is owed a re-test."
+                        : currency === "Suspect"
+                          ? "Suspect rows keep their determination — the assessor is asked to look again, not told the row is wrong. Hover the marker for the change that raised it."
+                          : "Current rows were determined against the build in force; no recorded change reaches the components they are allocated to."}
+                    </p>
+                  ) : null}
+
+                  {allFamilies && visible.length > PAGE ? (
+                    <p className="pb-100 font-body-small text-subtle">
+                      All {familyStats.length} families are in scope — {visible.length} requirement
+                      rows. The table pages {PAGE} at a time; the CSV export carries every row.
+                    </p>
+                  ) : null}
+
                   <SctmTable
                     rows={shown}
                     onSelect={(r) => setSelected(r.key)}
                     selected={selected}
                   />
-                </Box>
 
-                {visible.length > shown.length ? (
-                  <Box paddingBlockStart="space.150">
-                    <Button size="small" onClick={() => setLimit((n) => n + PAGE)}>
-                      Show {Math.min(PAGE, visible.length - shown.length)} more ·{" "}
-                      {visible.length - shown.length} remaining
-                    </Button>
-                  </Box>
-                ) : null}
-              </Section>
-            </>
-          ) : null}
-        </ShowPage>
-        {tab !== "Coverage" && selectedRow !== null ? (
-          <DsShell.Panel label="Details">
-            <DsShell.Panel.Splitter label="Resize details" />
-            <Panel flush>
-              {selectedRow ? (
-                <div>
-                  <Inline className="pb-150" space="space.100" alignBlock="center">
-                    <Eyebrow as="span">Requirement</Eyebrow>
-                    <Id>{selectedRow.requirement}</Id>
-                    <button
-                      onClick={() => setSelected(null)}
-                      className="ml-auto font-body-small text-subtle hover:text-default"
-                    >
-                      Close
-                    </button>
-                  </Inline>
-                  <SctmRail row={selectedRow} />
-                  <Box className="font-body-small" paddingBlockStart="space.150">
-                    <TextLink
-                      render={
-                        <Link
-                          to="/programs/$programId/controls/$controlId"
-                          params={{ programId, controlId: selectedRow.control }}
-                        />
-                      }
-                    >
-                      Open {selectedRow.control}
-                    </TextLink>
-                  </Box>
-                </div>
+                  {visible.length > shown.length ? (
+                    <Box paddingBlockStart="space.150">
+                      <Button size="small" onClick={() => setLimit((n) => n + PAGE)}>
+                        Show {Math.min(PAGE, visible.length - shown.length)} more ·{" "}
+                        {visible.length - shown.length} remaining
+                      </Button>
+                    </Box>
+                  ) : null}
+                </Section>
               ) : null}
-            </Panel>
-          </DsShell.Panel>
-        ) : null}
-      </>
-    </Shell>
+              {tab === "Coverage" ? (
+                <>
+                  <SctmSummary sctm={sctm} />
+
+                  <Section title="Coverage by control family">
+                    <Table className="table-fixed">
+                      <thead>
+                        <tr>
+                          <Table.Header width={52}>Family</Table.Header>
+                          <Table.Header>Name</Table.Header>
+                          <Table.Header width={72} className="text-right">
+                            Rows
+                          </Table.Header>
+                          <Table.Header width={80} className="text-right">
+                            Satisfied
+                          </Table.Header>
+                          <Table.Header width={80} className="text-right">
+                            Other
+                          </Table.Header>
+                          <Table.Header width={96} className="text-right">
+                            Not assessed
+                          </Table.Header>
+                          <Table.Header width={72} className="text-right">
+                            Gaps
+                          </Table.Header>
+                          <Table.Header width={148}>Coverage</Table.Header>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {familyStats.map((f) => (
+                          <Table.Row
+                            key={f.id}
+                            className="cursor-pointer"
+                            onClick={() => {
+                              refilter(() => {
+                                setFamily(f.id);
+                                setAllFamilies(false);
+                              });
+                              navigate({ search: { tab: "Matrix" }, replace: true });
+                            }}
+                          >
+                            <Table.Id id={f.id} />
+                            <Table.Cell className="truncate">{f.name}</Table.Cell>
+                            <Table.Cell className="tabular-nums text-right">{f.rows}</Table.Cell>
+                            <Table.Cell className="tabular-nums text-right">
+                              {f.satisfied}
+                            </Table.Cell>
+                            <Table.Cell className="tabular-nums text-right">{f.other}</Table.Cell>
+                            <Table.Cell className="tabular-nums text-right">
+                              {f.notAssessed}
+                            </Table.Cell>
+                            <Table.Cell
+                              className={cn(
+                                "tabular-nums text-right",
+                                f.gaps > 0 ? "text-danger" : "",
+                              )}
+                            >
+                              {f.gaps}
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Progress
+                                value={f.coverage}
+                                tone={
+                                  f.coverage >= 90
+                                    ? "success"
+                                    : f.coverage >= 60
+                                      ? "warning"
+                                      : "danger"
+                                }
+                                aria-hidden
+                                className="flex-nowrap [&_[data-slot=progress-track]]:order-first [&_[data-slot=progress-track]]:min-w-0 [&_[data-slot=progress-track]]:flex-1"
+                              >
+                                <ProgressValue />
+                              </Progress>
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </Section>
+                </>
+              ) : null}
+              {tab === "Gaps" ? (
+                <>
+                  <Section
+                    title="Why rows cannot ship"
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {sctm.gaps} of {sctm.counts.total} rows
+                      </span>
+                    }
+                  >
+                    <Table className="table-fixed">
+                      <thead>
+                        <tr>
+                          <Table.Header>Gap</Table.Header>
+                          <Table.Header width={72} className="text-right">
+                            Rows
+                          </Table.Header>
+                          <Table.Header width={168}>Share of all rows</Table.Header>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {gapReasons.map((g) => (
+                          <Table.Row
+                            key={g.reason}
+                            className={cn(
+                              "cursor-pointer",
+                              gapReason === g.reason && "bg-selected",
+                            )}
+                            onClick={() =>
+                              refilter(() => setGapReason(gapReason === g.reason ? null : g.reason))
+                            }
+                          >
+                            <Table.Cell className="truncate text-danger">{g.reason}</Table.Cell>
+                            <Table.Cell className="tabular-nums text-right">{g.count}</Table.Cell>
+                            <Table.Cell>
+                              <Progress
+                                value={Math.round((g.count / (sctm.counts.total || 1)) * 100)}
+                                tone="danger"
+                                aria-hidden
+                              />
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                        {gapReasons.length === 0 ? (
+                          <Table.Row>
+                            <Table.Cell>
+                              Every requirement row carries a determination, an assertion, an
+                              allocation and evidence.
+                            </Table.Cell>
+                            <Table.Cell className="tabular-nums text-right">0</Table.Cell>
+                            <Table.Cell>—</Table.Cell>
+                          </Table.Row>
+                        ) : null}
+                      </tbody>
+                    </Table>
+                  </Section>
+
+                  <Section
+                    title={gapReason ?? "Rows that cannot ship"}
+                    description={
+                      gapReason
+                        ? "Filtered to one gap reason. Select it again to clear the filter."
+                        : "Every row the package review would reject, across all control families."
+                    }
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {shown.length === visible.length
+                          ? `${visible.length} rows`
+                          : `${shown.length} of ${visible.length} shown`}
+                      </span>
+                    }
+                  >
+                    <Box paddingBlockStart="space.150">
+                      <SctmTable
+                        rows={shown}
+                        onSelect={(r) => setSelected(r.key)}
+                        selected={selected}
+                      />
+                    </Box>
+
+                    {visible.length > shown.length ? (
+                      <Box paddingBlockStart="space.150">
+                        <Button size="small" onClick={() => setLimit((n) => n + PAGE)}>
+                          Show {Math.min(PAGE, visible.length - shown.length)} more ·{" "}
+                          {visible.length - shown.length} remaining
+                        </Button>
+                      </Box>
+                    ) : null}
+                  </Section>
+                </>
+              ) : null}
+            </Stack>
+          </TabsContent>
+        </Tabs>
+      </Stack>
+      {tab !== "Coverage" && selectedRow !== null ? (
+        <Shell.Panel label="Details" onClose={() => setSelected(null)}>
+          {selectedRow ? (
+            <div>
+              <Inline className="pb-150" space="space.100" alignBlock="center">
+                <Eyebrow as="span">Requirement</Eyebrow>
+                <Id>{selectedRow.requirement}</Id>
+                <button
+                  onClick={() => setSelected(null)}
+                  className="ml-auto font-body-small text-subtle hover:text-default"
+                >
+                  Close
+                </button>
+              </Inline>
+              <SctmRail row={selectedRow} />
+              <Box className="font-body-small" paddingBlockStart="space.150">
+                <TextLink
+                  render={
+                    <Link
+                      to="/programs/$programId/controls/$controlId"
+                      params={{ programId, controlId: selectedRow.control }}
+                    />
+                  }
+                >
+                  Open {selectedRow.control}
+                </TextLink>
+              </Box>
+            </div>
+          ) : null}
+        </Shell.Panel>
+      ) : null}
+    </>
   );
 }

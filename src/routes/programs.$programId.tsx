@@ -1,78 +1,15 @@
-import { ProgramLibrary } from "@/components/app/program-library";
-import {
-  FieldLabel,
-  FieldError,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxList,
-  ComboboxItem,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  Badge,
-  Box,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  Button,
-  ButtonGroup,
-  Combobox,
-  CommandPalette,
-  Count,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuLinkItem,
-  DropdownMenuTrigger,
-  Editable,
-  Field,
-  IconButton,
-  Id,
-  Inline,
-  Inspector,
-  Kbd,
-  KeyValue,
-  Person,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Stack,
-  TabsList,
-  TabsTrigger,
-  TextLink,
-  toast,
-  useCommandPalette,
-} from "@ledger/design-system";
-import { saveProgramCommand, useProgramsVersion } from "@/lib/program-store";
-import { useRecordForm } from "@/lib/record-form";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, Lock } from "lucide-react";
-import { useId, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CoverageBand } from "@/components/app/coverage";
 import { CdrPackageModal } from "@/components/app/digital-thread";
 import { ProgramAssessments } from "@/components/app/program-assessments";
 import { ProgramControls } from "@/components/app/program-controls";
 import { ProgramEvidence } from "@/components/app/program-evidence";
 import { ProgramFindings } from "@/components/app/program-findings";
+import { ProgramLibrary } from "@/components/app/program-library";
 import { ProgramPoams } from "@/components/app/program-poams";
 import { ProgramSchedule } from "@/components/app/program-schedule";
 import { RecordActivity } from "@/components/app/record-activity";
 import { RequirementCoverage } from "@/components/app/requirement-coverage";
 import { ScopeTable } from "@/components/app/scopes";
-import { Shell } from "@/components/app/shell";
 import { StageStrip } from "@/components/app/stage-strip";
 import { Task } from "@/components/app/task";
 import { TaskRows } from "@/components/app/tasks-section";
@@ -94,12 +31,80 @@ import { saveProgramField } from "@/lib/program-save";
 import { useProgramScheduleVersion } from "@/lib/program-schedule";
 import { programElementIds, resolveProgramElement } from "@/lib/program-scope";
 import { programState, type Stage } from "@/lib/program-stage";
+import { saveProgramCommand, useProgramsVersion } from "@/lib/program-store";
+import { useRecordForm } from "@/lib/record-form";
 import { poamItems as registerPoams } from "@/lib/register";
 import { requirementsForProgramElement } from "@/lib/requirement-context";
 import { useRequirementsVersion } from "@/lib/requirements";
 import { rollupControlSet, scopesForProgram, useScopesVersion } from "@/lib/scopes";
 import { stageOf } from "@/lib/stages";
 import { tasksForProgram, useTasksVersion } from "@/lib/tasks";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Badge,
+  Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  ButtonGroup,
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  CommandPalette,
+  Count,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuLinkItem,
+  DropdownMenuTrigger,
+  Editable,
+  Field,
+  FieldError,
+  FieldLabel,
+  IconButton,
+  Id,
+  Inline,
+  Inspector,
+  Kbd,
+  KeyValue,
+  PageHeader,
+  Person,
+  Section,
+  Shell,
+  Stack,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+  toast,
+  useCommandPalette,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { ChevronDown, Lock } from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 export const Route = createFileRoute("/programs/$programId")({
   // Program context and open records survive navigation and browser history.
@@ -590,334 +595,343 @@ function ProgramDetail() {
   );
 
   return (
-    <Shell>
-      <>
-        <ShowPage
-          tab={tab}
-          onTabChange={(value) => setTab(value as typeof tab)}
-          rail={tab === "Overview" ? rail : null}
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id={program.id}
-              title={program.name}
-              actions={
-                <>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <Button variant="secondary" size="small" iconAfter={<ChevronDown />}>
-                          Views
-                        </Button>
-                      }
-                    />
-                    <DropdownMenuContent align="end" style={{ width: 240 }}>
-                      {programViews.map((group) => (
-                        <DropdownMenuGroup key={group.label}>
-                          <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
-                          {group.items.map((v) => (
-                            <DropdownMenuLinkItem
-                              key={v.to}
-                              closeOnClick
-                              render={
-                                <Link
-                                  to={v.to}
-                                  params={{ programId: program.id }}
-                                  search={v.search ?? {}}
-                                />
-                              }
-                            >
-                              {v.label}
-                            </DropdownMenuLinkItem>
-                          ))}
-                        </DropdownMenuGroup>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <ButtonGroup>
-                    <Button variant="primary" size="small" onClick={runPrimary}>
-                      {state.primaryAction}
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <IconButton
-                            variant="primary"
-                            size="small"
-                            label="More actions"
-                            icon={<ChevronDown />}
-                          />
-                        }
-                      />
-                      <DropdownMenuContent align="end" style={{ width: 200 }}>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            palette.setOpen(true);
-                          }}
-                        >
-                          Command palette
-                          <Kbd>⌘K</Kbd>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setCdrOpen(true);
-                          }}
-                        >
-                          Export CDR package
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setAssessing(true);
-                          }}
-                        >
-                          Record assessment
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Duplicate program</DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setArchiving(true);
-                          }}
-                        >
-                          Archive
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </ButtonGroup>
-                </>
-              }
-            />
-          }
-          tabs={
-            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-              {(
-                [
-                  ["Overview", null],
-                  ["System", elements.length || null],
-                  ["Library", null],
-                  ["Requirements", requirementCount || null],
-                  ["Controls", programControls.length || null],
-                  ["Assessments", assessmentCount || null],
-                  ["Schedule", null],
-                  ["Findings", posture.findingsOpen || null],
-                  ["Evidence", evidenceCount || null],
-                  ["POA&M", posture.poamOpen || null],
-                  ["Activity", null],
-                ] as [Tab, number | null][]
-              ).map(([key, count]) => (
-                <TabsTrigger key={key} value={key}>
-                  {key}
-                  {count ? <Count value={count} max={9999} /> : null}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          }
-        >
-          {selectedElement && ["Requirements", "Controls"].includes(tab) ? (
-            <Inline space="space.100" alignBlock="center" shouldWrap className="pb-150">
-              <span className="font-body-small">
-                {tab === "Requirements" ? "Allocated to" : "Applicable to"}{" "}
-                <strong>{selectedElement.name}</strong>
-                {selectedElementIds.size > 1 ? " and its parts" : ""}
-              </span>
-              <Button size="small" variant="subtle" onClick={clearElement}>
-                {tab === "Requirements" ? "Show all requirements" : "Show all controls"}
-              </Button>
-            </Inline>
-          ) : null}
-          {tab === "Overview" ? (
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{program.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{program.name}</PageHeader.Title>
+          </div>
+          <PageHeader.Actions>
             <>
-              <StageStrip programId={program.id} />
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button variant="secondary" size="small" iconAfter={<ChevronDown />}>
+                      Views
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end" style={{ width: 240 }}>
+                  {programViews.map((group) => (
+                    <DropdownMenuGroup key={group.label}>
+                      <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+                      {group.items.map((v) => (
+                        <DropdownMenuLinkItem
+                          key={v.to}
+                          closeOnClick
+                          render={
+                            <Link
+                              to={v.to}
+                              params={{ programId: program.id }}
+                              search={v.search ?? {}}
+                            />
+                          }
+                        >
+                          {v.label}
+                        </DropdownMenuLinkItem>
+                      ))}
+                    </DropdownMenuGroup>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-              <CoverageBand
-                coverage={coverage}
-                baseline={`${program.baseline} — ${program.impact}`}
-                onSelectFamily={(f) => {
-                  setFamily(f);
-                  setStatusFilter("All");
-                  setTab("Controls");
-                }}
-                onSelectSegment={(key) => {
-                  setStatusFilter(segmentStatus[key] ?? "All");
-                  setFamily("All");
-                  setTab("Controls");
-                }}
-              />
-
-              <Section
-                title="Tasks"
-                count={openTaskCount || null}
-                action={
-                  <Button
-                    size="small"
-                    variant="subtle"
-                    onClick={() => {
-                      void navigate({
-                        search: (prev) => ({ ...prev, tab: "Schedule", scheduleView: "Tasks" }),
-                      });
-                    }}
-                  >
-                    See all
-                  </Button>
-                }
-              >
-                <Box paddingBlockStart="space.100">
-                  <Task.List empty="No open tasks. Ask for something from a record's log bar.">
-                    <TaskRows
-                      tasks={programTasks.filter((t) => t.state !== "Done").slice(0, 6)}
-                      me={me}
-                      showSubject
-                    />
-                  </Task.List>
-                </Box>
-              </Section>
-
-              <RecordActivity
-                program={program.id}
-                subject={{ kind: "program", id: program.id, label: program.name }}
-                me={me}
-                wholeProgram
-                limit={8}
-                seeAll={
-                  <button type="button" onClick={() => setTab("Activity")}>
-                    See all
-                  </button>
-                }
-              />
+              <ButtonGroup>
+                <Button variant="primary" size="small" onClick={runPrimary}>
+                  {state.primaryAction}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <IconButton
+                        variant="primary"
+                        size="small"
+                        label="More actions"
+                        icon={<ChevronDown />}
+                      />
+                    }
+                  />
+                  <DropdownMenuContent align="end" style={{ width: 200 }}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        palette.setOpen(true);
+                      }}
+                    >
+                      Command palette
+                      <Kbd>⌘K</Kbd>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setCdrOpen(true);
+                      }}
+                    >
+                      Export CDR package
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setAssessing(true);
+                      }}
+                    >
+                      Record assessment
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Duplicate program</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setArchiving(true);
+                      }}
+                    >
+                      Archive
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </ButtonGroup>
             </>
-          ) : null}
+          </PageHeader.Actions>
+        </PageHeader>
+        <Tabs
+          value={tab}
+          onValueChange={(value) => setTab(value as typeof tab)}
+          className="gap-150"
+        >
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {(
+              [
+                ["Overview", null],
+                ["System", elements.length || null],
+                ["Library", null],
+                ["Requirements", requirementCount || null],
+                ["Controls", programControls.length || null],
+                ["Assessments", assessmentCount || null],
+                ["Schedule", null],
+                ["Findings", posture.findingsOpen || null],
+                ["Evidence", evidenceCount || null],
+                ["POA&M", posture.poamOpen || null],
+                ["Activity", null],
+              ] as [Tab, number | null][]
+            ).map(([key, count]) => (
+              <TabsTrigger key={key} value={key}>
+                {key}
+                {count ? <Count value={count} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {selectedElement && ["Requirements", "Controls"].includes(tab) ? (
+                <Inline space="space.100" alignBlock="center" shouldWrap className="pb-150">
+                  <span className="font-body-small">
+                    {tab === "Requirements" ? "Allocated to" : "Applicable to"}{" "}
+                    <strong>{selectedElement.name}</strong>
+                    {selectedElementIds.size > 1 ? " and its parts" : ""}
+                  </span>
+                  <Button size="small" variant="subtle" onClick={clearElement}>
+                    {tab === "Requirements" ? "Show all requirements" : "Show all controls"}
+                  </Button>
+                </Inline>
+              ) : null}
+              {tab === "Overview" ? (
+                <>
+                  <StageStrip programId={program.id} />
 
-          {tab === "Controls" ? (
-            <ProgramControls programId={program.id} elementId={selectedElement?.id} />
-          ) : null}
+                  <CoverageBand
+                    coverage={coverage}
+                    baseline={`${program.baseline} — ${program.impact}`}
+                    onSelectFamily={(f) => {
+                      setFamily(f);
+                      setStatusFilter("All");
+                      setTab("Controls");
+                    }}
+                    onSelectSegment={(key) => {
+                      setStatusFilter(segmentStatus[key] ?? "All");
+                      setFamily("All");
+                      setTab("Controls");
+                    }}
+                  />
 
-          {tab === "Findings" ? (
-            <ProgramFindings
-              key={`${program.id}/${search.findingId ?? ""}/${search.newFindingAssessment ?? ""}`}
-              programId={program.id}
-              initialFindingId={search.findingId}
-              onFindingChange={(findingId) => {
-                void navigate({
-                  search: (prev) => ({
-                    ...prev,
-                    findingId: findingId ?? undefined,
-                    newFindingAssessment: undefined,
-                  }),
-                });
-              }}
-              initialAssessmentId={search.newFindingAssessment}
-            />
-          ) : null}
-          {tab === "Evidence" ? (
-            <ProgramEvidence programId={program.id} elementId={selectedElement?.id} />
-          ) : null}
-          {tab === "POA&M" ? (
-            <ProgramPoams
-              key={`${program.id}/${search.poamId ?? ""}`}
-              programId={program.id}
-              initialPoamId={search.poamId}
-              onPoamChange={(poamId) => {
-                void navigate({ search: (prev) => ({ ...prev, poamId: poamId ?? undefined }) });
-              }}
-            />
-          ) : null}
-          {tab === "Assessments" ? (
-            <ProgramAssessments
-              key={`${program.id}/${search.assessmentId ?? ""}/${search.assessmentRunId ?? ""}`}
-              programId={program.id}
-              initialAssessmentId={search.assessmentId}
-              initialRunId={search.assessmentRunId}
-              elementId={selectedElement?.id}
-              onAssessmentChange={(assessmentId) => {
-                void navigate({
-                  search: (prev) => ({
-                    ...prev,
-                    assessmentId: assessmentId ?? undefined,
-                    assessmentRunId: undefined,
-                  }),
-                });
-              }}
-              onRunChange={(assessmentRunId) => {
-                void navigate({
-                  search: (prev) => ({ ...prev, assessmentRunId: assessmentRunId ?? undefined }),
-                });
-              }}
-              onRaiseFinding={(assessmentId) => {
-                void navigate({
-                  search: (prev) => ({
-                    ...prev,
-                    tab: "Findings",
-                    newFindingAssessment: assessmentId,
-                  }),
-                });
-              }}
-            />
-          ) : null}
-          {tab === "Schedule" ? (
-            <ProgramSchedule
-              key={`${program.id}/${search.scheduleView ?? "Plan"}`}
-              programId={program.id}
-              initialView={search.scheduleView}
-              onViewChange={(scheduleView) => {
-                void navigate({ search: (prev) => ({ ...prev, scheduleView }) });
-              }}
-              onOpenPoam={(poamId) => {
-                void navigate({ search: (prev) => ({ ...prev, tab: "POA&M", poamId }) });
-              }}
-              onOpenAssessment={(assessmentId) => {
-                void navigate({
-                  search: (prev) => ({
-                    ...prev,
-                    tab: "Assessments",
-                    assessmentId,
-                    assessmentRunId: undefined,
-                  }),
-                });
-              }}
-            />
-          ) : null}
+                  <Section
+                    title="Tasks"
+                    count={openTaskCount || null}
+                    action={
+                      <Button
+                        size="small"
+                        variant="subtle"
+                        onClick={() => {
+                          void navigate({
+                            search: (prev) => ({
+                              ...prev,
+                              tab: "Schedule",
+                              scheduleView: "Tasks",
+                            }),
+                          });
+                        }}
+                      >
+                        See all
+                      </Button>
+                    }
+                  >
+                    <Box paddingBlockStart="space.100">
+                      <Task.List empty="No open tasks. Ask for something from a record's log bar.">
+                        <TaskRows
+                          tasks={programTasks.filter((t) => t.state !== "Done").slice(0, 6)}
+                          me={me}
+                          showSubject
+                        />
+                      </Task.List>
+                    </Box>
+                  </Section>
 
-          {tab === "Library" ? <ProgramLibrary programId={program.id} /> : null}
-          {tab === "System" ? (
-            <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
-          ) : null}
-
-          {tab === "Requirements" ? (
-            <RequirementCoverage programId={program.id} elementId={selectedElement?.id} />
-          ) : null}
-
-          {tab === "Activity" ? (
-            <RecordActivity
-              program={program.id}
-              subject={{ kind: "program", id: program.id, label: program.name }}
-              me={me}
-              wholeProgram
-              filters
-            />
-          ) : null}
-        </ShowPage>
-      </>
-
+                  <RecordActivity
+                    program={program.id}
+                    subject={{ kind: "program", id: program.id, label: program.name }}
+                    me={me}
+                    wholeProgram
+                    limit={8}
+                    seeAll={
+                      <button type="button" onClick={() => setTab("Activity")}>
+                        See all
+                      </button>
+                    }
+                  />
+                </>
+              ) : null}
+              {tab === "Controls" ? (
+                <ProgramControls programId={program.id} elementId={selectedElement?.id} />
+              ) : null}
+              {tab === "Findings" ? (
+                <ProgramFindings
+                  key={`${program.id}/${search.findingId ?? ""}/${search.newFindingAssessment ?? ""}`}
+                  programId={program.id}
+                  initialFindingId={search.findingId}
+                  onFindingChange={(findingId) => {
+                    void navigate({
+                      search: (prev) => ({
+                        ...prev,
+                        findingId: findingId ?? undefined,
+                        newFindingAssessment: undefined,
+                      }),
+                    });
+                  }}
+                  initialAssessmentId={search.newFindingAssessment}
+                />
+              ) : null}
+              {tab === "Evidence" ? (
+                <ProgramEvidence programId={program.id} elementId={selectedElement?.id} />
+              ) : null}
+              {tab === "POA&M" ? (
+                <ProgramPoams
+                  key={`${program.id}/${search.poamId ?? ""}`}
+                  programId={program.id}
+                  initialPoamId={search.poamId}
+                  onPoamChange={(poamId) => {
+                    void navigate({
+                      search: (prev) => ({ ...prev, poamId: poamId ?? undefined }),
+                    });
+                  }}
+                />
+              ) : null}
+              {tab === "Assessments" ? (
+                <ProgramAssessments
+                  key={`${program.id}/${search.assessmentId ?? ""}/${search.assessmentRunId ?? ""}`}
+                  programId={program.id}
+                  initialAssessmentId={search.assessmentId}
+                  initialRunId={search.assessmentRunId}
+                  elementId={selectedElement?.id}
+                  onAssessmentChange={(assessmentId) => {
+                    void navigate({
+                      search: (prev) => ({
+                        ...prev,
+                        assessmentId: assessmentId ?? undefined,
+                        assessmentRunId: undefined,
+                      }),
+                    });
+                  }}
+                  onRunChange={(assessmentRunId) => {
+                    void navigate({
+                      search: (prev) => ({
+                        ...prev,
+                        assessmentRunId: assessmentRunId ?? undefined,
+                      }),
+                    });
+                  }}
+                  onRaiseFinding={(assessmentId) => {
+                    void navigate({
+                      search: (prev) => ({
+                        ...prev,
+                        tab: "Findings",
+                        newFindingAssessment: assessmentId,
+                      }),
+                    });
+                  }}
+                />
+              ) : null}
+              {tab === "Schedule" ? (
+                <ProgramSchedule
+                  key={`${program.id}/${search.scheduleView ?? "Plan"}`}
+                  programId={program.id}
+                  initialView={search.scheduleView}
+                  onViewChange={(scheduleView) => {
+                    void navigate({ search: (prev) => ({ ...prev, scheduleView }) });
+                  }}
+                  onOpenPoam={(poamId) => {
+                    void navigate({ search: (prev) => ({ ...prev, tab: "POA&M", poamId }) });
+                  }}
+                  onOpenAssessment={(assessmentId) => {
+                    void navigate({
+                      search: (prev) => ({
+                        ...prev,
+                        tab: "Assessments",
+                        assessmentId,
+                        assessmentRunId: undefined,
+                      }),
+                    });
+                  }}
+                />
+              ) : null}
+              {tab === "Library" ? <ProgramLibrary programId={program.id} /> : null}
+              {tab === "System" ? (
+                <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
+              ) : null}
+              {tab === "Requirements" ? (
+                <RequirementCoverage programId={program.id} elementId={selectedElement?.id} />
+              ) : null}
+              {tab === "Activity" ? (
+                <RecordActivity
+                  program={program.id}
+                  subject={{ kind: "program", id: program.id, label: program.name }}
+                  me={me}
+                  wholeProgram
+                  filters
+                />
+              ) : null}
+            </Stack>
+          </TabsContent>
+          <Shell.Aside label="Record properties">{tab === "Overview" ? rail : null}</Shell.Aside>
+        </Tabs>
+      </Stack>
       <CommandPalette
         open={palette.open}
         onClose={() => palette.setOpen(false)}
         commands={commands}
         placeholder={`Search ${program.id}…`}
       />
-
       <CdrPackageModal
         open={cdrOpen}
         onClose={() => setCdrOpen(false)}
         programId={program.id}
         programName={program.name}
       />
-
       <AlertDialog
         open={archiving}
         onOpenChange={(next) => {
@@ -970,7 +984,6 @@ function ProgramDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       <Dialog
         open={assessing}
         onOpenChange={(next) => {
@@ -1185,6 +1198,6 @@ function ProgramDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Shell>
+    </>
   );
 }

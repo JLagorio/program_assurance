@@ -1,20 +1,21 @@
-import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, userEvent, waitFor, within } from "storybook/test";
+import { interact } from "../_lib/interact";
 
-import { useId, act, useState } from "react";
+import { useId, useState } from "react";
 
+import { Editable, type EditableTextProps } from "../..";
 import {
-  FieldLabel,
   Badge,
   Button,
   Fact,
   Field,
+  FieldLabel,
   Input,
   KeyValue,
   Table,
   type Tone,
 } from "../../components";
-import { Editable, type EditableTextProps } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -25,22 +26,6 @@ const meta = {
 } satisfies Meta;
 export default meta;
 type Story = StoryObj;
-
-// Storybook's userEvent wrapper disables the act environment during async work.
-// Drive these promise-settlement cases with awaited native events in a single act scope.
-const interact = async (event: () => void) => {
-  const environment = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
-  const previous = environment.IS_REACT_ACT_ENVIRONMENT;
-  environment.IS_REACT_ACT_ENVIRONMENT = true;
-  try {
-    await act(async () => {
-      event();
-    });
-  } finally {
-    if (previous === undefined) delete environment.IS_REACT_ACT_ENVIRONMENT;
-    else environment.IS_REACT_ACT_ENVIRONMENT = previous;
-  }
-};
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const statuses = ["Draft", "In review", "Verified", "Overdue"] as const;

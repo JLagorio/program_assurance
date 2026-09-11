@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { Chart } from "../..";
 import { Stat, Table } from "../../components";
-import { Chart } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { byMonth, families, findingsByFamilyMonth, heatMonths } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
@@ -24,10 +24,24 @@ export const SparklineMatrix: Story = {
         <Chart.Sparkline data={byMonth} y="open" tone="danger" />
         <Chart.Sparkline data={byMonth} y="open" tone="brand" endDot reference={10} />
         <Chart.Sparkline data={byMonth} y="closed" tone="success" appearance="area" />
-        <Chart.Sparkline data={byMonth} y="closed" tone="neutral" appearance="bars" width={120} height={28} />
+        <Chart.Sparkline
+          data={byMonth}
+          y="closed"
+          tone="neutral"
+          appearance="bars"
+          width={120}
+          height={28}
+        />
       </Specimens>
       <Specimens title="Named, so it is a group with a tooltip · 160 by 40 · loading">
-        <Chart.Sparkline data={byMonth} y="open" x="month" tone="danger" label="Open findings, nine months" endDot />
+        <Chart.Sparkline
+          data={byMonth}
+          y="open"
+          x="month"
+          tone="danger"
+          label="Open findings, nine months"
+          endDot
+        />
         <Chart.Sparkline data={byMonth} y="open" tone="brand" width={160} height={40} endDot />
         <Chart.Sparkline data={byMonth} y="open" tone="brand" loading />
       </Specimens>
@@ -65,7 +79,13 @@ export const InTiles: Story = {
           value={
             <Inline space="space.150" alignBlock="center">
               <span>6</span>
-              <Chart.Sparkline data={byMonth} y="plan" tone="neutral" appearance="area" reference={10} />
+              <Chart.Sparkline
+                data={byMonth}
+                y="plan"
+                tone="neutral"
+                appearance="area"
+                reference={10}
+              />
             </Inline>
           }
           note="Against a limit of 10"
@@ -89,13 +109,25 @@ export const InRows: Story = {
         </thead>
         <tbody>
           {families.map((f) => {
-            const series = (findingsByFamilyMonth[f] ?? []).map((n, i) => ({ month: heatMonths[i], n }));
+            const series = (findingsByFamilyMonth[f] ?? []).map((n, i) => ({
+              month: heatMonths[i],
+              n,
+            }));
             return (
               <Table.Row key={f} isStatic>
                 <Table.Cell>{f}</Table.Cell>
-                <Table.Cell className="text-end tabular-nums">{series[series.length - 1]?.n}</Table.Cell>
+                <Table.Cell className="text-end tabular-nums">
+                  {series[series.length - 1]?.n}
+                </Table.Cell>
                 <Table.Cell>
-                  <Chart.Sparkline data={series} y="n" tone="neutral" endDot width={80} height={20} />
+                  <Chart.Sparkline
+                    data={series}
+                    y="n"
+                    tone="neutral"
+                    endDot
+                    width={80}
+                    height={20}
+                  />
                 </Table.Cell>
               </Table.Row>
             );
@@ -120,7 +152,17 @@ export const Dont: Story = {
           </Inline>
         }
         doText="The number beside the line carries the value; the line carries the trend."
-        dont={<Chart.Sparkline data={byMonth} y="open" tone="danger" width={200} height={48} endDot label="Open findings" />}
+        dont={
+          <Chart.Sparkline
+            data={byMonth}
+            y="open"
+            tone="danger"
+            width={200}
+            height={48}
+            endDot
+            label="Open findings"
+          />
+        }
         dontText="A sparkline alone, made bigger to compensate. With no number and no axis it says only 'down'. If it needs to say more, it is a Line in a Frame."
       />
       <Pair

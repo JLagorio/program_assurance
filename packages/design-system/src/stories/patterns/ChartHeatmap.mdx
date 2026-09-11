@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../patterns";
+import { Chart } from "../..";
 import * as Stories from "./ChartHeatmap.stories";
 
 <Meta of={Stories} />
@@ -13,23 +13,23 @@ A grid of rows by columns with a value painted in each cell: how much, across tw
 
 ## Anatomy
 
-| Part      | What it is                                                                                                                                  |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cell      | `radius.xsmall`, 2px from its neighbours, its fill the value's step on the scale; `color.background.neutral.subtle` when there is no value.  |
-| Value     | Printed in the cell on a status scale (the tone's text on its fill); on a colour scale a screen-reader-only text, or with `showValues` the number on an `elevation.surface` chip. |
-| Headers   | Column names across the top, row names down the side, in `font.body.xsmall` and `font.body.small`; the corner names the rows.               |
-| Scale     | `Chart.Scale`: the five steps in a row with the ends named, and the midpoint's word on a diverging one. Under the grid, `space.150` away.    |
-| Tooltip   | The cell's title: row, column, value.                                                                                                       |
-| Card      | On a chosen cell: the row and column, the value, then the caller's facts.                                                                   |
+| Part    | What it is                                                                                                                                                                        |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cell    | `radius.xsmall`, 2px from its neighbours, its fill the value's step on the scale; `color.background.neutral.subtle` when there is no value.                                       |
+| Value   | Printed in the cell on a status scale (the tone's text on its fill); on a colour scale a screen-reader-only text, or with `showValues` the number on an `elevation.surface` chip. |
+| Headers | Column names across the top, row names down the side, in `font.body.xsmall` and `font.body.small`; the corner names the rows.                                                     |
+| Scale   | `Chart.Scale`: the five steps in a row with the ends named, and the midpoint's word on a diverging one. Under the grid, `space.150` away.                                         |
+| Tooltip | The cell's title: row, column, value.                                                                                                                                             |
+| Card    | On a chosen cell: the row and column, the value, then the caller's facts.                                                                                                         |
 
 ## Variants
 
-| Variant                | Use                                                                                                                         |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `scale="sequential"`   | How much: findings by family and month, in `color.chart.sequential.1` to `5`. The default.                                  |
-| `scale="diverging"`    | Above and below a `midpoint`: schedule variance in days, red below and blue above around grey.                              |
-| A tone function        | Status by place: the risk matrix, each cell the tone its position earns, the count printed.                                 |
-| `showValues`           | The value printed on a colour scale too, when the reader must read every cell: on a surface chip in `color.text`, since text never sits on a chart colour. Off by default. |
+| Variant              | Use                                                                                                                                                                        |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scale="sequential"` | How much: findings by family and month, in `color.chart.sequential.1` to `5`. The default.                                                                                 |
+| `scale="diverging"`  | Above and below a `midpoint`: schedule variance in days, red below and blue above around grey.                                                                             |
+| A tone function      | Status by place: the risk matrix, each cell the tone its position earns, the count printed.                                                                                |
+| `showValues`         | The value printed on a colour scale too, when the reader must read every cell: on a surface chip in `color.text`, since text never sits on a chart colour. Off by default. |
 
 <Canvas of={Stories.Sequential} />
 <Canvas of={Stories.Diverging} />
@@ -37,22 +37,22 @@ A grid of rows by columns with a value painted in each cell: how much, across tw
 
 ## Sizes
 
-| `size`   | Cell height | Where                                                       |
-| -------- | ----------- | ----------------------------------------------------------- |
-| `small`  | 24px        | Many rows: families by month in a rail.                     |
-| `medium` | 32px        | A Section. The default.                                     |
+| `size`   | Cell height | Where                                                         |
+| -------- | ----------- | ------------------------------------------------------------- |
+| `small`  | 24px        | Many rows: families by month in a rail.                       |
+| `medium` | 32px        | A Section. The default.                                       |
 | `large`  | 40px        | A five-by-five matrix that is a page's point, values printed. |
 
 A cell is at least 40px wide; the grid scrolls sideways inside its own box past the width it has.
 
 ## States
 
-| State    | What changes                                                                                                                       |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Hover    | The cell's title as a tooltip.                                                                                                     |
+| State    | What changes                                                                                                                                         |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The cell's title as a tooltip.                                                                                                                       |
 | Chosen   | With `onSelect` or `details` the cells are buttons: a click or Enter chooses one, it takes the focus ring, the others dim, and the card opens on it. |
-| Loading  | Every cell in `color.skeleton`, pulsing, at the grid's size.                                                                       |
-| Isolated | Not applicable: a heatmap has no series to hide.                                                                                   |
+| Loading  | Every cell in `color.skeleton`, pulsing, at the grid's size.                                                                                         |
+| Isolated | Not applicable: a heatmap has no series to hide.                                                                                                     |
 
 <Canvas of={Stories.Details} />
 
@@ -75,15 +75,15 @@ A cell is at least 40px wide; the grid scrolls sideways inside its own box past 
 
 ## Style
 
-| Element   | Token                                                                                                                      |
-| --------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Cell      | `color.chart.sequential.<step>` · `color.chart.diverging.<step>` · or `color.background.<tone>` with `color.text.<tone>` · `radius.xsmall` · 2px apart |
-| Empty     | `color.background.neutral.subtle`                                                                                          |
-| Headers   | `font.body.xsmall` medium `color.text.subtlest` across · `font.body.small` `color.text.subtle` down                        |
-| Scale     | Five steps 24 by 8 · `radius.xsmall` · ends in `font.body.xsmall` `color.text.subtlest`                                    |
-| Chosen    | `color.border.focused` outline                                                                                             |
-| Dimmed    | `opacity.disabled`                                                                                                         |
-| Skeleton  | `color.skeleton`                                                                                                           |
+| Element  | Token                                                                                                                                                  |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cell     | `color.chart.sequential.<step>` · `color.chart.diverging.<step>` · or `color.background.<tone>` with `color.text.<tone>` · `radius.xsmall` · 2px apart |
+| Empty    | `color.background.neutral.subtle`                                                                                                                      |
+| Headers  | `font.body.xsmall` medium `color.text.subtlest` across · `font.body.small` `color.text.subtle` down                                                    |
+| Scale    | Five steps 24 by 8 · `radius.xsmall` · ends in `font.body.xsmall` `color.text.subtlest`                                                                |
+| Chosen   | `color.border.focused` outline                                                                                                                         |
+| Dimmed   | `opacity.disabled`                                                                                                                                     |
+| Skeleton | `color.skeleton`                                                                                                                                       |
 
 ## Accessibility
 

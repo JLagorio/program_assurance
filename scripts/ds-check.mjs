@@ -12,9 +12,9 @@ import { execFileSync } from "node:child_process";
 import { publicApi } from "./ds-public-api.mjs";
 
 const PKG = "packages/design-system/src";
-const LAYERS = ["primitives", "components", "patterns", "shapes", "shell", "mode"];
+const LAYERS = ["primitives", "components", "patterns", "layout", "mode"];
 // Story folders whose files are families and need a page. Tokens are sheets; docs are pages already.
-const PAGE_FOLDERS = ["components", "patterns", "primitives"];
+const PAGE_FOLDERS = ["components", "patterns", "primitives", "layout"];
 // The Shapes catalog is retired, but these APIs remain for existing consumers. Block and
 // Inspector still have integration stories; do not recreate demos just to cover these two.
 const RETIRED_STORY_EXPORTS = new Set(["ActionBar", "WorkPane"]);

@@ -1,33 +1,19 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  PageHeader,
+  Stack,
+  Tabs,
+  TabsContent,
+} from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-import {
-  Badge,
-  Box,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Button,
-  Empty,
-  Id,
-  Inline,
-  Inspector,
-  KeyValue,
-  Panel,
-  RecordHeader,
-  Section,
-  Shell as DsShell,
-  ShowPage,
-  Table,
-  TabsList,
-  TabsTrigger,
-  Count,
-  TextLink,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 import {
   BomSummary,
   BomTree,
@@ -47,11 +33,29 @@ import {
   type CompositionNode,
 } from "@/lib/composition";
 import { assetById } from "@/lib/findings";
-import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
-import { allocationsOn, derivedControlTrace, requirementById } from "@/lib/requirements";
 import { bomStats, inventoryReconciliation, postureOf } from "@/lib/graph-posture";
 import { programs } from "@/lib/grc-data";
 import { parseGateDate } from "@/lib/program-stage";
+import { allocationsOn, derivedControlTrace } from "@/lib/requirements";
+import {
+  Badge,
+  Box,
+  BreadcrumbLink,
+  Button,
+  Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Inspector,
+  KeyValue,
+  Section,
+  Shell,
+  Table,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+} from "@ledger/design-system";
 
 const compositionTabs = ["Tree", "Supply chain", "Reconciliation", "BOM documents"] as const;
 type CompositionTab = (typeof compositionTabs)[number];
@@ -190,353 +194,350 @@ function ProgramComposition() {
   };
 
   return (
-    <Shell>
-      <>
-        <ShowPage
-          tab={tab}
-          onTabChange={(value) => go(value as typeof tab)}
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to={"/programs"} />}>{"Programs"}</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      render={
-                        <Link to={"/programs/$programId"} params={{ programId: program.id }} />
-                      }
-                    >
-                      {program.name}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id={program.id}
-              title={`${program.name} — system composition`}
-              meta={`${program.system} · ${program.environment} · ${stats.nodes} components · ${stats.suppliers} suppliers`}
-              actions={
-                <>
-                  <Badge variant="secondary" tone={stats.unattested > 0 ? "warning" : "success"}>
-                    {stats.unattested} unattested
-                  </Badge>
-                  <TextLink
-                    size="small"
-                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to={"/programs"} />}>{"Programs"}</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    render={<Link to={"/programs/$programId"} params={{ programId: program.id }} />}
                   >
-                    Program record
-                  </TextLink>
-                </>
-              }
-            />
-          }
-          tabs={
-            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-              {compositionTabs.map((key) => (
-                <TabsTrigger key={key} value={key}>
-                  {key}
-                  {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          }
-        >
-          {!root || !tree || !rootPosture ? (
-            <Section title="System composition">
-              <Box paddingBlockStart="space.200">
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyTitle>{"Nothing in the composition"}</EmptyTitle>
-                    <EmptyDescription>{`${program.id} carries no BOM. A CycloneDX, SPDX, hardware part list or firmware manifest delivery populates this page.`}</EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              </Box>
-            </Section>
-          ) : null}
-
-          {root && tree && rootPosture && tab === "Tree" ? (
+                    {program.name}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{program.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{`${program.name} — system composition`}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >{`${program.system} · ${program.environment} · ${stats.nodes} components · ${stats.suppliers} suppliers`}</Inline>
+          </div>
+          <PageHeader.Actions>
             <>
-              <Section title="Rollup">
-                <Box paddingBlockStart="space.200">
-                  <PostureStrip posture={rootPosture} />
-                </Box>
-              </Section>
-
-              <Section title="Bill of materials">
-                <BomTree root={tree} selected={selectedId} onSelect={select} />
-              </Section>
-
-              <Section
-                title="Reachability"
-                description={`${edges.length} declared connections, ${crossings} of which cross a trust boundary. Containment says what a thing is made of; these say what can reach it.`}
+              <Badge variant="secondary" tone={stats.unattested > 0 ? "warning" : "success"}>
+                {stats.unattested} unattested
+              </Badge>
+              <TextLink
+                size="small"
+                render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
               >
-                <Table className="table-fixed">
-                  <thead>
-                    <tr>
-                      <Table.Header width={180}>From</Table.Header>
-                      <Table.Header width={132}>Relation</Table.Header>
-                      <Table.Header width={180}>To</Table.Header>
-                      <Table.Header>Via</Table.Header>
-                      <Table.Header width={108}>Redundancy</Table.Header>
-                      <Table.Header width={132}>Boundary</Table.Header>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {edges.map((e) => (
-                      <Table.Row key={`${e.from}-${e.kind}-${e.to}`}>
-                        <Table.Cell className="truncate">
-                          <TextLink
-                            className="truncate text-left"
-                            render={<button type="button" onClick={() => select(e.from)} />}
-                          >
-                            {nameOf(e.from)}
-                          </TextLink>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Badge variant="secondary" tone="neutral" size="xsmall">
-                            {e.kind}
-                          </Badge>
-                        </Table.Cell>
-                        <Table.Cell className="truncate">
-                          <TextLink
-                            className="truncate text-left"
-                            render={<button type="button" onClick={() => select(e.to)} />}
-                          >
-                            {nameOf(e.to)}
-                          </TextLink>
-                        </Table.Cell>
-                        <Table.Cell className="truncate" title={e.via}>
-                          {e.via}
-                        </Table.Cell>
-                        <Table.Cell>{e.critical ? "No redundancy" : "Redundant"}</Table.Cell>
-                        <Table.Cell>
-                          {crossesBoundary(e) ? (
-                            <Badge variant="secondary" size="xsmall" tone="warning">
-                              {zoneOf(e.from)} → {zoneOf(e.to)}
-                            </Badge>
-                          ) : (
-                            <span className="text-subtle">Same zone</span>
-                          )}
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-              </Section>
+                Program record
+              </TextLink>
             </>
-          ) : null}
-
-          {root && tab === "Supply chain" ? (
-            <>
-              <Section title="Composition profile">
-                <Box paddingBlockStart="space.200">
-                  <BomSummary stats={stats} />
-                </Box>
-              </Section>
-
-              <Section
-                title="Suppliers"
-                description={`Provenance by supplier as of ${asOf}. A part with no attestation on file cannot be cleared under SR-4.`}
-              >
-                <SupplyChainTable nodes={nodes} asOf={asOf} />
-              </Section>
-            </>
-          ) : null}
-
-          {root && tab === "Reconciliation" ? (
-            <Section title="Scanner declared against register tracked">
-              <ReconciliationTable
-                rows={reconciliation}
-                onSelect={(assetId) =>
-                  navigate({ to: "/findings/assets/$assetId", params: { assetId } })
-                }
-              />
-            </Section>
-          ) : null}
-
-          {root && tab === "BOM documents" ? (
-            <Section
-              title="Delivered BOM documents"
-              description={`${docs.length} deliveries assert this composition. ${unsigned} unsigned · ${stale} older than ${staleAfterDays} days as of ${asOf}.`}
-            >
-              {docs.length ? (
-                <Table className="table-fixed">
-                  <thead>
-                    <tr>
-                      <Table.Header width={104}>Document</Table.Header>
-                      <Table.Header>Name</Table.Header>
-                      <Table.Header width={152}>Format</Table.Header>
-                      <Table.Header width={168}>Producer</Table.Header>
-                      <Table.Header width={104} className="text-right">
-                        Received
-                      </Table.Header>
-                      <Table.Header width={88} className="text-right">
-                        Parts
-                      </Table.Header>
-                      <Table.Header width={116}>Subject</Table.Header>
-                      <Table.Header width={128}>Integrity</Table.Header>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {docs.map((d) => {
-                      const age = ageInDays(d.received);
-                      const isStale = age !== null && age > staleAfterDays;
-                      return (
-                        <Table.Row key={d.id}>
-                          <Table.Cell>
-                            <Id>{d.id}</Id>
-                          </Table.Cell>
-                          <Table.Cell className="truncate" title={d.name}>
-                            {d.name}
-                          </Table.Cell>
-                          <Table.Cell>
-                            {d.format} {d.specVersion}
-                          </Table.Cell>
-                          <Table.Cell className="truncate" title={d.producer}>
-                            {d.producer}
-                          </Table.Cell>
-                          <Table.Cell
-                            className={
-                              isStale
-                                ? "tabular-nums text-right text-warning"
-                                : "tabular-nums text-right"
-                            }
-                            title={age === null ? d.received : `${age} days old`}
-                          >
-                            {d.received}
-                          </Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">
-                            {d.components}
-                          </Table.Cell>
-                          <Table.Cell className="truncate">
-                            <TextLink
-                              className="truncate text-left"
-                              render={
-                                <button
-                                  type="button"
-                                  onClick={() => openInTree(d.subject)}
-                                  title={nameOf(d.subject)}
-                                />
-                              }
-                            >
-                              {nameOf(d.subject)}
-                            </TextLink>
-                          </Table.Cell>
-                          <Table.Cell>
-                            <Inline as="span" space="space.075" alignBlock="center">
-                              <Badge
-                                variant="secondary"
-                                size="xsmall"
-                                tone={d.signed ? "success" : "warning"}
-                              >
-                                {d.signed ? "Signed" : "Unsigned"}
-                              </Badge>
-                              <span title={`sha256:${d.sha256}`}>
-                                <Id className="text-subtle">{d.sha256.slice(0, 8)}…</Id>
-                              </span>
-                            </Inline>
-                          </Table.Cell>
-                        </Table.Row>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              ) : (
-                <Box paddingBlockStart="space.200">
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyTitle>{"No BOM deliveries on file"}</EmptyTitle>
-                      <EmptyDescription>
-                        {
-                          "Every component below was hand-declared. A signed CycloneDX or SPDX delivery replaces the declaration with an assertion."
-                        }
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                </Box>
-              )}
-            </Section>
-          ) : null}
-        </ShowPage>
-        {tab === "Tree" && selected !== null ? (
-          <DsShell.Panel label="Details">
-            <DsShell.Panel.Splitter label="Resize details" />
-            <Panel flush>
-              {selected ? (
+          </PageHeader.Actions>
+        </PageHeader>
+        <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {compositionTabs.map((key) => (
+              <TabsTrigger key={key} value={key}>
+                {key}
+                {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {!root || !tree || !rootPosture ? (
+                <Section title="System composition">
+                  <Box paddingBlockStart="space.200">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"Nothing in the composition"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} carries no BOM. A CycloneDX, SPDX, hardware part list or firmware manifest delivery populates this page.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  </Box>
+                </Section>
+              ) : null}
+              {root && tree && rootPosture && tab === "Tree" ? (
                 <>
-                  <NodeRail node={selected} posture={selectedPosture} />
-                  <Inspector.Group title="Record">
-                    <KeyValue label="Open">
-                      <TextLink
-                        render={
-                          <Link
-                            to="/programs/$programId/components/$componentId"
-                            params={{ programId: program.id, componentId: selected.id }}
-                          />
-                        }
-                      >
-                        {selected.name}
-                      </TextLink>
-                    </KeyValue>
-                    <KeyValue label="Requirements">{selectedAllocations.length || "None"}</KeyValue>
-                    <KeyValue label="Controls reached">
-                      {selectedTrace.controls.length || "None"}
-                    </KeyValue>
-                  </Inspector.Group>
-                  <Inspector.Group title="Joins">
-                    <KeyValue label="Path">
-                      <span className="font-body-small">
-                        {pathOf(selected.id)
-                          .map((n) => n.name)
-                          .join(" / ")}
-                      </span>
-                    </KeyValue>
-                    <KeyValue label="Asset">
-                      {selected.asset && assetById.has(selected.asset) ? (
-                        <TextLink
-                          render={
-                            <Link
-                              to="/findings/assets/$assetId"
-                              params={{ assetId: selected.asset }}
-                            />
-                          }
-                        >
-                          <Id>{selected.asset}</Id>
-                        </TextLink>
-                      ) : (
-                        "Not a boundary asset"
-                      )}
-                    </KeyValue>
-                    <KeyValue label="Worst part">
-                      {selectedPosture?.worstNode ? (
-                        <Button
-                          onClick={() => select(selectedPosture.worstNode ?? selected.id)}
-                          variant="link"
-                        >
-                          <Id className="text-brand">{nameOf(selectedPosture.worstNode)}</Id>
-                        </Button>
-                      ) : (
-                        "—"
-                      )}
-                    </KeyValue>
-                    <KeyValue label="Program">
-                      <TextLink
-                        render={
-                          <Link to="/programs/$programId" params={{ programId: program.id }} />
-                        }
-                      >
-                        <Id>{program.id}</Id>
-                      </TextLink>
-                    </KeyValue>
-                  </Inspector.Group>
+                  <Section title="Rollup">
+                    <Box paddingBlockStart="space.200">
+                      <PostureStrip posture={rootPosture} />
+                    </Box>
+                  </Section>
+
+                  <Section title="Bill of materials">
+                    <BomTree root={tree} selected={selectedId} onSelect={select} />
+                  </Section>
+
+                  <Section
+                    title="Reachability"
+                    description={`${edges.length} declared connections, ${crossings} of which cross a trust boundary. Containment says what a thing is made of; these say what can reach it.`}
+                  >
+                    <Table className="table-fixed">
+                      <thead>
+                        <tr>
+                          <Table.Header width={180}>From</Table.Header>
+                          <Table.Header width={132}>Relation</Table.Header>
+                          <Table.Header width={180}>To</Table.Header>
+                          <Table.Header>Via</Table.Header>
+                          <Table.Header width={108}>Redundancy</Table.Header>
+                          <Table.Header width={132}>Boundary</Table.Header>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {edges.map((e) => (
+                          <Table.Row key={`${e.from}-${e.kind}-${e.to}`}>
+                            <Table.Cell className="truncate">
+                              <TextLink
+                                className="truncate text-left"
+                                render={<button type="button" onClick={() => select(e.from)} />}
+                              >
+                                {nameOf(e.from)}
+                              </TextLink>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Badge variant="secondary" tone="neutral" size="xsmall">
+                                {e.kind}
+                              </Badge>
+                            </Table.Cell>
+                            <Table.Cell className="truncate">
+                              <TextLink
+                                className="truncate text-left"
+                                render={<button type="button" onClick={() => select(e.to)} />}
+                              >
+                                {nameOf(e.to)}
+                              </TextLink>
+                            </Table.Cell>
+                            <Table.Cell className="truncate" title={e.via}>
+                              {e.via}
+                            </Table.Cell>
+                            <Table.Cell>{e.critical ? "No redundancy" : "Redundant"}</Table.Cell>
+                            <Table.Cell>
+                              {crossesBoundary(e) ? (
+                                <Badge variant="secondary" size="xsmall" tone="warning">
+                                  {zoneOf(e.from)} → {zoneOf(e.to)}
+                                </Badge>
+                              ) : (
+                                <span className="text-subtle">Same zone</span>
+                              )}
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </Section>
                 </>
               ) : null}
-            </Panel>
-          </DsShell.Panel>
-        ) : null}
-      </>
-    </Shell>
+              {root && tab === "Supply chain" ? (
+                <>
+                  <Section title="Composition profile">
+                    <Box paddingBlockStart="space.200">
+                      <BomSummary stats={stats} />
+                    </Box>
+                  </Section>
+
+                  <Section
+                    title="Suppliers"
+                    description={`Provenance by supplier as of ${asOf}. A part with no attestation on file cannot be cleared under SR-4.`}
+                  >
+                    <SupplyChainTable nodes={nodes} asOf={asOf} />
+                  </Section>
+                </>
+              ) : null}
+              {root && tab === "Reconciliation" ? (
+                <Section title="Scanner declared against register tracked">
+                  <ReconciliationTable
+                    rows={reconciliation}
+                    onSelect={(assetId) =>
+                      navigate({ to: "/findings/assets/$assetId", params: { assetId } })
+                    }
+                  />
+                </Section>
+              ) : null}
+              {root && tab === "BOM documents" ? (
+                <Section
+                  title="Delivered BOM documents"
+                  description={`${docs.length} deliveries assert this composition. ${unsigned} unsigned · ${stale} older than ${staleAfterDays} days as of ${asOf}.`}
+                >
+                  {docs.length ? (
+                    <Table className="table-fixed">
+                      <thead>
+                        <tr>
+                          <Table.Header width={104}>Document</Table.Header>
+                          <Table.Header>Name</Table.Header>
+                          <Table.Header width={152}>Format</Table.Header>
+                          <Table.Header width={168}>Producer</Table.Header>
+                          <Table.Header width={104} className="text-right">
+                            Received
+                          </Table.Header>
+                          <Table.Header width={88} className="text-right">
+                            Parts
+                          </Table.Header>
+                          <Table.Header width={116}>Subject</Table.Header>
+                          <Table.Header width={128}>Integrity</Table.Header>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {docs.map((d) => {
+                          const age = ageInDays(d.received);
+                          const isStale = age !== null && age > staleAfterDays;
+                          return (
+                            <Table.Row key={d.id}>
+                              <Table.Cell>
+                                <Id>{d.id}</Id>
+                              </Table.Cell>
+                              <Table.Cell className="truncate" title={d.name}>
+                                {d.name}
+                              </Table.Cell>
+                              <Table.Cell>
+                                {d.format} {d.specVersion}
+                              </Table.Cell>
+                              <Table.Cell className="truncate" title={d.producer}>
+                                {d.producer}
+                              </Table.Cell>
+                              <Table.Cell
+                                className={
+                                  isStale
+                                    ? "tabular-nums text-right text-warning"
+                                    : "tabular-nums text-right"
+                                }
+                                title={age === null ? d.received : `${age} days old`}
+                              >
+                                {d.received}
+                              </Table.Cell>
+                              <Table.Cell className="tabular-nums text-right">
+                                {d.components}
+                              </Table.Cell>
+                              <Table.Cell className="truncate">
+                                <TextLink
+                                  className="truncate text-left"
+                                  render={
+                                    <button
+                                      type="button"
+                                      onClick={() => openInTree(d.subject)}
+                                      title={nameOf(d.subject)}
+                                    />
+                                  }
+                                >
+                                  {nameOf(d.subject)}
+                                </TextLink>
+                              </Table.Cell>
+                              <Table.Cell>
+                                <Inline as="span" space="space.075" alignBlock="center">
+                                  <Badge
+                                    variant="secondary"
+                                    size="xsmall"
+                                    tone={d.signed ? "success" : "warning"}
+                                  >
+                                    {d.signed ? "Signed" : "Unsigned"}
+                                  </Badge>
+                                  <span title={`sha256:${d.sha256}`}>
+                                    <Id className="text-subtle">{d.sha256.slice(0, 8)}…</Id>
+                                  </span>
+                                </Inline>
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                  ) : (
+                    <Box paddingBlockStart="space.200">
+                      <Empty>
+                        <EmptyHeader>
+                          <EmptyTitle>{"No BOM deliveries on file"}</EmptyTitle>
+                          <EmptyDescription>
+                            {
+                              "Every component below was hand-declared. A signed CycloneDX or SPDX delivery replaces the declaration with an assertion."
+                            }
+                          </EmptyDescription>
+                        </EmptyHeader>
+                      </Empty>
+                    </Box>
+                  )}
+                </Section>
+              ) : null}
+            </Stack>
+          </TabsContent>
+        </Tabs>
+      </Stack>
+      {tab === "Tree" && !!search.node && selected !== null ? (
+        <Shell.Panel label="Details" onClose={() => navigate({ search: { tab }, replace: true })}>
+          {selected ? (
+            <>
+              <NodeRail node={selected} posture={selectedPosture} />
+              <Inspector.Group title="Record">
+                <KeyValue label="Open">
+                  <TextLink
+                    render={
+                      <Link
+                        to="/programs/$programId/components/$componentId"
+                        params={{ programId: program.id, componentId: selected.id }}
+                      />
+                    }
+                  >
+                    {selected.name}
+                  </TextLink>
+                </KeyValue>
+                <KeyValue label="Requirements">{selectedAllocations.length || "None"}</KeyValue>
+                <KeyValue label="Controls reached">
+                  {selectedTrace.controls.length || "None"}
+                </KeyValue>
+              </Inspector.Group>
+              <Inspector.Group title="Joins">
+                <KeyValue label="Path">
+                  <span className="font-body-small">
+                    {pathOf(selected.id)
+                      .map((n) => n.name)
+                      .join(" / ")}
+                  </span>
+                </KeyValue>
+                <KeyValue label="Asset">
+                  {selected.asset && assetById.has(selected.asset) ? (
+                    <TextLink
+                      render={
+                        <Link to="/findings/assets/$assetId" params={{ assetId: selected.asset }} />
+                      }
+                    >
+                      <Id>{selected.asset}</Id>
+                    </TextLink>
+                  ) : (
+                    "Not a boundary asset"
+                  )}
+                </KeyValue>
+                <KeyValue label="Worst part">
+                  {selectedPosture?.worstNode ? (
+                    <Button
+                      onClick={() => select(selectedPosture.worstNode ?? selected.id)}
+                      variant="link"
+                    >
+                      <Id className="text-brand">{nameOf(selectedPosture.worstNode)}</Id>
+                    </Button>
+                  ) : (
+                    "—"
+                  )}
+                </KeyValue>
+                <KeyValue label="Program">
+                  <TextLink
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                  >
+                    <Id>{program.id}</Id>
+                  </TextLink>
+                </KeyValue>
+              </Inspector.Group>
+            </>
+          ) : null}
+        </Shell.Panel>
+      ) : null}
+    </>
   );
 }

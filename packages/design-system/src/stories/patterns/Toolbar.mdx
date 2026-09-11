@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Toolbar } from "../../patterns";
+import { Toolbar } from "../..";
 import * as Stories from "./Toolbar.stories";
 
 <Meta of={Stories} />
@@ -9,7 +9,7 @@ import * as Stories from "./Toolbar.stories";
 
 The row above a table: the search at the start, the filters after it, the actions at the end. Everything in it is the small size, so the row is one height and the table starts right under it. A [DataTable](?path=/docs/patterns-data-table--docs) takes it as `toolbar`, inside its frame; a plain [Table](?path=/docs/components-table--docs) puts it above.
 
-It is a row of controls, not a heading. The [Section](?path=/docs/patterns-section--docs) above names the register; the Toolbar asks its questions.
+It is a row of controls, not a heading. The [Section](?path=/docs/layout-section--docs) above names the register; the Toolbar asks its questions.
 
 <Canvas of={Stories.ToolbarMatrix} />
 
@@ -91,7 +91,7 @@ The toolbar has no states of its own; its controls have theirs. The search field
 - [Table](?path=/docs/components-table--docs) below it; [Pagination](?path=/docs/components-pagination--docs) under the table.
 - [DataTable](?path=/docs/patterns-data-table--docs): `DataTable.Search`, `.Filter`, `.Presets` and `.Columns` are the parts a toolbar holds when the table has state; `.SelectionBar` is the bar that replaces it while rows are chosen.
 - [FilterChip](?path=/docs/components-filterchip--docs), [ToggleGroup](?path=/docs/components-togglegroup--docs): the filters.
-- [Section](?path=/docs/patterns-section--docs): where the register's title and description live.
+- [Section](?path=/docs/layout-section--docs): where the register's title and description live.
 
 ## Don't
 

@@ -1,6 +1,19 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  PageHeader,
+  Stack,
+  Tabs,
+  TabsContent,
+} from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
 
 import {
   AlertList,
@@ -13,26 +26,6 @@ import {
   ScheduleTable,
   SlippageTable,
 } from "@/components/app/conmon";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Badge,
-  Box,
-  Button,
-  Grid,
-  Inline,
-  RecordHeader,
-  Section,
-  ShowPage,
-  TabsList,
-  TabsTrigger,
-  Count,
-  TextLink,
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 import {
   assessmentSchedule,
   conmonAlerts,
@@ -47,6 +40,20 @@ import {
 } from "@/lib/conmon";
 import { programs } from "@/lib/grc-data";
 import { buildControlTextIndex } from "@/lib/sctm";
+import {
+  Badge,
+  Box,
+  BreadcrumbLink,
+  Button,
+  Count,
+  Grid,
+  Section,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
 
 const conmonTabs = [
@@ -245,326 +252,338 @@ function ProgramConMon() {
   };
 
   return (
-    <Shell>
-      <ShowPage
-        tab={tab}
-        onTabChange={(value) => go(value as typeof tab)}
-        header={
-          <RecordHeader
-            crumbs={
-              <>
-                <BreadcrumbItem>
-                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-                  >
-                    {program.name}
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-              </>
-            }
-            id={program.id}
-            title={`${program.name} — continuous monitoring`}
-            meta={`As of ${conmonAsOfLabel} · ${alerts.length} alert${alerts.length === 1 ? "" : "s"}${urgent > 0 ? ` (${urgent} critical or high)` : ""} · drift ${drift.score}/100${appliedWeight < 100 ? ` on ${appliedWeight} of 100 points of weight — read the band as a floor` : ""}`}
-            actions={
-              <>
-                <Badge variant="secondary" tone="neutral">
-                  Drift {drift.score}
-                </Badge>
-                <DriftBandChip band={drift.band} provisional={appliedWeight < 100} />
-                <TextLink
-                  size="small"
-                  render={
-                    <Link to="/programs/$programId/baseline" params={{ programId: program.id }} />
-                  }
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
                 >
-                  Baseline
-                </TextLink>
-                <TextLink
-                  size="small"
-                  render={
-                    <Link to="/programs/$programId/sctm" params={{ programId: program.id }} />
-                  }
-                >
-                  SCTM
-                </TextLink>
-                <TextLink
-                  size="small"
-                  render={
-                    <Link
-                      to="/programs/$programId/risk"
-                      params={{ programId: program.id }}
-                      search={{ tab: undefined }}
-                    />
-                  }
-                >
-                  Risk
-                </TextLink>
-              </>
-            }
-          />
-        }
-        tabs={
-          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-            {conmonTabs.map((key) => (
-              <TabsTrigger key={key} value={key}>
-                {key}
-                {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        }
-      >
-        {tab === "Drift" ? (
+                  {program.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{program.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{`${program.name} — continuous monitoring`}</PageHeader.Title>
+          <Inline
+            space="space.100"
+            alignBlock="center"
+            shouldWrap
+            className="pt-050 font-body-small text-subtle"
+          >{`As of ${conmonAsOfLabel} · ${alerts.length} alert${alerts.length === 1 ? "" : "s"}${urgent > 0 ? ` (${urgent} critical or high)` : ""} · drift ${drift.score}/100${appliedWeight < 100 ? ` on ${appliedWeight} of 100 points of weight — read the band as a floor` : ""}`}</Inline>
+        </div>
+        <PageHeader.Actions>
           <>
-            <Section
-              title="How far the operating state has moved from the authorized one"
-              description={`Before an authorization the question is whether the system was ever assessed. After one it is whether what was authorized is still what is running. Everything below is measured as of ${conmonAsOfLabel} against the state ${program.id} was authorized in — the pinned build, the determinations that were current when the package was signed, the evidence those determinations rest on, and the monitoring the ISSM committed to doing between assessments.`}
-            >
-              <Box paddingBlockStart="space.200">
-                <DriftCard score={drift} asOf={conmonAsOfLabel} subject={program.name} />
-              </Box>
-            </Section>
-
-            <Section title="How the score was built">
-              <DriftFactorTable score={drift} />
-            </Section>
-
-            <Section
-              title="The monitoring queue"
-              description={
-                alerts.length === 0
-                  ? `Nothing in ${program.id} has diverged from a record this module can check. An empty queue is a result, not a gap in the checking.`
-                  : `${alerts.length} thing${alerts.length === 1 ? " has" : "s have"} diverged from what was authorized, worst first. Each one says what moved, with the numbers, and what to do about it. Nothing is here that does not rest on a record — no alert is manufactured to fill the list.`
-              }
-              action={
-                <span className="tabular-nums font-body-small text-subtle">
-                  {urgent} critical or high · {alerts.length} total
-                </span>
+            <Badge variant="secondary" tone="neutral">
+              Drift {drift.score}
+            </Badge>
+            <DriftBandChip band={drift.band} provisional={appliedWeight < 100} />
+            <TextLink
+              size="small"
+              render={
+                <Link to="/programs/$programId/baseline" params={{ programId: program.id }} />
               }
             >
-              <AlertSummary alerts={alerts} />
-              <Box paddingBlockStart="space.150">
-                <AlertList
-                  alerts={alerts}
-                  action={alertAction}
-                  empty={{
-                    title: "Nothing has diverged",
-                    description: `No pin in ${program.id} has moved without a change record, no determination has been retracted, no evidence is past its SLA and no monitoring window has closed empty.`,
-                  }}
+              Baseline
+            </TextLink>
+            <TextLink
+              size="small"
+              render={<Link to="/programs/$programId/sctm" params={{ programId: program.id }} />}
+            >
+              SCTM
+            </TextLink>
+            <TextLink
+              size="small"
+              render={
+                <Link
+                  to="/programs/$programId/risk"
+                  params={{ programId: program.id }}
+                  search={{ tab: undefined }}
                 />
-              </Box>
-            </Section>
-
-            <Section title="What feeds the score">
-              <Grid
-                className="pt-200"
-                gap="space.150"
-                templateColumns={{
-                  sm: "repeat(2, minmax(0, 1fr))",
-                  lg: "repeat(4, minmax(0, 1fr))",
-                }}
-              >
-                <FeedTile
-                  label="Assessment schedule"
-                  value={overdue.length}
-                  unit={`of ${schedule.length} overdue`}
-                  alarming
-                  note={
-                    schedule.length === 0
-                      ? "No SLCM strategy is on file for this program, so there is no schedule to fall behind. That is a gap, not a clean result."
-                      : `${dueSoon.length} due inside their window, ${neverAssessed.length} never assessed, ${undetermined.length} filed with an Undetermined method.`
-                  }
-                  onOpen={() => go("Assessment schedule")}
-                />
-                <FeedTile
-                  label="Evidence freshness"
-                  value={expired + stale}
-                  // "Past SLA" on the Evidence freshness tab counts the rows
-                  // with no dated artifact at all as well, because a control
-                  // that has never been collected against is past its SLA under
-                  // any reading. This tile mirrors the drift factor instead —
-                  // `share(stale + expired, rows)` — so it has to name the
-                  // narrower set rather than reuse the phrase for a smaller
-                  // number. The 14 never-collected rows are in the note below.
-                  unit={`of ${freshness.length} expired or stale`}
-                  alarming
-                  note={
-                    freshness.length === 0
-                      ? "No requirement in this matrix maps to a monitored control, so no evidence SLA applies."
-                      : `${expired} expired, ${stale} stale, ${neverCollected} with no dated artifact attached at all.`
-                  }
-                  onOpen={() => go("Evidence freshness")}
-                />
-                <FeedTile
-                  label="Scan cadence"
-                  value={outOfCadence.length}
-                  unit={`of ${cadence.length} out of cadence`}
-                  alarming
-                  note={
-                    cadence.length === 0
-                      ? "No tracked asset here anchors a composition node, so no scan window can be measured."
-                      : "One row per asset and scan format, comparing the last reconciled result against the window that format is expected to produce one inside."
-                  }
-                  onOpen={() => go("Scan cadence")}
-                />
-                <FeedTile
-                  label="POA&M slippage"
-                  value={slipped.length}
-                  unit={`of ${slippage.length} slipped`}
-                  alarming
-                  note={
-                    slippage.length === 0
-                      ? "This program carries no POA&M item with a scheduled completion date."
-                      : `${overdueSections.length} section${overdueSections.length === 1 ? " is" : "s are"} already past the date committed to the AO. The slip is measured against the original commitment, not the latest revision.`
-                  }
-                  onOpen={() => go("POA&M slippage")}
-                />
-              </Grid>
-            </Section>
+              }
+            >
+              Risk
+            </TextLink>
           </>
-        ) : null}
-
-        {tab === "Assessment schedule" ? (
-          <Section
-            title="The SLCM schedule"
-            description={`The continuous monitoring strategy is the one authored table in this module — frequency, method, responsible entity and last assessed date per control, exactly as an ISSM files it in eMASS. Every other column is computed: the next due date is the last assessed date plus the frequency's period, the days-out figure is the distance from ${conmonAsOfLabel} to that date, and the status is read off that number against a window sized to the control's own cycle. A missed check is never rewritten as "Not assessed" — the schedule status and the 800-53A determination are separate axes and neither collapses into the other.`}
-            action={
-              schedule.length > 0 ? (
-                <ToggleGroup
-                  aria-label="Assessment schedule scope"
-                  size="sm"
-                  value={[scheduleScope]}
-                  onValueChange={([next]) => {
-                    if (next !== undefined) setScheduleScope(next);
-                  }}
+        </PageHeader.Actions>
+      </PageHeader>
+      <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+        <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+          {conmonTabs.map((key) => (
+            <TabsTrigger key={key} value={key}>
+              {key}
+              {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={tab}>
+          <Stack space="space.300" className="min-w-0 pt-200">
+            {tab === "Drift" ? (
+              <>
+                <Section
+                  title="How far the operating state has moved from the authorized one"
+                  description={`Before an authorization the question is whether the system was ever assessed. After one it is whether what was authorized is still what is running. Everything below is measured as of ${conmonAsOfLabel} against the state ${program.id} was authorized in — the pinned build, the determinations that were current when the package was signed, the evidence those determinations rest on, and the monitoring the ISSM committed to doing between assessments.`}
                 >
-                  <ToggleGroupItem value="needs">
-                    Needs action {scheduleActionable.length}
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="all">All {schedule.length}</ToggleGroupItem>
-                </ToggleGroup>
-              ) : null
-            }
-          >
-            {schedule.length > 0 ? (
-              <CountStrip
-                items={[
-                  { label: "Overdue", count: overdue.length, tone: "danger" },
-                  { label: "Never assessed", count: neverAssessed.length, tone: "warning" },
-                  { label: "Due", count: dueSoon.length, tone: "neutral" },
-                  {
-                    label: "Current",
-                    count: schedule.length - scheduleActionable.length,
-                    tone: "success",
-                  },
-                  { label: "Undetermined method", count: undetermined.length, tone: "warning" },
-                ]}
-              />
-            ) : null}
-            <Box paddingBlockStart="space.150">
-              <ScheduleTable rows={scheduleRows} />
-            </Box>
-            {schedule.length > 0 && scheduleRows.length === 0 ? (
-              <p className="pt-150 font-body-small text-subtle">
-                Every one of the {schedule.length} controls in the strategy is inside its window as
-                of {conmonAsOfLabel}. Switch to "All {schedule.length}" to read the schedule itself.
-              </p>
-            ) : null}
-          </Section>
-        ) : null}
+                  <Box paddingBlockStart="space.200">
+                    <DriftCard score={drift} asOf={conmonAsOfLabel} subject={program.name} />
+                  </Box>
+                </Section>
 
-        {tab === "Evidence freshness" ? (
-          <Section
-            title="Evidence against its SLA"
-            description={`Every monitored requirement, with the age of the newest artifact attached to it measured against the SLA its control's own monitoring frequency implies. A daily control with five-day-old evidence is expired on exactly the same rule that leaves an annual control's seven-month-old policy attestation merely aging — the SLA is the interval the program committed to, not a flat number applied to everything.`}
-            action={
-              freshness.length > 0 ? (
-                <ToggleGroup
-                  aria-label="Evidence freshness scope"
-                  size="sm"
-                  value={[freshnessScope]}
-                  onValueChange={([next]) => {
-                    if (next !== undefined) setFreshnessScope(next);
-                  }}
+                <Section title="How the score was built">
+                  <DriftFactorTable score={drift} />
+                </Section>
+
+                <Section
+                  title="The monitoring queue"
+                  description={
+                    alerts.length === 0
+                      ? `Nothing in ${program.id} has diverged from a record this module can check. An empty queue is a result, not a gap in the checking.`
+                      : `${alerts.length} thing${alerts.length === 1 ? " has" : "s have"} diverged from what was authorized, worst first. Each one says what moved, with the numbers, and what to do about it. Nothing is here that does not rest on a record — no alert is manufactured to fill the list.`
+                  }
+                  action={
+                    <span className="tabular-nums font-body-small text-subtle">
+                      {urgent} critical or high · {alerts.length} total
+                    </span>
+                  }
                 >
-                  <ToggleGroupItem value="needs">Past SLA {pastSla.length}</ToggleGroupItem>
-                  <ToggleGroupItem value="all">All {freshness.length}</ToggleGroupItem>
-                </ToggleGroup>
-              ) : null
-            }
-          >
-            {freshness.length > 0 ? (
-              <CountStrip
-                items={[
-                  { label: "Expired", count: expired, tone: "danger" },
-                  { label: "Stale", count: stale, tone: "warning" },
-                  { label: "Never collected", count: neverCollected, tone: "warning" },
-                  {
-                    label: "Aging",
-                    count: freshness.filter((r) => r.freshness === "Aging").length,
-                    tone: "neutral",
-                  },
-                  {
-                    label: "Fresh",
-                    count: freshness.filter((r) => r.freshness === "Fresh").length,
-                    tone: "success",
-                  },
-                ]}
-              />
-            ) : null}
-            <Box paddingBlockStart="space.150">
-              <FreshnessTable rows={freshnessRows} />
-            </Box>
-            {freshness.length > 0 && freshnessRows.length === 0 ? (
-              <p className="pt-150 font-body-small text-subtle">
-                Every one of the {freshness.length} monitored requirements is inside its SLA as of{" "}
-                {conmonAsOfLabel}. Switch to "All {freshness.length}" to read the collection dates.
-              </p>
-            ) : null}
-          </Section>
-        ) : null}
+                  <AlertSummary alerts={alerts} />
+                  <Box paddingBlockStart="space.150">
+                    <AlertList
+                      alerts={alerts}
+                      action={alertAction}
+                      empty={{
+                        title: "Nothing has diverged",
+                        description: `No pin in ${program.id} has moved without a change record, no determination has been retracted, no evidence is past its SLA and no monitoring window has closed empty.`,
+                      }}
+                    />
+                  </Box>
+                </Section>
 
-        {tab === "Scan cadence" ? (
-          <Section
-            title="Scan windows"
-            description={`One row per tracked asset and scan format, comparing the newest reconciled scan result against the window that format is expected to produce one inside. A run that was ingested but never reconciled into the finding register does not close a window: a scan nobody processed is not a monitoring signal, and this table says so in the row rather than crediting the upload.`}
-            action={
-              cadence.length > 0 ? (
-                <span className="tabular-nums font-body-small text-subtle">
-                  {cadence.length - outOfCadence.length} in cadence · {outOfCadence.length} missed
-                </span>
-              ) : null
-            }
-          >
-            <Box paddingBlockStart="space.200">
-              <CadenceTable rows={cadence} />
-            </Box>
-          </Section>
-        ) : null}
-
-        {tab === "POA&M slippage" ? (
-          <Section
-            title="Commitments against the dates they have moved to"
-            description={`The slip is the distance between the original completion date the program committed to and the date currently scheduled, with the number of recorded revisions beside it. Both numbers come from the register item; neither is authored as a "slipped" flag. An item sitting past a date nobody ever revised is the worse story, not the better one, and it sorts to the top for that reason.`}
-            action={
-              slippage.length > 0 ? (
-                <span className="tabular-nums font-body-small text-subtle">
-                  {slipped.length} slipped · {overdueSections.length} overdue
-                </span>
-              ) : null
-            }
-          >
-            <Box paddingBlockStart="space.200">
-              <SlippageTable rows={slippage} />
-            </Box>
-          </Section>
-        ) : null}
-      </ShowPage>
-    </Shell>
+                <Section title="What feeds the score">
+                  <Grid
+                    className="pt-200"
+                    gap="space.150"
+                    templateColumns={{
+                      sm: "repeat(2, minmax(0, 1fr))",
+                      lg: "repeat(4, minmax(0, 1fr))",
+                    }}
+                  >
+                    <FeedTile
+                      label="Assessment schedule"
+                      value={overdue.length}
+                      unit={`of ${schedule.length} overdue`}
+                      alarming
+                      note={
+                        schedule.length === 0
+                          ? "No SLCM strategy is on file for this program, so there is no schedule to fall behind. That is a gap, not a clean result."
+                          : `${dueSoon.length} due inside their window, ${neverAssessed.length} never assessed, ${undetermined.length} filed with an Undetermined method.`
+                      }
+                      onOpen={() => go("Assessment schedule")}
+                    />
+                    <FeedTile
+                      label="Evidence freshness"
+                      value={expired + stale}
+                      // "Past SLA" on the Evidence freshness tab counts the rows
+                      // with no dated artifact at all as well, because a control
+                      // that has never been collected against is past its SLA under
+                      // any reading. This tile mirrors the drift factor instead —
+                      // `share(stale + expired, rows)` — so it has to name the
+                      // narrower set rather than reuse the phrase for a smaller
+                      // number. The 14 never-collected rows are in the note below.
+                      unit={`of ${freshness.length} expired or stale`}
+                      alarming
+                      note={
+                        freshness.length === 0
+                          ? "No requirement in this matrix maps to a monitored control, so no evidence SLA applies."
+                          : `${expired} expired, ${stale} stale, ${neverCollected} with no dated artifact attached at all.`
+                      }
+                      onOpen={() => go("Evidence freshness")}
+                    />
+                    <FeedTile
+                      label="Scan cadence"
+                      value={outOfCadence.length}
+                      unit={`of ${cadence.length} out of cadence`}
+                      alarming
+                      note={
+                        cadence.length === 0
+                          ? "No tracked asset here anchors a composition node, so no scan window can be measured."
+                          : "One row per asset and scan format, comparing the last reconciled result against the window that format is expected to produce one inside."
+                      }
+                      onOpen={() => go("Scan cadence")}
+                    />
+                    <FeedTile
+                      label="POA&M slippage"
+                      value={slipped.length}
+                      unit={`of ${slippage.length} slipped`}
+                      alarming
+                      note={
+                        slippage.length === 0
+                          ? "This program carries no POA&M item with a scheduled completion date."
+                          : `${overdueSections.length} section${overdueSections.length === 1 ? " is" : "s are"} already past the date committed to the AO. The slip is measured against the original commitment, not the latest revision.`
+                      }
+                      onOpen={() => go("POA&M slippage")}
+                    />
+                  </Grid>
+                </Section>
+              </>
+            ) : null}
+            {tab === "Assessment schedule" ? (
+              <Section
+                title="The SLCM schedule"
+                description={`The continuous monitoring strategy is the one authored table in this module — frequency, method, responsible entity and last assessed date per control, exactly as an ISSM files it in eMASS. Every other column is computed: the next due date is the last assessed date plus the frequency's period, the days-out figure is the distance from ${conmonAsOfLabel} to that date, and the status is read off that number against a window sized to the control's own cycle. A missed check is never rewritten as "Not assessed" — the schedule status and the 800-53A determination are separate axes and neither collapses into the other.`}
+                action={
+                  schedule.length > 0 ? (
+                    <ToggleGroup
+                      aria-label="Assessment schedule scope"
+                      size="sm"
+                      value={[scheduleScope]}
+                      onValueChange={([next]) => {
+                        if (next !== undefined) setScheduleScope(next);
+                      }}
+                    >
+                      <ToggleGroupItem value="needs">
+                        Needs action {scheduleActionable.length}
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="all">All {schedule.length}</ToggleGroupItem>
+                    </ToggleGroup>
+                  ) : null
+                }
+              >
+                {schedule.length > 0 ? (
+                  <CountStrip
+                    items={[
+                      { label: "Overdue", count: overdue.length, tone: "danger" },
+                      { label: "Never assessed", count: neverAssessed.length, tone: "warning" },
+                      { label: "Due", count: dueSoon.length, tone: "neutral" },
+                      {
+                        label: "Current",
+                        count: schedule.length - scheduleActionable.length,
+                        tone: "success",
+                      },
+                      {
+                        label: "Undetermined method",
+                        count: undetermined.length,
+                        tone: "warning",
+                      },
+                    ]}
+                  />
+                ) : null}
+                <Box paddingBlockStart="space.150">
+                  <ScheduleTable rows={scheduleRows} />
+                </Box>
+                {schedule.length > 0 && scheduleRows.length === 0 ? (
+                  <p className="pt-150 font-body-small text-subtle">
+                    Every one of the {schedule.length} controls in the strategy is inside its window
+                    as of {conmonAsOfLabel}. Switch to "All {schedule.length}" to read the schedule
+                    itself.
+                  </p>
+                ) : null}
+              </Section>
+            ) : null}
+            {tab === "Evidence freshness" ? (
+              <Section
+                title="Evidence against its SLA"
+                description={`Every monitored requirement, with the age of the newest artifact attached to it measured against the SLA its control's own monitoring frequency implies. A daily control with five-day-old evidence is expired on exactly the same rule that leaves an annual control's seven-month-old policy attestation merely aging — the SLA is the interval the program committed to, not a flat number applied to everything.`}
+                action={
+                  freshness.length > 0 ? (
+                    <ToggleGroup
+                      aria-label="Evidence freshness scope"
+                      size="sm"
+                      value={[freshnessScope]}
+                      onValueChange={([next]) => {
+                        if (next !== undefined) setFreshnessScope(next);
+                      }}
+                    >
+                      <ToggleGroupItem value="needs">Past SLA {pastSla.length}</ToggleGroupItem>
+                      <ToggleGroupItem value="all">All {freshness.length}</ToggleGroupItem>
+                    </ToggleGroup>
+                  ) : null
+                }
+              >
+                {freshness.length > 0 ? (
+                  <CountStrip
+                    items={[
+                      { label: "Expired", count: expired, tone: "danger" },
+                      { label: "Stale", count: stale, tone: "warning" },
+                      { label: "Never collected", count: neverCollected, tone: "warning" },
+                      {
+                        label: "Aging",
+                        count: freshness.filter((r) => r.freshness === "Aging").length,
+                        tone: "neutral",
+                      },
+                      {
+                        label: "Fresh",
+                        count: freshness.filter((r) => r.freshness === "Fresh").length,
+                        tone: "success",
+                      },
+                    ]}
+                  />
+                ) : null}
+                <Box paddingBlockStart="space.150">
+                  <FreshnessTable rows={freshnessRows} />
+                </Box>
+                {freshness.length > 0 && freshnessRows.length === 0 ? (
+                  <p className="pt-150 font-body-small text-subtle">
+                    Every one of the {freshness.length} monitored requirements is inside its SLA as
+                    of {conmonAsOfLabel}. Switch to "All {freshness.length}" to read the collection
+                    dates.
+                  </p>
+                ) : null}
+              </Section>
+            ) : null}
+            {tab === "Scan cadence" ? (
+              <Section
+                title="Scan windows"
+                description={`One row per tracked asset and scan format, comparing the newest reconciled scan result against the window that format is expected to produce one inside. A run that was ingested but never reconciled into the finding register does not close a window: a scan nobody processed is not a monitoring signal, and this table says so in the row rather than crediting the upload.`}
+                action={
+                  cadence.length > 0 ? (
+                    <span className="tabular-nums font-body-small text-subtle">
+                      {cadence.length - outOfCadence.length} in cadence · {outOfCadence.length}{" "}
+                      missed
+                    </span>
+                  ) : null
+                }
+              >
+                <Box paddingBlockStart="space.200">
+                  <CadenceTable rows={cadence} />
+                </Box>
+              </Section>
+            ) : null}
+            {tab === "POA&M slippage" ? (
+              <Section
+                title="Commitments against the dates they have moved to"
+                description={`The slip is the distance between the original completion date the program committed to and the date currently scheduled, with the number of recorded revisions beside it. Both numbers come from the register item; neither is authored as a "slipped" flag. An item sitting past a date nobody ever revised is the worse story, not the better one, and it sorts to the top for that reason.`}
+                action={
+                  slippage.length > 0 ? (
+                    <span className="tabular-nums font-body-small text-subtle">
+                      {slipped.length} slipped · {overdueSections.length} overdue
+                    </span>
+                  ) : null
+                }
+              >
+                <Box paddingBlockStart="space.200">
+                  <SlippageTable rows={slippage} />
+                </Box>
+              </Section>
+            ) : null}
+          </Stack>
+        </TabsContent>
+      </Tabs>
+    </Stack>
   );
 }
 

@@ -1,41 +1,4 @@
 import {
-  FieldLabel,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Badge,
-  Attachment,
-  Empty,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-  EmptyDescription,
-  Block,
-  Box,
-  Button,
-  DataTable,
-  defineColumns,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Fact,
-  Field,
-  Inline,
-  Input,
-  PreviewSheet,
-  Stack,
-  Table,
-  Text,
-  Textarea,
-  TextLink,
-  toast,
-  useDataTable,
-} from "@ledger/design-system";
-import {
   currentSession,
   linkEvidence,
   unlinkEvidence,
@@ -66,9 +29,46 @@ import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope"
 import { requirementsForProgramElement } from "@/lib/requirement-context";
 import { requirementsForProgram } from "@/lib/requirements";
 import { controlSetFor, scopeById, scopesForProgram } from "@/lib/scopes";
+import {
+  Attachment,
+  Badge,
+  Box,
+  Button,
+  DataTable,
+  defineColumns,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  Fact,
+  Field,
+  FieldLabel,
+  Inline,
+  Input,
+  PreviewSheet,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Stack,
+  Table,
+  Text,
+  Textarea,
+  TextLink,
+  toast,
+  useDataTable,
+} from "@ledger/design-system";
 import { Link } from "@tanstack/react-router";
-import { useId, useMemo, useState } from "react";
 import { FileText } from "lucide-react";
+import { useId, useMemo, useState } from "react";
 
 const reviewTone = (review: EvidenceReview) =>
   review === "Accepted"
@@ -599,7 +599,7 @@ function EvidenceRecordPreview({
       }
     >
       <Stack space="space.200">
-        <Block
+        <Section
           title="Supporting records"
           count={supports.length}
           action={
@@ -801,8 +801,8 @@ function EvidenceRecordPreview({
               </Inline>
             </Stack>
           ) : null}
-        </Block>
-        <Block title="Artifact">
+        </Section>
+        <Section title="Artifact">
           <Stack space="space.100">
             {artifact.provenance ? (
               <Text as="p" size="small">
@@ -820,8 +820,8 @@ function EvidenceRecordPreview({
               </Fact>
             ) : null}
           </Stack>
-        </Block>
-        <Block
+        </Section>
+        <Section
           title="Evidence review"
           action={
             <Button
@@ -924,7 +924,7 @@ function EvidenceRecordPreview({
               </Inline>
             </Stack>
           ) : null}
-        </Block>
+        </Section>
         {error ? (
           <p role="alert" className="font-body-small text-danger">
             {error}

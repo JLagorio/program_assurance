@@ -13,21 +13,21 @@ A column with one gap. Children sit top to bottom with one space token between t
 
 ## Anatomy
 
-| Part      | What it is                                                                                                       |
-| --------- | ---------------------------------------------------------------------------------------------------------------- |
-| Container | A flex column: a `div`, or the container, landmark or list element `as` names.                                   |
-| Space     | `space`, one token between every pair of children. No first or last exception: a Stack has no outer space.       |
+| Part      | What it is                                                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Container | A flex column: a `div`, or the container, landmark or list element `as` names.                                                  |
+| Space     | `space`, one token between every pair of children. No first or last exception: a Stack has no outer space.                      |
 | Alignment | `alignInline`, where the children sit across the column; `alignBlock`, where they sit along it when it is taller than they are. |
-| Spread    | `spread="space-between"`, the free block space divided between the children: a footer pinned to a panel's bottom. |
-| Grow      | `grow="fill"`, the Stack takes the block space its parent offers; `hug`, the default, it is as tall as its children. |
+| Spread    | `spread="space-between"`, the free block space divided between the children: a footer pinned to a panel's bottom.               |
+| Grow      | `grow="fill"`, the Stack takes the block space its parent offers; `hug`, the default, it is as tall as its children.            |
 
 ## Variants
 
-| Stack        | Use                                                                                                                 |
-| ------------ | ------------------------------------------------------------------------------------------------------------------- |
-| Column       | Rows of a form, sections of a rail, paragraphs of a body: one token between each.                                   |
-| Spread column | A panel's content over its footer: `spread` with the Stack filling the panel's height.                             |
-| List         | `as="ul"` or `"ol"` with `li` children, when the rows are a list: steps, linked records, a menu of links.            |
+| Stack         | Use                                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| Column        | Rows of a form, sections of a rail, paragraphs of a body: one token between each.                         |
+| Spread column | A panel's content over its footer: `spread` with the Stack filling the panel's height.                    |
+| List          | `as="ul"` or `"ol"` with `li` children, when the rows are a list: steps, linked records, a menu of links. |
 
 Not built, and why: a horizontal orientation (a row is an Inline, which has what a row needs: wrapping, a separator, baseline alignment); dividers between children (a Separator is a child, and rows that want hairlines are an Item.Group); a responsive space (one token at every width; the layout that changes at a breakpoint is a Grid); a `space` per child (a different distance is a different Stack, or a Section).
 
@@ -35,17 +35,17 @@ Not built, and why: a horizontal orientation (a row is an Inline, which has what
 
 One space token between every child:
 
-| Token       | px  | Where                                                              |
-| ----------- | --- | ------------------------------------------------------------------ |
-| `space.025` | 2   | A label over its control's helper line.                            |
-| `space.050` | 4   | A title over its description, lines of one thing.                  |
-| `space.075` | 6   | Rows of facts in a rail.                                           |
-| `space.100` | 8   | Rows of a compact list, chips' rows.                               |
-| `space.150` | 12  | Fields of a dense form, cards in a rail.                           |
-| `space.200` | 16  | Fields of a form, cards in a body.                                 |
-| `space.300` | 24  | Sections of a rail, a header over its body.                        |
-| `space.400` | 32  | Sections of a page body.                                           |
-| `space.600` | 48  | Page sections with their own headings.                             |
+| Token       | px  | Where                                             |
+| ----------- | --- | ------------------------------------------------- |
+| `space.025` | 2   | A label over its control's helper line.           |
+| `space.050` | 4   | A title over its description, lines of one thing. |
+| `space.075` | 6   | Rows of facts in a rail.                          |
+| `space.100` | 8   | Rows of a compact list, chips' rows.              |
+| `space.150` | 12  | Fields of a dense form, cards in a rail.          |
+| `space.200` | 16  | Fields of a form, cards in a body.                |
+| `space.300` | 24  | Sections of a rail, a header over its body.       |
+| `space.400` | 32  | Sections of a page body.                          |
+| `space.600` | 48  | Page sections with their own headings.            |
 
 ## Modifiers
 
@@ -66,11 +66,11 @@ One space token between every child:
 
 ## Style
 
-| Element   | Token                                              |
-| --------- | -------------------------------------------------- |
-| Space     | `space.*`, as `gap-*`                              |
+| Element   | Token                                                                  |
+| --------- | ---------------------------------------------------------------------- |
+| Space     | `space.*`, as `gap-*`                                                  |
 | Alignment | `items-*` for `alignInline`, `justify-*` for `alignBlock` and `spread` |
-| Grow      | `flex-1` for `fill`                                |
+| Grow      | `flex-1` for `fill`                                                    |
 
 ## Accessibility
 
@@ -94,7 +94,7 @@ One space token between every child:
 - [Inline](?path=/docs/primitives-inline--docs): the row.
 - [Box](?path=/docs/primitives-box--docs): the inset around a Stack, which the Stack never sets.
 - [Flex](?path=/docs/primitives-flex--docs): the column a Stack cannot say.
-- [Section](?path=/docs/patterns-section--docs): a Stack's child with a heading of its own.
+- [Section](?path=/docs/layout-section--docs): a Stack's child with a heading of its own.
 - [Item](?path=/docs/components-item--docs): rows with hairlines, which are not a Stack.
 - [Space](?path=/docs/tokens-space--docs): the scale.
 

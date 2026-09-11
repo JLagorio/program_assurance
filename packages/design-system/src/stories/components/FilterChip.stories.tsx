@@ -2,18 +2,18 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
+import { Toolbar } from "../..";
 import {
   Button,
   Checkbox,
   Count,
   FilterChip,
   Popover,
-  PopoverTrigger,
   PopoverContent,
+  PopoverTrigger,
   ToggleGroup,
   ToggleGroupItem,
 } from "../../components";
-import { Toolbar } from "../../patterns";
 import { Inline, Stack } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -87,7 +87,9 @@ export const FilterChipMatrix: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const disabled = canvas.getAllByRole("button").filter((button) => button.hasAttribute("disabled"));
+    const disabled = canvas
+      .getAllByRole("button")
+      .filter((button) => button.hasAttribute("disabled"));
     await expect(disabled).toHaveLength(3);
     for (const button of disabled) {
       await expect(button).toBeDisabled();
@@ -136,7 +138,12 @@ function ToolbarDemo() {
           ) : null
         }
       >
-        <FilterChip ref={toolbarRefs.toggle} label="Gaps" isActive={gaps} onClick={() => setGaps((v) => !v)} />
+        <FilterChip
+          ref={toolbarRefs.toggle}
+          label="Gaps"
+          isActive={gaps}
+          onClick={() => setGaps((v) => !v)}
+        />
         <FilterChip
           label="Owner"
           value={owner ?? undefined}

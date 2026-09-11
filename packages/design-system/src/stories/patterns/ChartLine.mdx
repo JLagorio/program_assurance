@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../patterns";
+import { Chart } from "../..";
 import * as Stories from "./ChartLine.stories";
 
 <Meta of={Stories} />
@@ -13,32 +13,32 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 
 ## Anatomy
 
-| Part      | What it is                                                                                                                                   |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Line      | 2px in the series' tone, round caps and joins. `curve="smooth"` is a monotone curve through the same points.                                 |
-| Marker    | 8px across, ringed 2px in the surface so it reads over the line. On hover always; on every point with `dots`.                                |
-| End label | The series' last value after its line, `font.body.xsmall` in `color.text.subtle`; labels that would collide are pushed apart by a line's height. |
-| Gap       | A missing value breaks the line. `connectNulls` joins across it, for a gap that is not data.                                                 |
-| Band      | A 10% wash between two values (the tolerable range, labelled at its top edge) or between two categories or dates (an assessment window, labelled above its middle). |
-| Reference | A dashed hairline at a value (a target, a limit) or at a category (a milestone), labelled at the end or above the plot.                       |
+| Part      | What it is                                                                                                                                                                                                                                         |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Line      | 2px in the series' tone, round caps and joins. `curve="smooth"` is a monotone curve through the same points.                                                                                                                                       |
+| Marker    | 8px across, ringed 2px in the surface so it reads over the line. On hover always; on every point with `dots`.                                                                                                                                      |
+| End label | The series' last value after its line, `font.body.xsmall` in `color.text.subtle`; labels that would collide are pushed apart by a line's height.                                                                                                   |
+| Gap       | A missing value breaks the line. `connectNulls` joins across it, for a gap that is not data.                                                                                                                                                       |
+| Band      | A 10% wash between two values (the tolerable range, labelled at its top edge) or between two categories or dates (an assessment window, labelled above its middle).                                                                                |
+| Reference | A dashed hairline at a value (a target, a limit) or at a category (a milestone), labelled at the end or above the plot.                                                                                                                            |
 | Axes      | The category axis with a hairline, or a time axis whose ticks are hours, days, months or years by the span; the value axis from zero, cropped to the data with `baseline="auto"`, or pinned with `domain`. A value below zero draws the zero line. |
-| Tooltip   | The category, every series at it keyed by a stroke, and with `delta` each change from the point before. The cursor is a `color.border.bold` hairline across the plot. |
-| Chosen    | The chosen category ringed on every line, in each series' tone.                                                                              |
+| Tooltip   | The category, every series at it keyed by a stroke, and with `delta` each change from the point before. The cursor is a `color.border.bold` hairline across the plot.                                                                              |
+| Chosen    | The chosen category ringed on every line, in each series' tone.                                                                                                                                                                                    |
 
 ## Variants
 
-| Variant           | Use                                                                                                                     |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Plain             | Two or three series, each a tone. Findings open and closed.                                                             |
-| `curve="smooth"`  | A few points that are readings of one continuous thing. Never for counts that jump.                                     |
-| `dots`            | A marker on every point, when each point is an event and there are few of them.                                         |
-| `labels="end"`    | The last value after each line: the number the reader takes away. The default for a trend in a Frame.                   |
-| `baseline="auto"` | The value axis cropped to the data: a cumulative in the hundreds where the slope is the story. The description says so. |
-| `bands`, `reference` | A burndown: the tolerable range as a band, the limit in `danger`, a milestone on the category axis.                  |
-| Emphasis          | One series in `brand`, the rest in `neutral`: the honest answer to "make this clearer".                                 |
-| `scale="time"`    | `x` holds dates: the points are spaced by time, the ticks pick their unit, and a band or a reference takes a date.       |
-| `domain`          | The value axis pinned, so charts side by side share a scale: small multiples, with `syncId` for one hover.              |
-| `delta`           | Each series' change from the point before, in the tooltip and the card.                                                 |
+| Variant              | Use                                                                                                                     |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Plain                | Two or three series, each a tone. Findings open and closed.                                                             |
+| `curve="smooth"`     | A few points that are readings of one continuous thing. Never for counts that jump.                                     |
+| `dots`               | A marker on every point, when each point is an event and there are few of them.                                         |
+| `labels="end"`       | The last value after each line: the number the reader takes away. The default for a trend in a Frame.                   |
+| `baseline="auto"`    | The value axis cropped to the data: a cumulative in the hundreds where the slope is the story. The description says so. |
+| `bands`, `reference` | A burndown: the tolerable range as a band, the limit in `danger`, a milestone on the category axis.                     |
+| Emphasis             | One series in `brand`, the rest in `neutral`: the honest answer to "make this clearer".                                 |
+| `scale="time"`       | `x` holds dates: the points are spaced by time, the ticks pick their unit, and a band or a reference takes a date.      |
+| `domain`             | The value axis pinned, so charts side by side share a scale: small multiples, with `syncId` for one hover.              |
+| `delta`              | Each series' change from the point before, in the tooltip and the card.                                                 |
 
 <Canvas of={Stories.Lines} />
 <Canvas of={Stories.Smooth} />
@@ -54,13 +54,13 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 
 ## States
 
-| State    | What changes                                                                                                                                                             |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Hover    | A hairline across the plot at the category, a marker on every line there, the tooltip.                                                                                   |
-| Isolated | A series hidden from the Frame's legend leaves the plot; the axis keeps its domain.                                                                                      |
+| State    | What changes                                                                                                                                                                                                                             |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | A hairline across the plot at the category, a marker on every line there, the tooltip.                                                                                                                                                   |
+| Isolated | A series hidden from the Frame's legend leaves the plot; the axis keeps its domain.                                                                                                                                                      |
 | Chosen   | With `onSelect` or `details`: a click anywhere in a category's column, or Enter on the focused plot, chooses it. Every series is ringed there and the card opens on the point. The selection carries no series: a point is the category. |
-| Loading  | A skeleton line on a hairline, pulsing, at the plot's height.                                                                                                             |
-| Entering | The lines draw in over `motion.duration.slow`; a change of data moves them.                                                                                              |
+| Loading  | A skeleton line on a hairline, pulsing, at the plot's height.                                                                                                                                                                            |
+| Entering | The lines draw in over `motion.duration.slow`; a change of data moves them.                                                                                                                                                              |
 
 <Canvas of={Stories.Details} />
 
@@ -84,19 +84,19 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 
 ## Style
 
-| Element   | Token                                                                                  |
-| --------- | -------------------------------------------------------------------------------------- |
-| Line      | `color.chart.<tone>` · 2px · round caps and joins                                      |
-| Marker    | 8px · 2px `elevation.surface` ring                                                     |
-| End label | `font.body.xsmall` · `color.text.subtle` · tabular · 8px after the line               |
-| Band      | `color.chart.<tone>` at 10% · label `font.body.xsmall` in `color.text.subtlest`        |
-| Reference | `color.chart.<tone>` · 1px dashed 4 3                                                  |
-| Cursor    | `color.border.bold` · 1px across the plot                                              |
-| Zero line | `color.border.bold` · 1px                                                              |
-| Delta     | `font.body.small` · `color.text.subtlest` · tabular · signed                           |
-| Chosen    | The series' tone: an 8px marker in a 16px halo at 20%                                  |
-| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                        |
-| Skeleton  | `color.skeleton` · 2px path on a `color.border` hairline                              |
+| Element   | Token                                                                           |
+| --------- | ------------------------------------------------------------------------------- |
+| Line      | `color.chart.<tone>` · 2px · round caps and joins                               |
+| Marker    | 8px · 2px `elevation.surface` ring                                              |
+| End label | `font.body.xsmall` · `color.text.subtle` · tabular · 8px after the line         |
+| Band      | `color.chart.<tone>` at 10% · label `font.body.xsmall` in `color.text.subtlest` |
+| Reference | `color.chart.<tone>` · 1px dashed 4 3                                           |
+| Cursor    | `color.border.bold` · 1px across the plot                                       |
+| Zero line | `color.border.bold` · 1px                                                       |
+| Delta     | `font.body.small` · `color.text.subtlest` · tabular · signed                    |
+| Chosen    | The series' tone: an 8px marker in a 16px halo at 20%                           |
+| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                 |
+| Skeleton  | `color.skeleton` · 2px path on a `color.border` hairline                        |
 
 ## Accessibility
 

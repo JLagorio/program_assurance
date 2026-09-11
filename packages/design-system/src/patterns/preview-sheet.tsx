@@ -1,5 +1,5 @@
 import { ChevronLeft } from "lucide-react";
-import { cloneElement, type ReactElement, type ReactNode } from "react";
+import { cloneElement, useRef, type ReactElement, type ReactNode } from "react";
 import { Button, Fact } from "../components";
 import {
   Sheet,
@@ -8,28 +8,21 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  type SheetContentProps,
 } from "../components/sheet";
-
-import { Id } from "../components/id";
-
 import { TextLink } from "../components/text-link";
-import { Eyebrow } from "../components/typography";
+import { PreviewHeader } from "./preview-header";
 
 /**
- * The peek panel: a Sheet that previews one row and leaves the list in place. It is a preview, never the
- * record: the footer's first item always opens the full record. Its header is the compact form of a
- * RecordHeader (id, title, meta, at most three facts, one status), so a record reads the same in the panel
- * and on its page. A preview opened from inside a preview is the next frame of the same sheet; `onBack`
- * returns to the one before, and the caller keeps the stack (in the URL, so the browser's back is the same
- * thing). The rail (PreviewRail) previews a row beside an IndexPage table that leaves room; the sheet
- * previews a row over a full-width table (a tree, a board) and whenever the preview carries actions.
+ * Modal record details. Base UI owns focus containment, Escape and focus return.
+ * Callers own related-record navigation and any work performed in the sheet.
  */
 export type PreviewSheetProps = {
   open: boolean;
   onClose: () => void;
   /** Back to the previous frame of the stack. */
   onBack?: (() => void) | undefined;
-  /** The record's id, beside the Preview eyebrow. */
+  /** The record's id, beside its status. */
   id: ReactNode;
   /** The record's name, the sheet's title. */
   title: ReactNode;
@@ -47,7 +40,10 @@ export type PreviewSheetProps = {
   actions?: ReactNode;
   /** Pixels, 720 by default: about half the screen. */
   width?: number | undefined;
-  /** The body: sections of facts and small tables, the record's detail at the peek's depth. */
+  /** Native focus overrides for workflows whose opener disappears or whose first task is an input. */
+  initialFocus?: SheetContentProps["initialFocus"];
+  finalFocus?: SheetContentProps["finalFocus"];
+  /** Focused record content, editable properties or actions. */
   children: ReactNode;
 };
 
@@ -64,8 +60,11 @@ export function PreviewSheet({
   links,
   actions,
   width = 720,
+  initialFocus,
+  finalFocus,
   children,
 }: PreviewSheetProps) {
+  const titleRef = useRef<HTMLHeadingElement>(null);
   // TextLink's render element owns children, even when explicitly undefined.
   // Fill the default before composition so an empty router link stays named.
   const open_ = openTo.props.children
@@ -80,7 +79,12 @@ export function PreviewSheet({
         }
       }}
     >
-      <SheetContent side="end" style={{ maxWidth: width }}>
+      <SheetContent
+        side="end"
+        style={{ maxWidth: width }}
+        initialFocus={initialFocus ?? titleRef}
+        finalFocus={finalFocus}
+      >
         <SheetHeader>
           <div className="flex items-start gap-100">
             {onBack && (
@@ -94,17 +98,18 @@ export function PreviewSheet({
                 <ChevronLeft aria-hidden />
               </Button>
             )}
-            <div className="flex min-w-0 flex-1 flex-col gap-025">
-              <div className="flex items-center gap-100 pb-025">
-                <>
-                  <Eyebrow>Preview</Eyebrow>
-                  <Id className="font-body-small text-subtle">{id}</Id>
-                  {status}
-                </>
-              </div>
-              <SheetTitle>{title}</SheetTitle>
-              <SheetDescription>{subtitle}</SheetDescription>
-              <Fact.Group className="pt-075">{facts}</Fact.Group>
+            <div className="min-w-0 flex-1">
+              <PreviewHeader
+                id={id}
+                status={status}
+                title={
+                  <SheetTitle ref={titleRef} tabIndex={-1} className="break-words outline-none">
+                    {title}
+                  </SheetTitle>
+                }
+                subtitle={subtitle ? <SheetDescription>{subtitle}</SheetDescription> : null}
+              />
+              {facts ? <Fact.Group className="pt-100">{facts}</Fact.Group> : null}
             </div>
           </div>
         </SheetHeader>
@@ -112,12 +117,14 @@ export function PreviewSheet({
           {children}
         </div>
         <SheetFooter>
-          <div className="flex w-full items-center justify-between gap-150">
+          <div className="flex w-full flex-wrap items-center justify-between gap-150">
             <div className="flex min-w-0 flex-wrap items-center gap-200 font-body">
               <TextLink weight="medium" render={open_} />
               {links}
             </div>
-            {actions ? <div className="flex shrink-0 items-center gap-100">{actions}</div> : null}
+            {actions ? (
+              <div className="flex max-w-full flex-wrap items-center gap-100">{actions}</div>
+            ) : null}
           </div>
         </SheetFooter>
       </SheetContent>

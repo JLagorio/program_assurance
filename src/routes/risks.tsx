@@ -1,11 +1,11 @@
 import { CreateRiskDialog } from "@/components/app/risk-create-dialog";
 import { UnavailableAction } from "@/components/app/unavailable-action";
 import { useRisksVersion } from "@/lib/risk-store";
+import { Inline, PageHeader, Stack } from "@ledger/design-system";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Download, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Shell } from "@/components/app/shell";
 import { type Risk, risks, riskStatusTone } from "@/lib/grc-data";
 import { useTableSearch, validateTableSearch } from "@/lib/table-state";
 import {
@@ -14,9 +14,6 @@ import {
   DataTable,
   defineColumns,
   Glance,
-  IndexPage,
-  Inline,
-  PageHeader,
   type Preset,
   Progress,
   TextLink,
@@ -59,11 +56,7 @@ const presets: Preset[] = ["All", "Active", "Mitigating", "Accepted", "Closed"].
 function RisksLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   if (pathname !== "/risks") return <Outlet />;
-  return (
-    <Shell>
-      <RiskList />
-    </Shell>
-  );
+  return <RiskList />;
 }
 
 function RiskPeek({ risk: r }: { risk: Risk }) {
@@ -160,45 +153,44 @@ function RiskList() {
   const shown = table.getRowCount();
 
   return (
-    <IndexPage
-      header={
-        <PageHeader
-          title="Risk register"
-          actions={
-            <>
-              <Button
-                variant="secondary"
-                isLoading={exporting}
-                iconBefore={<Download />}
-                onClick={() => {
-                  setExporting(true);
-                  window.setTimeout(() => {
-                    setExporting(false);
-                    const csv = toCsv(table);
-                    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "risk-register.csv";
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    toast.add({
-                      title: "Risk register exported",
-                      type: "success",
-                      description: `${shown} risks · the columns shown, in the sort chosen`,
-                    });
-                  }, 300);
-                }}
-              >
-                Export
-              </Button>
-              <Button variant="primary" onClick={() => setCreating(true)} iconBefore={<Plus />}>
-                New risk
-              </Button>
-            </>
-          }
-        />
-      }
-    >
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <div className="min-w-0">
+          <PageHeader.Title>{"Risk register"}</PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
+          <>
+            <Button
+              variant="secondary"
+              isLoading={exporting}
+              iconBefore={<Download />}
+              onClick={() => {
+                setExporting(true);
+                window.setTimeout(() => {
+                  setExporting(false);
+                  const csv = toCsv(table);
+                  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "risk-register.csv";
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.add({
+                    title: "Risk register exported",
+                    type: "success",
+                    description: `${shown} risks · the columns shown, in the sort chosen`,
+                  });
+                }, 300);
+              }}
+            >
+              Export
+            </Button>
+            <Button variant="primary" onClick={() => setCreating(true)} iconBefore={<Plus />}>
+              New risk
+            </Button>
+          </>
+        </PageHeader.Actions>
+      </PageHeader>
       <DataTable.Presets table={table} presets={presets} aria-label="Status" />
       <Inline space="space.100" alignBlock="center" shouldWrap>
         <DataTable.Filter table={table} column="framework" />
@@ -209,7 +201,6 @@ function RiskList() {
           <DataTable.Columns table={table} />
         </Inline>
       </Inline>
-
       <DataTable.SelectionBar
         table={table}
         actions={
@@ -231,7 +222,6 @@ function RiskList() {
           </>
         }
       />
-
       <DataTable
         table={table}
         empty={{
@@ -239,8 +229,7 @@ function RiskList() {
           description: "Change the tab or the treatment filter.",
         }}
       />
-
       {creating ? <CreateRiskDialog open onClose={() => setCreating(false)} /> : null}
-    </IndexPage>
+    </Stack>
   );
 }

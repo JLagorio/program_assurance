@@ -1,34 +1,4 @@
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Badge,
-  Box,
-  Empty,
-  Inline,
-  Panel,
-  RecordHeader,
-  Section,
-  Shell as DsShell,
-  ShowPage,
-  TabsList,
-  TabsTrigger,
-  Count,
-  TextLink,
-  Toolbar,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Shell } from "@/components/app/shell";
-import {
   DedupRail,
   DedupTable,
   FormatChip,
@@ -50,6 +20,40 @@ import {
   scansForProgram,
   sourceAuthority,
 } from "@/lib/ingestion";
+import {
+  Badge,
+  Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Id,
+  Inline,
+  PageHeader,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Shell,
+  Stack,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+  Toolbar,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 
 const ingestionTabs = ["Scans", "Normalization", "Duplicates", "Scan over scan"] as const;
 type IngestionTab = (typeof ingestionTabs)[number];
@@ -251,195 +255,207 @@ function ProgramIngestion() {
     ) : null;
 
   return (
-    <Shell>
-      <>
-        <ShowPage
-          tab={tab}
-          onTabChange={(value) => go(value as typeof tab)}
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-                    >
-                      {program.name}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              }
-              id={program.id}
-              title={`${program.name} — automated ingestion`}
-              meta={`${scans.length} delivered runs · ${current.length} current · ${new Set(scans.map((s) => s.format)).size} formats`}
-              actions={
-                <>
-                  <Badge variant="secondary" tone={heldAcrossProgram > 0 ? "warning" : "success"}>
-                    {heldAcrossProgram} held for analyst
-                  </Badge>
-                  <TextLink
-                    size="small"
-                    render={
-                      <Link
-                        to="/programs/$programId/composition"
-                        params={{ programId: program.id }}
-                      />
-                    }
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
                   >
-                    Composition
-                  </TextLink>
-                </>
-              }
-            />
-          }
-          tabs={
-            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-              {ingestionTabs.map((key) => (
-                <TabsTrigger key={key} value={key}>
-                  {key}
-                  {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          }
-        >
-          {!scan ? (
-            <Section title="Automated ingestion">
-              <Box paddingBlockStart="space.200">
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyTitle>{"Nothing ingested"}</EmptyTitle>
-                    <EmptyDescription>{`${program.id} has no delivered checklists, SCAP results, ACAS exports, SAST reports, SBOMs or firmware reports. Ingestion begins when a run is filed against a component in the composition.`}</EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              </Box>
-            </Section>
-          ) : null}
-
-          {scan && tab === "Scans" ? (
-            <Section
-              title="Delivered runs"
-              description={`${scans.length} runs across ${new Set(scans.map((s) => s.format)).size} formats. ${current.length} are the current picture; the other ${scans.length - current.length} have been superseded by a later run against the same target and format. Select a run to load it into the rail.`}
-            >
-              <ScanTable
-                scans={scans}
-                selected={scan.id}
-                onSelect={selectScan}
-                supersededBy={supersededBy}
-                nodeName={nodeName}
-              />
-            </Section>
-          ) : null}
-
-          {scan && batch && tab === "Normalization" ? (
+                    {program.name}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{program.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{`${program.name} — automated ingestion`}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >{`${scans.length} delivered runs · ${current.length} current · ${new Set(scans.map((s) => s.format)).size} formats`}</Inline>
+          </div>
+          <PageHeader.Actions>
             <>
-              {picker}
-              <Section
-                title="Batch"
-                description={`What ${scan.tool} delivered, and what the pipeline made of it. A clean row still normalizes — it is evidence of coverage — but it never becomes a proposed finding.`}
+              <Badge variant="secondary" tone={heldAcrossProgram > 0 ? "warning" : "success"}>
+                {heldAcrossProgram} held for analyst
+              </Badge>
+              <TextLink
+                size="small"
+                render={
+                  <Link to="/programs/$programId/composition" params={{ programId: program.id }} />
+                }
               >
-                <IngestSummary batch={batch} scan={scan} />
-              </Section>
-
-              <Section title="Native record against normalized record">
-                <Box paddingBlockStart="space.200">
-                  <NormalizationView
-                    rows={rows}
-                    selected={resultId}
-                    onSelect={setResultId}
-                    scan={scan}
+                Composition
+              </TextLink>
+            </>
+          </PageHeader.Actions>
+        </PageHeader>
+        <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {ingestionTabs.map((key) => (
+              <TabsTrigger key={key} value={key}>
+                {key}
+                {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {!scan ? (
+                <Section title="Automated ingestion">
+                  <Box paddingBlockStart="space.200">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"Nothing ingested"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} has no delivered checklists, SCAP results, ACAS exports, SAST reports, SBOMs or firmware reports. Ingestion begins when a run is filed against a component in the composition.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  </Box>
+                </Section>
+              ) : null}
+              {scan && tab === "Scans" ? (
+                <Section
+                  title="Delivered runs"
+                  description={`${scans.length} runs across ${new Set(scans.map((s) => s.format)).size} formats. ${current.length} are the current picture; the other ${scans.length - current.length} have been superseded by a later run against the same target and format. Select a run to load it into the rail.`}
+                >
+                  <ScanTable
+                    scans={scans}
+                    selected={scan.id}
+                    onSelect={selectScan}
+                    supersededBy={supersededBy}
                     nodeName={nodeName}
                   />
-                </Box>
-              </Section>
-            </>
-          ) : null}
+                </Section>
+              ) : null}
+              {scan && batch && tab === "Normalization" ? (
+                <>
+                  {picker}
+                  <Section
+                    title="Batch"
+                    description={`What ${scan.tool} delivered, and what the pipeline made of it. A clean row still normalizes — it is evidence of coverage — but it never becomes a proposed finding.`}
+                  >
+                    <IngestSummary batch={batch} scan={scan} />
+                  </Section>
 
-          {scan && batch && tab === "Duplicates" ? (
-            <>
-              {picker}
-              <Section
-                title="Deduplication"
-                description={`${scan.id} is reconciled against the program's ${selectedIsCurrent ? `other ${otherCurrent}` : otherCurrent} current runs, not against itself alone — a condition reported by a checklist and by a network scanner arrives as two runs, not as two weaknesses.${selectedIsCurrent ? "" : ` ${scan.id} is not one of them: it has been superseded by ${supersededBy.get(scan.id) ?? "a later run"}.`} ${crossSource} of ${groups.length} ${groups.length === 1 ? "group" : "groups"} ${crossSource === 1 ? "has" : "have"} more than one source${sameToolFolds > 0 ? `; ${sameToolFolds} more fold${sameToolFolds === 1 ? "s" : ""} in an earlier run of the same tool` : ""}.`}
-              >
-                <DedupTable
-                  groups={groups}
-                  selected={activeGroup?.key ?? null}
-                  onSelect={setGroupKey}
-                  nodeName={nodeName}
-                />
-              </Section>
+                  <Section title="Native record against normalized record">
+                    <Box paddingBlockStart="space.200">
+                      <NormalizationView
+                        rows={rows}
+                        selected={resultId}
+                        onSelect={setResultId}
+                        scan={scan}
+                        nodeName={nodeName}
+                      />
+                    </Box>
+                  </Section>
+                </>
+              ) : null}
+              {scan && batch && tab === "Duplicates" ? (
+                <>
+                  {picker}
+                  <Section
+                    title="Deduplication"
+                    description={`${scan.id} is reconciled against the program's ${selectedIsCurrent ? `other ${otherCurrent}` : otherCurrent} current runs, not against itself alone — a condition reported by a checklist and by a network scanner arrives as two runs, not as two weaknesses.${selectedIsCurrent ? "" : ` ${scan.id} is not one of them: it has been superseded by ${supersededBy.get(scan.id) ?? "a later run"}.`} ${crossSource} of ${groups.length} ${groups.length === 1 ? "group" : "groups"} ${crossSource === 1 ? "has" : "have"} more than one source${sameToolFolds > 0 ? `; ${sameToolFolds} more fold${sameToolFolds === 1 ? "s" : ""} in an earlier run of the same tool` : ""}.`}
+                  >
+                    <DedupTable
+                      groups={groups}
+                      selected={activeGroup?.key ?? null}
+                      onSelect={setGroupKey}
+                      nodeName={nodeName}
+                    />
+                  </Section>
 
-              <Section title="Source authority">
-                <Inline
-                  className="pt-200"
-                  as="ol"
-                  space="space.100"
-                  rowSpace="space.100"
-                  alignBlock="center"
-                  shouldWrap
-                >
-                  {sourceAuthority.map((format, i) => (
-                    <Inline key={format} as="li" space="space.100" alignBlock="center">
-                      {i > 0 ? <span className="font-body-small text-subtle">&gt;</span> : null}
-                      <span
-                        className={presentFormats.has(format) ? "opacity-100" : "opacity-disabled"}
-                        title={
-                          presentFormats.has(format)
-                            ? `Rank ${i + 1} of ${sourceAuthority.length} — present in this batch`
-                            : `Rank ${i + 1} of ${sourceAuthority.length} — no result in this batch`
-                        }
-                      >
-                        <FormatChip format={format} />
-                      </span>
+                  <Section title="Source authority">
+                    <Inline
+                      className="pt-200"
+                      as="ol"
+                      space="space.100"
+                      rowSpace="space.100"
+                      alignBlock="center"
+                      shouldWrap
+                    >
+                      {sourceAuthority.map((format, i) => (
+                        <Inline key={format} as="li" space="space.100" alignBlock="center">
+                          {i > 0 ? <span className="font-body-small text-subtle">&gt;</span> : null}
+                          <span
+                            className={
+                              presentFormats.has(format) ? "opacity-100" : "opacity-disabled"
+                            }
+                            title={
+                              presentFormats.has(format)
+                                ? `Rank ${i + 1} of ${sourceAuthority.length} — present in this batch`
+                                : `Rank ${i + 1} of ${sourceAuthority.length} — no result in this batch`
+                            }
+                          >
+                            <FormatChip format={format} />
+                          </span>
+                        </Inline>
+                      ))}
                     </Inline>
-                  ))}
-                </Inline>
-                <p className="pt-150 font-body-small text-subtle">
-                  Highest authority first; the formats greyed out contributed no result to this
-                  batch. Ties inside one format break on the later run&rsquo;s completion time. The
-                  rail states, for the selected group, exactly which rule fired and what it beat.
-                </p>
-              </Section>
-            </>
-          ) : null}
-
-          {scan && batch && tab === "Scan over scan" ? (
-            <>
-              {picker}
-              <Section
-                title={
-                  scan.supersedes
-                    ? `${scan.id} against ${scan.supersedes}`
-                    : `${scan.id} — first run of record`
-                }
-                description={
-                  scan.supersedes
-                    ? "Non-clean groups compared key for key. A condition present in the run before last and absent from the one in between has reappeared, which is a different fact from a condition that is merely persistent."
-                    : "This run supersedes nothing, so every condition it reports is new by definition."
-                }
-              >
-                <ScanDiffTable
-                  rows={batch.diff}
-                  current={scan.id}
-                  previous={scan.supersedes}
-                  nodeName={nodeName}
-                />
-              </Section>
-            </>
-          ) : null}
-        </ShowPage>
-        {tab !== "Normalization" && railBody !== null ? (
-          <DsShell.Panel label="Details">
-            <DsShell.Panel.Splitter label="Resize details" />
-            <Panel flush>{railBody}</Panel>
-          </DsShell.Panel>
-        ) : null}
-      </>
-    </Shell>
+                    <p className="pt-150 font-body-small text-subtle">
+                      Highest authority first; the formats greyed out contributed no result to this
+                      batch. Ties inside one format break on the later run&rsquo;s completion time.
+                      The rail states, for the selected group, exactly which rule fired and what it
+                      beat.
+                    </p>
+                  </Section>
+                </>
+              ) : null}
+              {scan && batch && tab === "Scan over scan" ? (
+                <>
+                  {picker}
+                  <Section
+                    title={
+                      scan.supersedes
+                        ? `${scan.id} against ${scan.supersedes}`
+                        : `${scan.id} — first run of record`
+                    }
+                    description={
+                      scan.supersedes
+                        ? "Non-clean groups compared key for key. A condition present in the run before last and absent from the one in between has reappeared, which is a different fact from a condition that is merely persistent."
+                        : "This run supersedes nothing, so every condition it reports is new by definition."
+                    }
+                  >
+                    <ScanDiffTable
+                      rows={batch.diff}
+                      current={scan.id}
+                      previous={scan.supersedes}
+                      nodeName={nodeName}
+                    />
+                  </Section>
+                </>
+              ) : null}
+            </Stack>
+          </TabsContent>
+        </Tabs>
+      </Stack>
+      {tab !== "Normalization" && (search.scan || groupKey) && railBody !== null ? (
+        <Shell.Panel
+          label="Details"
+          onClose={() => {
+            setGroupKey(null);
+            void navigate({ search: { tab }, replace: true });
+          }}
+        >
+          {railBody}
+        </Shell.Panel>
+      ) : null}
+    </>
   );
 }

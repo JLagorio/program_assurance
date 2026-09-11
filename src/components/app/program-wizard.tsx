@@ -1,58 +1,4 @@
 import {
-  FieldLabel,
-  FieldDescription,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxList,
-  ComboboxItem,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  Badge,
-  Block,
-  Box,
-  Button,
-  Checkbox,
-  Combobox,
-  Field,
-  Grid,
-  Indicator,
-  Inline,
-  Input,
-  Inspector,
-  KeyValue,
-  PageHeader,
-  RadioGroup,
-  RadioGroupItem,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  Stack,
-  Stepper,
-  Table,
-  Textarea,
-  toast,
-  Tree,
-  WorkPane,
-} from "@ledger/design-system";
-import { useNavigate } from "@tanstack/react-router";
-import { Plus, Trash2 } from "lucide-react";
-import { useId, useMemo, useReducer, useRef, useState } from "react";
-import {
   contestedOverlays,
   gatesFor,
   resolveDraft,
@@ -77,6 +23,60 @@ import {
 } from "@/lib/program-setup";
 import { objectives, type Triad } from "@/lib/scopes";
 import { overlayById } from "@/lib/tailoring";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Badge,
+  Box,
+  Button,
+  Checkbox,
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  Field,
+  FieldDescription,
+  FieldLabel,
+  Grid,
+  Indicator,
+  Inline,
+  Input,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  RadioGroup,
+  RadioGroupItem,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  Stack,
+  Stepper,
+  Table,
+  Textarea,
+  toast,
+  Tree,
+  WorkPane,
+} from "@ledger/design-system";
+import { useNavigate } from "@tanstack/react-router";
+import { Plus, Trash2 } from "lucide-react";
+import { useId, useMemo, useReducer, useRef, useState } from "react";
 import { ControlSetSummary, RevisionGates, ScopeTailoringPane } from "./scope-tailoring";
 
 /* -------------------------------------------------------------- Reducer */
@@ -336,15 +336,19 @@ export function ProgramWizard() {
 
   return (
     <Stack className="animate-rise" space="space.250">
-      <PageHeader
-        eyebrow="Programs"
-        title={draft.name.trim() ? `New program · ${draft.name.trim()}` : "New program"}
-        actions={
+      <PageHeader>
+        <div className="col-span-full font-body text-subtle">{"Programs"}</div>
+        <div className="min-w-0">
+          <PageHeader.Title>
+            {draft.name.trim() ? `New program · ${draft.name.trim()}` : "New program"}
+          </PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
           <Button variant="subtle" onClick={() => void navigate({ to: "/programs" })}>
             Cancel
           </Button>
-        }
-      />
+        </PageHeader.Actions>
+      </PageHeader>
 
       <Grid
         gap="space.300"
@@ -482,7 +486,7 @@ function ProgramStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
   const environmentItems = environments.map((o) => ({ value: o, label: o }));
   const ownerItems = people.map((p) => ({ value: p, label: p }));
   return (
-    <Block title="Program">
+    <Section title="Program">
       <Stack space="space.150">
         <Grid gap="space.150" templateColumns="minmax(0,1fr) 140px">
           <Field>
@@ -682,7 +686,7 @@ function ProgramStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
           </Field>
         </Grid>
       </Stack>
-    </Block>
+    </Section>
   );
 }
 
@@ -697,7 +701,7 @@ function FrameworkStep({
 }) {
   const frameworkId = useId();
   return (
-    <Block title="Framework edition">
+    <Section title="Framework edition">
       <RadioGroup<ProgramDraft["framework"]>
         aria-label="Framework edition"
         value={draft.framework}
@@ -756,7 +760,7 @@ function FrameworkStep({
           recorded with its rationale.
         </dd>
       </dl>
-    </Block>
+    </Section>
   );
 }
 
@@ -800,7 +804,7 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
 
   const ownerItems2 = people.map((p) => ({ value: p, label: p }));
   return (
-    <Block
+    <Section
       title="Systems and subsystems"
       count={`${draft.scopes.length} scope${draft.scopes.length === 1 ? "" : "s"}`}
       action={
@@ -912,7 +916,6 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
           ];
         })}
       </Tree>
-
       <Sheet
         open={target !== null}
         onOpenChange={(next) => {
@@ -1033,7 +1036,7 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
           </SheetFooter>
         </SheetContent>
       </Sheet>
-    </Block>
+    </Section>
   );
 }
 
@@ -1172,7 +1175,7 @@ function ReviewStep({
 
   return (
     <Stack space="space.050">
-      <Block title="Program">
+      <Section title="Program">
         <Grid
           templateColumns={{ base: "repeat(2, minmax(0, 1fr))", lg: "repeat(3, minmax(0, 1fr))" }}
           columnGap="space.300"
@@ -1187,9 +1190,9 @@ function ReviewStep({
             {framework?.name} · {framework?.version}
           </KeyValue>
         </Grid>
-      </Block>
+      </Section>
 
-      <Block title="Scopes" count={`${draft.scopes.length} · ${union} controls in the union`}>
+      <Section title="Scopes" count={`${draft.scopes.length} · ${union} controls in the union`}>
         <Table>
           <thead>
             <Table.Row>
@@ -1237,9 +1240,9 @@ function ReviewStep({
             })}
           </tbody>
         </Table>
-      </Block>
+      </Section>
 
-      <Block title="Decisions with a rationale" count={decisions.length || null}>
+      <Section title="Decisions with a rationale" count={decisions.length || null}>
         {decisions.length ? (
           <Table>
             <thead>
@@ -1269,9 +1272,9 @@ function ReviewStep({
             hand.
           </p>
         )}
-      </Block>
+      </Section>
 
-      <Block title="On create">
+      <Section title="On create">
         <label className="inline-flex items-start gap-100 font-body text-default">
           <Checkbox
             checked={draft.submitOnCreate}
@@ -1290,7 +1293,7 @@ function ReviewStep({
             </span>
           </Stack>
         </label>
-      </Block>
+      </Section>
     </Stack>
   );
 }

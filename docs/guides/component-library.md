@@ -10,27 +10,23 @@ under `docs/superpowers/specs/`, and the parts document themselves in the packag
 
 ## Layers
 
-One folder per layer; the layer says how much a part is allowed to know. A layer imports only from
-the layers below it, by relative path, so the dependency graph stays visible.
+The folders separate presentation, application layout and reusable interaction. Components and primitives do not import patterns or layout; patterns may compose layout parts. The application owns routing, data and domain decisions.
 
-| #   | Layer          | Folder           | Knows about                                                                                                                                          |
-| --- | -------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0   | **Tokens**     | `tokens/`        | Nothing. DTCG JSON, built by Style Dictionary into `src/generated/` (CSS variables, the Tailwind theme map, per-token utilities, `token()`).         |
-| 1   | **Primitives** | `src/primitives` | Layout and type: Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading. Every prop is a token name.                                                   |
-| 2   | **Components** | `src/components` | Reusable component families. Standard families follow shadcn Base UI contracts; family pages document their native APIs and Ledger options.  |
-| 3   | **Patterns**   | `src/patterns`   | Several components with a contract and no domain words: PageHeader, RecordHeader, PreviewRail, PreviewSheet, PickerSheet, the page archetypes. |
-| 4   | **Shapes**     | `src/shapes`     | A whole screen region and the job it does: ActionBar, Block, Inspector, WorkPane.                                                                    |
-| 5   | **Shell**      | `src/shell`      | The navigation system: banner, top nav, side nav, main, panel, and the items that go in them. It knows nothing about routes.                         |
-| 6   | **Mode**       | `src/mode`       | The colour mode: provider, switch, storage, the before-paint script.                                                                                 |
+| Layer       | Folder                               | Responsibility                                                                                        |
+| ----------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Tokens      | `tokens/`, `src/generated/`          | Shared values and generated utilities.                                                                |
+| Primitives  | `src/primitives/`                    | Spacing, alignment and type: Box, Stack, Inline, Grid.                                                |
+| Components  | `src/components/`                    | Controls and display families built from shadcn Base UI foundations.                                  |
+| Layout      | `src/layout/`                        | Shell regions, PageHeader, Section and PageSkeleton.                                                  |
+| Patterns    | `src/patterns/`                      | Repeated interactions: DataTable, RecordPicker, Composer, Editable, Inspector and coordinated charts. |
+| Mode        | `src/mode/`                          | Colour mode, storage and the before-paint script.                                                     |
+| Application | `src/routes/`, `src/components/app/` | Persistent product navigation, route content, permissions, data and workflows.                        |
 
 Editable, Gates, Toolbar and the Chart recipe family live in `src/patterns/`. They own inline-save recovery, readiness checks, search/filter/action layout, and chart exploration/export respectively. Chart remains Recharts-based, as in [shadcn’s chart source](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/chart.tsx); the Ledger family adds coordinated views and actions. Toolbar is the tab-navigated search row, distinct from [Base UI’s arrow-navigated Toolbar](https://base-ui.com/react/components/toolbar). Public imports still come from `@ledger/design-system`.
 
 Stepper, Timeline, Stat, Attachment, Banner, CodeBlock and KeyValue remain components. They describe a step sequence, event feed, metric, file, message, code display or fact; they do not own a wizard, upload service or record workflow. Composing small parts alone does not make a component a pattern.
 
-The standalone Shapes catalog is retired. Its runtime exports remain for existing consumers;
-Block and Inspector still appear in integration stories. ActionBar and WorkPane retain API
-compatibility checks but no dedicated stories. Build new compositions from the maintained
-components and patterns.
+The Shapes category is removed. Inspector, ActionBar and WorkPane live with reusable patterns; Block is replaced by the layout Section. ActionBar and WorkPane remain for existing application consumers without restoring the retired standalone catalog.
 
 Domain files (`src/components/app/*.tsx`) and routes assemble these. They may own a tone map for
 their vocabulary and a component that binds data to a pattern. They never declare a primitive or a
@@ -47,15 +43,7 @@ Package stories cover these neutral contracts; workflow stories cover product de
 Product code imports the package's root, never a file inside it:
 
 ```ts
-import {
-  Badge,
-  Table,
-  Id,
-  Indicator,
-  RecordHeader,
-  Shell,
-  ModeSwitch,
-} from "@ledger/design-system";
+import { Badge, Table, Id, Indicator, PageHeader, Shell, ModeSwitch } from "@ledger/design-system";
 ```
 
 The stylesheet is three imports after Tailwind, in this order:
@@ -75,7 +63,7 @@ breaks the system is what gets fixed.
 
 The package has no router. `BreadcrumbLink` takes a router link through `render`.
 Navigation with button styling uses `buttonVariants` on a real router Link. TextLink and Shell navigation use
-`render`, while Item and RecordHeader accept a link element as a prop.
+`render`, while Item accepts a link element as a prop.
 Custom rendered elements must accept the merged attributes, handlers and ref.
 
 ## Component contracts
@@ -96,7 +84,7 @@ interactions between options and intentional visual differences in the same comp
 Port source with relative imports and package `cn`; never import application source into the
 package. Use Ledger tokens for styling and keep the existing layer boundaries.
 
-Patterns assemble components into workflows or larger regions, such as RecordHeader. Options
+Patterns assemble repeated interactions, such as record selection or inline editing. Options
 for one component, such as Badge's status tone, size and icon, belong on that component.
 
 Family pages in Storybook own each component's current API, defaults, integration examples and migration guidance. Keep shared rules here; keep release changes in the [changelog](../../packages/design-system/CHANGELOG.md). The [handoff](design-system-migration-handoff.md) records completed migration work and remaining integration risks.
@@ -131,7 +119,7 @@ every product. A product's own config adds nothing about the kit.
 | `ledger/no-dark-variant`        | `dark:`                                                                 | Nothing; every token flips by itself.                 |
 | `ledger/no-deprecated-token`    | A deprecated token's utility                                            | Its replacement, applied by `--fix`.                  |
 | `ledger/no-deprecated-name`     | A part's old name (`Shell.Sidebar`, `Shell.NavItem`)                    | Its replacement; `--fix` does the one-to-one renames. |
-| `ledger/prefer-text-link`       | A Link or anchor carrying `text-brand` or `hover:underline`             | TextLink render with the link element.                     |
+| `ledger/prefer-text-link`       | A Link or anchor carrying `text-brand` or `hover:underline`             | TextLink render with the link element.                |
 | `ledger/no-colgroup`            | `<colgroup>`                                                            | `width` on each Table.Header.                         |
 | `ledger/use-primitives`         | A `div` or `span` carrying layout classes (warning)                     | Box, Stack, Inline, Flex or Grid.                     |
 | `ledger/cell-plain`             | A Table.Cell carrying a neutral colour, weight or type token            | Nothing; only a status colour may differ.             |
@@ -145,7 +133,13 @@ Record screens should make state, ownership and the next action visible before b
 
 Use list or board views for queues, compact editable properties for ownership and status, and focused detail surfaces for completing work. Linear's [display options](https://linear.app/docs/display-options), HubSpot's [record composition](https://knowledge.hubspot.com/object-settings/customize-records) and Salesforce's [record workspaces](https://trailhead.salesforce.com/content/learn/modules/lightning-experience-for-salesforce-classic-users/work-with-your-data) are references for this direction. Choose the layout around the work the user is doing; adding cards alone does not create a workflow.
 
-Consolidate ShowPage/RecordHeader and Panel/PreviewRail/PreviewSheet around proven application interactions before adding another record pattern. Section is a heading wrapper, not a page template. Keep DataTable, Editable, Composer and TaskRow's existing interaction contracts. Shared patterns own layout, focus and reusable interactions; the application owns requirement gates, approval rules and state transitions.
+The root route mounts `AppLayout` once around its outlet. Routes compose `PageHeader`, primitives, controls and `TabsContent` in Main. `Shell.Aside` contributes supporting properties and `Shell.Panel` contributes selected-record or task content to stable destinations outside Main. React portals preserve route context, and route unmount removes the contribution; these slots render after client mount. Keep at most one contribution per region in the active route tree.
+
+Aside follows Main below 1200px and sits beside it above that. A Panel is inline from 1280px; below that it replaces the visible work area while Main remains mounted. With both regions present, Aside follows Main until 1760px. Main uses document scrolling; Panel scrolls within the available viewport. Resizing, Escape, visible close and focus return belong to Panel. Use Base UI Sheet when the task needs modal focus containment.
+
+`IndexPage`, `ShowPage`, `RecordHeader`, `PreviewRail`, `PreviewSplit`, the standalone `Panel` frame and `Block` are removed. One composable `PageHeader` accepts native props and refs; metadata stays outside its h1. `Section` is an optional titled presentation region with an opt-in rule. Disclosure uses Collapsible. RecordPicker, PreviewSheet, DataTable and Composer remain reusable interactions. See the [layout examples](../../packages/design-system/src/stories/layout/Pages.mdx).
+
+The [Pages guide](../../packages/design-system/src/stories/patterns/Pages.mdx) records the conventions: meaningful headings, task-based tabs, real navigation links, explicit dismissal, preserved in-progress work and responsive focus behavior. Keyboard and modal behavior follow WAI-ARIA and Base UI; visual composition follows the task and available space.
 
 ## Rules that stay in the head
 
@@ -154,9 +148,7 @@ Consolidate ShowPage/RecordHeader and Panel/PreviewRail/PreviewSheet around prov
 - A record header carries identity, current state, ownership and useful actions. Supporting properties go in a compact rail or a focused details view.
 - Hover previews provide brief context. A selected-record surface supports the actions that make sense without leaving the queue, with a clear route to the full record.
 - Choose an inline panel or an overlay based on available space and whether the underlying queue must remain usable. Both can contain actions.
-- The shell's Panel is an area, not a feature. The peek is a Sheet over the page and the nav.
-  On a record the Panel is the rail, details and related information, always there and never
-  dismissed; a panel the reader opens, a thread or a form, has a close and a trigger.
+- Shell.Panel supplies placement, heading, close and content spacing. A dismissible surface needs a visible close and a surviving focus target. Use Base UI Sheet when the rest of the page should be blocked.
 - A screen is shaped by the reader's question. When a column, fact or block exists because the
   store has the field, it goes.
 - A real pattern the kit lacks is flagged in writing with a recommendation (kit or bespoke); the

@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../patterns";
+import { Chart } from "../..";
 import * as Stories from "./ChartTreemap.stories";
 
 <Meta of={Stories} />
@@ -13,20 +13,20 @@ Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of 
 
 ## Anatomy
 
-| Part    | What it is                                                                                                                          |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Part    | What it is                                                                                                                                           |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tile    | A leaf, `radius` 2px, in its branch's tone, with a 2px `elevation.surface` gap from its neighbours. Sized by value, 4:3 as far as the layout allows. |
-| Name    | The tile's name on an `elevation.surface` chip at 92% in `color.text`, when the tile is at least 64 by 28; cut with the whole in a title. |
-| Tooltip | The tile's name and value, keyed by a square.                                                                                       |
-| Card    | On a chosen tile: its name, its branch and its value, then the caller's facts.                                                      |
+| Name    | The tile's name on an `elevation.surface` chip at 92% in `color.text`, when the tile is at least 64 by 28; cut with the whole in a title.            |
+| Tooltip | The tile's name and value, keyed by a square.                                                                                                        |
+| Card    | On a chosen tile: its name, its branch and its value, then the caller's facts.                                                                       |
 
 ## Variants
 
-| Variant     | Use                                                                                                                              |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Branches    | Two levels: systems in the categorical set, their components inside each in the same hue.                                        |
-| One branch  | One system alone, its components in its one hue: the level under a drill-down.                                                   |
-| Drill-down  | A click on a tile redraws the treemap with its branch, the way back in the Frame's `path`; a click on a component opens its card. |
+| Variant    | Use                                                                                                                               |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Branches   | Two levels: systems in the categorical set, their components inside each in the same hue.                                         |
+| One branch | One system alone, its components in its one hue: the level under a drill-down.                                                    |
+| Drill-down | A click on a tile redraws the treemap with its branch, the way back in the Frame's `path`; a click on a component opens its card. |
 
 <Canvas of={Stories.Systems} />
 <Canvas of={Stories.Drilldown} />
@@ -37,13 +37,13 @@ Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of 
 
 ## States
 
-| State    | What changes                                                                                                            |
-| -------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Hover    | The tooltip.                                                                                                            |
+| State    | What changes                                                                                                                 |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The tooltip.                                                                                                                 |
 | Isolated | A branch hidden from the Frame's legend leaves the treemap; the rest re-tile. A hovered legend item dims the other branches. |
-| Chosen   | With `onSelect` or `details`: the tiles take the pointer, a click chooses one, the others dim; the card opens on the tile. |
-| Loading  | Four skeleton tiles, pulsing, at the plot's height.                                                                     |
-| Entering | The tiles arrive over `motion.duration.slow`; a drill-down re-tiles the same way.                                       |
+| Chosen   | With `onSelect` or `details`: the tiles take the pointer, a click chooses one, the others dim; the card opens on the tile.   |
+| Loading  | Four skeleton tiles, pulsing, at the plot's height.                                                                          |
+| Entering | The tiles arrive over `motion.duration.slow`; a drill-down re-tiles the same way.                                            |
 
 <Canvas of={Stories.Details} />
 
@@ -64,12 +64,12 @@ Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of 
 
 ## Style
 
-| Element  | Token                                                                                     |
-| -------- | ----------------------------------------------------------------------------------------- |
-| Tile     | `color.chart.<tone>` · `radius` 2px · 2px `elevation.surface` gap                         |
-| Name     | `font.body.xsmall` · `color.text` on an `elevation.surface` chip at 92% · `radius` 2px    |
-| Dimmed   | `opacity.disabled`, over `motion.duration.fast`                                           |
-| Skeleton | `color.skeleton` tiles                                                                    |
+| Element  | Token                                                                                  |
+| -------- | -------------------------------------------------------------------------------------- |
+| Tile     | `color.chart.<tone>` · `radius` 2px · 2px `elevation.surface` gap                      |
+| Name     | `font.body.xsmall` · `color.text` on an `elevation.surface` chip at 92% · `radius` 2px |
+| Dimmed   | `opacity.disabled`, over `motion.duration.fast`                                        |
+| Skeleton | `color.skeleton` tiles                                                                 |
 
 ## Accessibility
 

@@ -1,31 +1,36 @@
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  PageHeader,
+  Shell,
+  Stack,
+} from "@ledger/design-system";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  Badge,
-  Button,
-  Empty,
-  Id,
-  Indicator,
-  Inline,
-  Inspector,
-  KeyValue,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Stack,
-  Table,
-  TextLink,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 import { assetById, bySeverity, isOpen } from "@/lib/findings";
 import { findingsForPoam, openCount, poamItems, riskById } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
+import {
+  Badge,
+  BreadcrumbLink,
+  Button,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Indicator,
+  Inspector,
+  KeyValue,
+  Section,
+  Table,
+  TextLink,
+} from "@ledger/design-system";
 
 export const Route = createFileRoute("/register/poam/$poamId")({
   head: ({ params }) => {
@@ -55,14 +60,12 @@ function PoamRecord() {
 
   if (!item) {
     return (
-      <Shell>
-        <Stack space="space.150">
-          <h1 className="font-heading-small font-semibold">POA&M item not found</h1>
-          <TextLink size="medium" render={<Link to="/register" />}>
-            Back to the register
-          </TextLink>
-        </Stack>
-      </Shell>
+      <Stack space="space.150">
+        <h1 className="font-heading-small font-semibold">POA&M item not found</h1>
+        <TextLink size="medium" render={<Link to="/register" />}>
+          Back to the register
+        </TextLink>
+      </Stack>
     );
   }
 
@@ -72,199 +75,204 @@ function PoamRecord() {
   const controls = [...new Set(fs.map((f) => f.control))];
 
   return (
-    <Shell>
-      <>
-        <ShowPage
-          rail={
-            <>
-              <Inspector.Group title="Commitment">
-                <KeyValue label="POA&M">
-                  <Id>{item.id}</Id>
-                </KeyValue>
-                <KeyValue label="Status">
-                  <Badge variant="secondary" tone={statusTone(item.status)}>
-                    {item.status}
-                  </Badge>
-                </KeyValue>
-                <KeyValue label="Owner">{item.owner}</KeyValue>
-                <KeyValue label="Resources">{item.resources}</KeyValue>
-                <KeyValue label="Scheduled">{item.scheduledCompletion}</KeyValue>
-                <KeyValue label="Original">{item.originalCompletion}</KeyValue>
-              </Inspector.Group>
-              <Inspector.Group title="Joins">
-                <KeyValue label="Program">
-                  <TextLink
-                    render={<Link to="/programs/$programId" params={{ programId: item.program }} />}
-                  >
-                    <Id>{item.program}</Id>
-                  </TextLink>
-                </KeyValue>
-                <KeyValue label="Risk">
-                  {risk ? (
-                    <TextLink
-                      render={<Link to="/register/risks/$riskId" params={{ riskId: risk.id }} />}
-                    >
-                      <Id>{risk.id}</Id>
-                    </TextLink>
-                  ) : (
-                    "Not aggregated"
-                  )}
-                </KeyValue>
-                <KeyValue label="Open findings">{fs.filter(isOpen).length}</KeyValue>
-              </Inspector.Group>
-            </>
-          }
-          header={
-            <RecordHeader
-              crumbs={
-                <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/register" />}>POA&M & risk</BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink render={<Link to="/register" />}>POA&M & risk</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{item.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{item.title}</PageHeader.Title>
+          <Inline
+            space="space.100"
+            alignBlock="center"
+            shouldWrap
+            className="pt-050 font-body-small text-subtle"
+          >{`${item.owner} · scheduled ${item.scheduledCompletion}`}</Inline>
+        </div>
+        <PageHeader.Actions>
+          <>
+            <Badge variant="secondary" tone={statusTone(item.status)}>
+              {item.status}
+            </Badge>
+            <Button
+              variant="secondary"
+              render={
+                <Link
+                  to="/programs/$programId"
+                  params={{ programId: item.program }}
+                  search={{ tab: "POA&M", poamId: item.id }}
+                />
               }
-              id={item.id}
-              title={item.title}
-              meta={`${item.owner} · scheduled ${item.scheduledCompletion}`}
-              actions={
-                <>
-                  <Badge variant="secondary" tone={statusTone(item.status)}>
-                    {item.status}
-                  </Badge>
-                  <Button
-                    variant="secondary"
+            >
+              Manage in program
+            </Button>
+          </>
+        </PageHeader.Actions>
+      </PageHeader>
+      <div className="border-b border-default" />
+      <Stack space="space.300" className="min-w-0 pt-200">
+        <Section
+          title="Planned remediation"
+          action={
+            controls.length ? (
+              <Inline className="font-body-small" as="span" space="space.100" alignBlock="center">
+                {controls.map((c) => (
+                  <TextLink
+                    key={c}
                     render={
                       <Link
-                        to="/programs/$programId"
-                        params={{ programId: item.program }}
-                        search={{ tab: "POA&M", poamId: item.id }}
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId: item.program, controlId: c }}
+                        search={{ tab: "Assessment" as const }}
                       />
                     }
                   >
-                    Manage in program
-                  </Button>
-                </>
-              }
-            />
+                    {c} plan
+                  </TextLink>
+                ))}
+              </Inline>
+            ) : null
           }
-          tabs={<div className="border-b border-default" />}
         >
-          <Section
-            title="Planned remediation"
-            action={
-              controls.length ? (
-                <Inline className="font-body-small" as="span" space="space.100" alignBlock="center">
-                  {controls.map((c) => (
-                    <TextLink
-                      key={c}
-                      render={
-                        <Link
-                          to="/programs/$programId/controls/$controlId"
-                          params={{ programId: item.program, controlId: c }}
-                          search={{ tab: "Assessment" as const }}
-                        />
-                      }
-                    >
-                      {c} plan
-                    </TextLink>
-                  ))}
-                </Inline>
-              ) : null
-            }
-          >
-            <p className="max-w-layout-measure pt-150 font-body">{item.remediation}</p>
-          </Section>
-
-          <Section
-            title="Latest milestone"
-            description={
-              slipped
-                ? `Slipped from ${item.originalCompletion} to ${item.scheduledCompletion}.`
-                : "On the original schedule."
-            }
-          >
-            <p className="max-w-layout-measure font-body text-subtle">{item.milestoneNote}</p>
-          </Section>
-
-          <Section
-            title="Findings this item closes"
-            description={`${openCount(fs)} still open of ${fs.length}. The item cannot complete while any row remains open.`}
-          >
-            {fs.length ? (
-              <Table className="table-fixed">
-                <thead>
-                  <tr>
-                    <Table.Header width={112}>Finding</Table.Header>
-                    <Table.Header>Title</Table.Header>
-                    <Table.Header width={96}>Control</Table.Header>
-                    <Table.Header width={104}>CCI</Table.Header>
-                    <Table.Header width={132}>Asset</Table.Header>
-                    <Table.Header width={78}>Severity</Table.Header>
-                    <Table.Header width={112}>Lifecycle</Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fs.map((f) => (
-                    <Table.Row key={f.id}>
-                      <Table.Cell>
-                        <TextLink
-                          render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
-                        >
-                          <Id>{f.id}</Id>
-                        </TextLink>
-                      </Table.Cell>
-                      <Table.Cell className="truncate">
-                        <TextLink
-                          render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
-                        >
-                          {f.title}
-                        </TextLink>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <TextLink
-                          render={
-                            <Link
-                              to="/programs/$programId/controls/$controlId"
-                              params={{ programId: item.program, controlId: f.control }}
-                              search={{ tab: "Assessment" as const }}
-                              title={`Remediation plan for ${f.control}`}
-                            />
-                          }
-                        >
-                          <Id>{f.control}</Id>
-                        </TextLink>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Id>{f.cci}</Id>
-                      </Table.Cell>
-                      <Table.Cell className="truncate">
-                        {assetById.get(f.asset)?.name ?? f.asset}
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                          {f.mitigatedSeverity}
-                        </Indicator>
-                      </Table.Cell>
-                      <Table.Cell className="truncate">
-                        <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
-                          {f.lifecycle}
-                        </Badge>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            ) : (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyTitle>{"No findings attached"}</EmptyTitle>
-                  <EmptyDescription>{"This commitment has nothing to close."}</EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            )}
-          </Section>
-        </ShowPage>
-      </>
-    </Shell>
+          <p className="max-w-layout-measure pt-150 font-body">{item.remediation}</p>
+        </Section>
+        <Section
+          title="Latest milestone"
+          description={
+            slipped
+              ? `Slipped from ${item.originalCompletion} to ${item.scheduledCompletion}.`
+              : "On the original schedule."
+          }
+        >
+          <p className="max-w-layout-measure font-body text-subtle">{item.milestoneNote}</p>
+        </Section>
+        <Section
+          title="Findings this item closes"
+          description={`${openCount(fs)} still open of ${fs.length}. The item cannot complete while any row remains open.`}
+        >
+          {fs.length ? (
+            <Table className="table-fixed">
+              <thead>
+                <tr>
+                  <Table.Header width={112}>Finding</Table.Header>
+                  <Table.Header>Title</Table.Header>
+                  <Table.Header width={96}>Control</Table.Header>
+                  <Table.Header width={104}>CCI</Table.Header>
+                  <Table.Header width={132}>Asset</Table.Header>
+                  <Table.Header width={78}>Severity</Table.Header>
+                  <Table.Header width={112}>Lifecycle</Table.Header>
+                </tr>
+              </thead>
+              <tbody>
+                {fs.map((f) => (
+                  <Table.Row key={f.id}>
+                    <Table.Cell>
+                      <TextLink
+                        render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
+                      >
+                        <Id>{f.id}</Id>
+                      </TextLink>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
+                      <TextLink
+                        render={<Link to="/findings/$findingId" params={{ findingId: f.id }} />}
+                      >
+                        {f.title}
+                      </TextLink>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <TextLink
+                        render={
+                          <Link
+                            to="/programs/$programId/controls/$controlId"
+                            params={{ programId: item.program, controlId: f.control }}
+                            search={{ tab: "Assessment" as const }}
+                            title={`Remediation plan for ${f.control}`}
+                          />
+                        }
+                      >
+                        <Id>{f.control}</Id>
+                      </TextLink>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Id>{f.cci}</Id>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
+                      {assetById.get(f.asset)?.name ?? f.asset}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                        {f.mitigatedSeverity}
+                      </Indicator>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
+                      <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
+                        {f.lifecycle}
+                      </Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>{"No findings attached"}</EmptyTitle>
+                <EmptyDescription>{"This commitment has nothing to close."}</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
+        </Section>
+      </Stack>
+      <Shell.Aside label="Record properties">
+        <>
+          <Inspector.Group title="Commitment">
+            <KeyValue label="POA&M">
+              <Id>{item.id}</Id>
+            </KeyValue>
+            <KeyValue label="Status">
+              <Badge variant="secondary" tone={statusTone(item.status)}>
+                {item.status}
+              </Badge>
+            </KeyValue>
+            <KeyValue label="Owner">{item.owner}</KeyValue>
+            <KeyValue label="Resources">{item.resources}</KeyValue>
+            <KeyValue label="Scheduled">{item.scheduledCompletion}</KeyValue>
+            <KeyValue label="Original">{item.originalCompletion}</KeyValue>
+          </Inspector.Group>
+          <Inspector.Group title="Joins">
+            <KeyValue label="Program">
+              <TextLink
+                render={<Link to="/programs/$programId" params={{ programId: item.program }} />}
+              >
+                <Id>{item.program}</Id>
+              </TextLink>
+            </KeyValue>
+            <KeyValue label="Risk">
+              {risk ? (
+                <TextLink
+                  render={<Link to="/register/risks/$riskId" params={{ riskId: risk.id }} />}
+                >
+                  <Id>{risk.id}</Id>
+                </TextLink>
+              ) : (
+                "Not aggregated"
+              )}
+            </KeyValue>
+            <KeyValue label="Open findings">{fs.filter(isOpen).length}</KeyValue>
+          </Inspector.Group>
+        </>
+      </Shell.Aside>
+    </Stack>
   );
 }

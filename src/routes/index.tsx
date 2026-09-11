@@ -1,9 +1,9 @@
 import { downloadText } from "@/components/app/export";
 import { UnavailableAction } from "@/components/app/unavailable-action";
+import { PageHeader } from "@ledger/design-system";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Download } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
 import { activity, frameworks, risks, riskStatusTone } from "@/lib/grc-data";
 import {
   Badge,
@@ -14,7 +14,6 @@ import {
   Id,
   Inline,
   Item,
-  PageHeader,
   Progress,
   Section,
   Stack,
@@ -72,223 +71,223 @@ const summary = [
 
 function Overview() {
   return (
-    <Shell>
-      <Stack className="animate-rise" space="space.300">
-        <PageHeader
-          eyebrow="Program"
-          title="Overview"
-          actions={
-            <>
-              <Button
-                variant="secondary"
-                iconBefore={<Download />}
-                onClick={() =>
-                  downloadText(
-                    "portfolio.json",
-                    JSON.stringify({ risks, frameworks }, null, 2),
-                    "application/json",
-                  )
-                }
-              >
-                Export
-              </Button>
-              <UnavailableAction
-                reason="Choose a program and request evidence from its control workspace."
-                variant="primary"
-              >
-                Request evidence
-              </UnavailableAction>
-            </>
-          }
-        />
-
-        {/* Metric row — hairline rules only, no floating cards */}
-        <Grid
-          className="border-y border-default"
-          templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }}
-        >
-          {summary.map((item) => (
-            <Box
-              key={item.label}
-              className="border-b border-default first:ps-0 md:border-b-0 md:border-r md:last:border-r-0"
-              paddingInline="space.200"
-              paddingBlock="space.150"
-            >
-              <div className="font-body-small text-subtle">{item.label}</div>
-              <Inline className="pt-025" space="space.100" alignBlock="baseline">
-                <span className="tabular-nums font-heading-small font-semibold">{item.value}</span>
-                <span
-                  className={
-                    item.tone === "success"
-                      ? "tabular-nums font-body-small font-medium text-success"
-                      : item.tone === "danger"
-                        ? "tabular-nums font-body-small font-medium text-danger"
-                        : "tabular-nums font-body-small font-medium text-subtle"
-                  }
-                >
-                  {item.delta}
-                </span>
-              </Inline>
-              <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
-                {item.note}
-              </Box>
-            </Box>
-          ))}
-        </Grid>
-
-        <Grid
-          gap="space.400"
-          templateColumns={{ base: "repeat(1, minmax(0, 1fr))", xl: "minmax(0,1fr) 320px" }}
-        >
-          <Stack space="space.300">
-            <Section
-              title="Highest residual risk"
-              action={<TextLink render={<Link to="/risks" />}>Risk register</TextLink>}
-            >
-              <Table>
-                <thead>
-                  <tr>
-                    <Table.Header width={88}>ID</Table.Header>
-                    <Table.Header>Risk</Table.Header>
-                    <Table.Header width={92}>Framework</Table.Header>
-                    <Table.Header width={120}>Owner</Table.Header>
-                    <Table.Header width={124}>Residual</Table.Header>
-                    <Table.Header className="text-right" width={100}>
-                      Status
-                    </Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {risks.slice(0, 5).map((risk) => (
-                    <Table.Row key={risk.id} className="group">
-                      <Table.Cell>
-                        <Id>{risk.id}</Id>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <TextLink
-                          weight="medium"
-                          className="text-default group-hover:text-brand"
-                          render={<Link to="/risks/$riskId" params={{ riskId: risk.id }} />}
-                        >
-                          {risk.title}
-                        </TextLink>
-                      </Table.Cell>
-                      <Table.Cell>{risk.framework}</Table.Cell>
-                      <Table.Cell>{risk.owner}</Table.Cell>
-                      <Table.Cell>
-                        <Inline space="space.100" alignBlock="center">
-                          <Progress
-                            value={risk.residual}
-                            tone={
-                              risk.residual > 60
-                                ? "danger"
-                                : risk.residual > 30
-                                  ? "warning"
-                                  : "success"
-                            }
-                            aria-hidden
-                          />
-                          <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-250">
-                            {risk.residual}
-                          </span>
-                        </Inline>
-                      </Table.Cell>
-                      <Table.Cell className="text-right">
-                        <Badge variant="secondary" tone={riskStatusTone[risk.status]}>
-                          {risk.status}
-                        </Badge>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            </Section>
-
-            <Section title="Framework coverage">
-              <Table>
-                <thead>
-                  <tr>
-                    <Table.Header>Framework</Table.Header>
-                    <Table.Header width={180}>Coverage</Table.Header>
-                    <Table.Header className="text-right" width={92}>
-                      Controls
-                    </Table.Header>
-                    <Table.Header className="text-right" width={176}>
-                      Window
-                    </Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {frameworks.map((fw) => (
-                    <Table.Row key={fw.name}>
-                      <Table.Cell>{fw.name}</Table.Cell>
-                      <Table.Cell>
-                        <Inline space="space.100" alignBlock="center">
-                          <Progress value={fw.coverage} tone={fw.tone} aria-hidden />
-                          <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-400">
-                            {fw.coverage}%
-                          </span>
-                        </Inline>
-                      </Table.Cell>
-                      <Table.Cell className="tabular-nums text-right">{fw.controls}</Table.Cell>
-                      <Table.Cell className="text-right">{fw.window}</Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            </Section>
-          </Stack>
-
-          <Stack space="space.300">
-            <Section
-              title="Assurance stream"
-              action={
-                <UnavailableAction
-                  reason="This overview has no separate activity history. Program records have an Activity tab."
-                  variant="link"
-                >
-                  History
-                </UnavailableAction>
+    <Stack className="animate-rise" space="space.300">
+      <PageHeader>
+        <div className="col-span-full font-body text-subtle">{"Program"}</div>
+        <div className="min-w-0">
+          <PageHeader.Title>{"Overview"}</PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
+          <>
+            <Button
+              variant="secondary"
+              iconBefore={<Download />}
+              onClick={() =>
+                downloadText(
+                  "portfolio.json",
+                  JSON.stringify({ risks, frameworks }, null, 2),
+                  "application/json",
+                )
               }
             >
-              <Timeline className="pt-100">
-                {activity.map((item) => (
-                  <Timeline.Item
-                    key={item.title}
-                    tone={item.tone}
-                    title={item.title}
-                    meta={item.actor}
-                    time={item.time}
-                  >
-                    {item.body}
-                  </Timeline.Item>
-                ))}
-              </Timeline>
-            </Section>
+              Export
+            </Button>
+            <UnavailableAction
+              reason="Choose a program and request evidence from its control workspace."
+              variant="primary"
+            >
+              Request evidence
+            </UnavailableAction>
+          </>
+        </PageHeader.Actions>
+      </PageHeader>
 
-            <Section title="Upcoming obligations">
-              <Item.Group>
-                {[
-                  { label: "SOC 2 evidence cutoff", date: "Oct 31", tone: "warning" as const },
-                  {
-                    label: "ISO 27001 stage 2 audit",
-                    date: "Nov 12",
-                    tone: "information" as const,
-                  },
-                  { label: "Quarterly access review", date: "Sep 30", tone: "neutral" as const },
-                ].map((row) => (
-                  <Item
-                    key={row.label}
-                    leading={<Dot tone={row.tone} />}
-                    title={row.label}
-                    trailing={row.date}
-                  />
+      {/* Metric row — hairline rules only, no floating cards */}
+      <Grid
+        className="border-y border-default"
+        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }}
+      >
+        {summary.map((item) => (
+          <Box
+            key={item.label}
+            className="border-b border-default first:ps-0 md:border-b-0 md:border-r md:last:border-r-0"
+            paddingInline="space.200"
+            paddingBlock="space.150"
+          >
+            <div className="font-body-small text-subtle">{item.label}</div>
+            <Inline className="pt-025" space="space.100" alignBlock="baseline">
+              <span className="tabular-nums font-heading-small font-semibold">{item.value}</span>
+              <span
+                className={
+                  item.tone === "success"
+                    ? "tabular-nums font-body-small font-medium text-success"
+                    : item.tone === "danger"
+                      ? "tabular-nums font-body-small font-medium text-danger"
+                      : "tabular-nums font-body-small font-medium text-subtle"
+                }
+              >
+                {item.delta}
+              </span>
+            </Inline>
+            <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
+              {item.note}
+            </Box>
+          </Box>
+        ))}
+      </Grid>
+
+      <Grid
+        gap="space.400"
+        templateColumns={{ base: "repeat(1, minmax(0, 1fr))", xl: "minmax(0,1fr) 320px" }}
+      >
+        <Stack space="space.300">
+          <Section
+            title="Highest residual risk"
+            action={<TextLink render={<Link to="/risks" />}>Risk register</TextLink>}
+          >
+            <Table>
+              <thead>
+                <tr>
+                  <Table.Header width={88}>ID</Table.Header>
+                  <Table.Header>Risk</Table.Header>
+                  <Table.Header width={92}>Framework</Table.Header>
+                  <Table.Header width={120}>Owner</Table.Header>
+                  <Table.Header width={124}>Residual</Table.Header>
+                  <Table.Header className="text-right" width={100}>
+                    Status
+                  </Table.Header>
+                </tr>
+              </thead>
+              <tbody>
+                {risks.slice(0, 5).map((risk) => (
+                  <Table.Row key={risk.id} className="group">
+                    <Table.Cell>
+                      <Id>{risk.id}</Id>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <TextLink
+                        weight="medium"
+                        className="text-default group-hover:text-brand"
+                        render={<Link to="/risks/$riskId" params={{ riskId: risk.id }} />}
+                      >
+                        {risk.title}
+                      </TextLink>
+                    </Table.Cell>
+                    <Table.Cell>{risk.framework}</Table.Cell>
+                    <Table.Cell>{risk.owner}</Table.Cell>
+                    <Table.Cell>
+                      <Inline space="space.100" alignBlock="center">
+                        <Progress
+                          value={risk.residual}
+                          tone={
+                            risk.residual > 60
+                              ? "danger"
+                              : risk.residual > 30
+                                ? "warning"
+                                : "success"
+                          }
+                          aria-hidden
+                        />
+                        <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-250">
+                          {risk.residual}
+                        </span>
+                      </Inline>
+                    </Table.Cell>
+                    <Table.Cell className="text-right">
+                      <Badge variant="secondary" tone={riskStatusTone[risk.status]}>
+                        {risk.status}
+                      </Badge>
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
-              </Item.Group>
-            </Section>
-          </Stack>
-        </Grid>
-      </Stack>
-    </Shell>
+              </tbody>
+            </Table>
+          </Section>
+
+          <Section title="Framework coverage">
+            <Table>
+              <thead>
+                <tr>
+                  <Table.Header>Framework</Table.Header>
+                  <Table.Header width={180}>Coverage</Table.Header>
+                  <Table.Header className="text-right" width={92}>
+                    Controls
+                  </Table.Header>
+                  <Table.Header className="text-right" width={176}>
+                    Window
+                  </Table.Header>
+                </tr>
+              </thead>
+              <tbody>
+                {frameworks.map((fw) => (
+                  <Table.Row key={fw.name}>
+                    <Table.Cell>{fw.name}</Table.Cell>
+                    <Table.Cell>
+                      <Inline space="space.100" alignBlock="center">
+                        <Progress value={fw.coverage} tone={fw.tone} aria-hidden />
+                        <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-400">
+                          {fw.coverage}%
+                        </span>
+                      </Inline>
+                    </Table.Cell>
+                    <Table.Cell className="tabular-nums text-right">{fw.controls}</Table.Cell>
+                    <Table.Cell className="text-right">{fw.window}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </tbody>
+            </Table>
+          </Section>
+        </Stack>
+
+        <Stack space="space.300">
+          <Section
+            title="Assurance stream"
+            action={
+              <UnavailableAction
+                reason="This overview has no separate activity history. Program records have an Activity tab."
+                variant="link"
+              >
+                History
+              </UnavailableAction>
+            }
+          >
+            <Timeline className="pt-100">
+              {activity.map((item) => (
+                <Timeline.Item
+                  key={item.title}
+                  tone={item.tone}
+                  title={item.title}
+                  meta={item.actor}
+                  time={item.time}
+                >
+                  {item.body}
+                </Timeline.Item>
+              ))}
+            </Timeline>
+          </Section>
+
+          <Section title="Upcoming obligations">
+            <Item.Group>
+              {[
+                { label: "SOC 2 evidence cutoff", date: "Oct 31", tone: "warning" as const },
+                {
+                  label: "ISO 27001 stage 2 audit",
+                  date: "Nov 12",
+                  tone: "information" as const,
+                },
+                { label: "Quarterly access review", date: "Sep 30", tone: "neutral" as const },
+              ].map((row) => (
+                <Item
+                  key={row.label}
+                  leading={<Dot tone={row.tone} />}
+                  title={row.label}
+                  trailing={row.date}
+                />
+              ))}
+            </Item.Group>
+          </Section>
+        </Stack>
+      </Grid>
+    </Stack>
   );
 }

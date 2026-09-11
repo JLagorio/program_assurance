@@ -1,42 +1,26 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  PageHeader,
+  Shell,
+  Stack,
+  Tabs,
+  TabsContent,
+} from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
 
-import { NodeRail } from "@/components/app/composition";
-import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
 import { AllocateRequirementsSheet } from "@/components/app/allocate-picker";
+import { NodeRail } from "@/components/app/composition";
 import { RevisionStrip } from "@/components/app/control-set-revisions";
 import { RecordActivity } from "@/components/app/record-activity";
+import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
 import { ScopeControlSetTab, ScopeRailGroups } from "@/components/app/scope-control-set";
 import { TasksSection } from "@/components/app/tasks-section";
-import { currentSession } from "@/lib/control-work";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  Badge,
-  Box,
-  Button,
-  Empty,
-  Fact,
-  Id,
-  Indicator,
-  Inspector,
-  KeyValue,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Stack,
-  Table,
-  TabsList,
-  TabsTrigger,
-  Count,
-  TextLink,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
-import { Shell } from "@/components/app/shell";
 import {
   ancestorsOf,
   bomForNode,
@@ -47,15 +31,8 @@ import {
   nodeById,
   pathOf,
 } from "@/lib/composition";
-import { assetById, findings, isOpen } from "@/lib/findings";
-import {
-  controlSetFor,
-  scopesForProgram,
-  scopesServedBy,
-  servesEdgesFor,
-  triadOf,
-  useScopesVersion,
-} from "@/lib/scopes";
+import { currentSession } from "@/lib/control-work";
+import { findings, isOpen } from "@/lib/findings";
 import { postureOf } from "@/lib/graph-posture";
 import { programs } from "@/lib/grc-data";
 import {
@@ -67,7 +44,35 @@ import {
   undecidedFor,
   useRequirementsVersion,
 } from "@/lib/requirements";
+import {
+  controlSetFor,
+  scopesForProgram,
+  scopesServedBy,
+  servesEdgesFor,
+  triadOf,
+  useScopesVersion,
+} from "@/lib/scopes";
 import { severityTone } from "@/lib/spine";
+import {
+  Badge,
+  Box,
+  BreadcrumbLink,
+  Button,
+  Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Fact,
+  Indicator,
+  Inspector,
+  KeyValue,
+  Section,
+  Table,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+} from "@ledger/design-system";
 
 /**
  * The component record — `§20`'s "LRU / component view".
@@ -173,26 +178,24 @@ function ComponentRecord() {
 
   if (!node || node.program !== program.id) {
     return (
-      <Shell>
-        <Stack space="space.150">
-          <h1 className="font-heading-small font-semibold">Component not found</h1>
-          <p className="max-w-layout-measure font-body text-subtle">
-            {componentId} is not a component of {program.id}.
-          </p>
-          <TextLink
-            size="medium"
-            render={
-              <Link
-                to="/programs/$programId/composition"
-                params={{ programId }}
-                search={{ tab: undefined }}
-              />
-            }
-          >
-            Back to system composition
-          </TextLink>
-        </Stack>
-      </Shell>
+      <Stack space="space.150">
+        <h1 className="font-heading-small font-semibold">Component not found</h1>
+        <p className="max-w-layout-measure font-body text-subtle">
+          {componentId} is not a component of {program.id}.
+        </p>
+        <TextLink
+          size="medium"
+          render={
+            <Link
+              to="/programs/$programId/composition"
+              params={{ programId }}
+              search={{ tab: undefined }}
+            />
+          }
+        >
+          Back to system composition
+        </TextLink>
+      </Stack>
     );
   }
 
@@ -203,466 +206,474 @@ function ComponentRecord() {
   const me = currentSession().name;
 
   return (
-    <Shell>
-      <>
-        <ShowPage
-          tab={anchored ? tab : undefined}
-          onTabChange={(value) => go(value as typeof tab)}
-          rail={
-            tab === "Overview" ? (
-              <>
-                <NodeRail node={node} posture={posture} />
-                <Inspector.Group title="Position">
-                  <KeyValue label="Attestation">
-                    <Badge
-                      variant="secondary"
-                      size="xsmall"
-                      tone={node.attested ? "success" : "warning"}
-                    >
-                      {node.attested ? "Attested" : "Not attested"}
-                    </Badge>
-                  </KeyValue>
-                  {posture?.worst ? (
-                    <KeyValue label="Findings">
-                      <Indicator tone={severityTone(posture.worst)}>{posture.worst} open</Indicator>
-                    </KeyValue>
-                  ) : null}
-                  {anchored ? (
-                    <KeyValue label="Authorization">
-                      {anchored.independentlyAuthorized
-                        ? "Separately authorized"
-                        : "Inside the program ATO"}
-                    </KeyValue>
-                  ) : null}
-                  {anchored ? (
-                    <KeyValue label="Control set" wrap>
-                      <RevisionStrip scopeId={anchored.id} />
-                    </KeyValue>
-                  ) : null}
-                  <KeyValue label="Sits in">
-                    {parent ? (
-                      <TextLink
-                        render={
-                          <Link
-                            to="/programs/$programId/components/$componentId"
-                            params={{ programId, componentId: parent.id }}
-                          />
-                        }
-                      >
-                        {parent.name}
-                      </TextLink>
-                    ) : (
-                      "Top of the tree"
-                    )}
-                  </KeyValue>
-                  <KeyValue label="Scopes">{scopes.length}</KeyValue>
-                  <KeyValue label="Requirements">{allocations.length || "None"}</KeyValue>
-                  <KeyValue label="Controls reached">{trace.controls.length || "None"}</KeyValue>
-                </Inspector.Group>
-                {anchored ? <ScopeRailGroups scope={anchored} /> : null}
-              </>
-            ) : null
-          }
-          header={
-            <RecordHeader
-              crumbs={
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  render={
+                    <Link
+                      to="/programs/$programId"
+                      params={{ programId }}
+                      search={{ tab: "System" }}
+                    />
+                  }
+                >
+                  {program.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              {anchored ? null : (
                 <>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                  </BreadcrumbItem>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbLink
-                      render={
-                        <Link
-                          to="/programs/$programId"
-                          params={{ programId }}
-                          search={{ tab: "System" }}
-                        />
-                      }
+                      render={<Link to="/programs/$programId/composition" params={{ programId }} />}
                     >
-                      {program.name}
+                      Composition
                     </BreadcrumbLink>
                   </BreadcrumbItem>
-                  {anchored ? null : (
-                    <>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          render={
-                            <Link to="/programs/$programId/composition" params={{ programId }} />
-                          }
-                        >
-                          Composition
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                    </>
-                  )}
                 </>
-              }
-              id={node.id}
-              title={node.name}
-              actions={
-                <Button size="small" variant="primary" onClick={() => setDeciding(true)}>
-                  {undecided.length
-                    ? `Review ${undecided.length} unanswered`
-                    : "Allocate requirements"}
-                </Button>
-              }
-            />
-          }
-          tabs={
-            anchored ? (
-              <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-                {nodeTabs.map((key) => (
-                  <TabsTrigger key={key} value={key}>
-                    {key}
-                    {key === "Control set" && anchoredSet?.total != null ? (
-                      <Count value={anchoredSet.total} max={9999} />
-                    ) : null}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            ) : undefined
-          }
-        >
-          {tab === "Control set" && anchored ? (
-            <ScopeControlSetTab programId={program.id} scope={anchored} />
-          ) : (
-            <>
-              {scopes.some((sc) => sc.id !== anchored?.id) ? (
-                <Section title="Assessment scopes">
-                  <Table className="pt-050">
-                    <thead>
-                      <Table.Row>
-                        <Table.Header width={104}>Scope</Table.Header>
-                        <Table.Header width={220}>Name</Table.Header>
-                        <Table.Header width={56} title="Confidentiality">
-                          C
-                        </Table.Header>
-                        <Table.Header width={56} title="Integrity">
-                          I
-                        </Table.Header>
-                        <Table.Header width={56} title="Availability">
-                          A
-                        </Table.Header>
-                        <Table.Header width={84}>Reached by</Table.Header>
-                        <Table.Header>Role here</Table.Header>
-                      </Table.Row>
-                    </thead>
-                    <tbody>
-                      {scopes
-                        .filter((sc) => sc.id !== anchored?.id)
-                        .map((sc) => {
-                          const t = triadOf(sc);
-                          const edge = serves.find((e) => e.scope === sc.id);
-                          const set = controlSetFor(sc.id);
-                          return (
-                            <Table.Row key={sc.id} title={edge?.rationale ?? sc.mission}>
-                              <Table.Cell className="max-w-none">
-                                <TextLink
-                                  render={
-                                    <Link
-                                      to="/programs/$programId/components/$componentId"
-                                      params={{ programId, componentId: sc.element }}
-                                      search={{ tab: "Control set" }}
-                                    />
-                                  }
-                                >
-                                  <Id>{sc.id}</Id>
-                                </TextLink>
-                              </Table.Cell>
-                              <Table.Cell className="truncate">{sc.name}</Table.Cell>
-                              <Table.Cell>{t.Confidentiality.slice(0, 1)}</Table.Cell>
-                              <Table.Cell>{t.Integrity.slice(0, 1)}</Table.Cell>
-                              <Table.Cell>{t.Availability.slice(0, 1)}</Table.Cell>
-                              <Table.Cell>
-                                <Badge
-                                  variant="secondary"
-                                  size="xsmall"
-                                  tone={edge ? "information" : "neutral"}
-                                >
-                                  {edge ? "Serves" : "Contains"}
-                                </Badge>
-                              </Table.Cell>
-                              <Table.Cell className="truncate">
-                                {edge ? edge.role : `${set?.total ?? 0} controls in force`}
-                              </Table.Cell>
-                            </Table.Row>
-                          );
-                        })}
-                    </tbody>
-                  </Table>
-                </Section>
-              ) : null}
-
-              <Section title="Security requirements allocated here">
-                <ElementAllocationTable
-                  allocations={allocations}
-                  programId={programId}
-                  requirementFor={(id) => requirementById.get(id)}
-                />
-              </Section>
-
-              <Section title="Controls reached">
-                <DerivedControlTrace trace={trace} programId={programId} />
-              </Section>
-
-              {children.length > 0 ? (
-                <Section title="Contains">
-                  <Table className="pt-050">
-                    <thead>
-                      <Table.Row>
-                        <Table.Header width={104}>Component</Table.Header>
-                        <Table.Header>Name</Table.Header>
-                        <Table.Header width={132}>Kind</Table.Header>
-                        <Table.Header width={120}>Version</Table.Header>
-                        <Table.Header width={132}>Supplier</Table.Header>
-                        <Table.Header width={96} className="text-right">
-                          Reqs
-                        </Table.Header>
-                      </Table.Row>
-                    </thead>
-                    <tbody>
-                      {children.map((child) => (
-                        <Table.Row key={child.id}>
-                          <Table.Cell className="max-w-none">
-                            <TextLink
-                              render={
-                                <Link
-                                  to="/programs/$programId/components/$componentId"
-                                  params={{ programId, componentId: child.id }}
-                                />
-                              }
-                            >
-                              <Id>{child.id}</Id>
-                            </TextLink>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{child.name}</Table.Cell>
-                          <Table.Cell className="truncate">{child.kind}</Table.Cell>
-                          <Table.Cell className="truncate">{child.version}</Table.Cell>
-                          <Table.Cell className="truncate">{child.supplier}</Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">
-                            {allocationsOn(child.id).length || (
-                              <span className="text-subtle">—</span>
-                            )}
-                          </Table.Cell>
+              )}
+            </>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{node.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{node.name}</PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
+          <Button size="small" variant="primary" onClick={() => setDeciding(true)}>
+            {undecided.length ? `Review ${undecided.length} unanswered` : "Allocate requirements"}
+          </Button>
+        </PageHeader.Actions>
+      </PageHeader>
+      <Tabs
+        value={anchored ? tab : undefined}
+        onValueChange={(value) => go(value as typeof tab)}
+        className="gap-150"
+      >
+        {anchored ? (
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {nodeTabs.map((key) => (
+              <TabsTrigger key={key} value={key}>
+                {key}
+                {key === "Control set" && anchoredSet?.total != null ? (
+                  <Count value={anchoredSet.total} max={9999} />
+                ) : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        ) : undefined}
+        <TabsContent value={anchored ? tab : undefined}>
+          <Stack space="space.300" className="min-w-0 pt-200">
+            {tab === "Control set" && anchored ? (
+              <ScopeControlSetTab programId={program.id} scope={anchored} />
+            ) : (
+              <>
+                {scopes.some((sc) => sc.id !== anchored?.id) ? (
+                  <Section title="Assessment scopes">
+                    <Table className="pt-050">
+                      <thead>
+                        <Table.Row>
+                          <Table.Header width={104}>Scope</Table.Header>
+                          <Table.Header width={220}>Name</Table.Header>
+                          <Table.Header width={56} title="Confidentiality">
+                            C
+                          </Table.Header>
+                          <Table.Header width={56} title="Integrity">
+                            I
+                          </Table.Header>
+                          <Table.Header width={56} title="Availability">
+                            A
+                          </Table.Header>
+                          <Table.Header width={84}>Reached by</Table.Header>
+                          <Table.Header>Role here</Table.Header>
                         </Table.Row>
-                      ))}
-                    </tbody>
-                  </Table>
-                </Section>
-              ) : null}
+                      </thead>
+                      <tbody>
+                        {scopes
+                          .filter((sc) => sc.id !== anchored?.id)
+                          .map((sc) => {
+                            const t = triadOf(sc);
+                            const edge = serves.find((e) => e.scope === sc.id);
+                            const set = controlSetFor(sc.id);
+                            return (
+                              <Table.Row key={sc.id} title={edge?.rationale ?? sc.mission}>
+                                <Table.Cell className="max-w-none">
+                                  <TextLink
+                                    render={
+                                      <Link
+                                        to="/programs/$programId/components/$componentId"
+                                        params={{ programId, componentId: sc.element }}
+                                        search={{ tab: "Control set" }}
+                                      />
+                                    }
+                                  >
+                                    <Id>{sc.id}</Id>
+                                  </TextLink>
+                                </Table.Cell>
+                                <Table.Cell className="truncate">{sc.name}</Table.Cell>
+                                <Table.Cell>{t.Confidentiality.slice(0, 1)}</Table.Cell>
+                                <Table.Cell>{t.Integrity.slice(0, 1)}</Table.Cell>
+                                <Table.Cell>{t.Availability.slice(0, 1)}</Table.Cell>
+                                <Table.Cell>
+                                  <Badge
+                                    variant="secondary"
+                                    size="xsmall"
+                                    tone={edge ? "information" : "neutral"}
+                                  >
+                                    {edge ? "Serves" : "Contains"}
+                                  </Badge>
+                                </Table.Cell>
+                                <Table.Cell className="truncate">
+                                  {edge ? edge.role : `${set?.total ?? 0} controls in force`}
+                                </Table.Cell>
+                              </Table.Row>
+                            );
+                          })}
+                      </tbody>
+                    </Table>
+                  </Section>
+                ) : null}
 
-              {out.length + inbound.length > 0 ? (
-                <Section title="Connections">
-                  <Table className="pt-050">
-                    <thead>
-                      <Table.Row>
-                        <Table.Header width={88}>Direction</Table.Header>
-                        <Table.Header width={104}>Component</Table.Header>
-                        <Table.Header>Name</Table.Header>
-                        <Table.Header width={132}>Relation</Table.Header>
-                        <Table.Header width={108}>Boundary</Table.Header>
-                      </Table.Row>
-                    </thead>
-                    <tbody>
-                      {[
-                        ...out.map((e) => ({ edge: e, dir: "Out" as const, other: e.to })),
-                        ...inbound.map((e) => ({ edge: e, dir: "In" as const, other: e.from })),
-                      ].map(({ edge, dir, other }, i) => {
-                        const peer = nodeById.get(other);
-                        return (
-                          <Table.Row key={`${edge.from}-${edge.to}-${i}`} title={edge.via}>
-                            <Table.Cell>{dir}</Table.Cell>
+                <Section title="Security requirements allocated here">
+                  <ElementAllocationTable
+                    allocations={allocations}
+                    programId={programId}
+                    requirementFor={(id) => requirementById.get(id)}
+                  />
+                </Section>
+
+                <Section title="Controls reached">
+                  <DerivedControlTrace trace={trace} programId={programId} />
+                </Section>
+
+                {children.length > 0 ? (
+                  <Section title="Contains">
+                    <Table className="pt-050">
+                      <thead>
+                        <Table.Row>
+                          <Table.Header width={104}>Component</Table.Header>
+                          <Table.Header>Name</Table.Header>
+                          <Table.Header width={132}>Kind</Table.Header>
+                          <Table.Header width={120}>Version</Table.Header>
+                          <Table.Header width={132}>Supplier</Table.Header>
+                          <Table.Header width={96} className="text-right">
+                            Reqs
+                          </Table.Header>
+                        </Table.Row>
+                      </thead>
+                      <tbody>
+                        {children.map((child) => (
+                          <Table.Row key={child.id}>
                             <Table.Cell className="max-w-none">
                               <TextLink
                                 render={
                                   <Link
                                     to="/programs/$programId/components/$componentId"
-                                    params={{ programId, componentId: other }}
+                                    params={{ programId, componentId: child.id }}
                                   />
                                 }
                               >
-                                <Id>{other}</Id>
+                                <Id>{child.id}</Id>
                               </TextLink>
                             </Table.Cell>
-                            <Table.Cell className="truncate">{peer?.name ?? other}</Table.Cell>
-                            <Table.Cell className="truncate">
-                              {edge.kind} — {edge.via}
-                            </Table.Cell>
-                            <Table.Cell>
-                              {crossesBoundary(edge) ? (
-                                <Badge variant="secondary" size="xsmall" tone="warning">
-                                  Crosses
-                                </Badge>
-                              ) : (
+                            <Table.Cell className="truncate">{child.name}</Table.Cell>
+                            <Table.Cell className="truncate">{child.kind}</Table.Cell>
+                            <Table.Cell className="truncate">{child.version}</Table.Cell>
+                            <Table.Cell className="truncate">{child.supplier}</Table.Cell>
+                            <Table.Cell className="tabular-nums text-right">
+                              {allocationsOn(child.id).length || (
                                 <span className="text-subtle">—</span>
                               )}
                             </Table.Cell>
                           </Table.Row>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                </Section>
-              ) : null}
+                        ))}
+                      </tbody>
+                    </Table>
+                  </Section>
+                ) : null}
 
-              {skipped.length > 0 ? (
-                <Section title="Ruled out here">
-                  <Table className="pt-050">
-                    <thead>
-                      <Table.Row>
-                        <Table.Header width={112}>Requirement</Table.Header>
-                        <Table.Header width={320}>Shall statement</Table.Header>
-                        <Table.Header>Why it does not apply here</Table.Header>
-                        <Table.Header width={124}>Decided by</Table.Header>
-                        <Table.Header width={108}>Decided</Table.Header>
-                      </Table.Row>
-                    </thead>
-                    <tbody>
-                      {skipped.map((d) => {
-                        const r = getRequirement(d.requirement);
-                        return (
-                          <Table.Row key={d.id}>
+                {out.length + inbound.length > 0 ? (
+                  <Section title="Connections">
+                    <Table className="pt-050">
+                      <thead>
+                        <Table.Row>
+                          <Table.Header width={88}>Direction</Table.Header>
+                          <Table.Header width={104}>Component</Table.Header>
+                          <Table.Header>Name</Table.Header>
+                          <Table.Header width={132}>Relation</Table.Header>
+                          <Table.Header width={108}>Boundary</Table.Header>
+                        </Table.Row>
+                      </thead>
+                      <tbody>
+                        {[
+                          ...out.map((e) => ({ edge: e, dir: "Out" as const, other: e.to })),
+                          ...inbound.map((e) => ({
+                            edge: e,
+                            dir: "In" as const,
+                            other: e.from,
+                          })),
+                        ].map(({ edge, dir, other }, i) => {
+                          const peer = nodeById.get(other);
+                          return (
+                            <Table.Row key={`${edge.from}-${edge.to}-${i}`} title={edge.via}>
+                              <Table.Cell>{dir}</Table.Cell>
+                              <Table.Cell className="max-w-none">
+                                <TextLink
+                                  render={
+                                    <Link
+                                      to="/programs/$programId/components/$componentId"
+                                      params={{ programId, componentId: other }}
+                                    />
+                                  }
+                                >
+                                  <Id>{other}</Id>
+                                </TextLink>
+                              </Table.Cell>
+                              <Table.Cell className="truncate">{peer?.name ?? other}</Table.Cell>
+                              <Table.Cell className="truncate">
+                                {edge.kind} — {edge.via}
+                              </Table.Cell>
+                              <Table.Cell>
+                                {crossesBoundary(edge) ? (
+                                  <Badge variant="secondary" size="xsmall" tone="warning">
+                                    Crosses
+                                  </Badge>
+                                ) : (
+                                  <span className="text-subtle">—</span>
+                                )}
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                  </Section>
+                ) : null}
+
+                {skipped.length > 0 ? (
+                  <Section title="Ruled out here">
+                    <Table className="pt-050">
+                      <thead>
+                        <Table.Row>
+                          <Table.Header width={112}>Requirement</Table.Header>
+                          <Table.Header width={320}>Shall statement</Table.Header>
+                          <Table.Header>Why it does not apply here</Table.Header>
+                          <Table.Header width={124}>Decided by</Table.Header>
+                          <Table.Header width={108}>Decided</Table.Header>
+                        </Table.Row>
+                      </thead>
+                      <tbody>
+                        {skipped.map((d) => {
+                          const r = getRequirement(d.requirement);
+                          return (
+                            <Table.Row key={d.id}>
+                              <Table.Cell className="max-w-none">
+                                <TextLink
+                                  render={
+                                    <Link
+                                      to="/programs/$programId/requirements/$requirementId"
+                                      params={{ programId, requirementId: d.requirement }}
+                                      search={{ tab: undefined }}
+                                    />
+                                  }
+                                >
+                                  <Id>{d.requirement}</Id>
+                                </TextLink>
+                              </Table.Cell>
+                              <Table.Cell className="truncate" title={r?.text}>
+                                {r?.text ?? "—"}
+                              </Table.Cell>
+                              <Table.Cell className="whitespace-normal py-100 align-top">
+                                {d.rationale}
+                              </Table.Cell>
+                              <Table.Cell className="truncate">{d.decidedBy}</Table.Cell>
+                              <Table.Cell>{d.decidedOn}</Table.Cell>
+                            </Table.Row>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                  </Section>
+                ) : null}
+
+                <AllocateRequirementsSheet
+                  open={deciding}
+                  onClose={() => setDeciding(false)}
+                  programId={program.id}
+                  node={node}
+                />
+
+                <Section title="Open findings">
+                  {open.length ? (
+                    <Table className="pt-050">
+                      <thead>
+                        <Table.Row>
+                          <Table.Header width={104}>Finding</Table.Header>
+                          <Table.Header width={88}>Severity</Table.Header>
+                          <Table.Header>Title</Table.Header>
+                          <Table.Header width={104}>Control</Table.Header>
+                          <Table.Header width={120}>Status</Table.Header>
+                        </Table.Row>
+                      </thead>
+                      <tbody>
+                        {open.map((f) => (
+                          <Table.Row key={f.id}>
                             <Table.Cell className="max-w-none">
                               <TextLink
                                 render={
+                                  <Link to="/findings/$findingId" params={{ findingId: f.id }} />
+                                }
+                              >
+                                <Id>{f.id}</Id>
+                              </TextLink>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                                {f.mitigatedSeverity}
+                              </Indicator>
+                            </Table.Cell>
+                            <Table.Cell className="truncate">{f.title}</Table.Cell>
+                            <Table.Cell>
+                              <TextLink
+                                render={
                                   <Link
-                                    to="/programs/$programId/requirements/$requirementId"
-                                    params={{ programId, requirementId: d.requirement }}
+                                    to="/programs/$programId/controls/$controlId"
+                                    params={{ programId, controlId: f.control }}
                                     search={{ tab: undefined }}
                                   />
                                 }
                               >
-                                <Id>{d.requirement}</Id>
+                                <Id>{f.control}</Id>
                               </TextLink>
                             </Table.Cell>
-                            <Table.Cell className="truncate" title={r?.text}>
-                              {r?.text ?? "—"}
-                            </Table.Cell>
-                            <Table.Cell className="whitespace-normal py-100 align-top">
-                              {d.rationale}
-                            </Table.Cell>
-                            <Table.Cell className="truncate">{d.decidedBy}</Table.Cell>
-                            <Table.Cell>{d.decidedOn}</Table.Cell>
+                            <Table.Cell className="truncate">{f.lifecycle}</Table.Cell>
                           </Table.Row>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
+                        ))}
+                      </tbody>
+                    </Table>
+                  ) : (
+                    <Box paddingBlockStart="space.150">
+                      <Empty>
+                        <EmptyHeader>
+                          <EmptyTitle>{"No open findings"}</EmptyTitle>
+                          <EmptyDescription>
+                            {node.asset
+                              ? `Nothing open against ${node.asset}.`
+                              : "This component is not a tracked boundary asset, so findings attach to its host instead."}
+                          </EmptyDescription>
+                        </EmptyHeader>
+                      </Empty>
+                    </Box>
+                  )}
                 </Section>
-              ) : null}
 
-              <AllocateRequirementsSheet
-                open={deciding}
-                onClose={() => setDeciding(false)}
-                programId={program.id}
-                node={node}
-              />
+                <Section title="Provenance">
+                  <Fact.Group className="pt-150">
+                    <Fact label="Declared by">{node.bomSource}</Fact>
+                    <Fact label="BOM document">
+                      {bom ? (
+                        <span title={`${bom.name} · ${bom.producer} · ${bom.received}`}>
+                          <Id>{bom.id}</Id>
+                        </span>
+                      ) : (
+                        "Hand-declared"
+                      )}
+                    </Fact>
+                    <Fact label="Path">
+                      {pathOf(node.id)
+                        .map((n) => n.name)
+                        .join(" / ")}
+                    </Fact>
+                  </Fact.Group>
+                  {node.note ? (
+                    <p className="max-w-layout-measure pt-100 font-body text-subtle">{node.note}</p>
+                  ) : null}
+                </Section>
 
-              <Section title="Open findings">
-                {open.length ? (
-                  <Table className="pt-050">
-                    <thead>
-                      <Table.Row>
-                        <Table.Header width={104}>Finding</Table.Header>
-                        <Table.Header width={88}>Severity</Table.Header>
-                        <Table.Header>Title</Table.Header>
-                        <Table.Header width={104}>Control</Table.Header>
-                        <Table.Header width={120}>Status</Table.Header>
-                      </Table.Row>
-                    </thead>
-                    <tbody>
-                      {open.map((f) => (
-                        <Table.Row key={f.id}>
-                          <Table.Cell className="max-w-none">
-                            <TextLink
-                              render={
-                                <Link to="/findings/$findingId" params={{ findingId: f.id }} />
-                              }
-                            >
-                              <Id>{f.id}</Id>
-                            </TextLink>
-                          </Table.Cell>
-                          <Table.Cell>
-                            <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                              {f.mitigatedSeverity}
-                            </Indicator>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{f.title}</Table.Cell>
-                          <Table.Cell>
-                            <TextLink
-                              render={
-                                <Link
-                                  to="/programs/$programId/controls/$controlId"
-                                  params={{ programId, controlId: f.control }}
-                                  search={{ tab: undefined }}
-                                />
-                              }
-                            >
-                              <Id>{f.control}</Id>
-                            </TextLink>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{f.lifecycle}</Table.Cell>
-                        </Table.Row>
-                      ))}
-                    </tbody>
-                  </Table>
-                ) : (
-                  <Box paddingBlockStart="space.150">
-                    <Empty>
-                      <EmptyHeader>
-                        <EmptyTitle>{"No open findings"}</EmptyTitle>
-                        <EmptyDescription>
-                          {node.asset
-                            ? `Nothing open against ${node.asset}.`
-                            : "This component is not a tracked boundary asset, so findings attach to its host instead."}
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  </Box>
-                )}
-              </Section>
+                <TasksSection
+                  program={programId}
+                  subject={{ kind: "node", id: node.id, label: node.name }}
+                  me={me}
+                />
 
-              <Section title="Provenance">
-                <Fact.Group className="pt-150">
-                  <Fact label="Declared by">{node.bomSource}</Fact>
-                  <Fact label="BOM document">
-                    {bom ? (
-                      <span title={`${bom.name} · ${bom.producer} · ${bom.received}`}>
-                        <Id>{bom.id}</Id>
-                      </span>
-                    ) : (
-                      "Hand-declared"
-                    )}
-                  </Fact>
-                  <Fact label="Path">
-                    {pathOf(node.id)
-                      .map((n) => n.name)
-                      .join(" / ")}
-                  </Fact>
-                </Fact.Group>
-                {node.note ? (
-                  <p className="max-w-layout-measure pt-100 font-body text-subtle">{node.note}</p>
+                <RecordActivity
+                  program={programId}
+                  subject={{ kind: "node", id: node.id, label: node.name }}
+                  me={me}
+                />
+              </>
+            )}
+          </Stack>
+        </TabsContent>
+        <Shell.Aside label="Record properties">
+          {tab === "Overview" ? (
+            <>
+              <NodeRail node={node} posture={posture} />
+              <Inspector.Group title="Position">
+                <KeyValue label="Attestation">
+                  <Badge
+                    variant="secondary"
+                    size="xsmall"
+                    tone={node.attested ? "success" : "warning"}
+                  >
+                    {node.attested ? "Attested" : "Not attested"}
+                  </Badge>
+                </KeyValue>
+                {posture?.worst ? (
+                  <KeyValue label="Findings">
+                    <Indicator tone={severityTone(posture.worst)}>{posture.worst} open</Indicator>
+                  </KeyValue>
                 ) : null}
-              </Section>
-
-              <TasksSection
-                program={programId}
-                subject={{ kind: "node", id: node.id, label: node.name }}
-                me={me}
-              />
-
-              <RecordActivity
-                program={programId}
-                subject={{ kind: "node", id: node.id, label: node.name }}
-                me={me}
-              />
+                {anchored ? (
+                  <KeyValue label="Authorization">
+                    {anchored.independentlyAuthorized
+                      ? "Separately authorized"
+                      : "Inside the program ATO"}
+                  </KeyValue>
+                ) : null}
+                {anchored ? (
+                  <KeyValue label="Control set" wrap>
+                    <RevisionStrip scopeId={anchored.id} />
+                  </KeyValue>
+                ) : null}
+                <KeyValue label="Sits in">
+                  {parent ? (
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId/components/$componentId"
+                          params={{ programId, componentId: parent.id }}
+                        />
+                      }
+                    >
+                      {parent.name}
+                    </TextLink>
+                  ) : (
+                    "Top of the tree"
+                  )}
+                </KeyValue>
+                <KeyValue label="Scopes">{scopes.length}</KeyValue>
+                <KeyValue label="Requirements">{allocations.length || "None"}</KeyValue>
+                <KeyValue label="Controls reached">{trace.controls.length || "None"}</KeyValue>
+              </Inspector.Group>
+              {anchored ? <ScopeRailGroups scope={anchored} /> : null}
             </>
-          )}
-        </ShowPage>
-      </>
-    </Shell>
+          ) : null}
+        </Shell.Aside>
+      </Tabs>
+    </Stack>
   );
 }

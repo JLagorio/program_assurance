@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
+import { Glance } from "../..";
 import {
   Badge,
   HoverCard,
@@ -11,7 +12,6 @@ import {
   TextLink,
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
-import { Glance } from "../../patterns";
 import { Grid, Stack, Text } from "../../primitives";
 
 const meta = {

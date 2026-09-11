@@ -1,30 +1,31 @@
+import { AppLayout } from "@/components/app/shell";
+import { restoreWorkspaceRecords } from "@/lib/workspace-restore";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet,
+  HeadContent,
   Link,
+  Outlet,
+  Scripts,
   createRootRouteWithContext,
   useRouter,
-  HeadContent,
-  Scripts,
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { restoreWorkspaceRecords } from "@/lib/workspace-restore";
 
 import {
   Box,
   Button,
-  buttonVariants,
   Inline,
   ModeProvider,
   Toaster,
+  buttonVariants,
   modeScript,
   shellScript,
   toast,
 } from "@ledger/design-system";
 
-import appCss from "../styles.css?url";
 import { PersonaSwitch } from "../components/app/persona-switch";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
   return (
@@ -151,7 +152,9 @@ function RootComponent() {
       <ModeProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         {ready ? (
-          <Outlet />
+          <AppLayout>
+            <Outlet />
+          </AppLayout>
         ) : (
           <Inline className="min-h-screen" alignBlock="center" alignInline="center">
             <p role="status">Loading workspace…</p>

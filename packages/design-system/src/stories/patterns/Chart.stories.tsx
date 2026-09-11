@@ -4,6 +4,7 @@ import { Download, RotateCcw } from "lucide-react";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
+import { Chart, type ChartSelection } from "../..";
 import {
   Badge,
   Button,
@@ -13,8 +14,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "../../components";
-import { Chart, type ChartSelection } from "../../patterns";
-import { Box, Grid, Inline, Stack, Text } from "../../primitives";
+import { Box, Grid, Grid as GridPrimitive, Inline, Stack, Text } from "../../primitives";
 import {
   assessors,
   assessorsEmphasised,
@@ -32,7 +32,6 @@ import {
   statusSeries,
   systemTotals,
 } from "../_lib/chart-data";
-import { Grid as GridPrimitive } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 

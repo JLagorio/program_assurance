@@ -1,37 +1,4 @@
-import {
-  InputGroupAddon,
-  InputGroupInput,
-  Badge,
-  Button,
-  Empty,
-  Id,
-  Indicator,
-  Inline,
-  InputGroup,
-  Inspector,
-  KeyValue,
-  PageHeader,
-  PreviewRail,
-  PreviewSplit,
-  Stack,
-  Table,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-  Count,
-  ToggleGroup,
-  ToggleGroupItem,
-  EmptyHeader,
-  EmptyContent,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
 import { UnavailableAction } from "@/components/app/unavailable-action";
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
-import { Shell } from "@/components/app/shell";
 import {
   benchmarkById,
   ccis,
@@ -43,6 +10,37 @@ import {
   type Cci,
 } from "@/lib/catalog";
 import { severityTone, statusTone } from "@/lib/spine";
+import {
+  Badge,
+  Button,
+  Count,
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Id,
+  Indicator,
+  Inline,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  Shell,
+  Stack,
+  Table,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@ledger/design-system";
+import { createFileRoute } from "@tanstack/react-router";
+import { Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/controls")({
   head: () => ({
@@ -103,264 +101,265 @@ function Catalog() {
   );
 
   return (
-    <Shell>
-      <Stack className="animate-rise" space="space.200">
-        <PageHeader
-          title="Control catalog"
-          actions={
-            <UnavailableAction
-              reason="Catalog import is not connected. This catalog is read-only."
-              variant="secondary"
-            >
-              Import catalog
-            </UnavailableAction>
-          }
-        />
+    <Stack className="animate-rise" space="space.200">
+      <PageHeader>
+        <div className="min-w-0">
+          <PageHeader.Title>{"Control catalog"}</PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
+          <UnavailableAction
+            reason="Catalog import is not connected. This catalog is read-only."
+            variant="secondary"
+          >
+            Import catalog
+          </UnavailableAction>
+        </PageHeader.Actions>
+      </PageHeader>
 
-        <Tabs
-          value={tab}
-          onValueChange={(value) => {
-            setTab(value as typeof tab);
-            setSelected(null);
-          }}
-          className="contents"
-        >
-          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-            {tabs.map((t) => (
-              <TabsTrigger key={t} value={t}>
-                {t}
-                {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value={tab} className="contents">
-            {tab !== "Overlays" ? (
-              <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
-                <InputGroup>
-                  <InputGroupInput
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    placeholder={tab === "Controls" ? "Search controls" : "Search CCIs"}
-                    aria-label="Search"
-                    style={{ width: 240, maxWidth: "100%" }}
-                  />
-                  <InputGroupAddon>{<Search />}</InputGroupAddon>
-                </InputGroup>
-                <ToggleGroup
-                  aria-label="Family"
-                  size="sm"
-                  value={[family]}
-                  onValueChange={([next]) => {
-                    if (next !== undefined) setFamily(next);
-                  }}
-                >
-                  {["All", ...families.map((f) => f.id)].map((f) => (
-                    <ToggleGroupItem key={f} value={f}>
-                      {f}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </Inline>
-            ) : null}
+      <Tabs
+        value={tab}
+        onValueChange={(value) => {
+          setTab(value as typeof tab);
+          setSelected(null);
+        }}
+        className="contents"
+      >
+        <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+          {tabs.map((t) => (
+            <TabsTrigger key={t} value={t}>
+              {t}
+              {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={tab} className="contents">
+          {tab !== "Overlays" ? (
+            <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
+              <InputGroup>
+                <InputGroupInput
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={tab === "Controls" ? "Search controls" : "Search CCIs"}
+                  aria-label="Search"
+                  style={{ width: 240, maxWidth: "100%" }}
+                />
+                <InputGroupAddon>
+                  <Search />
+                </InputGroupAddon>
+              </InputGroup>
+              <ToggleGroup
+                aria-label="Family"
+                size="sm"
+                value={[family]}
+                onValueChange={([next]) => {
+                  if (next !== undefined) setFamily(next);
+                }}
+              >
+                {["All", ...families.map((f) => f.id)].map((f) => (
+                  <ToggleGroupItem key={f} value={f}>
+                    {f}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </Inline>
+          ) : null}
 
-            <p role="status" className="font-body-small text-subtle">
-              {tab === "Controls"
-                ? `${filteredControls.length} matching controls`
-                : tab === "CCIs"
-                  ? `${filteredCcis.length} matching CCIs`
-                  : `${overlays.length} overlays`}
-            </p>
-            <PreviewSplit open={selected !== null}>
-              <div className="min-w-0 lg:pe-300">
-                {tab === "Controls" ? (
-                  <Table className="table-fixed">
-                    <thead>
-                      <tr>
-                        <Table.Header width={104}>Control</Table.Header>
-                        <Table.Header>Title</Table.Header>
-                        <Table.Header width={56}>Family</Table.Header>
-                        <Table.Header width={168}>Baseline</Table.Header>
-                        <Table.Header width={120}>Added by overlay</Table.Header>
-                        <Table.Header width={72} className="text-right">
-                          CCIs
-                        </Table.Header>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredControls.map((c) => (
-                        <Table.Row key={c.id}>
-                          <Table.Cell>
-                            <Id>{c.id}</Id>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{c.title}</Table.Cell>
-                          <Table.Cell>{c.family}</Table.Cell>
-                          <Table.Cell className="truncate">{c.baseline.join(" · ")}</Table.Cell>
-                          <Table.Cell className="truncate">
-                            {c.addedBy.length ? <Id>{c.addedBy.join(", ")}</Id> : "—"}
-                          </Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">{c.cciCount}</Table.Cell>
-                        </Table.Row>
-                      ))}
-                      {filteredControls.length === 0 ? (
-                        <Table.Row>
-                          <Table.Cell colSpan={12}>
-                            <Empty>
-                              <EmptyHeader>
-                                <EmptyTitle>No results match your filters</EmptyTitle>
-                                <EmptyDescription>
-                                  Clear the filters to see the available records.
-                                </EmptyDescription>
-                              </EmptyHeader>
-                              <EmptyContent>
-                                <Button
-                                  variant="secondary"
-                                  onClick={() => {
-                                    setQ("");
-                                    setFamily("All");
-                                  }}
-                                >
-                                  Clear filters
-                                </Button>
-                              </EmptyContent>
-                            </Empty>
-                          </Table.Cell>
-                        </Table.Row>
-                      ) : null}
-                    </tbody>
-                  </Table>
-                ) : null}
+          <p role="status" className="font-body-small text-subtle">
+            {tab === "Controls"
+              ? `${filteredControls.length} matching controls`
+              : tab === "CCIs"
+                ? `${filteredCcis.length} matching CCIs`
+                : `${overlays.length} overlays`}
+          </p>
+          <>
+            <div className="min-w-0 lg:pe-300">
+              {tab === "Controls" ? (
+                <Table className="table-fixed">
+                  <thead>
+                    <tr>
+                      <Table.Header width={104}>Control</Table.Header>
+                      <Table.Header>Title</Table.Header>
+                      <Table.Header width={56}>Family</Table.Header>
+                      <Table.Header width={168}>Baseline</Table.Header>
+                      <Table.Header width={120}>Added by overlay</Table.Header>
+                      <Table.Header width={72} className="text-right">
+                        CCIs
+                      </Table.Header>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredControls.map((c) => (
+                      <Table.Row key={c.id}>
+                        <Table.Cell>
+                          <Id>{c.id}</Id>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{c.title}</Table.Cell>
+                        <Table.Cell>{c.family}</Table.Cell>
+                        <Table.Cell className="truncate">{c.baseline.join(" · ")}</Table.Cell>
+                        <Table.Cell className="truncate">
+                          {c.addedBy.length ? <Id>{c.addedBy.join(", ")}</Id> : "—"}
+                        </Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">{c.cciCount}</Table.Cell>
+                      </Table.Row>
+                    ))}
+                    {filteredControls.length === 0 ? (
+                      <Table.Row>
+                        <Table.Cell colSpan={12}>
+                          <Empty>
+                            <EmptyHeader>
+                              <EmptyTitle>No results match your filters</EmptyTitle>
+                              <EmptyDescription>
+                                Clear the filters to see the available records.
+                              </EmptyDescription>
+                            </EmptyHeader>
+                            <EmptyContent>
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  setQ("");
+                                  setFamily("All");
+                                }}
+                              >
+                                Clear filters
+                              </Button>
+                            </EmptyContent>
+                          </Empty>
+                        </Table.Cell>
+                      </Table.Row>
+                    ) : null}
+                  </tbody>
+                </Table>
+              ) : null}
 
-                {tab === "Overlays" ? (
-                  <Table className="table-fixed">
-                    <thead>
-                      <tr>
-                        <Table.Header width={88}>ID</Table.Header>
-                        <Table.Header width={184}>Overlay</Table.Header>
-                        <Table.Header>Applicability</Table.Header>
-                        <Table.Header width={196}>Authority</Table.Header>
-                        <Table.Header width={64} className="text-right">
-                          Adds
-                        </Table.Header>
-                        <Table.Header width={76} className="text-right">
-                          Removes
-                        </Table.Header>
-                        <Table.Header width={84} className="text-right">
-                          Params
-                        </Table.Header>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {overlays.map((o) => (
-                        <Table.Row key={o.id}>
-                          <Table.Cell>
-                            <Id>{o.id}</Id>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{o.name}</Table.Cell>
-                          <Table.Cell className="truncate">{o.applicability}</Table.Cell>
-                          <Table.Cell className="truncate">{o.authority}</Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">+{o.adds}</Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">−{o.removes}</Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">
-                            {o.parameters}
-                          </Table.Cell>
-                        </Table.Row>
-                      ))}
-                    </tbody>
-                  </Table>
-                ) : null}
+              {tab === "Overlays" ? (
+                <Table className="table-fixed">
+                  <thead>
+                    <tr>
+                      <Table.Header width={88}>ID</Table.Header>
+                      <Table.Header width={184}>Overlay</Table.Header>
+                      <Table.Header>Applicability</Table.Header>
+                      <Table.Header width={196}>Authority</Table.Header>
+                      <Table.Header width={64} className="text-right">
+                        Adds
+                      </Table.Header>
+                      <Table.Header width={76} className="text-right">
+                        Removes
+                      </Table.Header>
+                      <Table.Header width={84} className="text-right">
+                        Params
+                      </Table.Header>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {overlays.map((o) => (
+                      <Table.Row key={o.id}>
+                        <Table.Cell>
+                          <Id>{o.id}</Id>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{o.name}</Table.Cell>
+                        <Table.Cell className="truncate">{o.applicability}</Table.Cell>
+                        <Table.Cell className="truncate">{o.authority}</Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">+{o.adds}</Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">−{o.removes}</Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">{o.parameters}</Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : null}
 
-                {tab === "CCIs" ? (
-                  <Table className="table-fixed">
-                    <thead>
-                      <tr>
-                        <Table.Header width={112}>CCI</Table.Header>
-                        <Table.Header width={88}>Control</Table.Header>
-                        <Table.Header>Statement</Table.Header>
-                        <Table.Header width={132}>Compliance</Table.Header>
-                        <Table.Header width={64} className="text-right">
-                          Rules
-                        </Table.Header>
-                        <Table.Header width={68} className="text-right">
-                          Procs
-                        </Table.Header>
-                        <Table.Header width={76} className="text-right">
-                          Objectives
-                        </Table.Header>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredCcis.map((c) => (
-                        <Table.Row
-                          key={c.id}
-                          onClick={() => setSelected(c)}
-                          className="cursor-pointer"
-                          data-selected={selected?.id === c.id ? "" : undefined}
-                        >
-                          <Table.Cell>
-                            <Id>{c.id}</Id>
-                          </Table.Cell>
-                          <Table.Cell>
-                            <Id>{c.control}</Id>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{c.definition}</Table.Cell>
-                          <Table.Cell>
-                            {c.compliance === "Non-compliant" ? (
-                              <Badge variant="secondary" tone="danger">
-                                Non-compliant
-                              </Badge>
-                            ) : c.compliance === "Compliant" ? (
-                              <Badge variant="secondary" tone="success">
-                                Compliant
-                              </Badge>
-                            ) : (
-                              <span className="text-subtle">{c.compliance}</span>
-                            )}
-                          </Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">
-                            {c.rules.length}
-                          </Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">
-                            {c.procedures.length}
-                          </Table.Cell>
-                          <Table.Cell className="tabular-nums text-right">
-                            {c.objectives.length || <span className="text-warning">0</span>}
-                          </Table.Cell>
-                        </Table.Row>
-                      ))}
-                      {filteredCcis.length === 0 ? (
-                        <Table.Row>
-                          <Table.Cell colSpan={12}>
-                            <Empty>
-                              <EmptyHeader>
-                                <EmptyTitle>No results match your filters</EmptyTitle>
-                                <EmptyDescription>
-                                  Clear the filters to see the available records.
-                                </EmptyDescription>
-                              </EmptyHeader>
-                              <EmptyContent>
-                                <Button
-                                  variant="secondary"
-                                  onClick={() => {
-                                    setQ("");
-                                    setFamily("All");
-                                  }}
-                                >
-                                  Clear filters
-                                </Button>
-                              </EmptyContent>
-                            </Empty>
-                          </Table.Cell>
-                        </Table.Row>
-                      ) : null}
-                    </tbody>
-                  </Table>
-                ) : null}
-              </div>
-
-              {selected ? (
-                <PreviewRail id={selected.id} onClose={() => setSelected(null)}>
+              {tab === "CCIs" ? (
+                <Table className="table-fixed">
+                  <thead>
+                    <tr>
+                      <Table.Header width={112}>CCI</Table.Header>
+                      <Table.Header width={88}>Control</Table.Header>
+                      <Table.Header>Statement</Table.Header>
+                      <Table.Header width={132}>Compliance</Table.Header>
+                      <Table.Header width={64} className="text-right">
+                        Rules
+                      </Table.Header>
+                      <Table.Header width={68} className="text-right">
+                        Procs
+                      </Table.Header>
+                      <Table.Header width={76} className="text-right">
+                        Objectives
+                      </Table.Header>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCcis.map((c) => (
+                      <Table.Row
+                        key={c.id}
+                        onClick={() => setSelected(c)}
+                        className="cursor-pointer"
+                        data-selected={selected?.id === c.id ? "" : undefined}
+                      >
+                        <Table.Cell>
+                          <Id>{c.id}</Id>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Id>{c.control}</Id>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{c.definition}</Table.Cell>
+                        <Table.Cell>
+                          {c.compliance === "Non-compliant" ? (
+                            <Badge variant="secondary" tone="danger">
+                              Non-compliant
+                            </Badge>
+                          ) : c.compliance === "Compliant" ? (
+                            <Badge variant="secondary" tone="success">
+                              Compliant
+                            </Badge>
+                          ) : (
+                            <span className="text-subtle">{c.compliance}</span>
+                          )}
+                        </Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">
+                          {c.rules.length}
+                        </Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">
+                          {c.procedures.length}
+                        </Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">
+                          {c.objectives.length || <span className="text-warning">0</span>}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                    {filteredCcis.length === 0 ? (
+                      <Table.Row>
+                        <Table.Cell colSpan={12}>
+                          <Empty>
+                            <EmptyHeader>
+                              <EmptyTitle>No results match your filters</EmptyTitle>
+                              <EmptyDescription>
+                                Clear the filters to see the available records.
+                              </EmptyDescription>
+                            </EmptyHeader>
+                            <EmptyContent>
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  setQ("");
+                                  setFamily("All");
+                                }}
+                              >
+                                Clear filters
+                              </Button>
+                            </EmptyContent>
+                          </Empty>
+                        </Table.Cell>
+                      </Table.Row>
+                    ) : null}
+                  </tbody>
+                </Table>
+              ) : null}
+            </div>
+            {selected ? (
+              <Shell.Panel title={selected.id} onClose={() => setSelected(null)}>
+                <Stack space="space.150" className="min-w-0">
+                  <Inline space="space.100" alignBlock="center" shouldWrap></Inline>
                   <p className="pb-150 font-body-small text-subtle">{selected.definition}</p>
-
                   <Inspector.Group title="Identity">
                     <KeyValue label="Parent control">
                       <Id>{selected.control}</Id>
@@ -375,7 +374,6 @@ function Catalog() {
                       {(ccisByControl.get(selected.control)?.length ?? 1) - 1}
                     </KeyValue>
                   </Inspector.Group>
-
                   <Inspector.Group title="Implemented by">
                     <Stack className="font-body-small" space="space.075">
                       {(rulesByCci.get(selected.id) ?? []).map((r) => (
@@ -399,7 +397,6 @@ function Catalog() {
                       ) : null}
                     </Stack>
                   </Inspector.Group>
-
                   <Inspector.Group title="Assessed by">
                     <Stack className="font-body-small text-subtle" space="space.050">
                       {selected.procedures.map((p) => (
@@ -409,7 +406,6 @@ function Catalog() {
                       ))}
                     </Stack>
                   </Inspector.Group>
-
                   <Inspector.Group title="Exercised by">
                     <Stack className="font-body-small" space="space.050">
                       {selected.objectives.length ? (
@@ -423,12 +419,12 @@ function Catalog() {
                       )}
                     </Stack>
                   </Inspector.Group>
-                </PreviewRail>
-              ) : null}
-            </PreviewSplit>
-          </TabsContent>
-        </Tabs>
-      </Stack>
-    </Shell>
+                </Stack>
+              </Shell.Panel>
+            ) : null}
+          </>
+        </TabsContent>
+      </Tabs>
+    </Stack>
   );
 }

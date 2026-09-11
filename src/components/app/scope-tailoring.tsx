@@ -1,37 +1,4 @@
 import {
-  FieldLabel,
-  FieldDescription,
-  Badge,
-  Block,
-  Box,
-  Button,
-  Checkbox,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-  Count,
-  Field,
-  Gates,
-  Grid,
-  Id,
-  Indicator,
-  Inline,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Stack,
-  Switch,
-  Table,
-  Textarea,
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@ledger/design-system";
-import { ChevronDown } from "lucide-react";
-import { useId, useMemo, useState } from "react";
-import { TailorControlsSheet } from "./tailor-picker";
-import {
   contestedOverlays,
   decideOverlay,
   objectivesBelow,
@@ -57,6 +24,39 @@ import {
   systemClasses,
   type SystemParameters,
 } from "@/lib/tailoring";
+import {
+  Badge,
+  Box,
+  Button,
+  Checkbox,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Count,
+  Field,
+  FieldDescription,
+  FieldLabel,
+  Gates,
+  Grid,
+  Id,
+  Indicator,
+  Inline,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Stack,
+  Switch,
+  Table,
+  Textarea,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@ledger/design-system";
+import { ChevronDown } from "lucide-react";
+import { useId, useMemo, useState } from "react";
+import { TailorControlsSheet } from "./tailor-picker";
 
 /**
  * One scope's categorization and tailoring, edited in place.
@@ -130,7 +130,7 @@ export function ScopeTailoringPane({
   return (
     <Stack space="space.050">
       {show("categorization") ? (
-        <Block
+        <Section
           title="Categorization"
           count={`CNSSI 1253 · ${triadLabel(p)}`}
           action={
@@ -220,11 +220,11 @@ export function ScopeTailoringPane({
               </Field>
             </Box>
           ) : null}
-        </Block>
+        </Section>
       ) : null}
 
       {show("environment") ? (
-        <Block title="Environment">
+        <Section title="Environment">
           {locked ? (
             <dl className="grid grid-cols-2 gap-x-300 gap-y-050 font-body-small sm:grid-cols-4">
               {(
@@ -412,11 +412,11 @@ export function ScopeTailoringPane({
               </Inline>
             </Stack>
           )}
-        </Block>
+        </Section>
       ) : null}
 
       {show("overlays") ? (
-        <Block title="Overlays" count={`${applied} of ${options.length} applied`}>
+        <Section title="Overlays" count={`${applied} of ${options.length} applied`}>
           <Table>
             <thead>
               <Table.Row>
@@ -531,7 +531,7 @@ export function ScopeTailoringPane({
               {contested.length === 1 ? "s" : ""} with the recommendation.
             </p>
           ) : null}
-        </Block>
+        </Section>
       ) : null}
 
       {show("controls") ? (

@@ -1,39 +1,6 @@
-import {
-  InputGroupAddon,
-  InputGroupInput,
-  Badge,
-  Button,
-  Count,
-  Empty,
-  Id,
-  IndexPage,
-  Indicator,
-  Inline,
-  InputGroup,
-  Inspector,
-  KeyValue,
-  PageHeader,
-  PreviewRail,
-  PreviewSplit,
-  Progress,
-  Table,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  TextLink,
-  EmptyHeader,
-  EmptyContent,
-  EmptyTitle,
-  EmptyDescription,
-} from "@ledger/design-system";
 import { downloadText } from "@/components/app/export";
 import { UnavailableAction } from "@/components/app/unavailable-action";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Download, Search } from "lucide-react";
-import { useMemo, useState } from "react";
-import { Shell } from "@/components/app/shell";
 import { assetById } from "@/lib/findings";
 import {
   ccisForRisk,
@@ -49,6 +16,37 @@ import {
   type RegisterRisk,
 } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
+import {
+  Badge,
+  Button,
+  Count,
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Id,
+  Indicator,
+  Inline,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  Progress,
+  Shell,
+  Stack,
+  Table,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+} from "@ledger/design-system";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Download, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/register/")({
   head: () => ({
@@ -117,314 +115,314 @@ function RegisterPage() {
   };
 
   return (
-    <Shell>
-      <IndexPage
-        header={
-          <PageHeader
-            title="POA&M & risk register"
-            actions={
-              <Button
-                variant="secondary"
-                iconBefore={<Download />}
-                onClick={() =>
-                  downloadText(
-                    "poam-register.json",
-                    JSON.stringify(poamRows, null, 2),
-                    "application/json",
-                  )
-                }
-              >
-                Export POA&M JSON
-              </Button>
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <div className="min-w-0">
+          <PageHeader.Title>{"POA&M & risk register"}</PageHeader.Title>
+        </div>
+        <PageHeader.Actions>
+          <Button
+            variant="secondary"
+            iconBefore={<Download />}
+            onClick={() =>
+              downloadText(
+                "poam-register.json",
+                JSON.stringify(poamRows, null, 2),
+                "application/json",
+              )
             }
-          />
-        }
+          >
+            Export POA&M JSON
+          </Button>
+        </PageHeader.Actions>
+      </PageHeader>
+      <Tabs
+        value={tab}
+        onValueChange={(value) => {
+          setTab(value as typeof tab);
+          setPreview(null);
+        }}
+        className="contents"
       >
-        <Tabs
-          value={tab}
-          onValueChange={(value) => {
-            setTab(value as typeof tab);
-            setPreview(null);
-          }}
-          className="contents"
-        >
-          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-            {tabs.map((t) => (
-              <TabsTrigger key={t} value={t}>
-                {t}
-                {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value={tab} className="contents">
-            {tab === "POA&M" ? (
-              <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
-                <InputGroup>
-                  <InputGroupInput
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    placeholder="Search POA&M items, owners"
-                    aria-label="Search"
-                    style={{ width: 240, maxWidth: "100%" }}
-                  />
-                  <InputGroupAddon>{<Search />}</InputGroupAddon>
-                </InputGroup>
-              </Inline>
-            ) : null}
+        <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+          {tabs.map((t) => (
+            <TabsTrigger key={t} value={t}>
+              {t}
+              {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={tab} className="contents">
+          {tab === "POA&M" ? (
+            <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
+              <InputGroup>
+                <InputGroupInput
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search POA&M items, owners"
+                  aria-label="Search"
+                  style={{ width: 240, maxWidth: "100%" }}
+                />
+                <InputGroupAddon>
+                  <Search />
+                </InputGroupAddon>
+              </InputGroup>
+            </Inline>
+          ) : null}
 
-            <p role="status" className="font-body-small text-subtle">
-              {tab === "POA&M"
-                ? `${poamRows.length} matching POA&M items`
-                : tab === "Risks"
-                  ? `${registerRisks.length} risks`
-                  : `${unrolled.length} unrolled findings`}
-            </p>
-            <PreviewSplit open={preview !== null}>
-              <div className="min-w-0 lg:pe-300">
-                {tab === "POA&M" ? (
-                  <Table className="table-fixed">
-                    <thead>
-                      <tr>
-                        <Table.Header width={112}>POA&M</Table.Header>
-                        <Table.Header>Weakness</Table.Header>
-                        <Table.Header width={132}>Owner</Table.Header>
-                        <Table.Header width={84} className="text-right">
-                          Findings
-                        </Table.Header>
-                        <Table.Header width={72}>Worst</Table.Header>
-                        <Table.Header width={112}>Scheduled</Table.Header>
-                        <Table.Header width={104}>Risk</Table.Header>
-                        <Table.Header width={104}>Status</Table.Header>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {poamRows.map((p) => {
-                        const fs = findingsForPoam(p.id);
-                        const worst = worstSeverity(fs);
-                        return (
-                          <Table.Row
-                            key={p.id}
-                            className="cursor-pointer"
-                            onClick={() =>
-                              navigate({ to: "/register/poam/$poamId", params: { poamId: p.id } })
-                            }
-                          >
-                            <Table.Id
-                              id={p.id}
-                              isActive={preview?.kind === "poam" && preview.item.id === p.id}
-                              onPreview={() => setPreview({ kind: "poam", item: p })}
-                            />
-                            <Table.Cell className="truncate">{p.title}</Table.Cell>
-                            <Table.Cell className="truncate">{p.owner}</Table.Cell>
-                            <Table.Cell className="tabular-nums text-right">
-                              {openCount(fs)} / {fs.length}
-                            </Table.Cell>
-                            <Table.Cell>
-                              {worst ? (
-                                <Indicator tone={severityTone(worst)}>{worst}</Indicator>
-                              ) : (
-                                "—"
-                              )}
-                            </Table.Cell>
-                            <Table.Cell className="truncate">{p.scheduledCompletion}</Table.Cell>
-                            <Table.Cell className="truncate">
-                              {p.risk ? <Id>{p.risk}</Id> : <span className="text-subtle">—</span>}
-                            </Table.Cell>
-                            <Table.Cell className="truncate">
-                              <Badge variant="secondary" tone={statusTone(p.status)}>
-                                {p.status}
-                              </Badge>
-                            </Table.Cell>
-                          </Table.Row>
-                        );
-                      })}
-                      {poamRows.length === 0 ? (
-                        <Table.Row>
-                          <Table.Cell colSpan={12}>
-                            <Empty>
-                              <EmptyHeader>
-                                <EmptyTitle>No results match your filters</EmptyTitle>
-                                <EmptyDescription>
-                                  Clear the filters to see the available records.
-                                </EmptyDescription>
-                              </EmptyHeader>
-                              <EmptyContent>
-                                <Button
-                                  variant="secondary"
-                                  onClick={() => {
-                                    setQ("");
-                                  }}
-                                >
-                                  Clear filters
-                                </Button>
-                              </EmptyContent>
-                            </Empty>
+          <p role="status" className="font-body-small text-subtle">
+            {tab === "POA&M"
+              ? `${poamRows.length} matching POA&M items`
+              : tab === "Risks"
+                ? `${registerRisks.length} risks`
+                : `${unrolled.length} unrolled findings`}
+          </p>
+          <>
+            <div className="min-w-0 lg:pe-300">
+              {tab === "POA&M" ? (
+                <Table className="table-fixed">
+                  <thead>
+                    <tr>
+                      <Table.Header width={112}>POA&M</Table.Header>
+                      <Table.Header>Weakness</Table.Header>
+                      <Table.Header width={132}>Owner</Table.Header>
+                      <Table.Header width={84} className="text-right">
+                        Findings
+                      </Table.Header>
+                      <Table.Header width={72}>Worst</Table.Header>
+                      <Table.Header width={112}>Scheduled</Table.Header>
+                      <Table.Header width={104}>Risk</Table.Header>
+                      <Table.Header width={104}>Status</Table.Header>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {poamRows.map((p) => {
+                      const fs = findingsForPoam(p.id);
+                      const worst = worstSeverity(fs);
+                      return (
+                        <Table.Row
+                          key={p.id}
+                          className="cursor-pointer"
+                          onClick={() =>
+                            navigate({ to: "/register/poam/$poamId", params: { poamId: p.id } })
+                          }
+                        >
+                          <Table.Id
+                            id={p.id}
+                            isActive={preview?.kind === "poam" && preview.item.id === p.id}
+                            onPreview={() => setPreview({ kind: "poam", item: p })}
+                          />
+                          <Table.Cell className="truncate">{p.title}</Table.Cell>
+                          <Table.Cell className="truncate">{p.owner}</Table.Cell>
+                          <Table.Cell className="tabular-nums text-right">
+                            {openCount(fs)} / {fs.length}
+                          </Table.Cell>
+                          <Table.Cell>
+                            {worst ? (
+                              <Indicator tone={severityTone(worst)}>{worst}</Indicator>
+                            ) : (
+                              "—"
+                            )}
+                          </Table.Cell>
+                          <Table.Cell className="truncate">{p.scheduledCompletion}</Table.Cell>
+                          <Table.Cell className="truncate">
+                            {p.risk ? <Id>{p.risk}</Id> : <span className="text-subtle">—</span>}
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            <Badge variant="secondary" tone={statusTone(p.status)}>
+                              {p.status}
+                            </Badge>
                           </Table.Cell>
                         </Table.Row>
-                      ) : null}
-                    </tbody>
-                  </Table>
-                ) : null}
+                      );
+                    })}
+                    {poamRows.length === 0 ? (
+                      <Table.Row>
+                        <Table.Cell colSpan={12}>
+                          <Empty>
+                            <EmptyHeader>
+                              <EmptyTitle>No results match your filters</EmptyTitle>
+                              <EmptyDescription>
+                                Clear the filters to see the available records.
+                              </EmptyDescription>
+                            </EmptyHeader>
+                            <EmptyContent>
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  setQ("");
+                                }}
+                              >
+                                Clear filters
+                              </Button>
+                            </EmptyContent>
+                          </Empty>
+                        </Table.Cell>
+                      </Table.Row>
+                    ) : null}
+                  </tbody>
+                </Table>
+              ) : null}
 
-                {tab === "Risks" ? (
+              {tab === "Risks" ? (
+                <Table className="table-fixed">
+                  <thead>
+                    <tr>
+                      <Table.Header width={104}>Risk</Table.Header>
+                      <Table.Header>Statement</Table.Header>
+                      <Table.Header width={128}>Owner</Table.Header>
+                      <Table.Header width={84} className="text-right">
+                        Findings
+                      </Table.Header>
+                      <Table.Header width={68} className="text-right">
+                        CCIs
+                      </Table.Header>
+                      <Table.Header width={72}>POA&M</Table.Header>
+                      <Table.Header width={138}>Residual</Table.Header>
+                      <Table.Header width={108}>Disposition</Table.Header>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {registerRisks.map((r) => {
+                      const fs = findingsForRisk(r.id);
+                      return (
+                        <Table.Row
+                          key={r.id}
+                          className="cursor-pointer"
+                          onClick={() =>
+                            navigate({ to: "/register/risks/$riskId", params: { riskId: r.id } })
+                          }
+                        >
+                          <Table.Id
+                            id={r.id}
+                            isActive={preview?.kind === "risk" && preview.item.id === r.id}
+                            onPreview={() => setPreview({ kind: "risk", item: r })}
+                          />
+                          <Table.Cell className="truncate">{r.title}</Table.Cell>
+                          <Table.Cell className="truncate">{r.owner}</Table.Cell>
+                          <Table.Cell className="tabular-nums text-right">
+                            {openCount(fs)} / {fs.length}
+                          </Table.Cell>
+                          <Table.Cell className="tabular-nums text-right">
+                            {ccisForRisk(r.id).length}
+                          </Table.Cell>
+                          <Table.Cell className="tabular-nums">
+                            {poamsForRisk(r.id).length}
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Inline space="space.100" alignBlock="center">
+                              <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
+                                {r.inherent ?? "—"}
+                              </span>
+                              {r.residual !== null ? (
+                                <Progress
+                                  value={r.residual ?? r.sourceRating?.overall ?? "Unrecorded"}
+                                  tone={residualTone(r.residual)}
+                                  aria-hidden
+                                />
+                              ) : null}
+                              <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
+                                {r.residual ?? r.sourceRating?.overall ?? "Unrecorded"}
+                              </span>
+                            </Inline>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            <Badge variant="secondary" tone={statusTone(r.disposition)}>
+                              {r.disposition}
+                            </Badge>
+                          </Table.Cell>
+                        </Table.Row>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              ) : null}
+
+              {tab === "Unrolled" ? (
+                <>
+                  <p className="pb-150 font-body-small text-subtle">
+                    Open findings with no POA&M item and no risk. Every row here is exposure the
+                    package cannot explain — either commit it to a POA&M or aggregate it into a
+                    risk.
+                  </p>
                   <Table className="table-fixed">
                     <thead>
                       <tr>
-                        <Table.Header width={104}>Risk</Table.Header>
-                        <Table.Header>Statement</Table.Header>
-                        <Table.Header width={128}>Owner</Table.Header>
-                        <Table.Header width={84} className="text-right">
-                          Findings
+                        <Table.Header width={92}>Finding</Table.Header>
+                        <Table.Header>Title</Table.Header>
+                        <Table.Header width={104}>CCI</Table.Header>
+                        <Table.Header width={132}>Asset</Table.Header>
+                        <Table.Header width={76}>Mitigated</Table.Header>
+                        <Table.Header width={112}>Lifecycle</Table.Header>
+                        <Table.Header width={148} className="text-right">
+                          Roll up
                         </Table.Header>
-                        <Table.Header width={68} className="text-right">
-                          CCIs
-                        </Table.Header>
-                        <Table.Header width={72}>POA&M</Table.Header>
-                        <Table.Header width={138}>Residual</Table.Header>
-                        <Table.Header width={108}>Disposition</Table.Header>
                       </tr>
                     </thead>
                     <tbody>
-                      {registerRisks.map((r) => {
-                        const fs = findingsForRisk(r.id);
-                        return (
-                          <Table.Row
-                            key={r.id}
-                            className="cursor-pointer"
-                            onClick={() =>
-                              navigate({ to: "/register/risks/$riskId", params: { riskId: r.id } })
-                            }
-                          >
-                            <Table.Id
-                              id={r.id}
-                              isActive={preview?.kind === "risk" && preview.item.id === r.id}
-                              onPreview={() => setPreview({ kind: "risk", item: r })}
-                            />
-                            <Table.Cell className="truncate">{r.title}</Table.Cell>
-                            <Table.Cell className="truncate">{r.owner}</Table.Cell>
-                            <Table.Cell className="tabular-nums text-right">
-                              {openCount(fs)} / {fs.length}
-                            </Table.Cell>
-                            <Table.Cell className="tabular-nums text-right">
-                              {ccisForRisk(r.id).length}
-                            </Table.Cell>
-                            <Table.Cell className="tabular-nums">
-                              {poamsForRisk(r.id).length}
-                            </Table.Cell>
-                            <Table.Cell>
-                              <Inline space="space.100" alignBlock="center">
-                                <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
-                                  {r.inherent ?? "—"}
-                                </span>
-                                {r.residual !== null ? (
-                                  <Progress
-                                    value={r.residual ?? r.sourceRating?.overall ?? "Unrecorded"}
-                                    tone={residualTone(r.residual)}
-                                    aria-hidden
-                                  />
-                                ) : null}
-                                <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
-                                  {r.residual ?? r.sourceRating?.overall ?? "Unrecorded"}
-                                </span>
-                              </Inline>
-                            </Table.Cell>
-                            <Table.Cell className="truncate">
-                              <Badge variant="secondary" tone={statusTone(r.disposition)}>
-                                {r.disposition}
-                              </Badge>
-                            </Table.Cell>
-                          </Table.Row>
-                        );
-                      })}
+                      {unrolled.map((f) => (
+                        <Table.Row
+                          key={f.id}
+                          className="cursor-pointer"
+                          onClick={() =>
+                            navigate({ to: "/findings/$findingId", params: { findingId: f.id } })
+                          }
+                        >
+                          <Table.Id id={f.id} />
+                          <Table.Cell className="truncate">{f.title}</Table.Cell>
+                          <Table.Cell>
+                            <Id>{f.cci}</Id>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            {assetById.get(f.asset)?.name ?? f.asset}
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                              {f.mitigatedSeverity}
+                            </Indicator>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
+                              {f.lifecycle}
+                            </Badge>
+                          </Table.Cell>
+                          <Table.Cell className="max-w-none text-right">
+                            <Inline
+                              onClick={(e) => e.stopPropagation()}
+                              as="span"
+                              display="inline-flex"
+                              space="space.075"
+                            >
+                              <UnavailableAction
+                                reason="Create a POA&M item from the relevant program record."
+                                size="small"
+                                variant="secondary"
+                              >
+                                New POA&M
+                              </UnavailableAction>
+                              <UnavailableAction
+                                reason="Finding-to-risk linking is not available from this view."
+                                size="small"
+                                variant="secondary"
+                              >
+                                Attach risk
+                              </UnavailableAction>
+                            </Inline>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
                     </tbody>
                   </Table>
-                ) : null}
-
-                {tab === "Unrolled" ? (
-                  <>
-                    <p className="pb-150 font-body-small text-subtle">
-                      Open findings with no POA&M item and no risk. Every row here is exposure the
-                      package cannot explain — either commit it to a POA&M or aggregate it into a
-                      risk.
-                    </p>
-                    <Table className="table-fixed">
-                      <thead>
-                        <tr>
-                          <Table.Header width={92}>Finding</Table.Header>
-                          <Table.Header>Title</Table.Header>
-                          <Table.Header width={104}>CCI</Table.Header>
-                          <Table.Header width={132}>Asset</Table.Header>
-                          <Table.Header width={76}>Mitigated</Table.Header>
-                          <Table.Header width={112}>Lifecycle</Table.Header>
-                          <Table.Header width={148} className="text-right">
-                            Roll up
-                          </Table.Header>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {unrolled.map((f) => (
-                          <Table.Row
-                            key={f.id}
-                            className="cursor-pointer"
-                            onClick={() =>
-                              navigate({ to: "/findings/$findingId", params: { findingId: f.id } })
-                            }
-                          >
-                            <Table.Id id={f.id} />
-                            <Table.Cell className="truncate">{f.title}</Table.Cell>
-                            <Table.Cell>
-                              <Id>{f.cci}</Id>
-                            </Table.Cell>
-                            <Table.Cell className="truncate">
-                              {assetById.get(f.asset)?.name ?? f.asset}
-                            </Table.Cell>
-                            <Table.Cell>
-                              <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                                {f.mitigatedSeverity}
-                              </Indicator>
-                            </Table.Cell>
-                            <Table.Cell className="truncate">
-                              <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
-                                {f.lifecycle}
-                              </Badge>
-                            </Table.Cell>
-                            <Table.Cell className="max-w-none text-right">
-                              <Inline
-                                onClick={(e) => e.stopPropagation()}
-                                as="span"
-                                display="inline-flex"
-                                space="space.075"
-                              >
-                                <UnavailableAction
-                                  reason="Create a POA&M item from the relevant program record."
-                                  size="small"
-                                  variant="secondary"
-                                >
-                                  New POA&M
-                                </UnavailableAction>
-                                <UnavailableAction
-                                  reason="Finding-to-risk linking is not available from this view."
-                                  size="small"
-                                  variant="secondary"
-                                >
-                                  Attach risk
-                                </UnavailableAction>
-                              </Inline>
-                            </Table.Cell>
-                          </Table.Row>
-                        ))}
-                      </tbody>
-                    </Table>
-                  </>
-                ) : null}
-              </div>
-
-              {preview?.kind === "poam" ? (
-                <PreviewRail
-                  id={preview.item.id}
-                  title={preview.item.title}
-                  onClose={() => setPreview(null)}
-                  openTo={
+                </>
+              ) : null}
+            </div>
+            {preview?.kind === "poam" ? (
+              <Shell.Panel title={preview.item.title} onClose={() => setPreview(null)}>
+                <Stack space="space.150" className="min-w-0">
+                  <Inline space="space.100" alignBlock="center" shouldWrap>
+                    <Id>{preview.item.id}</Id>
+                  </Inline>
+                  <div className="font-body">
                     <TextLink
                       render={
                         <Link to="/register/poam/$poamId" params={{ poamId: preview.item.id }} />
@@ -432,8 +430,7 @@ function RegisterPage() {
                     >
                       Open POA&M item
                     </TextLink>
-                  }
-                >
+                  </div>
                   <Inspector.Group title="Commitment">
                     <KeyValue label="Status">
                       <Badge variant="secondary" tone={statusTone(preview.item.status)}>
@@ -451,15 +448,16 @@ function RegisterPage() {
                   <Inspector.Group title="Latest milestone">
                     <p className="font-body-small text-subtle">{preview.item.milestoneNote}</p>
                   </Inspector.Group>
-                </PreviewRail>
-              ) : null}
-
-              {preview?.kind === "risk" ? (
-                <PreviewRail
-                  id={preview.item.id}
-                  title={preview.item.title}
-                  onClose={() => setPreview(null)}
-                  openTo={
+                </Stack>
+              </Shell.Panel>
+            ) : null}
+            {preview?.kind === "risk" ? (
+              <Shell.Panel title={preview.item.title} onClose={() => setPreview(null)}>
+                <Stack space="space.150" className="min-w-0">
+                  <Inline space="space.100" alignBlock="center" shouldWrap>
+                    <Id>{preview.item.id}</Id>
+                  </Inline>
+                  <div className="font-body">
                     <TextLink
                       render={
                         <Link to="/register/risks/$riskId" params={{ riskId: preview.item.id }} />
@@ -467,8 +465,7 @@ function RegisterPage() {
                     >
                       Open risk
                     </TextLink>
-                  }
-                >
+                  </div>
                   <Inspector.Group title="Adjudication">
                     <KeyValue label="Disposition">
                       <Badge variant="secondary" tone={statusTone(preview.item.disposition)}>
@@ -490,12 +487,12 @@ function RegisterPage() {
                   <Inspector.Group title="Statement">
                     <p className="font-body-small text-subtle">{preview.item.statement}</p>
                   </Inspector.Group>
-                </PreviewRail>
-              ) : null}
-            </PreviewSplit>
-          </TabsContent>
-        </Tabs>
-      </IndexPage>
-    </Shell>
+                </Stack>
+              </Shell.Panel>
+            ) : null}
+          </>
+        </TabsContent>
+      </Tabs>
+    </Stack>
   );
 }

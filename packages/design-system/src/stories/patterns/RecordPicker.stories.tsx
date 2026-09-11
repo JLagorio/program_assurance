@@ -10,7 +10,7 @@ import {
   Id,
 } from "../../components";
 
-import { RecordPicker, type PickerRecord } from "../../patterns";
+import { RecordPicker, type PickerRecord } from "../..";
 import { Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 

@@ -13,31 +13,31 @@ A title. The size is the design's and the level is the page's: `size` picks the 
 
 ## Anatomy
 
-| Part    | What it is                                                                                              |
-| ------- | ------------------------------------------------------------------------------------------------------- |
+| Part    | What it is                                                                                                                                              |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Element | By size: `large` a `div`, `medium` an `h1`, `small` an `h2`, `xsmall` an `h3`. `as` overrides it with a `HeadingElement`: a level, a `div` or a `span`. |
-| Size    | `large`, `medium`, `small`, `xsmall`: the four `font.heading` tokens.                                   |
-| Colour  | `color.text`, inherited; `color.text.inverse` or `color.text.warning.inverse` from a bold Box.          |
+| Size    | `large`, `medium`, `small`, `xsmall`: the four `font.heading` tokens.                                                                                   |
+| Colour  | `color.text`, inherited; `color.text.inverse` or `color.text.warning.inverse` from a bold Box.                                                          |
 
 ## Variants
 
-| Heading  | Use                                                                                                     |
-| -------- | ------------------------------------------------------------------------------------------------------- |
-| `large`  | A displayed number: a Stat's value, a dashboard figure. A `div`, because a number is not a title.       |
-| `medium` | The page's title, the record's name. One per page, the `h1`.                                            |
-| `small`  | A section heading in a page body, a tab's heading. The `h2`.                                            |
-| `xsmall` | A card's title, a dialog's title, a rail section's heading. The `h3`, or `h4` under a section.          |
+| Heading  | Use                                                                                               |
+| -------- | ------------------------------------------------------------------------------------------------- |
+| `large`  | A displayed number: a Stat's value, a dashboard figure. A `div`, because a number is not a title. |
+| `medium` | The page's title, the record's name. One per page, the `h1`.                                      |
+| `small`  | A section heading in a page body, a tab's heading. The `h2`.                                      |
+| `xsmall` | A card's title, a dialog's title, a rail section's heading. The `h3`, or `h4` under a section.    |
 
-Not built, and why: `xxlarge` and `xlarge` (the product has no hero, and 22px is the biggest text on a page); `xxsmall` as a Heading (it is the Eyebrow, uppercase and subtle, on the Typography page); a subtitle slot (the line under a title is a Text, and the RecordHeader draws it); an icon before (a Heading is words; the mark beside a record's title is the RecordHeader's); a tone (a red heading says the word is the problem; the count beside it is).
+Not built, and why: `xxlarge` and `xlarge` (the product has no hero, and 22px is the biggest text on a page); `xxsmall` as a Heading (it is the Eyebrow, uppercase and subtle, on the Typography page); a subtitle slot (the line under a title is a Text, and the PageHeader draws it); an icon before (a Heading is words; the mark beside a record's title is the PageHeader's); a tone (a red heading says the word is the problem; the count beside it is).
 
 ## Sizes
 
-| Size     | Token                 | Size / leading / weight | Element | Where                                        |
-| -------- | --------------------- | ----------------------- | ------- | -------------------------------------------- |
-| `large`  | `font.heading.large`  | 28 / 34 / semibold      | `div`   | A displayed number.                          |
-| `medium` | `font.heading.medium` | 22 / 28 / semibold      | `h1`    | The page title.                              |
-| `small`  | `font.heading.small`  | 20 / 26 / medium        | `h2`    | A section heading.                           |
-| `xsmall` | `font.heading.xsmall` | 15 / 22 / medium        | `h3`    | A card, a dialog, a rail section.            |
+| Size     | Token                 | Size / leading / weight | Element | Where                             |
+| -------- | --------------------- | ----------------------- | ------- | --------------------------------- |
+| `large`  | `font.heading.large`  | 28 / 34 / semibold      | `div`   | A displayed number.               |
+| `medium` | `font.heading.medium` | 22 / 28 / semibold      | `h1`    | The page title.                   |
+| `small`  | `font.heading.small`  | 20 / 26 / medium        | `h2`    | A section heading.                |
+| `xsmall` | `font.heading.xsmall` | 15 / 22 / medium        | `h3`    | A card, a dialog, a rail section. |
 
 Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Four are enough here because a page is a title, its sections and their cards.
 
@@ -59,10 +59,10 @@ Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Four are
 
 ## Style
 
-| Element | Token                                                                                     |
-| ------- | ----------------------------------------------------------------------------------------- |
+| Element | Token                                                                                                      |
+| ------- | ---------------------------------------------------------------------------------------------------------- |
 | Size    | `font.heading.large` · `.medium` · `.small` · `.xsmall`, family, size, leading, weight and tracking in one |
-| Colour  | `color.text` · `color.text.inverse` · `color.text.warning.inverse`                        |
+| Colour  | `color.text` · `color.text.inverse` · `color.text.warning.inverse`                                         |
 
 ## Accessibility
 
@@ -86,8 +86,8 @@ Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Four are
 
 - [Text](?path=/docs/primitives-text--docs): everything that is not a title.
 - [Typography](?path=/docs/components-typography--docs): the Eyebrow, the heading under `xsmall`.
-- [RecordHeader](?path=/docs/patterns-recordheader--docs) and [PageHeader](?path=/docs/patterns-pageheader--docs): where the `h1` is drawn.
-- [Section](?path=/docs/patterns-section--docs) and [Card](?path=/docs/components-card--docs): where the `h2` and the `h3` are drawn.
+- [PageHeader](?path=/docs/layout-pageheader--docs) and [PageHeader](?path=/docs/layout-pageheader--docs): where the `h1` is drawn.
+- [Section](?path=/docs/layout-section--docs) and [Card](?path=/docs/components-card--docs): where the `h2` and the `h3` are drawn.
 - [Stat](?path=/docs/components-stat--docs): where `large` is drawn.
 - [Typography tokens](?path=/docs/tokens-typography--docs): the ramp.
 

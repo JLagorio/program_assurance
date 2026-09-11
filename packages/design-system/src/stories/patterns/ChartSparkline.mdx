@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Chart } from "../../patterns";
+import { Chart } from "../..";
 import * as Stories from "./ChartSparkline.stories";
 
 <Meta of={Stories} />
@@ -13,44 +13,44 @@ A trend with no axes, no grid and no legend, beside the number it belongs to: in
 
 ## Anatomy
 
-| Part      | What it is                                                                                     |
-| --------- | ---------------------------------------------------------------------------------------------- |
+| Part      | What it is                                                                                                     |
+| --------- | -------------------------------------------------------------------------------------------------------------- |
 | Line      | 1.5px in its tone, round joins; `area` adds the tone at 12% under it; `bars` is a column per point, 1px apart. |
-| End dot   | A 6px marker ringed in the surface on the last point: where the series is now.                 |
-| Reference | A dashed hairline at a value in `color.chart.neutral`: last period, the limit.                 |
-| Tooltip   | Only when named: the point's value and category.                                               |
+| End dot   | A 6px marker ringed in the surface on the last point: where the series is now.                                 |
+| Reference | A dashed hairline at a value in `color.chart.neutral`: last period, the limit.                                 |
+| Tooltip   | Only when named: the point's value and category.                                                               |
 
 ## Variants
 
-| Variant              | Use                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------------------------ |
-| `appearance="line"`  | The default: a count over time.                                                                  |
-| `appearance="area"`  | A count whose size matters, with a reference for the limit.                                      |
-| `appearance="bars"`  | A count per period, where each period is discrete: closed per month.                             |
-| In a tile            | Beside the value of a Stat.Tile, `space.150` from the number.                                    |
-| In a row             | The trend column of a Table, 80 by 20, unnamed, so a screen reader hears the number once.        |
+| Variant             | Use                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `appearance="line"` | The default: a count over time.                                                           |
+| `appearance="area"` | A count whose size matters, with a reference for the limit.                               |
+| `appearance="bars"` | A count per period, where each period is discrete: closed per month.                      |
+| In a tile           | Beside the value of a Stat.Tile, `space.150` from the number.                             |
+| In a row            | The trend column of a Table, 80 by 20, unnamed, so a screen reader hears the number once. |
 
 <Canvas of={Stories.InTiles} />
 <Canvas of={Stories.InRows} />
 
 ## Sizes
 
-| `width` × `height` | Where                                                             |
-| ------------------ | ----------------------------------------------------------------- |
-| 80 × 20            | A table row.                                                      |
-| 96 × 24            | Beside a Stat's value. The default.                               |
-| 120 × 28           | Bars, which need the width.                                       |
-| 160 × 40           | A card's corner, when the trend is the card's second fact.        |
+| `width` × `height` | Where                                                      |
+| ------------------ | ---------------------------------------------------------- |
+| 80 × 20            | A table row.                                               |
+| 96 × 24            | Beside a Stat's value. The default.                        |
+| 120 × 28           | Bars, which need the width.                                |
+| 160 × 40           | A card's corner, when the trend is the card's second fact. |
 
 Anything larger is a [Line](?path=/docs/patterns-chart-line--docs) in a Frame, with axes.
 
 ## States
 
-| State    | What changes                                                                                        |
-| -------- | --------------------------------------------------------------------------------------------------- |
-| Hover    | Nothing, unless named: then a marker and the tooltip at the point.                                  |
-| Loading  | A skeleton bar at the size, pulsing.                                                                |
-| Entering | The line draws in over `motion.duration.slow`.                                                      |
+| State    | What changes                                                       |
+| -------- | ------------------------------------------------------------------ |
+| Hover    | Nothing, unless named: then a marker and the tooltip at the point. |
+| Loading  | A skeleton bar at the size, pulsing.                               |
+| Entering | The line draws in over `motion.duration.slow`.                     |
 
 A sparkline does not choose: nothing to click, nothing to open. The number beside it is the way to the record.
 
@@ -72,14 +72,14 @@ A sparkline does not choose: nothing to click, nothing to open. The number besid
 
 ## Style
 
-| Element   | Token                                                                 |
-| --------- | --------------------------------------------------------------------- |
-| Line      | `color.chart.<tone>` · 1.5px · round joins                            |
-| Wash      | `color.chart.<tone>` at 12%                                           |
-| Bars      | `color.chart.<tone>` · `radius` 1px at the top · 1px apart            |
-| End dot   | 6px · 2px `elevation.surface` ring                                    |
-| Reference | `color.chart.neutral` · 1px dashed 3 2                                |
-| Skeleton  | `color.skeleton` · `radius.xsmall`                                    |
+| Element   | Token                                                      |
+| --------- | ---------------------------------------------------------- |
+| Line      | `color.chart.<tone>` · 1.5px · round joins                 |
+| Wash      | `color.chart.<tone>` at 12%                                |
+| Bars      | `color.chart.<tone>` · `radius` 1px at the top · 1px apart |
+| End dot   | 6px · 2px `elevation.surface` ring                         |
+| Reference | `color.chart.neutral` · 1px dashed 3 2                     |
+| Skeleton  | `color.skeleton` · `radius.xsmall`                         |
 
 ## Accessibility
 

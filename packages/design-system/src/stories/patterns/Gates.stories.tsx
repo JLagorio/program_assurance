@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Gates } from "../..";
 import { Button, Progress, ProgressValue, TextLink } from "../../components";
-import { Gates } from "../../patterns";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Matrix } from "../_lib/matrix";

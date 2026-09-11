@@ -1,83 +1,42 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-
-import { PreviewSheet } from "../../patterns";
+import { PreviewSheet } from "../..";
 import * as Stories from "./PreviewSheet.stories";
 
 <Meta of={Stories} />
 
 # PreviewSheet
 
-The peek: a [Sheet](?path=/docs/components-sheet--docs) that previews one row over the page and leaves the list in place. Its head is the compact record header, the Preview eyebrow with the id and one status, the name, the meta line, at most three facts, so a record reads the same in the sheet and on its page. The body is the record at the peek's depth, sections of facts and small tables. The footer's first item is always the way to the full record, a link; more links follow; the actions that make sense without leaving sit at the end. A record opened from inside a peek is the next frame of the same sheet and `onBack` returns; the caller keeps the stack, in the URL, so the browser's back is the same thing. The Sheet is the frame. The rail previews a row beside a table that leaves room; the sheet previews over a full-width table, a tree, a board, and wherever the preview carries actions. A page uses one or the other, never both.
+A modal record detail surface built from shadcn's Base UI Sheet. It composes record identity and Sheet parts and supports work in place: editable properties, evidence review and related-record navigation.
 
 <Canvas of={Stories.PreviewSheetStory} />
 
 ## Anatomy
 
-Back is rendered only when `onBack` is supplied.
+| Slot                     | Purpose                                                                  |
+| ------------------------ | ------------------------------------------------------------------------ |
+| id, title, status        | Record identity and current state. The title names the dialog.           |
+| subtitle, facts          | Optional supporting context; absent content renders no placeholder rows. |
+| onBack                   | Return to the previous record within the caller's navigation stack.      |
+| children                 | Scrollable work area.                                                    |
+| openTo, links            | Real links to the record or related destinations.                        |
+| actions                  | Actions performed in the current sheet.                                  |
+| initialFocus, finalFocus | Native Base UI focus targets for the consuming workflow.                 |
 
-| Part     | What it is                                                                                                   |
-| -------- | ------------------------------------------------------------------------------------------------------------ |
-| Back     | A chevron before the title, on a frame deeper than the first.                                                |
-| Eyebrow  | "Preview", the id, one status: a Badge or an Indicator.                                                      |
-| Title    | The record's name, the sheet's title.                                                                        |
-| Subtitle | The meta line, the sheet's description: kind, path, owner.                                                   |
-| Facts    | At most three, a Fact.Group under the subtitle.                                                              |
-| Body     | Sections of facts and small tables. It scrolls.                                                              |
-| Footer   | The link to the record first, more links after it, the actions at the end. It stays put.                    |
-| Close    | The X at the top end. Escape and the blanket close it too.                                                   |
+## Variants and states
 
-## Variants
+Choose this surface when the current task benefits from containing focus; use Shell.Panel for selected work alongside a queue. Both support actions. The sheet defaults to 720px and fits narrower screens; footer actions wrap.
 
-| Sheet                  | Use                                                                                               |
-| ---------------------- | ------------------------------------------------------------------------------------------------- |
-| Facts only             | The id, the title, the subtitle and the body: a row the reader looks at before opening.           |
-| With links and actions | A tab of the record as a second link; Allocate and Propose change at the end.                     |
-| A frame deeper         | `onBack`: a requirement opened from the element's peek, with the compact header's status and facts. |
+The caller controls `open` and owns dismissal, in-progress work and the related-record stack. Back changes the frame; Close dismisses the sheet. Keep browser history aligned when that stack is represented in the URL.
 
-Not built, and why: a non-modal peek that lets the table behind be clicked, because it is a decision parked in docs/next.md; tabs in the peek, because the record has them; a peek that edits, because a form is a Sheet or a Dialog of its own; a peek wider than half the screen, because then it is the page.
-
-## Sizes
-
-One: 720px, about half the screen at the widths this product runs at; `width` for a peek whose body is a wide table. On a narrow screen it takes the full width.
-
-## States
-
-| State          | What changes                                                     |
-| -------------- | ---------------------------------------------------------------- |
-| Closed         | Not rendered.                                                    |
-| Open           | Over the page and the nav, the blanket behind it.                |
-| A frame deeper | The back chevron; the stack is the caller's.                     |
-| Scrolled       | The head and the footer stay; the body scrolls between them.     |
-
-## Modifiers
-
-- **`id`**, **`title`**, **`subtitle`**, **`status`**, **`facts`**, **`openTo`**, **`links`**, **`actions`**, **`onBack`**, **`width`** as in Anatomy.
-
-## Content
-
-- **The link names the record's kind**: "Open the requirement", "Open finding". "Open the full record" is the default when the link has no text.
-- **Three facts**, the ones the reader acts on. The body has the rest.
-- **The actions are the ones that make sense without leaving**: Allocate, Propose change. Not Delete, not Edit everything; those are the record's.
-- **The subtitle is kind, path, owner** with middle dots.
-
-## Style
-
-| Element | Token                                                                                                                  |
-| ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Sheet   | `elevation.surface.overlay` · `elevation.shadow.overlay` · slides in from the end · `color.blanket` behind             |
-| Head    | Sheet's: `space.150` block · `space.200` start · `space.600` end for the close · `color.border` under                  |
-| Eyebrow | Eyebrow · `font.body.small` `color.text.subtle` id · `space.100` between · the status at the end                       |
-| Title   | `font.heading.xsmall` · `color.text`                                                                                   |
-| Facts   | Fact.Group · `space.075` above                                                                                         |
-| Body    | `space.200` inline · `space.150` block                                                                                 |
-| Footer  | `elevation.surface.sunken` · `color.border` above · `space.200` inline · `space.100` block · `space.200` between links |
+<Canvas of={Stories.CompleteReview} />
 
 ## Accessibility
 
-- **A dialog named by the title and described by the subtitle**: "Telemetry gateway, dialog, Component · Ground segment". Focus moves into it on open and returns to the row on close.
-- **Escape closes the sheet**, at any depth; the back chevron goes up one frame.
-- **The footer's link is first in its order**; the actions come after it, the primary last.
-- **The eyebrow, the id and the status are text** read before the title.
+Base UI provides the dialog semantics, modal focus containment, Escape dismissal and focus return. By default, PreviewSheet focuses its title so users encounter the identity before the record's structured content. Use `initialFocus` for an appropriate field in a task-oriented form, and `finalFocus` when completing work removes the opener. A short supplied subtitle becomes the description; an absent subtitle creates no empty description.
+
+The visible Close remains available. Keep pending/unsaved-work handling in the caller, including dismissal guards where the actual workflow needs them. Footer navigation uses named anchors; mutations use buttons.
+
+Sources: [shadcn Base Sheet](https://ui.shadcn.com/docs/components/base/sheet), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/sheet.tsx), [Base UI Dialog](https://base-ui.com/react/components/dialog), [WAI-ARIA dialog guidance](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).
 
 ## Props
 
@@ -85,13 +44,4 @@ One: 720px, about half the screen at the widths this product runs at; `width` fo
 
 ## Related
 
-- [Sheet](?path=/docs/components-sheet--docs): the frame.
-- [PreviewRail](?path=/docs/patterns-previewrail--docs): the same head beside a table that leaves room.
-- [Glance](?path=/docs/patterns-glance--docs): the hover rung's body.
-- [RecordHeader](?path=/docs/patterns-recordheader--docs): the header the sheet compacts.
-- [Pages · Rail, sheet, panel](?path=/docs/patterns-pages--docs#rail-sheet-panel): the sheet is the peek; a page uses the rail or the sheet, never both.
-- [Pages · The hover ladder](?path=/docs/patterns-pages--docs#the-hover-ladder): click is the peek; a record opened from inside a peek is the next frame of the same sheet.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+[Shell.Panel](?path=/docs/layout-pages--docs), [Shell.Panel](?path=/docs/layout-pages--docs), [Sheet](?path=/docs/components-sheet--docs), [Pages](?path=/docs/layout-pages--docs).

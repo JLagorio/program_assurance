@@ -1,11 +1,19 @@
 import type { ReactNode } from "react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+} from "../components";
+import { PageHeader } from "../layout";
 
 import { Badge, Indicator, type Tone } from "../components/badge";
 import { Button } from "../components/button";
 import { Fact } from "../components/typography";
-import { RecordHeader } from "../patterns/record-header";
 
-/* The RecordHeader is the header of every record: the trail ending in the
+/* The PageHeader is the header of every record: the trail ending in the
    id, the title with a word of meta, the actions, the facts, the strip below. A work surface
    needs the same header pinned above the work with two more things: the state axes as facts,
    the first the headline as a Badge and the rest a dot and a word, and the actions that change
@@ -96,21 +104,34 @@ export function ActionBar({ crumbs, id, title, context, states, actions, tabs }:
           : "sticky-bar z-20 border-b border-default bg-surface-current pb-150 pt-050"
       }
     >
-      <RecordHeader
-        crumbs={crumbs}
-        id={id}
-        title={title}
-        meta={context}
-        actions={buttons}
-        below={
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            {crumbs}
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{title}</PageHeader.Title>
+          <div className="pt-050 flex flex-wrap items-center gap-100 font-body-small text-subtle">
+            {context}
+          </div>
+        </div>
+        <PageHeader.Actions>{buttons}</PageHeader.Actions>
+        <div className="col-span-full">
           <>
             {facts ? (
               <Fact.Group className="border-t border-default pt-100">{facts}</Fact.Group>
             ) : null}
             {tabs}
           </>
-        }
-      />
+        </div>
+      </PageHeader>
     </div>
   );
 }

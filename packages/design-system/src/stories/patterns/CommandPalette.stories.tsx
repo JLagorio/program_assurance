@@ -10,7 +10,7 @@ import {
   CommandList,
 } from "../../components";
 
-import { CommandPalette, useCommandPalette, type PaletteCommand } from "../../patterns";
+import { CommandPalette, useCommandPalette, type PaletteCommand } from "../..";
 import { Stack } from "../../primitives";
 import { Pair } from "../_lib/pair";
 

@@ -30,7 +30,7 @@ Compose `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent`. Match each Trigger'
 </Tabs>
 ```
 
-[ShowPage](?path=/docs/patterns-pages--docs) accepts the selected `tab`, `onTabChange` and a `TabsList`, and composes the page root and body into this pattern. On record routes, keep selection in the router's search state so back and forward restore the view.
+Routes compose Tabs, TabsList and TabsContent directly; route state controls the selected value. Supporting context can be contributed separately with Shell.Aside.
 
 ## Variants
 
@@ -80,4 +80,4 @@ Root accepts `value`/`onValueChange` or `defaultValue`, including numeric values
 
 - [ToggleGroup](?path=/docs/components-togglegroup--docs): view options or filters over the same rows.
 - [Badge](?path=/docs/components-badge--docs): counts and state labels inside tabs.
-- [Pages](?path=/docs/patterns-pages--docs): record page composition and controlled routing.
+- [Pages](?path=/docs/layout-pages--docs): record page composition and controlled routing.

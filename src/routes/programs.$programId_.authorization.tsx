@@ -1,8 +1,17 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { BreadcrumbItem, BreadcrumbLink, RecordHeader, ShowPage } from "@ledger/design-system";
 import { AuthorizationSection } from "@/components/app/authorization";
-import { Shell } from "@/components/app/shell";
 import { programs } from "@/lib/grc-data";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  PageHeader,
+  Stack,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/programs/$programId_/authorization")({
   loader: ({ params }) => {
@@ -16,31 +25,37 @@ export const Route = createFileRoute("/programs/$programId_/authorization")({
 function Authorization() {
   const program = Route.useLoaderData();
   return (
-    <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            title="Authorization"
-            id={program.id}
-            crumbs={
-              <>
-                <BreadcrumbItem>
-                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-                  >
-                    {program.name}
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-              </>
-            }
-          />
-        }
-      >
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                >
+                  {program.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{program.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{"Authorization"}</PageHeader.Title>
+        </div>
+      </PageHeader>
+      <Stack space="space.300" className="min-w-0 pt-200">
         <AuthorizationSection programId={program.id} programName={program.name} />
-      </ShowPage>
-    </Shell>
+      </Stack>
+    </Stack>
   );
 }

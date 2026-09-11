@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { PageHeader } from "../..";
+import * as Stories from "./PageHeader.stories";
+
+<Meta of={Stories} />
+
+# PageHeader
+
+One composable page header for collections and records. Native header, heading, paragraph and div props and refs pass through the parts.
+
+<Canvas of={Stories.Collection} />
+<Canvas of={Stories.Record} />
+
+Compose a title and actions; add Breadcrumb or metadata with primitives where useful. Breadcrumbs and state strips span the header with `col-span-full`. Titles and actions wrap on small screens. Description is optional and wraps without hiding content behind a tooltip.
+
+Use PageHeader.Title once for the page's h1. Status, owner and dates are sibling content, outside that heading. Panel and dialog headings use their own h2 semantics.
+
+<ArgTypes of={PageHeader} />

@@ -1,10 +1,5 @@
 /* Page-level layout on the layout dimension tokens. These are the few templates a class string
    cannot say without an arbitrary value; each reads a token, so the widths stay in one place. */
-/* The rail column is the rail token plus the inset its rule takes, so the rail's content is the
-   token wide: the same width the shell's panel gives an inset Panel. */
-@utility grid-cols-main-rail {
-  grid-template-columns: minmax(0, 1fr) calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
-}
 @utility grid-cols-list-detail {
   grid-template-columns: var(--ds-dimension-layout-list) minmax(0, 1fr);
 }
@@ -37,15 +32,20 @@
   --shell-sidenav-width: var(--shell-sidenav-stored, var(--ds-dimension-layout-sidenav));
   --shell-panel-width: var(--shell-panel-stored, var(--ds-dimension-layout-panel));
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) var(--shell-panel-inset, 0px);
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) var(--shell-aside-inset, 0px) var(
+      --shell-panel-inset,
+      0px
+    );
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   grid-template-areas:
-    "banner banner banner"
-    "topnav topnav topnav"
-    "sidenav main panel";
+    "banner banner banner banner"
+    "topnav topnav topnav topnav"
+    "sidenav main aside panel"
+    "sidenav context context panel";
   min-height: 100dvh;
   /* The panel's column opening or closing moves the page; it moves on the standard curve. */
-  transition: grid-template-columns var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard);
+  transition: grid-template-columns var(--ds-motion-duration-moderate)
+    var(--ds-motion-easing-standard);
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
@@ -81,14 +81,69 @@
   min-width: 0;
 }
 @utility shell-panel {
-  position: fixed;
+  position: sticky;
   top: var(--shell-top);
-  inset-inline-end: 0;
-  z-index: 40;
   height: calc(100dvh - var(--shell-top));
-  width: min(var(--shell-panel-width), 90vw);
-  @media (width >= 64rem) {
-    width: var(--shell-panel-width);
+  width: 100%;
+  @media (width >= 80rem) {
+    border-inline-start-width: 1px;
+  }
+}
+[data-shell-slot="aside"] {
+  grid-area: context;
+  min-width: 0;
+}
+[data-shell-slot="panel"] {
+  grid-area: panel;
+  min-width: 0;
+}
+[data-shell-slot="aside"]:empty,
+[data-shell-slot="panel"]:empty {
+  display: none;
+}
+[data-shell-area="aside"] {
+  border-block-start: 1px solid var(--ds-color-border);
+}
+.page-header {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (width >= 40rem) {
+  .page-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+@media (width >= 80rem) {
+  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) {
+    --shell-panel-inset: var(--shell-panel-width);
+  }
+}
+@media (width >= 75rem) {
+  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])):has(
+      > [data-shell-slot="aside"] > aside
+    ) {
+    --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
+  }
+  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
+    > [data-shell-slot="aside"] {
+    grid-area: aside;
+  }
+  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
+    [data-shell-area="aside"] {
+    border-block-start: 0;
+    border-inline-start: 1px solid var(--ds-color-border);
+  }
+}
+@media (width < 80rem) {
+  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) > .shell-main,
+  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
+    > [data-shell-slot="aside"] {
+    display: none;
+  }
+  [data-shell-slot="panel"] {
+    grid-area: main;
+  }
+  [data-shell-area="panel"] > [role="separator"] {
+    display: none;
   }
 }
 /* Below the large breakpoint, and for the flyout, the side nav overlays the page. It keeps its grid
@@ -105,13 +160,6 @@
   width: min(var(--shell-sidenav-width), 90vw);
 }
 
-/* The panel is fixed beside the page, wherever in the tree it is rendered, so the server renders
-   it too. While one is on the page, on the large breakpoint, the root reserves its column. */
-@media (width >= 64rem) {
-  .shell-root:has([data-shell-area="panel"]) {
-    --shell-panel-inset: var(--shell-panel-width);
-  }
-}
 /* Before React takes over, the collapsed state the shell script found in storage hides the side
    nav and narrows the start slot, so a collapsed side nav does not flash open on reload. */
 @media (width >= 64rem) {
@@ -133,5 +181,28 @@
 
 /* Keep keyboard-focused controls clear of sticky application furniture when scrolled into view. */
 :where(input, textarea, select, button, a[href], [tabindex]):focus-visible {
-  scroll-margin-block: calc(var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-200)) var(--ds-space-1000);
+  scroll-margin-block: calc(
+      var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-200)
+    )
+    var(--ds-space-1000);
+}
+
+@media (width >= 110rem) {
+  .shell-root:has(> [data-shell-slot="aside"] > aside) {
+    --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
+  }
+  .shell-root > [data-shell-slot="aside"] {
+    grid-area: aside;
+  }
+  .shell-root [data-shell-area="aside"] {
+    border-block-start: 0;
+    border-inline-start: 1px solid var(--ds-color-border);
+  }
+}
+
+@media (width < 80rem) {
+  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
+    [data-shell-skip="main"] {
+    display: none;
+  }
 }

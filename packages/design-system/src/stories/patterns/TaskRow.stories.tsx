@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { expect, fireEvent, userEvent, within } from "storybook/test";
 
+import { TaskRow } from "../..";
 import { Badge, Button, Item, Person } from "../../components";
-import { TaskRow } from "../../patterns";
 import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 

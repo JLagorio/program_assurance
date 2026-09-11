@@ -2,28 +2,28 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useMemo, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, Indicator, Input, Spinner, Stat, type Tone } from "../../components";
 import {
-  Toolbar,
   ColumnSortable,
   DataTable,
   DragContext,
   HeaderMenu,
   RowSortable,
-  defineColumns,
+  Toolbar,
   columnKinds,
-  resetView,
-  viewKey,
-  writeView,
+  defineColumns,
   readView,
+  resetView,
   useColumnDrag,
   useDataTable,
+  viewKey,
+  writeView,
   type ColumnFiltersState,
   type DataTableInstance,
   type DataTableState,
   type PaginationState,
   type SortingState,
-} from "../../patterns";
+} from "../..";
+import { Button, Indicator, Input, Spinner, Stat, type Tone } from "../../components";
 
 import { Table } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
