@@ -71,7 +71,7 @@ function ProductTaskRow({
   const badge =
     state === "waiting" ? (
       <Badge variant="secondary" size="xsmall" tone="information">
-        {waitingOn ? `Waiting on ${waitingOn}` : "Waiting"}
+        Waiting{waitingOn ? <span className="hidden sm:inline"> on {waitingOn}</span> : null}
       </Badge>
     ) : state === "blocked" ? (
       <Badge variant="secondary" size="xsmall" tone="danger">
@@ -84,7 +84,9 @@ function ProductTaskRow({
       completed={done}
       onCompletedChange={onDoneChange}
       assignee={
-        assignee ? <Person name={assignee} className="font-body-small text-subtle" /> : undefined
+        assignee ? (
+          <Person name={assignee} className="hidden font-body-small text-subtle sm:flex" />
+        ) : undefined
       }
       due={
         due ? (
@@ -98,7 +100,7 @@ function ProductTaskRow({
       }
       dueDateTime={dueDateTime}
       status={badge}
-      meta={subject}
+      meta={subject ? <span className="hidden md:inline">{subject}</span> : undefined}
       actions={actions}
       link={link}
       onSelect={onSelect}

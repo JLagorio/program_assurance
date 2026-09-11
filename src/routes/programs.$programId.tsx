@@ -17,7 +17,7 @@ import { useAssessmentsVersion } from "@/lib/assessment-store";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { campaigns } from "@/lib/campaigns";
 import { useCompositionGraph } from "@/lib/composition";
-import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
+import { useControlMatrix, controlStatuses, type ControlStatus } from "@/lib/control-matrix";
 import { currentSession, useWorkVersion } from "@/lib/control-work";
 import { evidenceForProgram, useEvidenceVersion } from "@/lib/evidence-catalog";
 import { programs, programStatuses, programStatusTone } from "@/lib/grc-data";
@@ -30,15 +30,14 @@ import { coverageFromRows } from "@/lib/program-coverage";
 import { saveProgramField } from "@/lib/program-save";
 import { useProgramScheduleVersion } from "@/lib/program-schedule";
 import { programElementIds, resolveProgramElement } from "@/lib/program-scope";
-import { programState, type Stage } from "@/lib/program-stage";
+import { type Stage } from "@/lib/program-stage";
 import { saveProgramCommand, useProgramsVersion } from "@/lib/program-store";
 import { useRecordForm } from "@/lib/record-form";
 import { poamItems as registerPoams } from "@/lib/register";
 import { requirementsForProgramElement } from "@/lib/requirement-context";
 import { useRequirementsVersion } from "@/lib/requirements";
 import { rollupControlSet, scopesForProgram, useScopesVersion } from "@/lib/scopes";
-import { stageOf } from "@/lib/stages";
-import { tasksForProgram, useTasksVersion } from "@/lib/tasks";
+import { prioritizeTasks, tasksForProgram, useTasksVersion } from "@/lib/tasks";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,7 +56,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Button,
-  ButtonGroup,
+  buttonVariants,
   Combobox,
   ComboboxContent,
   ComboboxEmpty,
@@ -83,6 +82,7 @@ import {
   Field,
   FieldError,
   FieldLabel,
+  Grid,
   IconButton,
   Id,
   Inline,
@@ -103,7 +103,7 @@ import {
   useCommandPalette,
 } from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, Lock } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Lock } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 export const Route = createFileRoute("/programs/$programId")({
@@ -112,6 +112,8 @@ export const Route = createFileRoute("/programs/$programId")({
     search: Record<string, unknown>,
   ): {
     tab?: Tab | undefined;
+    controlFamily?: string | undefined;
+    controlStatus?: ControlStatus | undefined;
     peek?: string | undefined;
     element?: string | undefined;
     findingId?: string | undefined;
@@ -128,6 +130,11 @@ export const Route = createFileRoute("/programs/$programId")({
       tab:
         tabOrder.find((t) => t.toLowerCase() === raw.toLowerCase()) ?? tabAlias[raw.toLowerCase()],
       peek,
+      controlFamily:
+        typeof search["controlFamily"] === "string" && /^[A-Z]{2}$/.test(search["controlFamily"])
+          ? search["controlFamily"]
+          : undefined,
+      controlStatus: controlStatuses.find((status) => status === search["controlStatus"]),
       element:
         typeof search["element"] === "string" && search["element"] ? search["element"] : undefined,
       findingId: typeof search["findingId"] === "string" ? search["findingId"] : undefined,
@@ -174,8 +181,14 @@ export const Route = createFileRoute("/programs/$programId")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: ProgramDetail,
+  component: ProgramRecord,
 });
+
+function ProgramRecord() {
+  const program = Route.useLoaderData();
+  // Editors and selected records belong to this program, even when the shell stays mounted.
+  return <ProgramDetail key={program.id} />;
+}
 
 /** Object-oriented tabs. The workflow lives in the lifecycle bar, not here. */
 type Tab =
@@ -304,6 +317,8 @@ function ProgramDetail() {
         search: (prev) => ({
           ...prev,
           tab: next,
+          controlFamily: undefined,
+          controlStatus: undefined,
           element: undefined,
           peek: undefined,
           findingId: undefined,
@@ -386,8 +401,6 @@ function ProgramDetail() {
   const [owner, setOwner] = useState(program.owner);
   const palette = useCommandPalette();
   const [cdrOpen, setCdrOpen] = useState(false);
-  const [family, setFamily] = useState("All");
-  const [statusFilter, setStatusFilter] = useState<ControlStatus | "All">("All");
   const [fields, setFields] = useState({
     acronym: program.acronym,
     system: program.system,
@@ -408,13 +421,17 @@ function ProgramDetail() {
 
   const matrix = useControlMatrix(program.id);
 
-  // Posture and the gate blocker read the same live rows as the coverage card.
   const posture = programPosture(program, matrix);
-  // The Blocker reads the same deficiency count as the tab badge and the
-  // coverage legend; `program.controlsFailing` is the last signed package
-  // figure, not what this screen is showing.
-  const state = programState(program, undefined, posture.controlsFailing);
-  const coverage = useMemo(() => coverageFromRows(matrix), [matrix]);
+  const coverage = coverageFromRows(programControls.map((control) => control.record));
+  const openControls = (filter: {
+    controlFamily?: string | undefined;
+    controlStatus?: ControlStatus | undefined;
+  }) => {
+    void navigate({ search: { tab: "Controls", ...filter } });
+  };
+  const openSchedule = () => {
+    void navigate({ search: { tab: "Schedule", scheduleView: "Tasks" } });
+  };
   const programWorkstreams = useMemo(() => workstreamsForProgram(program.id), [program.id]);
 
   const ownerOptions = useMemo(() => {
@@ -422,18 +439,14 @@ function ProgramDetail() {
     return [...new Set([program.owner, ...names])].slice(0, 8);
   }, [program.id, program.owner]);
 
-  const runPrimary = () => {
-    if (state.primaryAction === "Generate CDR package") setCdrOpen(true);
-    else if (state.primaryAction === "Record assessment result") setAssessing(true);
-  };
-
   const selectStage = (s: Stage | null) => {
     if (s) setTab(stageHome[s]);
   };
   const me = currentSession().name;
   useTasksVersion();
   const programTasks = tasksForProgram(program.id);
-  const openTaskCount = programTasks.filter((t) => t.state !== "Done").length;
+  const priorityTasks = prioritizeTasks(programTasks);
+  const openTaskCount = priorityTasks.length;
 
   useEffect(() => {
     let armed = false;
@@ -470,31 +483,6 @@ function ProgramDetail() {
   const rail = (
     <>
       <Inspector.Group title="Details">
-        <KeyValue label="Status">
-          <Editable.Select
-            label="Status"
-            value={status}
-            options={programStatuses}
-            onChange={setStatus}
-            save={saveField("Status")}
-            render={(v) => (
-              <Badge variant="secondary" tone={programStatusTone[v]}>
-                {v}
-              </Badge>
-            )}
-          />
-        </KeyValue>
-        <KeyValue label="Stage">{stageOf(program.id)}</KeyValue>
-        <KeyValue label="Owner">
-          <Editable.Select
-            label="Owner"
-            value={owner}
-            options={ownerOptions}
-            onChange={setOwner}
-            save={saveField("Owner")}
-            render={(v) => <Person name={v} />}
-          />
-        </KeyValue>
         <KeyValue label="Acronym">
           <Editable.Text
             label="Acronym"
@@ -521,16 +509,6 @@ function ProgramDetail() {
         </KeyValue>
         <KeyValue label="Type">{program.type}</KeyValue>
         <KeyValue label="Environment">{program.environment}</KeyValue>
-        <KeyValue label="Next gate">
-          {state.currentGate ? (
-            <Inline as="span" space="space.075" alignBlock="center">
-              <Id className="text-subtle">{state.currentGate.id}</Id>
-              <span className="truncate">{state.currentGate.name}</span>
-            </Inline>
-          ) : (
-            "—"
-          )}
-        </KeyValue>
         <KeyValue label="Updated">{program.updated}</KeyValue>
       </Inspector.Group>
 
@@ -648,10 +626,15 @@ function ProgramDetail() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <ButtonGroup>
-                <Button variant="primary" size="small" onClick={runPrimary}>
-                  {state.primaryAction}
-                </Button>
+              <Inline space="space.050" alignBlock="center">
+                <Link
+                  to="/programs/$programId"
+                  params={{ programId: program.id }}
+                  search={{ tab: "Schedule", scheduleView: "Plan" }}
+                  className={buttonVariants({ variant: "primary", size: "small" })}
+                >
+                  Open schedule
+                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     render={
@@ -686,7 +669,6 @@ function ProgramDetail() {
                     >
                       Record assessment
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Duplicate program</DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
                         setArchiving(true);
@@ -696,16 +678,50 @@ function ProgramDetail() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </ButtonGroup>
+              </Inline>
             </>
           </PageHeader.Actions>
+          <Inline
+            space="space.200"
+            rowSpace="space.100"
+            alignBlock="center"
+            shouldWrap
+            className="col-span-full"
+          >
+            <Inline space="space.075" alignBlock="center">
+              <span className="font-body-small text-subtle">Status</span>
+              <Editable.Select
+                label="Status"
+                value={status}
+                options={programStatuses}
+                onChange={setStatus}
+                save={saveField("Status")}
+                render={(v) => (
+                  <Badge variant="secondary" tone={programStatusTone[v]}>
+                    {v}
+                  </Badge>
+                )}
+              />
+            </Inline>
+            <Inline space="space.075" alignBlock="center">
+              <span className="font-body-small text-subtle">Owner</span>
+              <Editable.Select
+                label="Owner"
+                value={owner}
+                options={ownerOptions}
+                onChange={setOwner}
+                save={saveField("Owner")}
+                render={(v) => <Person name={v} />}
+              />
+            </Inline>
+          </Inline>
         </PageHeader>
         <Tabs
           value={tab}
           onValueChange={(value) => setTab(value as typeof tab)}
           className="gap-150"
         >
-          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+          <TabsList className="w-full justify-start" variant="line" aria-label="Program work">
             {(
               [
                 ["Overview", null],
@@ -744,70 +760,87 @@ function ProgramDetail() {
               {tab === "Overview" ? (
                 <>
                   <StageStrip programId={program.id} />
+                  <Grid
+                    as="nav"
+                    aria-label="Program work queues"
+                    gap="space.100"
+                    templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(3, minmax(0, 1fr))" }}
+                  >
+                    {(
+                      [
+                        {
+                          label: "Open tasks",
+                          count: openTaskCount,
+                          tab: "Schedule",
+                          scheduleView: "Tasks",
+                        },
+                        { label: "Open findings", count: posture.findingsOpen, tab: "Findings" },
+                        { label: "Open POA&Ms", count: posture.poamOpen, tab: "POA&M" },
+                      ] as const
+                    ).map((queue) => (
+                      <Link
+                        key={queue.label}
+                        to="/programs/$programId"
+                        params={{ programId: program.id }}
+                        search={{
+                          tab: queue.tab,
+                          scheduleView: "scheduleView" in queue ? queue.scheduleView : undefined,
+                        }}
+                        className="flex items-center gap-150 rounded-medium border border-default p-150 hover:bg-neutral-subtle-hovered focus-visible:outline-focused"
+                      >
+                        <span className="font-heading-small font-semibold tabular-nums">
+                          {queue.count}
+                        </span>
+                        <span className="font-body-small">{queue.label}</span>
+                        <ArrowUpRight
+                          aria-hidden="true"
+                          className="ml-auto size-150 shrink-0 text-subtle"
+                        />
+                      </Link>
+                    ))}
+                  </Grid>
 
                   <CoverageBand
                     coverage={coverage}
-                    baseline={`${program.baseline} — ${program.impact}`}
-                    onSelectFamily={(f) => {
-                      setFamily(f);
-                      setStatusFilter("All");
-                      setTab("Controls");
-                    }}
-                    onSelectSegment={(key) => {
-                      setStatusFilter(segmentStatus[key] ?? "All");
-                      setFamily("All");
-                      setTab("Controls");
-                    }}
+                    baseline={program.baseline}
+                    onSelectFamily={(controlFamily) => openControls({ controlFamily })}
+                    onSelectSegment={(key) => openControls({ controlStatus: segmentStatus[key] })}
                   />
 
                   <Section
-                    title="Tasks"
+                    title="Priority tasks"
+                    description="Overdue and blocked first, then by due date."
                     count={openTaskCount || null}
                     action={
-                      <Button
-                        size="small"
-                        variant="subtle"
-                        onClick={() => {
-                          void navigate({
-                            search: (prev) => ({
-                              ...prev,
-                              tab: "Schedule",
-                              scheduleView: "Tasks",
-                            }),
-                          });
-                        }}
-                      >
-                        See all
+                      <Button size="small" variant="subtle" onClick={openSchedule}>
+                        All tasks
                       </Button>
                     }
                   >
                     <Box paddingBlockStart="space.100">
-                      <Task.List empty="No open tasks. Ask for something from a record's log bar.">
-                        <TaskRows
-                          tasks={programTasks.filter((t) => t.state !== "Done").slice(0, 6)}
-                          me={me}
-                          showSubject
-                        />
+                      <Task.List empty="No open tasks. Create a task from a control or requirement record.">
+                        <TaskRows tasks={priorityTasks.slice(0, 6)} me={me} showSubject />
                       </Task.List>
                     </Box>
                   </Section>
-
-                  <RecordActivity
-                    program={program.id}
-                    subject={{ kind: "program", id: program.id, label: program.name }}
-                    me={me}
-                    wholeProgram
-                    limit={8}
-                    seeAll={
-                      <button type="button" onClick={() => setTab("Activity")}>
-                        See all
-                      </button>
-                    }
-                  />
                 </>
               ) : null}
               {tab === "Controls" ? (
-                <ProgramControls programId={program.id} elementId={selectedElement?.id} />
+                <ProgramControls
+                  programId={program.id}
+                  elementId={selectedElement?.id}
+                  coverageFamily={search.controlFamily}
+                  coverageStatus={search.controlStatus}
+                  onClearCoverage={() => {
+                    void navigate({
+                      search: (prev) => ({
+                        ...prev,
+                        controlFamily: undefined,
+                        controlStatus: undefined,
+                      }),
+                    });
+                  }}
+                />
               ) : null}
               {tab === "Findings" ? (
                 <ProgramFindings

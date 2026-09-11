@@ -359,6 +359,20 @@ export function isOverdue(task: Task, now: Date = clockNow()): boolean {
   return task.due < now.toISOString().slice(0, 10);
 }
 
+/** Work to surface on the program: overdue, blocked, then the soonest commitment. */
+export function prioritizeTasks(list: Task[], now: Date = clockNow()): Task[] {
+  const priority = (task: Task) => (isOverdue(task, now) ? 0 : task.state === "Blocked" ? 1 : 2);
+  return list
+    .filter((task) => task.state !== "Done")
+    .sort(
+      (a, b) =>
+        priority(a) - priority(b) ||
+        (a.due ?? "9999-12-31").localeCompare(b.due ?? "9999-12-31") ||
+        a.createdAt.localeCompare(b.createdAt) ||
+        a.id.localeCompare(b.id),
+    );
+}
+
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const monthNames = [
   "Jan",

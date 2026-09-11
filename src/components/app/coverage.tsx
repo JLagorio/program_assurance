@@ -37,12 +37,12 @@ export function CoverageBand({
       action={<span className="font-body-small text-subtle">{baseline}</span>}
     >
       <Box paddingBlockStart="space.150">
-        <Inline className="pb-100" space="space.100" alignBlock="baseline">
+        <Inline className="pb-100" space="space.100" alignBlock="baseline" shouldWrap>
           <span className="tabular-nums font-heading-small font-semibold">{coverage.pct}%</span>
           <span className="tabular-nums font-body-small text-subtle">
             {coverage.satisfied}/{coverage.total} controls satisfied
           </span>
-          <span className="tabular-nums ml-auto font-body-small text-subtle">
+          <span className="tabular-nums font-body-small text-subtle">
             {coverage.inherited} inherited · {coverage.systemImplemented} system-implemented
           </span>
         </Inline>
@@ -78,8 +78,12 @@ export function CoverageBand({
           ))}
         </Inline>
 
-        <Box paddingBlockStart="space.150">
+        <details className="pt-150">
+          <summary className="w-fit cursor-pointer font-body-small text-subtle focus-visible:outline-focused">
+            Coverage by family
+          </summary>
           <Grid
+            className="pt-100"
             columnGap="space.400"
             rowGap="space.0"
             templateColumns={{ base: "repeat(1, minmax(0, 1fr))", md: "repeat(2, minmax(0, 1fr))" }}
@@ -110,7 +114,7 @@ export function CoverageBand({
               </button>
             ))}
           </Grid>
-        </Box>
+        </details>
       </Box>
     </Section>
   );

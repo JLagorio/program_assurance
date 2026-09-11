@@ -56,16 +56,18 @@ export function StageStrip({ programId }: { programId: string }) {
   return (
     <>
       <Inline space="space.150" alignBlock="start">
-        <Stepper label="Stages" className="min-w-0 flex-1">
-          {stages.map((s, i) => (
-            <Stepper.Item
-              key={s}
-              label={s}
-              state={i < idx ? "done" : i === idx ? "current" : "upcoming"}
-              onSelect={i === idx ? undefined : () => setPending(s)}
-            />
-          ))}
-        </Stepper>
+        <Box className="min-w-0 flex-1 overflow-x-auto pb-050">
+          <Stepper label="Stages">
+            {stages.map((s, i) => (
+              <Stepper.Item
+                key={s}
+                label={s}
+                state={i < idx ? "done" : i === idx ? "current" : "upcoming"}
+                onSelect={i === idx ? undefined : () => setPending(s)}
+              />
+            ))}
+          </Stepper>
+        </Box>
         <IconButton
           label="Edit stages"
           variant="subtle"

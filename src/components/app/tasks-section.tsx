@@ -32,7 +32,7 @@ import {
 } from "@ledger/design-system";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { useId, useState, type ReactNode } from "react";
-import { SubjectWords } from "@/components/app/subject-link";
+import { SubjectLink } from "@/components/app/subject-link";
 import { Task } from "@/components/app/task";
 import { TaskDialog } from "@/components/app/task-dialog";
 import { programPresets, TaskTable } from "@/components/app/task-table";
@@ -88,12 +88,13 @@ export function TaskRows({
           state={stateOf(t)}
           onDoneChange={(done) => (done ? completeTask(t.id, me) : reopenTask(t.id, me))}
           assignee={t.assignee}
+          onSelect={() => setEditing({ task: t })}
           due={dueLabel(t)}
           dueDateTime={t.due ?? undefined}
           overdue={isOverdue(t)}
           waitingOn={t.waitingOn ?? undefined}
           subject={
-            showSubject ? <SubjectWords subject={t.subject} program={t.program} /> : undefined
+            showSubject ? <SubjectLink subject={t.subject} program={t.program} /> : undefined
           }
           actions={
             <DropdownMenu>

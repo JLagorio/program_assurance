@@ -10,6 +10,7 @@ import { ControlRequirementTable } from "@/components/app/requirements";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { buildBoard, stageKeys, stageLabels } from "@/lib/control-board";
 import { controlEvidence } from "@/lib/control-evidence";
+import { controlStatusTone, type ControlStatus } from "@/lib/control-matrix";
 import {
   assessmentTone,
   implementationTone,
@@ -20,6 +21,7 @@ import {
 import {
   controlAllocationCount,
   controlRequirementsInElement,
+  filterControlCoverage,
   programControlImplementations,
   programControlRows,
   type ProgramControlRow,
@@ -31,6 +33,7 @@ import { useControlText, useSctm } from "@/lib/sctm";
 import {
   Badge,
   Button,
+  buttonVariants,
   DataTable,
   Fact,
   Inline,
@@ -50,7 +53,7 @@ import {
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type ControlTableRow = ProgramControlRow & { progressStage: string };
+type ControlTableRow = ProgramControlRow & { progressStage: string; coverage: ControlStatus };
 
 const implementationColor = (row: ProgramControlRow) =>
   row.implementation === "Mixed" || row.implementation === "Unrecorded"
@@ -68,9 +71,15 @@ const controlGroupOptions = [
 export function ProgramControls({
   programId,
   elementId,
+  coverageFamily,
+  coverageStatus,
+  onClearCoverage,
 }: {
   programId: string;
   elementId?: string | undefined;
+  coverageFamily?: string | undefined;
+  coverageStatus?: ControlStatus | undefined;
+  onClearCoverage?: (() => void) | undefined;
 }) {
   const workVersion = useWorkVersion();
   const scopesVersion = useScopesVersion();
@@ -81,8 +90,21 @@ export function ProgramControls({
   const [selected, setSelected] = useState<{ controlId: string; scopeId: string } | null>(null);
   const [groupBy, setGroupBy] = useState<"" | (typeof controlGroupOptions)[number]["value"]>("");
   const rows = useMemo(
-    () => programControlRows(programId, elementId),
-    [programId, elementId, workVersion, scopesVersion, assuranceVersion, requirementsVersion],
+    () =>
+      filterControlCoverage(programControlRows(programId, elementId), {
+        family: coverageFamily,
+        status: coverageStatus,
+      }),
+    [
+      programId,
+      elementId,
+      workVersion,
+      scopesVersion,
+      assuranceVersion,
+      requirementsVersion,
+      coverageFamily,
+      coverageStatus,
+    ],
   );
   const selectedControl = rows.find((row) => row.id === selected?.controlId);
   const selectedScope =
@@ -98,7 +120,11 @@ export function ProgramControls({
     const stages = new Map(progress.controls.map((control) => [control.id, control.stuckAt]));
     return rows.map((row) => {
       const stage = stages.get(row.id);
-      return { ...row, progressStage: stage ? stageLabels[stage] : "No stalled stage" };
+      return {
+        ...row,
+        coverage: row.record.status,
+        progressStage: stage ? stageLabels[stage] : "No stalled stage",
+      };
     });
   }, [rows, progress]);
   const scope = closestProgramScope(programId, elementId);
@@ -108,6 +134,11 @@ export function ProgramControls({
         column.id("id", { header: "Control", width: 100, hideable: false }),
         column.text("title", { header: "Title", minWidth: 250, hideable: false }),
         column.text("family", { header: "Family", width: 100 }),
+        column.status("coverage", {
+          header: "Coverage",
+          width: 176,
+          tone: (row) => controlStatusTone[row.coverage],
+        }),
         column.custom("appliesTo", {
           header: "Applies to",
           width: 175,
@@ -148,7 +179,10 @@ export function ProgramControls({
       />
     ),
     state: { grouping: groupBy ? [groupBy] : [] },
-    initialState: { expanded: true, columnVisibility: { family: false, progressStage: false } },
+    initialState: {
+      expanded: true,
+      columnVisibility: { family: false, coverage: false, progressStage: false },
+    },
   });
   // This field connects metric clicks to the Filters menu; it is not a displayed column.
   // Apply it after restoring older saved views that predate the field.
@@ -159,6 +193,18 @@ export function ProgramControls({
     table.setColumnVisibility((visibility) => ({ ...visibility, progressStage: false }));
   }, [programId, table]);
   const stageFilter = table.getColumn("progressStage")?.getFilterValue();
+  // An explicit overview link takes precedence over filters from a saved table view.
+  const appliedCoverage = useRef("");
+  useEffect(() => {
+    const key = `${programId}/${coverageFamily ?? ""}/${coverageStatus ?? ""}`;
+    if (appliedCoverage.current === key) return;
+    appliedCoverage.current = key;
+    table.setColumnVisibility((visibility) => ({ ...visibility, coverage: !!coverageStatus }));
+    if (coverageFamily || coverageStatus) {
+      table.setColumnFilters([]);
+      table.setGlobalFilter("");
+    }
+  }, [programId, coverageFamily, coverageStatus, table]);
   const activeStage =
     Array.isArray(stageFilter) && stageFilter.length === 1
       ? (stageKeys.find((key) => stageLabels[key] === stageFilter[0]) ?? null)
@@ -171,6 +217,17 @@ export function ProgramControls({
         empty={{ title: "No controls found", description: "No controls apply to this selection." }}
         toolbar={
           <Stack space="space.100">
+            {coverageFamily || coverageStatus ? (
+              <Inline space="space.100" alignBlock="center" shouldWrap>
+                <Badge variant="secondary">
+                  Coverage: {[coverageFamily, coverageStatus].filter(Boolean).join(" · ")}
+                </Badge>
+                <span className="font-body-small text-subtle">{rows.length} controls</span>
+                <Button size="small" variant="subtle" onClick={onClearCoverage}>
+                  Clear coverage filter
+                </Button>
+              </Inline>
+            ) : null}
             <Inline space="space.100" alignBlock="center" shouldWrap>
               <DataTable.Search table={table} placeholder="Find controls" />
               <Inline className="ml-auto" space="space.100" alignBlock="center" shouldWrap>
@@ -181,24 +238,20 @@ export function ProgramControls({
                 />
                 <DataTable.Filters
                   table={table}
-                  columns={["implementation", "assessment", "owner", "progressStage"]}
+                  columns={["implementation", "assessment", "coverage", "owner", "progressStage"]}
                 />
                 <DataTable.MetricsTrigger />
                 <DataTable.Columns table={table} />
                 <DataTable.Settings table={table} />
                 {scope ? (
-                  <Button
-                    size="small"
-                    render={
-                      <Link
-                        to="/programs/$programId/components/$componentId"
-                        params={{ programId, componentId: scope.element }}
-                        search={{ tab: "Control set" }}
-                      />
-                    }
+                  <Link
+                    to="/programs/$programId/components/$componentId"
+                    params={{ programId, componentId: scope.element }}
+                    search={{ tab: "Control set" }}
+                    className={buttonVariants({ size: "small" })}
                   >
                     Manage control set
-                  </Button>
+                  </Link>
                 ) : null}
               </Inline>
             </Inline>
@@ -419,18 +472,14 @@ function ControlPreview({
                 Derive requirement
               </Button>
               {scope && applies ? (
-                <Button
-                  size="small"
-                  render={
-                    <Link
-                      to="/programs/$programId/controls/$controlId"
-                      params={{ programId, controlId: row.id }}
-                      search={{ scope: scope.id, element: elementId }}
-                    />
-                  }
+                <Link
+                  to="/programs/$programId/controls/$controlId"
+                  params={{ programId, controlId: row.id }}
+                  search={{ scope: scope.id, element: elementId }}
+                  className={buttonVariants({ size: "small" })}
                 >
                   Open inherited implementation
-                </Button>
+                </Link>
               ) : null}
             </>
           )

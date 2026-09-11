@@ -8,7 +8,7 @@ Updated 2026-09-10.
 
 - [x] **Requirement record workflow reference** (2026-09-09). Keep status and owner beside the record identity; make attention items actionable; separate Allocations, Evidence, Activity and Provenance from Overview. Assessment results use compact cards and evidence uses Attachment previews. Preserve the existing editors and domain rules.
 - [x] **Separate layout from patterns** (2026-09-10). Persistent root shell; child-route Aside/Panel slots; one composable PageHeader; direct page and tab composition; optional Section. Remove the overlapping page/preview wrappers and Shapes category. Layout owns responsive placement, scrolling and focus.
-- [ ] **Apply the workflow reference to record bodies.** Review Section/Gates/Inspector usage on controls and programs; prioritize editable properties, evidence and next actions over repeated narrative and facts.
+- [x] **Control and program workflows** (2026-09-10). Editable status/ownership beside the title; focused control tabs retain drafts and expose a direct next action. Program overview shows work queues, actionable coverage and priority tasks; reference detail and activity live outside the default workflow. Coverage filters and scope selection survive links and browser history. Compose the existing shell slots, primitives and components in the app.
 
 ## Decisions waiting on Josef
 

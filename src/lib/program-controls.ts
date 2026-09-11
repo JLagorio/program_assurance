@@ -1,6 +1,6 @@
 /** Scoped projections of the existing control sets and implementation records. */
 import { nodeById } from "@/lib/composition";
-import { controlMatrix, type ControlRow } from "@/lib/control-matrix";
+import { controlMatrix, type ControlRow, type ControlStatus } from "@/lib/control-matrix";
 import {
   workForProgram,
   type AssessmentState,
@@ -31,6 +31,18 @@ export type ProgramControlRow = {
   findings: Finding[];
   record: ControlRow;
 };
+
+/** Coverage uses the matrix status, which includes Partial and accepted risk. */
+export function filterControlCoverage(
+  rows: ProgramControlRow[],
+  filter: { family?: string | undefined; status?: ControlStatus | undefined },
+) {
+  return rows.filter(
+    (row) =>
+      (!filter.family || row.family === filter.family) &&
+      (!filter.status || row.record.status === filter.status),
+  );
+}
 
 export function programControlScopes(programId: string, elementId?: string): AssessmentScope[] {
   const element = resolveProgramElement(programId, elementId);

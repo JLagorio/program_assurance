@@ -12,11 +12,13 @@ import {
   controlAllocationCount,
   controlFindingsInElement,
   controlRequirementsInElement,
+  filterControlCoverage,
   programControlImplementations,
   programControlRows,
   programControlScopes,
 } from "./program-controls";
 import { programElementIds } from "./program-scope";
+import { coverageFromRows } from "./program-coverage";
 import { allocationsFor, requirementsForControl } from "./requirements";
 import { controlSetFor, recordTailoring, recordedTailoring } from "./scopes";
 
@@ -26,6 +28,24 @@ beforeAll(() => {
   registerPlatformAssurance();
 });
 describe("program controls and their named element implementations", () => {
+  it("opens exactly the controls counted by each coverage segment, including Partial", () => {
+    const rows = programControlRows("PRG-1041");
+    const coverage = coverageFromRows(rows.map((row) => row.record));
+    expect(coverage.segments.find((segment) => segment.label === "Partial")!.value).toBeGreaterThan(
+      0,
+    );
+    for (const segment of coverage.segments) {
+      const status = segment.label as (typeof rows)[number]["record"]["status"];
+      const selected = filterControlCoverage(rows, { status });
+      expect(selected).toHaveLength(segment.value);
+      expect(selected.every((row) => row.record.status === status)).toBe(true);
+    }
+    expect(filterControlCoverage(rows, { family: "AC", status: "Partial" })).toEqual(
+      rows.filter((row) => row.family === "AC" && row.record.status === "Partial"),
+    );
+    expect(filterControlCoverage(rows, {})).toEqual(rows);
+    expect(filterControlCoverage(rows, { family: "XX" })).toEqual([]);
+  });
   it("keeps an untouched implementation unrecorded when its editor is opened", () => {
     const candidates = programControlImplementations("PRG-1090", "AU-6");
     const recorded = workForProgram("PRG-1090");

@@ -66,16 +66,9 @@ import {
 import { cn } from "@ledger/design-system/cn";
 import { Link } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
-import { useCallback, useId, useState, type SetStateAction } from "react";
+import { useCallback, useId, useState, type Ref, type SetStateAction } from "react";
 
-/**
- * The control work surface.
- *
- * Rebuilt on the shapes in `shapes.tsx` after an audit found this screen was
- * nineteen stacked Sections carrying 194 words of explanatory prose. The rule
- * here: the work is expanded, the reference is collapsed, the facts are in the
- * Inspector, and nothing carries a description.
- */
+/** Control editors and actions, composed by the record and its preview. */
 
 /* ------------------------------------------------------------- Action bar */
 
@@ -293,10 +286,12 @@ export function Narrative({
   work,
   onChange,
   elementId,
+  editButtonRef,
 }: {
   work: ControlWork;
   onChange: () => void;
   elementId?: string | undefined;
+  editButtonRef?: Ref<HTMLButtonElement> | undefined;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(work.narrative);
@@ -363,6 +358,7 @@ export function Narrative({
         <p className="font-body text-subtle">Not written.</p>
       )}
       <Button
+        ref={editButtonRef}
         className="pt-100"
         size="small"
         onClick={() => {
@@ -417,11 +413,13 @@ export function EvidenceBlock({
   work,
   onChange,
   elementId,
+  linkButtonRef,
 }: {
   work: ControlWork;
   available?: { id: string; label: string; collected: string }[];
   onChange: () => void;
   elementId?: string | undefined;
+  linkButtonRef?: Ref<HTMLButtonElement> | undefined;
 }) {
   const fieldId = useId();
 
@@ -573,6 +571,7 @@ export function EvidenceBlock({
 
       <Inline space="space.100" className="pt-100">
         <Button
+          ref={linkButtonRef}
           size="small"
           onClick={() => {
             chooseTarget("implementation");
@@ -742,6 +741,7 @@ export function Determination({ work, onChange }: { work: ControlWork; onChange:
   return (
     <div>
       <Textarea
+        aria-label="Assessment determination"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         placeholder="What was examined, what was found, what it supports."
