@@ -15,11 +15,11 @@ It is a row of controls, not a heading. The [Section](?path=/docs/layout-section
 
 ## Anatomy
 
-| Part    | What it is                                                                                                                                                                                |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Search  | An [InputGroup](?path=/docs/components-inputgroup--docs) with the search icon and a small `Input` of type search, 200px, named by its placeholder. Only with `onSearch`.                  |
-| Filters | The children, after the search: [FilterChips](?path=/docs/components-filterchip--docs), a [ToggleGroup](?path=/docs/components-togglegroup--docs) of lenses, a small Select that narrows. |
-| Actions | `actions`, pushed to the end: small Buttons with the primary last, or a count as text, "12 of 340 controls".                                                                              |
+| Part    | What it is                                                                                                                                                                             |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Search  | An [InputGroup](?path=/docs/components-inputgroup--docs) with the search icon and a small `Input` of type search, 200px, named by its placeholder. Only with `onSearch`.               |
+| Filters | `filters`, after the search: [FilterChips](?path=/docs/components-filterchip--docs), a [ToggleGroup](?path=/docs/components-togglegroup--docs) of lenses, a small Select that narrows. |
+| Actions | `actions`, pushed to the end: small Buttons with the primary last, or a count as text, "12 of 340 controls".                                                                           |
 
 ## Variants
 
@@ -28,8 +28,8 @@ Toolbar has one appearance. What varies is which parts the register needs:
 | The register                       | Use                                                                  |
 | ---------------------------------- | -------------------------------------------------------------------- |
 | Searched, filtered, acted on       | Search, chips, actions.                                              |
-| Seen through lenses                | No search; a ToggleGroup as the children, a count at the end.        |
-| One thing to choose about the view | A small Select as the children.                                      |
+| Seen through lenses                | No search; a ToggleGroup in `filters`, a count at the end.           |
+| One thing to choose about the view | A small Select as a permanent child.                                 |
 | Only a count or an Export          | `actions` alone.                                                     |
 | Rows chosen for a batch action     | Not a Toolbar: the DataTable's SelectionBar appears above the table. |
 
@@ -37,9 +37,10 @@ There is no title in a Toolbar (the Section's), no tall Toolbar (the kit's rows 
 
 ## Sizes
 
-One height: every control in the row is small, `dimension.control.small` 28px, so a Button in it says `size="small"` and a SelectTrigger `size="sm"`. `space.150` above, `space.100` below. When the row is narrow the parts wrap, the actions dropping under the filters; the search keeps its 200px.
+One height: every control in the row is small, `dimension.control.small` 28px, so a Button in it says `size="small"` and a SelectTrigger `size="sm"`. The toolbar measures its available container width. When the controls no longer fit, only `filters` move into More. View controls (`children`) and `actions` remain visible. The popover uses ordinary Tab navigation so nested filters and menus keep their native behavior. At phone widths search gets a dedicated row when necessary to keep permanent controls visible. Filters never wrap across the toolbar. The caller owns surrounding spacing.
 
 <Canvas of={Stories.Live} />
+<Canvas of={Stories.Constrained} />
 
 ## States
 
@@ -48,7 +49,8 @@ The toolbar has no states of its own; its controls have theirs. The search field
 ## Modifiers
 
 - **`search`, `onSearch`, `placeholder`**: the field, its value, and what it searches. Without `onSearch` there is no field.
-- **`children`**: the filters, after the search.
+- **`filters`**: collapsible filters, after the search.
+- **`children`**: permanent view controls, such as saved views, grouping, columns and settings.
 - **`actions`**: what sits at the end.
 - **`className`** for a frame's own padding; inside a DataTable the frame gives it.
 
@@ -63,7 +65,7 @@ The toolbar has no states of its own; its controls have theirs. The search field
 
 | Element | Token                                                                                             |
 | ------- | ------------------------------------------------------------------------------------------------- |
-| Row     | flex, wrapping · gap `space.100` · `space.150` above · `space.100` below                          |
+| Row     | flex, one row · gap `space.100` · container-driven overflow into More                             |
 | Search  | 200px · `dimension.control.small` · the search icon `dimension.icon.small` in `color.icon.subtle` |
 | Actions | at the end · gap `space.100`                                                                      |
 | Count   | `font.body.small` `color.text.subtle` · tabular numerals                                          |

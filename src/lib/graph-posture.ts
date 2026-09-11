@@ -13,7 +13,7 @@
  *    part, once at the host and once at the system — not three times at the
  *    system because three ancestors each added it in.
  *  - Open counts are taken on `mitigatedSeverity`, the value the AO actually
- *    adjudicates, and only over open lifecycles. A closed CAT I must not keep a
+ *    adjudicates, and only over open lifecycles. A closed high must not keep a
  *    node red forever.
  *  - A finding lands on the node it names. When it names none — or names one
  *    that no longer exists — it falls back to its asset's anchor node, so an
@@ -50,12 +50,14 @@ import {
 import type { Finding } from "@/lib/findings";
 import { assets, findings, isOpen } from "@/lib/findings";
 import type { FindingSeverity } from "@/lib/spine";
+import { severityRank } from "@/lib/spine";
 import { assuranceVersion } from "@/lib/assurance-record-store";
 
 export type SeverityCounts = {
-  catI: number;
-  catII: number;
-  catIII: number;
+  critical: number;
+  high: number;
+  moderate: number;
+  low: number;
   open: number;
   total: number;
 };
@@ -81,9 +83,14 @@ export type NodePosture = {
 
 /* ── Severity ordering ───────────────────────────────────────────────────── */
 
-const severityRank: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1, "CAT III": 2 };
-
-const emptyCounts = (): SeverityCounts => ({ catI: 0, catII: 0, catIII: 0, open: 0, total: 0 });
+const emptyCounts = (): SeverityCounts => ({
+  critical: 0,
+  high: 0,
+  moderate: 0,
+  low: 0,
+  open: 0,
+  total: 0,
+});
 
 /**
  * `total` is every finding regardless of lifecycle; the three CAT buckets and
@@ -95,9 +102,10 @@ function countOf(list: Finding[]): SeverityCounts {
   for (const f of list) {
     if (!isOpen(f)) continue;
     counts.open += 1;
-    if (f.mitigatedSeverity === "CAT I") counts.catI += 1;
-    else if (f.mitigatedSeverity === "CAT II") counts.catII += 1;
-    else counts.catIII += 1;
+    if (f.mitigatedSeverity === "Critical") counts.critical += 1;
+    else if (f.mitigatedSeverity === "High") counts.high += 1;
+    else if (f.mitigatedSeverity === "Moderate") counts.moderate += 1;
+    else counts.low += 1;
   }
   return counts;
 }
@@ -220,7 +228,7 @@ export function postureOf(nodeId: string): NodePosture {
 
   const openList = rolledList.filter(isOpen);
   openList.sort((a, b) => {
-    const bySev = severityRank[a.mitigatedSeverity] - severityRank[b.mitigatedSeverity];
+    const bySev = severityRank(a.mitigatedSeverity) - severityRank(b.mitigatedSeverity);
     return bySev !== 0 ? bySev : a.id.localeCompare(b.id);
   });
 
@@ -228,7 +236,7 @@ export function postureOf(nodeId: string): NodePosture {
   let worstNode: string | null = null;
   let worstDepth = -1;
   for (const f of openList) {
-    if (worst === null || severityRank[f.mitigatedSeverity] < severityRank[worst]) {
+    if (worst === null || severityRank(f.mitigatedSeverity) < severityRank(worst)) {
       worst = f.mitigatedSeverity;
       worstNode = null;
       worstDepth = -1;
@@ -273,8 +281,8 @@ export function assetPosture(assetId: string): NodePosture | null {
 }
 
 export function postureTone(p: NodePosture): Tone {
-  if (p.rolled.catI > 0) return "danger";
-  if (p.rolled.catII > 0) return "warning";
+  if (p.rolled.critical > 0 || p.rolled.high > 0) return "danger";
+  if (p.rolled.moderate > 0) return "warning";
   if (p.rolled.open === 0) return "success";
   return "neutral";
 }
@@ -285,17 +293,26 @@ export type ReconciliationRow = {
   asset: string;
   name: string;
   /** What the scanner declared on the asset row. */
-  declared: { catI: number; catII: number; catIII: number; total: number };
+  declared: { critical: number; high: number; moderate: number; low: number; total: number };
   /** What the finding register actually carries for the subtree. */
-  derived: { catI: number; catII: number; catIII: number; total: number };
+  derived: { critical: number; high: number; moderate: number; low: number; total: number };
   delta: number;
   agrees: boolean;
   /** One package-facing sentence, e.g. "17 scanner-declared open items are not in the register." */
   note: string;
 };
 
-function split(catI: number, catII: number, catIII: number): string {
-  return `${catI} CAT I, ${catII} CAT II, ${catIII} CAT III`;
+function split(critical: number, high: number, moderate: number, low: number): string {
+  const parts = [
+    [critical, "critical"],
+    [high, "high"],
+    [moderate, "moderate"],
+    [low, "low"],
+  ] as const;
+  return parts
+    .filter(([count]) => count > 0)
+    .map(([count, label]) => `${count} ${label}`)
+    .join(", ");
 }
 
 function plural(n: number, one: string, many: string): string {
@@ -311,13 +328,13 @@ function reconciliationNote(row: Omit<ReconciliationRow, "note">, lastScan: stri
     const carried =
       derived.total === 0
         ? "the register carries no open findings against it"
-        : `the register carries ${derived.total} (${split(derived.catI, derived.catII, derived.catIII)})`;
+        : `the register carries ${derived.total} (${split(derived.critical, derived.high, derived.moderate, derived.low)})`;
     const tail = plural(
       delta,
       `${delta} scanner-declared open item is not tracked as an open finding`,
       `${delta} scanner-declared open items are not tracked as open findings`,
     );
-    return `${name} declared ${declared.total} open ${plural(declared.total, "item", "items")} at the ${lastScan} scan (${split(declared.catI, declared.catII, declared.catIII)}) and ${carried} — ${tail}.`;
+    return `${name} declared ${declared.total} open ${plural(declared.total, "item", "items")} at the ${lastScan} scan (${split(declared.critical, declared.high, declared.moderate, declared.low)}) and ${carried} — ${tail}.`;
   }
   if (delta < 0) {
     const extra = -delta;
@@ -326,12 +343,12 @@ function reconciliationNote(row: Omit<ReconciliationRow, "note">, lastScan: stri
       `${extra} tracked finding is not reflected in the scan counts`,
       `${extra} tracked findings are not reflected in the scan counts`,
     );
-    return `The register carries ${derived.total} open ${plural(derived.total, "finding", "findings")} against ${name} (${split(derived.catI, derived.catII, derived.catIII)}) but the ${lastScan} scan declared only ${declared.total} — ${tail}.`;
+    return `The register carries ${derived.total} open ${plural(derived.total, "finding", "findings")} against ${name} (${split(derived.critical, derived.high, derived.moderate, derived.low)}) but the ${lastScan} scan declared only ${declared.total} — ${tail}.`;
   }
   if (row.agrees) {
-    return `Scanner and register agree on ${name} at ${declared.total} open ${plural(declared.total, "item", "items")} (${split(declared.catI, declared.catII, declared.catIII)}).`;
+    return `Scanner and register agree on ${name} at ${declared.total} open ${plural(declared.total, "item", "items")} (${split(declared.critical, declared.high, declared.moderate, declared.low)}).`;
   }
-  return `${name} totals agree at ${declared.total}, but the severity split does not: the ${lastScan} scan declared ${split(declared.catI, declared.catII, declared.catIII)} against the register's ${split(derived.catI, derived.catII, derived.catIII)}.`;
+  return `${name} totals agree at ${declared.total}, but the severity split does not: the ${lastScan} scan declared ${split(declared.critical, declared.high, declared.moderate, declared.low)} against the register's ${split(derived.critical, derived.high, derived.moderate, derived.low)}.`;
 }
 
 /**
@@ -346,15 +363,17 @@ export function inventoryReconciliation(programId: string): ReconciliationRow[] 
     if (asset.program !== programId) continue;
     const posture = assetPosture(asset.id);
     const declared = {
-      catI: asset.openCatI,
-      catII: asset.openCatII,
-      catIII: asset.openCatIII,
-      total: asset.openCatI + asset.openCatII + asset.openCatIII,
+      critical: asset.openCritical,
+      high: asset.openHigh,
+      moderate: asset.openModerate,
+      low: asset.openLow,
+      total: asset.openHigh + asset.openModerate + asset.openLow,
     };
     const derived = {
-      catI: posture?.rolled.catI ?? 0,
-      catII: posture?.rolled.catII ?? 0,
-      catIII: posture?.rolled.catIII ?? 0,
+      critical: posture?.rolled.critical ?? 0,
+      high: posture?.rolled.high ?? 0,
+      moderate: posture?.rolled.moderate ?? 0,
+      low: posture?.rolled.low ?? 0,
       total: posture?.rolled.open ?? 0,
     };
     const base = {
@@ -364,9 +383,9 @@ export function inventoryReconciliation(programId: string): ReconciliationRow[] 
       derived,
       delta: declared.total - derived.total,
       agrees:
-        declared.catI === derived.catI &&
-        declared.catII === derived.catII &&
-        declared.catIII === derived.catIII,
+        declared.high === derived.high &&
+        declared.moderate === derived.moderate &&
+        declared.low === derived.low,
     };
     rows.push({ ...base, note: reconciliationNote(base, asset.lastScan) });
   }

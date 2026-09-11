@@ -446,7 +446,7 @@ export const vocabularies = {
     object: "Finding",
     field: "Severity",
     source: "Raw and mitigated shown separately",
-    values: ["CAT I", "CAT II", "CAT III"],
+    values: ["Critical", "High", "Moderate", "Low"],
   },
   findingLifecycle: {
     object: "Finding",
@@ -630,7 +630,6 @@ const blocking = new Set<string>([
   "DATO",
   "Expired",
   "Not authorized",
-  "CAT I",
   "Returned",
   "Provider failed",
   "Revoked",
@@ -650,7 +649,6 @@ const caution = new Set<string>([
   "Pending AO",
   "Retest pending",
   "Inconclusive",
-  "CAT II",
   "ATO with conditions",
   "IATT",
   "Deferred",
@@ -671,7 +669,33 @@ export function statusTone(value: string): Tone {
   return "neutral";
 }
 
-/** Severity owns its own scale and is never rendered as the accent hue. */
+/**
+ * Severity owns its own scale and is never rendered as the accent hue.
+ *
+ * The scale was DISA's high/II/III until the OSCAL alignment. Three problems
+ * with it: the authoritative dataset this app boots from records severity as
+ * low/moderate/high/**critical**, so `platform-assurance` had to *downgrade* four
+ * published values into three categories on the way in; CAT is a STIG category,
+ * and the app applies severity to ACAS scans, code scans and test events that no
+ * STIG ever touched; and OSCAL's own risk vocabulary is low/moderate/high. The
+ * scale now matches the data that feeds it, and `critical` survives the trip.
+ *
+ * The four words are already ConMon alert severities, categorization impact
+ * levels, control baseline levels, Nessus risk factors and POA&M severities,
+ * which is why the tone sets above deliberately exclude them. This map is
+ * identical to `poamSeverityTone` in `grc-data.ts` and `alertSeverityTone` in
+ * `conmon.ts` on purpose: one word must not be two colours.
+ */
 export function severityTone(sev: FindingSeverity): Tone {
-  return sev === "CAT I" ? "danger" : sev === "CAT II" ? "warning" : "neutral";
+  if (sev === "Critical" || sev === "High") return "danger";
+  if (sev === "Moderate") return "warning";
+  return "neutral";
+}
+
+/** Worst-first, so a sort or a "worst of" reduction has one definition. */
+export const severityOrder: readonly FindingSeverity[] = ["Critical", "High", "Moderate", "Low"];
+
+export function severityRank(sev: FindingSeverity): number {
+  const index = severityOrder.indexOf(sev);
+  return index === -1 ? severityOrder.length : index;
 }

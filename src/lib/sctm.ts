@@ -87,7 +87,7 @@ import {
 import { resolvedObjectiveResult, runById } from "@/lib/test-execution";
 import { rowCurrency } from "@/lib/baselines";
 import { objectivesForCci, type TestObjective } from "@/lib/campaigns";
-import { ccis, ccisByControl, rulesByCci, type Cci } from "@/lib/catalog";
+import { cciById, cciVersion, ccisForControl, type Cci } from "@/lib/cci-catalog";
 import {
   graphVersion,
   nodeForAsset,
@@ -105,6 +105,7 @@ import {
 } from "@/lib/inheritance";
 import type { NistControlText, NistMethod, NistObjective } from "@/lib/nist-catalog";
 import type { ControlOrigination, FindingSeverity, VerificationMethod } from "@/lib/spine";
+import { severityRank } from "@/lib/spine";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
@@ -157,6 +158,12 @@ export type SctmRow = {
   family: string;
   familyName: string;
   unit: RequirementUnit;
+  /**
+   * DISA CCIs cross-referencing this row's control, from the published 2024 list.
+   * A crosswalk for joining STIG and eMASS content to the same statement item —
+   * never the unit of verification, which is the SP 800-53A objective in `requirement`.
+   */
+  ccis: string[];
   /** CCI id, 800-53A objective label, or the control id. */
   requirement: string;
   /** The atomic testable statement. "—" when nothing is published. */
@@ -298,8 +305,6 @@ for (const evidence of threadEvidence) {
   }
 }
 
-const cciById = new Map(ccis.map((c) => [c.id, c]));
-
 /* ── Per-CCI trace (shared with the package readiness view) ──────────────── */
 
 export type CciTrace = {
@@ -322,8 +327,8 @@ export function traceCci(cciId: string): CciTrace {
   // open set answers "is anything still being worked?".
   const deficient = findings.filter((f) => f.cci === cciId && isDeficiency(f));
   const worst =
-    deficient.find((f) => f.mitigatedSeverity === "CAT I")?.mitigatedSeverity ??
-    deficient.find((f) => f.mitigatedSeverity === "CAT II")?.mitigatedSeverity ??
+    deficient.find((f) => f.mitigatedSeverity === "High")?.mitigatedSeverity ??
+    deficient.find((f) => f.mitigatedSeverity === "Moderate")?.mitigatedSeverity ??
     deficient[0]?.mitigatedSeverity ??
     "—";
 
@@ -354,8 +359,6 @@ export function traceCci(cciId: string): CciTrace {
 /** The dataset's own "today". Never a clock — this value is rendered. */
 const generatedOn = "Aug 30, 2026";
 
-const severityRank: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1, "CAT III": 2 };
-
 const statusToDetermination: Record<ControlStatus, Determination> = {
   Satisfied: "Satisfied",
   // A partial implementation is a deficiency, not an absence of assessment.
@@ -377,6 +380,8 @@ type Requirement = {
   id: string;
   statement: string;
   cci: Cci | null;
+  /** DISA CCIs cross-referencing this row's control. A reference, not the unit. */
+  ccis: string[];
 };
 
 /** Leaves only: an objective with sub-items is a heading, not a testable item. */
@@ -433,23 +438,26 @@ export function buildControlTextIndex(
   return out;
 }
 
+/**
+ * What a control decomposes into.
+ *
+ * The unit is the SP 800-53A assessment objective. That is what an assessor
+ * actually executes, it is published by the body that owns the control, and it
+ * is the thing OSCAL's assessment-plan and assessment-results select by id.
+ *
+ * The DISA CCI is a crosswalk, not a unit — DoD publishes it so STIG content and
+ * eMASS can join to the same statement item, and the copy here came from a public
+ * mirror (`cciProvenance.authoritative` is false). It rides on the row as a
+ * cross-reference, never in place of the objective. This precedence used to run
+ * the other way and was held in check only by the size of a 17-row fixture: with
+ * the published 5,100-item list behind it, CCI-first would bury 1,398 authoritative
+ * objective rows under 1,951 crosswalk rows, 90% of them typed `policy`.
+ *
+ * A finding names its own CCI, and that row still appears: it is the deficiency's
+ * own identifier and it has to stay addressable.
+ */
 function requirementsFor(row: ControlRow, text: ControlTextIndex | null): Requirement[] {
-  const seen = new Set<string>();
-  const out: Requirement[] = [];
-
-  for (const cci of ccisByControl.get(row.id) ?? []) {
-    if (seen.has(cci.id)) continue;
-    seen.add(cci.id);
-    out.push({ unit: "CCI", id: cci.id, statement: cci.definition, cci });
-  }
-  // The register names real DISA ids the loaded catalog slice does not carry.
-  for (const f of row.findings) {
-    if (!f.cci.trim() || seen.has(f.cci)) continue;
-    seen.add(f.cci);
-    const known = cciById.get(f.cci) ?? null;
-    out.push({ unit: "CCI", id: f.cci, statement: known?.definition ?? "—", cci: known });
-  }
-  if (out.length > 0) return out;
+  const crossRef = ccisForControl(row.id).map((cci) => cci.id);
 
   const published = text ? leafObjectives(text[row.id]?.objectives ?? []) : [];
   if (published.length > 0) {
@@ -458,10 +466,29 @@ function requirementsFor(row: ControlRow, text: ControlTextIndex | null): Requir
       id: o.label,
       statement: o.prose,
       cci: null,
+      ccis: crossRef,
     }));
   }
 
-  return [{ unit: "Control", id: row.id, statement: row.fullTitle, cci: null }];
+  // No published objectives. A finding's own CCI is still a real, addressable unit.
+  const seen = new Set<string>();
+  const out: Requirement[] = [];
+  for (const f of row.findings) {
+    if (!f.cci.trim() || seen.has(f.cci)) continue;
+    seen.add(f.cci);
+    out.push({
+      unit: "CCI",
+      id: f.cci,
+      // The published definitions load lazily per family; this row is identified
+      // by its CCI id, and the screen that shows the text loads the chunk.
+      statement: cciById.get(f.cci)?.id ?? f.cci,
+      cci: cciById.get(f.cci) ?? null,
+      ccis: crossRef,
+    });
+  }
+  if (out.length > 0) return out;
+
+  return [{ unit: "Control", id: row.id, statement: row.fullTitle, cci: null, ccis: crossRef }];
 }
 
 type Allocation = { nodes: string[]; basis: string; scope: AllocationScope };
@@ -537,7 +564,7 @@ function allocationRule(
 function worstOf(list: Finding[]): Finding | null {
   let best: Finding | null = null;
   for (const f of list) {
-    if (!best || severityRank[f.mitigatedSeverity] < severityRank[best.mitigatedSeverity]) best = f;
+    if (!best || severityRank(f.mitigatedSeverity) < severityRank(best.mitigatedSeverity)) best = f;
   }
   return best;
 }
@@ -574,11 +601,6 @@ const mechanismObject = /mechanism|automated|scanning|configuration settings/i;
 const personnelProse =
   /\b(personnel|individuals|employees|staff|officials|roles|responsibilities|training|screen(?:ed|ing)|agreements|awareness)\b/i;
 
-/** Whether any CCI of this control carries a machine-checkable STIG rule. */
-function controlHasStigRule(controlId: string): boolean {
-  return (ccisByControl.get(controlId) ?? []).some((c) => (rulesByCci.get(c.id) ?? []).length > 0);
-}
-
 function publishedMethods(methods: NistMethod[]): string {
   const names = [...new Set(methods.map((m) => m.method))];
   if (names.length === 0) return "no";
@@ -590,10 +612,10 @@ function publishedMethods(methods: NistMethod[]): string {
  * SP 800-53A publishes methods at CONTROL level only — there is no per-objective
  * method to read — so a control-level Test flag cannot by itself justify Test on
  * every leaf objective the control decomposes to. Precedence therefore runs:
- * an executed test objective against the CCI, a machine-checkable STIG rule,
- * the CCI's own type, then a control-level default in which Test has to earn
- * itself (a mechanism-bearing Test object in a technical family, or a STIG rule)
- * and Examine — 800-53A's universal method — is the fallback.
+ * an executed test objective against the CCI, the CCI's own type, then a
+ * control-level default in which Test has to earn itself (a mechanism-bearing
+ * Test object in a technical family) and Examine — 800-53A's universal method —
+ * is the fallback.
  */
 function methodFor(
   req: Requirement,
@@ -617,18 +639,12 @@ function methodFor(
             : ""),
       };
     }
-    const stigRules = rulesByCci.get(req.id) ?? [];
-    const firstRule = stigRules[0];
-    if (firstRule) {
-      return {
-        method: "Test",
-        basis: `STIG rule ${firstRule.id} is machine-checkable against this CCI, so the requirement is verified by test.`,
-      };
-    }
-    if (req.cci && (req.cci.type === "Policy" || req.cci.type === "Procedural")) {
+    // DISA types a CCI `policy` or `technical` — there is no third value, so the
+    // fixture's "Procedural" had no counterpart in the published list.
+    if (req.cci?.type === "policy") {
       return {
         method: "Inspection",
-        basis: `The CCI is addressed to the organization (${req.cci.type.toLowerCase()}), so it is verified by inspecting the artifact rather than the system.`,
+        basis: `The CCI is addressed to the organization (policy), so it is verified by inspecting the artifact rather than the system.`,
       };
     }
   }
@@ -642,12 +658,6 @@ function methodFor(
     return {
       method: "Test",
       basis: `SP 800-53A publishes ${published} methods for ${controlId}, and its Test method is scoped to ${mechanism.toLowerCase()}; ${family} requirements are enforced by the system, so this row is exercised against it.`,
-    };
-  }
-  if (controlHasStigRule(controlId)) {
-    return {
-      method: "Test",
-      basis: `A machine-checkable STIG rule is published against ${controlId}, so the requirement is verified by test even though no per-objective 800-53A method exists.`,
     };
   }
   if (
@@ -757,6 +767,7 @@ export function buildSctm(
         id: requirement.id,
         statement: requirement.text,
         cci: null,
+        ccis: ccisForControl(row.id).map((cci) => cci.id),
       })),
     ];
     // The resolution is authoritative for everything on the inheritance side.
@@ -990,9 +1001,12 @@ export function buildSctm(
           `The residual is accepted in the register (${registerEntries.length > 0 ? [...new Set(registerEntries)].join(", ") : "no register entry"}); ` +
           `an acceptance decision does not change the assessor's determination.`;
       }
-      if (req.cci?.compliance === "Not applicable") {
+      // The fixture carried an invented `compliance` flag. The published list's
+      // own signal is deprecation: DISA withdrew the identifier, so nothing is
+      // owed against it.
+      if (req.cci?.status === "deprecated") {
         determination = "Not applicable";
-        determinationNote = `${req.id} is recorded as not applicable to this system, so no determination is owed against it.`;
+        determinationNote = `${req.id} is deprecated in the ${cciVersion}, so no determination is owed against it.`;
       }
 
       const { method, basis } =
@@ -1092,6 +1106,7 @@ export function buildSctm(
         unit: req.unit,
         requirement: req.id,
         statement: req.statement,
+        ccis: req.ccis,
         assertion: requirementAssertion,
         origination,
         responsibleParty,

@@ -10,9 +10,10 @@ One composable page header for collections and records. Native header, heading, 
 
 <Canvas of={Stories.Collection} />
 <Canvas of={Stories.Record} />
+<Canvas of={Stories.Constrained} />
 
-Compose a title and actions; add Breadcrumb or metadata with primitives where useful. Breadcrumbs and state strips span the header with `col-span-full`. Titles and actions wrap on small screens. Description is optional and wraps without hiding content behind a tooltip.
+Compose a title, optional breadcrumb and one primary action or Actions menu. Record fields, owner/status editors and property strips belong in the work area or Aside, not in PageHeader or a preview header. Breadcrumbs span the header with `col-span-full`. Description is optional and wraps without hiding content behind a tooltip.
 
-Use PageHeader.Title once for the page's h1. Status, owner and dates are sibling content, outside that heading. Panel and dialog headings use their own h2 semantics.
+Use PageHeader.Title once for the page's h1. Panel and dialog headings use their own h2 semantics. Actions always occupy a fixed column beside the title, including at phone widths; titles wrap to their left. Keep action groups on one line; use a dropdown when several actions compete for space.
 
 <ArgTypes of={PageHeader} />

@@ -81,6 +81,7 @@
   min-width: 0;
 }
 @utility shell-panel {
+  scroll-padding-block-start: var(--ds-space-800);
   position: sticky;
   top: var(--shell-top);
   height: calc(100dvh - var(--shell-top));
@@ -105,12 +106,7 @@
   border-block-start: 1px solid var(--ds-color-border);
 }
 .page-header {
-  grid-template-columns: minmax(0, 1fr);
-}
-@media (width >= 40rem) {
-  .page-header {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 @media (width >= 80rem) {
   .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) {

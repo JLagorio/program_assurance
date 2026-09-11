@@ -887,7 +887,7 @@ export const poamItems: PoamItem[] = [
     ],
     links: [
       { href: "/evidence", rel: "evidence", text: "SAR finding 14 workpaper" },
-      { href: "/controls", rel: "related", text: "Control CC7.2 monitoring history" },
+      { href: "/catalog", rel: "related", text: "Control CC7.2 monitoring history" },
     ],
   },
   {

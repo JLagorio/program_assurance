@@ -57,9 +57,9 @@ import {
 } from "@/lib/authorization";
 
 const severityTone = {
-  "CAT I": "danger",
-  "CAT II": "warning",
-  "CAT III": "neutral",
+  High: "danger",
+  Moderate: "warning",
+  Low: "neutral",
 } as const;
 
 const observationStatuses: ScaObservationStatus[] = [
@@ -71,7 +71,7 @@ const observationStatuses: ScaObservationStatus[] = [
   "Risk accepted",
 ];
 
-const filters = ["All", "Open", "CAT I", "Unassigned"] as const;
+const filters = ["All", "Open", "High", "Unassigned"] as const;
 
 function isOpen(o: ScaObservation) {
   return o.status !== "Remediated" && o.status !== "Risk accepted";
@@ -94,13 +94,13 @@ export function AuthorizationSection({
 
   const rows = useMemo(() => {
     if (filter === "Open") return observations.filter(isOpen);
-    if (filter === "CAT I") return observations.filter((o) => o.severity === "CAT I");
+    if (filter === "High") return observations.filter((o) => o.severity === "High");
     if (filter === "Unassigned") return observations.filter((o) => !o.jira);
     return observations;
   }, [observations, filter]);
 
   const open = observations.filter(isOpen).length;
-  const catI = observations.filter((o) => o.severity === "CAT I" && isOpen(o)).length;
+  const high = observations.filter((o) => o.severity === "High" && isOpen(o)).length;
   const accepted = packageArtifacts.filter((a) => a.status === "SCA accepted").length;
   const readiness = Math.round((accepted / packageArtifacts.length) * 100);
 
@@ -252,7 +252,7 @@ export function AuthorizationSection({
           action={
             <>
               <span className="font-body-small text-subtle">
-                {open} open · {catI} CAT I
+                {open} open · {high} high
               </span>
               <Button variant="secondary" onClick={() => setLogging(true)} iconBefore={<Plus />}>
                 Log observation
@@ -364,7 +364,7 @@ function ObservationModal({
   const { form, values, formId, formRef } = useRecordForm(
     {
       title: "",
-      severity: "CAT II" as ScaObservation["severity"],
+      severity: "Moderate" as ScaObservation["severity"],
       control: "",
       due: "Sep 15, 2026",
       detail: "",
@@ -472,9 +472,9 @@ function ObservationModal({
                     <form.Field name="severity">
                       {(field) => {
                         const valueItems = [
-                          { value: "CAT I", label: "CAT I" },
-                          { value: "CAT II", label: "CAT II" },
-                          { value: "CAT III", label: "CAT III" },
+                          { value: "High", label: "High" },
+                          { value: "Moderate", label: "Moderate" },
+                          { value: "Low", label: "Low" },
                         ];
                         const fieldError2 =
                           field.state.meta.isTouched && !field.state.meta.isValid

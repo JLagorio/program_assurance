@@ -149,13 +149,17 @@ function Register() {
                 New finding
               </Button>
             }
+            filters={
+              <>
+                <DataTable.Filter table={table} column="status" />
+                <DataTable.Filter table={table} column="owner" />
+                <DataTable.Filter table={table} column="family" />
+                <DataTable.Filter table={table} column="open" />
+                <DataTable.Filter table={table} column="due" />
+              </>
+            }
           >
             <DataTable.Search table={table} placeholder="Search findings" />
-            <DataTable.Filter table={table} column="status" />
-            <DataTable.Filter table={table} column="owner" />
-            <DataTable.Filter table={table} column="family" />
-            <DataTable.Filter table={table} column="open" />
-            <DataTable.Filter table={table} column="due" />
           </Toolbar>
         }
         empty={{ title: "No findings match", description: "Clear the search or a filter." }}
@@ -210,9 +214,15 @@ function MetricsExample() {
   });
   return (
     <DataTable.Metrics>
-      <Toolbar actions={<DataTable.MetricsTrigger />}>
+      <Toolbar
+        actions={<DataTable.MetricsTrigger />}
+        filters={
+          <>
+            <DataTable.Filter table={table} column="status" />
+          </>
+        }
+      >
         <DataTable.Search table={table} placeholder="Search findings" />
-        <DataTable.Filter table={table} column="status" />
       </Toolbar>
       <DataTable.MetricsContent className="px-200 py-100">
         <div className="grid grid-cols-2 gap-200 sm:grid-cols-3">
@@ -1077,9 +1087,14 @@ function Server() {
         table={table}
         state={loading && !result ? "loading" : "ready"}
         toolbar={
-          <Toolbar>
+          <Toolbar
+            filters={
+              <>
+                <DataTable.Filter table={table} column="status" />
+              </>
+            }
+          >
             <DataTable.Search table={table} placeholder="Search on the server" />
-            <DataTable.Filter table={table} column="status" />
           </Toolbar>
         }
       />

@@ -156,56 +156,59 @@ export function ControlMatrixSection({
             </Inline>
           </Box>
         }
-      >
-        <Select<string>
-          items={familyItems}
-          value={family}
-          onValueChange={(value) => {
-            if (value === null) return;
-            onFamily(value);
-            setLimit(PAGE);
-          }}
-        >
-          <SelectTrigger
-            className={"w-full " + "h-control-small"}
-            aria-label="Control family"
-            style={{ width: 188, maxWidth: "100%" }}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {familyItems.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select<string>
-          items={statusItems}
-          value={status}
-          onValueChange={(value) => {
-            if (value === null) return;
-            onStatus(value as ControlStatus | "All");
-            setLimit(PAGE);
-          }}
-        >
-          <SelectTrigger
-            className={"w-full " + "h-control-small"}
-            aria-label="Control status"
-            style={{ width: 176, maxWidth: "100%" }}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {statusItems.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </Toolbar>
+        filters={
+          <>
+            <Select<string>
+              items={familyItems}
+              value={family}
+              onValueChange={(value) => {
+                if (value === null) return;
+                onFamily(value);
+                setLimit(PAGE);
+              }}
+            >
+              <SelectTrigger
+                className={"w-full " + "h-control-small"}
+                aria-label="Control family"
+                style={{ width: 188, maxWidth: "100%" }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {familyItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select<string>
+              items={statusItems}
+              value={status}
+              onValueChange={(value) => {
+                if (value === null) return;
+                onStatus(value as ControlStatus | "All");
+                setLimit(PAGE);
+              }}
+            >
+              <SelectTrigger
+                className={"w-full " + "h-control-small"}
+                aria-label="Control status"
+                style={{ width: 176, maxWidth: "100%" }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statusItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        }
+      ></Toolbar>
 
       {filtered.length === 0 ? (
         <Empty>

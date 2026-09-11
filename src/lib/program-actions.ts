@@ -82,7 +82,7 @@ export type Posture = {
   controlsTotal: number;
   controlsFailing: number;
   findingsOpen: number;
-  catI: number;
+  high: number;
   poamOpen: number;
   poamOverdue: number;
   evidenceStale: number;
@@ -114,7 +114,7 @@ export function programPosture(program: Program, rows?: ControlRow[], now = data
     controlsTotal: matrix.length,
     controlsFailing: matrix.filter((r) => r.status === "Other than satisfied").length,
     findingsOpen: fnd.length,
-    catI: fnd.filter((f) => f.mitigatedSeverity === "CAT I").length,
+    high: fnd.filter((f) => f.mitigatedSeverity === "High").length,
     poamOpen: open.length,
     poamOverdue: overdue.length,
     evidenceStale: stale.length,

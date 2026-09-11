@@ -2,7 +2,7 @@
   {
     "id": "system-a",
     "key": "system-a",
-    "kind": "Component",
+    "kind": "Product",
     "name": "System A",
     "category": "System",
     "owner": "Integrated Products",
@@ -19,14 +19,12 @@
             "family": "AU",
             "applicability": "Applicable",
             "implementation": "The system audit procedure allocates product responsibilities; operational review roles belong to the consumer.",
-            "consumerResponsibility": "Name the consuming program’s audit owner and record local procedures.",
+            "consumerResponsibility": "Name the consuming program\u2019s audit owner and record local procedures.",
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "AU-2",
@@ -38,13 +36,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-LOG-01"
-            ],
-            "evidenceIds": [
-              "SYSA-E-02",
-              "SYSA-E-01"
-            ]
+            "requirementIds": ["SYSA-LOG-01"],
+            "evidenceIds": ["SYSA-E-02", "SYSA-E-01"]
           },
           {
             "id": "AU-3",
@@ -56,13 +49,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-LOG-01"
-            ],
-            "evidenceIds": [
-              "SYSA-E-02",
-              "SYSA-E-01"
-            ]
+            "requirementIds": ["SYSA-LOG-01"],
+            "evidenceIds": ["SYSA-E-02", "SYSA-E-01"]
           },
           {
             "id": "AU-6",
@@ -88,9 +76,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "AU-12",
@@ -102,13 +88,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-LOG-01"
-            ],
-            "evidenceIds": [
-              "SYSA-E-02",
-              "SYSA-E-01"
-            ]
+            "requirementIds": ["SYSA-LOG-01"],
+            "evidenceIds": ["SYSA-E-02", "SYSA-E-01"]
           },
           {
             "id": "AC-2",
@@ -121,9 +102,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "AC-3",
@@ -135,13 +114,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-INT-04"
-            ],
-            "evidenceIds": [
-              "SYSA-E-01",
-              "SYSA-E-03"
-            ]
+            "requirementIds": ["SYSA-INT-04"],
+            "evidenceIds": ["SYSA-E-01", "SYSA-E-03"]
           },
           {
             "id": "AC-6",
@@ -154,9 +128,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "IA-2",
@@ -169,9 +141,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "IA-5",
@@ -184,9 +154,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "CM-2",
@@ -198,13 +166,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-CFG-02"
-            ],
-            "evidenceIds": [
-              "SYSA-E-03",
-              "SYSA-E-01"
-            ]
+            "requirementIds": ["SYSA-CFG-02"],
+            "evidenceIds": ["SYSA-E-03", "SYSA-E-01"]
           },
           {
             "id": "CM-3",
@@ -217,9 +180,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "CM-6",
@@ -231,13 +192,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-CFG-02"
-            ],
-            "evidenceIds": [
-              "SYSA-E-03",
-              "SYSA-E-01"
-            ]
+            "requirementIds": ["SYSA-CFG-02"],
+            "evidenceIds": ["SYSA-E-03", "SYSA-E-01"]
           },
           {
             "id": "SI-2",
@@ -250,9 +206,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "SI-3",
@@ -277,13 +231,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-CFG-02"
-            ],
-            "evidenceIds": [
-              "SYSA-E-03",
-              "SYSA-E-01"
-            ]
+            "requirementIds": ["SYSA-CFG-02"],
+            "evidenceIds": ["SYSA-E-03", "SYSA-E-01"]
           },
           {
             "id": "SC-8",
@@ -295,13 +244,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-INT-04"
-            ],
-            "evidenceIds": [
-              "SYSA-E-01",
-              "SYSA-E-03"
-            ]
+            "requirementIds": ["SYSA-INT-04"],
+            "evidenceIds": ["SYSA-E-01", "SYSA-E-03"]
           },
           {
             "id": "SC-12",
@@ -314,9 +258,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "SC-13",
@@ -329,9 +271,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "CA-2",
@@ -344,9 +284,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "CA-7",
@@ -359,9 +297,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "IR-4",
@@ -382,14 +318,12 @@
             "family": "IR",
             "applicability": "Applicable",
             "implementation": "The product support escalation route is documented; program contacts are not assigned.",
-            "consumerResponsibility": "Validate the program’s incident contacts and reporting route.",
+            "consumerResponsibility": "Validate the program\u2019s incident contacts and reporting route.",
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSA-E-01"
-            ]
+            "evidenceIds": ["SYSA-E-01"]
           },
           {
             "id": "CP-9",
@@ -401,13 +335,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-REC-03"
-            ],
-            "evidenceIds": [
-              "SYSA-E-04",
-              "SYSA-E-01"
-            ]
+            "requirementIds": ["SYSA-REC-03"],
+            "evidenceIds": ["SYSA-E-04", "SYSA-E-01"]
           },
           {
             "id": "CP-10",
@@ -419,75 +348,45 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-25",
-            "requirementIds": [
-              "SYSA-REC-03"
-            ],
-            "evidenceIds": [
-              "SYSA-E-04",
-              "SYSA-E-01"
-            ]
+            "requirementIds": ["SYSA-REC-03"],
+            "evidenceIds": ["SYSA-E-04", "SYSA-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "SYSA-LOG-01",
             "title": "Correlate security events from both subsystems.",
-            "controlIds": [
-              "AU-2",
-              "AU-3",
-              "AU-12"
-            ],
+            "controlIds": ["AU-2", "AU-3", "AU-12"],
             "status": "Open",
-            "evidenceIds": [
-              "SYSA-E-02"
-            ]
+            "evidenceIds": ["SYSA-E-02"]
           },
           {
             "id": "SYSA-INT-04",
             "title": "Enforce only approved inter-subsystem flows.",
-            "controlIds": [
-              "AC-3",
-              "SC-8"
-            ],
+            "controlIds": ["AC-3", "SC-8"],
             "status": "Verified",
-            "evidenceIds": [
-              "SYSA-E-01",
-              "SYSA-E-03"
-            ]
+            "evidenceIds": ["SYSA-E-01", "SYSA-E-03"]
           },
           {
             "id": "SYSA-CFG-02",
             "title": "Identify all installed subsystem and firmware baselines.",
-            "controlIds": [
-              "CM-2",
-              "CM-6",
-              "SI-7"
-            ],
+            "controlIds": ["CM-2", "CM-6", "SI-7"],
             "status": "Verified",
-            "evidenceIds": [
-              "SYSA-E-03"
-            ]
+            "evidenceIds": ["SYSA-E-03"]
           },
           {
             "id": "SYSA-REC-03",
             "title": "Restore an approved system image and verify retained state.",
-            "controlIds": [
-              "CP-9",
-              "CP-10"
-            ],
+            "controlIds": ["CP-9", "CP-10"],
             "status": "Open",
-            "evidenceIds": [
-              "SYSA-E-04"
-            ]
+            "evidenceIds": ["SYSA-E-04"]
           },
           {
             "id": "SYSA-INT-099",
             "title": "The attachment adapter shall identify the connected host configuration.",
             "controlIds": [],
             "status": "Open",
-            "evidenceIds": [
-              "SYSA-E-03"
-            ]
+            "evidenceIds": ["SYSA-E-03"]
           }
         ],
         "evidence": [
@@ -534,7 +433,7 @@
             "versionId": "subsystem-a2@1.4"
           }
         ],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "Qualified assembly: A.1 v2.1 and A.2 v1.4.",
           "Program confirms host attachment, mission event selection, and operational roles."
@@ -545,7 +444,7 @@
   {
     "id": "subsystem-a1",
     "key": "subsystem-a1",
-    "kind": "Component",
+    "kind": "Product",
     "name": "Subsystem A.1",
     "category": "Subsystem",
     "owner": "Mission Processing",
@@ -566,13 +465,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
-            "requirementIds": [
-              "A1-LOG-01"
-            ],
-            "evidenceIds": [
-              "A1-E-02",
-              "A1-E-01"
-            ]
+            "requirementIds": ["A1-LOG-01"],
+            "evidenceIds": ["A1-E-02", "A1-E-01"]
           },
           {
             "id": "AU-3",
@@ -584,13 +478,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
-            "requirementIds": [
-              "A1-LOG-01"
-            ],
-            "evidenceIds": [
-              "A1-E-02",
-              "A1-E-01"
-            ]
+            "requirementIds": ["A1-LOG-01"],
+            "evidenceIds": ["A1-E-02", "A1-E-01"]
           },
           {
             "id": "AU-9",
@@ -603,9 +492,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
             "requirementIds": [],
-            "evidenceIds": [
-              "A1-E-01"
-            ]
+            "evidenceIds": ["A1-E-01"]
           },
           {
             "id": "AU-12",
@@ -617,13 +504,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
-            "requirementIds": [
-              "A1-LOG-01"
-            ],
-            "evidenceIds": [
-              "A1-E-02",
-              "A1-E-01"
-            ]
+            "requirementIds": ["A1-LOG-01"],
+            "evidenceIds": ["A1-E-02", "A1-E-01"]
           },
           {
             "id": "AC-3",
@@ -635,13 +517,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
-            "requirementIds": [
-              "A1-ISO-02"
-            ],
-            "evidenceIds": [
-              "A1-E-02",
-              "A1-E-01"
-            ]
+            "requirementIds": ["A1-ISO-02"],
+            "evidenceIds": ["A1-E-02", "A1-E-01"]
           },
           {
             "id": "AC-6",
@@ -653,13 +530,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
-            "requirementIds": [
-              "A1-ISO-02"
-            ],
-            "evidenceIds": [
-              "A1-E-02",
-              "A1-E-01"
-            ]
+            "requirementIds": ["A1-ISO-02"],
+            "evidenceIds": ["A1-E-02", "A1-E-01"]
           },
           {
             "id": "CM-2",
@@ -671,13 +543,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
-            "requirementIds": [
-              "A1-CFG-03"
-            ],
-            "evidenceIds": [
-              "A1-E-03",
-              "A1-E-01"
-            ]
+            "requirementIds": ["A1-CFG-03"],
+            "evidenceIds": ["A1-E-03", "A1-E-01"]
           },
           {
             "id": "CM-3",
@@ -690,9 +557,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
             "requirementIds": [],
-            "evidenceIds": [
-              "A1-E-01"
-            ]
+            "evidenceIds": ["A1-E-01"]
           },
           {
             "id": "CM-6",
@@ -704,13 +569,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
-            "requirementIds": [
-              "A1-CFG-03"
-            ],
-            "evidenceIds": [
-              "A1-E-03",
-              "A1-E-01"
-            ]
+            "requirementIds": ["A1-CFG-03"],
+            "evidenceIds": ["A1-E-03", "A1-E-01"]
           },
           {
             "id": "SI-2",
@@ -723,9 +583,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
             "requirementIds": [],
-            "evidenceIds": [
-              "A1-E-01"
-            ]
+            "evidenceIds": ["A1-E-01"]
           },
           {
             "id": "SI-7",
@@ -737,13 +595,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
-            "requirementIds": [
-              "A1-CFG-03"
-            ],
-            "evidenceIds": [
-              "A1-E-03",
-              "A1-E-01"
-            ]
+            "requirementIds": ["A1-CFG-03"],
+            "evidenceIds": ["A1-E-03", "A1-E-01"]
           },
           {
             "id": "CA-2",
@@ -756,9 +609,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
             "requirementIds": [],
-            "evidenceIds": [
-              "A1-E-01"
-            ]
+            "evidenceIds": ["A1-E-01"]
           },
           {
             "id": "CA-7",
@@ -771,9 +622,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
             "requirementIds": [],
-            "evidenceIds": [
-              "A1-E-01"
-            ]
+            "evidenceIds": ["A1-E-01"]
           },
           {
             "id": "CP-10",
@@ -786,58 +635,37 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-12",
             "requirementIds": [],
-            "evidenceIds": [
-              "A1-E-01"
-            ]
+            "evidenceIds": ["A1-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "A1-LOG-01",
             "title": "Report compute and sensor security events through a common interface.",
-            "controlIds": [
-              "AU-2",
-              "AU-3",
-              "AU-12"
-            ],
+            "controlIds": ["AU-2", "AU-3", "AU-12"],
             "status": "Open",
-            "evidenceIds": [
-              "A1-E-02"
-            ]
+            "evidenceIds": ["A1-E-02"]
           },
           {
             "id": "A1-ISO-02",
             "title": "Restrict sensor traffic to its declared processing partition.",
-            "controlIds": [
-              "AC-3",
-              "AC-6"
-            ],
+            "controlIds": ["AC-3", "AC-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "A1-E-02"
-            ]
+            "evidenceIds": ["A1-E-02"]
           },
           {
             "id": "A1-CFG-03",
             "title": "Verify the processing assembly against its released manifest.",
-            "controlIds": [
-              "CM-2",
-              "CM-6",
-              "SI-7"
-            ],
+            "controlIds": ["CM-2", "CM-6", "SI-7"],
             "status": "Verified",
-            "evidenceIds": [
-              "A1-E-03"
-            ]
+            "evidenceIds": ["A1-E-03"]
           },
           {
             "id": "A1-INT-05",
             "title": "Maintain sensor data ordering across a compute restart.",
             "controlIds": [],
             "status": "Verified",
-            "evidenceIds": [
-              "A1-E-02"
-            ]
+            "evidenceIds": ["A1-E-02"]
           }
         ],
         "evidence": [
@@ -877,7 +705,7 @@
             "versionId": "component-a12@1.0"
           }
         ],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "Uses A.11 v1.2 and A.12 v1.0.",
           "Consumer supplies mission applications, external time source, and upstream collection."
@@ -888,7 +716,7 @@
   {
     "id": "subsystem-a2",
     "key": "subsystem-a2",
-    "kind": "Component",
+    "kind": "Product",
     "name": "Subsystem A.2",
     "category": "Subsystem",
     "owner": "Secure Communications",
@@ -909,13 +737,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-LOG-02"
-            ],
-            "evidenceIds": [
-              "A2-E-02",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-LOG-02"],
+            "evidenceIds": ["A2-E-02", "A2-E-01"]
           },
           {
             "id": "AU-3",
@@ -927,13 +750,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-LOG-02"
-            ],
-            "evidenceIds": [
-              "A2-E-02",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-LOG-02"],
+            "evidenceIds": ["A2-E-02", "A2-E-01"]
           },
           {
             "id": "AU-9",
@@ -946,9 +764,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
             "requirementIds": [],
-            "evidenceIds": [
-              "A2-E-01"
-            ]
+            "evidenceIds": ["A2-E-01"]
           },
           {
             "id": "AU-12",
@@ -960,13 +776,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-LOG-02"
-            ],
-            "evidenceIds": [
-              "A2-E-02",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-LOG-02"],
+            "evidenceIds": ["A2-E-02", "A2-E-01"]
           },
           {
             "id": "AC-3",
@@ -978,14 +789,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-FLOW-01"
-            ],
-            "evidenceIds": [
-              "A2-E-02",
-              "A2-E-03",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-FLOW-01"],
+            "evidenceIds": ["A2-E-02", "A2-E-03", "A2-E-01"]
           },
           {
             "id": "CM-2",
@@ -997,13 +802,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-CFG-04"
-            ],
-            "evidenceIds": [
-              "A2-E-03",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-CFG-04"],
+            "evidenceIds": ["A2-E-03", "A2-E-01"]
           },
           {
             "id": "CM-6",
@@ -1015,14 +815,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-FLOW-01"
-            ],
-            "evidenceIds": [
-              "A2-E-02",
-              "A2-E-03",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-FLOW-01"],
+            "evidenceIds": ["A2-E-02", "A2-E-03", "A2-E-01"]
           },
           {
             "id": "SI-2",
@@ -1035,9 +829,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
             "requirementIds": [],
-            "evidenceIds": [
-              "A2-E-01"
-            ]
+            "evidenceIds": ["A2-E-01"]
           },
           {
             "id": "SI-7",
@@ -1049,13 +841,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-CFG-04"
-            ],
-            "evidenceIds": [
-              "A2-E-03",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-CFG-04"],
+            "evidenceIds": ["A2-E-03", "A2-E-01"]
           },
           {
             "id": "SC-8",
@@ -1067,13 +854,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-KEY-03"
-            ],
-            "evidenceIds": [
-              "A2-E-02",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-KEY-03"],
+            "evidenceIds": ["A2-E-02", "A2-E-01"]
           },
           {
             "id": "SC-12",
@@ -1085,13 +867,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-KEY-03"
-            ],
-            "evidenceIds": [
-              "A2-E-02",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-KEY-03"],
+            "evidenceIds": ["A2-E-02", "A2-E-01"]
           },
           {
             "id": "SC-13",
@@ -1103,66 +880,38 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-15",
-            "requirementIds": [
-              "A2-KEY-03"
-            ],
-            "evidenceIds": [
-              "A2-E-02",
-              "A2-E-01"
-            ]
+            "requirementIds": ["A2-KEY-03"],
+            "evidenceIds": ["A2-E-02", "A2-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "A2-FLOW-01",
             "title": "Permit only declared reference peer flows.",
-            "controlIds": [
-              "AC-3",
-              "CM-6"
-            ],
+            "controlIds": ["AC-3", "CM-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "A2-E-02",
-              "A2-E-03"
-            ]
+            "evidenceIds": ["A2-E-02", "A2-E-03"]
           },
           {
             "id": "A2-LOG-02",
             "title": "Record rejected peers and transport failures.",
-            "controlIds": [
-              "AU-2",
-              "AU-3",
-              "AU-12"
-            ],
+            "controlIds": ["AU-2", "AU-3", "AU-12"],
             "status": "Verified",
-            "evidenceIds": [
-              "A2-E-02"
-            ]
+            "evidenceIds": ["A2-E-02"]
           },
           {
             "id": "A2-KEY-03",
             "title": "Protect keys across the gateway-to-module interface.",
-            "controlIds": [
-              "SC-8",
-              "SC-12",
-              "SC-13"
-            ],
+            "controlIds": ["SC-8", "SC-12", "SC-13"],
             "status": "Verified",
-            "evidenceIds": [
-              "A2-E-02"
-            ]
+            "evidenceIds": ["A2-E-02"]
           },
           {
             "id": "A2-CFG-04",
             "title": "Pin gateway and cryptographic module releases.",
-            "controlIds": [
-              "CM-2",
-              "SI-7"
-            ],
+            "controlIds": ["CM-2", "SI-7"],
             "status": "Verified",
-            "evidenceIds": [
-              "A2-E-03"
-            ]
+            "evidenceIds": ["A2-E-03"]
           }
         ],
         "evidence": [
@@ -1202,7 +951,7 @@
             "versionId": "component-a22@2.1"
           }
         ],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "Gateway policy bundle must match the approved peer set.",
           "The consumer owns operational keys and external endpoint configuration."
@@ -1213,8 +962,8 @@
   {
     "id": "component-a11",
     "key": "component-a11",
-    "kind": "Component",
-    "name": "Component A.11 · Mission Computer X",
+    "kind": "Product",
+    "name": "Component A.11 \u00b7 Mission Computer X",
     "category": "Component",
     "owner": "Mission Computing",
     "draft": null,
@@ -1234,13 +983,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
-            "requirementIds": [
-              "MCX-SEC-014"
-            ],
-            "evidenceIds": [
-              "MCX-E-02",
-              "MCX-E-01"
-            ]
+            "requirementIds": ["MCX-SEC-014"],
+            "evidenceIds": ["MCX-E-02", "MCX-E-01"]
           },
           {
             "id": "AU-3",
@@ -1252,13 +996,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
-            "requirementIds": [
-              "MCX-SEC-014"
-            ],
-            "evidenceIds": [
-              "MCX-E-02",
-              "MCX-E-01"
-            ]
+            "requirementIds": ["MCX-SEC-014"],
+            "evidenceIds": ["MCX-E-02", "MCX-E-01"]
           },
           {
             "id": "AU-9",
@@ -1271,9 +1010,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
             "requirementIds": [],
-            "evidenceIds": [
-              "MCX-E-01"
-            ]
+            "evidenceIds": ["MCX-E-01"]
           },
           {
             "id": "AU-12",
@@ -1285,13 +1022,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
-            "requirementIds": [
-              "MCX-SEC-014"
-            ],
-            "evidenceIds": [
-              "MCX-E-02",
-              "MCX-E-01"
-            ]
+            "requirementIds": ["MCX-SEC-014"],
+            "evidenceIds": ["MCX-E-02", "MCX-E-01"]
           },
           {
             "id": "AC-3",
@@ -1303,13 +1035,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
-            "requirementIds": [
-              "MCX-SEC-032"
-            ],
-            "evidenceIds": [
-              "MCX-E-03",
-              "MCX-E-01"
-            ]
+            "requirementIds": ["MCX-SEC-032"],
+            "evidenceIds": ["MCX-E-03", "MCX-E-01"]
           },
           {
             "id": "AC-6",
@@ -1321,13 +1048,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
-            "requirementIds": [
-              "MCX-SEC-032"
-            ],
-            "evidenceIds": [
-              "MCX-E-03",
-              "MCX-E-01"
-            ]
+            "requirementIds": ["MCX-SEC-032"],
+            "evidenceIds": ["MCX-E-03", "MCX-E-01"]
           },
           {
             "id": "CM-2",
@@ -1339,13 +1061,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
-            "requirementIds": [
-              "MCX-SEC-021"
-            ],
-            "evidenceIds": [
-              "MCX-E-03",
-              "MCX-E-01"
-            ]
+            "requirementIds": ["MCX-SEC-021"],
+            "evidenceIds": ["MCX-E-03", "MCX-E-01"]
           },
           {
             "id": "CM-6",
@@ -1358,9 +1075,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
             "requirementIds": [],
-            "evidenceIds": [
-              "MCX-E-01"
-            ]
+            "evidenceIds": ["MCX-E-01"]
           },
           {
             "id": "SI-7",
@@ -1372,13 +1087,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
-            "requirementIds": [
-              "MCX-SEC-021"
-            ],
-            "evidenceIds": [
-              "MCX-E-03",
-              "MCX-E-01"
-            ]
+            "requirementIds": ["MCX-SEC-021"],
+            "evidenceIds": ["MCX-E-03", "MCX-E-01"]
           },
           {
             "id": "SI-2",
@@ -1391,57 +1101,37 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-18",
             "requirementIds": [],
-            "evidenceIds": [
-              "MCX-E-01"
-            ]
+            "evidenceIds": ["MCX-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "MCX-SEC-014",
             "title": "Record privileged actions with actor and outcome.",
-            "controlIds": [
-              "AU-2",
-              "AU-3",
-              "AU-12"
-            ],
+            "controlIds": ["AU-2", "AU-3", "AU-12"],
             "status": "Verified",
-            "evidenceIds": [
-              "MCX-E-02"
-            ]
+            "evidenceIds": ["MCX-E-02"]
           },
           {
             "id": "MCX-SEC-021",
             "title": "Execute only approved signed platform images.",
-            "controlIds": [
-              "CM-2",
-              "SI-7"
-            ],
+            "controlIds": ["CM-2", "SI-7"],
             "status": "Verified",
-            "evidenceIds": [
-              "MCX-E-03"
-            ]
+            "evidenceIds": ["MCX-E-03"]
           },
           {
             "id": "MCX-SEC-032",
             "title": "Enforce partition resource boundaries.",
-            "controlIds": [
-              "AC-3",
-              "AC-6"
-            ],
+            "controlIds": ["AC-3", "AC-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "MCX-E-03"
-            ]
+            "evidenceIds": ["MCX-E-03"]
           },
           {
             "id": "MCX-INT-040",
             "title": "Each installed module shall expose its distinct configuration identity.",
             "controlIds": [],
             "status": "Verified",
-            "evidenceIds": [
-              "MCX-E-01"
-            ]
+            "evidenceIds": ["MCX-E-01"]
           }
         ],
         "evidence": [
@@ -1468,7 +1158,7 @@
           }
         ],
         "children": [],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "Production trust anchors; debug port disabled.",
           "Application events, external time, and deployment identities are supplied by the consumer."
@@ -1479,8 +1169,8 @@
   {
     "id": "component-a12",
     "key": "component-a12",
-    "kind": "Component",
-    "name": "Component A.12 · Sensor Interface",
+    "kind": "Product",
+    "name": "Component A.12 \u00b7 Sensor Interface",
     "category": "Component",
     "owner": "Sensor Products",
     "draft": null,
@@ -1500,13 +1190,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-11",
-            "requirementIds": [
-              "SIF-LOG-02"
-            ],
-            "evidenceIds": [
-              "SIF-E-02",
-              "SIF-E-01"
-            ]
+            "requirementIds": ["SIF-LOG-02"],
+            "evidenceIds": ["SIF-E-02", "SIF-E-01"]
           },
           {
             "id": "AU-3",
@@ -1519,9 +1204,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-11",
             "requirementIds": [],
-            "evidenceIds": [
-              "SIF-E-01"
-            ]
+            "evidenceIds": ["SIF-E-01"]
           },
           {
             "id": "AU-12",
@@ -1533,13 +1216,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-11",
-            "requirementIds": [
-              "SIF-LOG-02"
-            ],
-            "evidenceIds": [
-              "SIF-E-02",
-              "SIF-E-01"
-            ]
+            "requirementIds": ["SIF-LOG-02"],
+            "evidenceIds": ["SIF-E-02", "SIF-E-01"]
           },
           {
             "id": "AC-3",
@@ -1551,13 +1229,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-11",
-            "requirementIds": [
-              "SIF-CH-01"
-            ],
-            "evidenceIds": [
-              "SIF-E-02",
-              "SIF-E-01"
-            ]
+            "requirementIds": ["SIF-CH-01"],
+            "evidenceIds": ["SIF-E-02", "SIF-E-01"]
           },
           {
             "id": "CM-2",
@@ -1569,13 +1242,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-11",
-            "requirementIds": [
-              "SIF-FW-03"
-            ],
-            "evidenceIds": [
-              "SIF-E-03",
-              "SIF-E-01"
-            ]
+            "requirementIds": ["SIF-FW-03"],
+            "evidenceIds": ["SIF-E-03", "SIF-E-01"]
           },
           {
             "id": "CM-6",
@@ -1587,13 +1255,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-11",
-            "requirementIds": [
-              "SIF-CH-01"
-            ],
-            "evidenceIds": [
-              "SIF-E-02",
-              "SIF-E-01"
-            ]
+            "requirementIds": ["SIF-CH-01"],
+            "evidenceIds": ["SIF-E-02", "SIF-E-01"]
           },
           {
             "id": "SI-7",
@@ -1605,13 +1268,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-11",
-            "requirementIds": [
-              "SIF-FW-03"
-            ],
-            "evidenceIds": [
-              "SIF-E-03",
-              "SIF-E-01"
-            ]
+            "requirementIds": ["SIF-FW-03"],
+            "evidenceIds": ["SIF-E-03", "SIF-E-01"]
           },
           {
             "id": "SI-2",
@@ -1624,47 +1282,30 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-11",
             "requirementIds": [],
-            "evidenceIds": [
-              "SIF-E-01"
-            ]
+            "evidenceIds": ["SIF-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "SIF-CH-01",
             "title": "Reject inputs outside the configured channel and format.",
-            "controlIds": [
-              "AC-3",
-              "CM-6"
-            ],
+            "controlIds": ["AC-3", "CM-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "SIF-E-02"
-            ]
+            "evidenceIds": ["SIF-E-02"]
           },
           {
             "id": "SIF-LOG-02",
             "title": "Record rejected frames and reconnect events.",
-            "controlIds": [
-              "AU-2",
-              "AU-12"
-            ],
+            "controlIds": ["AU-2", "AU-12"],
             "status": "Open",
-            "evidenceIds": [
-              "SIF-E-02"
-            ]
+            "evidenceIds": ["SIF-E-02"]
           },
           {
             "id": "SIF-FW-03",
             "title": "Accept only approved signed adapter firmware.",
-            "controlIds": [
-              "CM-2",
-              "SI-7"
-            ],
+            "controlIds": ["CM-2", "SI-7"],
             "status": "Verified",
-            "evidenceIds": [
-              "SIF-E-03"
-            ]
+            "evidenceIds": ["SIF-E-03"]
           }
         ],
         "evidence": [
@@ -1691,7 +1332,7 @@
           }
         ],
         "children": [],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "Only declared sensor protocols are enabled.",
           "Malformed-data handling must be verified with the selected sensor."
@@ -1702,8 +1343,8 @@
   {
     "id": "component-a21",
     "key": "component-a21",
-    "kind": "Component",
-    "name": "Component A.21 · Gateway G4",
+    "kind": "Product",
+    "name": "Component A.21 \u00b7 Gateway G4",
     "category": "Component",
     "owner": "Network Products",
     "draft": null,
@@ -1723,13 +1364,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-22",
-            "requirementIds": [
-              "GW-NET-12"
-            ],
-            "evidenceIds": [
-              "GW-E-02",
-              "GW-E-01"
-            ]
+            "requirementIds": ["GW-NET-12"],
+            "evidenceIds": ["GW-E-02", "GW-E-01"]
           },
           {
             "id": "AU-3",
@@ -1741,13 +1377,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-22",
-            "requirementIds": [
-              "GW-NET-12"
-            ],
-            "evidenceIds": [
-              "GW-E-02",
-              "GW-E-01"
-            ]
+            "requirementIds": ["GW-NET-12"],
+            "evidenceIds": ["GW-E-02", "GW-E-01"]
           },
           {
             "id": "AU-12",
@@ -1759,13 +1390,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-22",
-            "requirementIds": [
-              "GW-NET-12"
-            ],
-            "evidenceIds": [
-              "GW-E-02",
-              "GW-E-01"
-            ]
+            "requirementIds": ["GW-NET-12"],
+            "evidenceIds": ["GW-E-02", "GW-E-01"]
           },
           {
             "id": "AC-3",
@@ -1777,13 +1403,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-22",
-            "requirementIds": [
-              "GW-NET-08"
-            ],
-            "evidenceIds": [
-              "GW-E-02",
-              "GW-E-01"
-            ]
+            "requirementIds": ["GW-NET-08"],
+            "evidenceIds": ["GW-E-02", "GW-E-01"]
           },
           {
             "id": "CM-2",
@@ -1796,9 +1417,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-22",
             "requirementIds": [],
-            "evidenceIds": [
-              "GW-E-01"
-            ]
+            "evidenceIds": ["GW-E-01"]
           },
           {
             "id": "CM-6",
@@ -1810,13 +1429,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-22",
-            "requirementIds": [
-              "GW-NET-08"
-            ],
-            "evidenceIds": [
-              "GW-E-02",
-              "GW-E-01"
-            ]
+            "requirementIds": ["GW-NET-08"],
+            "evidenceIds": ["GW-E-02", "GW-E-01"]
           },
           {
             "id": "SI-7",
@@ -1829,9 +1443,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-22",
             "requirementIds": [],
-            "evidenceIds": [
-              "GW-E-01"
-            ]
+            "evidenceIds": ["GW-E-01"]
           },
           {
             "id": "SC-8",
@@ -1843,13 +1455,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-22",
-            "requirementIds": [
-              "GW-NET-19"
-            ],
-            "evidenceIds": [
-              "GW-E-03",
-              "GW-E-01"
-            ]
+            "requirementIds": ["GW-NET-19"],
+            "evidenceIds": ["GW-E-03", "GW-E-01"]
           },
           {
             "id": "SC-13",
@@ -1861,52 +1468,31 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-22",
-            "requirementIds": [
-              "GW-NET-19"
-            ],
-            "evidenceIds": [
-              "GW-E-03",
-              "GW-E-01"
-            ]
+            "requirementIds": ["GW-NET-19"],
+            "evidenceIds": ["GW-E-03", "GW-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "GW-NET-08",
             "title": "Enforce the signed peer and route policy.",
-            "controlIds": [
-              "AC-3",
-              "CM-6"
-            ],
+            "controlIds": ["AC-3", "CM-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "GW-E-02"
-            ]
+            "evidenceIds": ["GW-E-02"]
           },
           {
             "id": "GW-NET-12",
             "title": "Record connection decisions with peer identity.",
-            "controlIds": [
-              "AU-2",
-              "AU-3",
-              "AU-12"
-            ],
+            "controlIds": ["AU-2", "AU-3", "AU-12"],
             "status": "Verified",
-            "evidenceIds": [
-              "GW-E-02"
-            ]
+            "evidenceIds": ["GW-E-02"]
           },
           {
             "id": "GW-NET-19",
             "title": "Protect supported transport sessions.",
-            "controlIds": [
-              "SC-8",
-              "SC-13"
-            ],
+            "controlIds": ["SC-8", "SC-13"],
             "status": "Verified",
-            "evidenceIds": [
-              "GW-E-03"
-            ]
+            "evidenceIds": ["GW-E-03"]
           }
         ],
         "evidence": [
@@ -1933,7 +1519,7 @@
           }
         ],
         "children": [],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "A signed policy bundle defines allowed peers.",
           "Consumers validate their own routes and external endpoint behavior."
@@ -1944,8 +1530,8 @@
   {
     "id": "component-a22",
     "key": "component-a22",
-    "kind": "Component",
-    "name": "Component A.22 · CipherCore C2",
+    "kind": "Product",
+    "name": "Component A.22 \u00b7 CipherCore C2",
     "category": "Component",
     "owner": "Cryptographic Engineering",
     "draft": null,
@@ -1966,9 +1552,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-08",
             "requirementIds": [],
-            "evidenceIds": [
-              "C2-E-01"
-            ]
+            "evidenceIds": ["C2-E-01"]
           },
           {
             "id": "AC-3",
@@ -1980,13 +1564,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-08",
-            "requirementIds": [
-              "C2-KEY-04"
-            ],
-            "evidenceIds": [
-              "C2-E-02",
-              "C2-E-01"
-            ]
+            "requirementIds": ["C2-KEY-04"],
+            "evidenceIds": ["C2-E-02", "C2-E-01"]
           },
           {
             "id": "CM-2",
@@ -1998,12 +1577,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-08",
-            "requirementIds": [
-              "C2-FW-02"
-            ],
-            "evidenceIds": [
-              "C2-E-01"
-            ]
+            "requirementIds": ["C2-FW-02"],
+            "evidenceIds": ["C2-E-01"]
           },
           {
             "id": "CM-6",
@@ -2016,9 +1591,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-08",
             "requirementIds": [],
-            "evidenceIds": [
-              "C2-E-01"
-            ]
+            "evidenceIds": ["C2-E-01"]
           },
           {
             "id": "SI-7",
@@ -2030,12 +1603,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-08",
-            "requirementIds": [
-              "C2-FW-02"
-            ],
-            "evidenceIds": [
-              "C2-E-01"
-            ]
+            "requirementIds": ["C2-FW-02"],
+            "evidenceIds": ["C2-E-01"]
           },
           {
             "id": "SC-8",
@@ -2047,13 +1616,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-08",
-            "requirementIds": [
-              "C2-CRY-08"
-            ],
-            "evidenceIds": [
-              "C2-E-03",
-              "C2-E-01"
-            ]
+            "requirementIds": ["C2-CRY-08"],
+            "evidenceIds": ["C2-E-03", "C2-E-01"]
           },
           {
             "id": "SC-12",
@@ -2065,13 +1629,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-08",
-            "requirementIds": [
-              "C2-KEY-04"
-            ],
-            "evidenceIds": [
-              "C2-E-02",
-              "C2-E-01"
-            ]
+            "requirementIds": ["C2-KEY-04"],
+            "evidenceIds": ["C2-E-02", "C2-E-01"]
           },
           {
             "id": "SC-13",
@@ -2083,51 +1642,31 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-08",
-            "requirementIds": [
-              "C2-CRY-08"
-            ],
-            "evidenceIds": [
-              "C2-E-03",
-              "C2-E-01"
-            ]
+            "requirementIds": ["C2-CRY-08"],
+            "evidenceIds": ["C2-E-03", "C2-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "C2-KEY-04",
             "title": "Restrict key use and zeroization to authorized services.",
-            "controlIds": [
-              "AC-3",
-              "SC-12"
-            ],
+            "controlIds": ["AC-3", "SC-12"],
             "status": "Verified",
-            "evidenceIds": [
-              "C2-E-02"
-            ]
+            "evidenceIds": ["C2-E-02"]
           },
           {
             "id": "C2-CRY-08",
             "title": "Provide cryptographic services in the declared approved mode.",
-            "controlIds": [
-              "SC-8",
-              "SC-13"
-            ],
+            "controlIds": ["SC-8", "SC-13"],
             "status": "Verified",
-            "evidenceIds": [
-              "C2-E-03"
-            ]
+            "evidenceIds": ["C2-E-03"]
           },
           {
             "id": "C2-FW-02",
             "title": "Verify the module image before service availability.",
-            "controlIds": [
-              "CM-2",
-              "SI-7"
-            ],
+            "controlIds": ["CM-2", "SI-7"],
             "status": "Verified",
-            "evidenceIds": [
-              "C2-E-01"
-            ]
+            "evidenceIds": ["C2-E-01"]
           }
         ],
         "evidence": [
@@ -2154,7 +1693,7 @@
           }
         ],
         "children": [],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "Approved operating mode is selected.",
           "Operational keys and protocol integration are owned by consumers."
@@ -2165,7 +1704,7 @@
   {
     "id": "system-b",
     "key": "system-b",
-    "kind": "Component",
+    "kind": "Product",
     "name": "System B",
     "category": "System",
     "owner": "Ground Products",
@@ -2182,14 +1721,12 @@
             "family": "AU",
             "applicability": "Applicable",
             "implementation": "Ground procedures define review responsibilities but require local owner assignment.",
-            "consumerResponsibility": "Name the consuming program’s audit owner and record local procedures.",
+            "consumerResponsibility": "Name the consuming program\u2019s audit owner and record local procedures.",
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "AU-2",
@@ -2202,9 +1739,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "AU-3",
@@ -2216,13 +1751,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
-            "requirementIds": [
-              "SYSB-INT-01"
-            ],
-            "evidenceIds": [
-              "SYSB-E-02",
-              "SYSB-E-01"
-            ]
+            "requirementIds": ["SYSB-INT-01"],
+            "evidenceIds": ["SYSB-E-02", "SYSB-E-01"]
           },
           {
             "id": "AU-6",
@@ -2235,9 +1765,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "AU-9",
@@ -2250,9 +1778,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "AU-12",
@@ -2264,13 +1790,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
-            "requirementIds": [
-              "SYSB-INT-01"
-            ],
-            "evidenceIds": [
-              "SYSB-E-02",
-              "SYSB-E-01"
-            ]
+            "requirementIds": ["SYSB-INT-01"],
+            "evidenceIds": ["SYSB-E-02", "SYSB-E-01"]
           },
           {
             "id": "AC-2",
@@ -2283,9 +1804,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "AC-3",
@@ -2297,13 +1816,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
-            "requirementIds": [
-              "SYSB-IAM-02"
-            ],
-            "evidenceIds": [
-              "SYSB-E-02",
-              "SYSB-E-01"
-            ]
+            "requirementIds": ["SYSB-IAM-02"],
+            "evidenceIds": ["SYSB-E-02", "SYSB-E-01"]
           },
           {
             "id": "AC-6",
@@ -2315,13 +1829,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
-            "requirementIds": [
-              "SYSB-IAM-02"
-            ],
-            "evidenceIds": [
-              "SYSB-E-02",
-              "SYSB-E-01"
-            ]
+            "requirementIds": ["SYSB-IAM-02"],
+            "evidenceIds": ["SYSB-E-02", "SYSB-E-01"]
           },
           {
             "id": "IA-2",
@@ -2333,13 +1842,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
-            "requirementIds": [
-              "SYSB-IAM-02"
-            ],
-            "evidenceIds": [
-              "SYSB-E-02",
-              "SYSB-E-01"
-            ]
+            "requirementIds": ["SYSB-IAM-02"],
+            "evidenceIds": ["SYSB-E-02", "SYSB-E-01"]
           },
           {
             "id": "IA-5",
@@ -2352,9 +1856,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "CM-2",
@@ -2366,13 +1868,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
-            "requirementIds": [
-              "SYSB-CFG-03"
-            ],
-            "evidenceIds": [
-              "SYSB-E-03",
-              "SYSB-E-01"
-            ]
+            "requirementIds": ["SYSB-CFG-03"],
+            "evidenceIds": ["SYSB-E-03", "SYSB-E-01"]
           },
           {
             "id": "CM-3",
@@ -2385,9 +1882,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "CM-6",
@@ -2399,13 +1894,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
-            "requirementIds": [
-              "SYSB-CFG-03"
-            ],
-            "evidenceIds": [
-              "SYSB-E-03",
-              "SYSB-E-01"
-            ]
+            "requirementIds": ["SYSB-CFG-03"],
+            "evidenceIds": ["SYSB-E-03", "SYSB-E-01"]
           },
           {
             "id": "SI-7",
@@ -2418,9 +1908,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "CA-2",
@@ -2433,9 +1921,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "CP-9",
@@ -2448,9 +1934,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           },
           {
             "id": "CP-10",
@@ -2463,57 +1947,37 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-28",
             "requirementIds": [],
-            "evidenceIds": [
-              "SYSB-E-01"
-            ]
+            "evidenceIds": ["SYSB-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "SYSB-INT-01",
             "title": "Preserve processing event identities at the operator console.",
-            "controlIds": [
-              "AU-3",
-              "AU-12"
-            ],
+            "controlIds": ["AU-3", "AU-12"],
             "status": "Verified",
-            "evidenceIds": [
-              "SYSB-E-02"
-            ]
+            "evidenceIds": ["SYSB-E-02"]
           },
           {
             "id": "SYSB-IAM-02",
             "title": "Enforce distinct operator and maintainer roles.",
-            "controlIds": [
-              "AC-3",
-              "AC-6",
-              "IA-2"
-            ],
+            "controlIds": ["AC-3", "AC-6", "IA-2"],
             "status": "Verified",
-            "evidenceIds": [
-              "SYSB-E-02"
-            ]
+            "evidenceIds": ["SYSB-E-02"]
           },
           {
             "id": "SYSB-CFG-03",
             "title": "Identify shared processing and console releases.",
-            "controlIds": [
-              "CM-2",
-              "CM-6"
-            ],
+            "controlIds": ["CM-2", "CM-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "SYSB-E-03"
-            ]
+            "evidenceIds": ["SYSB-E-03"]
           },
           {
             "id": "SYSB-INT-099",
             "title": "Provide a visible indication when the processing link is unavailable.",
             "controlIds": [],
             "status": "Verified",
-            "evidenceIds": [
-              "SYSB-E-02"
-            ]
+            "evidenceIds": ["SYSB-E-02"]
           }
         ],
         "evidence": [
@@ -2553,7 +2017,7 @@
             "versionId": "component-b21@7.0"
           }
         ],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "Subsystem A.1 v2.1",
           "The consuming deployment supplies its identity tenant and ground network configuration."
@@ -2564,8 +2028,8 @@
   {
     "id": "component-b21",
     "key": "component-b21",
-    "kind": "Component",
-    "name": "Component B.21 · Operator Console",
+    "kind": "Product",
+    "name": "Component B.21 \u00b7 Operator Console",
     "category": "Component",
     "owner": "Ground Products",
     "draft": null,
@@ -2586,9 +2050,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-30",
             "requirementIds": [],
-            "evidenceIds": [
-              "OC-E-01"
-            ]
+            "evidenceIds": ["OC-E-01"]
           },
           {
             "id": "AU-12",
@@ -2600,13 +2062,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-30",
-            "requirementIds": [
-              "OC-APP-12"
-            ],
-            "evidenceIds": [
-              "OC-E-03",
-              "OC-E-01"
-            ]
+            "requirementIds": ["OC-APP-12"],
+            "evidenceIds": ["OC-E-03", "OC-E-01"]
           },
           {
             "id": "AC-3",
@@ -2618,13 +2075,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-30",
-            "requirementIds": [
-              "OC-ROLE-04"
-            ],
-            "evidenceIds": [
-              "OC-E-02",
-              "OC-E-01"
-            ]
+            "requirementIds": ["OC-ROLE-04"],
+            "evidenceIds": ["OC-E-02", "OC-E-01"]
           },
           {
             "id": "AC-6",
@@ -2636,13 +2088,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-30",
-            "requirementIds": [
-              "OC-ROLE-04"
-            ],
-            "evidenceIds": [
-              "OC-E-02",
-              "OC-E-01"
-            ]
+            "requirementIds": ["OC-ROLE-04"],
+            "evidenceIds": ["OC-E-02", "OC-E-01"]
           },
           {
             "id": "IA-2",
@@ -2654,13 +2101,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-30",
-            "requirementIds": [
-              "OC-AUTH-05"
-            ],
-            "evidenceIds": [
-              "OC-E-02",
-              "OC-E-01"
-            ]
+            "requirementIds": ["OC-AUTH-05"],
+            "evidenceIds": ["OC-E-02", "OC-E-01"]
           },
           {
             "id": "IA-5",
@@ -2672,13 +2114,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-30",
-            "requirementIds": [
-              "OC-AUTH-05"
-            ],
-            "evidenceIds": [
-              "OC-E-02",
-              "OC-E-01"
-            ]
+            "requirementIds": ["OC-AUTH-05"],
+            "evidenceIds": ["OC-E-02", "OC-E-01"]
           },
           {
             "id": "CM-2",
@@ -2691,9 +2128,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-30",
             "requirementIds": [],
-            "evidenceIds": [
-              "OC-E-01"
-            ]
+            "evidenceIds": ["OC-E-01"]
           },
           {
             "id": "SI-3",
@@ -2705,13 +2140,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-30",
-            "requirementIds": [
-              "OC-APP-12"
-            ],
-            "evidenceIds": [
-              "OC-E-03",
-              "OC-E-01"
-            ]
+            "requirementIds": ["OC-APP-12"],
+            "evidenceIds": ["OC-E-03", "OC-E-01"]
           },
           {
             "id": "SI-7",
@@ -2723,52 +2153,31 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-07-30",
-            "requirementIds": [
-              "OC-APP-12"
-            ],
-            "evidenceIds": [
-              "OC-E-03",
-              "OC-E-01"
-            ]
+            "requirementIds": ["OC-APP-12"],
+            "evidenceIds": ["OC-E-03", "OC-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "OC-ROLE-04",
             "title": "Separate operator and maintenance permissions.",
-            "controlIds": [
-              "AC-3",
-              "AC-6"
-            ],
+            "controlIds": ["AC-3", "AC-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "OC-E-02"
-            ]
+            "evidenceIds": ["OC-E-02"]
           },
           {
             "id": "OC-AUTH-05",
             "title": "Identify and authenticate interactive sessions.",
-            "controlIds": [
-              "IA-2",
-              "IA-5"
-            ],
+            "controlIds": ["IA-2", "IA-5"],
             "status": "Verified",
-            "evidenceIds": [
-              "OC-E-02"
-            ]
+            "evidenceIds": ["OC-E-02"]
           },
           {
             "id": "OC-APP-12",
             "title": "Record shell actions and restrict executable packages.",
-            "controlIds": [
-              "AU-12",
-              "SI-3",
-              "SI-7"
-            ],
+            "controlIds": ["AU-12", "SI-3", "SI-7"],
             "status": "Verified",
-            "evidenceIds": [
-              "OC-E-03"
-            ]
+            "evidenceIds": ["OC-E-03"]
           }
         ],
         "evidence": [
@@ -2795,7 +2204,7 @@
           }
         ],
         "children": [],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "The declared identity tenant is configured.",
           "Mission applications and emergency accounts receive local review."
@@ -2806,7 +2215,7 @@
   {
     "id": "host-h",
     "key": "host-h",
-    "kind": "Component",
+    "kind": "Product",
     "name": "Host Platform H",
     "category": "Host platform",
     "owner": "Platform H Authority",
@@ -2827,13 +2236,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-02",
-            "requirementIds": [
-              "HOST-TIME-04"
-            ],
-            "evidenceIds": [
-              "HOST-E-02",
-              "HOST-E-01"
-            ]
+            "requirementIds": ["HOST-TIME-04"],
+            "evidenceIds": ["HOST-E-02", "HOST-E-01"]
           },
           {
             "id": "AU-6",
@@ -2846,9 +2250,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-02",
             "requirementIds": [],
-            "evidenceIds": [
-              "HOST-E-01"
-            ]
+            "evidenceIds": ["HOST-E-01"]
           },
           {
             "id": "AU-9",
@@ -2860,14 +2262,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-02",
-            "requirementIds": [
-              "HOST-LOG-16"
-            ],
-            "evidenceIds": [
-              "HOST-E-02",
-              "HOST-E-03",
-              "HOST-E-01"
-            ]
+            "requirementIds": ["HOST-LOG-16"],
+            "evidenceIds": ["HOST-E-02", "HOST-E-03", "HOST-E-01"]
           },
           {
             "id": "AC-3",
@@ -2879,12 +2275,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-02",
-            "requirementIds": [
-              "HOST-ACCESS-09"
-            ],
-            "evidenceIds": [
-              "HOST-E-01"
-            ]
+            "requirementIds": ["HOST-ACCESS-09"],
+            "evidenceIds": ["HOST-E-01"]
           },
           {
             "id": "IA-2",
@@ -2896,12 +2288,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-02",
-            "requirementIds": [
-              "HOST-ACCESS-09"
-            ],
-            "evidenceIds": [
-              "HOST-E-01"
-            ]
+            "requirementIds": ["HOST-ACCESS-09"],
+            "evidenceIds": ["HOST-E-01"]
           },
           {
             "id": "CM-2",
@@ -2914,9 +2302,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-02",
             "requirementIds": [],
-            "evidenceIds": [
-              "HOST-E-01"
-            ]
+            "evidenceIds": ["HOST-E-01"]
           },
           {
             "id": "SC-8",
@@ -2928,14 +2314,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-02",
-            "requirementIds": [
-              "HOST-LOG-16"
-            ],
-            "evidenceIds": [
-              "HOST-E-02",
-              "HOST-E-03",
-              "HOST-E-01"
-            ]
+            "requirementIds": ["HOST-LOG-16"],
+            "evidenceIds": ["HOST-E-02", "HOST-E-03", "HOST-E-01"]
           },
           {
             "id": "IR-6",
@@ -2943,14 +2323,12 @@
             "family": "IR",
             "applicability": "Applicable",
             "implementation": "The host reports service incidents; consumer-specific contact validation remains.",
-            "consumerResponsibility": "Validate the program’s incident contacts and reporting route.",
+            "consumerResponsibility": "Validate the program\u2019s incident contacts and reporting route.",
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-02",
             "requirementIds": [],
-            "evidenceIds": [
-              "HOST-E-01"
-            ]
+            "evidenceIds": ["HOST-E-01"]
           },
           {
             "id": "CP-9",
@@ -2963,56 +2341,37 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-02",
             "requirementIds": [],
-            "evidenceIds": [
-              "HOST-E-01"
-            ]
+            "evidenceIds": ["HOST-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "HOST-TIME-04",
             "title": "Provide the declared time reference to attached equipment.",
-            "controlIds": [
-              "AU-3"
-            ],
+            "controlIds": ["AU-3"],
             "status": "Verified",
-            "evidenceIds": [
-              "HOST-E-02"
-            ]
+            "evidenceIds": ["HOST-E-02"]
           },
           {
             "id": "HOST-ACCESS-09",
             "title": "Authenticate maintainers at the platform entry boundary.",
-            "controlIds": [
-              "AC-3",
-              "IA-2"
-            ],
+            "controlIds": ["AC-3", "IA-2"],
             "status": "Verified",
-            "evidenceIds": [
-              "HOST-E-01"
-            ]
+            "evidenceIds": ["HOST-E-01"]
           },
           {
             "id": "HOST-LOG-16",
             "title": "Protect received audit records and their transfer channel.",
-            "controlIds": [
-              "AU-9",
-              "SC-8"
-            ],
+            "controlIds": ["AU-9", "SC-8"],
             "status": "Verified",
-            "evidenceIds": [
-              "HOST-E-02",
-              "HOST-E-03"
-            ]
+            "evidenceIds": ["HOST-E-02", "HOST-E-03"]
           },
           {
             "id": "HOST-INT-099",
             "title": "Identify attachment state and acknowledged transfer status.",
             "controlIds": [],
             "status": "Verified",
-            "evidenceIds": [
-              "HOST-E-02"
-            ]
+            "evidenceIds": ["HOST-E-02"]
           }
         ],
         "evidence": [
@@ -3039,7 +2398,7 @@
           }
         ],
         "children": [],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "Equipment is attached through approved interface H-17.",
           "Detached operation is outside the host service boundary.",
@@ -3051,9 +2410,9 @@
   {
     "id": "company-a",
     "key": "company-a",
-    "kind": "Overlay",
+    "kind": "Policy",
     "name": "Company A Profile",
-    "category": "Organizational profile",
+    "category": "Policy",
     "owner": "Company A Security Office",
     "draft": null,
     "versions": [
@@ -3068,17 +2427,12 @@
             "family": "AU",
             "applicability": "Applicable",
             "implementation": "Company A maintains approved audit policy, ownership, and procedure review records.",
-            "consumerResponsibility": "Name the consuming program’s audit owner and record local procedures.",
+            "consumerResponsibility": "Name the consuming program\u2019s audit owner and record local procedures.",
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
-            "requirementIds": [
-              "ORGA-AUD-01"
-            ],
-            "evidenceIds": [
-              "ORGA-E-02",
-              "ORGA-E-01"
-            ]
+            "requirementIds": ["ORGA-AUD-01"],
+            "evidenceIds": ["ORGA-E-02", "ORGA-E-01"]
           },
           {
             "id": "AU-2",
@@ -3090,13 +2444,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
-            "requirementIds": [
-              "ORGA-AUD-01"
-            ],
-            "evidenceIds": [
-              "ORGA-E-02",
-              "ORGA-E-01"
-            ]
+            "requirementIds": ["ORGA-AUD-01"],
+            "evidenceIds": ["ORGA-E-02", "ORGA-E-01"]
           },
           {
             "id": "AU-6",
@@ -3108,13 +2457,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
-            "requirementIds": [
-              "ORGA-AUD-01"
-            ],
-            "evidenceIds": [
-              "ORGA-E-02",
-              "ORGA-E-01"
-            ]
+            "requirementIds": ["ORGA-AUD-01"],
+            "evidenceIds": ["ORGA-E-02", "ORGA-E-01"]
           },
           {
             "id": "AC-2",
@@ -3126,13 +2470,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
-            "requirementIds": [
-              "ORGA-IAM-02"
-            ],
-            "evidenceIds": [
-              "ORGA-E-03",
-              "ORGA-E-01"
-            ]
+            "requirementIds": ["ORGA-IAM-02"],
+            "evidenceIds": ["ORGA-E-03", "ORGA-E-01"]
           },
           {
             "id": "AC-6",
@@ -3144,13 +2483,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
-            "requirementIds": [
-              "ORGA-IAM-02"
-            ],
-            "evidenceIds": [
-              "ORGA-E-03",
-              "ORGA-E-01"
-            ]
+            "requirementIds": ["ORGA-IAM-02"],
+            "evidenceIds": ["ORGA-E-03", "ORGA-E-01"]
           },
           {
             "id": "CM-2",
@@ -3162,13 +2496,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
-            "requirementIds": [
-              "ORGA-CFG-03"
-            ],
-            "evidenceIds": [
-              "ORGA-E-03",
-              "ORGA-E-01"
-            ]
+            "requirementIds": ["ORGA-CFG-03"],
+            "evidenceIds": ["ORGA-E-03", "ORGA-E-01"]
           },
           {
             "id": "CM-3",
@@ -3180,13 +2509,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
-            "requirementIds": [
-              "ORGA-CFG-03"
-            ],
-            "evidenceIds": [
-              "ORGA-E-03",
-              "ORGA-E-01"
-            ]
+            "requirementIds": ["ORGA-CFG-03"],
+            "evidenceIds": ["ORGA-E-03", "ORGA-E-01"]
           },
           {
             "id": "CA-2",
@@ -3199,9 +2523,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
             "requirementIds": [],
-            "evidenceIds": [
-              "ORGA-E-01"
-            ]
+            "evidenceIds": ["ORGA-E-01"]
           },
           {
             "id": "CA-7",
@@ -3214,9 +2536,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
             "requirementIds": [],
-            "evidenceIds": [
-              "ORGA-E-01"
-            ]
+            "evidenceIds": ["ORGA-E-01"]
           },
           {
             "id": "IR-4",
@@ -3228,13 +2548,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
-            "requirementIds": [
-              "ORGA-IR-04"
-            ],
-            "evidenceIds": [
-              "ORGA-E-04",
-              "ORGA-E-01"
-            ]
+            "requirementIds": ["ORGA-IR-04"],
+            "evidenceIds": ["ORGA-E-04", "ORGA-E-01"]
           },
           {
             "id": "IR-6",
@@ -3242,17 +2557,12 @@
             "family": "IR",
             "applicability": "Applicable",
             "implementation": "The exercise verified corporate reporting channels and escalation ownership.",
-            "consumerResponsibility": "Validate the program’s incident contacts and reporting route.",
+            "consumerResponsibility": "Validate the program\u2019s incident contacts and reporting route.",
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
-            "requirementIds": [
-              "ORGA-IR-04"
-            ],
-            "evidenceIds": [
-              "ORGA-E-04",
-              "ORGA-E-01"
-            ]
+            "requirementIds": ["ORGA-IR-04"],
+            "evidenceIds": ["ORGA-E-04", "ORGA-E-01"]
           },
           {
             "id": "CP-9",
@@ -3265,69 +2575,44 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-20",
             "requirementIds": [],
-            "evidenceIds": [
-              "ORGA-E-01"
-            ]
+            "evidenceIds": ["ORGA-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "ORGA-AUD-01",
             "title": "Maintain approved audit responsibilities and event-selection procedures.",
-            "controlIds": [
-              "AU-1",
-              "AU-2",
-              "AU-6"
-            ],
+            "controlIds": ["AU-1", "AU-2", "AU-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "ORGA-E-02"
-            ]
+            "evidenceIds": ["ORGA-E-02"]
           },
           {
             "id": "ORGA-IAM-02",
             "title": "Sponsor and periodically review workforce access.",
-            "controlIds": [
-              "AC-2",
-              "AC-6"
-            ],
+            "controlIds": ["AC-2", "AC-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "ORGA-E-03"
-            ]
+            "evidenceIds": ["ORGA-E-03"]
           },
           {
             "id": "ORGA-CFG-03",
             "title": "Review security impact before approving controlled changes.",
-            "controlIds": [
-              "CM-2",
-              "CM-3"
-            ],
+            "controlIds": ["CM-2", "CM-3"],
             "status": "Verified",
-            "evidenceIds": [
-              "ORGA-E-03"
-            ]
+            "evidenceIds": ["ORGA-E-03"]
           },
           {
             "id": "ORGA-IR-04",
             "title": "Coordinate incident triage and program notification.",
-            "controlIds": [
-              "IR-4",
-              "IR-6"
-            ],
+            "controlIds": ["IR-4", "IR-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "ORGA-E-04"
-            ]
+            "evidenceIds": ["ORGA-E-04"]
           },
           {
             "id": "ORGA-GOV-099",
             "title": "Every consuming program shall name an accountable assurance owner.",
             "controlIds": [],
             "status": "Verified",
-            "evidenceIds": [
-              "ORGA-E-01"
-            ]
+            "evidenceIds": ["ORGA-E-01"]
           }
         ],
         "evidence": [
@@ -3361,7 +2646,7 @@
           }
         ],
         "children": [],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "The consuming program operates under Company A governance.",
           "The program names local owners and adopts applicable procedures."
@@ -3372,9 +2657,9 @@
   {
     "id": "europe",
     "key": "europe",
-    "kind": "Overlay",
-    "name": "Europe Operations Overlay",
-    "category": "Overlay",
+    "kind": "Policy",
+    "name": "Europe Operations Supplement",
+    "category": "Regional supplement",
     "owner": "European Security Office",
     "draft": null,
     "versions": [
@@ -3389,17 +2674,12 @@
             "family": "AU",
             "applicability": "Applicable",
             "implementation": "The regional supplement adds named office responsibilities to the base audit policy.",
-            "consumerResponsibility": "Name the consuming program’s audit owner and record local procedures.",
+            "consumerResponsibility": "Name the consuming program\u2019s audit owner and record local procedures.",
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-26",
-            "requirementIds": [
-              "EU-AUD-01"
-            ],
-            "evidenceIds": [
-              "EU-E-02",
-              "EU-E-01"
-            ]
+            "requirementIds": ["EU-AUD-01"],
+            "evidenceIds": ["EU-E-02", "EU-E-01"]
           },
           {
             "id": "AU-6",
@@ -3412,9 +2692,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-26",
             "requirementIds": [],
-            "evidenceIds": [
-              "EU-E-01"
-            ]
+            "evidenceIds": ["EU-E-01"]
           },
           {
             "id": "AU-9",
@@ -3426,13 +2704,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-26",
-            "requirementIds": [
-              "EU-AUD-01"
-            ],
-            "evidenceIds": [
-              "EU-E-02",
-              "EU-E-01"
-            ]
+            "requirementIds": ["EU-AUD-01"],
+            "evidenceIds": ["EU-E-02", "EU-E-01"]
           },
           {
             "id": "CA-7",
@@ -3444,12 +2717,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-26",
-            "requirementIds": [
-              "EU-MON-03"
-            ],
-            "evidenceIds": [
-              "EU-E-01"
-            ]
+            "requirementIds": ["EU-MON-03"],
+            "evidenceIds": ["EU-E-01"]
           },
           {
             "id": "IR-6",
@@ -3457,62 +2726,42 @@
             "family": "IR",
             "applicability": "Applicable",
             "implementation": "The regional exercise verified the office escalation and coordination route.",
-            "consumerResponsibility": "Validate the program’s incident contacts and reporting route.",
+            "consumerResponsibility": "Validate the program\u2019s incident contacts and reporting route.",
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-26",
-            "requirementIds": [
-              "EU-IR-02"
-            ],
-            "evidenceIds": [
-              "EU-E-03",
-              "EU-E-01"
-            ]
+            "requirementIds": ["EU-IR-02"],
+            "evidenceIds": ["EU-E-03", "EU-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "EU-AUD-01",
             "title": "Name regional audit owners and custody destinations.",
-            "controlIds": [
-              "AU-1",
-              "AU-9"
-            ],
+            "controlIds": ["AU-1", "AU-9"],
             "status": "Verified",
-            "evidenceIds": [
-              "EU-E-02"
-            ]
+            "evidenceIds": ["EU-E-02"]
           },
           {
             "id": "EU-IR-02",
             "title": "Record and exercise regional incident escalation contacts.",
-            "controlIds": [
-              "IR-6"
-            ],
+            "controlIds": ["IR-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "EU-E-03"
-            ]
+            "evidenceIds": ["EU-E-03"]
           },
           {
             "id": "EU-MON-03",
             "title": "Review regional custody exceptions with the base-profile owner.",
-            "controlIds": [
-              "CA-7"
-            ],
+            "controlIds": ["CA-7"],
             "status": "Open",
-            "evidenceIds": [
-              "EU-E-01"
-            ]
+            "evidenceIds": ["EU-E-01"]
           },
           {
             "id": "EU-GOV-099",
             "title": "Record the operating locations covered by the overlay.",
             "controlIds": [],
             "status": "Verified",
-            "evidenceIds": [
-              "EU-E-02"
-            ]
+            "evidenceIds": ["EU-E-02"]
           }
         ],
         "evidence": [
@@ -3539,7 +2788,7 @@
           }
         ],
         "children": [],
-        "baseOverlay": {
+        "basePolicy": {
           "entryId": "company-a",
           "versionId": "company-a@3.0"
         },
@@ -3554,9 +2803,9 @@
   {
     "id": "company-b",
     "key": "company-b",
-    "kind": "Overlay",
+    "kind": "Policy",
     "name": "Company B Profile",
-    "category": "Organizational profile",
+    "category": "Policy",
     "owner": "Company B Assurance",
     "draft": null,
     "versions": [
@@ -3571,17 +2820,12 @@
             "family": "AU",
             "applicability": "Applicable",
             "implementation": "Company B policy assigns corporate audit responsibilities and annual review.",
-            "consumerResponsibility": "Name the consuming program’s audit owner and record local procedures.",
+            "consumerResponsibility": "Name the consuming program\u2019s audit owner and record local procedures.",
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-05",
-            "requirementIds": [
-              "ORGB-POL-01"
-            ],
-            "evidenceIds": [
-              "ORGB-E-02",
-              "ORGB-E-01"
-            ]
+            "requirementIds": ["ORGB-POL-01"],
+            "evidenceIds": ["ORGB-E-02", "ORGB-E-01"]
           },
           {
             "id": "AU-6",
@@ -3593,13 +2837,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-05",
-            "requirementIds": [
-              "ORGB-POL-01"
-            ],
-            "evidenceIds": [
-              "ORGB-E-02",
-              "ORGB-E-01"
-            ]
+            "requirementIds": ["ORGB-POL-01"],
+            "evidenceIds": ["ORGB-E-02", "ORGB-E-01"]
           },
           {
             "id": "AC-2",
@@ -3611,13 +2850,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-05",
-            "requirementIds": [
-              "ORGB-ACC-02"
-            ],
-            "evidenceIds": [
-              "ORGB-E-02",
-              "ORGB-E-01"
-            ]
+            "requirementIds": ["ORGB-ACC-02"],
+            "evidenceIds": ["ORGB-E-02", "ORGB-E-01"]
           },
           {
             "id": "AC-6",
@@ -3629,13 +2863,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-05",
-            "requirementIds": [
-              "ORGB-ACC-02"
-            ],
-            "evidenceIds": [
-              "ORGB-E-02",
-              "ORGB-E-01"
-            ]
+            "requirementIds": ["ORGB-ACC-02"],
+            "evidenceIds": ["ORGB-E-02", "ORGB-E-01"]
           },
           {
             "id": "CM-3",
@@ -3647,13 +2876,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-05",
-            "requirementIds": [
-              "ORGB-CHG-03"
-            ],
-            "evidenceIds": [
-              "ORGB-E-03",
-              "ORGB-E-01"
-            ]
+            "requirementIds": ["ORGB-CHG-03"],
+            "evidenceIds": ["ORGB-E-03", "ORGB-E-01"]
           },
           {
             "id": "CA-2",
@@ -3666,9 +2890,7 @@
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-05",
             "requirementIds": [],
-            "evidenceIds": [
-              "ORGB-E-01"
-            ]
+            "evidenceIds": ["ORGB-E-01"]
           },
           {
             "id": "CA-7",
@@ -3680,13 +2902,8 @@
             "assessment": "Other than satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-05",
-            "requirementIds": [
-              "ORGB-CHG-03"
-            ],
-            "evidenceIds": [
-              "ORGB-E-03",
-              "ORGB-E-01"
-            ]
+            "requirementIds": ["ORGB-CHG-03"],
+            "evidenceIds": ["ORGB-E-03", "ORGB-E-01"]
           },
           {
             "id": "IR-4",
@@ -3698,13 +2915,8 @@
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-05",
-            "requirementIds": [
-              "ORGB-IR-04"
-            ],
-            "evidenceIds": [
-              "ORGB-E-03",
-              "ORGB-E-01"
-            ]
+            "requirementIds": ["ORGB-IR-04"],
+            "evidenceIds": ["ORGB-E-03", "ORGB-E-01"]
           },
           {
             "id": "IR-6",
@@ -3712,76 +2924,49 @@
             "family": "IR",
             "applicability": "Applicable",
             "implementation": "Corporate and supplier escalation routes passed the notification exercise.",
-            "consumerResponsibility": "Validate the program’s incident contacts and reporting route.",
+            "consumerResponsibility": "Validate the program\u2019s incident contacts and reporting route.",
             "assessment": "Satisfied",
             "assessor": "Independent Assurance",
             "assessedOn": "2026-08-05",
-            "requirementIds": [
-              "ORGB-IR-04"
-            ],
-            "evidenceIds": [
-              "ORGB-E-03",
-              "ORGB-E-01"
-            ]
+            "requirementIds": ["ORGB-IR-04"],
+            "evidenceIds": ["ORGB-E-03", "ORGB-E-01"]
           }
         ],
         "requirements": [
           {
             "id": "ORGB-POL-01",
             "title": "Maintain approved audit procedures and named corporate owners.",
-            "controlIds": [
-              "AU-1",
-              "AU-6"
-            ],
+            "controlIds": ["AU-1", "AU-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "ORGB-E-02"
-            ]
+            "evidenceIds": ["ORGB-E-02"]
           },
           {
             "id": "ORGB-ACC-02",
             "title": "Review workforce accounts and privilege exceptions.",
-            "controlIds": [
-              "AC-2",
-              "AC-6"
-            ],
+            "controlIds": ["AC-2", "AC-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "ORGB-E-02"
-            ]
+            "evidenceIds": ["ORGB-E-02"]
           },
           {
             "id": "ORGB-CHG-03",
             "title": "Assess supplier release impacts before acceptance.",
-            "controlIds": [
-              "CM-3",
-              "CA-7"
-            ],
+            "controlIds": ["CM-3", "CA-7"],
             "status": "Open",
-            "evidenceIds": [
-              "ORGB-E-03"
-            ]
+            "evidenceIds": ["ORGB-E-03"]
           },
           {
             "id": "ORGB-IR-04",
             "title": "Exercise supplier-to-company incident notification.",
-            "controlIds": [
-              "IR-4",
-              "IR-6"
-            ],
+            "controlIds": ["IR-4", "IR-6"],
             "status": "Verified",
-            "evidenceIds": [
-              "ORGB-E-03"
-            ]
+            "evidenceIds": ["ORGB-E-03"]
           },
           {
             "id": "ORGB-GOV-099",
             "title": "Record the legal entity accountable for each program.",
             "controlIds": [],
             "status": "Verified",
-            "evidenceIds": [
-              "ORGB-E-01"
-            ]
+            "evidenceIds": ["ORGB-E-01"]
           }
         ],
         "evidence": [
@@ -3808,7 +2993,7 @@
           }
         ],
         "children": [],
-        "baseOverlay": null,
+        "basePolicy": null,
         "conditions": [
           "The consuming program operates under Company B governance.",
           "Use with another corporate profile requires explicit responsibility allocation."

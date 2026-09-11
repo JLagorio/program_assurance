@@ -7031,7 +7031,7 @@
     "\"src/patterns/editable\".EditableTextProps": [
       {
         "source": "src/patterns/editable.d.ts",
-        "declaration": "export type EditableTextProps = EditableProps<string> & {\n    placeholder?: string | undefined;\n};"
+        "declaration": "export type EditableTextProps = EditableProps<string> & {\n    placeholder?: string | undefined;\n    multiline?: boolean | undefined;\n};"
       }
     ],
     "\"src/patterns/gates\".GateItem": [
@@ -7181,13 +7181,13 @@
     "\"src/patterns/toolbar\".Toolbar": [
       {
         "source": "src/patterns/toolbar.d.ts",
-        "declaration": "export declare function Toolbar({ search, onSearch, placeholder, children, actions, className, }: ToolbarProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Toolbar({ search, onSearch, placeholder, children, filters, actions, className, }: ToolbarProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/patterns/toolbar\".ToolbarProps": [
       {
         "source": "src/patterns/toolbar.d.ts",
-        "declaration": "export type ToolbarProps = {\n    search?: string | undefined;\n    onSearch?: ((value: string) => void) | undefined;\n    placeholder?: string | undefined;\n    children?: ReactNode;\n    actions?: ReactNode;\n    className?: string | undefined;\n};"
+        "declaration": "export type ToolbarProps = {\n    search?: string | undefined;\n    onSearch?: ((value: string) => void) | undefined;\n    placeholder?: string | undefined;\n    children?: ReactNode;\n    filters?: ReactNode;\n    actions?: ReactNode;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/patterns/work-pane\".WorkPane": [
@@ -7913,7 +7913,7 @@
     "src/patterns/editable.d.ts#EditableText": [
       {
         "source": "src/patterns/editable.d.ts",
-        "declaration": "declare function EditableText({ placeholder, ...props }: EditableTextProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function EditableText({ placeholder, multiline, ...props }: EditableTextProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/patterns/gates.d.ts#GatesRoot": [

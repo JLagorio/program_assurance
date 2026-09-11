@@ -137,63 +137,66 @@ function ToolbarDemo() {
             </Button>
           ) : null
         }
-      >
-        <FilterChip
-          ref={toolbarRefs.toggle}
-          label="Gaps"
-          isActive={gaps}
-          onClick={() => setGaps((v) => !v)}
-        />
-        <FilterChip
-          label="Owner"
-          value={owner ?? undefined}
-          isActive={owner !== null}
-          onClick={() =>
-            setOwner((o) =>
-              o === null ? (owners[0] ?? null) : (owners[owners.indexOf(o) + 1] ?? null),
-            )
-          }
-        />
-        <Popover>
-          <PopoverTrigger
-            ref={toolbarRefs.trigger}
-            onClick={toolbarCalls.trigger}
-            render={
-              <FilterChip
-                ref={toolbarRefs.chip}
-                label="Status"
-                value={statusValue}
-                isActive={chosen.length > 0}
-                onClick={toolbarCalls.chip}
+        filters={
+          <>
+            <FilterChip
+              ref={toolbarRefs.toggle}
+              label="Gaps"
+              isActive={gaps}
+              onClick={() => setGaps((v) => !v)}
+            />
+            <FilterChip
+              label="Owner"
+              value={owner ?? undefined}
+              isActive={owner !== null}
+              onClick={() =>
+                setOwner((o) =>
+                  o === null ? (owners[0] ?? null) : (owners[owners.indexOf(o) + 1] ?? null),
+                )
+              }
+            />
+            <Popover>
+              <PopoverTrigger
+                ref={toolbarRefs.trigger}
+                onClick={toolbarCalls.trigger}
+                render={
+                  <FilterChip
+                    ref={toolbarRefs.chip}
+                    label="Status"
+                    value={statusValue}
+                    isActive={chosen.length > 0}
+                    onClick={toolbarCalls.chip}
+                  />
+                }
               />
-            }
-          />
-          <PopoverContent style={{ width: 220 }} aria-label="Status">
-            <Stack space="space.100">
-              <Stack space="space.075">
-                {statuses.map((s) => (
-                  <label key={s} className="inline-flex items-center gap-100">
-                    <Checkbox
-                      checked={chosen.includes(s)}
-                      onCheckedChange={(v) =>
-                        setChosen((c) => (v ? [...c, s] : c.filter((x) => x !== s)))
-                      }
-                    />
-                    {s}
-                  </label>
-                ))}
-              </Stack>
-              {chosen.length ? (
-                <Inline alignInline="end">
-                  <Button variant="link" size="small" onClick={() => setChosen([])}>
-                    Clear
-                  </Button>
-                </Inline>
-              ) : null}
-            </Stack>
-          </PopoverContent>
-        </Popover>
-      </Toolbar>
+              <PopoverContent style={{ width: 220 }} aria-label="Status">
+                <Stack space="space.100">
+                  <Stack space="space.075">
+                    {statuses.map((s) => (
+                      <label key={s} className="inline-flex items-center gap-100">
+                        <Checkbox
+                          checked={chosen.includes(s)}
+                          onCheckedChange={(v) =>
+                            setChosen((c) => (v ? [...c, s] : c.filter((x) => x !== s)))
+                          }
+                        />
+                        {s}
+                      </label>
+                    ))}
+                  </Stack>
+                  {chosen.length ? (
+                    <Inline alignInline="end">
+                      <Button variant="link" size="small" onClick={() => setChosen([])}>
+                        Clear
+                      </Button>
+                    </Inline>
+                  ) : null}
+                </Stack>
+              </PopoverContent>
+            </Popover>
+          </>
+        }
+      ></Toolbar>
     </div>
   );
 }

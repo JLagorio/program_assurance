@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AssuranceLibraryIndex } from "@/components/app/assurance-library";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+
 export const Route = createFileRoute("/library/overlays/")({
-  head: () => ({ meta: [{ title: "Overlays — Equinox GRC" }] }),
-  component: () => <AssuranceLibraryIndex kind="Overlay" />,
+  beforeLoad: () => {
+    throw redirect({ to: "/library/components" });
+  },
 });

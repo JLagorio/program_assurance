@@ -329,7 +329,7 @@ function RiskDetail() {
                 <TextLink
                   size="small"
                   className="pt-075 inline-block"
-                  render={<Link to="/controls" />}
+                  render={<Link to="/catalog" />}
                 >
                   View {risk.control}
                 </TextLink>

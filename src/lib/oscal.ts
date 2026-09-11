@@ -39,8 +39,9 @@
  * it except `@/lib/airgap` and the export route, so it introduces no cycle.
  */
 
-import { buildPlatformSsp } from "@/lib/platform-oscal";
+import { buildPlatformSsp, platformCatalogHref } from "@/lib/platform-oscal";
 import { platformProgramId } from "@/lib/platform-ids";
+import { libraryEntries } from "@/lib/assurance-library";
 
 import { evidenceById } from "@/lib/evidence-catalog";
 import { authorizedBuild } from "@/lib/baselines";
@@ -88,6 +89,7 @@ export type JsonValue = string | number | boolean | null | JsonValue[] | JsonObj
 export type JsonObject = { [key: string]: JsonValue };
 
 export type OscalModel =
+  | "component-definition"
   | "system-security-plan"
   | "assessment-plan"
   | "assessment-results"
@@ -738,9 +740,10 @@ function inventoryItems(programId: string): JsonObject[] {
           eq("environment", asset.environment),
           eq("last-scan", asset.lastScan),
           eq("ccis-covered", String(asset.ccisCovered)),
-          eq("scanner-declared-cat-i", String(asset.openCatI)),
-          eq("scanner-declared-cat-ii", String(asset.openCatII)),
-          eq("scanner-declared-cat-iii", String(asset.openCatIII)),
+          eq("scanner-declared-critical", String(asset.openCritical)),
+          eq("scanner-declared-high", String(asset.openHigh)),
+          eq("scanner-declared-moderate", String(asset.openModerate)),
+          eq("scanner-declared-low", String(asset.openLow)),
         ],
         "responsible-parties": [
           { "role-id": "asset-owner", "party-uuids": [partyUuid(asset.owner)] },
@@ -2811,6 +2814,7 @@ export function oscalJson(doc: OscalDocument): string {
 
 /** The four documents this module can produce, in package order. */
 export const oscalModels: OscalModel[] = [
+  "component-definition",
   "system-security-plan",
   "assessment-plan",
   "assessment-results",
@@ -2818,6 +2822,7 @@ export const oscalModels: OscalModel[] = [
 ];
 
 export const oscalModelLabels: Record<OscalModel, string> = {
+  "component-definition": "Component Definition",
   "system-security-plan": "System Security Plan",
   "assessment-plan": "Assessment Plan",
   "assessment-results": "Assessment Results",
@@ -2827,9 +2832,119 @@ export const oscalModelLabels: Record<OscalModel, string> = {
 /** Every model for a program, in package order. */
 export function oscalPackage(programId: string, rows: SctmRow[]): OscalDocument[] {
   return [
+    oscalComponentDefinition(),
     oscalSsp(programId, rows),
     oscalAssessmentPlan(programId),
     oscalAssessmentResults(programId, rows),
     oscalPoam(programId),
   ];
+}
+
+/* ── Component definition ────────────────────────────────────────────────── */
+
+/**
+ * The library as an OSCAL component-definition.
+ *
+ * This is the interchange direction `docs/guides/inheritance-model.md` names for
+ * reusable material, and the model that makes the component library a standard
+ * artifact rather than a local shape: an entry is a `component`, a published
+ * version's controls are `control-implementations`, and the consumer obligation
+ * that an inheriting program still owes is carried on the implemented
+ * requirement rather than lost in the narrative.
+ *
+ * Both library kinds serialize here. OSCAL's component `type` vocabulary already
+ * covers `policy` alongside `software` and `hardware`, which is the reason the
+ * catalogue consolidation could fold the old "Overlay" entries in as components
+ * instead of inventing a parallel construct for them: a corporate audit policy
+ * that satisfies AU-1 is a component that implements a control, and OSCAL says
+ * so directly.
+ *
+ * Only published versions are emitted. A draft is not eligible for inheritance,
+ * so exporting one would advertise material no program is allowed to adopt.
+ */
+export function oscalComponentDefinition(): OscalDocument {
+  const entries = libraryEntries();
+  const uuid = stableUuid("component-definition|library");
+
+  const components = entries
+    .map((entry) => {
+      const published = entry.versions.filter((version) => version.publishedOn);
+      if (published.length === 0) return null;
+
+      const implementations = published.map((version) => ({
+        uuid: stableUuid(`control-implementation|${entry.id}|${version.id}`),
+        source: platformCatalogHref,
+        description:
+          `${entry.name} ${version.version}, published ${version.publishedOn}.` +
+          (version.conditions.length ? ` Applies under: ${version.conditions.join("; ")}.` : ""),
+        props: [
+          prop("version", version.version, equinoxNs),
+          prop("published", version.publishedOn ?? "Unrecorded", equinoxNs),
+        ],
+        "implemented-requirements": version.controls
+          .filter((control) => control.applicability === "Applicable")
+          .map((control) => ({
+            uuid: stableUuid(`implemented-requirement|${entry.id}|${version.id}|${control.id}`),
+            "control-id": oscalControlId(control.id),
+            description: control.implementation || "No implementation narrative recorded.",
+            props: [
+              prop("assessment", control.assessment, equinoxNs),
+              // What the consuming program still owes. An inheritance claim that
+              // omits it reads as full coverage, which is the one thing a
+              // shared-responsibility model must never imply by silence.
+              ...(control.consumerResponsibility
+                ? [prop("consumer-responsibility", control.consumerResponsibility, equinoxNs)]
+                : []),
+              ...(control.assessedOn ? [prop("assessed-on", control.assessedOn, equinoxNs)] : []),
+            ],
+          })),
+      }));
+
+      return {
+        uuid: stableUuid(`component|library|${entry.id}`),
+        // OSCAL's own vocabulary: a Policy entry is a `policy` component, a
+        // Product is `service` unless its category names something narrower.
+        type: entry.kind === "Policy" ? "policy" : componentTypeForCategory(entry.category),
+        title: entry.name,
+        description: `${entry.category} · ${entry.owner}`,
+        status: { state: "operational" },
+        props: [
+          prop("library-key", entry.key, equinoxNs),
+          prop("category", entry.category, equinoxNs),
+          prop("owner", entry.owner, equinoxNs),
+        ],
+        "control-implementations": implementations,
+      } as JsonObject;
+    })
+    .filter((component): component is JsonObject => component !== null);
+
+  return {
+    model: "component-definition",
+    uuid,
+    generated: oscalNow,
+    json: {
+      "component-definition": {
+        uuid,
+        metadata: {
+          title: "Equinox reusable implementation library",
+          published: oscalNow,
+          "last-modified": oscalNow,
+          version: "2026.08",
+          "oscal-version": oscalVersion,
+          props: [prop("marking", "CUI//SP-PRIV")],
+        },
+        ...listOf("components", components),
+      },
+    },
+  };
+}
+
+/** The nearest OSCAL component type for a library category. */
+function componentTypeForCategory(category: string): string {
+  const value = category.toLowerCase();
+  if (value.includes("hardware") || value.includes("facility")) return "hardware";
+  if (value.includes("software") || value.includes("firmware")) return "software";
+  if (value.includes("policy") || value.includes("supplement")) return "policy";
+  if (value.includes("process") || value.includes("manufacturing")) return "process";
+  return "service";
 }

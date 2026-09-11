@@ -7,6 +7,7 @@
  */
 
 import type { FindingLifecycle, FindingSeverity } from "@/lib/spine";
+import { severityRank } from "@/lib/spine";
 import type { PlatformSourceRecord } from "@/lib/platform-ids";
 
 export type AssetKind = "Host" | "Container image" | "Network device" | "Application";
@@ -31,9 +32,10 @@ export type Asset = {
    * delta between the two columns is the reconciliation the package has to
    * explain.
    */
-  openCatI: number;
-  openCatII: number;
-  openCatIII: number;
+  openCritical: number;
+  openHigh: number;
+  openModerate: number;
+  openLow: number;
   /** CN- anchor — the composition node this asset IS. */
   node: string;
   /** False for an inventory import that supplied no scanner observations. */
@@ -124,9 +126,10 @@ export const assets: Asset[] = [
     owner: "Platform ops",
     lastScan: "Aug 27, 04:10",
     ccisCovered: 214,
-    openCatI: 1,
-    openCatII: 6,
-    openCatIII: 11,
+    openCritical: 0,
+    openHigh: 1,
+    openModerate: 6,
+    openLow: 11,
     node: "CN-0110",
   },
   {
@@ -139,9 +142,10 @@ export const assets: Asset[] = [
     owner: "Platform ops",
     lastScan: "Aug 27, 04:10",
     ccisCovered: 214,
-    openCatI: 0,
-    openCatII: 4,
-    openCatIII: 9,
+    openCritical: 0,
+    openHigh: 0,
+    openModerate: 4,
+    openLow: 9,
     node: "CN-0120",
   },
   {
@@ -154,9 +158,10 @@ export const assets: Asset[] = [
     owner: "Mission software",
     lastScan: "Aug 26, 22:48",
     ccisCovered: 96,
-    openCatI: 0,
-    openCatII: 3,
-    openCatIII: 5,
+    openCritical: 0,
+    openHigh: 0,
+    openModerate: 3,
+    openLow: 5,
     node: "CN-0210",
   },
   {
@@ -169,9 +174,10 @@ export const assets: Asset[] = [
     owner: "Network engineering",
     lastScan: "Aug 24, 09:02",
     ccisCovered: 78,
-    openCatI: 1,
-    openCatII: 2,
-    openCatIII: 3,
+    openCritical: 0,
+    openHigh: 1,
+    openModerate: 2,
+    openLow: 3,
     node: "CN-0310",
   },
   {
@@ -184,9 +190,10 @@ export const assets: Asset[] = [
     owner: "Identity platform",
     lastScan: "Aug 27, 01:30",
     ccisCovered: 131,
-    openCatI: 0,
-    openCatII: 2,
-    openCatIII: 4,
+    openCritical: 0,
+    openHigh: 0,
+    openModerate: 2,
+    openLow: 4,
     node: "CN-0220",
   },
   {
@@ -199,9 +206,10 @@ export const assets: Asset[] = [
     owner: "Data platform",
     lastScan: "Aug 25, 03:44",
     ccisCovered: 102,
-    openCatI: 0,
-    openCatII: 5,
-    openCatIII: 7,
+    openCritical: 0,
+    openHigh: 0,
+    openModerate: 5,
+    openLow: 7,
     node: "CN-0130",
   },
 ];
@@ -219,8 +227,8 @@ export const findings: Finding[] = [
     rule: "V-257984",
     source: "STIG checklist",
     sourceArtifact: "EVD-8841",
-    rawSeverity: "CAT I",
-    mitigatedSeverity: "CAT II",
+    rawSeverity: "High",
+    mitigatedSeverity: "Moderate",
     mitigation: "Bastion-only reachability; no direct SSH from user VLANs.",
     lifecycle: "Triaged",
     firstSeen: "Aug 12",
@@ -254,8 +262,8 @@ export const findings: Finding[] = [
     rule: "V-215807",
     source: "STIG checklist",
     sourceArtifact: "EVD-8846",
-    rawSeverity: "CAT I",
-    mitigatedSeverity: "CAT I",
+    rawSeverity: "High",
+    mitigatedSeverity: "High",
     lifecycle: "Open",
     firstSeen: "Aug 24",
     lastSeen: "Aug 24",
@@ -286,8 +294,8 @@ export const findings: Finding[] = [
     node: "CN-0132",
     source: "ACAS scan",
     sourceArtifact: "EVD-8852",
-    rawSeverity: "CAT II",
-    mitigatedSeverity: "CAT II",
+    rawSeverity: "Moderate",
+    mitigatedSeverity: "Moderate",
     lifecycle: "Remediating",
     firstSeen: "Aug 06",
     lastSeen: "Aug 25",
@@ -319,8 +327,8 @@ export const findings: Finding[] = [
     node: "CN-0212",
     source: "Code scan",
     sourceArtifact: "EVD-8858",
-    rawSeverity: "CAT II",
-    mitigatedSeverity: "CAT III",
+    rawSeverity: "Moderate",
+    mitigatedSeverity: "Low",
     mitigation: "Vulnerable code path not reachable; TLS terminated at the mesh sidecar.",
     lifecycle: "Retest pending",
     firstSeen: "Aug 19",
@@ -351,8 +359,8 @@ export const findings: Finding[] = [
     node: "CN-0221",
     source: "Manual procedure",
     sourceArtifact: "EVD-8861",
-    rawSeverity: "CAT II",
-    mitigatedSeverity: "CAT II",
+    rawSeverity: "Moderate",
+    mitigatedSeverity: "Moderate",
     lifecycle: "Open",
     firstSeen: "Aug 21",
     lastSeen: "Aug 27",
@@ -383,8 +391,8 @@ export const findings: Finding[] = [
     rule: "V-257258",
     source: "STIG checklist",
     sourceArtifact: "EVD-8841",
-    rawSeverity: "CAT II",
-    mitigatedSeverity: "CAT III",
+    rawSeverity: "Moderate",
+    mitigatedSeverity: "Low",
     mitigation: "Physical access to the console is limited to a controlled facility.",
     lifecycle: "Risk accepted",
     firstSeen: "Jul 30",
@@ -415,8 +423,8 @@ export const findings: Finding[] = [
     node: "CN-0215",
     source: "Test event",
     sourceArtifact: "EVD-8866",
-    rawSeverity: "CAT II",
-    mitigatedSeverity: "CAT II",
+    rawSeverity: "Moderate",
+    mitigatedSeverity: "Moderate",
     lifecycle: "Triaged",
     firstSeen: "Aug 22",
     lastSeen: "Aug 22",
@@ -447,8 +455,8 @@ export const findings: Finding[] = [
     node: "CN-0213",
     source: "Code scan",
     sourceArtifact: "EVD-8871",
-    rawSeverity: "CAT III",
-    mitigatedSeverity: "CAT III",
+    rawSeverity: "Low",
+    mitigatedSeverity: "Low",
     lifecycle: "Open",
     firstSeen: "Aug 18",
     lastSeen: "Aug 26",
@@ -477,8 +485,8 @@ export const findings: Finding[] = [
     node: "CN-0114",
     source: "ACAS scan",
     sourceArtifact: "EVD-8852",
-    rawSeverity: "CAT I",
-    mitigatedSeverity: "CAT II",
+    rawSeverity: "High",
+    mitigatedSeverity: "Moderate",
     lifecycle: "False positive",
     firstSeen: "Aug 25",
     lastSeen: "Aug 25",
@@ -507,8 +515,8 @@ export const findings: Finding[] = [
     node: "CN-0132",
     source: "ACAS scan",
     sourceArtifact: "EVD-8852",
-    rawSeverity: "CAT III",
-    mitigatedSeverity: "CAT III",
+    rawSeverity: "Low",
+    mitigatedSeverity: "Low",
     lifecycle: "Closed",
     firstSeen: "Jul 14",
     lastSeen: "Aug 20",
@@ -579,8 +587,6 @@ export function findingsByNode(nodeId: string): Finding[] {
   return findings.filter((f) => f.node === nodeId || f.nodes?.includes(nodeId));
 }
 
-const severityRank: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1, "CAT III": 2 };
-
 export function bySeverity(a: Finding, b: Finding) {
-  return severityRank[a.mitigatedSeverity] - severityRank[b.mitigatedSeverity];
+  return severityRank(a.mitigatedSeverity) - severityRank(b.mitigatedSeverity);
 }

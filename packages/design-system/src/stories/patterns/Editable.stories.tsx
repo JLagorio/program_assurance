@@ -672,3 +672,66 @@ export const SerializedSave: Story = {
     await expect(canvas.getByLabelText("Committed owner")).toHaveTextContent("Delta");
   },
 };
+
+/** Full paragraphs remain readable and edit in the same cell, with normal newline behavior. */
+export const Multiline: Story = {
+  render: () => {
+    const [value, setValue] = useState(
+      "Reject unsigned images at every boot stage.\nPreserve the audit trail.",
+    );
+    return (
+      <div style={{ width: 320, maxWidth: "100%" }}>
+        <Field>
+          <FieldLabel>Success criteria</FieldLabel>
+          <Editable.Text
+            multiline
+            label="Success criteria"
+            value={value}
+            onChange={setValue}
+            save={async () => {}}
+            validate={(next) => (next.trim() ? null : "Describe the success criteria.")}
+          />
+        </Field>
+        <Button size="small">Next field</Button>
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const cell = () => canvas.getByRole("button", { name: /Success criteria:/ });
+    await userEvent.click(cell());
+    let input = canvas.getByRole("textbox", { name: "Success criteria" });
+    await userEvent.clear(input);
+    await userEvent.type(input, "First check{Enter}Second check");
+    await expect(input).toHaveValue("First check\nSecond check");
+    await interact(() =>
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+    );
+    await expect(cell()).toHaveTextContent("Reject unsigned images");
+    await expect(cell()).toHaveFocus();
+    await userEvent.click(cell());
+    input = canvas.getByRole("textbox", { name: "Success criteria" });
+    await userEvent.clear(input);
+    await interact(() =>
+      input.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, bubbles: true }),
+      ),
+    );
+    await expect(input).toHaveAttribute("aria-invalid", "true");
+    await userEvent.type(input, "First check{Enter}Second check");
+    await interact(() =>
+      input.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, bubbles: true }),
+      ),
+    );
+    await waitFor(() => expect(cell()).toHaveFocus());
+    await expect(cell()).toHaveTextContent("First check Second check");
+    await waitFor(() => expect(cell()).not.toHaveAttribute("aria-disabled", "true"));
+    await userEvent.click(cell());
+    input = canvas.getByRole("textbox", { name: "Success criteria" });
+    await userEvent.clear(input);
+    await userEvent.type(input, "Updated by leaving the cell");
+    await interact(() => canvas.getByRole("button", { name: "Next field" }).focus());
+    await expect(cell()).toHaveTextContent("Updated by leaving the cell");
+  },
+};

@@ -68,7 +68,7 @@ const findingDraft = {
   detail: "The console does not lock after the required idle interval.",
   control: "AC-11",
   owner: "Assessor",
-  severity: "CAT II" as const,
+  severity: "Moderate" as const,
   requirements: ["REQ-1"],
 };
 const poamDraft = {

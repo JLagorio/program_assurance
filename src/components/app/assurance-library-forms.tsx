@@ -177,24 +177,26 @@ export function LibraryMappings({
   );
 }
 export function LibraryEntryDialog({
-  kind,
+  kind: fixedKind,
   entry,
   onClose,
   onCreated,
 }: {
-  kind: LibraryKind;
+  /** Fixed when editing an existing entry; chosen in the dialog when creating. */
+  kind?: LibraryKind;
   entry?: LibraryEntry;
   onClose: () => void;
   onCreated: (entry: LibraryEntry) => void;
 }) {
+  const [kind, setKind] = useState<LibraryKind>(fixedKind ?? entry?.kind ?? "Product");
   const [name, setName] = useState(entry?.name ?? "");
   const [category, setCategory] = useState(
-    entry?.category ?? (kind === "Component" ? "System" : "Organizational profile"),
+    entry?.category ?? (kind === "Product" ? "System" : "Policy"),
   );
   const [owner, setOwner] = useState(entry?.owner ?? "");
   const [version, setVersion] = useState("1.0");
   const categories =
-    kind === "Component"
+    kind === "Product"
       ? [
           "System",
           "Subsystem",
@@ -208,7 +210,7 @@ export function LibraryEntryDialog({
           "Facility",
           "Manufacturing",
         ]
-      : ["Organizational profile", "Regional overlay", "Program overlay"];
+      : ["Policy", "Regional supplement", "Program policy"];
   return (
     <LibraryDialog
       title={entry ? "Edit details" : `New ${kind.toLowerCase()}`}
@@ -230,6 +232,18 @@ export function LibraryEntryDialog({
       <LibraryField label="Name">
         <Input aria-label="Name" value={name} onChange={(e) => setName(e.target.value)} />
       </LibraryField>
+      {!entry && !fixedKind && (
+        <LibrarySelect
+          label="Type"
+          value={kind}
+          options={options(["Product", "Policy"])}
+          onChange={(value) => {
+            const next = value as LibraryKind;
+            setKind(next);
+            setCategory(next === "Product" ? "System" : "Policy");
+          }}
+        />
+      )}
       <Grid templateColumns={{ base: "1fr", sm: "repeat(2, minmax(0, 1fr))" }} gap="space.200">
         <LibrarySelect
           label="Category"

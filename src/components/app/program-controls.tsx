@@ -1,56 +1,35 @@
 import { Funnel } from "@/components/app/control-board";
-import {
-  ControlActions,
-  Determination,
-  EvidenceBlock,
-  Narrative,
-} from "@/components/app/control-work";
-import { NewRequirementModal } from "@/components/app/requirement-forms";
-import { ControlRequirementTable } from "@/components/app/requirements";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { buildBoard, stageKeys, stageLabels } from "@/lib/control-board";
-import { controlEvidence } from "@/lib/control-evidence";
 import { controlStatusTone, type ControlStatus } from "@/lib/control-matrix";
+import { assessmentTone, implementationTone, useWorkVersion } from "@/lib/control-work";
 import {
-  assessmentTone,
-  implementationTone,
-  useWorkVersion,
-  workFor,
-  type WorkContext,
-} from "@/lib/control-work";
-import {
-  controlAllocationCount,
-  controlRequirementsInElement,
   filterControlCoverage,
   programControlImplementations,
   programControlRows,
   type ProgramControlRow,
 } from "@/lib/program-controls";
-import { closestProgramScope, programElementIds } from "@/lib/program-scope";
+import { closestProgramScope } from "@/lib/program-scope";
 import { useRequirementsVersion } from "@/lib/requirements";
-import { scopeById, useScopesVersion } from "@/lib/scopes";
+import { useScopesVersion } from "@/lib/scopes";
 import { useControlText, useSctm } from "@/lib/sctm";
 import {
   Badge,
   Button,
   buttonVariants,
   DataTable,
-  Fact,
+  defineColumns,
+  IconButton,
+  Id,
   Inline,
-  PreviewSheet,
-  Section,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Stack,
   Table,
   TextLink,
-  defineColumns,
+  Toolbar,
   useDataTable,
 } from "@ledger/design-system";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { Columns3, ArrowUpRight, Eye } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type ControlTableRow = ProgramControlRow & { progressStage: string; coverage: ControlStatus };
@@ -74,8 +53,12 @@ export function ProgramControls({
   coverageFamily,
   coverageStatus,
   onClearCoverage,
+  previewId,
+  onPreview,
 }: {
   programId: string;
+  previewId?: string | undefined;
+  onPreview: (controlId: string, scopeId: string) => void;
   elementId?: string | undefined;
   coverageFamily?: string | undefined;
   coverageStatus?: ControlStatus | undefined;
@@ -87,7 +70,8 @@ export function ProgramControls({
   const requirementsVersion = useRequirementsVersion();
   const text = useControlText();
   const sctm = useSctm(programId, text);
-  const [selected, setSelected] = useState<{ controlId: string; scopeId: string } | null>(null);
+  const previewRef = useRef({ previewId, onPreview });
+  previewRef.current = { previewId, onPreview };
   const [groupBy, setGroupBy] = useState<"" | (typeof controlGroupOptions)[number]["value"]>("");
   const rows = useMemo(
     () =>
@@ -106,9 +90,6 @@ export function ProgramControls({
       coverageStatus,
     ],
   );
-  const selectedControl = rows.find((row) => row.id === selected?.controlId);
-  const selectedScope =
-    selected && selectedControl?.scopeIds.includes(selected.scopeId) ? selected.scopeId : undefined;
   const progress = useMemo(() => {
     const controlIds = new Set(rows.map((row) => row.id));
     return buildBoard(programId, {
@@ -131,8 +112,44 @@ export function ProgramControls({
   const columns = useMemo(
     () =>
       defineColumns<ControlTableRow>((column) => [
-        column.id("id", { header: "Control", width: 100, hideable: false }),
-        column.text("title", { header: "Title", minWidth: 250, hideable: false }),
+        column.id("id", {
+          header: "Control",
+          width: 135,
+          hideable: false,
+          preview: (row) => previewRef.current.onPreview(row.id, row.scopeId),
+          active: (row) => row.id === previewRef.current.previewId,
+          cell: (row) => (
+            <TextLink
+              render={
+                <Link
+                  to="/programs/$programId/controls/$controlId"
+                  params={{ programId, controlId: row.id }}
+                  search={{ scope: row.scopeId, element: elementId }}
+                />
+              }
+            >
+              <Id>{row.id}</Id>
+            </TextLink>
+          ),
+        }),
+        column.text("title", {
+          header: "Title",
+          minWidth: 250,
+          hideable: false,
+          cell: (row) => (
+            <TextLink
+              render={
+                <Link
+                  to="/programs/$programId/controls/$controlId"
+                  params={{ programId, controlId: row.id }}
+                  search={{ scope: row.scopeId, element: elementId }}
+                />
+              }
+            >
+              {row.title}
+            </TextLink>
+          ),
+        }),
         column.text("family", { header: "Family", width: 100 }),
         column.status("coverage", {
           header: "Coverage",
@@ -159,7 +176,7 @@ export function ProgramControls({
         column.text("owner", { header: "Owner", width: 185 }),
         column.text("progressStage", { header: "Stuck at", hideable: false }),
       ]),
-    [],
+    [programId, elementId],
   );
   const table = useDataTable({
     data: tableRows,
@@ -175,7 +192,7 @@ export function ProgramControls({
         programId={programId}
         controlId={row.id}
         elementId={elementId}
-        onOpen={(scopeId) => setSelected({ controlId: row.id, scopeId })}
+        onOpen={(scopeId) => onPreview(row.id, scopeId)}
       />
     ),
     state: { grouping: groupBy ? [groupBy] : [] },
@@ -228,33 +245,44 @@ export function ProgramControls({
                 </Button>
               </Inline>
             ) : null}
-            <Inline space="space.100" alignBlock="center" shouldWrap>
-              <DataTable.Search table={table} placeholder="Find controls" />
-              <Inline className="ml-auto" space="space.100" alignBlock="center" shouldWrap>
-                <DataTable.GroupBy
-                  options={controlGroupOptions}
-                  value={groupBy}
-                  onValueChange={setGroupBy}
-                />
-                <DataTable.Filters
-                  table={table}
-                  columns={["implementation", "assessment", "coverage", "owner", "progressStage"]}
-                />
-                <DataTable.MetricsTrigger />
-                <DataTable.Columns table={table} />
-                <DataTable.Settings table={table} />
-                {scope ? (
-                  <Link
-                    to="/programs/$programId/components/$componentId"
-                    params={{ programId, componentId: scope.element }}
-                    search={{ tab: "Control set" }}
-                    className={buttonVariants({ size: "small" })}
-                  >
-                    Manage control set
-                  </Link>
-                ) : null}
-              </Inline>
-            </Inline>
+            <Toolbar
+              search={String(table.state.globalFilter ?? "")}
+              onSearch={(value) => table.setGlobalFilter(value)}
+              placeholder="Find controls"
+              filters={
+                <>
+                  <DataTable.Filters
+                    table={table}
+                    columns={["implementation", "assessment", "coverage", "owner", "progressStage"]}
+                  />
+                </>
+              }
+            >
+              <DataTable.GroupBy
+                options={controlGroupOptions}
+                value={groupBy}
+                onValueChange={setGroupBy}
+              />
+
+              <DataTable.MetricsTrigger />
+              <DataTable.Columns table={table}>
+                <Button size="small" iconBefore={<Columns3 />} aria-label="Columns" title="Columns">
+                  <span className="sr-only sm:not-sr-only">Columns</span>
+                </Button>
+              </DataTable.Columns>
+              <DataTable.Settings table={table} />
+              {scope ? (
+                <Link
+                  to="/programs/$programId/components/$componentId"
+                  params={{ programId, componentId: scope.element }}
+                  search={{ tab: "Control set" }}
+                  className={buttonVariants({ size: "small" })}
+                >
+                  <ArrowUpRight aria-hidden className="size-icon-small" />
+                  <span className="sr-only sm:not-sr-only">Manage control set</span>
+                </Link>
+              ) : null}
+            </Toolbar>
             <DataTable.MetricsContent
               aria-label="Control metrics"
               className="border-0 bg-transparent"
@@ -276,15 +304,6 @@ export function ProgramControls({
           </Stack>
         }
       />
-      {selectedControl && selectedScope ? (
-        <ControlPreview
-          key={`${selectedControl.id}|${selectedScope}|${elementId ?? "program"}`}
-          row={{ ...selectedControl, scopeId: selectedScope, scopeIds: [selectedScope] }}
-          programId={programId}
-          {...(elementId ? { elementId } : {})}
-          onClose={() => setSelected(null)}
-        />
-      ) : null}
     </DataTable.Metrics>
   );
 }
@@ -317,17 +336,26 @@ function ImplementationRows({
         {rows.map((row) => (
           <Table.Row key={row.scopeId}>
             <Table.Cell className="whitespace-normal max-w-none">
-              <TextLink
-                render={
-                  <button
-                    type="button"
-                    onClick={() => onOpen(row.scopeId)}
-                    aria-label={`Open ${controlId} implementation for ${row.name}`}
-                  />
-                }
-              >
-                {row.name}
-              </TextLink>
+              <Inline space="space.100" alignBlock="center">
+                <TextLink
+                  render={
+                    <Link
+                      to="/programs/$programId/controls/$controlId"
+                      params={{ programId, controlId }}
+                      search={{ scope: row.scopeId, element: elementId }}
+                    />
+                  }
+                >
+                  {row.name}
+                </TextLink>
+                <IconButton
+                  size="small"
+                  variant="subtle"
+                  icon={<Eye />}
+                  label={`Preview ${controlId} implementation for ${row.name}`}
+                  onClick={() => onOpen(row.scopeId)}
+                />
+              </Inline>
             </Table.Cell>
             <Table.Cell>
               <Badge
@@ -353,196 +381,5 @@ function ImplementationRows({
         ))}
       </tbody>
     </Table>
-  );
-}
-
-function ControlPreview({
-  row,
-  programId,
-  elementId,
-  onClose,
-}: {
-  row: ProgramControlRow;
-  programId: string;
-  elementId?: string;
-  onClose: () => void;
-}) {
-  const navigate = useNavigate();
-  const [scopeId, setScopeId] = useState(row.scopeId);
-  const [deriving, setDeriving] = useState(false);
-  const [, refresh] = useState(0);
-  const scope = scopeById.get(scopeId);
-  const inheritedScope =
-    !!elementId && !!scope && !programElementIds(programId, elementId).has(scope.element);
-  const selectedElement = inheritedScope ? elementId : scope?.element;
-  const applies = !!scope && row.scopeIds.includes(scope.id);
-  const work =
-    scope && applies && !inheritedScope ? workFor(programId, scope.id, row.id) : undefined;
-  const requirements = controlRequirementsInElement(programId, row.id, selectedElement);
-  const count = (id: string) => controlAllocationCount(programId, id, selectedElement);
-  const contributors = requirements.reduce(
-    (total, requirement) => total + count(requirement.id),
-    0,
-  );
-  const context: WorkContext = {
-    contributors,
-    contributorDetail: contributors
-      ? `${requirements.length} requirements, ${contributors} allocations`
-      : "No allocated requirement",
-  };
-  const changed = () => refresh((version) => version + 1);
-  const scopeIdItems = row.scopeIds.map((id) => ({
-    value: id,
-    label: scopeById.get(id)?.name ?? id,
-  }));
-  return (
-    <>
-      <PreviewSheet
-        open
-        onClose={onClose}
-        id={row.id}
-        title={row.title}
-        subtitle={scope?.name ?? row.appliesTo}
-        openTo={
-          <Link
-            to="/programs/$programId/controls/$controlId"
-            params={{ programId, controlId: row.id }}
-            search={{ scope: scopeId, element: elementId }}
-          >
-            Open control
-          </Link>
-        }
-        status={
-          <Badge tone={assessmentTone[work?.assessment ?? row.assessment]}>
-            {work?.assessment ?? row.assessment}
-          </Badge>
-        }
-        facts={
-          <>
-            <Fact label="Applies to">
-              {row.scopeIds.length > 1 ? (
-                <Select<string>
-                  items={scopeIdItems}
-                  value={scopeId}
-                  onValueChange={(value) => {
-                    if (value === null) return;
-                    return setScopeId(value);
-                  }}
-                >
-                  <SelectTrigger className="w-full" aria-label="Control scope">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {scopeIdItems.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                (scope?.name ?? row.appliesTo)
-              )}
-            </Fact>
-            <Fact label="Implementation">
-              {work
-                ? work.implementationRecorded === false
-                  ? "Unrecorded"
-                  : work.implementation
-                : row.implementation}
-            </Fact>
-            <Fact label="Owner">{work ? (work.owner ?? "Unassigned") : row.owner}</Fact>
-          </>
-        }
-        actions={
-          work ? (
-            <ControlActions
-              work={work}
-              context={context}
-              onChange={changed}
-              extra={
-                <Button size="small" onClick={() => setDeriving(true)}>
-                  Derive requirement
-                </Button>
-              }
-            />
-          ) : (
-            <>
-              <Button size="small" onClick={() => setDeriving(true)}>
-                Derive requirement
-              </Button>
-              {scope && applies ? (
-                <Link
-                  to="/programs/$programId/controls/$controlId"
-                  params={{ programId, controlId: row.id }}
-                  search={{ scope: scope.id, element: elementId }}
-                  className={buttonVariants({ size: "small" })}
-                >
-                  Open inherited implementation
-                </Link>
-              ) : null}
-            </>
-          )
-        }
-      >
-        {work ? (
-          <Stack space="space.200">
-            <Section title="Implementation">
-              <Narrative key={work.id} work={work} elementId={elementId} onChange={changed} />
-            </Section>
-            <Section title="Requirements" count={requirements.length}>
-              <ControlRequirementTable
-                requirements={requirements}
-                programId={programId}
-                controlId={row.id}
-                allocationCount={count}
-                elementId={elementId}
-              />
-            </Section>
-            <Section title="Supporting evidence" count={controlEvidence(work).length}>
-              <EvidenceBlock key={work.id} work={work} elementId={elementId} onChange={changed} />
-            </Section>
-            <Section title="Assessment">
-              <Determination key={work.id} work={work} onChange={changed} />
-            </Section>
-          </Stack>
-        ) : (
-          <Stack space="space.200">
-            <Section title="Implementation">
-              <p className="font-body text-subtle">
-                {applies
-                  ? `No component implementation recorded. This control is inherited from ${scope?.name ?? "the parent scope"}.`
-                  : "This control no longer applies to the selected scope."}
-              </p>
-            </Section>
-            <Section title="Requirements" count={requirements.length}>
-              <ControlRequirementTable
-                requirements={requirements}
-                programId={programId}
-                controlId={row.id}
-                allocationCount={count}
-                elementId={elementId}
-              />
-            </Section>
-          </Stack>
-        )}
-      </PreviewSheet>
-      {deriving ? (
-        <NewRequirementModal
-          key={row.id}
-          open
-          onClose={() => setDeriving(false)}
-          programId={programId}
-          initialControlId={row.id}
-          onCreated={(requirement) => {
-            void navigate({
-              to: "/programs/$programId/requirements/$requirementId",
-              params: { programId, requirementId: requirement.id },
-              search: { element: elementId },
-            });
-          }}
-        />
-      ) : null}
-    </>
   );
 }

@@ -184,6 +184,7 @@ function dedupe(values: string[]): string[] {
 /* ── Generated files ─────────────────────────────────────────────────────── */
 
 const oscalPaths: Record<OscalDocument["model"], string> = {
+  "component-definition": "oscal/component-definition.json",
   "system-security-plan": "oscal/ssp.json",
   "assessment-plan": "oscal/assessment-plan.json",
   "assessment-results": "oscal/assessment-results.json",

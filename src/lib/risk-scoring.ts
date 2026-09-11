@@ -1,7 +1,7 @@
 /**
  * Chunk 14 of the CCI spine — residual risk scoring with mission and threat context.
  *
- * CAT I/II/III is a SEVERITY, not a risk. Severity says how badly the
+ * high/II/III is a SEVERITY, not a risk. Severity says how badly the
  * requirement is missed; it says nothing about whether the weakness can be
  * reached, whether anyone has ever exploited it, what it costs the mission, or
  * whether the evidence that lowered it is still true. This module combines
@@ -90,6 +90,7 @@ import { exposurePathsTo, type ExposurePath } from "@/lib/graph-posture";
 import { nativeResults } from "@/lib/ingestion";
 import { findingsForRisk, registerRisks, riskById, type RegisterRisk } from "@/lib/register";
 import type { FindingSeverity } from "@/lib/spine";
+import { severityRank } from "@/lib/spine";
 import { missionEffects, threatScenarios, type EffectKind } from "@/lib/te-phases";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
@@ -100,7 +101,7 @@ export type FactorKey =
 export type ScoreFactor = {
   key: FactorKey;
   label: string;
-  /** The raw input, as a readable string — "CAT I", "KEV-listed", "2 zone crossings". */
+  /** The raw input, as a readable string — "High", "KEV-listed", "2 zone crossings". */
   input: string;
   /** 0-1 normalised. */
   value: number;
@@ -343,10 +344,22 @@ function kevAboveComponent(node: CompositionNode): { row: VexStatement; node: st
 
 /* ── Factor 1 — severity ─────────────────────────────────────────────────── */
 
+/**
+ * Severity as a 0-1 weight.
+ *
+ * The scale carried three values when it was DISA's high/II/III. It has four
+ * now, because the dataset the app boots from publishes `critical` and the old
+ * mapping collapsed it into the top category on the way in. Critical keeps that
+ * top weight and High steps just below it, so the addition separates the two
+ * without re-grading every finding that was already at the top: a finding that
+ * scored 1.00 as a high and is really a High now scores 0.85, and only a
+ * genuinely critical one holds 1.00.
+ */
 const severityValue: Record<FindingSeverity, number> = {
-  "CAT I": 1,
-  "CAT II": 0.6,
-  "CAT III": 0.3,
+  Critical: 1,
+  High: 0.85,
+  Moderate: 0.6,
+  Low: 0.3,
 };
 
 /**
@@ -375,8 +388,6 @@ function severityFactor(f: Finding, creditShownHere = true): BuiltFactor {
 
 /* ── Factor 2 — mitigation credit ────────────────────────────────────────── */
 
-const severityRank: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1, "CAT III": 2 };
-
 /**
  * The credit is the distance the adjudicated grade travelled below the raw
  * grade, plus a smaller allowance for a written compensating control. It is
@@ -384,7 +395,7 @@ const severityRank: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1,
  * take points off.
  */
 function mitigationFactor(f: Finding): BuiltFactor {
-  const steps = severityRank[f.mitigatedSeverity] - severityRank[f.rawSeverity];
+  const steps = severityRank(f.mitigatedSeverity) - severityRank(f.rawSeverity);
   const stepCredit = Math.max(0, steps) * 0.4;
   const proseCredit = f.mitigation ? 0.2 : 0;
   const value = stepCredit + proseCredit;

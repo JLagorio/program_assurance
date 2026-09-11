@@ -13,6 +13,7 @@ import {
   Section,
   Shell,
   Stack,
+  Table,
   Tabs,
   TabsContent,
   TabsList,
@@ -91,13 +92,29 @@ function Queue() {
       </Field>
       <Button onClick={() => setSelected(true)}>Inspect FND-104</Button>
       {selected && (
-        <Shell.Panel title="FND-104 · Missing evidence" onClose={() => setSelected(false)}>
+        <Shell.Panel title="FND-104" onClose={() => setSelected(false)}>
           <Stack space="space.200">
             <KeyValue label="Owner">Alex Morgan</KeyValue>
             <Field>
               <FieldLabel htmlFor="finding-note">Working note</FieldLabel>
               <Input id="finding-note" value={draft} onValueChange={setDraft} />
             </Field>
+            <Table label="Linked records" style={{ minWidth: 800 }}>
+              <thead>
+                <Table.Row>
+                  <Table.Header>Record</Table.Header>
+                  <Table.Header>Owner</Table.Header>
+                  <Table.Header>Assessment</Table.Header>
+                </Table.Row>
+              </thead>
+              <tbody>
+                <Table.Row>
+                  <Table.Cell>FND-104</Table.Cell>
+                  <Table.Cell>Alex Morgan</Table.Cell>
+                  <Table.Cell>Needs review</Table.Cell>
+                </Table.Row>
+              </tbody>
+            </Table>
             <Button>Open full record</Button>
           </Stack>
         </Shell.Panel>
@@ -158,8 +175,9 @@ export const QueueWithPanel: Story = {
     await userEvent.type(filter, "access");
     const opener = canvas.getByRole("button", { name: "Inspect FND-104" });
     await userEvent.click(opener);
-    const panel = await canvas.findByRole("complementary", { name: "FND-104 · Missing evidence" });
+    const panel = await canvas.findByRole("complementary", { name: "FND-104" });
     await expect(canvasElement.querySelector("main")).not.toContainElement(panel);
+    await waitFor(() => expect(panel.scrollWidth).toBeLessThanOrEqual(panel.clientWidth + 1));
     const wide = window.matchMedia("(min-width: 80rem)").matches;
     if (!wide) {
       await expect(canvasElement.querySelector("main")).not.toBeVisible();
@@ -192,9 +210,7 @@ export const QueueWithPanel: Story = {
     await waitFor(() => expect(opener).toHaveFocus());
     await userEvent.click(opener);
     await userEvent.click(canvas.getByRole("button", { name: "Record route" }));
-    await expect(
-      canvas.queryByRole("complementary", { name: "FND-104 · Missing evidence" }),
-    ).not.toBeInTheDocument();
+    await expect(canvas.queryByRole("complementary", { name: "FND-104" })).not.toBeInTheDocument();
     await expect(
       canvas.getByRole("heading", { level: 1, name: "Review privileged access" }),
     ).toBeVisible();

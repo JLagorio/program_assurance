@@ -65,7 +65,7 @@ import {
 } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
 import { Link } from "@tanstack/react-router";
-import { MoreHorizontal } from "lucide-react";
+import { ChevronDown, MoreHorizontal } from "lucide-react";
 import { useCallback, useId, useState, type Ref, type SetStateAction } from "react";
 
 /** Control editors and actions, composed by the record and its preview. */
@@ -927,11 +927,13 @@ export function ControlActions({
   context,
   onChange,
   extra,
+  menuOnly = false,
 }: {
   work: ControlWork;
   context: WorkContext;
   onChange: () => void;
   extra?: React.ReactNode;
+  menuOnly?: boolean;
 }) {
   const fieldId = useId();
 
@@ -955,7 +957,7 @@ export function ControlActions({
   const primary =
     offers.find((o) => o.allowed && ["implement", "submit", "satisfy"].includes(o.def.key)) ??
     offers.find((o) => o.allowed);
-  const rest = offers.filter((o) => o !== primary);
+  const rest = menuOnly ? offers : offers.filter((o) => o !== primary);
 
   const start = (key: string) => {
     setPending(key);
@@ -978,8 +980,8 @@ export function ControlActions({
 
   return (
     <>
-      {extra}
-      {!work.owner ? (
+      {!menuOnly ? extra : null}
+      {!menuOnly && !work.owner ? (
         <Button
           size="small"
           onClick={() => {
@@ -990,24 +992,41 @@ export function ControlActions({
           Assign to me
         </Button>
       ) : null}
-      {primary ? (
+      {!menuOnly && primary ? (
         <Button size="small" variant="primary" onClick={() => start(primary.def.key)}>
           {primary.def.label}
         </Button>
       ) : null}
-      {rest.length ? (
+      {menuOnly || rest.length ? (
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <IconButton
-                label="More actions"
-                variant="secondary"
-                size="small"
-                icon={<MoreHorizontal />}
-              />
+              menuOnly ? (
+                <Button size="small" iconAfter={<ChevronDown />}>
+                  Actions
+                </Button>
+              ) : (
+                <IconButton
+                  label="More actions"
+                  variant="secondary"
+                  size="small"
+                  icon={<MoreHorizontal />}
+                />
+              )
             }
           />
           <DropdownMenuContent align="end" style={{ width: 260 }}>
+            {menuOnly ? extra : null}
+            {menuOnly && !work.owner ? (
+              <DropdownMenuItem
+                onClick={() => {
+                  assignOwner(work.id, session.name);
+                  onChange();
+                }}
+              >
+                Assign to me
+              </DropdownMenuItem>
+            ) : null}
             {rest.map((o) => (
               <DropdownMenuItem
                 key={o.def.key}

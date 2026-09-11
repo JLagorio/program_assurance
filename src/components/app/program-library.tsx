@@ -41,7 +41,7 @@ import {
 import {
   addLibraryProgramEvidence,
   addLibraryUse,
-  assignLibraryOverlay,
+  assignLibraryPolicy,
   latestLibraryRelease,
   libraryAssignments,
   libraryControlIds,
@@ -69,7 +69,7 @@ import { currentSession, useWorkVersion } from "@/lib/control-work";
 import { useCompositionGraph } from "@/lib/composition";
 
 type Option = { value: string; label: string };
-type WorkspaceTab = "Components" | "Overlays" | "Control coverage";
+type WorkspaceTab = "Components" | "Policies" | "Control coverage";
 
 function Choice({
   label,
@@ -128,7 +128,7 @@ function releaseOptions(entry: LibraryEntry | undefined): Option[] {
 }
 
 function recordHref(entry: LibraryEntry, versionId: string): string {
-  return `/library/${entry.kind === "Overlay" ? "overlays" : "components"}/${entry.key}?version=${encodeURIComponent(versionId)}`;
+  return `/library/components/${entry.key}?version=${encodeURIComponent(versionId)}`;
 }
 
 function assessmentTone(value: string) {
@@ -185,13 +185,13 @@ function AddComponentDialog({
   onCreated: (use: LibraryUse) => void;
 }) {
   const nodes = useCompositionGraph(programId);
-  const entries = libraryEntries("Component").filter((entry) => releaseOptions(entry).length > 0);
+  const entries = libraryEntries("Product").filter((entry) => releaseOptions(entry).length > 0);
   const [entryId, setEntryId] = useState(entries[0]?.id ?? "");
   const entry = libraryEntry(entryId);
   const [versionId, setVersionId] = useState(entry ? (latestLibraryRelease(entry)?.id ?? "") : "");
   const [name, setName] = useState(entry?.name ?? "");
   const [target, setTarget] = useState(nodes.find((node) => node.parent === null)?.id ?? "none");
-  const [role, setRole] = useState<"Component" | "Host">("Component");
+  const [role, setRole] = useState<"Product" | "Host">("Product");
   const [error, setError] = useState("");
   const id = useId();
   const save = () => {
@@ -234,7 +234,7 @@ function AddComponentDialog({
           <Stack space="space.200">
             <Message error={error} />
             <Choice
-              label="Component"
+              label="Product"
               value={entryId}
               options={entries.map((item) => ({ value: item.id, label: item.name }))}
               onChange={(value) => {
@@ -255,7 +255,7 @@ function AddComponentDialog({
                 label="Role"
                 value={role}
                 options={[
-                  { value: "Component", label: "Component" },
+                  { value: "Product", label: "Product" },
                   { value: "Host", label: "Host platform" },
                 ]}
                 onChange={(value) => setRole(value as typeof role)}
@@ -299,8 +299,8 @@ function AddComponentDialog({
   );
 }
 
-function AddOverlayDialog({ programId, onClose }: { programId: string; onClose: () => void }) {
-  const entries = libraryEntries("Overlay").filter((entry) => releaseOptions(entry).length > 0);
+function AddPolicyDialog({ programId, onClose }: { programId: string; onClose: () => void }) {
+  const entries = libraryEntries("Policy").filter((entry) => releaseOptions(entry).length > 0);
   const uses = libraryUses(programId);
   const [entryId, setEntryId] = useState(entries[0]?.id ?? "");
   const entry = libraryEntry(entryId);
@@ -308,17 +308,17 @@ function AddOverlayDialog({ programId, onClose }: { programId: string; onClose: 
   const [targetIds, setTargetIds] = useState<string[]>(["program"]);
   const [error, setError] = useState("");
   const release = libraryRelease(entryId, versionId);
-  const base = release?.baseOverlay ? libraryEntry(release.baseOverlay.entryId) : undefined;
-  const baseRelease = release?.baseOverlay
-    ? libraryRelease(release.baseOverlay.entryId, release.baseOverlay.versionId)
+  const base = release?.basePolicy ? libraryEntry(release.basePolicy.entryId) : undefined;
+  const baseRelease = release?.basePolicy
+    ? libraryRelease(release.basePolicy.entryId, release.basePolicy.versionId)
     : undefined;
   const save = () => {
     try {
-      assignLibraryOverlay({ programId, entryId, versionId, targetIds });
-      toast.add({ title: `${entry?.name ?? "Overlay"} assigned`, type: "success" });
+      assignLibraryPolicy({ programId, entryId, versionId, targetIds });
+      toast.add({ title: `${entry?.name ?? "Policy"} assigned`, type: "success" });
       onClose();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Overlay could not be assigned.");
+      setError(cause instanceof Error ? cause.message : "Policy could not be assigned.");
     }
   };
   const toggle = (targetId: string, checked: boolean) =>
@@ -334,7 +334,7 @@ function AddOverlayDialog({ programId, onClose }: { programId: string; onClose: 
     >
       <DialogContent aria-describedby={undefined} style={{ maxWidth: 620 }}>
         <DialogHeader>
-          <DialogTitle>Assign overlay</DialogTitle>
+          <DialogTitle>Assign policy</DialogTitle>
         </DialogHeader>
         <Box className="min-h-0 overflow-y-auto px-250 py-200">
           <Stack space="space.200">
@@ -344,7 +344,7 @@ function AddOverlayDialog({ programId, onClose }: { programId: string; onClose: 
               gap="space.150"
             >
               <Choice
-                label="Overlay"
+                label="Policy"
                 value={entryId}
                 options={entries.map((item) => ({ value: item.id, label: item.name }))}
                 onChange={(value) => {
@@ -362,7 +362,7 @@ function AddOverlayDialog({ programId, onClose }: { programId: string; onClose: 
             </Grid>
             {base ? (
               <Inline space="space.100">
-                <span className="font-body-small text-subtle">Base overlay</span>
+                <span className="font-body-small text-subtle">Base policy</span>
                 <span className="font-body-small">
                   {base.name} · {baseRelease?.version}
                 </span>
@@ -401,7 +401,7 @@ function AddOverlayDialog({ programId, onClose }: { programId: string; onClose: 
             disabled={!entryId || !versionId || targetIds.length === 0}
             onClick={save}
           >
-            Assign overlay
+            Assign policy
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1117,7 +1117,7 @@ export function ProgramLibrary({ programId }: { programId: string }) {
   const assignments = libraryAssignments(programId);
   const [tab, setTab] = useState<WorkspaceTab>("Components");
   const [addingComponent, setAddingComponent] = useState(false);
-  const [addingOverlay, setAddingOverlay] = useState(false);
+  const [addingPolicy, setAddingPolicy] = useState(false);
   const [selectedId, setSelectedId] = useState(uses[0]?.id ?? "");
   const [error, setError] = useState("");
   const [hostFor, setHostFor] = useState<string | null>(null);
@@ -1146,15 +1146,15 @@ export function ProgramLibrary({ programId }: { programId: string }) {
               Components
               <Count value={uses.length} />
             </TabsTrigger>
-            <TabsTrigger value="Overlays">
-              Overlays
+            <TabsTrigger value="Policies">
+              Policies
               <Count value={assignments.length} />
             </TabsTrigger>
             <TabsTrigger value="Control coverage">Control coverage</TabsTrigger>
           </TabsList>
           <Inline space="space.100" shouldWrap>
-            <Button size="small" variant="secondary" onClick={() => setAddingOverlay(true)}>
-              Assign overlay
+            <Button size="small" variant="secondary" onClick={() => setAddingPolicy(true)}>
+              Assign policy
             </Button>
             <Button
               size="small"
@@ -1265,11 +1265,11 @@ export function ProgramLibrary({ programId }: { programId: string }) {
             </tbody>
           </Table>
         </TabsContent>
-        <TabsContent value="Overlays">
+        <TabsContent value="Policies">
           <Table>
             <thead>
               <tr>
-                <Table.Header>Overlay</Table.Header>
+                <Table.Header>Policy</Table.Header>
                 <Table.Header>Version</Table.Header>
                 <Table.Header>Applies to</Table.Header>
                 <Table.Header>Controls</Table.Header>
@@ -1327,7 +1327,7 @@ export function ProgramLibrary({ programId }: { programId: string }) {
               })}
               {assignments.length === 0 ? (
                 <tr>
-                  <Table.Cell colSpan={5}>No overlays assigned</Table.Cell>
+                  <Table.Cell colSpan={5}>No policies assigned</Table.Cell>
                 </tr>
               ) : null}
             </tbody>
@@ -1353,8 +1353,8 @@ export function ProgramLibrary({ programId }: { programId: string }) {
           }}
         />
       ) : null}
-      {addingOverlay ? (
-        <AddOverlayDialog programId={programId} onClose={() => setAddingOverlay(false)} />
+      {addingPolicy ? (
+        <AddPolicyDialog programId={programId} onClose={() => setAddingPolicy(false)} />
       ) : null}
       {hostUse ? (
         <Dialog

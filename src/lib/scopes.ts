@@ -36,6 +36,14 @@ import { ancestorsOf, nodeById } from "@/lib/composition";
 import { useSyncExternalStore } from "react";
 
 import type { ImpactLevel } from "@/lib/grc-data";
+import {
+  cnssiAllocation,
+  cnssiControlsWithoutAllocation,
+  selectsAtImpact,
+  type Impact,
+  type SecurityCategorization,
+  type SecurityObjective,
+} from "@/lib/cnssi-1253";
 import { nistControls, nistControlById, type NistControl } from "@/lib/nist-catalog";
 import {
   computeTailoring,
@@ -50,62 +58,72 @@ export type Objective = "Confidentiality" | "Integrity" | "Availability";
 
 export const objectives: Objective[] = ["Confidentiality", "Integrity", "Availability"];
 
-/**
- * Which security objectives each control family serves.
- *
- * CNSSI 1253 publishes this per control; the catalog in this repo carries only
- * SP 800-53B baseline membership, so the mapping is derived at family level.
- * It is a stated approximation, not a claim to be 1253 Table 1 — but it is the
- * right *shape*: most families serve more than one objective, and the ones that
- * serve only one are what make an objective-specific baseline differ from a
- * collapsed one. CP is the clearest case: contingency planning is availability
- * and nothing else, so an A=Low scope sheds it and a C=High scope does not.
- */
-export const familyObjectives: Record<string, Objective[]> = {
-  AC: ["Confidentiality", "Integrity"],
-  AT: ["Confidentiality", "Integrity", "Availability"],
-  AU: ["Confidentiality", "Integrity"],
-  CA: ["Confidentiality", "Integrity", "Availability"],
-  CM: ["Integrity", "Availability"],
-  CP: ["Availability"],
-  IA: ["Confidentiality", "Integrity"],
-  IR: ["Confidentiality", "Integrity", "Availability"],
-  MA: ["Integrity", "Availability"],
-  MP: ["Confidentiality", "Integrity"],
-  PE: ["Confidentiality", "Integrity", "Availability"],
-  PL: ["Confidentiality", "Integrity", "Availability"],
-  PM: ["Confidentiality", "Integrity", "Availability"],
-  PS: ["Confidentiality", "Integrity"],
-  PT: ["Confidentiality"],
-  RA: ["Confidentiality", "Integrity", "Availability"],
-  SA: ["Confidentiality", "Integrity", "Availability"],
-  SC: ["Confidentiality", "Integrity", "Availability"],
-  SI: ["Integrity", "Availability"],
-  SR: ["Integrity", "Availability"],
+/** The app's title-case vocabulary against CNSSI 1253's own lower-case keys. */
+const cnssiObjective: Record<Objective, SecurityObjective> = {
+  Confidentiality: "confidentiality",
+  Integrity: "integrity",
+  Availability: "availability",
 };
-
-const rank: Record<ImpactLevel, number> = { Low: 0, Moderate: 1, High: 2 };
-
-/**
- * The lowest baseline a control appears in — the impact level at which an
- * objective starts selecting it. A control in the Moderate and High baselines
- * is selected once an objective reaches Moderate.
- */
-export function selectionLevel(control: NistControl): ImpactLevel | null {
-  if (control.baselines.includes("Low")) return "Low";
-  if (control.baselines.includes("Moderate")) return "Moderate";
-  if (control.baselines.includes("High")) return "High";
-  return null; // overlay-only; never selected by categorization alone
-}
+const cnssiImpact: Record<ImpactLevel, Impact> = {
+  Low: "low",
+  Moderate: "moderate",
+  High: "high",
+};
 
 export type Triad = Record<Objective, ImpactLevel>;
 
-/** Which objectives put this control in the set, given a triad. Empty = not selected. */
+export function categorizationOf(triad: Triad): SecurityCategorization {
+  return {
+    confidentiality: cnssiImpact[triad.Confidentiality],
+    integrity: cnssiImpact[triad.Integrity],
+    availability: cnssiImpact[triad.Availability],
+  };
+}
+
+/**
+ * Controls CNSSI 1253 allocates organization-wide rather than by impact level.
+ *
+ * The PM family is deployed program-wide independent of categorization, so no
+ * triad selects or deselects it. They are carried in every scope's set and
+ * marked, rather than silently included by an impact column that does not
+ * actually select them.
+ */
+export const organizationWideControlIds: ReadonlySet<string> = new Set(
+  nistControls
+    .map((control) => cnssiAllocation(control.id))
+    .filter((a): a is NonNullable<typeof a> => !!a && a.allocation === "organization-wide")
+    .map((a) => a.controlId),
+);
+
+/**
+ * Controls with no row in the CNSSI 1253 extraction.
+ *
+ * Seven Rev. 5 controls post-date or fall outside the 2022 publication's tables
+ * (IA-13 and its enhancements, SA-15(13), SA-24, SI-2(7)). Categorization cannot
+ * select them because the publication says nothing about them — that is an
+ * absence of guidance, not a decision to exclude, so it is exported for a screen
+ * to surface rather than being swallowed here.
+ */
+export const controlsWithoutCnssiAllocation: readonly string[] = cnssiControlsWithoutAllocation;
+
+/**
+ * Which objectives put this control in the set, given a triad. Empty = not selected.
+ *
+ * This reads CNSSI 1253's published per-control C/I/A allocation. It used to
+ * approximate that table at family level from SP 800-53B membership — a stated
+ * approximation, and a costly one: at C/I/A all High it produced exactly the 370
+ * controls of the SP 800-53B High baseline, which is the FIPS 200 collapse this
+ * module's own header exists to reject. The published table selects 554 at
+ * C:high/I:high/A:moderate, which is what `wsx90-platform-seed.json` records as
+ * its CNSSI stage. Same doctrine, one implementation.
+ */
 export function selectingObjectives(control: NistControl, triad: Triad): Objective[] {
-  const level = selectionLevel(control);
-  if (!level) return [];
-  const serves = familyObjectives[control.family] ?? objectives;
-  return serves.filter((o) => rank[triad[o]] >= rank[level]);
+  const allocation = cnssiAllocation(control.id);
+  if (!allocation || allocation.withdrawn) return [];
+  if (allocation.allocation === "organization-wide") return objectives.slice();
+  return objectives.filter((objective) =>
+    selectsAtImpact(allocation, cnssiObjective[objective], cnssiImpact[triad[objective]]),
+  );
 }
 
 /* ------------------------------------------------------------------ Scopes */

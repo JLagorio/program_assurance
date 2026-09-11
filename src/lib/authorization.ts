@@ -34,7 +34,7 @@ export type ScaObservationStatus =
 export type ScaObservation = {
   id: string;
   title: string;
-  severity: "CAT I" | "CAT II" | "CAT III";
+  severity: "High" | "Moderate" | "Low";
   control: string;
   loggedBy: string;
   logged: string;
@@ -234,7 +234,7 @@ export const scaObservations: ScaObservation[] = [
   {
     id: "OBS-118",
     title: "Session termination not enforced on maintenance console",
-    severity: "CAT I",
+    severity: "High",
     control: "AC-12",
     loggedBy: "D. Okafor (SCA)",
     logged: "Aug 27 '26 09:20",
@@ -249,7 +249,7 @@ export const scaObservations: ScaObservation[] = [
   {
     id: "OBS-117",
     title: "Audit records not forwarded from autonomy core within 5 minutes",
-    severity: "CAT II",
+    severity: "Moderate",
     control: "AU-6(3)",
     loggedBy: "A. Whitfield (SCA team)",
     logged: "Aug 26 '26 15:40",
@@ -264,7 +264,7 @@ export const scaObservations: ScaObservation[] = [
   {
     id: "OBS-116",
     title: "FIPS module version drift on ground station TLS terminator",
-    severity: "CAT I",
+    severity: "High",
     control: "SC-13",
     loggedBy: "D. Okafor (SCA)",
     logged: "Aug 25 '26 10:05",
@@ -278,7 +278,7 @@ export const scaObservations: ScaObservation[] = [
   {
     id: "OBS-115",
     title: "Least privilege exceptions undocumented for 3 service accounts",
-    severity: "CAT II",
+    severity: "Moderate",
     control: "AC-6(5)",
     loggedBy: "A. Whitfield (SCA team)",
     logged: "Aug 24 '26 13:22",
@@ -292,7 +292,7 @@ export const scaObservations: ScaObservation[] = [
   {
     id: "OBS-114",
     title: "Boundary diagram omits telemetry egress to analytics tenant",
-    severity: "CAT III",
+    severity: "Low",
     control: "CA-3",
     loggedBy: "D. Okafor (SCA)",
     logged: "Aug 22 '26 08:58",
@@ -305,8 +305,8 @@ export const scaObservations: ScaObservation[] = [
   },
   {
     id: "OBS-113",
-    title: "Residual CAT II vulnerabilities on legacy payload controller",
-    severity: "CAT II",
+    title: "Residual moderate vulnerabilities on legacy payload controller",
+    severity: "Moderate",
     control: "RA-5",
     loggedBy: "D. Okafor (SCA)",
     logged: "Aug 20 '26 14:11",

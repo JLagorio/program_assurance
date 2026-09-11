@@ -31,7 +31,26 @@ type SavedRecords = { findings: Finding[]; poams: PoamItem[] };
 let saved: SavedRecords = { findings: [], poams: [] };
 
 const nonempty = z.string().trim().min(1);
-const severity = z.enum(["CAT I", "CAT II", "CAT III"]);
+/**
+ * Severity, accepting the scale this store was written under.
+ *
+ * Records persisted before the CAT I/II/III scale was replaced still name the
+ * old values, and they are in a reader's browser, not in a file anyone can
+ * migrate. Rejecting one fails the whole restore and costs the reader every
+ * finding and POA&M edit they had made — so the legacy grades are translated on
+ * the way in, which is what the scale change did to the seed as well.
+ */
+const severity = z.preprocess(
+  (value) =>
+    value === "CAT I"
+      ? "High"
+      : value === "CAT II"
+        ? "Moderate"
+        : value === "CAT III"
+          ? "Low"
+          : value,
+  z.enum(["Critical", "High", "Moderate", "Low"]),
+);
 const lifecycle = z.enum([
   "Open",
   "Triaged",

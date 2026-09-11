@@ -8,7 +8,7 @@
  * adversarial assessment (AA). Phases 1–4 are developmental, 5 and 6 are
  * operational. CVI is cooperative and white-box — the system owner helps. AA is
  * adversarial and mission-focused: it is scored in MISSION EFFECT, not in
- * findings count, and an AA that reports "12 CAT II findings" and no mission
+ * findings count, and an AA that reports "12 moderate findings" and no mission
  * effect has missed its own point.
  *
  * Invariants held here:
@@ -26,7 +26,7 @@
  *  - **A phase's recorded state and its live readiness are different facts, and
  *    the product shows both.** PH-3 was signed off on Apr 18, 2026; re-read
  *    against today's register it no longer passes its own exit criteria,
- *    because FND-2231 (a CAT I) was raised on Aug 24 and two open deficiencies
+ *    because FND-2231 (a high) was raised on Aug 24 and two open deficiencies
  *    are still untracked. That divergence is the point of a derived gate. It is
  *    reported, never reconciled away, and a deficiency is never laundered into
  *    "not assessed".
@@ -411,10 +411,10 @@ export const criteria: PhaseCriterion[] = [
     phase: "PH-3",
     kind: "Exit",
     statement:
-      "Every CAT I identified on the cooperative record is remediated, carries a POA&M item, or is accepted by the AO.",
+      "Every high identified on the cooperative record is remediated, carries a POA&M item, or is accepted by the AO.",
     basis: "Derived",
     derivation:
-      "findings filtered by isDeficiency and a mitigatedSeverity of CAT I on a cooperative verification path, checked against poam, and against riskById(...).disposition for an AO acceptance.",
+      "findings filtered by isDeficiency and a mitigatedSeverity of high on a cooperative verification path, checked against poam, and against riskById(...).disposition for an AO acceptance.",
     attestedBy: "—",
     attestedOn: "—",
   },
@@ -1200,9 +1200,9 @@ const derivations: Record<string, Derivation> = {
       const asset = assets.find((a) => a.id === f.asset);
       return asset?.program === programId && cooperativePaths.has(f.source);
     });
-    const catI = scoped.filter((f) => isDeficiency(f) && f.mitigatedSeverity === "CAT I");
+    const high = scoped.filter((f) => isDeficiency(f) && f.mitigatedSeverity === "High");
     const unresolved: string[] = [];
-    for (const f of catI) {
+    for (const f of high) {
       if (!isOpen(f)) continue;
       if (f.poam) continue;
       const risk = f.risk ? riskById.get(f.risk) : undefined;
@@ -1210,7 +1210,7 @@ const derivations: Record<string, Derivation> = {
       unresolved.push(f.id);
     }
     const downgraded = scoped.filter(
-      (f) => isDeficiency(f) && f.rawSeverity === "CAT I" && f.mitigatedSeverity !== "CAT I",
+      (f) => isDeficiency(f) && f.rawSeverity === "High" && f.mitigatedSeverity !== "High",
     );
     const met = unresolved.length === 0;
     const first = unresolved[0] ? findingById.get(unresolved[0]) : undefined;
@@ -1218,8 +1218,8 @@ const derivations: Record<string, Derivation> = {
     return {
       met,
       finding: met
-        ? `${catI.length} CAT I ${plural(catI.length, "deficiency is", "deficiencies are")} on the cooperative record and every one is remediated, carries a POA&M item, or is AO-accepted. ${downgraded.length} further raw ${plural(downgraded.length, "CAT I is", "CAT Is are")} mitigated below CAT I (${nameList(downgraded.map((f) => f.id))}).`
-        : `${catI.length} CAT I ${plural(catI.length, "deficiency is", "deficiencies are")} open on the cooperative record and ${unresolved.length} ${plural(unresolved.length, "is", "are")} not dispositioned: ${nameList(unresolved)}. ${first ? `${first.id} (${first.control} on ${first.asset}) is not remediated, carries no POA&M item, and its register risk ${first.risk ?? "—"} is ${firstRisk?.disposition ?? "not recorded"} rather than accepted.` : ""} ${downgraded.length} further raw ${plural(downgraded.length, "CAT I is", "CAT Is are")} mitigated below CAT I (${nameList(downgraded.map((f) => f.id))}) and ${plural(downgraded.length, "is", "are")} not counted here.`.trim(),
+        ? `${high.length} high ${plural(high.length, "deficiency is", "deficiencies are")} on the cooperative record and every one is remediated, carries a POA&M item, or is AO-accepted. ${downgraded.length} further raw ${plural(downgraded.length, "high is", "highs are")} mitigated below high (${nameList(downgraded.map((f) => f.id))}).`
+        : `${high.length} high ${plural(high.length, "deficiency is", "deficiencies are")} open on the cooperative record and ${unresolved.length} ${plural(unresolved.length, "is", "are")} not dispositioned: ${nameList(unresolved)}. ${first ? `${first.id} (${first.control} on ${first.asset}) is not remediated, carries no POA&M item, and its register risk ${first.risk ?? "—"} is ${firstRisk?.disposition ?? "not recorded"} rather than accepted.` : ""} ${downgraded.length} further raw ${plural(downgraded.length, "high is", "highs are")} mitigated below high (${nameList(downgraded.map((f) => f.id))}) and ${plural(downgraded.length, "is", "are")} not counted here.`.trim(),
       evidence: [...unresolved, ...downgraded.map((f) => f.id)],
     };
   },

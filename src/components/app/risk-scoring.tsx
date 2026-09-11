@@ -793,7 +793,7 @@ const modelRows: ModelRow[] = [
     key: "severity",
     reads:
       "The finding's RAW severity at discovery, not the adjudicated one. The credit for adjudication is taken once, on the mitigation line, so it can be argued with separately.",
-    scale: "CAT I 1.00 · CAT II 0.60 · CAT III 0.30",
+    scale: "critical 1.00 · high 0.85 · moderate 0.60 · low 0.30",
   },
   {
     key: "mission",
@@ -841,8 +841,8 @@ export function FactorModel() {
         maximises every one of them scores {Math.round(positiveSum * 100)}. The mitigation credit
         sits outside that sum at {fixed2(factorWeights.mitigation)} and can take up to{" "}
         {Math.abs(Math.round(factorWeights.mitigation * 100))} points back off, which is why an
-        adjudicated CAT I can still land below an un-mitigated CAT II. The final score is clamped to
-        0–100 and a clamp is stated as a caveat, never absorbed.
+        adjudicated high can still land below an un-mitigated moderate. The final score is clamped
+        to 0–100 and a clamp is stated as a caveat, never absorbed.
       </p>
       <Table className="table-fixed">
         <thead>

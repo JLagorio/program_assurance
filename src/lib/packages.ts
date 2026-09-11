@@ -9,7 +9,7 @@
  */
 
 import type { Tone } from "@ledger/design-system";
-import { ccis, rulesByCci } from "@/lib/catalog";
+import { cciById, controlIdsForCci } from "@/lib/cci-catalog";
 import { traceCci } from "@/lib/sctm";
 
 export type PackageState =
@@ -132,7 +132,7 @@ export const artifacts: GeneratedArtifact[] = [
     pages: 188,
     sources: ["TC-0031", "TC-0034", "Objective results", "Findings FND-*"],
     state: "Stale",
-    note: "TE-0046 reported after generation — two new CAT II findings are not in this SAR.",
+    note: "TE-0046 reported after generation — two new moderate findings are not in this SAR.",
   },
   {
     id: "ART-0093",
@@ -215,7 +215,7 @@ export const submissions: SubmissionEvent[] = [
     at: "Aug 26, 18:05",
     actor: "Priya Raman",
     action: "POA&M regenerated",
-    detail: "Two findings closed, one new CAT II added from TE-0046.",
+    detail: "Two findings closed, one new moderate added from TE-0046.",
   },
   {
     id: "SUB-0030",
@@ -255,8 +255,6 @@ export type TraceRow = {
   cci: string;
   control: string;
   statement: string;
-  /** How the CCI is meant to be verified. */
-  paths: string[];
   /** Objective(s) that claim to prove it. */
   objectives: string[];
   result: "Met" | "Partially met" | "Not met" | "Not run";
@@ -266,28 +264,28 @@ export type TraceRow = {
   gap: string | null;
 };
 
-const cciById = new Map(ccis.map((c) => [c.id, c]));
-
 /**
  * One row per in-scope CCI. The result / gap derivation is `traceCci` in
  * `@/lib/sctm` — the SCTM and this table have to agree about what a CCI's
  * verification says, so there is exactly one copy of that judgement.
  */
-export function traceability(pkg: Pkg): TraceRow[] {
+/** CCI id to its published definition. The chunks load per family; see `cciDefinitionLoader`. */
+export type CciTextIndex = Record<string, string>;
+
+export function traceability(pkg: Pkg, cciText: CciTextIndex | null = null): TraceRow[] {
   return pkg.ccisInScope.map((id) => {
     const cci = cciById.get(id);
     return {
       cci: id,
-      control: cci?.control ?? "—",
-      statement: cci?.definition ?? "Statement not in the loaded catalog slice.",
-      paths: (rulesByCci.get(id) ?? []).map((r) => r.id),
+      control: controlIdsForCci(id)[0] ?? "—",
+      statement: cci ? (cciText?.[id] ?? id) : `${id} is not in the published CCI list.`,
       ...traceCci(id),
     };
   });
 }
 
-export function readiness(pkg: Pkg) {
-  const rows = traceability(pkg);
+export function readiness(pkg: Pkg, cciText: CciTextIndex | null = null) {
+  const rows = traceability(pkg, cciText);
   const gaps = rows.filter((r) => r.gap);
   const arts = artifacts.filter((a) => a.pkg === pkg.id);
   const stale = arts.filter((a) => a.state !== "Current");

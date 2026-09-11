@@ -6,22 +6,22 @@ import * as Stories from "./Editable.stories";
 
 # Editable
 
-A value edited where it sits. The reader clicks it, changes it, and it saves: no form, no Save button, no dialog. It commits at once and shows the save beside the value; a refused save puts the old value back with the reason under it. **Editable.Text** is one line of text; **Editable.Select** is one of a fixed set, drawn as the record draws it.
+A value edited where it sits. The reader clicks it, changes it, and it saves: no form, no Save button, no dialog. It commits at once and shows the save beside the value; a refused save puts the old value back with the reason under it. **Editable.Text** edits text, with `multiline` for full paragraphs; **Editable.Select** is one of a fixed set, drawn as the record draws it.
 
-It is for one value on a record that already exists: the owner in the rail, the next action in a table's cell, the status as a Badge. A record that does not exist yet is a [form](?path=/docs/patterns-forms--docs); several values that change together are a form in a Dialog; a paragraph is a Textarea.
+It is for one value on a record that already exists: the owner in the rail, the next action in a table's cell, the status as a Badge. A record that does not exist yet is a [form](?path=/docs/patterns-forms--docs); several values that change together are a form in a Dialog; a paragraph uses `Editable.Text multiline` to edit in a Textarea in the same cell.
 
 <Canvas of={Stories.Rail} />
 
 ## Anatomy
 
-| Part    | What it is                                                                                                                                                                  |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Row     | A button the full width of its cell, 24px tall. The value sits flush on the text column; under the pointer the row tints, the tint reaching `space.050` past the value.     |
-| Value   | The committed value in `font.body`, one line that truncates. Empty, the `placeholder` in `color.text.subtlest`, or the muted dash.                                          |
-| Mark    | At the end of the row: a Spinner while saving, a check in `color.icon.success` for a moment after, a warning in `color.icon.danger` after a refusal. A chevron on a Select. |
-| Field   | Text, editing: an input of `dimension.control.xsmall` in the value's place, its box reaching `space.050` past the column so the text stays on it.                           |
+| Part    | What it is                                                                                                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row     | A button the full width of its cell, 24px tall. The value sits flush on the text column; under the pointer the row tints, the tint reaching `space.050` past the value.         |
+| Value   | The committed value in `font.body`, one line that truncates. Empty, the `placeholder` in `color.text.subtlest`, or the muted dash.                                              |
+| Mark    | At the end of the row: a Spinner while saving, a check in `color.icon.success` for a moment after, a warning in `color.icon.danger` after a refusal. A chevron on a Select.     |
+| Field   | Text, editing: an input of `dimension.control.xsmall` in the value's place, its box reaching `space.050` past the column so the text stays on it.                               |
 | Menu    | Select, editing: the options under the row, the current one marked, and nothing else; a short set uses Select; a long set uses Combobox with its search input inside the popup. |
-| Message | Under the row in `font.body.xsmall` and `color.text.danger`: what `validate` refused, or why the save failed.                                                               |
+| Message | Under the row in `font.body.xsmall` and `color.text.danger`: what `validate` refused, or why the save failed.                                                                   |
 
 ## Variants
 
@@ -31,7 +31,9 @@ Where it lives: in a [KeyValue](?path=/docs/components-keyvalue--docs) row of th
 
 <Canvas of={Stories.InTable} />
 
-Not built, and why: a multi-line Editable, because a paragraph edited in place hides the paragraph while it is edited; a narrative is a Textarea in a Sheet with a Save. A date Editable, because a date is picked, not typed; the DatePicker is the control and the decision on typed dates is open.
+Use `multiline` for criteria and other paragraphs: the entire value wraps at rest, and the textarea grows with its content. Enter adds a newline, Ctrl/Cmd+Enter or leaving the cell saves, and Escape cancels and returns focus. Validation and save recovery are the same as single-line text.
+
+<Canvas of={Stories.Multiline} />
 
 ## Sizes
 
@@ -41,17 +43,17 @@ Each instance accepts one save at a time. While saving, the resting control cann
 
 ## States
 
-| State   | Look                                                                                                                                   |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Rest    | The value, flush. Nothing says it edits until the pointer arrives; the rail's rows all edit, so nothing needs to.                      |
-| Hover   | The row tints `color.background.neutral.subtle.hovered`; pressed, `.pressed`.                                                          |
-| Focus   | The kit's focus outline on the row.                                                                                                    |
+| State   | Look                                                                                                                                         |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rest    | The value, flush. Nothing says it edits until the pointer arrives; the rail's rows all edit, so nothing needs to.                            |
+| Hover   | The row tints `color.background.neutral.subtle.hovered`; pressed, `.pressed`.                                                                |
+| Focus   | The kit's focus outline on the row.                                                                                                          |
 | Editing | Text: the field in the value's place, focused, the existing value ready to edit. Select: the listbox or searchable popup open under the row. |
-| Invalid | Editing, the field's border `color.border.danger` and the message under it, as the reader types. The commit is refused while it shows. |
-| Saving  | The new value shows at once and a Spinner sits at the end of the row.                                                                  |
-| Saved   | A check for `motion.duration.slower` twice, then nothing.                                                                              |
-| Failed  | The old value is back, the warning mark at the end, the reason under the row. It stays until the next edit.                            |
-| Empty   | The placeholder in `color.text.subtlest`, or the muted dash. Never a grey instruction.                                                 |
+| Invalid | Editing, the field's border `color.border.danger` and the message under it, as the reader types. The commit is refused while it shows.       |
+| Saving  | The new value shows at once and a Spinner sits at the end of the row.                                                                        |
+| Saved   | A check for `motion.duration.slower` twice, then nothing.                                                                                    |
+| Failed  | The old value is back, the warning mark at the end, the reason under the row. It stays until the next edit.                                  |
+| Empty   | The placeholder in `color.text.subtlest`, or the muted dash. Never a grey instruction.                                                       |
 
 There is no disabled state. A value the reader cannot change is plain text in the same row, which lines up with the editable ones.
 
@@ -114,16 +116,16 @@ Editable keeps its value, validation and save contract while composing the share
 
 ### Editable.Select
 
-| Prop       | Type                               | What it is                                                      |
-| ---------- | ---------------------------------- | --------------------------------------------------------------- |
-| `label`    | `string`, required                 | The field's name, for the screen reader; the options have no heading. |
-| `value`    | `T`, required                      | The current option.                                             |
-| `options`  | `readonly T[]`, required           | The set, in the order it shows.                                 |
-| `onChange` | `(next: T) => void`, required      | As Text.                                                        |
-| `save`     | `(next: T) => Promise`, required   | As Text.                                                        |
-| `validate` | `(next: string) => string \| null` | As Text: a status the record is not ready for, with the reason. |
-| `render`   | `(value: T) => ReactNode`          | Draws a value: a Badge, a Person. Unsaid, the value as text. The searched list shows the values as words. |
-| `searchable` | `boolean`                        | A search field over the options, shown as words. On by itself past eight options. |
+| Prop         | Type                               | What it is                                                                                                |
+| ------------ | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `label`      | `string`, required                 | The field's name, for the screen reader; the options have no heading.                                     |
+| `value`      | `T`, required                      | The current option.                                                                                       |
+| `options`    | `readonly T[]`, required           | The set, in the order it shows.                                                                           |
+| `onChange`   | `(next: T) => void`, required      | As Text.                                                                                                  |
+| `save`       | `(next: T) => Promise`, required   | As Text.                                                                                                  |
+| `validate`   | `(next: string) => string \| null` | As Text: a status the record is not ready for, with the reason.                                           |
+| `render`     | `(value: T) => ReactNode`          | Draws a value: a Badge, a Person. Unsaid, the value as text. The searched list shows the values as words. |
+| `searchable` | `boolean`                          | A search field over the options, shown as words. On by itself past eight options.                         |
 
 ### Playground
 

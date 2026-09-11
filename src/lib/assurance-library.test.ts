@@ -24,17 +24,17 @@ const input = {
   versionId: "system-a@1.0",
   name: "System A installation",
   targetNodeId: "CN-0001",
-  role: "Component" as const,
+  role: "Product" as const,
 };
-describe("versioned component and overlay workflow", () => {
+describe("versioned product and policy workflow", () => {
   it("preserves the existing landing-zone identity and separates policy profiles", async () => {
     const s = await load();
     expect(s.libraryEntry("govcloud-landing-zone")).toMatchObject({
       id: "CMP-021",
-      kind: "Component",
+      kind: "Product",
       versions: [expect.objectContaining({ version: "v9.6" })],
     });
-    expect(s.libraryEntries("Overlay").map((e) => e.key)).toContain("enterprise-secpol");
+    expect(s.libraryEntries("Policy").map((e) => e.key)).toContain("enterprise-secpol");
     expect(s.libraryEntries()).toHaveLength(19);
   });
   it("creates a complete nested use atomically, pins versions, and preserves local work through publishing and reload", async () => {
@@ -90,7 +90,7 @@ describe("versioned component and overlay workflow", () => {
     const s = await load();
     const a = s.addLibraryUse(input);
     const b = s.addLibraryUse({ ...input, name: "Second system" });
-    s.assignLibraryOverlay({
+    s.assignLibraryPolicy({
       programId: input.programId,
       entryId: "company-a",
       versionId: "company-a@3.0",
@@ -110,35 +110,35 @@ describe("versioned component and overlay workflow", () => {
     expect(s.libraryControlIds(a.id)).toContain("AU-2");
     expect(s.libraryDecision(a.id, "AU-2").assessment).toBe("Not assessed");
   });
-  it("requires the exact base overlay on the same targets and retains obligations when removed", async () => {
+  it("requires the exact base policy on the same targets and retains obligations when removed", async () => {
     const s = await load();
     const a = s.addLibraryUse(input);
     const b = s.addLibraryUse(input);
-    const overlay = {
+    const policy = {
       programId: input.programId,
       entryId: "europe",
       versionId: "europe@1.1",
       targetIds: [a.id],
     };
-    expect(() => s.assignLibraryOverlay(overlay)).toThrow(/base overlay/);
-    s.assignLibraryOverlay({
-      ...overlay,
+    expect(() => s.assignLibraryPolicy(policy)).toThrow(/base policy/);
+    s.assignLibraryPolicy({
+      ...policy,
       entryId: "company-a",
       versionId: "company-a@3.0",
       targetIds: [b.id],
     });
-    expect(() => s.assignLibraryOverlay(overlay)).toThrow(/base overlay/);
-    s.assignLibraryOverlay({ ...overlay, entryId: "company-a", versionId: "company-a@3.0" });
-    s.assignLibraryOverlay(overlay);
+    expect(() => s.assignLibraryPolicy(policy)).toThrow(/base policy/);
+    s.assignLibraryPolicy({ ...policy, entryId: "company-a", versionId: "company-a@3.0" });
+    s.assignLibraryPolicy(policy);
     const assignments = s.libraryAssignments(input.programId);
     const base = assignments.find((o) => o.entryId === "company-a")!;
-    expect(() => s.removeLibraryAssignment(base.id)).toThrow(/base overlay/);
+    expect(() => s.removeLibraryAssignment(base.id)).toThrow(/base policy/);
     s.removeLibraryAssignment(assignments.find((o) => o.entryId === "europe")!.id);
     expect(s.libraryControlIds(a.id)).toContain("AU-9");
   });
   it("allows program-wide overlay work without a component and exposes scope contributors", async () => {
     const s = await load();
-    s.assignLibraryOverlay({
+    s.assignLibraryPolicy({
       programId: input.programId,
       entryId: "company-a",
       versionId: "company-a@3.0",
@@ -219,7 +219,7 @@ describe("versioned component and overlay workflow", () => {
   it("uses program overlay decisions by default and honors instance exclusions without duplicate scope sources", async () => {
     const s = await load();
     const use = s.addLibraryUse(input);
-    s.assignLibraryOverlay({
+    s.assignLibraryPolicy({
       programId: input.programId,
       entryId: "company-a",
       versionId: "company-a@3.0",
@@ -284,7 +284,7 @@ describe("versioned component and overlay workflow", () => {
   it("creates readable catalog IDs and clears stale master assessment attribution", async () => {
     const s = await load();
     const created = s.createLibraryEntry({
-      kind: "Component",
+      kind: "Product",
       name: "New compute unit",
       category: "Hardware",
       owner: "Product engineering",
@@ -292,7 +292,7 @@ describe("versioned component and overlay workflow", () => {
     });
     expect(created.id).toMatch(/^CMP-\d{3}$/);
     const another = s.createLibraryEntry({
-      kind: "Component",
+      kind: "Product",
       name: "Another compute unit",
       category: "Hardware",
       owner: "Product engineering",

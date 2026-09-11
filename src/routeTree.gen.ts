@@ -12,13 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BriefingRouteImport } from './routes/briefing'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
+import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ComponentsRouteImport } from './routes/components'
-import { Route as ControlsRouteImport } from './routes/controls'
 import { Route as EvidenceRouteImport } from './routes/evidence'
 import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as RisksRouteImport } from './routes/risks'
 import { Route as ScopeRouteImport } from './routes/scope'
-import { Route as StigsRouteImport } from './routes/stigs'
 import { Route as VendorsRouteImport } from './routes/vendors'
 import { Route as WorkRouteImport } from './routes/work'
 import { Route as CampaignsCampaignIdRouteImport } from './routes/campaigns.$campaignId'
@@ -27,6 +26,8 @@ import { Route as FindingsFindingIdRouteImport } from './routes/findings.$findin
 import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesPkgIdRouteImport } from './routes/packages.$pkgId'
 import { Route as PeoplePersonIdRouteImport } from './routes/people.$personId'
+import { Route as ProfilesIndexRouteImport } from './routes/profiles.index'
+import { Route as ProfilesProfileIdRouteImport } from './routes/profiles.$profileId'
 import { Route as ProgramsProgramIdRouteImport } from './routes/programs.$programId'
 import { Route as ProgramsNewRouteImport } from './routes/programs.new'
 import { Route as RegisterIndexRouteImport } from './routes/register.index'
@@ -71,14 +72,14 @@ const CampaignsRoute = CampaignsRouteImport.update({
   path: '/campaigns',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CatalogRoute = CatalogRouteImport.update({
+  id: '/catalog',
+  path: '/catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComponentsRoute = ComponentsRouteImport.update({
   id: '/components',
   path: '/components',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ControlsRoute = ControlsRouteImport.update({
-  id: '/controls',
-  path: '/controls',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EvidenceRoute = EvidenceRouteImport.update({
@@ -99,11 +100,6 @@ const RisksRoute = RisksRouteImport.update({
 const ScopeRoute = ScopeRouteImport.update({
   id: '/scope',
   path: '/scope',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StigsRoute = StigsRouteImport.update({
-  id: '/stigs',
-  path: '/stigs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VendorsRoute = VendorsRouteImport.update({
@@ -144,6 +140,16 @@ const PackagesPkgIdRoute = PackagesPkgIdRouteImport.update({
 const PeoplePersonIdRoute = PeoplePersonIdRouteImport.update({
   id: '/people/$personId',
   path: '/people/$personId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfilesIndexRoute = ProfilesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfilesRoute,
+} as any)
+const ProfilesProfileIdRoute = ProfilesProfileIdRouteImport.update({
+  id: '/profiles/$profileId',
+  path: '/profiles/$profileId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgramsProgramIdRoute = ProgramsProgramIdRouteImport.update({
@@ -304,19 +310,19 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/briefing': typeof BriefingRoute
   '/campaigns': typeof CampaignsRouteWithChildren
+  '/catalog': typeof CatalogRoute
   '/components': typeof ComponentsRoute
-  '/controls': typeof ControlsRoute
   '/evidence': typeof EvidenceRoute
   '/programs': typeof ProgramsRouteWithChildren
   '/risks': typeof RisksRouteWithChildren
   '/scope': typeof ScopeRoute
-  '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
   '/work': typeof WorkRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
+  '/profiles/$profileId': typeof ProfilesProfileIdRoute
   '/programs/$programId': typeof ProgramsProgramIdRoute
   '/programs/new': typeof ProgramsNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
@@ -324,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
   '/packages/': typeof PackagesIndexRoute
+  '/profiles/': typeof ProfilesIndexRoute
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
@@ -352,19 +359,19 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/briefing': typeof BriefingRoute
   '/campaigns': typeof CampaignsRouteWithChildren
+  '/catalog': typeof CatalogRoute
   '/components': typeof ComponentsRoute
-  '/controls': typeof ControlsRoute
   '/evidence': typeof EvidenceRoute
   '/programs': typeof ProgramsRouteWithChildren
   '/risks': typeof RisksRouteWithChildren
   '/scope': typeof ScopeRoute
-  '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
   '/work': typeof WorkRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
+  '/profiles/$profileId': typeof ProfilesProfileIdRoute
   '/programs/$programId': typeof ProgramsProgramIdRoute
   '/programs/new': typeof ProgramsNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
@@ -372,6 +379,7 @@ export interface FileRoutesByTo {
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings': typeof FindingsIndexRoute
   '/packages': typeof PackagesIndexRoute
+  '/profiles': typeof ProfilesIndexRoute
   '/register': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
@@ -401,19 +409,19 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/briefing': typeof BriefingRoute
   '/campaigns': typeof CampaignsRouteWithChildren
+  '/catalog': typeof CatalogRoute
   '/components': typeof ComponentsRoute
-  '/controls': typeof ControlsRoute
   '/evidence': typeof EvidenceRoute
   '/programs': typeof ProgramsRouteWithChildren
   '/risks': typeof RisksRouteWithChildren
   '/scope': typeof ScopeRoute
-  '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
   '/work': typeof WorkRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
+  '/profiles/$profileId': typeof ProfilesProfileIdRoute
   '/programs/$programId': typeof ProgramsProgramIdRoute
   '/programs/new': typeof ProgramsNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
@@ -421,6 +429,7 @@ export interface FileRoutesById {
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
   '/packages/': typeof PackagesIndexRoute
+  '/profiles/': typeof ProfilesIndexRoute
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
@@ -451,19 +460,19 @@ export interface FileRouteTypes {
     | '/'
     | '/briefing'
     | '/campaigns'
+    | '/catalog'
     | '/components'
-    | '/controls'
     | '/evidence'
     | '/programs'
     | '/risks'
     | '/scope'
-    | '/stigs'
     | '/vendors'
     | '/work'
     | '/campaigns/$campaignId'
     | '/findings/$findingId'
     | '/packages/$pkgId'
     | '/people/$personId'
+    | '/profiles/$profileId'
     | '/programs/$programId'
     | '/programs/new'
     | '/risks/$riskId'
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/workstreams/$workstreamId'
     | '/findings/'
     | '/packages/'
+    | '/profiles/'
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
@@ -499,19 +509,19 @@ export interface FileRouteTypes {
     | '/'
     | '/briefing'
     | '/campaigns'
+    | '/catalog'
     | '/components'
-    | '/controls'
     | '/evidence'
     | '/programs'
     | '/risks'
     | '/scope'
-    | '/stigs'
     | '/vendors'
     | '/work'
     | '/campaigns/$campaignId'
     | '/findings/$findingId'
     | '/packages/$pkgId'
     | '/people/$personId'
+    | '/profiles/$profileId'
     | '/programs/$programId'
     | '/programs/new'
     | '/risks/$riskId'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/workstreams/$workstreamId'
     | '/findings'
     | '/packages'
+    | '/profiles'
     | '/register'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
@@ -547,19 +558,19 @@ export interface FileRouteTypes {
     | '/'
     | '/briefing'
     | '/campaigns'
+    | '/catalog'
     | '/components'
-    | '/controls'
     | '/evidence'
     | '/programs'
     | '/risks'
     | '/scope'
-    | '/stigs'
     | '/vendors'
     | '/work'
     | '/campaigns/$campaignId'
     | '/findings/$findingId'
     | '/packages/$pkgId'
     | '/people/$personId'
+    | '/profiles/$profileId'
     | '/programs/$programId'
     | '/programs/new'
     | '/risks/$riskId'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/workstreams/$workstreamId'
     | '/findings/'
     | '/packages/'
+    | '/profiles/'
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
@@ -596,18 +608,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BriefingRoute: typeof BriefingRoute
   CampaignsRoute: typeof CampaignsRouteWithChildren
+  CatalogRoute: typeof CatalogRoute
   ComponentsRoute: typeof ComponentsRoute
-  ControlsRoute: typeof ControlsRoute
   EvidenceRoute: typeof EvidenceRoute
   ProgramsRoute: typeof ProgramsRouteWithChildren
   RisksRoute: typeof RisksRouteWithChildren
   ScopeRoute: typeof ScopeRoute
-  StigsRoute: typeof StigsRoute
   VendorsRoute: typeof VendorsRoute
   WorkRoute: typeof WorkRoute
   FindingsFindingIdRoute: typeof FindingsFindingIdRoute
   PackagesPkgIdRoute: typeof PackagesPkgIdRoute
   PeoplePersonIdRoute: typeof PeoplePersonIdRoute
+  ProfilesProfileIdRoute: typeof ProfilesProfileIdRoute
   TasksTaskIdRoute: typeof TasksTaskIdRoute
   WorkstreamsWorkstreamIdRoute: typeof WorkstreamsWorkstreamIdRoute
   FindingsIndexRoute: typeof FindingsIndexRoute
@@ -645,18 +657,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/catalog': {
+      id: '/catalog'
+      path: '/catalog'
+      fullPath: '/catalog'
+      preLoaderRoute: typeof CatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/components': {
       id: '/components'
       path: '/components'
       fullPath: '/components'
       preLoaderRoute: typeof ComponentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/controls': {
-      id: '/controls'
-      path: '/controls'
-      fullPath: '/controls'
-      preLoaderRoute: typeof ControlsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/evidence': {
@@ -685,13 +697,6 @@ declare module '@tanstack/react-router' {
       path: '/scope'
       fullPath: '/scope'
       preLoaderRoute: typeof ScopeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/stigs': {
-      id: '/stigs'
-      path: '/stigs'
-      fullPath: '/stigs'
-      preLoaderRoute: typeof StigsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/vendors': {
@@ -748,6 +753,20 @@ declare module '@tanstack/react-router' {
       path: '/people/$personId'
       fullPath: '/people/$personId'
       preLoaderRoute: typeof PeoplePersonIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profiles/': {
+      id: '/profiles/'
+      path: '/'
+      fullPath: '/profiles/'
+      preLoaderRoute: typeof ProfilesIndexRouteImport
+      parentRoute: typeof ProfilesRoute
+    }
+    '/profiles/$profileId': {
+      id: '/profiles/$profileId'
+      path: '/profiles/$profileId'
+      fullPath: '/profiles/$profileId'
+      preLoaderRoute: typeof ProfilesProfileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programs/$programId': {
@@ -1022,18 +1041,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BriefingRoute: BriefingRoute,
   CampaignsRoute: CampaignsRouteWithChildren,
+  CatalogRoute: CatalogRoute,
   ComponentsRoute: ComponentsRoute,
-  ControlsRoute: ControlsRoute,
   EvidenceRoute: EvidenceRoute,
   ProgramsRoute: ProgramsRouteWithChildren,
   RisksRoute: RisksRouteWithChildren,
   ScopeRoute: ScopeRoute,
-  StigsRoute: StigsRoute,
   VendorsRoute: VendorsRoute,
   WorkRoute: WorkRoute,
   FindingsFindingIdRoute: FindingsFindingIdRoute,
   PackagesPkgIdRoute: PackagesPkgIdRoute,
   PeoplePersonIdRoute: PeoplePersonIdRoute,
+  ProfilesProfileIdRoute: ProfilesProfileIdRoute,
   TasksTaskIdRoute: TasksTaskIdRoute,
   WorkstreamsWorkstreamIdRoute: WorkstreamsWorkstreamIdRoute,
   FindingsIndexRoute: FindingsIndexRoute,

@@ -59,7 +59,7 @@ function useCap<T>(rows: T[], initial: number) {
 /**
  * A tier is a property of the portrayal, not a posture — a tier VI adversary is
  * not "worse news" than a tier II one, it is a different assumption about who is
- * attacking. So it stays neutral and never borrows the CAT I red.
+ * attacking. So it stays neutral and never borrows the high red.
  */
 export function TierChip({ tier }: { tier: string }) {
   return (

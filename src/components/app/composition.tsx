@@ -40,14 +40,14 @@ const toneDot: Record<Tone, string> = {
 
 /** Local copy of `postureTone` so this file stays type-only on the lib side. */
 function postureToneOf(p: NodePosture): Tone {
-  if (p.rolled.catI > 0) return "danger";
-  if (p.rolled.catII > 0) return "warning";
+  if (p.rolled.high > 0) return "danger";
+  if (p.rolled.moderate > 0) return "warning";
   if (p.rolled.open === 0) return "success";
   return "neutral";
 }
 
 function severityToneOf(sev: string): Tone {
-  return sev === "CAT I" ? "danger" : sev === "CAT II" ? "warning" : "neutral";
+  return sev === "High" ? "danger" : sev === "Moderate" ? "warning" : "neutral";
 }
 
 /** A digest is an identity, not a value — 16 hex characters is plenty to read. */
@@ -338,7 +338,7 @@ function BomTreeRow({
           ) : null}
           {posture && open > 0 ? (
             <Inline
-              title={`${posture.rolled.catI} CAT I, ${posture.rolled.catII} CAT II, ${posture.rolled.catIII} CAT III open in this subtree`}
+              title={`${posture.rolled.high} high, ${posture.rolled.moderate} moderate, ${posture.rolled.low} low open in this subtree`}
               as="span"
               alignBlock="center"
             >
@@ -474,9 +474,9 @@ export function NodeRail({
 export function PostureStrip({ posture }: { posture: NodePosture }) {
   const { rolled } = posture;
   const legend: { key: string; label: string; value: number; tone: Tone }[] = [
-    { key: "i", label: "CAT I", value: rolled.catI, tone: "danger" },
-    { key: "ii", label: "CAT II", value: rolled.catII, tone: "warning" },
-    { key: "iii", label: "CAT III", value: rolled.catIII, tone: "neutral" },
+    { key: "i", label: "High", value: rolled.high, tone: "danger" },
+    { key: "ii", label: "Moderate", value: rolled.moderate, tone: "warning" },
+    { key: "iii", label: "Low", value: rolled.low, tone: "neutral" },
   ];
 
   return (
@@ -531,29 +531,29 @@ export function PostureStrip({ posture }: { posture: NodePosture }) {
 /* ------------------------------------------------------- ReconciliationTable */
 
 function CatTriple({
-  catI,
-  catII,
-  catIII,
+  high,
+  moderate,
+  low,
   total,
 }: {
-  catI: number;
-  catII: number;
-  catIII: number;
+  high: number;
+  moderate: number;
+  low: number;
   total: number;
 }) {
   return (
     <Inline
       className="tabular-nums font-body-small"
-      title={`${catI} CAT I, ${catII} CAT II, ${catIII} CAT III of ${total} open`}
+      title={`${high} high, ${moderate} moderate, ${low} low of ${total} open`}
       as="span"
       space="space.050"
       alignBlock="center"
     >
-      <span className={catI > 0 ? "font-medium text-danger" : "text-subtle"}>{catI}</span>
+      <span className={high > 0 ? "font-medium text-danger" : "text-subtle"}>{high}</span>
       <span className="text-subtlest">/</span>
-      <span className={catII > 0 ? "font-medium text-warning" : "text-subtle"}>{catII}</span>
+      <span className={moderate > 0 ? "font-medium text-warning" : "text-subtle"}>{moderate}</span>
       <span className="text-subtlest">/</span>
-      <span className={catIII > 0 ? "text-default" : "text-subtle"}>{catIII}</span>
+      <span className={low > 0 ? "text-default" : "text-subtle"}>{low}</span>
       <Box className="text-subtle" as="span" paddingInlineStart="space.050">
         · {total}
       </Box>
@@ -596,17 +596,17 @@ export function ReconciliationTable({
             </Table.Cell>
             <Table.Cell>
               <CatTriple
-                catI={r.declared.catI}
-                catII={r.declared.catII}
-                catIII={r.declared.catIII}
+                high={r.declared.high}
+                moderate={r.declared.moderate}
+                low={r.declared.low}
                 total={r.declared.total}
               />
             </Table.Cell>
             <Table.Cell>
               <CatTriple
-                catI={r.derived.catI}
-                catII={r.derived.catII}
-                catIII={r.derived.catIII}
+                high={r.derived.high}
+                moderate={r.derived.moderate}
+                low={r.derived.low}
                 total={r.derived.total}
               />
             </Table.Cell>

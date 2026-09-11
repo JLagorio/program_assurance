@@ -69,13 +69,13 @@ export const Route = createFileRoute("/findings/")({
 const tabs = ["Findings", "Assets"] as const;
 type Tab = (typeof tabs)[number];
 
-const scopes = ["Open", "All", "CAT I", "Settled"] as const;
+const scopes = ["Open", "All", "High", "Settled"] as const;
 type Scope = (typeof scopes)[number];
 
 function scopeFilter(f: Finding, scope: Scope) {
   if (scope === "All") return true;
   if (scope === "Open") return isOpen(f);
-  if (scope === "CAT I") return f.mitigatedSeverity === "CAT I" || f.rawSeverity === "CAT I";
+  if (scope === "High") return f.mitigatedSeverity === "High" || f.rawSeverity === "High";
   return !isOpen(f);
 }
 
@@ -88,7 +88,7 @@ type Preview = { kind: "finding"; item: Finding } | { kind: "asset"; item: Asset
  */
 function trackedLabel(assetId: string): string {
   const rolled = assetPosture(assetId)?.rolled ?? null;
-  return rolled ? `${rolled.catI} / ${rolled.catII} / ${rolled.catIII}` : "—";
+  return rolled ? `${rolled.high} / ${rolled.moderate} / ${rolled.low}` : "—";
 }
 
 /** The register-tracked CAT triple, rendered as its own table cell. */
@@ -99,10 +99,10 @@ function TrackedCell({ assetId }: { assetId: string }) {
   }
   return (
     <Table.Cell className="tabular-nums text-right">
-      <span className={rolled.catI ? "font-medium text-danger" : ""}>{rolled.catI}</span>
+      <span className={rolled.high ? "font-medium text-danger" : ""}>{rolled.high}</span>
       <span className="text-subtle">
         {" "}
-        / {rolled.catII} / {rolled.catIII}
+        / {rolled.moderate} / {rolled.low}
       </span>
     </Table.Cell>
   );
@@ -327,12 +327,12 @@ function FindingsPage() {
                             "—"
                           ) : (
                             <>
-                              <span className={a.openCatI ? "font-medium text-danger" : ""}>
-                                {a.openCatI}
+                              <span className={a.openHigh ? "font-medium text-danger" : ""}>
+                                {a.openHigh}
                               </span>
                               <span className="text-subtle">
                                 {" "}
-                                / {a.openCatII} / {a.openCatIII}
+                                / {a.openModerate} / {a.openLow}
                               </span>
                             </>
                           )}
@@ -427,8 +427,8 @@ function FindingsPage() {
                         "Not supplied"
                       ) : (
                         <span className="tabular-nums">
-                          {preview.item.openCatI} / {preview.item.openCatII} /{" "}
-                          {preview.item.openCatIII}
+                          {preview.item.openHigh} / {preview.item.openModerate} /{" "}
+                          {preview.item.openLow}
                         </span>
                       )}
                     </KeyValue>

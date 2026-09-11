@@ -136,7 +136,10 @@ const revisionSchema = z.object({
   scope: z.string(),
   number: z.literal(1),
   state: z.literal("Draft"),
-  framework: z.enum(["nist-800-53-r5", "nist-800-53-r4", "nist-800-171-r2", "iso-27001"]),
+  // A snapshot saved before the unimported editions were dropped can still name
+  // one. Coerce rather than reject: a stale edition id must not cost the reader
+  // the whole restored workspace.
+  framework: z.enum(["nist-800-53-r5"]).catch("nist-800-53-r5"),
   parameters,
   overlays: z.array(z.never()),
   tailoring: z.array(z.never()),

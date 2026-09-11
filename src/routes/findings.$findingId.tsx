@@ -1,7 +1,7 @@
 import { TextBlock } from "@/components/app/control-text";
 import { RemediationPlanSection } from "@/components/app/remediation";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
-import { ccis } from "@/lib/catalog";
+import { cciById } from "@/lib/cci-catalog";
 import { useControlMatrix } from "@/lib/control-matrix";
 import {
   assetById,
@@ -62,6 +62,13 @@ function signed(n: number): string {
 }
 
 export const Route = createFileRoute("/findings/$findingId")({
+  /** One CCI, so one family chunk. */
+  loader: async ({ params }) => {
+    const finding = findings.find((f) => f.id === params.findingId);
+    if (!finding?.cci) return { cciDefinition: null };
+    const { loadCciDefinition } = await import("@/lib/cci-catalog");
+    return { cciDefinition: await loadCciDefinition(finding.cci) };
+  },
   validateSearch: (search: Record<string, unknown>): { tab?: FindingTab | undefined } => {
     const raw = String(search["tab"] ?? "");
     const match = findingTabs.find((t) => t.toLowerCase() === raw.toLowerCase());
@@ -95,6 +102,7 @@ export const Route = createFileRoute("/findings/$findingId")({
 function FindingRecord() {
   const assuranceVersion = useAssuranceVersion();
   const { findingId } = Route.useParams();
+  const { cciDefinition } = Route.useLoaderData();
   const tab = Route.useSearch().tab ?? "Finding";
   const navigate = useNavigate({ from: Route.fullPath });
   const finding = findings.find((f) => f.id === findingId);
@@ -122,7 +130,7 @@ function FindingRecord() {
     );
   }
 
-  const cci = ccis.find((c) => c.id === finding.cci);
+  const cci = cciById.get(finding.cci) ?? null;
   const catalogEntry = nistControlById.get(finding.control);
   const catalogTitle = catalogEntry ? controlTitle(catalogEntry) : null;
   const siblings = findingsByCci(finding.cci).filter((f) => f.id !== finding.id);
@@ -253,7 +261,8 @@ function FindingRecord() {
                   <p className="max-w-layout-measure pt-150 font-body">{finding.detail}</p>
                   {cci ? (
                     <p className="pt-150 max-w-layout-measure border-s border-default ps-150 font-body-small text-subtle">
-                      <Id className="text-subtle">{cci.id}</Id> — {cci.definition}
+                      <Id className="text-subtle">{cci.id}</Id>
+                      {cciDefinition ? ` — ${cciDefinition}` : null}
                     </p>
                   ) : null}
                 </Section>
@@ -489,8 +498,8 @@ function FindingRecord() {
                     title="Residual risk"
                     description={
                       isDeficiency(finding)
-                        ? `${residual.score} of 100 — ${residual.band}. CAT I/II/III grades how badly the requirement is missed; this grades what ${finding.id} is costing the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record.`
-                        : `${residual.score} of 100 — ${residual.band}. CAT I/II/III grades how badly the requirement is missed; this grades what the reported condition WOULD have cost the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record. ${finding.id} is ${finding.lifecycle.toLowerCase()}, so it is scored so the trail survives closure, not carried in the aggregate.`
+                        ? `${residual.score} of 100 — ${residual.band}. high/II/III grades how badly the requirement is missed; this grades what ${finding.id} is costing the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record.`
+                        : `${residual.score} of 100 — ${residual.band}. high/II/III grades how badly the requirement is missed; this grades what the reported condition WOULD have cost the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record. ${finding.id} is ${finding.lifecycle.toLowerCase()}, so it is scored so the trail survives closure, not carried in the aggregate.`
                     }
                   >
                     <Grid

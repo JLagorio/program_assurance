@@ -9,6 +9,7 @@
  */
 
 import type { FindingSeverity, PoamStatus, RiskDisposition } from "@/lib/spine";
+import { severityRank } from "@/lib/spine";
 import { findings, isOpen, type Finding } from "@/lib/findings";
 import { poamItems as legacyPoams } from "@/lib/grc-data";
 
@@ -252,13 +253,11 @@ export function poamsForRisk(id: string): PoamItem[] {
   return poamItems.filter((p) => p.risk === id || p.riskIds?.includes(id));
 }
 
-const severityRank: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1, "CAT III": 2 };
-
 export function worstSeverity(list: Finding[]): FindingSeverity | null {
   if (list.length === 0) return null;
   return list
     .slice()
-    .sort((a, b) => severityRank[a.mitigatedSeverity] - severityRank[b.mitigatedSeverity])[0]!
+    .sort((a, b) => severityRank(a.mitigatedSeverity) - severityRank(b.mitigatedSeverity))[0]!
     .mitigatedSeverity;
 }
 

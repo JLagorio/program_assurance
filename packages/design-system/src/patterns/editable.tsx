@@ -6,6 +6,7 @@ import { useLedgerLocale } from "../lib/locale";
 import { cn } from "../lib/cn";
 import { Bleed } from "../primitives/bleed";
 
+import { Textarea } from "../components/textarea";
 import { Input } from "../components/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../components/select";
 import {
@@ -87,9 +88,9 @@ function useOptimisticCommit<T extends string>({
     setError(null);
     setState("saving");
     latestValue.current = next;
-    onChange(next);
     let pending: Promise<unknown>;
     try {
+      onChange(next);
       pending = save(next);
     } catch (error) {
       pending = Promise.reject(error);
@@ -114,7 +115,11 @@ function useOptimisticCommit<T extends string>({
           setState("idle");
           return;
         }
-        onChange(previous);
+        try {
+          onChange(previous);
+        } catch {
+          // A store may reject the rollback too; still release the editor and show the error.
+        }
         setError(e instanceof Error ? e.message : t("saveFailed"));
         setState("error");
       });
@@ -155,10 +160,12 @@ const resting =
 export type EditableTextProps = EditableProps<string> & {
   /** What to add, as a noun, shown in the field while it is empty and at rest in place of the dash: "Unassigned", "Add next action". */
   placeholder?: string | undefined;
+  /** Wrap long text at rest and edit in a textarea. Enter adds a line; Ctrl/Cmd+Enter saves. */
+  multiline?: boolean | undefined;
 };
 
 /** One line of text edited in place. Click or Enter opens the field; Enter or leaving commits; Escape puts the old value back. */
-function EditableText({ placeholder, ...props }: EditableTextProps) {
+function EditableText({ placeholder, multiline = false, ...props }: EditableTextProps) {
   const { state, error, setError, setState, commit } = useOptimisticCommit(props);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(props.value);
@@ -177,16 +184,17 @@ function EditableText({ placeholder, ...props }: EditableTextProps) {
   }, [editing]);
 
   const liveError = editing ? (props.validate?.(draft) ?? null) : error;
+  const Editor = multiline ? Textarea : Input;
 
   return (
     <div className="flex min-w-0 flex-col gap-025">
       {editing ? (
         <Bleed inline="space.050">
-          <Input
+          <Editor
             autoFocus
             aria-label={props.label}
             aria-invalid={liveError ? true : undefined}
-            aria-describedby={liveError ? messageId : undefined}
+            aria-describedby={liveError ? messageId : multiline ? `${messageId}-hint` : undefined}
             value={draft}
             placeholder={placeholder}
             onChange={(e) => setDraft(e.target.value)}
@@ -194,7 +202,11 @@ function EditableText({ placeholder, ...props }: EditableTextProps) {
               if (commit(draft)) setEditing(false);
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (
+                e.key === "Enter" &&
+                !e.nativeEvent.isComposing &&
+                (!multiline || e.ctrlKey || e.metaKey)
+              ) {
                 e.preventDefault();
                 const ok = commit(draft);
                 returnFocus.current = ok;
@@ -209,7 +221,8 @@ function EditableText({ placeholder, ...props }: EditableTextProps) {
                 setEditing(false);
               }
             }}
-            className="h-control-xsmall rounded-small px-050"
+            className={cn("rounded-small px-050", !multiline && "h-control-xsmall")}
+            style={multiline ? { fieldSizing: "content" } : undefined}
           />
         </Bleed>
       ) : (
@@ -223,7 +236,13 @@ function EditableText({ placeholder, ...props }: EditableTextProps) {
           className={resting}
         >
           <span className="sr-only">{props.label}: </span>
-          <span className={cn("relative min-w-0 truncate", !props.value && "text-subtlest")}>
+          <span
+            className={cn(
+              "relative min-w-0",
+              multiline ? "whitespace-pre-wrap break-words" : "truncate",
+              !props.value && "text-subtlest",
+            )}
+          >
             {props.value || placeholder || <Absent />}
           </span>
           <span className="relative ms-auto flex shrink-0 items-center">
@@ -231,6 +250,12 @@ function EditableText({ placeholder, ...props }: EditableTextProps) {
           </span>
         </button>
       )}
+      {multiline ? (
+        <span id={`${messageId}-hint`} className="sr-only">
+          Enter adds a line. Control or Command plus Enter saves. Escape cancels. Leaving the field
+          saves.
+        </span>
+      ) : null}
       <Message id={messageId} state={state} error={liveError} />
     </div>
   );

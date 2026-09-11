@@ -53,8 +53,27 @@ export const platformRunId = (index: number) => `TR-${109001 + index}`;
 
 const issuesFor = (id: string) =>
   platformSeedIssues.filter((issue) => issue.recordId === id).map((issue) => issue.message);
-const severity = (value: string): Finding["rawSeverity"] =>
-  value === "critical" || value === "high" ? "CAT I" : value === "moderate" ? "CAT II" : "CAT III";
+/**
+ * The seed's severity, title-cased and otherwise untouched.
+ *
+ * This used to collapse `critical` and `high` into one category, because the
+ * app's scale was DISA's high/II/III and had nowhere to put a fourth value. The
+ * two critical findings in the dataset arrived as the same grade as the twelve
+ * high ones, and no screen could tell them apart. The scales match now, so the
+ * mapping is a rename rather than a downgrade.
+ */
+const severity = (value: string): Finding["rawSeverity"] => {
+  switch (value) {
+    case "critical":
+      return "Critical";
+    case "high":
+      return "High";
+    case "moderate":
+      return "Moderate";
+    default:
+      return "Low";
+  }
+};
 const assessmentMethod = (value: string) =>
   value === "examine"
     ? ("Examine" as const)

@@ -1241,7 +1241,7 @@ function PanelSurface({
       aria-labelledby={titleId}
       data-shell-area="panel"
       className={cn(
-        "shell-panel flex min-w-0 flex-col overflow-y-auto overscroll-none border-default bg-surface outline-none",
+        "shell-panel flex min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-none border-default bg-surface outline-none",
         className,
       )}
       onKeyDown={(event) => {
@@ -1265,7 +1265,9 @@ function PanelSurface({
           icon={<X />}
         />
       </div>
-      <div className="min-w-0 flex-1 p-200">{children}</div>
+      <div className="min-w-0 flex-1 p-200" style={{ contain: "inline-size" }}>
+        {children}
+      </div>
     </aside>
   );
 }

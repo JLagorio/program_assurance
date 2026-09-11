@@ -16,8 +16,7 @@
  *    sees the fields its own format really carries and nothing else, which is
  *    the only way the mapping rules below can be written honestly.
  *  - Nothing is invented. A CCI is used when the format states one, when the
- *    XCCDF idents carry one, or when a rule id resolves through the catalog's
- *    inverse rule index. Formats that assert vulnerabilities against components
+ *    XCCDF idents carry one. Formats that assert vulnerabilities against components
  *    rather than requirements (SAST, SCA, fuzzing, firmware) get `cci: null`
  *    and an `unresolved` entry naming exactly what is missing.
  *  - Every mapping decision reports its own basis string. `severityBasis` names
@@ -40,7 +39,7 @@
  */
 
 import type { Tone } from "@ledger/design-system";
-import { ccis, rulesByCci } from "@/lib/catalog";
+import { controlIdsForCci } from "@/lib/cci-catalog";
 import {
   ancestorsOf,
   compositionNodes,
@@ -51,6 +50,7 @@ import {
 } from "@/lib/composition";
 import { assets, findings, isDeficiency, type VerificationPath } from "@/lib/findings";
 import type { ChecklistStatus, FindingSeverity, ScanState } from "@/lib/spine";
+import { severityRank } from "@/lib/spine";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
@@ -508,7 +508,7 @@ export const scanRuns: ScanRun[] = [
     rawItems: 4,
     state: "Received",
     supersedes: null,
-    note: "48-hour continuous fuzz across three harnesses ahead of TE-0044. Crash e5510b8d did not reproduce on replay and is floored at CAT III rather than dropped.",
+    note: "48-hour continuous fuzz across three harnesses ahead of TE-0044. Crash e5510b8d did not reproduce on replay and is floored at low rather than dropped.",
   },
   {
     id: "SCN-1012",
@@ -1247,38 +1247,20 @@ for (const native of nativeResults) {
 }
 
 /**
- * CCI ids the seeded scanners reference that neither the catalog slice nor the
- * finding register carries. Real DISA mappings, authored here rather than
- * guessed at normalization time.
+ * CCI → control natural key, from the published DISA list's Rev. 5 references.
+ *
+ * This used to read a 17-row hand-written fixture, unioned with the finding
+ * register's own pairs and then six manually supplied pairs. All six are present
+ * and correct in the published list, so the supplement is gone. The register's
+ * pairs are still unioned in as a fallback for an id the list does not map, but
+ * they no longer take precedence: where a finding and DISA disagree about which
+ * control a CCI decomposes, the publisher wins.
  */
-const cciSupplement: Record<string, string> = {
-  "CCI-000044": "AC-7",
-  "CCI-000169": "AU-12",
-  "CCI-000381": "CM-7",
-  "CCI-000803": "IA-7",
-  "CCI-001764": "CM-7(2)",
-  "CCI-001849": "AU-4",
-};
+const registerPairs = new Map<string, string>();
+for (const f of findings) if (!registerPairs.has(f.cci)) registerPairs.set(f.cci, f.control);
 
-/**
- * CCI → control natural key: the catalog decomposition, unioned with the pairs
- * the finding register already asserts, then the supplement above.
- */
-const cciControl = new Map<string, string>();
-for (const cci of ccis) cciControl.set(cci.id, cci.control);
-for (const f of findings) if (!cciControl.has(f.cci)) cciControl.set(f.cci, f.control);
-for (const [id, control] of Object.entries(cciSupplement)) {
-  if (!cciControl.has(id)) cciControl.set(id, control);
-}
-
-/** The inverse of `rulesByCci` — a V-id to the CCIs the rule declares it satisfies. */
-export const ccisByRule = new Map<string, string[]>();
-for (const [cci, ruleList] of rulesByCci) {
-  for (const rule of ruleList) {
-    const bucket = ccisByRule.get(rule.id);
-    if (bucket) bucket.push(cci);
-    else ccisByRule.set(rule.id, [cci]);
-  }
+function controlForCci(cci: string): string | null {
+  return controlIdsForCci(cci)[0] ?? registerPairs.get(cci) ?? null;
 }
 
 const assetByName = new Map(assets.map((a) => [a.name, a]));
@@ -1349,9 +1331,9 @@ function parseComplianceReference(reference: string): ComplianceReference {
 }
 
 const catSeverity: Record<string, FindingSeverity> = {
-  I: "CAT I",
-  II: "CAT II",
-  III: "CAT III",
+  I: "High",
+  II: "Moderate",
+  III: "Low",
 };
 
 /** Firmware check families whose failure mode is the boot chain itself. */
@@ -1553,15 +1535,15 @@ function resolveNode(native: NativeResult, scan: ScanRun | undefined): NodeResol
 type SeverityResolution = { severity: FindingSeverity; clean: boolean; basis: string };
 
 const stigSeverity: Record<"high" | "medium" | "low", FindingSeverity> = {
-  high: "CAT I",
-  medium: "CAT II",
-  low: "CAT III",
+  high: "High",
+  medium: "Moderate",
+  low: "Low",
 };
 
 function severityFromCvss(cvss: number): FindingSeverity {
-  if (cvss >= 9) return "CAT I";
-  if (cvss >= 7) return "CAT II";
-  return "CAT III";
+  if (cvss >= 9) return "High";
+  if (cvss >= 7) return "Moderate";
+  return "Low";
 }
 
 function resolveSeverity(native: NativeResult): SeverityResolution {
@@ -1602,10 +1584,10 @@ function resolveSeverity(native: NativeResult): SeverityResolution {
         }
         const severity: FindingSeverity =
           native.riskFactor === "Critical" || native.riskFactor === "High"
-            ? "CAT I"
+            ? "High"
             : native.riskFactor === "Medium"
-              ? "CAT II"
-              : "CAT III";
+              ? "Moderate"
+              : "Low";
         return {
           severity,
           clean,
@@ -1614,17 +1596,17 @@ function resolveSeverity(native: NativeResult): SeverityResolution {
       }
       if (native.riskFactor === "None") {
         return {
-          severity: "CAT III",
+          severity: "Low",
           clean: true,
           basis: 'Nessus riskFactor "None" is informational output, recorded as clean coverage.',
         };
       }
       const severity: FindingSeverity =
         native.riskFactor === "Critical" || native.riskFactor === "High"
-          ? "CAT I"
+          ? "High"
           : native.riskFactor === "Medium"
-            ? "CAT II"
-            : "CAT III";
+            ? "Moderate"
+            : "Low";
       return {
         severity,
         clean: false,
@@ -1634,17 +1616,17 @@ function resolveSeverity(native: NativeResult): SeverityResolution {
     case "SAST SonarQube": {
       if (native.type === "CODE_SMELL") {
         return {
-          severity: "CAT III",
+          severity: "Low",
           clean: false,
-          basis: `SonarQube severity "${native.sonarSeverity}" on a CODE_SMELL is floored at CAT III — maintainability is not a security weakness however loudly the tool grades it.`,
+          basis: `SonarQube severity "${native.sonarSeverity}" on a CODE_SMELL is floored at low — maintainability is not a security weakness however loudly the tool grades it.`,
         };
       }
       const severity: FindingSeverity =
         native.sonarSeverity === "BLOCKER" || native.sonarSeverity === "CRITICAL"
-          ? "CAT I"
+          ? "High"
           : native.sonarSeverity === "MAJOR"
-            ? "CAT II"
-            : "CAT III";
+            ? "Moderate"
+            : "Low";
       return {
         severity,
         clean: false,
@@ -1661,9 +1643,9 @@ function resolveSeverity(native: NativeResult): SeverityResolution {
       }
       if (native.kev) {
         return {
-          severity: "CAT I",
+          severity: "High",
           clean: false,
-          basis: `CVSS ${native.cvss.toFixed(1)} alone maps to ${severityFromCvss(native.cvss)}, but the KEV listing forces CAT I: a vulnerability with observed exploitation is not graded on its base score.`,
+          basis: `CVSS ${native.cvss.toFixed(1)} alone maps to ${severityFromCvss(native.cvss)}, but the KEV listing forces high: a vulnerability with observed exploitation is not graded on its base score.`,
         };
       }
       const severity = severityFromCvss(native.cvss);
@@ -1676,47 +1658,47 @@ function resolveSeverity(native: NativeResult): SeverityResolution {
     case "Fuzzing": {
       if (!native.reproducible) {
         return {
-          severity: "CAT III",
+          severity: "Low",
           clean: false,
-          basis: `Crash ${native.crashId} did not reproduce on replay, so it is floored at CAT III rather than graded on its ${native.signal}.`,
+          basis: `Crash ${native.crashId} did not reproduce on replay, so it is floored at low rather than graded on its ${native.signal}.`,
         };
       }
       const fatal = native.signal === "SIGSEGV" || native.signal === "SIGABRT";
       return {
-        severity: fatal ? "CAT I" : "CAT II",
+        severity: fatal ? "High" : "Moderate",
         clean: false,
         basis: fatal
-          ? `Reproducible ${native.signal} is a memory-safety failure in a reachable parser, mapped to CAT I.`
-          : `Reproducible crash on ${native.signal} is not a memory-safety failure, mapped to CAT II.`,
+          ? `Reproducible ${native.signal} is a memory-safety failure in a reachable parser, mapped to high.`
+          : `Reproducible crash on ${native.signal} is not a memory-safety failure, mapped to moderate.`,
       };
     }
     case "Firmware analysis": {
       if (native.verdict === "pass") {
         return {
-          severity: "CAT III",
+          severity: "Low",
           clean: true,
           basis: `Firmware check ${native.checkId} passed, recorded as clean coverage.`,
         };
       }
       if (native.verdict === "warn") {
         return {
-          severity: "CAT III",
+          severity: "Low",
           clean: false,
-          basis: `Firmware check ${native.checkId} returned "warn", mapped to CAT III.`,
+          basis: `Firmware check ${native.checkId} returned "warn", mapped to low.`,
         };
       }
       const family = native.checkId.split("-")[1] ?? "";
       const critical = firmwareCriticalFamilies.has(family);
       return {
-        severity: critical ? "CAT I" : "CAT II",
+        severity: critical ? "High" : "Moderate",
         clean: false,
         basis: critical
-          ? `Firmware check ${native.checkId} failed and family "${family}" is in the secure-boot / anti-rollback set, so the boot chain itself is untrusted — CAT I.`
-          : `Firmware check ${native.checkId} failed outside the secure-boot / anti-rollback set, mapped to CAT II.`,
+          ? `Firmware check ${native.checkId} failed and family "${family}" is in the secure-boot / anti-rollback set, so the boot chain itself is untrusted — high.`
+          : `Firmware check ${native.checkId} failed outside the secure-boot / anti-rollback set, mapped to moderate.`,
       };
     }
     default:
-      return { severity: "CAT III", clean: false, basis: "Unrecognized format." };
+      return { severity: "Low", clean: false, basis: "Unrecognized format." };
   }
 }
 
@@ -1749,16 +1731,7 @@ function resolveRequirement(native: NativeResult): CciResolution {
           basis: `${cci} read from the CCI reference list the checklist carries on ${native.vulnNum}${native.cciRefs.length > 1 ? ` (first of ${native.cciRefs.length}: ${native.cciRefs.join(", ")})` : ""}.`,
         };
       }
-      const inferred = ccisByRule.get(native.vulnNum)?.[0] ?? null;
-      if (inferred) {
-        return {
-          cci: inferred,
-          rule: native.vulnNum,
-          unresolved: [],
-          basis: `The checklist row for ${native.vulnNum} carries no CCI reference; ${inferred} comes from the local catalog's inverse rule index for ${native.vulnNum}.`,
-        };
-      }
-      const reason = `No CCI: the checklist row for ${native.vulnNum} carries no CCI reference and the rule is not in the local catalog.`;
+      const reason = `No CCI: the checklist row for ${native.vulnNum} carries no CCI reference. An analyst must map it before this becomes a finding.`;
       return { cci: null, rule: native.vulnNum, unresolved: [reason], basis: reason };
     }
     case "SCAP XCCDF": {
@@ -1772,16 +1745,7 @@ function resolveRequirement(native: NativeResult): CciResolution {
           basis: `${cci} read from the XCCDF idents on ${native.ruleId} (${native.idents.join(", ")}).`,
         };
       }
-      const inferred = rule ? (ccisByRule.get(rule)?.[0] ?? null) : null;
-      if (inferred) {
-        return {
-          cci: inferred,
-          rule,
-          unresolved: [],
-          basis: `The XCCDF idents on ${native.ruleId} carry no CCI; ${inferred} comes from the local catalog's inverse rule index for ${rule ?? "the rule"}.`,
-        };
-      }
-      const reason = `No CCI: the XCCDF idents for ${native.ruleId} carry ${rule ?? "no rule id"} but no CCI, and ${rule ?? "the rule"} is not in the local rule catalog. An analyst must map it before this becomes a finding.`;
+      const reason = `No CCI: the XCCDF idents for ${native.ruleId} carry ${rule ?? "no rule id"} but no CCI. An analyst must map it before this becomes a finding.`;
       return { cci: null, rule, unresolved: [reason], basis: reason };
     }
     case "ACAS Nessus": {
@@ -1799,16 +1763,7 @@ function resolveRequirement(native: NativeResult): CciResolution {
             basis: `${reference.cci} read from the compliance reference ${native.complianceReference} stamped on audit-file check ${check}; plugin ${native.pluginId} states only that the row came from an audit file.`,
           };
         }
-        const inferred = reference.rule ? (ccisByRule.get(reference.rule)?.[0] ?? null) : null;
-        if (inferred) {
-          return {
-            cci: inferred,
-            rule: reference.rule,
-            unresolved: [],
-            basis: `The compliance reference on ${check} names ${reference.rule ?? "no rule"} but no CCI; ${inferred} comes from the local catalog's inverse rule index.`,
-          };
-        }
-        const reason = `No CCI: the compliance reference on audit-file check ${check} (${native.complianceReference}) states no CCI and ${reference.rule ?? "no rule id"} is not in the local rule catalog.`;
+        const reason = `No CCI: the compliance reference on audit-file check ${check} (${native.complianceReference}) states no CCI. An analyst must map it before this becomes a finding.`;
         return { cci: null, rule: reference.rule, unresolved: [reason], basis: reason };
       }
       const reason = `No CCI: ACAS plugin ${native.pluginId} carries no audit-file compliance reference — it is a vulnerability check, which states a plugin id and CVEs rather than a requirement${native.cve.length > 0 ? `; ${native.cve.join(", ")} must be mapped to a control by an analyst` : ""}.`;
@@ -1942,7 +1897,7 @@ export function normalize(native: NativeResult): NormalizedResult {
     nativeId,
     cci: requirement.cci,
     cciBasis: requirement.basis,
-    control: requirement.cci ? (cciControl.get(requirement.cci) ?? null) : null,
+    control: requirement.cci ? controlForCci(requirement.cci) : null,
     rule: requirement.rule,
     node: location.node,
     nodeBasis: location.basis,
@@ -2018,8 +1973,6 @@ export function dedupKey(result: NormalizedResult): string {
   return `${result.cci ?? "—"}|${result.node ?? "—"}|${result.rule ?? result.nativeId}`;
 }
 
-const severityOrder: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1, "CAT III": 2 };
-
 export function dedupe(results: NormalizedResult[]): DedupGroup[] {
   const byKey = new Map<string, NormalizedResult[]>();
   for (const r of results) {
@@ -2076,7 +2029,7 @@ export function dedupe(results: NormalizedResult[]): DedupGroup[] {
 
   return groups.sort(
     (a, b) =>
-      severityOrder[a.primary.severity] - severityOrder[b.primary.severity] ||
+      severityRank(a.primary.severity) - severityRank(b.primary.severity) ||
       a.key.localeCompare(b.key),
   );
 }
@@ -2205,7 +2158,7 @@ export function scanDiff(previousScanId: string | null, currentScanId: string): 
   return rows.sort(
     (a, b) =>
       stateOrder[a.state] - stateOrder[b.state] ||
-      severityOrder[a.severity] - severityOrder[b.severity] ||
+      severityRank(a.severity) - severityRank(b.severity) ||
       a.key.localeCompare(b.key),
   );
 }

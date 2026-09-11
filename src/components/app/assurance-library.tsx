@@ -65,7 +65,6 @@ import {
   LibrarySelect,
 } from "./assurance-library-forms";
 
-const plural = (kind: LibraryKind) => (kind === "Component" ? "Components" : "Overlays");
 const displayedVersion = (entry: LibraryEntry) => entry.draft ?? latestLibraryRelease(entry);
 const tone = (status: string) =>
   status === "Satisfied" || status === "Verified"
@@ -83,24 +82,12 @@ function LibraryRecordLink({
   versionId?: string;
   children?: React.ReactNode;
 }) {
-  return entry.kind === "Component" ? (
+  return (
     <TextLink
       render={
         <Link
           to="/library/components/$componentKey"
           params={{ componentKey: entry.key }}
-          search={versionId ? { version: versionId } : {}}
-        />
-      }
-    >
-      {children ?? entry.name}
-    </TextLink>
-  ) : (
-    <TextLink
-      render={
-        <Link
-          to="/library/overlays/$overlayKey"
-          params={{ overlayKey: entry.key }}
           search={versionId ? { version: versionId } : {}}
         />
       }
@@ -118,28 +105,27 @@ function EmptyRow({ columns, children }: { columns: number; children: React.Reac
     </tr>
   );
 }
-export function AssuranceLibraryIndex({ kind }: { kind: LibraryKind }) {
+/** One register for the whole library. A Product is instantiated, a Policy assigned. */
+export function AssuranceLibraryIndex() {
   useLibraryVersion();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All categories");
   const [creating, setCreating] = useState(false);
-  const entries = libraryEntries(kind);
+  const entries = libraryEntries();
   const visible = entries.filter(
     (entry) =>
       (category === "All categories" || entry.category === category) &&
       `${entry.id} ${entry.name} ${entry.owner}`.toLowerCase().includes(search.toLowerCase()),
   );
   const openEntry = (entry: LibraryEntry) =>
-    entry.kind === "Component"
-      ? navigate({ to: "/library/components/$componentKey", params: { componentKey: entry.key } })
-      : navigate({ to: "/library/overlays/$overlayKey", params: { overlayKey: entry.key } });
+    navigate({ to: "/library/components/$componentKey", params: { componentKey: entry.key } });
   return (
     <>
       <Stack space="space.200" className="min-w-0">
         <PageHeader>
           <div className="min-w-0">
-            <PageHeader.Title>{plural(kind)}</PageHeader.Title>
+            <PageHeader.Title>{"Components"}</PageHeader.Title>
           </div>
           <PageHeader.Actions>
             <>
@@ -147,7 +133,7 @@ export function AssuranceLibraryIndex({ kind }: { kind: LibraryKind }) {
                 variant="secondary"
                 onClick={() =>
                   downloadText(
-                    `${plural(kind).toLowerCase()}.json`,
+                    "components.json",
                     JSON.stringify(entries, null, 2),
                     "application/json",
                   )
@@ -156,7 +142,7 @@ export function AssuranceLibraryIndex({ kind }: { kind: LibraryKind }) {
                 Export
               </Button>
               <Button variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
-                New {kind.toLowerCase()}
+                New component
               </Button>
             </>
           </PageHeader.Actions>
@@ -169,8 +155,8 @@ export function AssuranceLibraryIndex({ kind }: { kind: LibraryKind }) {
                 className="pointer-events-none absolute start-100 top-100 size-icon-small text-subtle"
               />
               <Input
-                aria-label={`Search ${plural(kind).toLowerCase()}`}
-                placeholder={`Search ${plural(kind).toLowerCase()}`}
+                aria-label="Search components"
+                placeholder="Search components"
                 className="ps-400"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -193,7 +179,8 @@ export function AssuranceLibraryIndex({ kind }: { kind: LibraryKind }) {
           <thead>
             <tr>
               <Table.Header width={116}>ID</Table.Header>
-              <Table.Header>{kind}</Table.Header>
+              <Table.Header>Component</Table.Header>
+              <Table.Header width={92}>Type</Table.Header>
               <Table.Header width={166}>Category</Table.Header>
               <Table.Header width={150}>Owner</Table.Header>
               <Table.Header width={88}>Version</Table.Header>
@@ -219,7 +206,7 @@ export function AssuranceLibraryIndex({ kind }: { kind: LibraryKind }) {
                 ).length ?? 0;
               const used = unique(
                 [
-                  ...(kind === "Component"
+                  ...(entry.kind === "Product"
                     ? libraryUses().filter((use) => use.entryId === entry.id)
                     : libraryAssignments().filter((assignment) => assignment.entryId === entry.id)),
                 ].map((use) => use.programId),
@@ -235,6 +222,11 @@ export function AssuranceLibraryIndex({ kind }: { kind: LibraryKind }) {
                   </Table.Cell>
                   <Table.Cell>
                     <LibraryRecordLink entry={entry} />
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Badge variant="secondary" tone="neutral">
+                      {entry.kind}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>{entry.category}</Table.Cell>
                   <Table.Cell>{entry.owner}</Table.Cell>
@@ -252,13 +244,12 @@ export function AssuranceLibraryIndex({ kind }: { kind: LibraryKind }) {
                 </Table.Row>
               );
             })}
-            {!visible.length && <EmptyRow columns={9}>No {plural(kind).toLowerCase()}</EmptyRow>}
+            {!visible.length && <EmptyRow columns={10}>No components</EmptyRow>}
           </tbody>
         </Table>
       </Stack>
       {creating && (
         <LibraryEntryDialog
-          kind={kind}
           onClose={() => setCreating(false)}
           onCreated={(entry) => {
             setCreating(false);
@@ -272,11 +263,9 @@ export function AssuranceLibraryIndex({ kind }: { kind: LibraryKind }) {
 
 export function AssuranceLibraryRecord({
   entryKey,
-  kind,
   initialVersion = "",
 }: {
   entryKey: string;
-  kind: LibraryKind;
   initialVersion?: string | undefined;
 }) {
   useLibraryVersion();
@@ -290,11 +279,11 @@ export function AssuranceLibraryRecord({
   const [dialog, setDialog] = useState<"details" | "draft" | "controls" | "child" | "scope" | null>(
     null,
   );
-  if (!entry || entry.kind !== kind)
+  if (!entry)
     return (
       <PageHeader>
         <div className="min-w-0">
-          <PageHeader.Title>{`${kind} not found`}</PageHeader.Title>
+          <PageHeader.Title>{"Component not found"}</PageHeader.Title>
         </div>
       </PageHeader>
     );
@@ -325,7 +314,7 @@ export function AssuranceLibraryRecord({
   );
   const tabs = [
     "Controls",
-    kind === "Component" ? "Structure" : "Scope",
+    entry.kind === "Product" ? "Structure" : "Scope",
     "Requirements",
     "Evidence",
     "Versions",
@@ -387,16 +376,8 @@ export function AssuranceLibraryRecord({
           <Breadcrumb className="col-span-full">
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink
-                  render={
-                    kind === "Component" ? (
-                      <Link to="/library/components" />
-                    ) : (
-                      <Link to="/library/overlays" />
-                    )
-                  }
-                >
-                  {plural(kind)}
+                <BreadcrumbLink render={<Link to="/library/components" />}>
+                  Components
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -629,23 +610,23 @@ export function AssuranceLibraryRecord({
                     </thead>
                     <tbody>
                       <Table.Row>
-                        <Table.Cell>Base overlay</Table.Cell>
+                        <Table.Cell>Base policy</Table.Cell>
                         <Table.Cell>
-                          {current.baseOverlay ? (
+                          {current.basePolicy ? (
                             <>
-                              {libraryEntry(current.baseOverlay.entryId) ? (
+                              {libraryEntry(current.basePolicy.entryId) ? (
                                 <LibraryRecordLink
-                                  entry={libraryEntry(current.baseOverlay.entryId)!}
-                                  versionId={current.baseOverlay.versionId}
+                                  entry={libraryEntry(current.basePolicy.entryId)!}
+                                  versionId={current.basePolicy.versionId}
                                 />
                               ) : (
-                                current.baseOverlay.entryId
+                                current.basePolicy.entryId
                               )}{" "}
                               ·{" "}
                               {
                                 libraryRelease(
-                                  current.baseOverlay.entryId,
-                                  current.baseOverlay.versionId,
+                                  current.basePolicy.entryId,
+                                  current.basePolicy.versionId,
                                 )?.version
                               }
                             </>
@@ -840,7 +821,9 @@ export function AssuranceLibraryRecord({
                       <tr>
                         <Table.Header width={130}>Program</Table.Header>
                         <Table.Header>Name</Table.Header>
-                        <Table.Header>{kind === "Component" ? "Instance" : "Targets"}</Table.Header>
+                        <Table.Header>
+                          {entry.kind === "Product" ? "Instance" : "Targets"}
+                        </Table.Header>
                         <Table.Header width={100}>Version</Table.Header>
                       </tr>
                     </thead>
@@ -971,7 +954,7 @@ export function AssuranceLibraryRecord({
       </Stack>
       {dialog === "details" && (
         <LibraryEntryDialog
-          kind={kind}
+          kind={entry.kind}
           entry={entry}
           onClose={() => setDialog(null)}
           onCreated={() => setDialog(null)}
@@ -1025,7 +1008,7 @@ export function AssuranceLibraryRecord({
         />
       )}
       {dialog === "scope" && (
-        <OverlayScopeDialog
+        <PolicyScopeDialog
           entry={entry}
           version={current}
           onClose={() => setDialog(null)}
@@ -1217,7 +1200,7 @@ function AddChildDialog({
   onClose: () => void;
   onSave: (child: LibraryChild) => boolean;
 }) {
-  const candidates = libraryEntries("Component").filter(
+  const candidates = libraryEntries("Product").filter(
     (candidate) => candidate.id !== entry.id && candidate.versions.length,
   );
   const [entryId, setEntryId] = useState(candidates[0]?.id ?? "");
@@ -1278,7 +1261,7 @@ function AddChildDialog({
     </LibraryDialog>
   );
 }
-function OverlayScopeDialog({
+function PolicyScopeDialog({
   entry,
   version,
   onClose,
@@ -1289,12 +1272,12 @@ function OverlayScopeDialog({
   onClose: () => void;
   onSave: (version: LibraryVersion) => boolean;
 }) {
-  const candidates = libraryEntries("Overlay").filter(
+  const candidates = libraryEntries("Policy").filter(
     (candidate) => candidate.id !== entry.id && candidate.versions.length,
   );
-  const [entryId, setEntryId] = useState(version.baseOverlay?.entryId ?? "none");
+  const [entryId, setEntryId] = useState(version.basePolicy?.entryId ?? "none");
   const target = libraryEntry(entryId);
-  const [versionId, setVersionId] = useState(version.baseOverlay?.versionId ?? "");
+  const [versionId, setVersionId] = useState(version.basePolicy?.versionId ?? "");
   const [conditions, setConditions] = useState(version.conditions.join("\n"));
   return (
     <LibraryDialog
@@ -1305,7 +1288,7 @@ function OverlayScopeDialog({
         if (
           onSave({
             ...version,
-            baseOverlay: entryId === "none" ? null : { entryId, versionId },
+            basePolicy: entryId === "none" ? null : { entryId, versionId },
             conditions: conditions
               .split("\n")
               .map((condition) => condition.trim())
@@ -1316,7 +1299,7 @@ function OverlayScopeDialog({
       }}
     >
       <LibrarySelect
-        label="Base overlay"
+        label="Base policy"
         value={entryId}
         options={[
           { value: "none", label: "None" },

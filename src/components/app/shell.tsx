@@ -28,7 +28,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Archive,
   Bell,
-  Boxes,
   Bug,
   CircleHelp,
   ClipboardList,
@@ -62,8 +61,12 @@ const navGroups: {
     ],
   },
   {
-    label: "Risk",
+    // The assessment chain in order: evidence supports a result, a failed result
+    // becomes a finding, a finding becomes a risk tracked by a POA&M item, and the
+    // package carries all of it to the decision.
+    label: "Assessment",
     items: [
+      { label: "Evidence", to: "/evidence", icon: Archive },
       { label: "Findings & assets", to: "/findings", icon: Bug, badge: "7" },
       { label: "POA&M & risk", to: "/register", icon: ShieldAlert, badge: "4" },
       { label: "Packages", to: "/packages", icon: PackageIcon },
@@ -73,11 +76,9 @@ const navGroups: {
   {
     label: "Libraries",
     items: [
-      { label: "Control catalog", to: "/controls", icon: FileCheck2 },
-      { label: "STIG & SRG library", to: "/stigs", icon: Boxes },
+      { label: "Catalog", to: "/catalog", icon: FileCheck2 },
+      { label: "Profiles", to: "/profiles", icon: ShieldCheck },
       { label: "Components", to: "/library/components", icon: Library },
-      { label: "Overlays", to: "/library/overlays", icon: ShieldCheck },
-      { label: "Evidence", to: "/evidence", icon: Archive },
     ],
   },
   {

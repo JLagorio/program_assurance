@@ -3,7 +3,7 @@ import { cn } from "../lib/cn";
 
 export type PageHeaderProps = ComponentProps<"header">;
 
-/** Page identity and actions. Breadcrumbs, metadata and workflow controls are composed by the route. */
+/** Page identity and navigation/actions. Record fields and editors belong in the work area or properties, never the header. */
 function PageHeaderRoot({ className, ...props }: PageHeaderProps) {
   return (
     <header className={cn("page-header grid min-w-0 items-start gap-150", className)} {...props} />
@@ -22,7 +22,7 @@ function Description({ className, ...props }: ComponentProps<"p">) {
 }
 function Actions({ className, ...props }: ComponentProps<"div">) {
   return (
-    <div className={cn("flex max-w-full flex-wrap items-center gap-100", className)} {...props} />
+    <div className={cn("col-start-2 flex shrink-0 items-center gap-100", className)} {...props} />
   );
 }
 export const PageHeader = Object.assign(PageHeaderRoot, { Title, Description, Actions });

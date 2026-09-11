@@ -208,7 +208,7 @@ function ProgramDashboard() {
   );
 
   const overdueGates = outlook.remaining.filter((g) => g.daysOut !== null && g.daysOut < 0).length;
-  const catI = openFindings.filter((f) => f.mitigatedSeverity === "CAT I").length;
+  const high = openFindings.filter((f) => f.mitigatedSeverity === "High").length;
   const next = outlook.next;
 
   const families = useMemo(
@@ -303,8 +303,8 @@ function ProgramDashboard() {
             <DashboardStat
               label="Open findings"
               value={openFindings.length}
-              hint={catI ? `${catI} CAT I` : "No CAT I open"}
-              tone={catI > 0 ? "danger" : openFindings.length ? "warning" : "success"}
+              hint={high ? `${high} high` : "No high open"}
+              tone={high > 0 ? "danger" : openFindings.length ? "warning" : "success"}
             />
             <DashboardStat
               label="POA&M open"

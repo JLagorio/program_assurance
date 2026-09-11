@@ -178,20 +178,20 @@ function ProgramExport() {
   // the same controls per 800-53A objective and reports a larger total.
   const basis = useMemo(() => {
     const controls = new Set<string>();
-    const cciControls = new Set<string>();
-    let cciRows = 0;
+    const byUnit: Record<string, number> = {};
+    let withCci = 0;
     for (const row of rows) {
       controls.add(row.control);
-      if (row.unit === "CCI") {
-        cciRows += 1;
-        cciControls.add(row.control);
-      }
+      byUnit[row.unit] = (byUnit[row.unit] ?? 0) + 1;
+      if (row.ccis.length > 0) withCci += 1;
     }
     return {
       controls: controls.size,
-      cciRows,
-      cciControls: cciControls.size,
-      controlRows: rows.length - cciRows,
+      objectiveRows: byUnit["Objective"] ?? 0,
+      controlRows: byUnit["Control"] ?? 0,
+      cciRows: byUnit["CCI"] ?? 0,
+      requirementRows: byUnit["Requirement"] ?? 0,
+      withCci,
     };
   }, [rows]);
 
@@ -313,14 +313,18 @@ function ProgramExport() {
           <p className="max-w-layout-measure font-body-small text-subtle">
             <span className="font-medium text-default">Export basis.</span> Every artifact on this
             page is generated from the same {sctm.counts.total} exported requirement rows, covering{" "}
-            {basis.controls} controls: {basis.cciRows} rows keyed to a DISA CCI across{" "}
-            {basis.cciControls} controls, and one row each for the {basis.controlRows} controls the
-            catalog publishes no CCI for. The SCTM page rows those same controls per 800-53A
-            assessment objective and so reports a larger total — a different unit, not a different
-            program. That basis is not used here because eMASS Control Information is a per-control
-            sheet with no column an objective row could fill, and the media reconciled below was
-            written on the row set above, so switching would make every line of both manifests
-            differ and bury the two-determination difference the reconciliation exists to surface.
+            {basis.controls} controls: one row each for {basis.controlRows} controls,{" "}
+            {basis.requirementRows} program requirements, and {basis.cciRows} CCIs a finding names
+            for itself. {basis.withCci} rows also carry the DISA CCIs that cross-reference their
+            control — a crosswalk for joining eMASS and STIG content to the same statement item,
+            never the unit itself.{" "}
+            <span className="font-medium text-default">These are control rows, deliberately.</span>{" "}
+            The SCTM page rows the same controls per SP 800-53A assessment objective and reports a
+            larger total — a different unit, not a different program. That basis is not used here
+            because eMASS Control Information is a per-control sheet with no column an objective row
+            could fill, and the media reconciled below was written on the row set above, so
+            switching would make every line of both manifests differ and bury the two-determination
+            difference the reconciliation exists to surface.
           </p>
         </div>
       </PageHeader>

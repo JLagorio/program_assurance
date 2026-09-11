@@ -171,19 +171,19 @@ function testResult(determination: Determination): string {
 
 /**
  * The eMASS Severity scale, from the DISA category the AO adjudicated.
- * CAT I is the category that blocks an authorization, so it maps to the top of
- * the scale; CAT III is the category that does not, so it maps to the bottom.
+ * high is the category that blocks an authorization, so it maps to the top of
+ * the scale; low is the category that does not, so it maps to the bottom.
  */
 const severityFromCategory: Record<string, string> = {
-  "CAT I": "Very High",
-  "CAT II": "High",
-  "CAT III": "Low",
+  High: "Very High",
+  Moderate: "High",
+  Low: "Low",
 };
 
 const rawSeverityFromCategory: Record<string, string> = {
-  "CAT I": "I",
-  "CAT II": "II",
-  "CAT III": "III",
+  High: "I",
+  Moderate: "II",
+  Low: "III",
 };
 
 /** The eMASS five-point scale, from a 0–1 normalised risk factor. */
@@ -348,8 +348,8 @@ function predisposingConditions(members: Finding[]): string {
 function registerPoamRow(item: RegisterPoamItem): string[] {
   const members = findingsForPoam(item.id);
   const worst =
-    members.find((f) => f.mitigatedSeverity === "CAT I") ??
-    members.find((f) => f.mitigatedSeverity === "CAT II") ??
+    members.find((f) => f.mitigatedSeverity === "High") ??
+    members.find((f) => f.mitigatedSeverity === "Moderate") ??
     members[0];
   const score = worst ? scoreFinding(worst.id) : null;
   const exploitability = factorOf(score, "exploitability");

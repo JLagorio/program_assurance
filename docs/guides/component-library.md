@@ -12,15 +12,15 @@ under `docs/superpowers/specs/`, and the parts document themselves in the packag
 
 The folders separate presentation, application layout and reusable interaction. Components and primitives do not import patterns or layout; patterns may compose layout parts. The application owns routing, data and domain decisions.
 
-| Layer       | Folder                               | Responsibility                                                                                        |
-| ----------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Tokens      | `tokens/`, `src/generated/`          | Shared values and generated utilities.                                                                |
-| Primitives  | `src/primitives/`                    | Spacing, alignment and type: Box, Stack, Inline, Grid.                                                |
-| Components  | `src/components/`                    | Controls and display families built from shadcn Base UI foundations.                                  |
-| Layout      | `src/layout/`                        | Shell regions, PageHeader, Section and PageSkeleton.                                                  |
-| Patterns    | `src/patterns/`                      | Repeated interactions: DataTable, RecordPicker, Composer, Editable, Inspector and coordinated charts. |
-| Mode        | `src/mode/`                          | Colour mode, storage and the before-paint script.                                                     |
-| Application | `src/routes/`, `src/components/app/` | Persistent product navigation, route content, permissions, data and workflows.                        |
+| Layer       | Folder                                                | Responsibility                                                                                        |
+| ----------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Tokens      | `tokens/`, `src/generated/`                           | Shared values and generated utilities.                                                                |
+| Primitives  | `src/primitives/`                                     | Spacing, alignment and type: Box, Stack, Inline, Grid.                                                |
+| Components  | `src/components/`                                     | Controls and display families built from shadcn Base UI foundations.                                  |
+| Layout      | `src/layout/`                                         | Shell regions, PageHeader, Section and PageSkeleton.                                                  |
+| Patterns    | `src/patterns/`                                       | Repeated interactions: DataTable, RecordPicker, Composer, Editable, Inspector and coordinated charts. |
+| Mode        | `src/mode/`                                           | Colour mode, storage and the before-paint script.                                                     |
+| Application | `src/routes/`, `src/features/`, `src/components/app/` | Persistent product navigation, route content, permissions, data and workflows.                        |
 
 Editable, Gates, Toolbar and the Chart recipe family live in `src/patterns/`. They own inline-save recovery, readiness checks, search/filter/action layout, and chart exploration/export respectively. Chart remains Recharts-based, as in [shadcn’s chart source](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/chart.tsx); the Ledger family adds coordinated views and actions. Toolbar is the tab-navigated search row, distinct from [Base UI’s arrow-navigated Toolbar](https://base-ui.com/react/components/toolbar). Public imports still come from `@ledger/design-system`.
 
@@ -131,13 +131,15 @@ every product. A product's own config adds nothing about the kit.
 
 Record screens should make state, ownership and the next action visible before background detail. The requirement record is the first application reference: attention items lead to work, assessment results have a clear status, evidence opens as an artifact, and activity and provenance have their own views. Preserve the full requirement statement and audit information without repeating it across the header, body and rail.
 
-Use list or board views for queues, compact editable properties for ownership and status, and focused detail surfaces for completing work. Linear's [display options](https://linear.app/docs/display-options), HubSpot's [record composition](https://knowledge.hubspot.com/object-settings/customize-records) and Salesforce's [record workspaces](https://trailhead.salesforce.com/content/learn/modules/lightning-experience-for-salesforce-classic-users/work-with-your-data) are references for this direction. Choose the layout around the work the user is doing; adding cards alone does not create a workflow.
+Use list or board views for queues, labelled properties for ownership and status, and explicit editing actions for completing work. Linear's [display options](https://linear.app/docs/display-options), HubSpot's [record composition](https://knowledge.hubspot.com/object-settings/customize-records) and Salesforce's [record workspaces](https://trailhead.salesforce.com/content/learn/modules/lightning-experience-for-salesforce-classic-users/work-with-your-data) are references for this direction. Choose the layout around the work the user is doing; adding cards alone does not create a workflow.
 
 The root route mounts `AppLayout` once around its outlet. Routes compose `PageHeader`, primitives, controls and `TabsContent` in Main. `Shell.Aside` contributes supporting properties and `Shell.Panel` contributes selected-record or task content to stable destinations outside Main. React portals preserve route context, and route unmount removes the contribution; these slots render after client mount. Keep at most one contribution per region in the active route tree.
 
+Control and Requirement content lives in `src/features/controls/` and `src/features/requirements/`. Full-record routes and collection previews consume the same feature content, editors and action rules; each caller supplies its header and properties placement. Routes own `PageHeader`, `Shell.Aside` and `Shell.Panel`. Keep domain workflow out of the design-system package. Record names are full-record links; the eye opens the preview. Selected record, control scope and work tab live in route search parameters so Back, Forward and refresh reproduce the view. Tabs use separate `keepMounted` panels to retain drafts while changing tabs; changing records or leaving the view ends the local editing session.
+
 Aside follows Main below 1200px and sits beside it above that. A Panel is inline from 1280px; below that it replaces the visible work area while Main remains mounted. With both regions present, Aside follows Main until 1760px. Main uses document scrolling; Panel scrolls within the available viewport. Resizing, Escape, visible close and focus return belong to Panel. Use Base UI Sheet when the task needs modal focus containment.
 
-`IndexPage`, `ShowPage`, `RecordHeader`, `PreviewRail`, `PreviewSplit`, the standalone `Panel` frame and `Block` are removed. One composable `PageHeader` accepts native props and refs; metadata stays outside its h1. `Section` is an optional titled presentation region with an opt-in rule. Disclosure uses Collapsible. RecordPicker, PreviewSheet, DataTable and Composer remain reusable interactions. See the [layout examples](../../packages/design-system/src/stories/layout/Pages.mdx).
+`IndexPage`, `ShowPage`, `RecordHeader`, `PreviewRail`, `PreviewSplit`, the standalone `Panel` frame and `Block` are removed. One composable `PageHeader` accepts native props and refs; record fields and editing stay outside the header. `Section` is an optional titled presentation region with an opt-in rule. Disclosure uses Collapsible. RecordPicker, PreviewSheet, DataTable and Composer remain reusable interactions. See the [layout examples](../../packages/design-system/src/stories/layout/Pages.mdx).
 
 The [Pages guide](../../packages/design-system/src/stories/patterns/Pages.mdx) records the conventions: meaningful headings, task-based tabs, real navigation links, explicit dismissal, preserved in-progress work and responsive focus behavior. Keyboard and modal behavior follow WAI-ARIA and Base UI; visual composition follows the task and available space.
 
@@ -145,10 +147,12 @@ The [Pages guide](../../packages/design-system/src/stories/patterns/Pages.mdx) r
 
 - A list row carries the name, one status, the number the reader sorts by, at most one bar, and
   the actions. Everything else goes in the peek.
-- A record header carries identity, current state, ownership and useful actions. Supporting properties go in a compact rail or a focused details view.
+- A record header carries identity and one primary action or Actions menu, always beside the title. The title wraps to the left of the fixed action column at every width. Status, ownership and editors belong in a labelled Details section or supporting properties, never in page or preview headers.
 - Hover previews provide brief context. A selected-record surface supports the actions that make sense without leaving the queue, with a clear route to the full record.
 - Choose an inline panel or an overlay based on available space and whether the underlying queue must remain usable. Both can contain actions.
 - Shell.Panel supplies placement, heading, close and content spacing. A dismissible surface needs a visible close and a surviving focus target. Use Base UI Sheet when the rest of the page should be blocked.
+- Toolbar's `filters` alone collapse into More when space is constrained. Keep saved views, grouping, columns and settings in `children`, and buttons in `actions`; these remain visible. Search can occupy its own row at phone widths.
+- Long requirements, success criteria and assessment objectives wrap. Edit criteria directly in the cell with `Editable.Text multiline` and use a searchable chooser with confirmation for assessment relationships.
 - A screen is shaped by the reader's question. When a column, fact or block exists because the
   store has the field, it goes.
 - A real pattern the kit lacks is flagged in writing with a recommendation (kit or bespoke); the

@@ -92,8 +92,8 @@ function CurrencyMark({ row }: { row: SctmRow }) {
 }
 
 function severityToneOf(severity: string): Tone {
-  if (severity === "CAT I") return "danger";
-  if (severity === "CAT II") return "warning";
+  if (severity === "High") return "danger";
+  if (severity === "Moderate") return "warning";
   return "neutral";
 }
 
@@ -194,7 +194,7 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
             <span
               className={cn(
                 "tabular-nums shrink-0 font-body-xsmall",
-                row.worstSeverity === "CAT I" ? "text-danger" : "text-subtle",
+                row.worstSeverity === "High" ? "text-danger" : "text-subtle",
               )}
               title={`${row.openFindings} open — worst ${row.worstSeverity}`}
             >

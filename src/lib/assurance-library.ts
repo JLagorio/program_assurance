@@ -64,13 +64,13 @@ const release = z.object({
   ),
   evidence: z.array(evidence),
   children: z.array(reference.extend({ slot: id, name: id })),
-  baseOverlay: reference.nullable(),
+  basePolicy: reference.nullable(),
   conditions: z.array(z.string()),
 });
 const entrySchema = z.object({
   id,
   key: id,
-  kind: z.enum(["Component", "Overlay"]),
+  kind: z.enum(["Product", "Policy"]),
   name: z.string().trim().min(1),
   category: id,
   owner: z.string().trim().min(1),
@@ -99,7 +99,7 @@ const stateSchema = z.object({
       name: z.string().trim().min(1),
       parentUseId: id.nullable(),
       targetNodeId: id.nullable(),
-      role: z.enum(["Component", "Host"]),
+      role: z.enum(["Product", "Host"]),
       hostUseId: id.nullable(),
       controlIds: z.array(id),
     }),
@@ -108,6 +108,54 @@ const stateSchema = z.object({
   decisions: z.array(decisionSchema),
   programEvidence: z.array(evidence.extend({ programId: id, useId: id })),
 });
+
+/**
+ * A saved catalogue from before the library consolidation.
+ *
+ * The "Overlay" kind became "Policy", "Component" became "Product", and a
+ * version's `baseOverlay` became `basePolicy`. Those records live in a reader's
+ * browser where no generator can reach them, and `restoreLibrary` parses with
+ * `.parse`, so one stale value used to throw away every catalogue edit they had
+ * made. The rename is applied on the way in instead.
+ */
+function migrateSavedLibrary(value: unknown): unknown {
+  if (!value || typeof value !== "object") return value;
+  const state = value as Record<string, unknown>;
+
+  const entries = Array.isArray(state["entries"])
+    ? state["entries"].map((raw) => {
+        if (!raw || typeof raw !== "object") return raw;
+        const entry = { ...(raw as Record<string, unknown>) };
+        if (entry["kind"] === "Component") entry["kind"] = "Product";
+        else if (entry["kind"] === "Overlay") entry["kind"] = "Policy";
+        const version = (raw: unknown) => {
+          if (!raw || typeof raw !== "object") return raw;
+          const release = { ...(raw as Record<string, unknown>) };
+          if (!("basePolicy" in release) && "baseOverlay" in release) {
+            release["basePolicy"] = release["baseOverlay"];
+          }
+          delete release["baseOverlay"];
+          return release;
+        };
+        if (Array.isArray(entry["versions"])) entry["versions"] = entry["versions"].map(version);
+        if (entry["draft"]) entry["draft"] = version(entry["draft"]);
+        return entry;
+      })
+    : state["entries"];
+
+  const uses = Array.isArray(state["uses"])
+    ? state["uses"].map((raw) => {
+        if (!raw || typeof raw !== "object") return raw;
+        const use = { ...(raw as Record<string, unknown>) };
+        if (use["role"] === "Component") use["role"] = "Product";
+        return use;
+      })
+    : state["uses"];
+
+  return { ...state, entries, uses };
+}
+
+const savedStateSchema = z.preprocess(migrateSavedLibrary, stateSchema);
 function freeze<T>(value: T): T {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
     Object.freeze(value);
@@ -163,7 +211,7 @@ function programTarget(programId: string): LibraryUse {
     name: "Program scope",
     parentUseId: null,
     targetNodeId: null,
-    role: "Component",
+    role: "Product",
     hostUseId: null,
     controlIds: [],
   };
@@ -271,24 +319,24 @@ function validate(next: LibraryState) {
         if (requirement.status === "Verified" && !requirement.evidenceIds.length)
           throw new Error(`Link evidence before verifying ${requirement.id}.`);
       }
-      if (entry.kind === "Overlay" && version.children.length)
-        throw new Error("Overlays cannot contain components.");
-      if (entry.kind === "Component" && version.baseOverlay)
-        throw new Error("Only overlays can extend an overlay.");
+      if (entry.kind === "Policy" && version.children.length)
+        throw new Error("A policy cannot contain components.");
+      if (entry.kind === "Product" && version.basePolicy)
+        throw new Error("Only a policy can extend a policy.");
       const walk = (ownerId: string, current: LibraryVersion, ancestors: Set<string>) => {
         if (ancestors.has(ownerId)) throw new Error("Catalog nesting cannot contain a cycle.");
         const path = new Set([...ancestors, ownerId]);
         for (const child of current.children) {
-          if (entryIn(next, child.entryId).kind !== "Component")
+          if (entryIn(next, child.entryId).kind !== "Product")
             throw new Error("Choose a component for each child slot.");
           walk(child.entryId, releaseIn(next, child.entryId, child.versionId), path);
         }
-        if (current.baseOverlay) {
-          if (entryIn(next, current.baseOverlay.entryId).kind !== "Overlay")
-            throw new Error("Choose an overlay as the base.");
+        if (current.basePolicy) {
+          if (entryIn(next, current.basePolicy.entryId).kind !== "Policy")
+            throw new Error("Choose a policy as the base.");
           walk(
-            current.baseOverlay.entryId,
-            releaseIn(next, current.baseOverlay.entryId, current.baseOverlay.versionId),
+            current.basePolicy.entryId,
+            releaseIn(next, current.basePolicy.entryId, current.basePolicy.versionId),
             path,
           );
         }
@@ -298,7 +346,7 @@ function validate(next: LibraryState) {
   }
   for (const use of next.uses) {
     programExists(use.programId);
-    if (entryIn(next, use.entryId).kind !== "Component") throw new Error("Choose a component.");
+    if (entryIn(next, use.entryId).kind !== "Product") throw new Error("Choose a component.");
     releaseIn(next, use.entryId, use.versionId);
     if (use.targetNodeId && nodeById.get(use.targetNodeId)?.program !== use.programId)
       throw new Error("Choose a system element in this program.");
@@ -324,23 +372,23 @@ function validate(next: LibraryState) {
   }
   for (const assignment of next.assignments) {
     programExists(assignment.programId);
-    if (entryIn(next, assignment.entryId).kind !== "Overlay") throw new Error("Choose an overlay.");
+    if (entryIn(next, assignment.entryId).kind !== "Policy") throw new Error("Choose a policy.");
     const version = releaseIn(next, assignment.entryId, assignment.versionId);
-    unique(assignment.targetIds, "Overlay targets");
+    unique(assignment.targetIds, "Policy targets");
     for (const targetId of assignment.targetIds) {
       if (targetId !== "program" && instanceIn(next, targetId).programId !== assignment.programId)
         throw new Error("Choose targets in this program.");
       if (
-        version.baseOverlay &&
+        version.basePolicy &&
         !next.assignments.some(
           (base) =>
             base.programId === assignment.programId &&
-            base.entryId === version.baseOverlay!.entryId &&
-            base.versionId === version.baseOverlay!.versionId &&
+            base.entryId === version.basePolicy!.entryId &&
+            base.versionId === version.basePolicy!.versionId &&
             (base.targetIds.includes("program") || base.targetIds.includes(targetId)),
         )
       )
-        throw new Error("Assign the required base overlay version to these targets first.");
+        throw new Error("Assign the required base policy version to these targets first.");
     }
   }
   for (const proof of next.programEvidence) {
@@ -376,7 +424,7 @@ function validate(next: LibraryState) {
 export function restoreLibrary() {
   if (restored || typeof window === "undefined") return;
   const raw = window.localStorage.getItem(libraryStorageKey);
-  const next = stateSchema.parse(raw ? JSON.parse(raw) : clone(state)) as LibraryState;
+  const next = savedStateSchema.parse(raw ? JSON.parse(raw) : clone(state)) as LibraryState;
   validate(next);
   if (raw) publish(next);
   restored = true;
@@ -424,7 +472,7 @@ export function createLibraryEntry(input: {
   version: string;
 }): LibraryEntry {
   restoreLibrary();
-  const prefix = input.kind === "Component" ? "CMP" : "OVL";
+  const prefix = input.kind === "Product" ? "CMP" : "OVL";
   const sequence =
     Math.max(
       0,
@@ -458,7 +506,7 @@ export function createLibraryEntry(input: {
         requirements: [],
         evidence: [],
         children: [],
-        baseOverlay: null,
+        basePolicy: null,
         conditions: [],
       },
     }),
@@ -500,8 +548,8 @@ export function saveLibraryDraft(entryId: string, draft: LibraryVersion) {
     const updated = clone(draft);
     updated.publishedOn = null;
     const structureChanged =
-      JSON.stringify([previous.children, previous.baseOverlay, previous.conditions]) !==
-      JSON.stringify([updated.children, updated.baseOverlay, updated.conditions]);
+      JSON.stringify([previous.children, previous.basePolicy, previous.conditions]) !==
+      JSON.stringify([updated.children, updated.basePolicy, updated.conditions]);
     for (const c of updated.controls) {
       const prior = previous.controls.find((item) => item.id === c.id);
       const changed =
@@ -553,7 +601,7 @@ export function addLibraryUse(input: {
   versionId: string;
   name: string;
   targetNodeId: string | null;
-  role: "Component" | "Host";
+  role: "Product" | "Host";
 }): LibraryUse {
   const rootId = uid("USE");
   transaction((next) => {
@@ -574,7 +622,7 @@ export function addLibraryUse(input: {
         name,
         parentUseId,
         targetNodeId: parentUseId ? null : input.targetNodeId,
-        role: parentUseId ? "Component" : input.role,
+        role: parentUseId ? "Product" : input.role,
         hostUseId: null,
         controlIds: version.controls.map((c) => c.id),
       };
@@ -627,7 +675,7 @@ export function setLibraryHost(useId: string, hostUseId: string | null) {
     use.hostUseId = hostUseId;
   });
 }
-export function assignLibraryOverlay(input: {
+export function assignLibraryPolicy(input: {
   programId: string;
   entryId: string;
   versionId: string;
@@ -659,7 +707,7 @@ export function assignLibraryOverlay(input: {
 export function removeLibraryAssignment(assignmentId: string) {
   transaction((next) => {
     const assignment = next.assignments.find((a) => a.id === assignmentId);
-    if (!assignment) throw new Error("Overlay assignment not found.");
+    if (!assignment) throw new Error("Policy assignment not found.");
     const version = releaseIn(next, assignment.entryId, assignment.versionId);
     // Retain obligations on every affected instance after the source is removed.
     for (const use of next.uses.filter(
@@ -674,7 +722,7 @@ export function removeLibraryAssignment(assignmentId: string) {
       resetUseAssessments(next, programTarget(assignment.programId).id);
     next.assignments = next.assignments.filter((item) => item.id !== assignmentId);
     for (const d of next.decisions)
-      if (d.sourceDecisions[`overlay:${assignmentId}`]) {
+      if (d.sourceDecisions[`policy:${assignmentId}`]) {
         d.assessment = "Not assessed";
         d.assessor = "";
         d.assessedOn = "";
@@ -705,10 +753,10 @@ export function librarySources(useId: string, controlId: string): LibrarySource[
       (item) => item.id === controlId && item.applicability === "Applicable",
     );
     const programDecision =
-      kind === "Overlay" &&
+      kind === "Policy" &&
       !isProgramTarget(use) &&
       state.assignments.some(
-        (a) => `overlay:${a.id}` === sourceId && a.targetIds.includes("program"),
+        (a) => `policy:${a.id}` === sourceId && a.targetIds.includes("program"),
       )
         ? libraryDecision(programTarget(use.programId).id, controlId).sourceDecisions[sourceId]
         : undefined;
@@ -722,13 +770,13 @@ export function librarySources(useId: string, controlId: string): LibrarySource[
         decision: decision.sourceDecisions[sourceId] ?? programDecision ?? "Pending",
       });
   };
-  if (!isProgramTarget(use)) add(use.entryId, use.versionId, `component:${use.id}`, "Component");
+  if (!isProgramTarget(use)) add(use.entryId, use.versionId, `component:${use.id}`, "Product");
   for (const assignment of state.assignments.filter(
     (a) =>
       a.programId === use.programId &&
       (a.targetIds.includes("program") || a.targetIds.includes(use.id)),
   ))
-    add(assignment.entryId, assignment.versionId, `overlay:${assignment.id}`, "Overlay");
+    add(assignment.entryId, assignment.versionId, `policy:${assignment.id}`, "Policy");
   if (use.hostUseId) {
     const host = instanceIn(state, use.hostUseId);
     add(host.entryId, host.versionId, `host:${host.id}`, "Host");

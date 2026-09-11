@@ -391,7 +391,7 @@ export const builds: Build[] = [
       {
         control: "SI-2",
         parameter: "Flaw remediation time period from release of the update",
-        value: "CAT I within 7 days, CAT II within 30 days, CAT III within 90 days",
+        value: "high within 7 days, moderate within 30 days, low within 90 days",
       },
     ],
     note: "Baselined at the Jul 18 CCB after the 4.7.2 regression campaign closed. This is the configuration every determination in the current SAR was taken against, and the one the ATO package will name.",
@@ -507,7 +507,7 @@ export const builds: Build[] = [
       {
         control: "SI-2",
         parameter: "Flaw remediation time period from release of the update",
-        value: "CAT I within 7 days, CAT II within 30 days, CAT III within 90 days",
+        value: "high within 7 days, moderate within 30 days, low within 90 days",
       },
     ],
     note: "Release candidate staged for the 4.8.0 regression campaign. Five pins move against BLD-0007; four carry a change record and one does not, which is itself the CM-3 finding on this build.",

@@ -8,6 +8,7 @@ import {
 import {
   createEvidence,
   evidenceAvailableInScope,
+  evidenceCatalog,
   evidenceForProgram,
   evidenceForTarget,
   linkArtifact,
@@ -332,24 +333,31 @@ export function AddEvidenceDialog({
   );
 }
 
+/**
+ * The evidence register. Scoped to one program on the program record, unscoped as
+ * the cross-program register at `/evidence` — the same shape `/findings` and
+ * `/register` use. Unscoped gains a Program column and drops Add, because an
+ * artifact is authored in a program's context, not above it.
+ */
 export function ProgramEvidence({
   programId,
   elementId,
 }: {
-  programId: string;
+  programId?: string | undefined;
   elementId?: string | undefined;
 }) {
   useEvidenceVersion();
   useWorkVersion();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
-  const rows = evidenceForProgram(programId);
+  const rows = programId ? evidenceForProgram(programId) : [...evidenceCatalog];
   const selected = rows.find((artifact) => artifact.id === selectedId) ?? null;
   const columns = useMemo(
     () =>
       defineColumns<EvidenceArtifact>((c) => [
         c.id("id", { header: "Evidence", width: 116, hideable: false }),
         c.text("label", { header: "Artifact", width: 260, hideable: false }),
+        ...(programId ? [] : [c.text("program", { header: "Program", width: 120 })]),
         c.text("kind", { header: "Kind", width: 120 }),
         c.custom("scopeIds", {
           header: "System",
@@ -384,14 +392,14 @@ export function ProgramEvidence({
           tone: (artifact) => reviewTone(artifact.review),
         }),
       ]),
-    [],
+    [programId],
   );
   const table = useDataTable({
     data: rows,
     columns,
     getRowId: (artifact) => artifact.id,
-    label: "Program evidence",
-    view: `program-evidence-${programId}`,
+    label: programId ? "Program evidence" : "Evidence",
+    view: programId ? `program-evidence-${programId}` : "evidence-all",
     resizable: true,
     reorderable: true,
   });
@@ -430,14 +438,16 @@ export function ProgramEvidence({
             <Inline className="ml-auto" space="space.100" alignBlock="center">
               <DataTable.Columns table={table} />
               <DataTable.Settings table={table} />
-              <Button size="small" variant="primary" onClick={() => setAdding(true)}>
-                Add evidence
-              </Button>
+              {programId ? (
+                <Button size="small" variant="primary" onClick={() => setAdding(true)}>
+                  Add evidence
+                </Button>
+              ) : null}
             </Inline>
           </Inline>
         }
       />
-      {adding ? (
+      {adding && programId ? (
         <AddEvidenceDialog
           programId={programId}
           open
@@ -446,13 +456,22 @@ export function ProgramEvidence({
         />
       ) : null}
       {selected ? (
-        <EvidencePreview
-          key={selected.id}
-          programId={programId}
-          evidenceId={selected.id}
-          elementId={elementId}
-          onClose={() => setSelectedId(null)}
-        />
+        programId ? (
+          <EvidencePreview
+            key={selected.id}
+            programId={programId}
+            evidenceId={selected.id}
+            elementId={elementId}
+            onClose={() => setSelectedId(null)}
+          />
+        ) : (
+          <EvidencePreview
+            key={selected.id}
+            artifact={selected}
+            elementId={elementId}
+            onClose={() => setSelectedId(null)}
+          />
+        )
       ) : null}
     </Stack>
   );

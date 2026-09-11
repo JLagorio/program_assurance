@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { Columns3, Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
@@ -7,7 +7,6 @@ import { CoverageBar } from "@/components/app/coverage-bar";
 import { ControlHover, RequirementHover } from "@/components/app/glances";
 import { LinkControlsSheet } from "@/components/app/link-controls";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
-import { RequirementPreviewSheet } from "@/components/app/requirement-preview";
 import { AllocationTable } from "@/components/app/requirements";
 import { useCompositionGraph } from "@/lib/composition";
 import { suspectLinksFor, useLinkCurrencyVersion } from "@/lib/link-currency";
@@ -37,18 +36,19 @@ import {
   Button,
   DataTable,
   Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
   Id,
   Indicator,
   Inline,
   Text,
   TextLink,
+  Toolbar,
   defineColumns,
   useDataTable,
   type Preset,
-  EmptyHeader,
-  EmptyContent,
-  EmptyTitle,
-  EmptyDescription,
 } from "@ledger/design-system";
 
 /** Who carries a requirement, as one value a preset can ask for. */
@@ -123,9 +123,13 @@ function metShare(c: RequirementCoverage): number {
 export function RequirementCoverage({
   programId,
   elementId,
+  previewId,
+  onPreview,
 }: {
   programId: string;
   elementId?: string | undefined;
+  previewId?: string | undefined;
+  onPreview: (requirementId: string) => void;
 }) {
   const navigate = useNavigate();
   const version = useRequirementsVersion();
@@ -136,10 +140,9 @@ export function RequirementCoverage({
   const [allocating, setAllocating] = useState<Requirement | null>(null);
   const [linking, setLinking] = useState<Requirement | null>(null);
   const [adding, setAdding] = useState(false);
-  const [previewId, setPreviewId] = useState<string | null>(null);
   // The columns read the open preview through a ref, so opening one redraws the rows without rebuilding them.
-  const previewRef = useRef(previewId);
-  previewRef.current = previewId;
+  const previewRef = useRef({ previewId, onPreview });
+  previewRef.current = { previewId, onPreview };
 
   const all = useMemo(
     () => requirementsForProgramElement(programId, selectedElementId),
@@ -195,8 +198,8 @@ export function RequirementCoverage({
           width: 140,
           pin: "start",
           hideable: false,
-          preview: (r) => setPreviewId(r.id),
-          active: (r) => r.id === previewRef.current,
+          preview: (r) => previewRef.current.onPreview(r.id),
+          active: (r) => r.id === previewRef.current.previewId,
           cell: (r) => (
             <RequirementHover requirementId={r.id}>
               <TextLink
@@ -213,7 +216,24 @@ export function RequirementCoverage({
             </RequirementHover>
           ),
         }),
-        c.text("text", { header: "Shall statement", minWidth: 240, hideable: false }),
+        c.text("text", {
+          header: "Shall statement",
+          minWidth: 240,
+          hideable: false,
+          cell: (r) => (
+            <TextLink
+              render={
+                <Link
+                  to="/programs/$programId/requirements/$requirementId"
+                  params={{ programId, requirementId: r.id }}
+                  search={{ tab: undefined, element: selectedElementId }}
+                />
+              }
+            >
+              {r.text}
+            </TextLink>
+          ),
+        }),
         c.list("carriedBy", {
           header: "Allocated to",
           width: 240,
@@ -361,23 +381,33 @@ export function RequirementCoverage({
 
   const newRequirement = (
     <Button size="small" variant="primary" iconBefore={<Plus />} onClick={() => setAdding(true)}>
-      New requirement
+      <span className="sr-only sm:not-sr-only">New requirement</span>
     </Button>
   );
 
   const toolbar = (
-    <Inline space="space.100" alignBlock="center" shouldWrap>
-      <DataTable.Search table={table} placeholder="Find a requirement" />
+    <Toolbar
+      search={String(table.state.globalFilter ?? "")}
+      onSearch={(value) => table.setGlobalFilter(value)}
+      placeholder="Find a requirement"
+      actions={newRequirement}
+      filters={
+        <>
+          <DataTable.Filter table={table} column="allocation" />
+          <DataTable.Filter table={table} column="origin" />
+          <DataTable.Filter table={table} column="state" />
+        </>
+      }
+    >
       <DataTable.Presets table={table} presets={presets} variant="menu" aria-label="Saved views" />
-      <DataTable.Filter table={table} column="allocation" />
-      <DataTable.Filter table={table} column="origin" />
-      <DataTable.Filter table={table} column="state" />
-      <Inline className="ml-auto" space="space.100" alignBlock="center">
-        <DataTable.Columns table={table} />
-        <DataTable.Settings table={table} />
-        {newRequirement}
-      </Inline>
-    </Inline>
+
+      <DataTable.Columns table={table}>
+        <Button size="small" iconBefore={<Columns3 />} aria-label="Columns" title="Columns">
+          <span className="sr-only sm:not-sr-only">Columns</span>
+        </Button>
+      </DataTable.Columns>
+      <DataTable.Settings table={table} />
+    </Toolbar>
   );
 
   // No requirements at all is a different empty from filters that leave none.
@@ -399,15 +429,6 @@ export function RequirementCoverage({
     <>
       <DataTable table={table} toolbar={toolbar} empty={empty} />
 
-      <RequirementPreviewSheet
-        programId={programId}
-        elementId={selectedElementId}
-        requirementId={previewId}
-        onClose={() => setPreviewId(null)}
-        onAllocate={(r) => setAllocating(r)}
-        onLinkControls={(r) => setLinking(r)}
-      />
-
       <NewRequirementModal
         open={adding}
         onClose={() => setAdding(false)}
@@ -416,7 +437,7 @@ export function RequirementCoverage({
           void navigate({
             to: "/programs/$programId/requirements/$requirementId",
             params: { programId, requirementId: requirement.id },
-            search: { tab: undefined },
+            search: { tab: undefined, element: selectedElementId },
           });
         }}
       />

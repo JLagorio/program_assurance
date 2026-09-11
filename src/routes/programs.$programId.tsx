@@ -13,11 +13,15 @@ import { ScopeTable } from "@/components/app/scopes";
 import { StageStrip } from "@/components/app/stage-strip";
 import { Task } from "@/components/app/task";
 import { TaskRows } from "@/components/app/tasks-section";
+import { ControlPreview } from "@/features/controls/control-preview";
+import { controlTabs, type ControlTab } from "@/features/controls/tabs";
+import { RequirementPreview } from "@/features/requirements/requirement-preview";
+import { requirementTabs, type RequirementTab } from "@/features/requirements/tabs";
 import { useAssessmentsVersion } from "@/lib/assessment-store";
 import { useAssuranceVersion } from "@/lib/assurance-record-store";
 import { campaigns } from "@/lib/campaigns";
 import { useCompositionGraph } from "@/lib/composition";
-import { useControlMatrix, controlStatuses, type ControlStatus } from "@/lib/control-matrix";
+import { controlStatuses, useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { currentSession, useWorkVersion } from "@/lib/control-work";
 import { evidenceForProgram, useEvidenceVersion } from "@/lib/evidence-catalog";
 import { programs, programStatuses, programStatusTone } from "@/lib/grc-data";
@@ -56,7 +60,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Button,
-  buttonVariants,
   Combobox,
   ComboboxContent,
   ComboboxEmpty,
@@ -83,7 +86,6 @@ import {
   FieldError,
   FieldLabel,
   Grid,
-  IconButton,
   Id,
   Inline,
   Inspector,
@@ -112,6 +114,11 @@ export const Route = createFileRoute("/programs/$programId")({
     search: Record<string, unknown>,
   ): {
     tab?: Tab | undefined;
+    controlId?: string | undefined;
+    controlScope?: string | undefined;
+    controlTab?: ControlTab | undefined;
+    requirementId?: string | undefined;
+    requirementTab?: RequirementTab | undefined;
     controlFamily?: string | undefined;
     controlStatus?: ControlStatus | undefined;
     peek?: string | undefined;
@@ -130,6 +137,24 @@ export const Route = createFileRoute("/programs/$programId")({
       tab:
         tabOrder.find((t) => t.toLowerCase() === raw.toLowerCase()) ?? tabAlias[raw.toLowerCase()],
       peek,
+      controlId:
+        typeof search["controlId"] === "string" && search["controlId"]
+          ? search["controlId"]
+          : undefined,
+      controlScope:
+        typeof search["controlScope"] === "string" && search["controlScope"]
+          ? search["controlScope"]
+          : undefined,
+      controlTab: controlTabs.find(
+        (tab) => tab.toLowerCase() === String(search["controlTab"]).toLowerCase(),
+      ),
+      requirementId:
+        typeof search["requirementId"] === "string" && search["requirementId"]
+          ? search["requirementId"]
+          : undefined,
+      requirementTab: requirementTabs.find(
+        (tab) => tab.toLowerCase() === String(search["requirementTab"]).toLowerCase(),
+      ),
       controlFamily:
         typeof search["controlFamily"] === "string" && /^[A-Z]{2}$/.test(search["controlFamily"])
           ? search["controlFamily"]
@@ -317,6 +342,11 @@ function ProgramDetail() {
         search: (prev) => ({
           ...prev,
           tab: next,
+          controlId: undefined,
+          controlScope: undefined,
+          controlTab: undefined,
+          requirementId: undefined,
+          requirementTab: undefined,
           controlFamily: undefined,
           controlStatus: undefined,
           element: undefined,
@@ -483,6 +513,30 @@ function ProgramDetail() {
   const rail = (
     <>
       <Inspector.Group title="Details">
+        <KeyValue label="Status">
+          <Editable.Select
+            label="Status"
+            value={status}
+            options={programStatuses}
+            onChange={setStatus}
+            save={saveField("Status")}
+            render={(v) => (
+              <Badge variant="secondary" tone={programStatusTone[v]}>
+                {v}
+              </Badge>
+            )}
+          />
+        </KeyValue>
+        <KeyValue label="Owner">
+          <Editable.Select
+            label="Owner"
+            value={owner}
+            options={ownerOptions}
+            onChange={setOwner}
+            save={saveField("Owner")}
+            render={(v) => <Person name={v} />}
+          />
+        </KeyValue>
         <KeyValue label="Acronym">
           <Editable.Text
             label="Acronym"
@@ -593,128 +647,62 @@ function ProgramDetail() {
             <PageHeader.Title>{program.name}</PageHeader.Title>
           </div>
           <PageHeader.Actions>
-            <>
-              <DropdownMenu>
-                <DropdownMenuTrigger
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button size="small" iconAfter={<ChevronDown />}>
+                    Actions
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" style={{ width: 240 }}>
+                <DropdownMenuLinkItem
+                  closeOnClick
                   render={
-                    <Button variant="secondary" size="small" iconAfter={<ChevronDown />}>
-                      Views
-                    </Button>
+                    <Link
+                      to="/programs/$programId"
+                      params={{ programId: program.id }}
+                      search={{ tab: "Schedule", scheduleView: "Plan" }}
+                    />
                   }
-                />
-                <DropdownMenuContent align="end" style={{ width: 240 }}>
-                  {programViews.map((group) => (
-                    <DropdownMenuGroup key={group.label}>
-                      <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
-                      {group.items.map((v) => (
-                        <DropdownMenuLinkItem
-                          key={v.to}
-                          closeOnClick
-                          render={
-                            <Link
-                              to={v.to}
-                              params={{ programId: program.id }}
-                              search={v.search ?? {}}
-                            />
-                          }
-                        >
-                          {v.label}
-                        </DropdownMenuLinkItem>
-                      ))}
-                    </DropdownMenuGroup>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Inline space="space.050" alignBlock="center">
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId: program.id }}
-                  search={{ tab: "Schedule", scheduleView: "Plan" }}
-                  className={buttonVariants({ variant: "primary", size: "small" })}
                 >
                   Open schedule
-                </Link>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <IconButton
-                        variant="primary"
-                        size="small"
-                        label="More actions"
-                        icon={<ChevronDown />}
-                      />
-                    }
-                  />
-                  <DropdownMenuContent align="end" style={{ width: 200 }}>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        palette.setOpen(true);
-                      }}
-                    >
-                      Command palette
-                      <Kbd>⌘K</Kbd>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setCdrOpen(true);
-                      }}
-                    >
-                      Export CDR package
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setAssessing(true);
-                      }}
-                    >
-                      Record assessment
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setArchiving(true);
-                      }}
-                    >
-                      Archive
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </Inline>
-            </>
+                </DropdownMenuLinkItem>
+                <DropdownMenuItem onClick={() => setAssessing(true)}>
+                  Record assessment
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCdrOpen(true)}>
+                  Export CDR package
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => palette.setOpen(true)}>
+                  Command palette <Kbd>⌘K</Kbd>
+                </DropdownMenuItem>
+                {programViews.map((group) => (
+                  <DropdownMenuGroup key={group.label}>
+                    <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+                    {group.items.map((v) => (
+                      <DropdownMenuLinkItem
+                        key={v.to}
+                        closeOnClick
+                        render={
+                          <Link
+                            to={v.to}
+                            params={{ programId: program.id }}
+                            search={v.search ?? {}}
+                          />
+                        }
+                      >
+                        {v.label}
+                      </DropdownMenuLinkItem>
+                    ))}
+                  </DropdownMenuGroup>
+                ))}
+                <DropdownMenuItem onClick={() => setArchiving(true)}>
+                  Archive program
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </PageHeader.Actions>
-          <Inline
-            space="space.200"
-            rowSpace="space.100"
-            alignBlock="center"
-            shouldWrap
-            className="col-span-full"
-          >
-            <Inline space="space.075" alignBlock="center">
-              <span className="font-body-small text-subtle">Status</span>
-              <Editable.Select
-                label="Status"
-                value={status}
-                options={programStatuses}
-                onChange={setStatus}
-                save={saveField("Status")}
-                render={(v) => (
-                  <Badge variant="secondary" tone={programStatusTone[v]}>
-                    {v}
-                  </Badge>
-                )}
-              />
-            </Inline>
-            <Inline space="space.075" alignBlock="center">
-              <span className="font-body-small text-subtle">Owner</span>
-              <Editable.Select
-                label="Owner"
-                value={owner}
-                options={ownerOptions}
-                onChange={setOwner}
-                save={saveField("Owner")}
-                render={(v) => <Person name={v} />}
-              />
-            </Inline>
-          </Inline>
         </PageHeader>
         <Tabs
           value={tab}
@@ -825,10 +813,92 @@ function ProgramDetail() {
                   </Section>
                 </>
               ) : null}
+              {tab === "Controls" && search.controlId ? (
+                <Shell.Panel
+                  title={search.controlId}
+                  label="Control preview"
+                  defaultWidth={640}
+                  onClose={() => {
+                    void navigate({
+                      search: (previous) => ({
+                        ...previous,
+                        controlId: undefined,
+                        controlScope: undefined,
+                        controlTab: undefined,
+                      }),
+                      replace: true,
+                      resetScroll: false,
+                    });
+                  }}
+                >
+                  <ControlPreview
+                    programId={program.id}
+                    controlId={search.controlId}
+                    scopeId={search.controlScope}
+                    elementId={selectedElement?.id}
+                    tab={search.controlTab ?? "Implementation"}
+                    onTabChange={(controlTab) =>
+                      navigate({
+                        search: (previous) => ({ ...previous, controlTab }),
+                        resetScroll: false,
+                      })
+                    }
+                    onScopeChange={(controlScope) => {
+                      void navigate({
+                        search: (previous) => ({ ...previous, controlScope }),
+                        resetScroll: false,
+                      });
+                    }}
+                  />
+                </Shell.Panel>
+              ) : null}
+              {tab === "Requirements" && search.requirementId ? (
+                <Shell.Panel
+                  title={search.requirementId}
+                  label="Requirement preview"
+                  defaultWidth={640}
+                  onClose={() => {
+                    void navigate({
+                      search: (previous) => ({
+                        ...previous,
+                        requirementId: undefined,
+                        requirementTab: undefined,
+                      }),
+                      replace: true,
+                      resetScroll: false,
+                    });
+                  }}
+                >
+                  <RequirementPreview
+                    programId={program.id}
+                    requirementId={search.requirementId}
+                    elementId={selectedElement?.id}
+                    tab={search.requirementTab ?? "Overview"}
+                    onTabChange={(requirementTab) =>
+                      navigate({
+                        search: (previous) => ({ ...previous, requirementTab }),
+                        resetScroll: false,
+                      })
+                    }
+                  />
+                </Shell.Panel>
+              ) : null}
               {tab === "Controls" ? (
                 <ProgramControls
                   programId={program.id}
                   elementId={selectedElement?.id}
+                  previewId={search.controlId}
+                  onPreview={(controlId, controlScope) => {
+                    void navigate({
+                      search: (previous) => ({
+                        ...previous,
+                        controlId,
+                        controlScope,
+                        controlTab: undefined,
+                      }),
+                      resetScroll: false,
+                    });
+                  }}
                   coverageFamily={search.controlFamily}
                   coverageStatus={search.controlStatus}
                   onClearCoverage={() => {
@@ -937,7 +1007,21 @@ function ProgramDetail() {
                 <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
               ) : null}
               {tab === "Requirements" ? (
-                <RequirementCoverage programId={program.id} elementId={selectedElement?.id} />
+                <RequirementCoverage
+                  programId={program.id}
+                  elementId={selectedElement?.id}
+                  previewId={search.requirementId}
+                  onPreview={(requirementId) => {
+                    void navigate({
+                      search: (previous) => ({
+                        ...previous,
+                        requirementId,
+                        requirementTab: undefined,
+                      }),
+                      resetScroll: false,
+                    });
+                  }}
+                />
               ) : null}
               {tab === "Activity" ? (
                 <RecordActivity

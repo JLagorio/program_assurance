@@ -118,9 +118,13 @@ function Register() {
             New control
           </Button>
         }
+        filters={
+          <>
+            <FilterChip label="Owner" value="Dana Whitfield" isActive />
+            <FilterChip label="Status" />
+          </>
+        }
       >
-        <FilterChip label="Owner" value="Dana Whitfield" isActive />
-        <FilterChip label="Status" />
         <Button variant="subtle" size="small" iconBefore={<Filter />}>
           More filters
         </Button>

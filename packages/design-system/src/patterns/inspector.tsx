@@ -70,18 +70,20 @@ export type InspectorGroupProps = {
 function InspectorGroup({ title, children, action }: InspectorGroupProps) {
   return (
     <Collapsible defaultOpen className="border-t border-default first:border-t-0">
-      <h3>
-        <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-          {title}
-          <ChevronDown
-            aria-hidden="true"
-            className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-open/collapsible:rotate-180"
-          />
-        </CollapsibleTrigger>
-      </h3>
+      <div className="flex min-w-0 items-center gap-100">
+        <h3 className="min-w-0 flex-1">
+          <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+            <span className="min-w-0 break-words">{title}</span>
+            <ChevronDown
+              aria-hidden="true"
+              className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-open/collapsible:rotate-180"
+            />
+          </CollapsibleTrigger>
+        </h3>
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </div>
       <CollapsibleContent>
         <div className="pb-200">
-          {action ? <div className="flex justify-end pb-050">{action}</div> : null}
           <div className="flex flex-col">{children}</div>
         </div>
       </CollapsibleContent>

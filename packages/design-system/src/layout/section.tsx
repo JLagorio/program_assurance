@@ -27,11 +27,11 @@ export function Section({
     <section aria-labelledby={titleId} className={cn("min-w-0", className)} {...props}>
       <div
         className={cn(
-          "flex flex-wrap items-start justify-between gap-100 pb-100",
+          "flex items-start justify-between gap-100 pb-100",
           divided && "border-b border-default",
         )}
       >
-        <div className="flex min-w-0 flex-col gap-025">
+        <div className="flex min-w-0 flex-1 flex-col gap-025">
           <div className="flex min-w-0 items-baseline gap-100">
             <h2 id={titleId} className="min-w-0 break-words font-body font-medium text-default">
               {title}
@@ -40,9 +40,7 @@ export function Section({
           </div>
           {description ? <p className="font-body-small text-subtle">{description}</p> : null}
         </div>
-        {action ? (
-          <div className="flex max-w-full flex-wrap items-center gap-100">{action}</div>
-        ) : null}
+        {action ? <div className="flex shrink-0 items-center gap-100">{action}</div> : null}
       </div>
       {children}
     </section>

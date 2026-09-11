@@ -6,6 +6,10 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ## Unreleased · audit implementation
 
+- Toolbar collapses only its explicit `filters` slot; view controls and actions stay visible. Header actions remain beside wrapping titles at all widths. Editable.Text supports multiline cell editing with newline, commit and cancel keyboard behavior.
+
+- Keep Toolbar on one row by moving filters and actions into a Base UI popover when its container narrows; preserve search, filter state and keyboard focus across resizing. PageHeader examples keep fields in the work area and use a single Actions menu. Shell.Panel contains horizontal overflow while nested scroll areas remain usable. See Toolbar’s Constrained story and the layout examples.
+
 - Separate layout from reusable interaction. Mount the application shell once at the router root; routes contribute context and selected work through stable `Shell.Aside` / `Shell.Panel` slots. Panel owns responsive placement, scrolling, keyboard resizing, close/Escape and focus return while retaining Main state. Migrate all application callers and remove `IndexPage`, `ShowPage`, `RecordHeader`, `PreviewRail`, `PreviewSplit`, standalone `Panel` and `Block`. `PageHeader` now has composable native parts; `Section` accepts native props/refs and an optional rule. Move Inspector, ActionBar and WorkPane out of the retired Shapes category. Remove Inspector's layout-dependent sticky behavior. `PreviewSheet` keeps native initial/final focus overrides and wraps actions on narrow screens. Storybook separates Layout from Patterns. See [page composition](src/stories/layout/Pages.mdx) and [PageHeader](src/stories/layout/PageHeader.mdx).
 
 - FilterChip's public props now include the native button ref. Extend its existing toolbar example to cover standalone toggle activation, composed chip/Popover refs and handlers, keyboard opening, filter selection, Escape and focus return; disabled chips remain inactive. Add workspace and packed-consumer type coverage. See [FilterChip](src/stories/components/FilterChip.mdx).

@@ -283,7 +283,7 @@ function NewFindingSheet({
     scope: "",
     asset: assessmentEvent?.assets[0] ?? "",
     requirement: requirement?.id ?? "",
-    severity: "CAT II" as FindingSeverity,
+    severity: "Moderate" as FindingSeverity,
     source: (assessment ? "Test event" : "Manual procedure") as Finding["source"],
     method: (objective?.method === "Interview"
       ? "Interview"
@@ -297,7 +297,7 @@ function NewFindingSheet({
     setDraft((previous) => ({ ...previous, [key]: value }));
   const programAssets = assets.filter((asset) => asset.program === programId);
   const evidence = evidenceForProgram(programId);
-  const severityItems = ["CAT I", "CAT II", "CAT III"].map((value) => ({
+  const severityItems = ["High", "Moderate", "Low"].map((value) => ({
     value: value,
     label: value,
   }));

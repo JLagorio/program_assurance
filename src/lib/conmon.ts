@@ -665,7 +665,7 @@ export const slcmProfiles: SlcmProfile[] = [
     method: "Automated",
     responsible: "Platform ops",
     lastAssessed: "Jul 25, 2026",
-    note: "Flaw remediation is measured monthly as the age of the oldest unpatched CAT I and CAT II item. FND-2246 records the mission-api base layer still carrying openssl 3.0.11.",
+    note: "Flaw remediation is measured monthly as the age of the oldest unpatched high and moderate item. FND-2246 records the mission-api base layer still carrying openssl 3.0.11.",
   },
   {
     control: "SI-2(3)",

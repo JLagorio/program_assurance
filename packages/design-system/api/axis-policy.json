@@ -753,7 +753,7 @@
       ]
     },
     "Editable.Select": {
-      "domTarget": "Outer div with internal edit trigger; Editable.Text swaps button for native input while editing. No public DOM/ref forwarding. label names the internal control and generated IDs associate errors.",
+      "domTarget": "Outer div with internal edit trigger; Editable.Text swaps its button for a native input or multiline textarea while editing. No public DOM/ref forwarding. label names the internal control and generated IDs associate errors.",
       "controlledBehavior": "Caller owns committed value/onChange; internal draft/edit/save state. Optimistic onChange(next), save promise, and rollback on rejection only while operation still owns that value. Synchronous save throws become rejection; duplicate saves suppressed; unmounted/stale results ignored.",
       "defaultBehavior": "No default committed value. Text draft initializes from value; no validation means valid; unchanged commits skip save. Empty text displays placeholder or Absent. Select render defaults to raw value; menu width=220px. Saved state lasts 1400ms; localized generic failure when rejection is not Error.",
       "props": {
@@ -770,7 +770,7 @@
       ]
     },
     "Editable.Text": {
-      "domTarget": "Outer div with internal edit trigger; Editable.Text swaps button for native input while editing. No public DOM/ref forwarding. label names the internal control and generated IDs associate errors.",
+      "domTarget": "Outer div with internal edit trigger; Editable.Text swaps its button for a native input or multiline textarea while editing. No public DOM/ref forwarding. label names the internal control and generated IDs associate errors.",
       "controlledBehavior": "Caller owns committed value/onChange; internal draft/edit/save state. Optimistic onChange(next), save promise, and rollback on rejection only while operation still owns that value. Synchronous save throws become rejection; duplicate saves suppressed; unmounted/stale results ignored.",
       "defaultBehavior": "No default committed value. Text draft initializes from value; no validation means valid; unchanged commits skip save. Empty text displays placeholder or Absent. Select render defaults to raw value; menu width=220px. Saved state lasts 1400ms; localized generic failure when rejection is not Error.",
       "props": {
@@ -1701,16 +1701,16 @@
       }
     },
     "Toolbar": {
-      "domTarget": "Outer layout div; className targets it. Search is internal Input; actions is a trailing span slot. No generic root DOM/ref forwarding.",
+      "domTarget": "Outer layout div; className targets it. Search is internal Input; children and actions are permanent trailing controls. No generic root DOM/ref forwarding.",
       "controlledBehavior": "Search shown only with onSearch callback and is controlled by search; no internal query state. Caller owns filters and actions.",
-      "defaultBehavior": "Missing search falls back to empty string; placeholder and accessible name fall back to localized search. Search is small at width 200px. Falsy actions omitted.",
+      "defaultBehavior": "Missing search falls back to empty string; placeholder and accessible name fall back to localized search. Search is small, up to 240px. Explicit filters collapse into More based on container width; children and actions remain visible. Search gets its own row at phone widths. Falsy actions omitted.",
       "props": {
         "actions": {
           "meaning": "ReactNode action content rendered at the trailing edge; not a callback or data list.",
           "migration": "Retain composable content slot and let each supplied action own its event handler."
         }
       },
-      "reviewSources": ["packages/design-system/src/components/toolbar.tsx"]
+      "reviewSources": ["packages/design-system/src/patterns/toolbar.tsx"]
     },
     "Tree": {
       "domTarget": "Root div role=tree with private ref; label supplies accessible name, className styles root. No generic DOM/ref API.",

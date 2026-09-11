@@ -1,6 +1,6 @@
+import { expect, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
-  Badge,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -8,7 +8,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Button,
-  Inline,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   PageHeader,
 } from "../..";
 
@@ -27,7 +30,6 @@ export const Collection: Story = {
         <PageHeader.Description>12 open · 3 need review</PageHeader.Description>
       </div>
       <PageHeader.Actions>
-        <Button>Export</Button>
         <Button variant="primary">New finding</Button>
       </PageHeader.Actions>
     </PageHeader>
@@ -51,13 +53,38 @@ export const Record: Story = {
         Review privileged access across the platform and supporting services
       </PageHeader.Title>
       <PageHeader.Actions>
-        <Button>Request changes</Button>
-        <Button variant="primary">Approve</Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button />}>Actions</DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Request changes</DropdownMenuItem>
+            <DropdownMenuItem>Approve</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </PageHeader.Actions>
-      <Inline className="col-span-full" space="space.150">
-        <Badge>In review</Badge>
-        <span>Alex Morgan</span>
-      </Inline>
     </PageHeader>
   ),
+};
+
+/** A long title wraps beside its permanent action, including on a phone. */
+export const Constrained: Story = {
+  render: () => (
+    <div style={{ width: 320, maxWidth: "100%" }}>
+      <PageHeader>
+        <PageHeader.Title>
+          Executable firmware shall be cryptographically authenticated before execution.
+        </PageHeader.Title>
+        <PageHeader.Actions>
+          <Button size="small">Actions</Button>
+        </PageHeader.Actions>
+      </PageHeader>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const title = canvas.getByRole("heading").getBoundingClientRect();
+    const action = canvas.getByRole("button", { name: "Actions" }).getBoundingClientRect();
+    await expect(action.top).toBe(title.top);
+    await expect(action.left).toBeGreaterThan(title.right);
+    await expect(action.right).toBeLessThanOrEqual(canvasElement.getBoundingClientRect().right);
+  },
 };

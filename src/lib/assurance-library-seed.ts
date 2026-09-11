@@ -8,9 +8,9 @@ export function initialLibraryState(): LibraryState {
   const entries: LibraryEntry[] = systemComponents.map((component) => ({
     id: component.id,
     key: component.key,
-    kind: component.type === "Policy" ? "Overlay" : "Component",
+    kind: component.type === "Policy" ? "Policy" : "Product",
     name: component.name,
-    category: component.type === "Policy" ? "Organizational profile" : component.type,
+    category: component.type,
     owner: component.owner,
     draft: null,
     versions: [
@@ -19,7 +19,7 @@ export function initialLibraryState(): LibraryState {
         version: component.version,
         publishedOn: component.updated,
         children: [],
-        baseOverlay: null,
+        basePolicy: null,
         conditions: [],
         controls: component.controls.map((control) => ({
           id: control.id,
@@ -91,7 +91,7 @@ export function initialLibraryState(): LibraryState {
           name: component.name,
           parentUseId: null,
           targetNodeId: null,
-          role: "Component",
+          role: "Product",
           hostUseId: null,
           controlIds: component.controls.map((control) => control.id),
         });

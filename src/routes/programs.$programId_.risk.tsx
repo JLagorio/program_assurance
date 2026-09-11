@@ -96,7 +96,7 @@ export const Route = createFileRoute("/programs/$programId_/risk")({
       {
         property: "og:description",
         content:
-          "CAT I is a severity, not a risk. Every score here carries the arithmetic that produced it, line by line, beside the number the assessor wrote in the register.",
+          "high is a severity, not a risk. Every score here carries the arithmetic that produced it, line by line, beside the number the assessor wrote in the register.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -306,7 +306,7 @@ function ProgramRisk() {
                       trailing={hasScores ? <BandChip band={aggregateBand} size="xsmall" /> : null}
                       note={
                         hasScores
-                          ? "Weighted by the criticality of the component each deficiency sits on, so a CAT II on a mission-critical part outweighs a CAT I on something nothing depends on."
+                          ? "Weighted by the criticality of the component each deficiency sits on, so a moderate on a mission-critical part outweighs a high on something nothing depends on."
                           : "Nothing was scored, so this zero is an absence of data and carries no band. It is not a low residual and must not be read as one."
                       }
                     />

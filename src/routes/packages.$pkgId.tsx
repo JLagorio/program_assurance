@@ -45,6 +45,18 @@ import {
 } from "@ledger/design-system";
 
 export const Route = createFileRoute("/packages/$pkgId")({
+  /** Only the families this package's CCIs live in; the chunks are cached and shared. */
+  loader: async ({ params }) => {
+    const pkg = packages.find((x) => x.id === params.pkgId);
+    if (!pkg) return { cciText: {} as Record<string, string> };
+    const { loadCciDefinition } = await import("@/lib/cci-catalog");
+    const pairs = await Promise.all(
+      pkg.ccisInScope.map(async (id) => [id, await loadCciDefinition(id)] as const),
+    );
+    return {
+      cciText: Object.fromEntries(pairs.filter(([, text]) => text)) as Record<string, string>,
+    };
+  },
   head: ({ params }) => {
     const p = packages.find((x) => x.id === params.pkgId);
     const title = p ? `${p.id} ${p.name} — authorization package` : "Package — Equinox";
@@ -82,7 +94,8 @@ function PackageRecord() {
   const [preview, setPreview] = useState<TraceRow | null>(null);
   const [gapsOnly, setGapsOnly] = useState(false);
 
-  const ready = useMemo(() => (pkg ? readiness(pkg) : null), [pkg]);
+  const { cciText } = Route.useLoaderData();
+  const ready = useMemo(() => (pkg ? readiness(pkg, cciText) : null), [pkg, cciText]);
   const log = useMemo(() => (pkg ? submissionsFor(pkg.id) : []), [pkg]);
 
   if (!pkg || !ready) {
@@ -350,9 +363,6 @@ function PackageRecord() {
                     </KeyValue>
                     <KeyValue label="System">
                       <Id>{pkg.system}</Id>
-                    </KeyValue>
-                    <KeyValue label="Rules">
-                      {preview.paths.length ? <Id>{preview.paths.join(", ")}</Id> : "—"}
                     </KeyValue>
                   </Inspector.Group>
                   <Inspector.Group title="Verification">

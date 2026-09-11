@@ -42,8 +42,8 @@ import { cn } from "@ledger/design-system/cn";
 
 /** CAT severity is a status, so it carries colour; a format never does. */
 function severityToneOf(severity: string): Tone {
-  if (severity === "CAT I") return "danger";
-  if (severity === "CAT II") return "warning";
+  if (severity === "High") return "danger";
+  if (severity === "Moderate") return "warning";
   return "neutral";
 }
 
@@ -1011,7 +1011,7 @@ export function DedupTable({
                 and says the opposite of what the row means — the only clean
                 signal was a muted "Coverage only" in the last column. Mirrors
                 the Normalization table rather than neutering the severity
-                tone, which is CAT III's colour and would collide. */}
+                tone, which is low's colour and would collide. */}
             <Table.Cell>
               <Badge
                 variant="secondary"

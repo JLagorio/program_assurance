@@ -91,7 +91,7 @@ function AssetRecord() {
   const trail = anchor ? pathOf(anchor.id) : [];
   const tree = anchor ? subtree(anchor, new Set<string>()) : null;
   const tracked = assetPosture(asset.id)?.rolled ?? null;
-  const declaredTotal = asset.openCatI + asset.openCatII + asset.openCatIII;
+  const declaredTotal = asset.openHigh + asset.openModerate + asset.openLow;
   const delta = tracked && asset.scanAvailable !== false ? declaredTotal - tracked.open : null;
 
   return (
@@ -236,12 +236,12 @@ function AssetRecord() {
                 "Not supplied"
               ) : (
                 <span className="tabular-nums">
-                  <span className={asset.openCatI ? "font-medium text-danger" : ""}>
-                    {asset.openCatI}
+                  <span className={asset.openHigh ? "font-medium text-danger" : ""}>
+                    {asset.openHigh}
                   </span>
                   <span className="text-subtle">
                     {" "}
-                    / {asset.openCatII} / {asset.openCatIII}
+                    / {asset.openModerate} / {asset.openLow}
                   </span>
                 </span>
               )}
@@ -250,12 +250,12 @@ function AssetRecord() {
             <KeyValue label="Register tracked">
               {tracked ? (
                 <span className="tabular-nums">
-                  <span className={tracked.catI ? "font-medium text-danger" : ""}>
-                    {tracked.catI}
+                  <span className={tracked.high ? "font-medium text-danger" : ""}>
+                    {tracked.high}
                   </span>
                   <span className="text-subtle">
                     {" "}
-                    / {tracked.catII} / {tracked.catIII}
+                    / {tracked.moderate} / {tracked.low}
                   </span>
                 </span>
               ) : (

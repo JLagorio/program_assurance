@@ -73,7 +73,7 @@ export const campaigns: Campaign[] = [
     lead: "Marcus Hale",
     opened: "Aug 04",
     target: "Sep 12",
-    scope: "All CAT I-bearing CCIs on the ground segment plus the tactical edge boundary.",
+    scope: "All high-bearing CCIs on the ground segment plus the tactical edge boundary.",
   },
   {
     id: "TC-0034",

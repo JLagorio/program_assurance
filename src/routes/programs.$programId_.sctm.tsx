@@ -357,66 +357,69 @@ function ProgramSctm() {
                           : `1 of ${familyStats.length} families`}
                       </span>
                     }
-                  >
-                    <Select<string>
-                      items={activeFamilyItems}
-                      value={activeFamily}
-                      disabled={allFamilies}
-                      onValueChange={(value) => {
-                        if (value === null) return;
-                        return refilter(() => setFamily(value));
-                      }}
-                    >
-                      <SelectTrigger
-                        className={"w-full " + "h-control-small font-body"}
-                        aria-label="Control family"
-                        style={{ width: 248, maxWidth: "100%" }}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {activeFamilyItems.map((item) => (
-                          <SelectItem key={item.value} value={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      size="small"
-                      variant={allFamilies ? "primary" : "secondary"}
-                      onClick={() => refilter(() => setAllFamilies((v) => !v))}
-                    >
-                      {allFamilies ? "Show one family" : "Show all families"}
-                    </Button>
-                    <Select<string>
-                      items={currencyItems}
-                      value={currency ?? ""}
-                      onValueChange={(value) => {
-                        if (value === null) return;
-                        return refilter(() => {
-                          const next = (value || null) as RowCurrency | null;
-                          setCurrency(next);
-                          if (next !== null) setAllFamilies(true);
-                        });
-                      }}
-                    >
-                      <SelectTrigger
-                        className={"w-full " + "h-control-small font-body"}
-                        aria-label="Link currency"
-                        style={{ width: 208, maxWidth: "100%" }}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {currencyItems.map((item) => (
-                          <SelectItem key={item.value} value={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Toolbar>
+                    filters={
+                      <>
+                        <Select<string>
+                          items={activeFamilyItems}
+                          value={activeFamily}
+                          disabled={allFamilies}
+                          onValueChange={(value) => {
+                            if (value === null) return;
+                            return refilter(() => setFamily(value));
+                          }}
+                        >
+                          <SelectTrigger
+                            className={"w-full " + "h-control-small font-body"}
+                            aria-label="Control family"
+                            style={{ width: 248, maxWidth: "100%" }}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {activeFamilyItems.map((item) => (
+                              <SelectItem key={item.value} value={item.value}>
+                                {item.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="small"
+                          variant={allFamilies ? "primary" : "secondary"}
+                          onClick={() => refilter(() => setAllFamilies((v) => !v))}
+                        >
+                          {allFamilies ? "Show one family" : "Show all families"}
+                        </Button>
+                        <Select<string>
+                          items={currencyItems}
+                          value={currency ?? ""}
+                          onValueChange={(value) => {
+                            if (value === null) return;
+                            return refilter(() => {
+                              const next = (value || null) as RowCurrency | null;
+                              setCurrency(next);
+                              if (next !== null) setAllFamilies(true);
+                            });
+                          }}
+                        >
+                          <SelectTrigger
+                            className={"w-full " + "h-control-small font-body"}
+                            aria-label="Link currency"
+                            style={{ width: 208, maxWidth: "100%" }}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {currencyItems.map((item) => (
+                              <SelectItem key={item.value} value={item.value}>
+                                {item.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </>
+                    }
+                  ></Toolbar>
 
                   {currency !== null ? (
                     <p className="pb-100 font-body-small text-subtle">
