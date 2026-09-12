@@ -4,6 +4,8 @@ import { Combobox as Primitive } from "@base-ui/react/combobox";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Check, ChevronDown, X } from "lucide-react";
 import { createContext, useContext, type ComponentProps, useRef } from "react";
+import { cn } from "../lib/cn";
+import { menuItem, menuItemHighlighted, menuItemDisabled, menuChoiceSelected } from "./menu";
 import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
 import { type ControlSize } from "./controls";
@@ -198,15 +200,23 @@ export function ComboboxItem({ className, children, ...props }: ComboboxItemProp
     <Primitive.Item
       data-slot="combobox-item"
       className={classes(
-        "relative flex min-h-control-medium cursor-default select-none items-center gap-100 rounded-small px-100 py-050 font-body outline-none data-[highlighted]:bg-selected data-[highlighted]:text-selected data-[disabled]:text-disabled",
+        cn(
+          menuItem,
+          menuItemHighlighted,
+          menuItemDisabled,
+          menuChoiceSelected,
+          "relative pe-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-small",
+        ),
         className,
       )}
       {...props}
     >
-      <div className="min-w-0 flex-1">{children}</div>
+      <div className="flex min-w-0 flex-1 items-center gap-100 whitespace-normal break-words">
+        {children}
+      </div>
       <Primitive.ItemIndicator
         aria-hidden="true"
-        className="flex size-icon-small shrink-0 items-center"
+        className="pointer-events-none absolute end-100 flex size-icon-small items-center"
       >
         <Check className="size-icon-small" />
       </Primitive.ItemIndicator>

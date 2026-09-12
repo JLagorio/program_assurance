@@ -2,14 +2,19 @@
    menu and a select cannot drift apart. */
 
 /** The floating surface. */
-export const menuSurface = "z-50 overflow-hidden rounded-large border border-default bg-surface-overlay p-050 shadow-overlay outline-none";
+export const menuSurface =
+  "z-50 overflow-hidden rounded-large border border-default bg-surface-overlay p-050 shadow-overlay outline-none";
 
-/** One row: menu height, hairline radius, body text. */
+/** Compact rows grow for wrapped labels, descriptions and avatars. */
 export const menuItem =
-  "flex h-row-menu w-full cursor-default select-none items-center gap-100 rounded-medium px-100 text-left font-body text-default outline-none transition-colors duration-fast ease-standard";
+  "flex min-h-row-menu w-full cursor-default select-none items-center gap-100 rounded-medium px-100 py-050 text-start font-body text-default outline-none transition-colors duration-fast ease-standard";
 
 /** The row under the pointer or the keyboard. */
 export const menuItemHighlighted = "data-[highlighted]:bg-neutral-subtle-hovered";
+
+/** A committed choice remains distinct from pointer/keyboard highlight. */
+export const menuChoiceSelected =
+  "data-selected:bg-selected data-selected:text-selected data-selected:data-highlighted:bg-selected-hovered";
 
 /** The row that is the current choice. */
 export const menuItemSelected = "bg-selected text-selected";

@@ -13,6 +13,7 @@ import {
   FieldLabel,
   Input,
   KeyValue,
+  Person,
   Table,
   type Tone,
 } from "../../components";
@@ -142,6 +143,7 @@ function RosterDemo() {
           value={owner}
           onChange={setOwner}
           options={roster}
+          render={(name) => <Person name={name} />}
           save={(next) =>
             wait(500).then(() => {
               if (next === "Elena Vasquez")
@@ -171,7 +173,7 @@ function RosterDemo() {
   );
 }
 
-/** A roster: past eight options the Select is a searched list of names, nothing else in it. */
+/** A roster keeps the same person rendering when its options become searchable. */
 export const Roster: Story = {
   render: () => <RosterDemo />,
   play: async ({ canvasElement }) => {
@@ -190,6 +192,12 @@ export const Roster: Story = {
     search = await page.findByRole("combobox", { name: "Owner" });
     await expect(search).toHaveValue("");
     await userEvent.type(search, "Priya");
+    const priya = await page.findByRole("option", { name: "Priya Raghavan" });
+    await expect(priya.querySelector('[data-slot="person"]')).not.toBeNull();
+    await expect(priya.querySelector('[data-slot="avatar"]')).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
     await userEvent.keyboard("{ArrowDown}{Enter}");
     await waitFor(() => expect(owner).toHaveTextContent("Priya Raghavan"));
     await expect(owner).toHaveAttribute("aria-disabled", "true");

@@ -1,15 +1,27 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createContext, useContext, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
+import { ChevronDown, Plus } from "lucide-react";
 import {
   Badge,
   Button,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  Editable,
   Field,
   FieldLabel,
   Inline,
   Input,
   KeyValue,
   PageHeader,
+  Person,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Section,
   Shell,
   Stack,
@@ -26,13 +38,43 @@ type Story = StoryObj;
 const RecordContext = createContext("Unavailable");
 
 function RecordProperties() {
-  const owner = useContext(RecordContext);
+  const initialOwner = useContext(RecordContext);
+  const [owner, setOwner] = useState(initialOwner);
+  const [status, setStatus] = useState("In progress");
   return (
     <Shell.Aside label="Record properties">
       <Section title="Properties">
-        <KeyValue label="Owner">{owner}</KeyValue>
+        <KeyValue label="Owner">
+          <Editable.Select
+            label="Owner"
+            value={owner}
+            onChange={setOwner}
+            save={async () => {}}
+            options={[
+              initialOwner,
+              "Amara Bell",
+              "Dan Whitfield",
+              "Elena Vasquez",
+              "Hana Lindqvist",
+              "Joel Barrantes",
+              "Marcus Ryde",
+              "Priya Raghavan",
+              "Sarah Chen",
+            ]}
+            render={(name) => <Person name={name} />}
+          />
+        </KeyValue>
         <KeyValue label="Status">
-          <Badge>In progress</Badge>
+          <Editable.Select<string>
+            label="Status"
+            value={status}
+            onChange={setStatus}
+            save={async () => {}}
+            options={["In progress", "Ready for review", "Verified"]}
+            render={(value) => (
+              <Badge tone={value === "Verified" ? "success" : "information"}>{value}</Badge>
+            )}
+          />
         </KeyValue>
       </Section>
     </Shell.Aside>
@@ -41,6 +83,7 @@ function RecordProperties() {
 
 function RecordPage() {
   const [tab, setTab] = useState("overview");
+  const [method, setMethod] = useState("Examine");
   return (
     <RecordContext.Provider value="Alex Morgan">
       <Stack space="space.200">
@@ -50,7 +93,15 @@ function RecordPage() {
             <PageHeader.Description>REQ-104 · Access management</PageHeader.Description>
           </div>
           <PageHeader.Actions>
-            <Button variant="primary">Approve</Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />} />}>
+                Actions
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>Request review</DropdownMenuItem>
+                <DropdownMenuItem>Approve</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </PageHeader.Actions>
         </PageHeader>
         <Tabs value={tab} onValueChange={setTab}>
@@ -59,8 +110,51 @@ function RecordPage() {
             <TabsTrigger value="evidence">Evidence</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
-            <Section title="Next action">
-              <Button>Request review</Button>
+            <Section title="Assessment">
+              <Stack space="space.200" className="max-w-layout-measure">
+                <Field>
+                  <FieldLabel htmlFor="review-method">Assessment method</FieldLabel>
+                  <Select
+                    value={method}
+                    onValueChange={(value) => value && setMethod(value)}
+                    items={[
+                      { value: "Examine", label: "Examine" },
+                      { value: "Test", label: "Test" },
+                    ]}
+                  >
+                    <SelectTrigger id="review-method" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false} style={{ width: 300 }}>
+                      {[
+                        [
+                          "Examine",
+                          "Review the policy, account register and evidence of completed access reviews.",
+                        ],
+                        [
+                          "Test",
+                          "Verify that privileged access expires and revoked accounts cannot sign in.",
+                        ],
+                      ].map(([value, description]) => (
+                        <SelectItem key={value} value={value} label={value} aria-label={value}>
+                          <span className="flex min-w-0 flex-col gap-025">
+                            <span className="font-medium">{value}</span>
+                            <span className="font-body-small text-subtle">{description}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="review-note">Review note</FieldLabel>
+                  <Input id="review-note" placeholder="What should the reviewer check?" />
+                </Field>
+                <Inline space="space.100" shouldWrap>
+                  <Button variant="primary">Request review</Button>
+                  <Button iconBefore={<Plus />}>Add evidence</Button>
+                </Inline>
+              </Stack>
             </Section>
           </TabsContent>
           <TabsContent value="evidence">
@@ -151,6 +245,24 @@ export const Record: Story = {
     const aside = await canvas.findByRole("complementary", { name: "Record properties" });
     await expect(within(aside).getByText("Alex Morgan")).toBeVisible();
     await expect(canvas.getByRole("main")).not.toContainElement(aside);
+    const screen = within(canvasElement.ownerDocument.body);
+    const actions = canvas.getByRole("button", { name: "Actions" });
+    const restingColor = getComputedStyle(actions).backgroundColor;
+    await userEvent.click(actions);
+    await screen.findByRole("menu");
+    await expect(actions).toHaveAttribute("aria-expanded", "true");
+    await expect(actions).not.toHaveAttribute("aria-pressed");
+    await waitFor(() => expect(getComputedStyle(actions).backgroundColor).not.toBe(restingColor));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(actions).toHaveFocus());
+    await userEvent.click(canvas.getByRole("combobox", { name: "Assessment method" }));
+    const examine = await screen.findByRole("option", { name: "Examine" });
+    await waitFor(() => expect(within(examine).getByText(/Review the policy/)).toBeVisible());
+    await expect(examine.scrollHeight).toBeLessThanOrEqual(examine.clientHeight + 1);
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    await expect(canvas.getByRole("combobox", { name: "Assessment method" })).toHaveTextContent(
+      "Test",
+    );
     await userEvent.click(canvas.getByRole("tab", { name: "Evidence" }));
     await waitFor(() =>
       expect(

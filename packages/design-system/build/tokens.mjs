@@ -227,6 +227,7 @@ const groups = {
   rounded: [],
   shadow: [],
   h: [],
+  "min-h": [],
   size: [],
   opacity: [],
   duration: [],
@@ -323,6 +324,15 @@ for (const token of all) {
       const val = u.cls.startsWith("border-w-") ? u.cls.slice(9) : tail.join("-");
       if (groups[key]) groups[key].push(val);
     }
+  }
+
+  // Content-rich rows retain a token minimum while growing for descriptions and avatars.
+  if (u && /^dimension\.(control|row)(\.|$)/.test(name)) {
+    const suffix = u.cls.slice(2);
+    const cls = `min-h-${suffix}`;
+    utilityBlocks.push(`@utility ${cls} {\n  min-height: var(${v});\n}`);
+    allClasses.push(cls);
+    groups["min-h"].push(suffix);
   }
 
   docs.push({
@@ -563,7 +573,10 @@ for (const f of fs
   deep(merged, JSON.parse(fs.readFileSync(path.join(root, "tokens", f), "utf8")));
 fs.writeFileSync(path.join(outDir, "tokens.figma.json"), JSON.stringify(merged, null, 2) + "\n");
 for (const mode of ["light", "dark"])
-  fs.writeFileSync(path.join(outDir, `tokens.dtcg.${mode}.json`), JSON.stringify(exportDtcg(merged, mode), null, 2) + "\n");
+  fs.writeFileSync(
+    path.join(outDir, `tokens.dtcg.${mode}.json`),
+    JSON.stringify(exportDtcg(merged, mode), null, 2) + "\n",
+  );
 
 console.log(
   `tokens: ${all.length} · dark values: ${darkVars.length} · utilities: ${allClasses.length} · theme keys: ${themeLines.length}`,

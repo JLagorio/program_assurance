@@ -5,6 +5,8 @@ Date: 2026-09-10. Scope: the imported ReUI and shadcn sources against
 This is an audit and implementation shortlist; no component changes are included.
 Layout primitives and the concurrent page/panel/preview work are outside this pass.
 
+Implementation update, 2026-09-11: font delivery is aligned; button icon insets and popup-open paint are refined; searchable Editable.Select retains custom rendering; Select/Combobox share growing choice rows and separate selection/highlight states. Layout/Pages/Record demonstrates these together. The findings below describe the original audit; radius, broader form/surface treatment and other catalog decisions remain proposals.
+
 ## Recommendation
 
 Keep Ledger's Base UI foundation, semantic tokens, compact density and existing

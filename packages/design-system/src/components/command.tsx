@@ -130,7 +130,7 @@ export function CommandItem({
     <CommandPrimitive.Item
       className={cn(
         menuItem,
-        "h-control-medium",
+        "min-h-control-medium",
         "data-[selected=true]:bg-neutral-subtle-hovered data-[disabled=true]:pointer-events-none data-[disabled=true]:text-disabled",
         className,
       )}

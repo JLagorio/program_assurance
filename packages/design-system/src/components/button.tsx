@@ -32,18 +32,18 @@ const base =
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand-bold text-inverse hover:bg-brand-bold-hovered active:bg-brand-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled",
+    "bg-brand-bold text-inverse hover:bg-brand-bold-hovered active:bg-brand-bold-pressed aria-expanded:bg-brand-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled",
   secondary:
-    "bg-surface-raised text-default shadow-raised hover:bg-surface-raised-hovered active:bg-surface-raised-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled data-[disabled]:not-data-[loading]:shadow-none",
+    "bg-surface-raised text-default shadow-raised hover:bg-surface-raised-hovered active:bg-surface-raised-pressed aria-expanded:bg-surface-raised-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled data-[disabled]:not-data-[loading]:shadow-none",
   subtle:
-    "bg-neutral-subtle text-subtle hover:bg-neutral-subtle-hovered hover:text-default active:bg-neutral-subtle-pressed data-[disabled]:not-data-[loading]:text-disabled",
+    "bg-neutral-subtle text-subtle hover:bg-neutral-subtle-hovered hover:text-default active:bg-neutral-subtle-pressed aria-expanded:bg-neutral-subtle-pressed aria-expanded:text-default data-[disabled]:not-data-[loading]:text-disabled",
   danger:
-    "bg-danger-bold text-inverse hover:bg-danger-bold-hovered active:bg-danger-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled",
+    "bg-danger-bold text-inverse hover:bg-danger-bold-hovered active:bg-danger-bold-pressed aria-expanded:bg-danger-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled",
   link: "text-brand underline-offset-2 hover:underline data-[disabled]:not-data-[loading]:text-disabled",
 };
 
 const sizes: Record<ButtonSize, string> = {
-  xsmall: "h-control-xsmall px-100 font-body-small",
+  xsmall: "h-control-xsmall gap-050 px-100 font-body-small",
   small: "h-control-small px-150",
   medium: "h-control-medium px-150",
 };
@@ -132,6 +132,7 @@ export function Button({
     <>
       {isLoading ? (
         <Spinner
+          data-icon="inline-start"
           isDecorative
           appearance={
             !isSelected && (variant === "primary" || variant === "danger") ? "inverse" : "subtle"
@@ -168,6 +169,10 @@ export function Button({
       className={classes(
         cn(
           buttonVariants({ variant, size, isSelected, isFullWidth }),
+          variant !== "link" &&
+            (iconBefore || isLoading) &&
+            (size === "xsmall" ? "ps-075" : "ps-100"),
+          variant !== "link" && iconAfter && (size === "xsmall" ? "pe-075" : "pe-100"),
           isLoading && "cursor-progress",
         ),
         className,

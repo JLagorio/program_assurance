@@ -7,6 +7,7 @@ import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { controlBase, controlHeight } from "./controls";
 import {
+  menuChoiceSelected,
   menuItem,
   menuItemDisabled,
   menuItemHighlighted,
@@ -178,13 +179,14 @@ export function SelectItem({ className, children, ...props }: SelectItemProps) {
           menuItem,
           menuItemHighlighted,
           menuItemDisabled,
-          "relative pe-500 text-start data-selected:text-selected [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-small",
+          menuChoiceSelected,
+          "relative pe-400 text-start [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-small",
         ),
         className,
       )}
       {...props}
     >
-      <SelectPrimitive.ItemText className="flex min-w-0 flex-1 items-center gap-100 truncate">
+      <SelectPrimitive.ItemText className="flex min-w-0 flex-1 items-center gap-100 whitespace-normal break-words">
         {children}
       </SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator

@@ -124,8 +124,8 @@ Editable keeps its value, validation and save contract while composing the share
 | `onChange`   | `(next: T) => void`, required      | As Text.                                                                                                  |
 | `save`       | `(next: T) => Promise`, required   | As Text.                                                                                                  |
 | `validate`   | `(next: string) => string \| null` | As Text: a status the record is not ready for, with the reason.                                           |
-| `render`     | `(value: T) => ReactNode`          | Draws a value: a Badge, a Person. Unsaid, the value as text. The searched list shows the values as words. |
-| `searchable` | `boolean`                          | A search field over the options, shown as words. On by itself past eight options.                         |
+| `render`     | `(value: T) => ReactNode`          | Draws a value: a Badge, a Person. Unsaid, the value as text. The same rendering appears in short and searchable lists; option names and search use the original string. |
+| `searchable` | `boolean`                          | A search field over the rendered options. On by itself past eight options.                         |
 
 ### Playground
 

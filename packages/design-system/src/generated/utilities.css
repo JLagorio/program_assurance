@@ -759,6 +759,9 @@
 @utility min-w-control-xsmall {
   min-width: var(--ds-dimension-control-xsmall);
 }
+@utility min-h-control-xsmall {
+  min-height: var(--ds-dimension-control-xsmall);
+}
 @utility h-control-small {
   height: var(--ds-dimension-control-small);
 }
@@ -768,6 +771,9 @@
 }
 @utility min-w-control-small {
   min-width: var(--ds-dimension-control-small);
+}
+@utility min-h-control-small {
+  min-height: var(--ds-dimension-control-small);
 }
 @utility h-control-medium {
   height: var(--ds-dimension-control-medium);
@@ -779,6 +785,9 @@
 @utility min-w-control-medium {
   min-width: var(--ds-dimension-control-medium);
 }
+@utility min-h-control-medium {
+  min-height: var(--ds-dimension-control-medium);
+}
 @utility h-control-large {
   height: var(--ds-dimension-control-large);
 }
@@ -789,17 +798,32 @@
 @utility min-w-control-large {
   min-width: var(--ds-dimension-control-large);
 }
+@utility min-h-control-large {
+  min-height: var(--ds-dimension-control-large);
+}
 @utility h-row-compact {
   height: var(--ds-dimension-row-compact);
+}
+@utility min-h-row-compact {
+  min-height: var(--ds-dimension-row-compact);
 }
 @utility h-row {
   height: var(--ds-dimension-row);
 }
+@utility min-h-row {
+  min-height: var(--ds-dimension-row);
+}
 @utility h-row-header {
   height: var(--ds-dimension-row-header);
 }
+@utility min-h-row-header {
+  min-height: var(--ds-dimension-row-header);
+}
 @utility h-row-menu {
   height: var(--ds-dimension-row-menu);
+}
+@utility min-h-row-menu {
+  min-height: var(--ds-dimension-row-menu);
 }
 @utility size-icon-small {
   width: var(--ds-dimension-icon-small);

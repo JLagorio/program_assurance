@@ -264,9 +264,9 @@ function EditableText({ placeholder, multiline = false, ...props }: EditableText
 export type EditableSelectProps<T extends string> = EditableProps<T> & {
   /** The values on offer, in the order they show. */
   options: readonly T[];
-  /** Draws a value: a Badge for a status, a Person for an owner. Unsaid, the value as text. The searchable list shows the values as words. */
+  /** Draws a value: a Badge for a status, a Person for an owner. Used for the committed value and every option, including searchable lists. */
   render?: ((value: T) => ReactNode) | undefined;
-  /** A list worth searching: a search field at the top, the options as plain words under it. On by itself past eight options. */
+  /** A list worth searching: a search field above the same rendered options. On by itself past eight options. */
   searchable?: boolean | undefined;
 };
 
@@ -339,8 +339,8 @@ function EditableSelect<T extends string>({
             <ComboboxEmpty>{t("noMatches")}</ComboboxEmpty>
             <ComboboxList style={{ maxHeight: 260 }}>
               {(option: T) => (
-                <ComboboxItem key={option} value={option}>
-                  {option}
+                <ComboboxItem key={option} value={option} aria-label={option}>
+                  {render ? render(option) : option}
                 </ComboboxItem>
               )}
             </ComboboxList>
@@ -363,7 +363,7 @@ function EditableSelect<T extends string>({
             style={{ width: 220 }}
           >
             {options.map((option) => (
-              <SelectItem key={option} value={option}>
+              <SelectItem key={option} value={option} label={option} aria-label={option}>
                 {render ? render(option) : option}
               </SelectItem>
             ))}

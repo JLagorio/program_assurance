@@ -7,6 +7,8 @@ import * as Stories from "./Pages.stories";
 
 Mount the application shell once around the router outlet. Routes compose normal primitives and components inside Main and contribute optional Aside or Panel content. There are no collection-page or record-page wrapper APIs.
 
+The record example brings the visual conventions together: an Actions menu beside the title, a descriptive method selector, a standard input, and inline status and owner editors. App and Storybook load Geist and Geist Mono. Select and Combobox share row spacing, persistent choice indicators and neutral keyboard highlights; descriptions grow the row instead of clipping.
+
 <Canvas of={Stories.Record} />
 <Canvas of={Stories.QueueWithPanel} />
 <Canvas of={Stories.CompactQueue} />
