@@ -1,10 +1,12 @@
 import { useId, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import { useForm } from "@tanstack/react-form";
 
 import {
   Button,
+  Card,
+  CardContent,
   Checkbox,
   Field,
   FieldContent,
@@ -56,37 +58,46 @@ export const Composition: Story = {
   render: function Example() {
     const id = useId();
     return (
-      <FieldSet className="w-full max-w-layout-measure">
-        <FieldLegend>Review preferences</FieldLegend>
-        <FieldDescription>Choose how this assessment is reviewed.</FieldDescription>
-        <FieldGroup>
-          <Field orientation="responsive">
-            <FieldContent>
-              <FieldLabel htmlFor={`${id}-notify`}>Notify the owner</FieldLabel>
-              <FieldDescription id={`${id}-notify-help`}>
-                Send updates when evidence changes.
-              </FieldDescription>
-            </FieldContent>
-            <Switch id={`${id}-notify`} aria-describedby={`${id}-notify-help`} />
-          </Field>
-          <FieldSeparator>Evidence</FieldSeparator>
-          <FieldLabel htmlFor={`${id}-review`}>
-            <Field orientation="horizontal">
-              <Checkbox id={`${id}-review`} aria-describedby={`${id}-review-help`} />
-              <FieldContent>
-                <FieldTitle>Require a second reviewer</FieldTitle>
-                <FieldDescription id={`${id}-review-help`}>
-                  A colleague confirms the determination.
-                </FieldDescription>
-              </FieldContent>
-            </Field>
-          </FieldLabel>
-          <Field orientation="horizontal" data-disabled>
-            <Checkbox id={`${id}-archived`} disabled defaultChecked />
-            <FieldLabel htmlFor={`${id}-archived`}>Keep archived evidence</FieldLabel>
-          </Field>
-        </FieldGroup>
-      </FieldSet>
+      <Card className="w-full max-w-layout-measure">
+        <CardContent>
+          <FieldSet>
+            <FieldLegend>Review preferences</FieldLegend>
+            <FieldDescription>Choose how this assessment is reviewed.</FieldDescription>
+            <FieldGroup>
+              <Field orientation="responsive">
+                <FieldContent>
+                  <FieldLabel htmlFor={`${id}-notify`}>Notify the owner</FieldLabel>
+                  <FieldDescription id={`${id}-notify-help`}>
+                    Send updates when evidence changes.
+                  </FieldDescription>
+                </FieldContent>
+                <Switch id={`${id}-notify`} aria-describedby={`${id}-notify-help`} />
+              </Field>
+              <FieldSeparator>Evidence</FieldSeparator>
+              <FieldLabel htmlFor={`${id}-review`}>
+                <Field orientation="horizontal">
+                  <Checkbox id={`${id}-review`} aria-describedby={`${id}-review-help`} />
+                  <FieldContent>
+                    <FieldTitle>Require a second reviewer</FieldTitle>
+                    <FieldDescription id={`${id}-review-help`}>
+                      A colleague confirms the determination.
+                    </FieldDescription>
+                  </FieldContent>
+                </Field>
+              </FieldLabel>
+              <FieldLabel htmlFor={`${id}-archived`}>
+                <Field orientation="horizontal" data-disabled>
+                  <Checkbox id={`${id}-archived`} disabled defaultChecked />
+                  <FieldContent>
+                    <FieldTitle>Keep archived evidence</FieldTitle>
+                    <FieldDescription>Required by the retention policy.</FieldDescription>
+                  </FieldContent>
+                </Field>
+              </FieldLabel>
+            </FieldGroup>
+          </FieldSet>
+        </CardContent>
+      </Card>
     );
   },
   play: async ({ canvasElement }) => {
@@ -99,10 +110,12 @@ export const Composition: Story = {
     const toggle = canvas.getByRole("switch", { name: "Notify the owner" });
     await userEvent.click(canvas.getByText("Notify the owner"));
     await expect(toggle).toBeChecked();
-    await expect(canvas.getByRole("checkbox", { name: "Keep archived evidence" })).toHaveAttribute(
+    await expect(canvas.getByRole("checkbox", { name: /Keep archived evidence/ })).toHaveAttribute(
       "aria-disabled",
       "true",
     );
+    const dividerLabel = canvas.getByText("Evidence");
+    await expect(getComputedStyle(dividerLabel).backgroundColor).toBe("rgba(0, 0, 0, 0)");
   },
 };
 
@@ -188,6 +201,18 @@ export const Validation: Story = {
     await expect(inputs[0]!).toHaveFocus();
     await expect(inputs[0]!).toHaveAttribute("aria-invalid", "true");
     await expect(inputs[0]!).toHaveAccessibleDescription("Enter an owner.");
+    const invalidLabel = canvasElement.querySelector(`label[for="${inputs[0]!.id}"]`)!;
+    await waitFor(() =>
+      expect(getComputedStyle(invalidLabel).color).toBe(
+        getComputedStyle(canvas.getByRole("alert")).color,
+      ),
+    );
+    const invalidBorder = getComputedStyle(inputs[0]!)
+      .getPropertyValue("--ds-color-border-danger")
+      .trim();
+    await waitFor(() => expect(getComputedStyle(inputs[0]!).borderColor).toBe(invalidBorder));
+    await userEvent.tab();
+    await waitFor(() => expect(getComputedStyle(inputs[0]!).borderColor).toBe(invalidBorder));
     await expect(inputs[1]!).not.toHaveAttribute("aria-invalid", "true");
     await userEvent.type(inputs[0]!, "Dana Whitlock");
     await userEvent.click(canvas.getAllByRole("button", { name: "Assign owner" })[0]!);

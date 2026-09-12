@@ -6,6 +6,8 @@ Updated 2026-09-10.
 
 ## Current design-system work
 
+- [x] **Form and surface consistency** (2026-09-11). Refine invalid/disabled field labels and choice-card states; keep InputGroup state tied to its control; remove painted backgrounds from labeled dividers; make Card spacing consistent and header/footer rules explicit. Review Field/Composition, Field/Validation, InputGroup/States and Card.
+
 - [x] **Control and selection finishing pass** (2026-09-11). Match app/catalog fonts; refine button icon spacing and popup-open state; preserve rich options in searchable inline editors; unify growing menu rows and selected/highlighted states. Exercise the assembled record in Layout/Pages.
 
 - [x] **Requirement record workflow reference** (2026-09-09). Keep status and owner beside the record identity; make attention items actionable; separate Allocations, Evidence, Activity and Provenance from Overview. Assessment results use compact cards and evidence uses Attachment previews. Preserve the existing editors and domain rules.

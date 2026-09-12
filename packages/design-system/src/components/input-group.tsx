@@ -12,8 +12,8 @@ export function InputGroup({ className, ...props }: InputGroupProps) {
       data-slot="input-group"
       role="group"
       className={cn(
-        "group/input-group relative flex h-control-medium w-full min-w-0 items-center rounded-medium border border-input bg-input transition-colors outline-none hover:bg-input-hovered",
-        "has-[[data-size=small]]:h-control-small has-[[data-slot=input-group-control]:focus-visible]:border-focused has-[[data-slot=input-group-control]:focus-visible]:outline-focused has-[[aria-invalid=true]]:border-danger has-[:disabled]:border-disabled has-[:disabled]:bg-disabled has-[[readonly]]:bg-surface-sunken",
+        "group/input-group relative flex h-control-medium w-full min-w-0 items-center rounded-medium border border-input bg-input transition-colors duration-fast ease-standard outline-none hover:bg-input-hovered",
+        "has-[[data-size=small]]:h-control-small has-[[data-slot=input-group-control]:focus-visible]:bg-input-pressed has-[[data-slot=input-group-control]:focus-visible]:border-focused has-[[data-slot=input-group-control]:focus-visible]:outline-focused has-[[data-slot=input-group-control][aria-invalid=true]]:border-danger has-[[data-slot=input-group-control][aria-invalid=true]:focus-visible]:border-danger has-[[data-slot=input-group-control]:disabled]:border-disabled has-[[data-slot=input-group-control]:disabled]:bg-disabled has-[[data-slot=input-group-control][readonly]]:bg-surface-sunken has-[[data-slot=input-group-control][readonly]]:hover:bg-surface-sunken",
         "has-[>textarea]:h-auto has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col",
         className,
       )}

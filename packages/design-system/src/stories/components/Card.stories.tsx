@@ -11,6 +11,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  Field,
+  FieldLabel,
+  FieldDescription,
+  Input,
   Table,
 } from "../../components";
 
@@ -27,6 +31,7 @@ export const Playground: Story = {
   render: function Example(args) {
     const id = useId();
     const [saved, setSaved] = useState(false);
+    const [owner, setOwner] = useState("Dana Whitfield");
     return (
       <Card {...args} role="region" aria-labelledby={id} className="w-layout-list max-w-full">
         <CardHeader>
@@ -35,15 +40,36 @@ export const Playground: Story = {
           </CardTitle>
           <CardDescription>Choose who receives the assessment.</CardDescription>
           <CardAction>
-            <Button size="small" variant="link" onClick={() => setSaved(false)}>
+            <Button
+              size="small"
+              variant="link"
+              onClick={() => {
+                setOwner("Dana Whitfield");
+                setSaved(false);
+              }}
+            >
               Reset
             </Button>
           </CardAction>
         </CardHeader>
         <CardContent>
-          <p>Owner: Dana Whitfield</p>
+          <Field>
+            <FieldLabel htmlFor={`${id}-owner`}>Owner</FieldLabel>
+            <Input
+              id={`${id}-owner`}
+              value={owner}
+              onValueChange={(value) => {
+                setOwner(value);
+                setSaved(false);
+              }}
+              aria-describedby={`${id}-help`}
+            />
+            <FieldDescription id={`${id}-help`}>
+              Receives the assessment and review updates.
+            </FieldDescription>
+          </Field>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="border-t">
           <Button size="small" onClick={() => setSaved(true)}>
             Save preferences
           </Button>
@@ -86,8 +112,8 @@ export const Sizes: Story = {
 
 export const EdgeToEdge: Story = {
   render: () => (
-    <Card className="w-layout-list max-w-full">
-      <CardHeader>
+    <Card className="w-layout-list max-w-full gap-0 pb-0">
+      <CardHeader className="border-b">
         <CardTitle>
           <h2>Controls</h2>
         </CardTitle>

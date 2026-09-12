@@ -92,7 +92,9 @@ export function FieldLabel({ className, ...props }: FieldLabelProps) {
     <label
       data-slot="field-label"
       className={cn(
-        "group/field-label peer/field-label flex w-fit items-center gap-050 font-body-small font-medium text-subtle group-data-[disabled=true]/field:opacity-disabled peer-disabled:cursor-not-allowed peer-disabled:opacity-disabled has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:items-stretch has-[>[data-slot=field]]:rounded-medium has-[>[data-slot=field]]:border has-[>[data-slot=field]]:border-default has-[>[data-slot=field]]:p-150 has-[>[data-slot=field]]:has-[:focus-visible]:outline-focused has-[>[data-slot=field]]:has-data-checked:border-selected has-[>[data-slot=field]]:has-data-checked:bg-selected",
+        "group/field-label peer/field-label flex w-fit items-center gap-050 font-body-small font-medium text-subtle group-data-[invalid=true]/field:text-danger group-data-[disabled=true]/field:text-disabled peer-disabled:cursor-not-allowed peer-disabled:text-disabled peer-aria-disabled:cursor-not-allowed peer-aria-disabled:text-disabled",
+        "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:items-stretch has-[>[data-slot=field]]:rounded-medium has-[>[data-slot=field]]:border has-[>[data-slot=field]]:border-default has-[>[data-slot=field]]:p-150 has-[>[data-slot=field]]:transition-colors has-[>[data-slot=field]]:duration-fast has-[>[data-slot=field]]:ease-standard has-[>[data-slot=field]]:not-has-[:disabled,[aria-disabled=true]]:hover:bg-neutral-subtle-hovered has-[>[data-slot=field]]:has-[:focus-visible]:outline-focused has-[>[data-slot=field]]:has-data-checked:border-selected has-[>[data-slot=field]]:has-data-checked:bg-selected has-[>[data-slot=field]]:has-data-checked:not-has-[:disabled,[aria-disabled=true]]:hover:bg-selected-hovered has-[>[data-slot=field][data-invalid=true]]:border-danger",
+        "has-[>[data-slot=field]]:has-[:disabled,[aria-disabled=true]]:border-disabled has-[>[data-slot=field]]:has-[:disabled,[aria-disabled=true]]:bg-disabled has-[>[data-slot=field]]:has-[:disabled,[aria-disabled=true]]:cursor-not-allowed",
         className,
       )}
       {...props}
@@ -106,7 +108,7 @@ export function FieldTitle({ className, ...props }: FieldTitleProps) {
     <div
       data-slot="field-label"
       className={cn(
-        "flex w-fit items-center gap-050 font-body-small font-medium text-subtle group-data-[disabled=true]/field:opacity-disabled",
+        "flex w-fit items-center gap-050 font-body-small font-medium text-subtle group-data-[invalid=true]/field:text-danger group-data-[disabled=true]/field:text-disabled",
         className,
       )}
       {...props}
@@ -120,7 +122,7 @@ export function FieldDescription({ className, ...props }: FieldDescriptionProps)
     <p
       data-slot="field-description"
       className={cn(
-        "font-body-small text-subtlest text-start group-has-data-checked/field-label:text-selected [&>a]:underline [&>a]:underline-offset-2 [&>a:hover]:text-default",
+        "font-body-small text-subtlest text-start group-has-data-checked/field-label:not-group-data-[disabled=true]/field:text-selected [&>a]:underline [&>a]:underline-offset-2 [&>a:hover]:text-default",
         className,
       )}
       {...props}
@@ -134,21 +136,16 @@ export function FieldSeparator({ children, className, ...props }: FieldSeparator
     <div
       data-slot="field-separator"
       data-content={!!children}
-      className={cn(
-        "relative flex min-h-250 items-center justify-center font-body-small",
-        className,
-      )}
+      className={cn("flex min-h-250 items-center gap-100 font-body-small", className)}
       {...props}
     >
-      <Separator isDecorative className="absolute inset-x-0 top-1/2" />
+      <Separator isDecorative className="min-w-0 flex-1" />
       {children && (
-        <span
-          data-slot="field-separator-content"
-          className="relative bg-surface px-100 text-subtlest"
-        >
+        <span data-slot="field-separator-content" className="min-w-0 text-center text-subtlest">
           {children}
         </span>
       )}
+      {children && <Separator isDecorative className="min-w-0 flex-1" />}
     </div>
   );
 }

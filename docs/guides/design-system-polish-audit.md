@@ -7,6 +7,8 @@ Layout primitives and the concurrent page/panel/preview work are outside this pa
 
 Implementation update, 2026-09-11: font delivery is aligned; button icon insets and popup-open paint are refined; searchable Editable.Select retains custom rendering; Select/Combobox share growing choice rows and separate selection/highlight states. Layout/Pages/Record demonstrates these together. The findings below describe the original audit; radius, broader form/surface treatment and other catalog decisions remain proposals.
 
+Form/surface update, 2026-09-11: Field labels reflect invalid/disabled state, choice cards have enabled hover and quiet disabled paint, and labeled separators no longer mask the parent surface. InputGroup follows the input/textarea rather than disabled addon actions and matches focused-invalid Input treatment. Card now uses shared vertical spacing with explicit header/footer dividers where needed. Existing Field, Card and InputGroup examples demonstrate these decisions. Global radius/type-size changes and optional catalog additions remain proposals.
+
 ## Recommendation
 
 Keep Ledger's Base UI foundation, semantic tokens, compact density and existing

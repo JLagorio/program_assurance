@@ -30,19 +30,21 @@ A raised container for a table, chart, form or set of facts. Compose its header,
     </CardAction>
   </CardHeader>
   <CardContent>Assessment details</CardContent>
-  <CardFooter>
+  <CardFooter className="border-t">
     <Button>Save</Button>
   </CardFooter>
 </Card>
 ```
 
-CardHeader arranges the title, description and optional action. CardContent supplies the inset. CardFooter holds actions or secondary content. The root records its raised surface so sticky table headers remain opaque.
+CardHeader arranges the title, description and optional action. CardContent supplies the horizontal inset. CardFooter holds actions or secondary content. The root supplies vertical padding and spacing between parts, and records its raised surface so sticky table headers remain opaque.
+
+Headers and footers are undivided by default. Add `className="border-b"` to CardHeader or `className="border-t"` to CardFooter when a rule separates distinct work areas; the part adds padding beside that rule. Form titles usually need spacing only, while a footer with submission actions can earn a divider.
 
 <Canvas of={Stories.Playground} />
 
 ## Variants and states
 
-The default size uses Ledger's standard inset; `size="sm"` reduces the header, content and footer spacing. Tables and charts that own their spacing can sit directly inside Card. Loading, empty and error behavior belongs to the content.
+The default size uses Ledger's standard inset; `size="sm"` reduces the inset and gaps. Tables and charts that own their spacing can sit directly inside Card. For a table flush against a divided header and the bottom edge, use `className="gap-0 pb-0"` on Card and `className="border-b"` on CardHeader. Loading, empty and error behavior belongs to the content.
 
 <Canvas of={Stories.Sizes} />
 <Canvas of={Stories.EdgeToEdge} />

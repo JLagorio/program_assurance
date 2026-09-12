@@ -42,6 +42,10 @@ const id = useId();
 
 Field supports `vertical` (default), `horizontal` and `responsive` orientations. Responsive fields change direction inside a FieldGroup container. Mark the wrapper with `data-invalid` or `data-disabled` and pass the actual state to the control. An asterisk belongs in label content; `aria-required` describes the requirement, while native `required` enables browser validation.
 
+Invalid labels and messages use the same error color; a focused invalid input retains its error border and a separate focus outline. Disabled labels use the disabled text token. A FieldLabel wrapping a Field becomes a choice card with hover, checked and keyboard-focus feedback; disabled choices keep a quiet surface. These styles do not disable a control or validate a value.
+
+Labeled FieldSeparator rules stop on either side of the text instead of painting over the parent surface, so they work inside a page, Card or dialog without a background override.
+
 <Canvas of={Stories.Validation} />
 
 FieldError accepts children or an `errors` array of message objects. It deduplicates messages and renders nothing for an empty result. Children take precedence.

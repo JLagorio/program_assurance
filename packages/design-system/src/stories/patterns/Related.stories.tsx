@@ -353,8 +353,8 @@ export const RelatedMatrix: Story = {
 export const RelatedTable: Story = {
   name: "A related table",
   render: () => (
-    <Card>
-      <CardHeader>
+    <Card className="gap-0 pb-0">
+      <CardHeader className="border-b">
         <CardTitle>
           <h2>{"Linked findings"}</h2>
         </CardTitle>

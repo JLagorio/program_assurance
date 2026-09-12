@@ -1,7 +1,7 @@
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { Search, X } from "lucide-react";
 import { useId, useRef, useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   FieldLabel,
   FieldDescription,
@@ -191,7 +191,7 @@ export const States: Story = {
             <FieldError id={`${fieldId}-owner-5-message`}>{"Choose an owner."}</FieldError>
           ) : null}
         </Field>
-        <Field>
+        <Field data-disabled>
           <FieldLabel
             id={`${fieldId}-archived-record-6-label`}
             htmlFor={`${fieldId}-archived-record-6`}
@@ -224,7 +224,33 @@ export const States: Story = {
             />
           </InputGroup>
         </Field>
+        <Field>
+          <FieldLabel htmlFor={`${fieldId}-lookup`}>Directory search</FieldLabel>
+          <InputGroup>
+            <InputGroupInput id={`${fieldId}-lookup`} placeholder="Enter a name" />
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton disabled>Search</InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+        </Field>
       </Stack>
     );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const owner = canvas.getByRole("textbox", { name: "Owner" });
+    const ownerGroup = owner.closest('[data-slot="input-group"]')!;
+    const invalidBorder = getComputedStyle(ownerGroup).borderColor;
+    await userEvent.click(owner);
+    await expect(owner).toHaveFocus();
+    await waitFor(() => expect(getComputedStyle(ownerGroup).borderColor).toBe(invalidBorder));
+    const directory = canvas.getByRole("textbox", { name: "Directory search" });
+    const archived = canvas.getByRole("textbox", { name: "Archived record" });
+    await expect(directory).toBeEnabled();
+    await expect(
+      getComputedStyle(directory.closest('[data-slot="input-group"]')!).backgroundColor,
+    ).not.toBe(getComputedStyle(archived.closest('[data-slot="input-group"]')!).backgroundColor);
+    await userEvent.type(directory, "Dana");
+    await expect(directory).toHaveValue("Dana");
   },
 };

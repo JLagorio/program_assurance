@@ -6,6 +6,8 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ## Unreleased · audit implementation
 
+- Refine field and surface states: invalid labels match error messages, choice cards gain enabled hover and quiet disabled surfaces, and labeled dividers work on any background. InputGroup follows its control's state, so a disabled addon no longer dims an editable input; focused invalid controls retain their error border. Card uses shared vertical spacing with optional `border-b`/`border-t` rules on header/footer. Edge-to-edge table examples opt into their divider and flush spacing. Native props and compact control sizes are unchanged.
+
 - Align app and Storybook font loading to Geist and Geist Mono. Refine button icon insets and expanded-popup states. Select, Combobox and menu rows share compact minimum sizing and grow for rich content; committed choices remain distinct from hover/keyboard highlight. Editable.Select preserves custom rendering in searchable options while keeping string-based search and accessible names. See Button, Editable/Roster and Layout/Pages/Record.
 
 - Add [RecordBrowser](src/stories/patterns/RecordBrowser.mdx): a 90% viewport relationship chooser with a searchable, filterable table, independent record preview, persistent multi-selection and explicit confirmation. Preview navigation and Escape restore focus within the dialog; failed linking preserves the selection. `Shell.Panel.actions` accepts route-owned previous/next and full-record navigation beside Close.

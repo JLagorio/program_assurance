@@ -27,6 +27,8 @@ Replace `leading` and `trailing` props with InputGroupAddon children. Replace a 
 
 Addon alignment is `inline-start` (default), `inline-end`, `block-start` or `block-end`. Inline positions follow text direction. Block addons create a header or footer around the control. InputGroupButton supports `xs`, `sm`, `icon-xs` and `icon-sm`, with Ledger Button variants.
 
+The actual input or textarea supplies focus, invalid, read-only and disabled surface states. Disabling an addon button does not disable or dim the editable field. Focused invalid groups keep their error border and a separate focus outline, matching Input and Textarea.
+
 <Canvas of={Stories.Units} />
 <Canvas of={Stories.Multiline} />
 <Canvas of={Stories.States} />
