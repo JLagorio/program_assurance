@@ -1,0 +1,3 @@
+-- Operational tables intentionally start empty. No fictional programs or people are loaded.
+-- Run npm run seed:reference for the tracked NIST/DISA reference corpus.
+-- local:start provisions an actual local Auth account; first sign-in creates its workspace.

@@ -187,7 +187,7 @@
       "kind": "type"
     },
     ".#AppLogoProps": {
-      "target": "\"src/layout/shell\".AppLogoProps",
+      "target": "\"src/layout/shell/top-nav\".AppLogoProps",
       "kind": "type"
     },
     ".#applyMode": {
@@ -195,7 +195,7 @@
       "kind": "value"
     },
     ".#AppSwitcherProps": {
-      "target": "\"src/layout/shell\".AppSwitcherProps",
+      "target": "\"src/layout/shell/top-nav\".AppSwitcherProps",
       "kind": "type"
     },
     ".#Attachment": {
@@ -978,12 +978,20 @@
       "target": "\"src/patterns/data-table/features\".DataTableColumnMeta",
       "kind": "type"
     },
+    ".#DataTableEmpty": {
+      "target": "\"src/patterns/data-table/data-table\".DataTableEmpty",
+      "kind": "type"
+    },
     ".#dataTableFeatures": {
       "target": "\"src/patterns/data-table/features\".dataTableFeatures",
       "kind": "value"
     },
     ".#DataTableFeatures": {
       "target": "\"src/patterns/data-table/features\".DataTableFeatures",
+      "kind": "type"
+    },
+    ".#DataTableFilteredEmpty": {
+      "target": "\"src/patterns/data-table/data-table\".DataTableFilteredEmpty",
       "kind": "type"
     },
     ".#DataTableInstance": {
@@ -1382,12 +1390,28 @@
       "target": "\"src/components/empty\".EmptyDescriptionProps",
       "kind": "type"
     },
+    ".#EmptyFrame": {
+      "target": "\"src/components/empty\".EmptyFrame",
+      "kind": "type"
+    },
     ".#EmptyHeader": {
       "target": "\"src/components/empty\".EmptyHeader",
       "kind": "value"
     },
     ".#EmptyHeaderProps": {
       "target": "\"src/components/empty\".EmptyHeaderProps",
+      "kind": "type"
+    },
+    ".#EmptyIllustration": {
+      "target": "\"src/components/empty\".EmptyIllustration",
+      "kind": "value"
+    },
+    ".#EmptyIllustrationKind": {
+      "target": "\"src/components/empty\".EmptyIllustrationKind",
+      "kind": "type"
+    },
+    ".#EmptyIllustrationProps": {
+      "target": "\"src/components/empty\".EmptyIllustrationProps",
       "kind": "type"
     },
     ".#EmptyMedia": {
@@ -1634,6 +1658,10 @@
       "target": "\"src/components/button\".IconButtonProps",
       "kind": "type"
     },
+    ".#IconComponent": {
+      "target": "\"src/layout/shell/side-nav\".IconComponent",
+      "kind": "type"
+    },
     ".#Id": {
       "target": "\"src/components/id\".Id",
       "kind": "value"
@@ -1826,8 +1854,28 @@
       "target": "\"src/layout/page-header\".PageHeader",
       "kind": "value"
     },
+    ".#PageHeaderActionsProps": {
+      "target": "\"src/layout/page-header\".PageHeaderActionsProps",
+      "kind": "type"
+    },
+    ".#PageHeaderDescriptionProps": {
+      "target": "\"src/layout/page-header\".PageHeaderDescriptionProps",
+      "kind": "type"
+    },
+    ".#PageHeaderHeadingProps": {
+      "target": "\"src/layout/page-header\".PageHeaderHeadingProps",
+      "kind": "type"
+    },
+    ".#PageHeaderLeadProps": {
+      "target": "\"src/layout/page-header\".PageHeaderLeadProps",
+      "kind": "type"
+    },
     ".#PageHeaderProps": {
       "target": "\"src/layout/page-header\".PageHeaderProps",
+      "kind": "type"
+    },
+    ".#PageHeaderTitleProps": {
+      "target": "\"src/layout/page-header\".PageHeaderTitleProps",
       "kind": "type"
     },
     ".#PageSkeleton": {
@@ -1995,7 +2043,7 @@
       "kind": "type"
     },
     ".#ProfileProps": {
-      "target": "\"src/layout/shell\".ProfileProps",
+      "target": "\"src/layout/shell/top-nav\".ProfileProps",
       "kind": "type"
     },
     ".#Progress": {
@@ -2174,8 +2222,28 @@
       "target": "\"src/layout/section\".Section",
       "kind": "value"
     },
+    ".#SectionActionsProps": {
+      "target": "\"src/layout/section\".SectionActionsProps",
+      "kind": "type"
+    },
+    ".#SectionDescriptionProps": {
+      "target": "\"src/layout/section\".SectionDescriptionProps",
+      "kind": "type"
+    },
+    ".#SectionHeaderProps": {
+      "target": "\"src/layout/section\".SectionHeaderProps",
+      "kind": "type"
+    },
+    ".#SectionHeadingProps": {
+      "target": "\"src/layout/section\".SectionHeadingProps",
+      "kind": "type"
+    },
     ".#SectionProps": {
       "target": "\"src/layout/section\".SectionProps",
+      "kind": "type"
+    },
+    ".#SectionTitleProps": {
+      "target": "\"src/layout/section\".SectionTitleProps",
       "kind": "type"
     },
     ".#Select": {
@@ -2331,7 +2399,7 @@
       "kind": "type"
     },
     ".#Shell": {
-      "target": "\"src/layout/shell\".Shell",
+      "target": "\"src/layout/shell/index\".Shell",
       "kind": "value"
     },
     ".#SHELL_STORAGE_KEY": {
@@ -2339,23 +2407,47 @@
       "kind": "value"
     },
     ".#ShellAsideProps": {
-      "target": "\"src/layout/shell\".ShellAsideProps",
+      "target": "\"src/layout/shell/root\".ShellAsideProps",
       "kind": "type"
     },
     ".#ShellBannerProps": {
-      "target": "\"src/layout/shell\".ShellBannerProps",
+      "target": "\"src/layout/shell/root\".ShellBannerProps",
       "kind": "type"
     },
     ".#ShellMainProps": {
-      "target": "\"src/layout/shell\".ShellMainProps",
+      "target": "\"src/layout/shell/root\".ShellMainProps",
+      "kind": "type"
+    },
+    ".#ShellMarkProps": {
+      "target": "\"src/layout/shell/top-nav\".ShellMarkProps",
+      "kind": "type"
+    },
+    ".#ShellPanelActionsProps": {
+      "target": "\"src/layout/shell/panel\".ShellPanelActionsProps",
+      "kind": "type"
+    },
+    ".#ShellPanelBodyProps": {
+      "target": "\"src/layout/shell/panel\".ShellPanelBodyProps",
+      "kind": "type"
+    },
+    ".#ShellPanelCloseProps": {
+      "target": "\"src/layout/shell/panel\".ShellPanelCloseProps",
+      "kind": "type"
+    },
+    ".#ShellPanelHeaderProps": {
+      "target": "\"src/layout/shell/panel\".ShellPanelHeaderProps",
       "kind": "type"
     },
     ".#ShellPanelProps": {
-      "target": "\"src/layout/shell\".ShellPanelProps",
+      "target": "\"src/layout/shell/panel\".ShellPanelProps",
+      "kind": "type"
+    },
+    ".#ShellPanelTitleProps": {
+      "target": "\"src/layout/shell/panel\".ShellPanelTitleProps",
       "kind": "type"
     },
     ".#ShellProps": {
-      "target": "\"src/layout/shell\".ShellProps",
+      "target": "\"src/layout/shell/root\".ShellProps",
       "kind": "type"
     },
     ".#shellScript": {
@@ -2367,7 +2459,7 @@
       "kind": "value"
     },
     ".#ShellSplitterProps": {
-      "target": "\"src/layout/shell\".ShellSplitterProps",
+      "target": "\"src/layout/shell/splitter\".ShellSplitterProps",
       "kind": "type"
     },
     ".#ShellStored": {
@@ -2375,43 +2467,63 @@
       "kind": "type"
     },
     ".#ShellTopNavEndProps": {
-      "target": "\"src/layout/shell\".ShellTopNavEndProps",
+      "target": "\"src/layout/shell/top-nav\".ShellTopNavEndProps",
       "kind": "type"
     },
     ".#ShellTopNavMiddleProps": {
-      "target": "\"src/layout/shell\".ShellTopNavMiddleProps",
+      "target": "\"src/layout/shell/top-nav\".ShellTopNavMiddleProps",
       "kind": "type"
     },
     ".#ShellTopNavProps": {
-      "target": "\"src/layout/shell\".ShellTopNavProps",
+      "target": "\"src/layout/shell/top-nav\".ShellTopNavProps",
       "kind": "type"
     },
     ".#ShellTopNavStartProps": {
-      "target": "\"src/layout/shell\".ShellTopNavStartProps",
+      "target": "\"src/layout/shell/top-nav\".ShellTopNavStartProps",
+      "kind": "type"
+    },
+    ".#SideNavBodyProps": {
+      "target": "\"src/layout/shell/side-nav\".SideNavBodyProps",
       "kind": "type"
     },
     ".#SideNavExpandableProps": {
-      "target": "\"src/layout/shell\".SideNavExpandableProps",
+      "target": "\"src/layout/shell/side-nav\".SideNavExpandableProps",
+      "kind": "type"
+    },
+    ".#SideNavFooterProps": {
+      "target": "\"src/layout/shell/side-nav\".SideNavFooterProps",
+      "kind": "type"
+    },
+    ".#SideNavHeaderProps": {
+      "target": "\"src/layout/shell/side-nav\".SideNavHeaderProps",
+      "kind": "type"
+    },
+    ".#SideNavIcon": {
+      "target": "\"src/layout/shell/side-nav\".SideNavIcon",
       "kind": "type"
     },
     ".#SideNavItemProps": {
-      "target": "\"src/layout/shell\".SideNavItemProps",
+      "target": "\"src/layout/shell/side-nav\".SideNavItemProps",
       "kind": "type"
     },
     ".#SideNavProps": {
-      "target": "\"src/layout/shell\".SideNavProps",
+      "target": "\"src/layout/shell/side-nav\".SideNavProps",
       "kind": "type"
     },
     ".#SideNavSectionProps": {
-      "target": "\"src/layout/shell\".SideNavSectionProps",
+      "target": "\"src/layout/shell/side-nav\".SideNavSectionProps",
       "kind": "type"
     },
     ".#SideNavSlotProps": {
-      "target": "\"src/layout/shell\".SideNavSlotProps",
+      "target": "\"src/layout/shell/side-nav\".SideNavSlotProps",
       "kind": "type"
     },
     ".#SideNavToggleButtonProps": {
-      "target": "\"src/layout/shell\".SideNavToggleButtonProps",
+      "target": "\"src/layout/shell/side-nav\".SideNavToggleButtonProps",
+      "kind": "type"
+    },
+    ".#SideNavTrigger": {
+      "target": "\"src/layout/shell/context\".SideNavTrigger",
       "kind": "type"
     },
     ".#Skeleton": {
@@ -2830,6 +2942,10 @@
       "target": "\"src/patterns/data-table/use-data-table\".useDataTable",
       "kind": "value"
     },
+    ".#useFillWindow": {
+      "target": "\"src/lib/use-fill-window\".useFillWindow",
+      "kind": "value"
+    },
     ".#useHeaderContext": {
       "target": "\"src/patterns/data-table/use-data-table\".useHeaderContext",
       "kind": "value"
@@ -2851,7 +2967,7 @@
       "kind": "value"
     },
     ".#useSideNav": {
-      "target": "\"src/layout/shell\".useSideNav",
+      "target": "\"src/layout/shell/context\".useSideNav",
       "kind": "value"
     },
     ".#useSort": {
@@ -4417,7 +4533,7 @@
     "\"src/components/empty\".Empty": [
       {
         "source": "src/components/empty.d.ts",
-        "declaration": "export declare function Empty({ size, className, ...props }: EmptyProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Empty({ size, frame, className, ...props }: EmptyProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/empty\".EmptyContent": [
@@ -4444,16 +4560,40 @@
         "declaration": "export type EmptyDescriptionProps = ComponentProps<\"div\">;"
       }
     ],
+    "\"src/components/empty\".EmptyFrame": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptyFrame = \"dashed\" | \"none\";"
+      }
+    ],
     "\"src/components/empty\".EmptyHeader": [
       {
         "source": "src/components/empty.d.ts",
-        "declaration": "export declare function EmptyHeader({ className, ...props }: EmptyHeaderProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function EmptyHeader({ className, style, ...props }: EmptyHeaderProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/empty\".EmptyHeaderProps": [
       {
         "source": "src/components/empty.d.ts",
         "declaration": "export type EmptyHeaderProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/components/empty\".EmptyIllustration": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export declare function EmptyIllustration({ kind, className, style, ...props }: EmptyIllustrationProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/empty\".EmptyIllustrationKind": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptyIllustrationKind = \"records\" | \"search\" | \"done\" | \"inbox\" | \"locked\" | \"shield\" | \"document\" | \"tasks\" | \"people\" | \"tree\" | \"chart\" | \"calendar\";"
+      }
+    ],
+    "\"src/components/empty\".EmptyIllustrationProps": [
+      {
+        "source": "src/components/empty.d.ts",
+        "declaration": "export type EmptyIllustrationProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    kind?: EmptyIllustrationKind | undefined;\n};"
       }
     ],
     "\"src/components/empty\".EmptyMedia": [
@@ -4471,7 +4611,7 @@
     "\"src/components/empty\".EmptyProps": [
       {
         "source": "src/components/empty.d.ts",
-        "declaration": "export type EmptyProps = ComponentProps<\"div\"> & {\n    size?: EmptySize | undefined;\n};"
+        "declaration": "export type EmptyProps = ComponentProps<\"div\"> & {\n    size?: EmptySize | undefined;\n    frame?: EmptyFrame | undefined;\n};"
       }
     ],
     "\"src/components/empty\".EmptySize": [
@@ -5533,7 +5673,7 @@
     "\"src/components/table\".TableProps": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "export type TableProps = {\n    label?: string | undefined;\n    maxHeight?: number | undefined;\n    frameRef?: Ref<HTMLDivElement> | undefined;\n    role?: \"table\" | \"treegrid\" | \"grid\" | undefined;\n    density?: Density | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n} & Omit<ComponentProps<\"table\">, \"className\" | \"children\" | \"role\">;"
+        "declaration": "export type TableProps = {\n    label?: string | undefined;\n    maxHeight?: number | undefined;\n    fill?: boolean | undefined;\n    frameRef?: Ref<HTMLDivElement> | undefined;\n    role?: \"table\" | \"treegrid\" | \"grid\" | undefined;\n    density?: Density | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n} & Omit<ComponentProps<\"table\">, \"className\" | \"children\" | \"role\">;"
       }
     ],
     "\"src/components/table\".TdProps": [
@@ -5545,7 +5685,7 @@
     "\"src/components/table\".ThProps": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "export type ThProps = ComponentProps<\"th\"> & PinnedProps & {\n    sort?: \"asc\" | \"desc\" | false | undefined;\n    onSort?: (() => void) | undefined;\n    sticky?: boolean | undefined;\n    width?: number | undefined;\n    resize?: {\n        onResizeStart: (event: unknown) => void;\n        onResizeKeyboard?: ((change: number | \"min\" | \"max\") => void) | undefined;\n        value?: number | undefined;\n        min?: number | undefined;\n        max?: number | undefined;\n        onResizeReset?: (() => void) | undefined;\n        isResizing?: boolean | undefined;\n        resizeDelta?: number | null | undefined;\n    } | undefined;\n    trailing?: ReactNode;\n};"
+        "declaration": "export type ThProps = ComponentProps<\"th\"> & PinnedProps & {\n    sort?: \"asc\" | \"desc\" | false | undefined;\n    onSort?: (() => void) | undefined;\n    hairline?: boolean | undefined;\n    sticky?: boolean | undefined;\n    width?: number | undefined;\n    resize?: {\n        onResizeStart: (event: unknown) => void;\n        onResizeKeyboard?: ((change: number | \"min\" | \"max\") => void) | undefined;\n        value?: number | undefined;\n        min?: number | undefined;\n        max?: number | undefined;\n        onResizeReset?: (() => void) | undefined;\n        isResizing?: boolean | undefined;\n        resizeDelta?: number | null | undefined;\n    } | undefined;\n    trailing?: ReactNode;\n};"
       }
     ],
     "\"src/components/tabs\".Tabs": [
@@ -5959,7 +6099,7 @@
     "\"src/generated/merge-config\".mergeConfig": [
       {
         "source": "src/generated/merge-config.d.ts",
-        "declaration": "mergeConfig: {\n    readonly extend: {\n        readonly classGroups: {\n            readonly \"bg-color\": readonly [\n                {\n                    readonly bg: readonly [\n                        \"neutral\",\n                        \"neutral-hovered\",\n                        \"neutral-pressed\",\n                        \"neutral-subtle\",\n                        \"neutral-subtle-hovered\",\n                        \"neutral-subtle-pressed\",\n                        \"neutral-bold\",\n                        \"neutral-bold-hovered\",\n                        \"neutral-bold-pressed\",\n                        \"brand-subtlest\",\n                        \"brand-subtlest-hovered\",\n                        \"brand-subtlest-pressed\",\n                        \"brand-bold\",\n                        \"brand-bold-hovered\",\n                        \"brand-bold-pressed\",\n                        \"brand-boldest\",\n                        \"brand-boldest-hovered\",\n                        \"brand-boldest-pressed\",\n                        \"selected\",\n                        \"selected-hovered\",\n                        \"selected-pressed\",\n                        \"selected-bold\",\n                        \"selected-bold-hovered\",\n                        \"selected-bold-pressed\",\n                        \"danger\",\n                        \"danger-hovered\",\n                        \"danger-pressed\",\n                        \"danger-subtler\",\n                        \"danger-subtler-hovered\",\n                        \"danger-subtler-pressed\",\n                        \"danger-subtle\",\n                        \"danger-bold\",\n                        \"danger-bold-hovered\",\n                        \"danger-bold-pressed\",\n                        \"warning\",\n                        \"warning-hovered\",\n                        \"warning-pressed\",\n                        \"warning-subtler\",\n                        \"warning-subtler-hovered\",\n                        \"warning-subtler-pressed\",\n                        \"warning-subtle\",\n                        \"warning-bold\",\n                        \"warning-bold-hovered\",\n                        \"warning-bold-pressed\",\n                        \"success\",\n                        \"success-hovered\",\n                        \"success-pressed\",\n                        \"success-subtler\",\n                        \"success-subtler-hovered\",\n                        \"success-subtler-pressed\",\n                        \"success-subtle\",\n                        \"success-bold\",\n                        \"success-bold-hovered\",\n                        \"success-bold-pressed\",\n                        \"information\",\n                        \"information-hovered\",\n                        \"information-pressed\",\n                        \"information-subtler\",\n                        \"information-subtler-hovered\",\n                        \"information-subtler-pressed\",\n                        \"information-subtle\",\n                        \"information-bold\",\n                        \"information-bold-hovered\",\n                        \"information-bold-pressed\",\n                        \"disabled\",\n                        \"input\",\n                        \"input-hovered\",\n                        \"input-pressed\",\n                        \"inverse-subtle\",\n                        \"inverse-subtle-hovered\",\n                        \"inverse-subtle-pressed\",\n                        \"accent-blue-subtler\",\n                        \"accent-blue-bolder\",\n                        \"accent-teal-subtler\",\n                        \"accent-teal-bolder\",\n                        \"accent-green-subtler\",\n                        \"accent-green-bolder\",\n                        \"accent-orange-subtler\",\n                        \"accent-orange-bolder\",\n                        \"accent-red-subtler\",\n                        \"accent-red-bolder\",\n                        \"accent-purple-subtler\",\n                        \"accent-purple-bolder\",\n                        \"blanket\",\n                        \"skeleton\",\n                        \"skeleton-subtle\",\n                        \"surface\",\n                        \"surface-hovered\",\n                        \"surface-pressed\",\n                        \"surface-sunken\",\n                        \"surface-raised\",\n                        \"surface-raised-hovered\",\n                        \"surface-raised-pressed\",\n                        \"surface-overlay\",\n                        \"surface-overlay-hovered\",\n                        \"surface-overlay-pressed\",\n                        \"surface-current\"\n                    ];\n                }\n            ];\n            readonly \"text-color\": readonly [\n                {\n                    readonly text: readonly [\n                        \"default\",\n                        \"subtle\",\n                        \"subtlest\",\n                        \"disabled\",\n                        \"inverse\",\n                        \"selected\",\n                        \"brand\",\n                        \"danger\",\n                        \"danger-bolder\",\n                        \"warning\",\n                        \"warning-inverse\",\n                        \"warning-bolder\",\n                        \"success\",\n                        \"success-bolder\",\n                        \"information\",\n                        \"information-bolder\",\n                        \"accent-blue\",\n                        \"accent-teal\",\n                        \"accent-green\",\n                        \"accent-orange\",\n                        \"accent-red\",\n                        \"accent-purple\"\n                    ];\n                }\n            ];\n            readonly icon: readonly [\n                {\n                    readonly icon: readonly [\n                        \"default\",\n                        \"subtle\",\n                        \"subtlest\",\n                        \"disabled\",\n                        \"inverse\",\n                        \"selected\",\n                        \"brand\",\n                        \"danger\",\n                        \"warning\",\n                        \"warning-inverse\",\n                        \"success\",\n                        \"information\"\n                    ];\n                }\n            ];\n            readonly \"border-color\": readonly [\n                {\n                    readonly border: readonly [\n                        \"default\",\n                        \"bold\",\n                        \"disabled\",\n                        \"focused\",\n                        \"input\",\n                        \"inverse\",\n                        \"selected\",\n                        \"brand\",\n                        \"danger\",\n                        \"danger-subtle\",\n                        \"warning\",\n                        \"warning-subtle\",\n                        \"success\",\n                        \"success-subtle\",\n                        \"information\",\n                        \"information-subtle\"\n                    ];\n                }\n            ];\n            readonly \"border-w\": readonly [\n                {\n                    readonly \"border-w\": readonly [\n                        \"selected\",\n                        \"focused\",\n                        \"default\"\n                    ];\n                }\n            ];\n            readonly \"font-family\": readonly [\n                {\n                    readonly font: readonly [\n                        \"body-large\",\n                        \"body-small\",\n                        \"body-xsmall\",\n                        \"body\",\n                        \"heading-large\",\n                        \"heading-medium\",\n                        \"heading-small\",\n                        \"heading-xsmall\",\n                        \"heading-xxsmall\",\n                        \"code\"\n                    ];\n                }\n            ];\n            readonly \"font-weight\": readonly [\n                {\n                    readonly font: readonly [\n                        \"regular\",\n                        \"medium\",\n                        \"semibold\"\n                    ];\n                }\n            ];\n            readonly rounded: readonly [\n                {\n                    readonly rounded: readonly [\n                        \"xsmall\",\n                        \"small\",\n                        \"medium\",\n                        \"large\",\n                        \"xlarge\",\n                        \"xxlarge\",\n                        \"full\"\n                    ];\n                }\n            ];\n            readonly shadow: readonly [\n                {\n                    readonly shadow: readonly [\n                        \"raised\",\n                        \"overlay\",\n                        \"overflow\"\n                    ];\n                }\n            ];\n            readonly h: readonly [\n                {\n                    readonly h: readonly [\n                        \"control-xsmall\",\n                        \"control-small\",\n                        \"control-medium\",\n                        \"control-large\",\n                        \"row-compact\",\n                        \"row\",\n                        \"row-header\",\n                        \"row-menu\",\n                        \"layout-topnav\",\n                        \"layout-banner\"\n                    ];\n                }\n            ];\n            readonly \"min-h\": readonly [\n                {\n                    readonly \"min-h\": readonly [\n                        \"control-xsmall\",\n                        \"control-small\",\n                        \"control-medium\",\n                        \"control-large\",\n                        \"row-compact\",\n                        \"row\",\n                        \"row-header\",\n                        \"row-menu\"\n                    ];\n                }\n            ];\n            readonly size: readonly [\n                {\n                    readonly size: readonly [\n                        \"control-xsmall\",\n                        \"control-small\",\n                        \"control-medium\",\n                        \"control-large\",\n                        \"icon-small\",\n                        \"icon-medium\"\n                    ];\n                }\n            ];\n            readonly opacity: readonly [\n                {\n                    readonly opacity: readonly [\n                        \"disabled\",\n                        \"loading\"\n                    ];\n                }\n            ];\n            readonly duration: readonly [\n                {\n                    readonly duration: readonly [\n                        \"micro\",\n                        \"fast\",\n                        \"medium\",\n                        \"moderate\",\n                        \"slow\",\n                        \"slower\"\n                    ];\n                }\n            ];\n            readonly ease: readonly [\n                {\n                    readonly ease: readonly [\n                        \"standard\",\n                        \"enter\",\n                        \"exit\"\n                    ];\n                }\n            ];\n        };\n    };\n}"
+        "declaration": "mergeConfig: {\n    readonly extend: {\n        readonly classGroups: {\n            readonly \"bg-color\": readonly [\n                {\n                    readonly bg: readonly [\n                        \"neutral\",\n                        \"neutral-hovered\",\n                        \"neutral-pressed\",\n                        \"neutral-subtle\",\n                        \"neutral-subtle-hovered\",\n                        \"neutral-subtle-pressed\",\n                        \"neutral-bold\",\n                        \"neutral-bold-hovered\",\n                        \"neutral-bold-pressed\",\n                        \"brand-subtlest\",\n                        \"brand-subtlest-hovered\",\n                        \"brand-subtlest-pressed\",\n                        \"brand-bold\",\n                        \"brand-bold-hovered\",\n                        \"brand-bold-pressed\",\n                        \"brand-boldest\",\n                        \"brand-boldest-hovered\",\n                        \"brand-boldest-pressed\",\n                        \"selected\",\n                        \"selected-hovered\",\n                        \"selected-pressed\",\n                        \"selected-bold\",\n                        \"selected-bold-hovered\",\n                        \"selected-bold-pressed\",\n                        \"danger\",\n                        \"danger-hovered\",\n                        \"danger-pressed\",\n                        \"danger-subtler\",\n                        \"danger-subtler-hovered\",\n                        \"danger-subtler-pressed\",\n                        \"danger-subtle\",\n                        \"danger-bold\",\n                        \"danger-bold-hovered\",\n                        \"danger-bold-pressed\",\n                        \"warning\",\n                        \"warning-hovered\",\n                        \"warning-pressed\",\n                        \"warning-subtler\",\n                        \"warning-subtler-hovered\",\n                        \"warning-subtler-pressed\",\n                        \"warning-subtle\",\n                        \"warning-bold\",\n                        \"warning-bold-hovered\",\n                        \"warning-bold-pressed\",\n                        \"success\",\n                        \"success-hovered\",\n                        \"success-pressed\",\n                        \"success-subtler\",\n                        \"success-subtler-hovered\",\n                        \"success-subtler-pressed\",\n                        \"success-subtle\",\n                        \"success-bold\",\n                        \"success-bold-hovered\",\n                        \"success-bold-pressed\",\n                        \"information\",\n                        \"information-hovered\",\n                        \"information-pressed\",\n                        \"information-subtler\",\n                        \"information-subtler-hovered\",\n                        \"information-subtler-pressed\",\n                        \"information-subtle\",\n                        \"information-bold\",\n                        \"information-bold-hovered\",\n                        \"information-bold-pressed\",\n                        \"disabled\",\n                        \"input\",\n                        \"input-hovered\",\n                        \"input-pressed\",\n                        \"inverse-subtle\",\n                        \"inverse-subtle-hovered\",\n                        \"inverse-subtle-pressed\",\n                        \"accent-blue-subtler\",\n                        \"accent-blue-bolder\",\n                        \"accent-teal-subtler\",\n                        \"accent-teal-bolder\",\n                        \"accent-green-subtler\",\n                        \"accent-green-bolder\",\n                        \"accent-orange-subtler\",\n                        \"accent-orange-bolder\",\n                        \"accent-red-subtler\",\n                        \"accent-red-bolder\",\n                        \"accent-purple-subtler\",\n                        \"accent-purple-bolder\",\n                        \"blanket\",\n                        \"skeleton\",\n                        \"skeleton-subtle\",\n                        \"surface\",\n                        \"surface-hovered\",\n                        \"surface-pressed\",\n                        \"surface-sunken\",\n                        \"surface-raised\",\n                        \"surface-raised-hovered\",\n                        \"surface-raised-pressed\",\n                        \"surface-overlay\",\n                        \"surface-overlay-hovered\",\n                        \"surface-overlay-pressed\",\n                        \"surface-current\"\n                    ];\n                }\n            ];\n            readonly \"text-color\": readonly [\n                {\n                    readonly text: readonly [\n                        \"default\",\n                        \"subtle\",\n                        \"subtlest\",\n                        \"disabled\",\n                        \"inverse\",\n                        \"selected\",\n                        \"brand\",\n                        \"danger\",\n                        \"danger-bolder\",\n                        \"warning\",\n                        \"warning-inverse\",\n                        \"warning-bolder\",\n                        \"success\",\n                        \"success-bolder\",\n                        \"information\",\n                        \"information-bolder\",\n                        \"accent-blue\",\n                        \"accent-teal\",\n                        \"accent-green\",\n                        \"accent-orange\",\n                        \"accent-red\",\n                        \"accent-purple\"\n                    ];\n                }\n            ];\n            readonly icon: readonly [\n                {\n                    readonly icon: readonly [\n                        \"default\",\n                        \"subtle\",\n                        \"subtlest\",\n                        \"disabled\",\n                        \"inverse\",\n                        \"selected\",\n                        \"brand\",\n                        \"danger\",\n                        \"warning\",\n                        \"warning-inverse\",\n                        \"success\",\n                        \"information\"\n                    ];\n                }\n            ];\n            readonly \"border-color\": readonly [\n                {\n                    readonly border: readonly [\n                        \"default\",\n                        \"bold\",\n                        \"disabled\",\n                        \"focused\",\n                        \"input\",\n                        \"inverse\",\n                        \"selected\",\n                        \"brand\",\n                        \"danger\",\n                        \"danger-subtle\",\n                        \"warning\",\n                        \"warning-subtle\",\n                        \"success\",\n                        \"success-subtle\",\n                        \"information\",\n                        \"information-subtle\"\n                    ];\n                }\n            ];\n            readonly \"border-w\": readonly [\n                {\n                    readonly \"border-w\": readonly [\n                        \"selected\",\n                        \"focused\",\n                        \"default\"\n                    ];\n                }\n            ];\n            readonly \"font-family\": readonly [\n                {\n                    readonly font: readonly [\n                        \"body-large\",\n                        \"body-small\",\n                        \"body-xsmall\",\n                        \"body\",\n                        \"heading-large\",\n                        \"heading-medium\",\n                        \"heading-small\",\n                        \"heading-xsmall\",\n                        \"heading-xxsmall\",\n                        \"code\"\n                    ];\n                }\n            ];\n            readonly \"font-weight\": readonly [\n                {\n                    readonly font: readonly [\n                        \"regular\",\n                        \"medium\",\n                        \"semibold\"\n                    ];\n                }\n            ];\n            readonly rounded: readonly [\n                {\n                    readonly rounded: readonly [\n                        \"xsmall\",\n                        \"small\",\n                        \"medium\",\n                        \"large\",\n                        \"xlarge\",\n                        \"xxlarge\",\n                        \"full\"\n                    ];\n                }\n            ];\n            readonly shadow: readonly [\n                {\n                    readonly shadow: readonly [\n                        \"raised\",\n                        \"overlay\",\n                        \"overflow\"\n                    ];\n                }\n            ];\n            readonly h: readonly [\n                {\n                    readonly h: readonly [\n                        \"control-xsmall\",\n                        \"control-small\",\n                        \"control-medium\",\n                        \"control-large\",\n                        \"row-compact\",\n                        \"row\",\n                        \"row-header\",\n                        \"row-menu\",\n                        \"layout-topnav\",\n                        \"layout-banner\"\n                    ];\n                }\n            ];\n            readonly \"min-h\": readonly [\n                {\n                    readonly \"min-h\": readonly [\n                        \"control-xsmall\",\n                        \"control-small\",\n                        \"control-medium\",\n                        \"control-large\",\n                        \"row-compact\",\n                        \"row\",\n                        \"row-header\",\n                        \"row-menu\",\n                        \"layout-topnav\",\n                        \"layout-banner\"\n                    ];\n                }\n            ];\n            readonly size: readonly [\n                {\n                    readonly size: readonly [\n                        \"control-xsmall\",\n                        \"control-small\",\n                        \"control-medium\",\n                        \"control-large\",\n                        \"icon-small\",\n                        \"icon-medium\"\n                    ];\n                }\n            ];\n            readonly opacity: readonly [\n                {\n                    readonly opacity: readonly [\n                        \"disabled\",\n                        \"loading\"\n                    ];\n                }\n            ];\n            readonly duration: readonly [\n                {\n                    readonly duration: readonly [\n                        \"micro\",\n                        \"fast\",\n                        \"medium\",\n                        \"moderate\",\n                        \"slow\",\n                        \"slower\"\n                    ];\n                }\n            ];\n            readonly ease: readonly [\n                {\n                    readonly ease: readonly [\n                        \"standard\",\n                        \"enter\",\n                        \"exit\"\n                    ];\n                }\n            ];\n        };\n    };\n}"
       }
     ],
     "\"src/generated/space\".BleedToken": [
@@ -6001,7 +6141,7 @@
     "\"src/generated/tokens\".tokens": [
       {
         "source": "src/generated/tokens.d.ts",
-        "declaration": "tokens: {\n    readonly \"color.background.neutral\": \"--ds-color-background-neutral\";\n    readonly \"color.background.neutral.hovered\": \"--ds-color-background-neutral-hovered\";\n    readonly \"color.background.neutral.pressed\": \"--ds-color-background-neutral-pressed\";\n    readonly \"color.background.neutral.subtle\": \"--ds-color-background-neutral-subtle\";\n    readonly \"color.background.neutral.subtle.hovered\": \"--ds-color-background-neutral-subtle-hovered\";\n    readonly \"color.background.neutral.subtle.pressed\": \"--ds-color-background-neutral-subtle-pressed\";\n    readonly \"color.background.neutral.bold\": \"--ds-color-background-neutral-bold\";\n    readonly \"color.background.neutral.bold.hovered\": \"--ds-color-background-neutral-bold-hovered\";\n    readonly \"color.background.neutral.bold.pressed\": \"--ds-color-background-neutral-bold-pressed\";\n    readonly \"color.background.brand.subtlest\": \"--ds-color-background-brand-subtlest\";\n    readonly \"color.background.brand.subtlest.hovered\": \"--ds-color-background-brand-subtlest-hovered\";\n    readonly \"color.background.brand.subtlest.pressed\": \"--ds-color-background-brand-subtlest-pressed\";\n    readonly \"color.background.brand.bold\": \"--ds-color-background-brand-bold\";\n    readonly \"color.background.brand.bold.hovered\": \"--ds-color-background-brand-bold-hovered\";\n    readonly \"color.background.brand.bold.pressed\": \"--ds-color-background-brand-bold-pressed\";\n    readonly \"color.background.brand.boldest\": \"--ds-color-background-brand-boldest\";\n    readonly \"color.background.brand.boldest.hovered\": \"--ds-color-background-brand-boldest-hovered\";\n    readonly \"color.background.brand.boldest.pressed\": \"--ds-color-background-brand-boldest-pressed\";\n    readonly \"color.background.selected\": \"--ds-color-background-selected\";\n    readonly \"color.background.selected.hovered\": \"--ds-color-background-selected-hovered\";\n    readonly \"color.background.selected.pressed\": \"--ds-color-background-selected-pressed\";\n    readonly \"color.background.selected.bold\": \"--ds-color-background-selected-bold\";\n    readonly \"color.background.selected.bold.hovered\": \"--ds-color-background-selected-bold-hovered\";\n    readonly \"color.background.selected.bold.pressed\": \"--ds-color-background-selected-bold-pressed\";\n    readonly \"color.background.danger\": \"--ds-color-background-danger\";\n    readonly \"color.background.danger.hovered\": \"--ds-color-background-danger-hovered\";\n    readonly \"color.background.danger.pressed\": \"--ds-color-background-danger-pressed\";\n    readonly \"color.background.danger.subtler\": \"--ds-color-background-danger-subtler\";\n    readonly \"color.background.danger.subtler.hovered\": \"--ds-color-background-danger-subtler-hovered\";\n    readonly \"color.background.danger.subtler.pressed\": \"--ds-color-background-danger-subtler-pressed\";\n    readonly \"color.background.danger.subtle\": \"--ds-color-background-danger-subtle\";\n    readonly \"color.background.danger.bold\": \"--ds-color-background-danger-bold\";\n    readonly \"color.background.danger.bold.hovered\": \"--ds-color-background-danger-bold-hovered\";\n    readonly \"color.background.danger.bold.pressed\": \"--ds-color-background-danger-bold-pressed\";\n    readonly \"color.background.warning\": \"--ds-color-background-warning\";\n    readonly \"color.background.warning.hovered\": \"--ds-color-background-warning-hovered\";\n    readonly \"color.background.warning.pressed\": \"--ds-color-background-warning-pressed\";\n    readonly \"color.background.warning.subtler\": \"--ds-color-background-warning-subtler\";\n    readonly \"color.background.warning.subtler.hovered\": \"--ds-color-background-warning-subtler-hovered\";\n    readonly \"color.background.warning.subtler.pressed\": \"--ds-color-background-warning-subtler-pressed\";\n    readonly \"color.background.warning.subtle\": \"--ds-color-background-warning-subtle\";\n    readonly \"color.background.warning.bold\": \"--ds-color-background-warning-bold\";\n    readonly \"color.background.warning.bold.hovered\": \"--ds-color-background-warning-bold-hovered\";\n    readonly \"color.background.warning.bold.pressed\": \"--ds-color-background-warning-bold-pressed\";\n    readonly \"color.background.success\": \"--ds-color-background-success\";\n    readonly \"color.background.success.hovered\": \"--ds-color-background-success-hovered\";\n    readonly \"color.background.success.pressed\": \"--ds-color-background-success-pressed\";\n    readonly \"color.background.success.subtler\": \"--ds-color-background-success-subtler\";\n    readonly \"color.background.success.subtler.hovered\": \"--ds-color-background-success-subtler-hovered\";\n    readonly \"color.background.success.subtler.pressed\": \"--ds-color-background-success-subtler-pressed\";\n    readonly \"color.background.success.subtle\": \"--ds-color-background-success-subtle\";\n    readonly \"color.background.success.bold\": \"--ds-color-background-success-bold\";\n    readonly \"color.background.success.bold.hovered\": \"--ds-color-background-success-bold-hovered\";\n    readonly \"color.background.success.bold.pressed\": \"--ds-color-background-success-bold-pressed\";\n    readonly \"color.background.information\": \"--ds-color-background-information\";\n    readonly \"color.background.information.hovered\": \"--ds-color-background-information-hovered\";\n    readonly \"color.background.information.pressed\": \"--ds-color-background-information-pressed\";\n    readonly \"color.background.information.subtler\": \"--ds-color-background-information-subtler\";\n    readonly \"color.background.information.subtler.hovered\": \"--ds-color-background-information-subtler-hovered\";\n    readonly \"color.background.information.subtler.pressed\": \"--ds-color-background-information-subtler-pressed\";\n    readonly \"color.background.information.subtle\": \"--ds-color-background-information-subtle\";\n    readonly \"color.background.information.bold\": \"--ds-color-background-information-bold\";\n    readonly \"color.background.information.bold.hovered\": \"--ds-color-background-information-bold-hovered\";\n    readonly \"color.background.information.bold.pressed\": \"--ds-color-background-information-bold-pressed\";\n    readonly \"color.background.disabled\": \"--ds-color-background-disabled\";\n    readonly \"color.background.input\": \"--ds-color-background-input\";\n    readonly \"color.background.input.hovered\": \"--ds-color-background-input-hovered\";\n    readonly \"color.background.input.pressed\": \"--ds-color-background-input-pressed\";\n    readonly \"color.background.inverse.subtle\": \"--ds-color-background-inverse-subtle\";\n    readonly \"color.background.inverse.subtle.hovered\": \"--ds-color-background-inverse-subtle-hovered\";\n    readonly \"color.background.inverse.subtle.pressed\": \"--ds-color-background-inverse-subtle-pressed\";\n    readonly \"color.background.accent.blue.subtler\": \"--ds-color-background-accent-blue-subtler\";\n    readonly \"color.background.accent.blue.bolder\": \"--ds-color-background-accent-blue-bolder\";\n    readonly \"color.background.accent.teal.subtler\": \"--ds-color-background-accent-teal-subtler\";\n    readonly \"color.background.accent.teal.bolder\": \"--ds-color-background-accent-teal-bolder\";\n    readonly \"color.background.accent.green.subtler\": \"--ds-color-background-accent-green-subtler\";\n    readonly \"color.background.accent.green.bolder\": \"--ds-color-background-accent-green-bolder\";\n    readonly \"color.background.accent.orange.subtler\": \"--ds-color-background-accent-orange-subtler\";\n    readonly \"color.background.accent.orange.bolder\": \"--ds-color-background-accent-orange-bolder\";\n    readonly \"color.background.accent.red.subtler\": \"--ds-color-background-accent-red-subtler\";\n    readonly \"color.background.accent.red.bolder\": \"--ds-color-background-accent-red-bolder\";\n    readonly \"color.background.accent.purple.subtler\": \"--ds-color-background-accent-purple-subtler\";\n    readonly \"color.background.accent.purple.bolder\": \"--ds-color-background-accent-purple-bolder\";\n    readonly \"color.text\": \"--ds-color-text\";\n    readonly \"color.text.subtle\": \"--ds-color-text-subtle\";\n    readonly \"color.text.subtlest\": \"--ds-color-text-subtlest\";\n    readonly \"color.text.disabled\": \"--ds-color-text-disabled\";\n    readonly \"color.text.inverse\": \"--ds-color-text-inverse\";\n    readonly \"color.text.selected\": \"--ds-color-text-selected\";\n    readonly \"color.text.brand\": \"--ds-color-text-brand\";\n    readonly \"color.text.danger\": \"--ds-color-text-danger\";\n    readonly \"color.text.danger.bolder\": \"--ds-color-text-danger-bolder\";\n    readonly \"color.text.warning\": \"--ds-color-text-warning\";\n    readonly \"color.text.warning.inverse\": \"--ds-color-text-warning-inverse\";\n    readonly \"color.text.warning.bolder\": \"--ds-color-text-warning-bolder\";\n    readonly \"color.text.success\": \"--ds-color-text-success\";\n    readonly \"color.text.success.bolder\": \"--ds-color-text-success-bolder\";\n    readonly \"color.text.information\": \"--ds-color-text-information\";\n    readonly \"color.text.information.bolder\": \"--ds-color-text-information-bolder\";\n    readonly \"color.text.accent.blue\": \"--ds-color-text-accent-blue\";\n    readonly \"color.text.accent.teal\": \"--ds-color-text-accent-teal\";\n    readonly \"color.text.accent.green\": \"--ds-color-text-accent-green\";\n    readonly \"color.text.accent.orange\": \"--ds-color-text-accent-orange\";\n    readonly \"color.text.accent.red\": \"--ds-color-text-accent-red\";\n    readonly \"color.text.accent.purple\": \"--ds-color-text-accent-purple\";\n    readonly \"color.icon\": \"--ds-color-icon\";\n    readonly \"color.icon.subtle\": \"--ds-color-icon-subtle\";\n    readonly \"color.icon.subtlest\": \"--ds-color-icon-subtlest\";\n    readonly \"color.icon.disabled\": \"--ds-color-icon-disabled\";\n    readonly \"color.icon.inverse\": \"--ds-color-icon-inverse\";\n    readonly \"color.icon.selected\": \"--ds-color-icon-selected\";\n    readonly \"color.icon.brand\": \"--ds-color-icon-brand\";\n    readonly \"color.icon.danger\": \"--ds-color-icon-danger\";\n    readonly \"color.icon.warning\": \"--ds-color-icon-warning\";\n    readonly \"color.icon.warning.inverse\": \"--ds-color-icon-warning-inverse\";\n    readonly \"color.icon.success\": \"--ds-color-icon-success\";\n    readonly \"color.icon.information\": \"--ds-color-icon-information\";\n    readonly \"color.border\": \"--ds-color-border\";\n    readonly \"color.border.bold\": \"--ds-color-border-bold\";\n    readonly \"color.border.disabled\": \"--ds-color-border-disabled\";\n    readonly \"color.border.focused\": \"--ds-color-border-focused\";\n    readonly \"color.border.input\": \"--ds-color-border-input\";\n    readonly \"color.border.inverse\": \"--ds-color-border-inverse\";\n    readonly \"color.border.selected\": \"--ds-color-border-selected\";\n    readonly \"color.border.brand\": \"--ds-color-border-brand\";\n    readonly \"color.border.danger\": \"--ds-color-border-danger\";\n    readonly \"color.border.danger.subtle\": \"--ds-color-border-danger-subtle\";\n    readonly \"color.border.warning\": \"--ds-color-border-warning\";\n    readonly \"color.border.warning.subtle\": \"--ds-color-border-warning-subtle\";\n    readonly \"color.border.success\": \"--ds-color-border-success\";\n    readonly \"color.border.success.subtle\": \"--ds-color-border-success-subtle\";\n    readonly \"color.border.information\": \"--ds-color-border-information\";\n    readonly \"color.border.information.subtle\": \"--ds-color-border-information-subtle\";\n    readonly \"color.blanket\": \"--ds-color-blanket\";\n    readonly \"color.skeleton\": \"--ds-color-skeleton\";\n    readonly \"color.skeleton.subtle\": \"--ds-color-skeleton-subtle\";\n    readonly \"color.chart.brand\": \"--ds-color-chart-brand\";\n    readonly \"color.chart.brand.hovered\": \"--ds-color-chart-brand-hovered\";\n    readonly \"color.chart.neutral\": \"--ds-color-chart-neutral\";\n    readonly \"color.chart.neutral.hovered\": \"--ds-color-chart-neutral-hovered\";\n    readonly \"color.chart.information\": \"--ds-color-chart-information\";\n    readonly \"color.chart.information.hovered\": \"--ds-color-chart-information-hovered\";\n    readonly \"color.chart.success\": \"--ds-color-chart-success\";\n    readonly \"color.chart.success.hovered\": \"--ds-color-chart-success-hovered\";\n    readonly \"color.chart.warning\": \"--ds-color-chart-warning\";\n    readonly \"color.chart.warning.hovered\": \"--ds-color-chart-warning-hovered\";\n    readonly \"color.chart.danger\": \"--ds-color-chart-danger\";\n    readonly \"color.chart.danger.hovered\": \"--ds-color-chart-danger-hovered\";\n    readonly \"color.chart.track\": \"--ds-color-chart-track\";\n    readonly \"color.chart.categorical.1\": \"--ds-color-chart-categorical-1\";\n    readonly \"color.chart.categorical.1.hovered\": \"--ds-color-chart-categorical-1-hovered\";\n    readonly \"color.chart.categorical.2\": \"--ds-color-chart-categorical-2\";\n    readonly \"color.chart.categorical.2.hovered\": \"--ds-color-chart-categorical-2-hovered\";\n    readonly \"color.chart.categorical.3\": \"--ds-color-chart-categorical-3\";\n    readonly \"color.chart.categorical.3.hovered\": \"--ds-color-chart-categorical-3-hovered\";\n    readonly \"color.chart.categorical.4\": \"--ds-color-chart-categorical-4\";\n    readonly \"color.chart.categorical.4.hovered\": \"--ds-color-chart-categorical-4-hovered\";\n    readonly \"color.chart.categorical.5\": \"--ds-color-chart-categorical-5\";\n    readonly \"color.chart.categorical.5.hovered\": \"--ds-color-chart-categorical-5-hovered\";\n    readonly \"color.chart.categorical.6\": \"--ds-color-chart-categorical-6\";\n    readonly \"color.chart.categorical.6.hovered\": \"--ds-color-chart-categorical-6-hovered\";\n    readonly \"color.chart.categorical.7\": \"--ds-color-chart-categorical-7\";\n    readonly \"color.chart.categorical.7.hovered\": \"--ds-color-chart-categorical-7-hovered\";\n    readonly \"color.chart.categorical.8\": \"--ds-color-chart-categorical-8\";\n    readonly \"color.chart.sequential.1\": \"--ds-color-chart-sequential-1\";\n    readonly \"color.chart.sequential.2\": \"--ds-color-chart-sequential-2\";\n    readonly \"color.chart.sequential.3\": \"--ds-color-chart-sequential-3\";\n    readonly \"color.chart.sequential.4\": \"--ds-color-chart-sequential-4\";\n    readonly \"color.chart.sequential.5\": \"--ds-color-chart-sequential-5\";\n    readonly \"color.chart.diverging.negative\": \"--ds-color-chart-diverging-negative\";\n    readonly \"color.chart.diverging.negative.bold\": \"--ds-color-chart-diverging-negative-bold\";\n    readonly \"color.chart.diverging.midpoint\": \"--ds-color-chart-diverging-midpoint\";\n    readonly \"color.chart.diverging.positive\": \"--ds-color-chart-diverging-positive\";\n    readonly \"color.chart.diverging.positive.bold\": \"--ds-color-chart-diverging-positive-bold\";\n    readonly \"color.neutral.0\": \"--ds-color-neutral-0\";\n    readonly \"color.neutral.100\": \"--ds-color-neutral-100\";\n    readonly \"color.neutral.200\": \"--ds-color-neutral-200\";\n    readonly \"color.neutral.300\": \"--ds-color-neutral-300\";\n    readonly \"color.neutral.400\": \"--ds-color-neutral-400\";\n    readonly \"color.neutral.500\": \"--ds-color-neutral-500\";\n    readonly \"color.neutral.600\": \"--ds-color-neutral-600\";\n    readonly \"color.neutral.700\": \"--ds-color-neutral-700\";\n    readonly \"color.neutral.800\": \"--ds-color-neutral-800\";\n    readonly \"color.neutral.900\": \"--ds-color-neutral-900\";\n    readonly \"color.neutral.1000\": \"--ds-color-neutral-1000\";\n    readonly \"color.neutral.1100\": \"--ds-color-neutral-1100\";\n    readonly \"color.neutral.100A\": \"--ds-color-neutral-100a\";\n    readonly \"color.neutral.200A\": \"--ds-color-neutral-200a\";\n    readonly \"color.neutral.300A\": \"--ds-color-neutral-300a\";\n    readonly \"color.neutral.400A\": \"--ds-color-neutral-400a\";\n    readonly \"color.neutral.500A\": \"--ds-color-neutral-500a\";\n    readonly \"color.darkNeutral.0\": \"--ds-color-dark-neutral-0\";\n    readonly \"color.darkNeutral.100\": \"--ds-color-dark-neutral-100\";\n    readonly \"color.darkNeutral.200\": \"--ds-color-dark-neutral-200\";\n    readonly \"color.darkNeutral.250\": \"--ds-color-dark-neutral-250\";\n    readonly \"color.darkNeutral.300\": \"--ds-color-dark-neutral-300\";\n    readonly \"color.darkNeutral.350\": \"--ds-color-dark-neutral-350\";\n    readonly \"color.darkNeutral.400\": \"--ds-color-dark-neutral-400\";\n    readonly \"color.darkNeutral.500\": \"--ds-color-dark-neutral-500\";\n    readonly \"color.darkNeutral.600\": \"--ds-color-dark-neutral-600\";\n    readonly \"color.darkNeutral.700\": \"--ds-color-dark-neutral-700\";\n    readonly \"color.darkNeutral.800\": \"--ds-color-dark-neutral-800\";\n    readonly \"color.darkNeutral.900\": \"--ds-color-dark-neutral-900\";\n    readonly \"color.darkNeutral.1000\": \"--ds-color-dark-neutral-1000\";\n    readonly \"color.darkNeutral.1100\": \"--ds-color-dark-neutral-1100\";\n    readonly \"color.darkNeutral.-100\": \"--ds-color-dark-neutral-minus-100\";\n    readonly \"color.darkNeutral.100A\": \"--ds-color-dark-neutral-100a\";\n    readonly \"color.darkNeutral.200A\": \"--ds-color-dark-neutral-200a\";\n    readonly \"color.darkNeutral.300A\": \"--ds-color-dark-neutral-300a\";\n    readonly \"color.darkNeutral.400A\": \"--ds-color-dark-neutral-400a\";\n    readonly \"color.darkNeutral.500A\": \"--ds-color-dark-neutral-500a\";\n    readonly \"color.blue.100\": \"--ds-color-blue-100\";\n    readonly \"color.blue.150\": \"--ds-color-blue-150\";\n    readonly \"color.blue.200\": \"--ds-color-blue-200\";\n    readonly \"color.blue.225\": \"--ds-color-blue-225\";\n    readonly \"color.blue.250\": \"--ds-color-blue-250\";\n    readonly \"color.blue.300\": \"--ds-color-blue-300\";\n    readonly \"color.blue.400\": \"--ds-color-blue-400\";\n    readonly \"color.blue.500\": \"--ds-color-blue-500\";\n    readonly \"color.blue.600\": \"--ds-color-blue-600\";\n    readonly \"color.blue.700\": \"--ds-color-blue-700\";\n    readonly \"color.blue.800\": \"--ds-color-blue-800\";\n    readonly \"color.blue.850\": \"--ds-color-blue-850\";\n    readonly \"color.blue.875\": \"--ds-color-blue-875\";\n    readonly \"color.blue.900\": \"--ds-color-blue-900\";\n    readonly \"color.blue.950\": \"--ds-color-blue-950\";\n    readonly \"color.blue.1000\": \"--ds-color-blue-1000\";\n    readonly \"color.green.100\": \"--ds-color-green-100\";\n    readonly \"color.green.200\": \"--ds-color-green-200\";\n    readonly \"color.green.225\": \"--ds-color-green-225\";\n    readonly \"color.green.250\": \"--ds-color-green-250\";\n    readonly \"color.green.300\": \"--ds-color-green-300\";\n    readonly \"color.green.400\": \"--ds-color-green-400\";\n    readonly \"color.green.500\": \"--ds-color-green-500\";\n    readonly \"color.green.600\": \"--ds-color-green-600\";\n    readonly \"color.green.700\": \"--ds-color-green-700\";\n    readonly \"color.green.800\": \"--ds-color-green-800\";\n    readonly \"color.green.850\": \"--ds-color-green-850\";\n    readonly \"color.green.875\": \"--ds-color-green-875\";\n    readonly \"color.green.900\": \"--ds-color-green-900\";\n    readonly \"color.green.1000\": \"--ds-color-green-1000\";\n    readonly \"color.orange.100\": \"--ds-color-orange-100\";\n    readonly \"color.orange.200\": \"--ds-color-orange-200\";\n    readonly \"color.orange.225\": \"--ds-color-orange-225\";\n    readonly \"color.orange.250\": \"--ds-color-orange-250\";\n    readonly \"color.orange.300\": \"--ds-color-orange-300\";\n    readonly \"color.orange.400\": \"--ds-color-orange-400\";\n    readonly \"color.orange.500\": \"--ds-color-orange-500\";\n    readonly \"color.orange.600\": \"--ds-color-orange-600\";\n    readonly \"color.orange.700\": \"--ds-color-orange-700\";\n    readonly \"color.orange.800\": \"--ds-color-orange-800\";\n    readonly \"color.orange.850\": \"--ds-color-orange-850\";\n    readonly \"color.orange.875\": \"--ds-color-orange-875\";\n    readonly \"color.orange.900\": \"--ds-color-orange-900\";\n    readonly \"color.orange.1000\": \"--ds-color-orange-1000\";\n    readonly \"color.red.100\": \"--ds-color-red-100\";\n    readonly \"color.red.200\": \"--ds-color-red-200\";\n    readonly \"color.red.225\": \"--ds-color-red-225\";\n    readonly \"color.red.250\": \"--ds-color-red-250\";\n    readonly \"color.red.300\": \"--ds-color-red-300\";\n    readonly \"color.red.400\": \"--ds-color-red-400\";\n    readonly \"color.red.500\": \"--ds-color-red-500\";\n    readonly \"color.red.600\": \"--ds-color-red-600\";\n    readonly \"color.red.700\": \"--ds-color-red-700\";\n    readonly \"color.red.800\": \"--ds-color-red-800\";\n    readonly \"color.red.850\": \"--ds-color-red-850\";\n    readonly \"color.red.875\": \"--ds-color-red-875\";\n    readonly \"color.red.900\": \"--ds-color-red-900\";\n    readonly \"color.red.1000\": \"--ds-color-red-1000\";\n    readonly \"color.teal.100\": \"--ds-color-teal-100\";\n    readonly \"color.teal.200\": \"--ds-color-teal-200\";\n    readonly \"color.teal.250\": \"--ds-color-teal-250\";\n    readonly \"color.teal.300\": \"--ds-color-teal-300\";\n    readonly \"color.teal.400\": \"--ds-color-teal-400\";\n    readonly \"color.teal.500\": \"--ds-color-teal-500\";\n    readonly \"color.teal.600\": \"--ds-color-teal-600\";\n    readonly \"color.teal.700\": \"--ds-color-teal-700\";\n    readonly \"color.teal.800\": \"--ds-color-teal-800\";\n    readonly \"color.teal.850\": \"--ds-color-teal-850\";\n    readonly \"color.teal.900\": \"--ds-color-teal-900\";\n    readonly \"color.teal.1000\": \"--ds-color-teal-1000\";\n    readonly \"color.purple.100\": \"--ds-color-purple-100\";\n    readonly \"color.purple.200\": \"--ds-color-purple-200\";\n    readonly \"color.purple.250\": \"--ds-color-purple-250\";\n    readonly \"color.purple.300\": \"--ds-color-purple-300\";\n    readonly \"color.purple.400\": \"--ds-color-purple-400\";\n    readonly \"color.purple.500\": \"--ds-color-purple-500\";\n    readonly \"color.purple.600\": \"--ds-color-purple-600\";\n    readonly \"color.purple.700\": \"--ds-color-purple-700\";\n    readonly \"color.purple.800\": \"--ds-color-purple-800\";\n    readonly \"color.purple.850\": \"--ds-color-purple-850\";\n    readonly \"color.purple.900\": \"--ds-color-purple-900\";\n    readonly \"color.purple.1000\": \"--ds-color-purple-1000\";\n    readonly \"dimension.control.xsmall\": \"--ds-dimension-control-xsmall\";\n    readonly \"dimension.control.small\": \"--ds-dimension-control-small\";\n    readonly \"dimension.control.medium\": \"--ds-dimension-control-medium\";\n    readonly \"dimension.control.large\": \"--ds-dimension-control-large\";\n    readonly \"dimension.row.compact\": \"--ds-dimension-row-compact\";\n    readonly \"dimension.row\": \"--ds-dimension-row\";\n    readonly \"dimension.row.header\": \"--ds-dimension-row-header\";\n    readonly \"dimension.row.menu\": \"--ds-dimension-row-menu\";\n    readonly \"dimension.icon.small\": \"--ds-dimension-icon-small\";\n    readonly \"dimension.icon.medium\": \"--ds-dimension-icon-medium\";\n    readonly \"dimension.layout.sidenav\": \"--ds-dimension-layout-sidenav\";\n    readonly \"dimension.layout.topnav\": \"--ds-dimension-layout-topnav\";\n    readonly \"dimension.layout.banner\": \"--ds-dimension-layout-banner\";\n    readonly \"dimension.layout.panel\": \"--ds-dimension-layout-panel\";\n    readonly \"dimension.layout.list\": \"--ds-dimension-layout-list\";\n    readonly \"dimension.layout.rail\": \"--ds-dimension-layout-rail\";\n    readonly \"dimension.layout.measure\": \"--ds-dimension-layout-measure\";\n    readonly \"elevation.surface\": \"--ds-elevation-surface\";\n    readonly \"elevation.surface.hovered\": \"--ds-elevation-surface-hovered\";\n    readonly \"elevation.surface.pressed\": \"--ds-elevation-surface-pressed\";\n    readonly \"elevation.surface.sunken\": \"--ds-elevation-surface-sunken\";\n    readonly \"elevation.surface.raised\": \"--ds-elevation-surface-raised\";\n    readonly \"elevation.surface.raised.hovered\": \"--ds-elevation-surface-raised-hovered\";\n    readonly \"elevation.surface.raised.pressed\": \"--ds-elevation-surface-raised-pressed\";\n    readonly \"elevation.surface.overlay\": \"--ds-elevation-surface-overlay\";\n    readonly \"elevation.surface.overlay.hovered\": \"--ds-elevation-surface-overlay-hovered\";\n    readonly \"elevation.surface.overlay.pressed\": \"--ds-elevation-surface-overlay-pressed\";\n    readonly \"elevation.shadow.raised\": \"--ds-elevation-shadow-raised\";\n    readonly \"elevation.shadow.overlay\": \"--ds-elevation-shadow-overlay\";\n    readonly \"elevation.shadow.overflow\": \"--ds-elevation-shadow-overflow\";\n    readonly \"utility.elevation.surface.current\": \"--ds-utility-elevation-surface-current\";\n    readonly \"font.family.body\": \"--ds-font-family-body\";\n    readonly \"font.family.heading\": \"--ds-font-family-heading\";\n    readonly \"font.family.code\": \"--ds-font-family-code\";\n    readonly \"font.weight.regular\": \"--ds-font-weight-regular\";\n    readonly \"font.weight.medium\": \"--ds-font-weight-medium\";\n    readonly \"font.weight.semibold\": \"--ds-font-weight-semibold\";\n    readonly \"font.letterSpacing.0\": \"--ds-font-letter-spacing-0\";\n    readonly \"font.letterSpacing.100\": \"--ds-font-letter-spacing-100\";\n    readonly \"font.letterSpacing.200\": \"--ds-font-letter-spacing-200\";\n    readonly \"font.letterSpacing.300\": \"--ds-font-letter-spacing-300\";\n    readonly \"font.letterSpacing.400\": \"--ds-font-letter-spacing-400\";\n    readonly \"font.letterSpacing.500\": \"--ds-font-letter-spacing-500\";\n    readonly \"font.body.large\": \"--ds-font-body-large\";\n    readonly \"font.body.small\": \"--ds-font-body-small\";\n    readonly \"font.body.xsmall\": \"--ds-font-body-xsmall\";\n    readonly \"font.body\": \"--ds-font-body\";\n    readonly \"font.heading.large\": \"--ds-font-heading-large\";\n    readonly \"font.heading.medium\": \"--ds-font-heading-medium\";\n    readonly \"font.heading.small\": \"--ds-font-heading-small\";\n    readonly \"font.heading.xsmall\": \"--ds-font-heading-xsmall\";\n    readonly \"font.heading.xxsmall\": \"--ds-font-heading-xxsmall\";\n    readonly \"font.code\": \"--ds-font-code\";\n    readonly \"motion.duration.micro\": \"--ds-motion-duration-micro\";\n    readonly \"motion.duration.fast\": \"--ds-motion-duration-fast\";\n    readonly \"motion.duration.medium\": \"--ds-motion-duration-medium\";\n    readonly \"motion.duration.moderate\": \"--ds-motion-duration-moderate\";\n    readonly \"motion.duration.slow\": \"--ds-motion-duration-slow\";\n    readonly \"motion.duration.slower\": \"--ds-motion-duration-slower\";\n    readonly \"motion.stagger\": \"--ds-motion-stagger\";\n    readonly \"motion.easing.standard\": \"--ds-motion-easing-standard\";\n    readonly \"motion.easing.enter\": \"--ds-motion-easing-enter\";\n    readonly \"motion.easing.exit\": \"--ds-motion-easing-exit\";\n    readonly \"opacity.disabled\": \"--ds-opacity-disabled\";\n    readonly \"opacity.loading\": \"--ds-opacity-loading\";\n    readonly \"radius.xsmall\": \"--ds-radius-xsmall\";\n    readonly \"radius.small\": \"--ds-radius-small\";\n    readonly \"radius.medium\": \"--ds-radius-medium\";\n    readonly \"radius.large\": \"--ds-radius-large\";\n    readonly \"radius.xlarge\": \"--ds-radius-xlarge\";\n    readonly \"radius.xxlarge\": \"--ds-radius-xxlarge\";\n    readonly \"radius.full\": \"--ds-radius-full\";\n    readonly \"border.width.selected\": \"--ds-border-width-selected\";\n    readonly \"border.width.focused\": \"--ds-border-width-focused\";\n    readonly \"border.width\": \"--ds-border-width\";\n    readonly \"space.0\": \"--ds-space-0\";\n    readonly \"space.100\": \"--ds-space-100\";\n    readonly \"space.150\": \"--ds-space-150\";\n    readonly \"space.200\": \"--ds-space-200\";\n    readonly \"space.250\": \"--ds-space-250\";\n    readonly \"space.300\": \"--ds-space-300\";\n    readonly \"space.400\": \"--ds-space-400\";\n    readonly \"space.500\": \"--ds-space-500\";\n    readonly \"space.600\": \"--ds-space-600\";\n    readonly \"space.800\": \"--ds-space-800\";\n    readonly \"space.1000\": \"--ds-space-1000\";\n    readonly \"space.025\": \"--ds-space-025\";\n    readonly \"space.050\": \"--ds-space-050\";\n    readonly \"space.075\": \"--ds-space-075\";\n    readonly \"space.negative.100\": \"--ds-space-negative-100\";\n    readonly \"space.negative.150\": \"--ds-space-negative-150\";\n    readonly \"space.negative.200\": \"--ds-space-negative-200\";\n    readonly \"space.negative.250\": \"--ds-space-negative-250\";\n    readonly \"space.negative.300\": \"--ds-space-negative-300\";\n    readonly \"space.negative.400\": \"--ds-space-negative-400\";\n    readonly \"space.negative.025\": \"--ds-space-negative-025\";\n    readonly \"space.negative.050\": \"--ds-space-negative-050\";\n    readonly \"space.negative.075\": \"--ds-space-negative-075\";\n}"
+        "declaration": "tokens: {\n    readonly \"color.background.neutral\": \"--ds-color-background-neutral\";\n    readonly \"color.background.neutral.hovered\": \"--ds-color-background-neutral-hovered\";\n    readonly \"color.background.neutral.pressed\": \"--ds-color-background-neutral-pressed\";\n    readonly \"color.background.neutral.subtle\": \"--ds-color-background-neutral-subtle\";\n    readonly \"color.background.neutral.subtle.hovered\": \"--ds-color-background-neutral-subtle-hovered\";\n    readonly \"color.background.neutral.subtle.pressed\": \"--ds-color-background-neutral-subtle-pressed\";\n    readonly \"color.background.neutral.bold\": \"--ds-color-background-neutral-bold\";\n    readonly \"color.background.neutral.bold.hovered\": \"--ds-color-background-neutral-bold-hovered\";\n    readonly \"color.background.neutral.bold.pressed\": \"--ds-color-background-neutral-bold-pressed\";\n    readonly \"color.background.brand.subtlest\": \"--ds-color-background-brand-subtlest\";\n    readonly \"color.background.brand.subtlest.hovered\": \"--ds-color-background-brand-subtlest-hovered\";\n    readonly \"color.background.brand.subtlest.pressed\": \"--ds-color-background-brand-subtlest-pressed\";\n    readonly \"color.background.brand.bold\": \"--ds-color-background-brand-bold\";\n    readonly \"color.background.brand.bold.hovered\": \"--ds-color-background-brand-bold-hovered\";\n    readonly \"color.background.brand.bold.pressed\": \"--ds-color-background-brand-bold-pressed\";\n    readonly \"color.background.brand.boldest\": \"--ds-color-background-brand-boldest\";\n    readonly \"color.background.brand.boldest.hovered\": \"--ds-color-background-brand-boldest-hovered\";\n    readonly \"color.background.brand.boldest.pressed\": \"--ds-color-background-brand-boldest-pressed\";\n    readonly \"color.background.selected\": \"--ds-color-background-selected\";\n    readonly \"color.background.selected.hovered\": \"--ds-color-background-selected-hovered\";\n    readonly \"color.background.selected.pressed\": \"--ds-color-background-selected-pressed\";\n    readonly \"color.background.selected.bold\": \"--ds-color-background-selected-bold\";\n    readonly \"color.background.selected.bold.hovered\": \"--ds-color-background-selected-bold-hovered\";\n    readonly \"color.background.selected.bold.pressed\": \"--ds-color-background-selected-bold-pressed\";\n    readonly \"color.background.danger\": \"--ds-color-background-danger\";\n    readonly \"color.background.danger.hovered\": \"--ds-color-background-danger-hovered\";\n    readonly \"color.background.danger.pressed\": \"--ds-color-background-danger-pressed\";\n    readonly \"color.background.danger.subtler\": \"--ds-color-background-danger-subtler\";\n    readonly \"color.background.danger.subtler.hovered\": \"--ds-color-background-danger-subtler-hovered\";\n    readonly \"color.background.danger.subtler.pressed\": \"--ds-color-background-danger-subtler-pressed\";\n    readonly \"color.background.danger.subtle\": \"--ds-color-background-danger-subtle\";\n    readonly \"color.background.danger.bold\": \"--ds-color-background-danger-bold\";\n    readonly \"color.background.danger.bold.hovered\": \"--ds-color-background-danger-bold-hovered\";\n    readonly \"color.background.danger.bold.pressed\": \"--ds-color-background-danger-bold-pressed\";\n    readonly \"color.background.warning\": \"--ds-color-background-warning\";\n    readonly \"color.background.warning.hovered\": \"--ds-color-background-warning-hovered\";\n    readonly \"color.background.warning.pressed\": \"--ds-color-background-warning-pressed\";\n    readonly \"color.background.warning.subtler\": \"--ds-color-background-warning-subtler\";\n    readonly \"color.background.warning.subtler.hovered\": \"--ds-color-background-warning-subtler-hovered\";\n    readonly \"color.background.warning.subtler.pressed\": \"--ds-color-background-warning-subtler-pressed\";\n    readonly \"color.background.warning.subtle\": \"--ds-color-background-warning-subtle\";\n    readonly \"color.background.warning.bold\": \"--ds-color-background-warning-bold\";\n    readonly \"color.background.warning.bold.hovered\": \"--ds-color-background-warning-bold-hovered\";\n    readonly \"color.background.warning.bold.pressed\": \"--ds-color-background-warning-bold-pressed\";\n    readonly \"color.background.success\": \"--ds-color-background-success\";\n    readonly \"color.background.success.hovered\": \"--ds-color-background-success-hovered\";\n    readonly \"color.background.success.pressed\": \"--ds-color-background-success-pressed\";\n    readonly \"color.background.success.subtler\": \"--ds-color-background-success-subtler\";\n    readonly \"color.background.success.subtler.hovered\": \"--ds-color-background-success-subtler-hovered\";\n    readonly \"color.background.success.subtler.pressed\": \"--ds-color-background-success-subtler-pressed\";\n    readonly \"color.background.success.subtle\": \"--ds-color-background-success-subtle\";\n    readonly \"color.background.success.bold\": \"--ds-color-background-success-bold\";\n    readonly \"color.background.success.bold.hovered\": \"--ds-color-background-success-bold-hovered\";\n    readonly \"color.background.success.bold.pressed\": \"--ds-color-background-success-bold-pressed\";\n    readonly \"color.background.information\": \"--ds-color-background-information\";\n    readonly \"color.background.information.hovered\": \"--ds-color-background-information-hovered\";\n    readonly \"color.background.information.pressed\": \"--ds-color-background-information-pressed\";\n    readonly \"color.background.information.subtler\": \"--ds-color-background-information-subtler\";\n    readonly \"color.background.information.subtler.hovered\": \"--ds-color-background-information-subtler-hovered\";\n    readonly \"color.background.information.subtler.pressed\": \"--ds-color-background-information-subtler-pressed\";\n    readonly \"color.background.information.subtle\": \"--ds-color-background-information-subtle\";\n    readonly \"color.background.information.bold\": \"--ds-color-background-information-bold\";\n    readonly \"color.background.information.bold.hovered\": \"--ds-color-background-information-bold-hovered\";\n    readonly \"color.background.information.bold.pressed\": \"--ds-color-background-information-bold-pressed\";\n    readonly \"color.background.disabled\": \"--ds-color-background-disabled\";\n    readonly \"color.background.input\": \"--ds-color-background-input\";\n    readonly \"color.background.input.hovered\": \"--ds-color-background-input-hovered\";\n    readonly \"color.background.input.pressed\": \"--ds-color-background-input-pressed\";\n    readonly \"color.background.inverse.subtle\": \"--ds-color-background-inverse-subtle\";\n    readonly \"color.background.inverse.subtle.hovered\": \"--ds-color-background-inverse-subtle-hovered\";\n    readonly \"color.background.inverse.subtle.pressed\": \"--ds-color-background-inverse-subtle-pressed\";\n    readonly \"color.background.accent.blue.subtler\": \"--ds-color-background-accent-blue-subtler\";\n    readonly \"color.background.accent.blue.bolder\": \"--ds-color-background-accent-blue-bolder\";\n    readonly \"color.background.accent.teal.subtler\": \"--ds-color-background-accent-teal-subtler\";\n    readonly \"color.background.accent.teal.bolder\": \"--ds-color-background-accent-teal-bolder\";\n    readonly \"color.background.accent.green.subtler\": \"--ds-color-background-accent-green-subtler\";\n    readonly \"color.background.accent.green.bolder\": \"--ds-color-background-accent-green-bolder\";\n    readonly \"color.background.accent.orange.subtler\": \"--ds-color-background-accent-orange-subtler\";\n    readonly \"color.background.accent.orange.bolder\": \"--ds-color-background-accent-orange-bolder\";\n    readonly \"color.background.accent.red.subtler\": \"--ds-color-background-accent-red-subtler\";\n    readonly \"color.background.accent.red.bolder\": \"--ds-color-background-accent-red-bolder\";\n    readonly \"color.background.accent.purple.subtler\": \"--ds-color-background-accent-purple-subtler\";\n    readonly \"color.background.accent.purple.bolder\": \"--ds-color-background-accent-purple-bolder\";\n    readonly \"color.text\": \"--ds-color-text\";\n    readonly \"color.text.subtle\": \"--ds-color-text-subtle\";\n    readonly \"color.text.subtlest\": \"--ds-color-text-subtlest\";\n    readonly \"color.text.disabled\": \"--ds-color-text-disabled\";\n    readonly \"color.text.inverse\": \"--ds-color-text-inverse\";\n    readonly \"color.text.selected\": \"--ds-color-text-selected\";\n    readonly \"color.text.brand\": \"--ds-color-text-brand\";\n    readonly \"color.text.danger\": \"--ds-color-text-danger\";\n    readonly \"color.text.danger.bolder\": \"--ds-color-text-danger-bolder\";\n    readonly \"color.text.warning\": \"--ds-color-text-warning\";\n    readonly \"color.text.warning.inverse\": \"--ds-color-text-warning-inverse\";\n    readonly \"color.text.warning.bolder\": \"--ds-color-text-warning-bolder\";\n    readonly \"color.text.success\": \"--ds-color-text-success\";\n    readonly \"color.text.success.bolder\": \"--ds-color-text-success-bolder\";\n    readonly \"color.text.information\": \"--ds-color-text-information\";\n    readonly \"color.text.information.bolder\": \"--ds-color-text-information-bolder\";\n    readonly \"color.text.accent.blue\": \"--ds-color-text-accent-blue\";\n    readonly \"color.text.accent.teal\": \"--ds-color-text-accent-teal\";\n    readonly \"color.text.accent.green\": \"--ds-color-text-accent-green\";\n    readonly \"color.text.accent.orange\": \"--ds-color-text-accent-orange\";\n    readonly \"color.text.accent.red\": \"--ds-color-text-accent-red\";\n    readonly \"color.text.accent.purple\": \"--ds-color-text-accent-purple\";\n    readonly \"color.icon\": \"--ds-color-icon\";\n    readonly \"color.icon.subtle\": \"--ds-color-icon-subtle\";\n    readonly \"color.icon.subtlest\": \"--ds-color-icon-subtlest\";\n    readonly \"color.icon.disabled\": \"--ds-color-icon-disabled\";\n    readonly \"color.icon.inverse\": \"--ds-color-icon-inverse\";\n    readonly \"color.icon.selected\": \"--ds-color-icon-selected\";\n    readonly \"color.icon.brand\": \"--ds-color-icon-brand\";\n    readonly \"color.icon.danger\": \"--ds-color-icon-danger\";\n    readonly \"color.icon.warning\": \"--ds-color-icon-warning\";\n    readonly \"color.icon.warning.inverse\": \"--ds-color-icon-warning-inverse\";\n    readonly \"color.icon.success\": \"--ds-color-icon-success\";\n    readonly \"color.icon.information\": \"--ds-color-icon-information\";\n    readonly \"color.border\": \"--ds-color-border\";\n    readonly \"color.border.bold\": \"--ds-color-border-bold\";\n    readonly \"color.border.disabled\": \"--ds-color-border-disabled\";\n    readonly \"color.border.focused\": \"--ds-color-border-focused\";\n    readonly \"color.border.input\": \"--ds-color-border-input\";\n    readonly \"color.border.inverse\": \"--ds-color-border-inverse\";\n    readonly \"color.border.selected\": \"--ds-color-border-selected\";\n    readonly \"color.border.brand\": \"--ds-color-border-brand\";\n    readonly \"color.border.danger\": \"--ds-color-border-danger\";\n    readonly \"color.border.danger.subtle\": \"--ds-color-border-danger-subtle\";\n    readonly \"color.border.warning\": \"--ds-color-border-warning\";\n    readonly \"color.border.warning.subtle\": \"--ds-color-border-warning-subtle\";\n    readonly \"color.border.success\": \"--ds-color-border-success\";\n    readonly \"color.border.success.subtle\": \"--ds-color-border-success-subtle\";\n    readonly \"color.border.information\": \"--ds-color-border-information\";\n    readonly \"color.border.information.subtle\": \"--ds-color-border-information-subtle\";\n    readonly \"color.blanket\": \"--ds-color-blanket\";\n    readonly \"color.skeleton\": \"--ds-color-skeleton\";\n    readonly \"color.skeleton.subtle\": \"--ds-color-skeleton-subtle\";\n    readonly \"color.chart.brand\": \"--ds-color-chart-brand\";\n    readonly \"color.chart.brand.hovered\": \"--ds-color-chart-brand-hovered\";\n    readonly \"color.chart.neutral\": \"--ds-color-chart-neutral\";\n    readonly \"color.chart.neutral.hovered\": \"--ds-color-chart-neutral-hovered\";\n    readonly \"color.chart.information\": \"--ds-color-chart-information\";\n    readonly \"color.chart.information.hovered\": \"--ds-color-chart-information-hovered\";\n    readonly \"color.chart.success\": \"--ds-color-chart-success\";\n    readonly \"color.chart.success.hovered\": \"--ds-color-chart-success-hovered\";\n    readonly \"color.chart.warning\": \"--ds-color-chart-warning\";\n    readonly \"color.chart.warning.hovered\": \"--ds-color-chart-warning-hovered\";\n    readonly \"color.chart.danger\": \"--ds-color-chart-danger\";\n    readonly \"color.chart.danger.hovered\": \"--ds-color-chart-danger-hovered\";\n    readonly \"color.chart.track\": \"--ds-color-chart-track\";\n    readonly \"color.chart.categorical.1\": \"--ds-color-chart-categorical-1\";\n    readonly \"color.chart.categorical.1.hovered\": \"--ds-color-chart-categorical-1-hovered\";\n    readonly \"color.chart.categorical.2\": \"--ds-color-chart-categorical-2\";\n    readonly \"color.chart.categorical.2.hovered\": \"--ds-color-chart-categorical-2-hovered\";\n    readonly \"color.chart.categorical.3\": \"--ds-color-chart-categorical-3\";\n    readonly \"color.chart.categorical.3.hovered\": \"--ds-color-chart-categorical-3-hovered\";\n    readonly \"color.chart.categorical.4\": \"--ds-color-chart-categorical-4\";\n    readonly \"color.chart.categorical.4.hovered\": \"--ds-color-chart-categorical-4-hovered\";\n    readonly \"color.chart.categorical.5\": \"--ds-color-chart-categorical-5\";\n    readonly \"color.chart.categorical.5.hovered\": \"--ds-color-chart-categorical-5-hovered\";\n    readonly \"color.chart.categorical.6\": \"--ds-color-chart-categorical-6\";\n    readonly \"color.chart.categorical.6.hovered\": \"--ds-color-chart-categorical-6-hovered\";\n    readonly \"color.chart.categorical.7\": \"--ds-color-chart-categorical-7\";\n    readonly \"color.chart.categorical.7.hovered\": \"--ds-color-chart-categorical-7-hovered\";\n    readonly \"color.chart.categorical.8\": \"--ds-color-chart-categorical-8\";\n    readonly \"color.chart.sequential.1\": \"--ds-color-chart-sequential-1\";\n    readonly \"color.chart.sequential.2\": \"--ds-color-chart-sequential-2\";\n    readonly \"color.chart.sequential.3\": \"--ds-color-chart-sequential-3\";\n    readonly \"color.chart.sequential.4\": \"--ds-color-chart-sequential-4\";\n    readonly \"color.chart.sequential.5\": \"--ds-color-chart-sequential-5\";\n    readonly \"color.chart.diverging.negative\": \"--ds-color-chart-diverging-negative\";\n    readonly \"color.chart.diverging.negative.bold\": \"--ds-color-chart-diverging-negative-bold\";\n    readonly \"color.chart.diverging.midpoint\": \"--ds-color-chart-diverging-midpoint\";\n    readonly \"color.chart.diverging.positive\": \"--ds-color-chart-diverging-positive\";\n    readonly \"color.chart.diverging.positive.bold\": \"--ds-color-chart-diverging-positive-bold\";\n    readonly \"color.neutral.0\": \"--ds-color-neutral-0\";\n    readonly \"color.neutral.100\": \"--ds-color-neutral-100\";\n    readonly \"color.neutral.200\": \"--ds-color-neutral-200\";\n    readonly \"color.neutral.300\": \"--ds-color-neutral-300\";\n    readonly \"color.neutral.400\": \"--ds-color-neutral-400\";\n    readonly \"color.neutral.500\": \"--ds-color-neutral-500\";\n    readonly \"color.neutral.600\": \"--ds-color-neutral-600\";\n    readonly \"color.neutral.700\": \"--ds-color-neutral-700\";\n    readonly \"color.neutral.800\": \"--ds-color-neutral-800\";\n    readonly \"color.neutral.900\": \"--ds-color-neutral-900\";\n    readonly \"color.neutral.1000\": \"--ds-color-neutral-1000\";\n    readonly \"color.neutral.1100\": \"--ds-color-neutral-1100\";\n    readonly \"color.neutral.100A\": \"--ds-color-neutral-100a\";\n    readonly \"color.neutral.200A\": \"--ds-color-neutral-200a\";\n    readonly \"color.neutral.300A\": \"--ds-color-neutral-300a\";\n    readonly \"color.neutral.400A\": \"--ds-color-neutral-400a\";\n    readonly \"color.neutral.500A\": \"--ds-color-neutral-500a\";\n    readonly \"color.darkNeutral.0\": \"--ds-color-dark-neutral-0\";\n    readonly \"color.darkNeutral.100\": \"--ds-color-dark-neutral-100\";\n    readonly \"color.darkNeutral.200\": \"--ds-color-dark-neutral-200\";\n    readonly \"color.darkNeutral.250\": \"--ds-color-dark-neutral-250\";\n    readonly \"color.darkNeutral.300\": \"--ds-color-dark-neutral-300\";\n    readonly \"color.darkNeutral.350\": \"--ds-color-dark-neutral-350\";\n    readonly \"color.darkNeutral.400\": \"--ds-color-dark-neutral-400\";\n    readonly \"color.darkNeutral.500\": \"--ds-color-dark-neutral-500\";\n    readonly \"color.darkNeutral.600\": \"--ds-color-dark-neutral-600\";\n    readonly \"color.darkNeutral.700\": \"--ds-color-dark-neutral-700\";\n    readonly \"color.darkNeutral.800\": \"--ds-color-dark-neutral-800\";\n    readonly \"color.darkNeutral.900\": \"--ds-color-dark-neutral-900\";\n    readonly \"color.darkNeutral.1000\": \"--ds-color-dark-neutral-1000\";\n    readonly \"color.darkNeutral.1100\": \"--ds-color-dark-neutral-1100\";\n    readonly \"color.darkNeutral.-100\": \"--ds-color-dark-neutral-minus-100\";\n    readonly \"color.darkNeutral.100A\": \"--ds-color-dark-neutral-100a\";\n    readonly \"color.darkNeutral.200A\": \"--ds-color-dark-neutral-200a\";\n    readonly \"color.darkNeutral.300A\": \"--ds-color-dark-neutral-300a\";\n    readonly \"color.darkNeutral.400A\": \"--ds-color-dark-neutral-400a\";\n    readonly \"color.darkNeutral.500A\": \"--ds-color-dark-neutral-500a\";\n    readonly \"color.blue.100\": \"--ds-color-blue-100\";\n    readonly \"color.blue.150\": \"--ds-color-blue-150\";\n    readonly \"color.blue.200\": \"--ds-color-blue-200\";\n    readonly \"color.blue.225\": \"--ds-color-blue-225\";\n    readonly \"color.blue.250\": \"--ds-color-blue-250\";\n    readonly \"color.blue.300\": \"--ds-color-blue-300\";\n    readonly \"color.blue.400\": \"--ds-color-blue-400\";\n    readonly \"color.blue.500\": \"--ds-color-blue-500\";\n    readonly \"color.blue.600\": \"--ds-color-blue-600\";\n    readonly \"color.blue.700\": \"--ds-color-blue-700\";\n    readonly \"color.blue.800\": \"--ds-color-blue-800\";\n    readonly \"color.blue.850\": \"--ds-color-blue-850\";\n    readonly \"color.blue.875\": \"--ds-color-blue-875\";\n    readonly \"color.blue.900\": \"--ds-color-blue-900\";\n    readonly \"color.blue.950\": \"--ds-color-blue-950\";\n    readonly \"color.blue.1000\": \"--ds-color-blue-1000\";\n    readonly \"color.green.100\": \"--ds-color-green-100\";\n    readonly \"color.green.200\": \"--ds-color-green-200\";\n    readonly \"color.green.225\": \"--ds-color-green-225\";\n    readonly \"color.green.250\": \"--ds-color-green-250\";\n    readonly \"color.green.300\": \"--ds-color-green-300\";\n    readonly \"color.green.400\": \"--ds-color-green-400\";\n    readonly \"color.green.500\": \"--ds-color-green-500\";\n    readonly \"color.green.600\": \"--ds-color-green-600\";\n    readonly \"color.green.700\": \"--ds-color-green-700\";\n    readonly \"color.green.800\": \"--ds-color-green-800\";\n    readonly \"color.green.850\": \"--ds-color-green-850\";\n    readonly \"color.green.875\": \"--ds-color-green-875\";\n    readonly \"color.green.900\": \"--ds-color-green-900\";\n    readonly \"color.green.1000\": \"--ds-color-green-1000\";\n    readonly \"color.orange.100\": \"--ds-color-orange-100\";\n    readonly \"color.orange.200\": \"--ds-color-orange-200\";\n    readonly \"color.orange.225\": \"--ds-color-orange-225\";\n    readonly \"color.orange.250\": \"--ds-color-orange-250\";\n    readonly \"color.orange.300\": \"--ds-color-orange-300\";\n    readonly \"color.orange.400\": \"--ds-color-orange-400\";\n    readonly \"color.orange.500\": \"--ds-color-orange-500\";\n    readonly \"color.orange.600\": \"--ds-color-orange-600\";\n    readonly \"color.orange.700\": \"--ds-color-orange-700\";\n    readonly \"color.orange.800\": \"--ds-color-orange-800\";\n    readonly \"color.orange.850\": \"--ds-color-orange-850\";\n    readonly \"color.orange.875\": \"--ds-color-orange-875\";\n    readonly \"color.orange.900\": \"--ds-color-orange-900\";\n    readonly \"color.orange.1000\": \"--ds-color-orange-1000\";\n    readonly \"color.red.100\": \"--ds-color-red-100\";\n    readonly \"color.red.200\": \"--ds-color-red-200\";\n    readonly \"color.red.225\": \"--ds-color-red-225\";\n    readonly \"color.red.250\": \"--ds-color-red-250\";\n    readonly \"color.red.300\": \"--ds-color-red-300\";\n    readonly \"color.red.400\": \"--ds-color-red-400\";\n    readonly \"color.red.500\": \"--ds-color-red-500\";\n    readonly \"color.red.600\": \"--ds-color-red-600\";\n    readonly \"color.red.700\": \"--ds-color-red-700\";\n    readonly \"color.red.800\": \"--ds-color-red-800\";\n    readonly \"color.red.850\": \"--ds-color-red-850\";\n    readonly \"color.red.875\": \"--ds-color-red-875\";\n    readonly \"color.red.900\": \"--ds-color-red-900\";\n    readonly \"color.red.1000\": \"--ds-color-red-1000\";\n    readonly \"color.teal.100\": \"--ds-color-teal-100\";\n    readonly \"color.teal.200\": \"--ds-color-teal-200\";\n    readonly \"color.teal.250\": \"--ds-color-teal-250\";\n    readonly \"color.teal.300\": \"--ds-color-teal-300\";\n    readonly \"color.teal.400\": \"--ds-color-teal-400\";\n    readonly \"color.teal.500\": \"--ds-color-teal-500\";\n    readonly \"color.teal.600\": \"--ds-color-teal-600\";\n    readonly \"color.teal.700\": \"--ds-color-teal-700\";\n    readonly \"color.teal.800\": \"--ds-color-teal-800\";\n    readonly \"color.teal.850\": \"--ds-color-teal-850\";\n    readonly \"color.teal.900\": \"--ds-color-teal-900\";\n    readonly \"color.teal.1000\": \"--ds-color-teal-1000\";\n    readonly \"color.purple.100\": \"--ds-color-purple-100\";\n    readonly \"color.purple.200\": \"--ds-color-purple-200\";\n    readonly \"color.purple.250\": \"--ds-color-purple-250\";\n    readonly \"color.purple.300\": \"--ds-color-purple-300\";\n    readonly \"color.purple.400\": \"--ds-color-purple-400\";\n    readonly \"color.purple.500\": \"--ds-color-purple-500\";\n    readonly \"color.purple.600\": \"--ds-color-purple-600\";\n    readonly \"color.purple.700\": \"--ds-color-purple-700\";\n    readonly \"color.purple.800\": \"--ds-color-purple-800\";\n    readonly \"color.purple.850\": \"--ds-color-purple-850\";\n    readonly \"color.purple.900\": \"--ds-color-purple-900\";\n    readonly \"color.purple.1000\": \"--ds-color-purple-1000\";\n    readonly \"dimension.control.xsmall\": \"--ds-dimension-control-xsmall\";\n    readonly \"dimension.control.small\": \"--ds-dimension-control-small\";\n    readonly \"dimension.control.medium\": \"--ds-dimension-control-medium\";\n    readonly \"dimension.control.large\": \"--ds-dimension-control-large\";\n    readonly \"dimension.row.compact\": \"--ds-dimension-row-compact\";\n    readonly \"dimension.row\": \"--ds-dimension-row\";\n    readonly \"dimension.row.header\": \"--ds-dimension-row-header\";\n    readonly \"dimension.row.menu\": \"--ds-dimension-row-menu\";\n    readonly \"dimension.icon.small\": \"--ds-dimension-icon-small\";\n    readonly \"dimension.icon.medium\": \"--ds-dimension-icon-medium\";\n    readonly \"dimension.breakpoint.md\": \"--ds-dimension-breakpoint-md\";\n    readonly \"dimension.breakpoint.lg\": \"--ds-dimension-breakpoint-lg\";\n    readonly \"dimension.breakpoint.aside\": \"--ds-dimension-breakpoint-aside\";\n    readonly \"dimension.breakpoint.panel\": \"--ds-dimension-breakpoint-panel\";\n    readonly \"dimension.breakpoint.wide\": \"--ds-dimension-breakpoint-wide\";\n    readonly \"dimension.layout.sidenav\": \"--ds-dimension-layout-sidenav\";\n    readonly \"dimension.layout.topnav\": \"--ds-dimension-layout-topnav\";\n    readonly \"dimension.layout.banner\": \"--ds-dimension-layout-banner\";\n    readonly \"dimension.layout.panel\": \"--ds-dimension-layout-panel\";\n    readonly \"dimension.layout.list\": \"--ds-dimension-layout-list\";\n    readonly \"dimension.layout.rail\": \"--ds-dimension-layout-rail\";\n    readonly \"dimension.layout.measure\": \"--ds-dimension-layout-measure\";\n    readonly \"elevation.surface\": \"--ds-elevation-surface\";\n    readonly \"elevation.surface.hovered\": \"--ds-elevation-surface-hovered\";\n    readonly \"elevation.surface.pressed\": \"--ds-elevation-surface-pressed\";\n    readonly \"elevation.surface.sunken\": \"--ds-elevation-surface-sunken\";\n    readonly \"elevation.surface.raised\": \"--ds-elevation-surface-raised\";\n    readonly \"elevation.surface.raised.hovered\": \"--ds-elevation-surface-raised-hovered\";\n    readonly \"elevation.surface.raised.pressed\": \"--ds-elevation-surface-raised-pressed\";\n    readonly \"elevation.surface.overlay\": \"--ds-elevation-surface-overlay\";\n    readonly \"elevation.surface.overlay.hovered\": \"--ds-elevation-surface-overlay-hovered\";\n    readonly \"elevation.surface.overlay.pressed\": \"--ds-elevation-surface-overlay-pressed\";\n    readonly \"elevation.shadow.raised\": \"--ds-elevation-shadow-raised\";\n    readonly \"elevation.shadow.overlay\": \"--ds-elevation-shadow-overlay\";\n    readonly \"elevation.shadow.overflow\": \"--ds-elevation-shadow-overflow\";\n    readonly \"utility.elevation.surface.current\": \"--ds-utility-elevation-surface-current\";\n    readonly \"font.family.body\": \"--ds-font-family-body\";\n    readonly \"font.family.heading\": \"--ds-font-family-heading\";\n    readonly \"font.family.code\": \"--ds-font-family-code\";\n    readonly \"font.weight.regular\": \"--ds-font-weight-regular\";\n    readonly \"font.weight.medium\": \"--ds-font-weight-medium\";\n    readonly \"font.weight.semibold\": \"--ds-font-weight-semibold\";\n    readonly \"font.letterSpacing.0\": \"--ds-font-letter-spacing-0\";\n    readonly \"font.letterSpacing.100\": \"--ds-font-letter-spacing-100\";\n    readonly \"font.letterSpacing.200\": \"--ds-font-letter-spacing-200\";\n    readonly \"font.letterSpacing.300\": \"--ds-font-letter-spacing-300\";\n    readonly \"font.letterSpacing.400\": \"--ds-font-letter-spacing-400\";\n    readonly \"font.letterSpacing.500\": \"--ds-font-letter-spacing-500\";\n    readonly \"font.body.large\": \"--ds-font-body-large\";\n    readonly \"font.body.small\": \"--ds-font-body-small\";\n    readonly \"font.body.xsmall\": \"--ds-font-body-xsmall\";\n    readonly \"font.body\": \"--ds-font-body\";\n    readonly \"font.heading.large\": \"--ds-font-heading-large\";\n    readonly \"font.heading.medium\": \"--ds-font-heading-medium\";\n    readonly \"font.heading.small\": \"--ds-font-heading-small\";\n    readonly \"font.heading.xsmall\": \"--ds-font-heading-xsmall\";\n    readonly \"font.heading.xxsmall\": \"--ds-font-heading-xxsmall\";\n    readonly \"font.code\": \"--ds-font-code\";\n    readonly \"motion.duration.micro\": \"--ds-motion-duration-micro\";\n    readonly \"motion.duration.fast\": \"--ds-motion-duration-fast\";\n    readonly \"motion.duration.medium\": \"--ds-motion-duration-medium\";\n    readonly \"motion.duration.moderate\": \"--ds-motion-duration-moderate\";\n    readonly \"motion.duration.slow\": \"--ds-motion-duration-slow\";\n    readonly \"motion.duration.slower\": \"--ds-motion-duration-slower\";\n    readonly \"motion.stagger\": \"--ds-motion-stagger\";\n    readonly \"motion.easing.standard\": \"--ds-motion-easing-standard\";\n    readonly \"motion.easing.enter\": \"--ds-motion-easing-enter\";\n    readonly \"motion.easing.exit\": \"--ds-motion-easing-exit\";\n    readonly \"opacity.disabled\": \"--ds-opacity-disabled\";\n    readonly \"opacity.loading\": \"--ds-opacity-loading\";\n    readonly \"radius.xsmall\": \"--ds-radius-xsmall\";\n    readonly \"radius.small\": \"--ds-radius-small\";\n    readonly \"radius.medium\": \"--ds-radius-medium\";\n    readonly \"radius.large\": \"--ds-radius-large\";\n    readonly \"radius.xlarge\": \"--ds-radius-xlarge\";\n    readonly \"radius.xxlarge\": \"--ds-radius-xxlarge\";\n    readonly \"radius.full\": \"--ds-radius-full\";\n    readonly \"border.width.selected\": \"--ds-border-width-selected\";\n    readonly \"border.width.focused\": \"--ds-border-width-focused\";\n    readonly \"border.width\": \"--ds-border-width\";\n    readonly \"space.0\": \"--ds-space-0\";\n    readonly \"space.100\": \"--ds-space-100\";\n    readonly \"space.150\": \"--ds-space-150\";\n    readonly \"space.200\": \"--ds-space-200\";\n    readonly \"space.250\": \"--ds-space-250\";\n    readonly \"space.300\": \"--ds-space-300\";\n    readonly \"space.400\": \"--ds-space-400\";\n    readonly \"space.500\": \"--ds-space-500\";\n    readonly \"space.600\": \"--ds-space-600\";\n    readonly \"space.800\": \"--ds-space-800\";\n    readonly \"space.1000\": \"--ds-space-1000\";\n    readonly \"space.025\": \"--ds-space-025\";\n    readonly \"space.050\": \"--ds-space-050\";\n    readonly \"space.075\": \"--ds-space-075\";\n    readonly \"space.negative.100\": \"--ds-space-negative-100\";\n    readonly \"space.negative.150\": \"--ds-space-negative-150\";\n    readonly \"space.negative.200\": \"--ds-space-negative-200\";\n    readonly \"space.negative.250\": \"--ds-space-negative-250\";\n    readonly \"space.negative.300\": \"--ds-space-negative-300\";\n    readonly \"space.negative.400\": \"--ds-space-negative-400\";\n    readonly \"space.negative.025\": \"--ds-space-negative-025\";\n    readonly \"space.negative.050\": \"--ds-space-negative-050\";\n    readonly \"space.negative.075\": \"--ds-space-negative-075\";\n}"
       }
     ],
     "\"src/generated/tokens\".tokenValue": [
@@ -6013,13 +6153,61 @@
     "\"src/generated/tokens\".utilities": [
       {
         "source": "src/generated/tokens.d.ts",
-        "declaration": "utilities: readonly [\n    \"bg-accent-blue-bolder\",\n    \"bg-accent-blue-subtler\",\n    \"bg-accent-green-bolder\",\n    \"bg-accent-green-subtler\",\n    \"bg-accent-orange-bolder\",\n    \"bg-accent-orange-subtler\",\n    \"bg-accent-purple-bolder\",\n    \"bg-accent-purple-subtler\",\n    \"bg-accent-red-bolder\",\n    \"bg-accent-red-subtler\",\n    \"bg-accent-teal-bolder\",\n    \"bg-accent-teal-subtler\",\n    \"bg-blanket\",\n    \"bg-brand-bold\",\n    \"bg-brand-bold-hovered\",\n    \"bg-brand-bold-pressed\",\n    \"bg-brand-boldest\",\n    \"bg-brand-boldest-hovered\",\n    \"bg-brand-boldest-pressed\",\n    \"bg-brand-subtlest\",\n    \"bg-brand-subtlest-hovered\",\n    \"bg-brand-subtlest-pressed\",\n    \"bg-chart-brand\",\n    \"bg-chart-brand-hovered\",\n    \"bg-chart-categorical-1\",\n    \"bg-chart-categorical-1-hovered\",\n    \"bg-chart-categorical-2\",\n    \"bg-chart-categorical-2-hovered\",\n    \"bg-chart-categorical-3\",\n    \"bg-chart-categorical-3-hovered\",\n    \"bg-chart-categorical-4\",\n    \"bg-chart-categorical-4-hovered\",\n    \"bg-chart-categorical-5\",\n    \"bg-chart-categorical-5-hovered\",\n    \"bg-chart-categorical-6\",\n    \"bg-chart-categorical-6-hovered\",\n    \"bg-chart-categorical-7\",\n    \"bg-chart-categorical-7-hovered\",\n    \"bg-chart-categorical-8\",\n    \"bg-chart-danger\",\n    \"bg-chart-danger-hovered\",\n    \"bg-chart-diverging-midpoint\",\n    \"bg-chart-diverging-negative\",\n    \"bg-chart-diverging-negative-bold\",\n    \"bg-chart-diverging-positive\",\n    \"bg-chart-diverging-positive-bold\",\n    \"bg-chart-information\",\n    \"bg-chart-information-hovered\",\n    \"bg-chart-neutral\",\n    \"bg-chart-neutral-hovered\",\n    \"bg-chart-sequential-1\",\n    \"bg-chart-sequential-2\",\n    \"bg-chart-sequential-3\",\n    \"bg-chart-sequential-4\",\n    \"bg-chart-sequential-5\",\n    \"bg-chart-success\",\n    \"bg-chart-success-hovered\",\n    \"bg-chart-track\",\n    \"bg-chart-warning\",\n    \"bg-chart-warning-hovered\",\n    \"bg-danger\",\n    \"bg-danger-bold\",\n    \"bg-danger-bold-hovered\",\n    \"bg-danger-bold-pressed\",\n    \"bg-danger-hovered\",\n    \"bg-danger-pressed\",\n    \"bg-danger-subtle\",\n    \"bg-danger-subtler\",\n    \"bg-danger-subtler-hovered\",\n    \"bg-danger-subtler-pressed\",\n    \"bg-disabled\",\n    \"bg-information\",\n    \"bg-information-bold\",\n    \"bg-information-bold-hovered\",\n    \"bg-information-bold-pressed\",\n    \"bg-information-hovered\",\n    \"bg-information-pressed\",\n    \"bg-information-subtle\",\n    \"bg-information-subtler\",\n    \"bg-information-subtler-hovered\",\n    \"bg-information-subtler-pressed\",\n    \"bg-input\",\n    \"bg-input-hovered\",\n    \"bg-input-pressed\",\n    \"bg-inverse-subtle\",\n    \"bg-inverse-subtle-hovered\",\n    \"bg-inverse-subtle-pressed\",\n    \"bg-neutral\",\n    \"bg-neutral-bold\",\n    \"bg-neutral-bold-hovered\",\n    \"bg-neutral-bold-pressed\",\n    \"bg-neutral-hovered\",\n    \"bg-neutral-pressed\",\n    \"bg-neutral-subtle\",\n    \"bg-neutral-subtle-hovered\",\n    \"bg-neutral-subtle-pressed\",\n    \"bg-selected\",\n    \"bg-selected-bold\",\n    \"bg-selected-bold-hovered\",\n    \"bg-selected-bold-pressed\",\n    \"bg-selected-hovered\",\n    \"bg-selected-pressed\",\n    \"bg-skeleton\",\n    \"bg-skeleton-subtle\",\n    \"bg-success\",\n    \"bg-success-bold\",\n    \"bg-success-bold-hovered\",\n    \"bg-success-bold-pressed\",\n    \"bg-success-hovered\",\n    \"bg-success-pressed\",\n    \"bg-success-subtle\",\n    \"bg-success-subtler\",\n    \"bg-success-subtler-hovered\",\n    \"bg-success-subtler-pressed\",\n    \"bg-surface\",\n    \"bg-surface-current\",\n    \"bg-surface-hovered\",\n    \"bg-surface-overlay\",\n    \"bg-surface-overlay-hovered\",\n    \"bg-surface-overlay-pressed\",\n    \"bg-surface-pressed\",\n    \"bg-surface-raised\",\n    \"bg-surface-raised-hovered\",\n    \"bg-surface-raised-pressed\",\n    \"bg-surface-sunken\",\n    \"bg-warning\",\n    \"bg-warning-bold\",\n    \"bg-warning-bold-hovered\",\n    \"bg-warning-bold-pressed\",\n    \"bg-warning-hovered\",\n    \"bg-warning-pressed\",\n    \"bg-warning-subtle\",\n    \"bg-warning-subtler\",\n    \"bg-warning-subtler-hovered\",\n    \"bg-warning-subtler-pressed\",\n    \"border-bold\",\n    \"border-brand\",\n    \"border-danger\",\n    \"border-danger-subtle\",\n    \"border-default\",\n    \"border-disabled\",\n    \"border-focused\",\n    \"border-information\",\n    \"border-information-subtle\",\n    \"border-input\",\n    \"border-inverse\",\n    \"border-selected\",\n    \"border-success\",\n    \"border-success-subtle\",\n    \"border-w-default\",\n    \"border-w-focused\",\n    \"border-w-selected\",\n    \"border-warning\",\n    \"border-warning-subtle\",\n    \"duration-fast\",\n    \"duration-medium\",\n    \"duration-micro\",\n    \"duration-moderate\",\n    \"duration-slow\",\n    \"duration-slower\",\n    \"ease-enter\",\n    \"ease-exit\",\n    \"ease-standard\",\n    \"fill-chart-brand\",\n    \"fill-chart-brand-hovered\",\n    \"fill-chart-categorical-1\",\n    \"fill-chart-categorical-1-hovered\",\n    \"fill-chart-categorical-2\",\n    \"fill-chart-categorical-2-hovered\",\n    \"fill-chart-categorical-3\",\n    \"fill-chart-categorical-3-hovered\",\n    \"fill-chart-categorical-4\",\n    \"fill-chart-categorical-4-hovered\",\n    \"fill-chart-categorical-5\",\n    \"fill-chart-categorical-5-hovered\",\n    \"fill-chart-categorical-6\",\n    \"fill-chart-categorical-6-hovered\",\n    \"fill-chart-categorical-7\",\n    \"fill-chart-categorical-7-hovered\",\n    \"fill-chart-categorical-8\",\n    \"fill-chart-danger\",\n    \"fill-chart-danger-hovered\",\n    \"fill-chart-diverging-midpoint\",\n    \"fill-chart-diverging-negative\",\n    \"fill-chart-diverging-negative-bold\",\n    \"fill-chart-diverging-positive\",\n    \"fill-chart-diverging-positive-bold\",\n    \"fill-chart-information\",\n    \"fill-chart-information-hovered\",\n    \"fill-chart-neutral\",\n    \"fill-chart-neutral-hovered\",\n    \"fill-chart-sequential-1\",\n    \"fill-chart-sequential-2\",\n    \"fill-chart-sequential-3\",\n    \"fill-chart-sequential-4\",\n    \"fill-chart-sequential-5\",\n    \"fill-chart-success\",\n    \"fill-chart-success-hovered\",\n    \"fill-chart-track\",\n    \"fill-chart-warning\",\n    \"fill-chart-warning-hovered\",\n    \"font-body\",\n    \"font-body-large\",\n    \"font-body-small\",\n    \"font-body-xsmall\",\n    \"font-code\",\n    \"font-heading-large\",\n    \"font-heading-medium\",\n    \"font-heading-small\",\n    \"font-heading-xsmall\",\n    \"font-heading-xxsmall\",\n    \"font-medium\",\n    \"font-regular\",\n    \"font-semibold\",\n    \"h-control-large\",\n    \"h-control-medium\",\n    \"h-control-small\",\n    \"h-control-xsmall\",\n    \"h-layout-banner\",\n    \"h-layout-topnav\",\n    \"h-row\",\n    \"h-row-compact\",\n    \"h-row-header\",\n    \"h-row-menu\",\n    \"icon-brand\",\n    \"icon-danger\",\n    \"icon-default\",\n    \"icon-disabled\",\n    \"icon-information\",\n    \"icon-inverse\",\n    \"icon-selected\",\n    \"icon-subtle\",\n    \"icon-subtlest\",\n    \"icon-success\",\n    \"icon-warning\",\n    \"icon-warning-inverse\",\n    \"m-negative-025\",\n    \"m-negative-050\",\n    \"m-negative-075\",\n    \"m-negative-100\",\n    \"m-negative-150\",\n    \"m-negative-200\",\n    \"m-negative-250\",\n    \"m-negative-300\",\n    \"m-negative-400\",\n    \"max-w-layout-measure\",\n    \"min-h-control-large\",\n    \"min-h-control-medium\",\n    \"min-h-control-small\",\n    \"min-h-control-xsmall\",\n    \"min-h-row\",\n    \"min-h-row-compact\",\n    \"min-h-row-header\",\n    \"min-h-row-menu\",\n    \"min-w-control-large\",\n    \"min-w-control-medium\",\n    \"min-w-control-small\",\n    \"min-w-control-xsmall\",\n    \"mx-negative-025\",\n    \"mx-negative-050\",\n    \"mx-negative-075\",\n    \"mx-negative-100\",\n    \"mx-negative-150\",\n    \"mx-negative-200\",\n    \"mx-negative-250\",\n    \"mx-negative-300\",\n    \"mx-negative-400\",\n    \"my-negative-025\",\n    \"my-negative-050\",\n    \"my-negative-075\",\n    \"my-negative-100\",\n    \"my-negative-150\",\n    \"my-negative-200\",\n    \"my-negative-250\",\n    \"my-negative-300\",\n    \"my-negative-400\",\n    \"opacity-disabled\",\n    \"opacity-loading\",\n    \"outline-danger\",\n    \"outline-focused\",\n    \"rounded-full\",\n    \"rounded-large\",\n    \"rounded-medium\",\n    \"rounded-small\",\n    \"rounded-xlarge\",\n    \"rounded-xsmall\",\n    \"rounded-xxlarge\",\n    \"shadow-overflow\",\n    \"shadow-overlay\",\n    \"shadow-raised\",\n    \"size-control-large\",\n    \"size-control-medium\",\n    \"size-control-small\",\n    \"size-control-xsmall\",\n    \"size-icon-medium\",\n    \"size-icon-small\",\n    \"stroke-chart-brand\",\n    \"stroke-chart-brand-hovered\",\n    \"stroke-chart-categorical-1\",\n    \"stroke-chart-categorical-1-hovered\",\n    \"stroke-chart-categorical-2\",\n    \"stroke-chart-categorical-2-hovered\",\n    \"stroke-chart-categorical-3\",\n    \"stroke-chart-categorical-3-hovered\",\n    \"stroke-chart-categorical-4\",\n    \"stroke-chart-categorical-4-hovered\",\n    \"stroke-chart-categorical-5\",\n    \"stroke-chart-categorical-5-hovered\",\n    \"stroke-chart-categorical-6\",\n    \"stroke-chart-categorical-6-hovered\",\n    \"stroke-chart-categorical-7\",\n    \"stroke-chart-categorical-7-hovered\",\n    \"stroke-chart-categorical-8\",\n    \"stroke-chart-danger\",\n    \"stroke-chart-danger-hovered\",\n    \"stroke-chart-diverging-midpoint\",\n    \"stroke-chart-diverging-negative\",\n    \"stroke-chart-diverging-negative-bold\",\n    \"stroke-chart-diverging-positive\",\n    \"stroke-chart-diverging-positive-bold\",\n    \"stroke-chart-information\",\n    \"stroke-chart-information-hovered\",\n    \"stroke-chart-neutral\",\n    \"stroke-chart-neutral-hovered\",\n    \"stroke-chart-sequential-1\",\n    \"stroke-chart-sequential-2\",\n    \"stroke-chart-sequential-3\",\n    \"stroke-chart-sequential-4\",\n    \"stroke-chart-sequential-5\",\n    \"stroke-chart-success\",\n    \"stroke-chart-success-hovered\",\n    \"stroke-chart-track\",\n    \"stroke-chart-warning\",\n    \"stroke-chart-warning-hovered\",\n    \"text-accent-blue\",\n    \"text-accent-green\",\n    \"text-accent-orange\",\n    \"text-accent-purple\",\n    \"text-accent-red\",\n    \"text-accent-teal\",\n    \"text-brand\",\n    \"text-danger\",\n    \"text-danger-bolder\",\n    \"text-default\",\n    \"text-disabled\",\n    \"text-information\",\n    \"text-information-bolder\",\n    \"text-inverse\",\n    \"text-selected\",\n    \"text-subtle\",\n    \"text-subtlest\",\n    \"text-success\",\n    \"text-success-bolder\",\n    \"text-warning\",\n    \"text-warning-bolder\",\n    \"text-warning-inverse\",\n    \"w-layout-list\",\n    \"w-layout-panel\",\n    \"w-layout-rail\",\n    \"w-layout-sidenav\"\n]"
+        "declaration": "utilities: readonly [\n    \"bg-accent-blue-bolder\",\n    \"bg-accent-blue-subtler\",\n    \"bg-accent-green-bolder\",\n    \"bg-accent-green-subtler\",\n    \"bg-accent-orange-bolder\",\n    \"bg-accent-orange-subtler\",\n    \"bg-accent-purple-bolder\",\n    \"bg-accent-purple-subtler\",\n    \"bg-accent-red-bolder\",\n    \"bg-accent-red-subtler\",\n    \"bg-accent-teal-bolder\",\n    \"bg-accent-teal-subtler\",\n    \"bg-blanket\",\n    \"bg-brand-bold\",\n    \"bg-brand-bold-hovered\",\n    \"bg-brand-bold-pressed\",\n    \"bg-brand-boldest\",\n    \"bg-brand-boldest-hovered\",\n    \"bg-brand-boldest-pressed\",\n    \"bg-brand-subtlest\",\n    \"bg-brand-subtlest-hovered\",\n    \"bg-brand-subtlest-pressed\",\n    \"bg-chart-brand\",\n    \"bg-chart-brand-hovered\",\n    \"bg-chart-categorical-1\",\n    \"bg-chart-categorical-1-hovered\",\n    \"bg-chart-categorical-2\",\n    \"bg-chart-categorical-2-hovered\",\n    \"bg-chart-categorical-3\",\n    \"bg-chart-categorical-3-hovered\",\n    \"bg-chart-categorical-4\",\n    \"bg-chart-categorical-4-hovered\",\n    \"bg-chart-categorical-5\",\n    \"bg-chart-categorical-5-hovered\",\n    \"bg-chart-categorical-6\",\n    \"bg-chart-categorical-6-hovered\",\n    \"bg-chart-categorical-7\",\n    \"bg-chart-categorical-7-hovered\",\n    \"bg-chart-categorical-8\",\n    \"bg-chart-danger\",\n    \"bg-chart-danger-hovered\",\n    \"bg-chart-diverging-midpoint\",\n    \"bg-chart-diverging-negative\",\n    \"bg-chart-diverging-negative-bold\",\n    \"bg-chart-diverging-positive\",\n    \"bg-chart-diverging-positive-bold\",\n    \"bg-chart-information\",\n    \"bg-chart-information-hovered\",\n    \"bg-chart-neutral\",\n    \"bg-chart-neutral-hovered\",\n    \"bg-chart-sequential-1\",\n    \"bg-chart-sequential-2\",\n    \"bg-chart-sequential-3\",\n    \"bg-chart-sequential-4\",\n    \"bg-chart-sequential-5\",\n    \"bg-chart-success\",\n    \"bg-chart-success-hovered\",\n    \"bg-chart-track\",\n    \"bg-chart-warning\",\n    \"bg-chart-warning-hovered\",\n    \"bg-danger\",\n    \"bg-danger-bold\",\n    \"bg-danger-bold-hovered\",\n    \"bg-danger-bold-pressed\",\n    \"bg-danger-hovered\",\n    \"bg-danger-pressed\",\n    \"bg-danger-subtle\",\n    \"bg-danger-subtler\",\n    \"bg-danger-subtler-hovered\",\n    \"bg-danger-subtler-pressed\",\n    \"bg-disabled\",\n    \"bg-information\",\n    \"bg-information-bold\",\n    \"bg-information-bold-hovered\",\n    \"bg-information-bold-pressed\",\n    \"bg-information-hovered\",\n    \"bg-information-pressed\",\n    \"bg-information-subtle\",\n    \"bg-information-subtler\",\n    \"bg-information-subtler-hovered\",\n    \"bg-information-subtler-pressed\",\n    \"bg-input\",\n    \"bg-input-hovered\",\n    \"bg-input-pressed\",\n    \"bg-inverse-subtle\",\n    \"bg-inverse-subtle-hovered\",\n    \"bg-inverse-subtle-pressed\",\n    \"bg-neutral\",\n    \"bg-neutral-bold\",\n    \"bg-neutral-bold-hovered\",\n    \"bg-neutral-bold-pressed\",\n    \"bg-neutral-hovered\",\n    \"bg-neutral-pressed\",\n    \"bg-neutral-subtle\",\n    \"bg-neutral-subtle-hovered\",\n    \"bg-neutral-subtle-pressed\",\n    \"bg-selected\",\n    \"bg-selected-bold\",\n    \"bg-selected-bold-hovered\",\n    \"bg-selected-bold-pressed\",\n    \"bg-selected-hovered\",\n    \"bg-selected-pressed\",\n    \"bg-skeleton\",\n    \"bg-skeleton-subtle\",\n    \"bg-success\",\n    \"bg-success-bold\",\n    \"bg-success-bold-hovered\",\n    \"bg-success-bold-pressed\",\n    \"bg-success-hovered\",\n    \"bg-success-pressed\",\n    \"bg-success-subtle\",\n    \"bg-success-subtler\",\n    \"bg-success-subtler-hovered\",\n    \"bg-success-subtler-pressed\",\n    \"bg-surface\",\n    \"bg-surface-current\",\n    \"bg-surface-hovered\",\n    \"bg-surface-overlay\",\n    \"bg-surface-overlay-hovered\",\n    \"bg-surface-overlay-pressed\",\n    \"bg-surface-pressed\",\n    \"bg-surface-raised\",\n    \"bg-surface-raised-hovered\",\n    \"bg-surface-raised-pressed\",\n    \"bg-surface-sunken\",\n    \"bg-warning\",\n    \"bg-warning-bold\",\n    \"bg-warning-bold-hovered\",\n    \"bg-warning-bold-pressed\",\n    \"bg-warning-hovered\",\n    \"bg-warning-pressed\",\n    \"bg-warning-subtle\",\n    \"bg-warning-subtler\",\n    \"bg-warning-subtler-hovered\",\n    \"bg-warning-subtler-pressed\",\n    \"border-bold\",\n    \"border-brand\",\n    \"border-danger\",\n    \"border-danger-subtle\",\n    \"border-default\",\n    \"border-disabled\",\n    \"border-focused\",\n    \"border-information\",\n    \"border-information-subtle\",\n    \"border-input\",\n    \"border-inverse\",\n    \"border-selected\",\n    \"border-success\",\n    \"border-success-subtle\",\n    \"border-w-default\",\n    \"border-w-focused\",\n    \"border-w-selected\",\n    \"border-warning\",\n    \"border-warning-subtle\",\n    \"duration-fast\",\n    \"duration-medium\",\n    \"duration-micro\",\n    \"duration-moderate\",\n    \"duration-slow\",\n    \"duration-slower\",\n    \"ease-enter\",\n    \"ease-exit\",\n    \"ease-standard\",\n    \"fill-chart-brand\",\n    \"fill-chart-brand-hovered\",\n    \"fill-chart-categorical-1\",\n    \"fill-chart-categorical-1-hovered\",\n    \"fill-chart-categorical-2\",\n    \"fill-chart-categorical-2-hovered\",\n    \"fill-chart-categorical-3\",\n    \"fill-chart-categorical-3-hovered\",\n    \"fill-chart-categorical-4\",\n    \"fill-chart-categorical-4-hovered\",\n    \"fill-chart-categorical-5\",\n    \"fill-chart-categorical-5-hovered\",\n    \"fill-chart-categorical-6\",\n    \"fill-chart-categorical-6-hovered\",\n    \"fill-chart-categorical-7\",\n    \"fill-chart-categorical-7-hovered\",\n    \"fill-chart-categorical-8\",\n    \"fill-chart-danger\",\n    \"fill-chart-danger-hovered\",\n    \"fill-chart-diverging-midpoint\",\n    \"fill-chart-diverging-negative\",\n    \"fill-chart-diverging-negative-bold\",\n    \"fill-chart-diverging-positive\",\n    \"fill-chart-diverging-positive-bold\",\n    \"fill-chart-information\",\n    \"fill-chart-information-hovered\",\n    \"fill-chart-neutral\",\n    \"fill-chart-neutral-hovered\",\n    \"fill-chart-sequential-1\",\n    \"fill-chart-sequential-2\",\n    \"fill-chart-sequential-3\",\n    \"fill-chart-sequential-4\",\n    \"fill-chart-sequential-5\",\n    \"fill-chart-success\",\n    \"fill-chart-success-hovered\",\n    \"fill-chart-track\",\n    \"fill-chart-warning\",\n    \"fill-chart-warning-hovered\",\n    \"font-body\",\n    \"font-body-large\",\n    \"font-body-small\",\n    \"font-body-xsmall\",\n    \"font-code\",\n    \"font-heading-large\",\n    \"font-heading-medium\",\n    \"font-heading-small\",\n    \"font-heading-xsmall\",\n    \"font-heading-xxsmall\",\n    \"font-medium\",\n    \"font-regular\",\n    \"font-semibold\",\n    \"h-control-large\",\n    \"h-control-medium\",\n    \"h-control-small\",\n    \"h-control-xsmall\",\n    \"h-layout-banner\",\n    \"h-layout-topnav\",\n    \"h-row\",\n    \"h-row-compact\",\n    \"h-row-header\",\n    \"h-row-menu\",\n    \"icon-brand\",\n    \"icon-danger\",\n    \"icon-default\",\n    \"icon-disabled\",\n    \"icon-information\",\n    \"icon-inverse\",\n    \"icon-selected\",\n    \"icon-subtle\",\n    \"icon-subtlest\",\n    \"icon-success\",\n    \"icon-warning\",\n    \"icon-warning-inverse\",\n    \"m-negative-025\",\n    \"m-negative-050\",\n    \"m-negative-075\",\n    \"m-negative-100\",\n    \"m-negative-150\",\n    \"m-negative-200\",\n    \"m-negative-250\",\n    \"m-negative-300\",\n    \"m-negative-400\",\n    \"max-w-layout-measure\",\n    \"min-h-control-large\",\n    \"min-h-control-medium\",\n    \"min-h-control-small\",\n    \"min-h-control-xsmall\",\n    \"min-h-layout-banner\",\n    \"min-h-layout-topnav\",\n    \"min-h-row\",\n    \"min-h-row-compact\",\n    \"min-h-row-header\",\n    \"min-h-row-menu\",\n    \"min-w-control-large\",\n    \"min-w-control-medium\",\n    \"min-w-control-small\",\n    \"min-w-control-xsmall\",\n    \"mx-negative-025\",\n    \"mx-negative-050\",\n    \"mx-negative-075\",\n    \"mx-negative-100\",\n    \"mx-negative-150\",\n    \"mx-negative-200\",\n    \"mx-negative-250\",\n    \"mx-negative-300\",\n    \"mx-negative-400\",\n    \"my-negative-025\",\n    \"my-negative-050\",\n    \"my-negative-075\",\n    \"my-negative-100\",\n    \"my-negative-150\",\n    \"my-negative-200\",\n    \"my-negative-250\",\n    \"my-negative-300\",\n    \"my-negative-400\",\n    \"opacity-disabled\",\n    \"opacity-loading\",\n    \"outline-danger\",\n    \"outline-focused\",\n    \"rounded-full\",\n    \"rounded-large\",\n    \"rounded-medium\",\n    \"rounded-small\",\n    \"rounded-xlarge\",\n    \"rounded-xsmall\",\n    \"rounded-xxlarge\",\n    \"shadow-overflow\",\n    \"shadow-overlay\",\n    \"shadow-raised\",\n    \"size-control-large\",\n    \"size-control-medium\",\n    \"size-control-small\",\n    \"size-control-xsmall\",\n    \"size-icon-medium\",\n    \"size-icon-small\",\n    \"stroke-chart-brand\",\n    \"stroke-chart-brand-hovered\",\n    \"stroke-chart-categorical-1\",\n    \"stroke-chart-categorical-1-hovered\",\n    \"stroke-chart-categorical-2\",\n    \"stroke-chart-categorical-2-hovered\",\n    \"stroke-chart-categorical-3\",\n    \"stroke-chart-categorical-3-hovered\",\n    \"stroke-chart-categorical-4\",\n    \"stroke-chart-categorical-4-hovered\",\n    \"stroke-chart-categorical-5\",\n    \"stroke-chart-categorical-5-hovered\",\n    \"stroke-chart-categorical-6\",\n    \"stroke-chart-categorical-6-hovered\",\n    \"stroke-chart-categorical-7\",\n    \"stroke-chart-categorical-7-hovered\",\n    \"stroke-chart-categorical-8\",\n    \"stroke-chart-danger\",\n    \"stroke-chart-danger-hovered\",\n    \"stroke-chart-diverging-midpoint\",\n    \"stroke-chart-diverging-negative\",\n    \"stroke-chart-diverging-negative-bold\",\n    \"stroke-chart-diverging-positive\",\n    \"stroke-chart-diverging-positive-bold\",\n    \"stroke-chart-information\",\n    \"stroke-chart-information-hovered\",\n    \"stroke-chart-neutral\",\n    \"stroke-chart-neutral-hovered\",\n    \"stroke-chart-sequential-1\",\n    \"stroke-chart-sequential-2\",\n    \"stroke-chart-sequential-3\",\n    \"stroke-chart-sequential-4\",\n    \"stroke-chart-sequential-5\",\n    \"stroke-chart-success\",\n    \"stroke-chart-success-hovered\",\n    \"stroke-chart-track\",\n    \"stroke-chart-warning\",\n    \"stroke-chart-warning-hovered\",\n    \"text-accent-blue\",\n    \"text-accent-green\",\n    \"text-accent-orange\",\n    \"text-accent-purple\",\n    \"text-accent-red\",\n    \"text-accent-teal\",\n    \"text-brand\",\n    \"text-danger\",\n    \"text-danger-bolder\",\n    \"text-default\",\n    \"text-disabled\",\n    \"text-information\",\n    \"text-information-bolder\",\n    \"text-inverse\",\n    \"text-selected\",\n    \"text-subtle\",\n    \"text-subtlest\",\n    \"text-success\",\n    \"text-success-bolder\",\n    \"text-warning\",\n    \"text-warning-bolder\",\n    \"text-warning-inverse\",\n    \"w-layout-list\",\n    \"w-layout-panel\",\n    \"w-layout-rail\",\n    \"w-layout-sidenav\"\n]"
+      }
+    ],
+    "\"src/layout/page-header\".Actions": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export declare function Actions({ className, ...props }: PageHeaderActionsProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/page-header\".Description": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export declare function Description({ className, ...props }: PageHeaderDescriptionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/page-header\".Heading": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export declare function Heading({ className, ...props }: PageHeaderHeadingProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/page-header\".Lead": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export declare function Lead({ render, ref, className, ...props }: PageHeaderLeadProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
       }
     ],
     "\"src/layout/page-header\".PageHeader": [
       {
         "source": "src/layout/page-header.d.ts",
-        "declaration": "PageHeader: typeof PageHeaderRoot & {\n    Title: typeof Title;\n    Description: typeof Description;\n    Actions: typeof Actions;\n}"
+        "declaration": "PageHeader: typeof PageHeaderRoot & {\n    Lead: typeof Lead;\n    Heading: typeof Heading;\n    Title: typeof Title;\n    Description: typeof Description;\n    Actions: typeof Actions;\n}"
+      }
+    ],
+    "\"src/layout/page-header\".PageHeaderActionsProps": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export type PageHeaderActionsProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/page-header\".PageHeaderDescriptionProps": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export type PageHeaderDescriptionProps = ComponentProps<\"p\">;"
+      }
+    ],
+    "\"src/layout/page-header\".PageHeaderHeadingProps": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export type PageHeaderHeadingProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/page-header\".PageHeaderLeadProps": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export type PageHeaderLeadProps = useRender.ComponentProps<\"div\">;"
       }
     ],
     "\"src/layout/page-header\".PageHeaderProps": [
@@ -6028,154 +6216,466 @@
         "declaration": "export type PageHeaderProps = ComponentProps<\"header\">;"
       }
     ],
+    "\"src/layout/page-header\".PageHeaderTitleProps": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export type PageHeaderTitleProps = ComponentProps<\"h1\">;"
+      }
+    ],
+    "\"src/layout/page-header\".Title": [
+      {
+        "source": "src/layout/page-header.d.ts",
+        "declaration": "export declare function Title({ className, ...props }: PageHeaderTitleProps): import(\"react\").JSX.Element;"
+      }
+    ],
     "\"src/layout/page-skeleton\".PageSkeleton": [
       {
         "source": "src/layout/page-skeleton.d.ts",
-        "declaration": "export declare function PageSkeleton({ rows }: PageSkeletonProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function PageSkeleton({ rows, className, ...props }: PageSkeletonProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/layout/page-skeleton\".PageSkeletonProps": [
       {
         "source": "src/layout/page-skeleton.d.ts",
-        "declaration": "export type PageSkeletonProps = {\n    rows?: number | undefined;\n};"
+        "declaration": "export type PageSkeletonProps = ComponentProps<\"div\"> & {\n    rows?: number | undefined;\n};"
+      }
+    ],
+    "\"src/layout/section\".Actions": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export declare function Actions({ className, ...props }: SectionActionsProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/section\".Description": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export declare function Description({ className, ...props }: SectionDescriptionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/section\".Header": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export declare function Header({ divided, className, ...props }: SectionHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/section\".Heading": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export declare function Heading({ className, ...props }: SectionHeadingProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/layout/section\".Section": [
       {
         "source": "src/layout/section.d.ts",
-        "declaration": "export declare function Section({ title, count, description, action, divided, className, children, ...props }: SectionProps): import(\"react\").JSX.Element;"
+        "declaration": "Section: typeof SectionRoot & {\n    Header: typeof Header;\n    Heading: typeof Heading;\n    Title: typeof Title;\n    Description: typeof Description;\n    Actions: typeof Actions;\n}"
+      }
+    ],
+    "\"src/layout/section\".SectionActionsProps": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export type SectionActionsProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/section\".SectionDescriptionProps": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export type SectionDescriptionProps = ComponentProps<\"p\">;"
+      }
+    ],
+    "\"src/layout/section\".SectionHeaderProps": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export type SectionHeaderProps = ComponentProps<\"div\"> & {\n    divided?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/layout/section\".SectionHeadingProps": [
+      {
+        "source": "src/layout/section.d.ts",
+        "declaration": "export type SectionHeadingProps = ComponentProps<\"div\">;"
       }
     ],
     "\"src/layout/section\".SectionProps": [
       {
         "source": "src/layout/section.d.ts",
-        "declaration": "export type SectionProps = Omit<ComponentProps<\"section\">, \"title\"> & {\n    title: ReactNode;\n    count?: number | string | null | undefined;\n    description?: ReactNode;\n    action?: ReactNode;\n    divided?: boolean;\n};"
+        "declaration": "export type SectionProps = Omit<ComponentProps<\"section\">, \"title\"> & {\n    title?: ReactNode | undefined;\n    count?: number | string | null | undefined;\n    description?: ReactNode | undefined;\n    action?: ReactNode | undefined;\n    divided?: boolean | undefined;\n};"
       }
     ],
-    "\"src/layout/shell\".AppLogoProps": [
+    "\"src/layout/section\".SectionTitleProps": [
       {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type AppLogoProps = useRender.ComponentProps<\"span\"> & {\n    mark?: ReactNode;\n    name: string;\n    secondaryName?: string | undefined;\n};"
+        "source": "src/layout/section.d.ts",
+        "declaration": "export type SectionTitleProps = useRender.ComponentProps<\"h2\">;"
       }
     ],
-    "\"src/layout/shell\".AppSwitcherProps": [
+    "\"src/layout/section\".Title": [
       {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type AppSwitcherProps = {\n    label?: string | undefined;\n    onClick?: (() => void) | undefined;\n};"
+        "source": "src/layout/section.d.ts",
+        "declaration": "export declare function Title({ render, ref, className, ...props }: SectionTitleProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
       }
     ],
-    "\"src/layout/shell\".ProfileProps": [
+    "\"src/layout/shell/context\".SideNavTrigger": [
       {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ProfileProps = {\n    avatar: ReactNode;\n    name: string;\n    role?: string | undefined;\n    onClick?: (() => void) | undefined;\n};"
+        "source": "src/layout/shell/context.d.ts",
+        "declaration": "export type SideNavTrigger = \"toggle-button\" | \"shortcut\" | \"splitter\" | \"scrim\" | \"escape\" | \"hook\" | \"viewport\";"
       }
     ],
-    "\"src/layout/shell\".Shell": [
+    "\"src/layout/shell/context\".useSideNav": [
       {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "Shell: typeof ShellRoot & {\n    Banner: typeof BannerArea;\n    TopNav: typeof TopNavRoot & {\n        Start: typeof TopNavStart;\n        Middle: typeof TopNavMiddle;\n        End: typeof TopNavEnd;\n    };\n    SideNav: typeof SideNavRoot & {\n        Header: typeof SideNavHeader;\n        Body: typeof SideNavBody;\n        Footer: typeof SideNavFooter;\n        Section: typeof SideNavSection;\n        Item: typeof SideNavItem;\n        Expandable: typeof SideNavExpandable;\n        ToggleButton: typeof SideNavToggleButton;\n        Splitter: typeof SideNavSplitter;\n    };\n    Main: typeof Main;\n    Aside: typeof Aside;\n    Panel: typeof PanelRoot;\n    AppLogo: typeof AppLogo;\n    AppSwitcher: typeof AppSwitcher;\n    Mark: typeof Mark;\n    Profile: typeof Profile;\n}"
-      }
-    ],
-    "\"src/layout/shell\".ShellAsideProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellAsideProps = ComponentProps<\"aside\"> & {\n    label?: string;\n};"
-      }
-    ],
-    "\"src/layout/shell\".ShellBannerProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellBannerProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/layout/shell\".ShellMainProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellMainProps = ComponentProps<\"main\"> & {\n    label?: string;\n};"
-      }
-    ],
-    "\"src/layout/shell\".ShellPanelProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellPanelProps = Omit<ComponentProps<\"aside\">, \"title\"> & {\n    title?: ReactNode;\n    label?: string;\n    actions?: ReactNode;\n    onClose: () => void;\n    defaultWidth?: number;\n};"
-      }
-    ],
-    "\"src/layout/shell\".ShellProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellProps = {\n    children: ReactNode;\n    defaultSideNavCollapsed?: boolean | undefined;\n    sideNavShortcut?: boolean | undefined;\n    persist?: string | boolean | undefined;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/layout/shell\".ShellSplitterProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellSplitterProps = {\n    label: string;\n    onResizeStart?: ((args: {\n        initialWidth: number;\n    }) => void) | undefined;\n    onResizeEnd?: ((args: {\n        initialWidth: number;\n        finalWidth: number;\n    }) => void) | undefined;\n};"
-      }
-    ],
-    "\"src/layout/shell\".ShellTopNavEndProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellTopNavEndProps = {\n    label?: string | undefined;\n    moreLabel?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/layout/shell\".ShellTopNavMiddleProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellTopNavMiddleProps = {\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/layout/shell\".ShellTopNavProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellTopNavProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/layout/shell\".ShellTopNavStartProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type ShellTopNavStartProps = {\n    toggle?: ReactNode;\n    children?: ReactNode;\n};"
-      }
-    ],
-    "\"src/layout/shell\".SideNavExpandableProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type SideNavExpandableProps = {\n    label: string;\n    icon?: ComponentType<{\n        className?: string | undefined;\n        strokeWidth?: number;\n    }> | undefined;\n    badge?: ReactNode;\n    defaultOpen?: boolean | undefined;\n    open?: boolean | undefined;\n    onOpenChange?: ((open: boolean) => void) | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/layout/shell\".SideNavItemProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type SideNavItemProps = useRender.ComponentProps<\"a\"> & {\n    isActive?: boolean | undefined;\n    icon?: ComponentType<{\n        className?: string | undefined;\n        strokeWidth?: number;\n    }> | undefined;\n    badge?: ReactNode;\n    children: ReactNode;\n    className?: string | undefined;\n};"
-      }
-    ],
-    "\"src/layout/shell\".SideNavProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type SideNavProps = {\n    id?: string | undefined;\n    label?: string | undefined;\n    defaultWidth?: number | undefined;\n    onCollapse?: ((args: {\n        trigger: Trigger;\n    }) => void) | undefined;\n    onExpand?: ((args: {\n        trigger: Trigger;\n    }) => void) | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/layout/shell\".SideNavSectionProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type SideNavSectionProps = {\n    heading?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/layout/shell\".SideNavSlotProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type SideNavSlotProps = {\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/layout/shell\".SideNavToggleButtonProps": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "export type SideNavToggleButtonProps = {\n    collapseLabel?: string | undefined;\n    expandLabel?: string | undefined;\n};"
-      }
-    ],
-    "\"src/layout/shell\".useSideNav": [
-      {
-        "source": "src/layout/shell.d.ts",
+        "source": "src/layout/shell/context.d.ts",
         "declaration": "export declare function useSideNav(): {\n    isExpanded: boolean;\n    expand: () => void;\n    collapse: () => void;\n    toggle: () => void;\n};"
+      }
+    ],
+    "\"src/layout/shell/index\".Shell": [
+      {
+        "source": "src/layout/shell/index.d.ts",
+        "declaration": "Shell: typeof ShellRoot & {\n    Banner: typeof BannerArea;\n    TopNav: typeof import(\"./top-nav\").TopNavRoot & {\n        Start: typeof import(\"./top-nav\").TopNavStart;\n        Middle: typeof import(\"./top-nav\").TopNavMiddle;\n        End: typeof import(\"./top-nav\").TopNavEnd;\n    };\n    SideNav: typeof import(\"./side-nav\").SideNavRoot & {\n        Header: typeof import(\"./side-nav\").SideNavHeader;\n        Body: typeof import(\"./side-nav\").SideNavBody;\n        Footer: typeof import(\"./side-nav\").SideNavFooter;\n        Section: typeof import(\"./side-nav\").SideNavSection;\n        Item: typeof import(\"./side-nav\").SideNavItem;\n        Expandable: typeof import(\"./side-nav\").SideNavExpandable;\n        ToggleButton: typeof import(\"./side-nav\").SideNavToggleButton;\n        Splitter: typeof import(\"./side-nav\").SideNavSplitter;\n    };\n    Main: typeof Main;\n    Aside: typeof Aside;\n    Panel: typeof import(\"./panel\").PanelRoot & {\n        Header: typeof import(\"./panel\").PanelHeader;\n        Title: typeof import(\"./panel\").PanelTitle;\n        Actions: typeof import(\"./panel\").PanelActions;\n        Close: typeof import(\"./panel\").PanelClose;\n        Body: typeof import(\"./panel\").PanelBody;\n        Splitter: typeof import(\"./panel\").PanelSplitter;\n    };\n    AppLogo: typeof AppLogo;\n    AppSwitcher: typeof AppSwitcher;\n    Mark: typeof Mark;\n    Profile: typeof Profile;\n}"
+      }
+    ],
+    "\"src/layout/shell/panel\".PanelActions": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export declare function PanelActions({ className, ...props }: ShellPanelActionsProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/panel\".PanelBody": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export declare function PanelBody({ className, style, ...props }: ShellPanelBodyProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/panel\".PanelClose": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export declare function PanelClose({ label, variant, size, onClick, ...props }: ShellPanelCloseProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/panel\".PanelHeader": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export declare function PanelHeader({ className, ...props }: ShellPanelHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/panel\".PanelRoot": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export declare function PanelRoot(props: ShellPanelProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/panel\".PanelSplitter": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export declare function PanelSplitter({ label, ...props }: ShellSplitterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/panel\".PanelTitle": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export declare function PanelTitle({ render, ref, className, ...props }: ShellPanelTitleProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+      }
+    ],
+    "\"src/layout/shell/panel\".ShellPanelActionsProps": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export type ShellPanelActionsProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/shell/panel\".ShellPanelBodyProps": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export type ShellPanelBodyProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/shell/panel\".ShellPanelCloseProps": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export type ShellPanelCloseProps = Omit<IconButtonProps, \"icon\" | \"label\"> & {\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/panel\".ShellPanelHeaderProps": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export type ShellPanelHeaderProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/shell/panel\".ShellPanelProps": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export type ShellPanelProps = Omit<ComponentProps<\"aside\">, \"title\"> & {\n    title?: ReactNode | undefined;\n    label?: string | undefined;\n    actions?: ReactNode | undefined;\n    onClose: () => void;\n    defaultWidth?: number | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/panel\".ShellPanelTitleProps": [
+      {
+        "source": "src/layout/shell/panel.d.ts",
+        "declaration": "export type ShellPanelTitleProps = useRender.ComponentProps<\"h2\">;"
+      }
+    ],
+    "\"src/layout/shell/root\".Aside": [
+      {
+        "source": "src/layout/shell/root.d.ts",
+        "declaration": "export declare function Aside({ children, label, className, ...props }: ShellAsideProps): import(\"react\").JSX.Element | null;"
+      }
+    ],
+    "\"src/layout/shell/root\".BannerArea": [
+      {
+        "source": "src/layout/shell/root.d.ts",
+        "declaration": "export declare function BannerArea({ id, label, className, children, ...props }: ShellBannerProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/root\".Main": [
+      {
+        "source": "src/layout/shell/root.d.ts",
+        "declaration": "export declare function Main({ id, label, className, children, ...props }: ShellMainProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/root\".ShellAsideProps": [
+      {
+        "source": "src/layout/shell/root.d.ts",
+        "declaration": "export type ShellAsideProps = ComponentProps<\"aside\"> & {\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/root\".ShellBannerProps": [
+      {
+        "source": "src/layout/shell/root.d.ts",
+        "declaration": "export type ShellBannerProps = ComponentProps<\"div\"> & {\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/root\".ShellMainProps": [
+      {
+        "source": "src/layout/shell/root.d.ts",
+        "declaration": "export type ShellMainProps = ComponentProps<\"main\"> & {\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/root\".ShellProps": [
+      {
+        "source": "src/layout/shell/root.d.ts",
+        "declaration": "export type ShellProps = ComponentProps<\"div\"> & {\n    defaultSideNavCollapsed?: boolean | undefined;\n    sideNavShortcut?: boolean | undefined;\n    persist?: string | boolean | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/root\".ShellRoot": [
+      {
+        "source": "src/layout/shell/root.d.ts",
+        "declaration": "export declare function ShellRoot({ children, defaultSideNavCollapsed, sideNavShortcut, persist, className, style, onFocusCapture, onPointerDownCapture, ...props }: ShellProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".IconComponent": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type IconComponent = ComponentType<{\n    className?: string | undefined;\n    strokeWidth?: number;\n}>;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavBody": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export declare function SideNavBody({ className, ...props }: SideNavBodyProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavBodyProps": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavBodyProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavExpandable": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export declare function SideNavExpandable({ label, icon, badge, defaultOpen, open, onOpenChange, className, onClick, children, ...props }: SideNavExpandableProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavExpandableProps": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavExpandableProps = Omit<ComponentProps<\"button\">, \"children\"> & {\n    label: string;\n    icon?: SideNavIcon | undefined;\n    badge?: ReactNode | undefined;\n    defaultOpen?: boolean | undefined;\n    open?: boolean | undefined;\n    onOpenChange?: ((open: boolean) => void) | undefined;\n    children: ReactNode;\n};"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavFooter": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export declare function SideNavFooter({ className, ...props }: SideNavFooterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavFooterProps": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavFooterProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavHeader": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export declare function SideNavHeader({ className, ...props }: SideNavHeaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavHeaderProps": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavHeaderProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavIcon": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavIcon = IconComponent | ReactElement<{\n    className?: string | undefined;\n}>;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavItem": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export declare function SideNavItem({ render, ref, isActive, icon, badge, className, children, ...props }: SideNavItemProps): ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavItemProps": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavItemProps = useRender.ComponentProps<\"a\"> & {\n    isActive?: boolean | undefined;\n    icon?: SideNavIcon | undefined;\n    badge?: ReactNode | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavProps": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavProps = ComponentProps<\"nav\"> & {\n    label?: string | undefined;\n    defaultWidth?: number | undefined;\n    onCollapse?: ((args: {\n        trigger: SideNavTrigger;\n    }) => void) | undefined;\n    onExpand?: ((args: {\n        trigger: SideNavTrigger;\n    }) => void) | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavRoot": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export declare function SideNavRoot({ id, label, defaultWidth, onCollapse, onExpand, className, children, ref, onPointerEnter, onPointerLeave, ...props }: SideNavProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavSection": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export declare function SideNavSection({ heading, className, children, ...props }: SideNavSectionProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavSectionProps": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavSectionProps = ComponentProps<\"div\"> & {\n    heading?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavSlotProps": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavSlotProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavSplitter": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export declare function SideNavSplitter({ label, ...props }: ShellSplitterProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavToggleButton": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export declare function SideNavToggleButton({ collapseLabel, expandLabel, variant, ref, onClick, onPointerEnter, onPointerLeave, ...props }: SideNavToggleButtonProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/side-nav\".SideNavToggleButtonProps": [
+      {
+        "source": "src/layout/shell/side-nav.d.ts",
+        "declaration": "export type SideNavToggleButtonProps = Omit<IconButtonProps, \"icon\" | \"label\"> & {\n    collapseLabel?: string | undefined;\n    expandLabel?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/splitter\".ShellSplitterProps": [
+      {
+        "source": "src/layout/shell/splitter.d.ts",
+        "declaration": "export type ShellSplitterProps = {\n    label?: string | undefined;\n    onResizeStart?: ((args: {\n        initialWidth: number;\n    }) => void) | undefined;\n    onResizeEnd?: ((args: {\n        initialWidth: number;\n        finalWidth: number;\n    }) => void) | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".AppLogo": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export declare function AppLogo({ mark, name, secondaryName, render, ref, className, children, ...props }: AppLogoProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".AppLogoProps": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export type AppLogoProps = useRender.ComponentProps<\"span\"> & {\n    mark?: ReactNode | undefined;\n    name: string;\n    secondaryName?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".AppSwitcher": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export declare function AppSwitcher({ label, variant, ...props }: AppSwitcherProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".AppSwitcherProps": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export type AppSwitcherProps = Omit<IconButtonProps, \"icon\" | \"label\"> & {\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".Mark": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export declare function Mark({ className, ...props }: ShellMarkProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".Profile": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export declare function Profile({ avatar, name, description, role, render, ref, className, onClick, ...props }: ProfileProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".ProfileProps": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export type ProfileProps = useRender.ComponentProps<\"button\"> & {\n    avatar: ReactNode;\n    name: string;\n    description?: string | undefined;\n    role?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".ShellMarkProps": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export type ShellMarkProps = ComponentProps<\"span\">;"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".ShellTopNavEndProps": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export type ShellTopNavEndProps = ComponentProps<\"div\"> & {\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".ShellTopNavMiddleProps": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export type ShellTopNavMiddleProps = ComponentProps<\"div\">;"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".ShellTopNavProps": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export type ShellTopNavProps = ComponentProps<\"header\"> & {\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".ShellTopNavStartProps": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export type ShellTopNavStartProps = ComponentProps<\"div\"> & {\n    toggle?: ReactNode | undefined;\n};"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".TopNavEnd": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export declare function TopNavEnd({ label, className, children, ...props }: ShellTopNavEndProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".TopNavMiddle": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export declare function TopNavMiddle({ className, children, ...props }: ShellTopNavMiddleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".TopNavRoot": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export declare function TopNavRoot({ id, label, className, children, ...props }: ShellTopNavProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/shell/top-nav\".TopNavStart": [
+      {
+        "source": "src/layout/shell/top-nav.d.ts",
+        "declaration": "export declare function TopNavStart({ toggle, className, children, ...props }: ShellTopNavStartProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/layout/storage\".SHELL_STORAGE_KEY": [
@@ -6217,7 +6717,7 @@
     "\"src/lib/locale-format\".defaultMessages": [
       {
         "source": "src/lib/locale-format.d.ts",
-        "declaration": "defaultMessages: {\n    close: string;\n    open: string;\n    back: string;\n    next: string;\n    previous: string;\n    cancel: string;\n    confirm: string;\n    clear: string;\n    search: string;\n    loading: string;\n    refreshing: string;\n    notifications: string;\n    pagination: string;\n    pageLabel: string;\n    previousPage: string;\n    nextPage: string;\n    firstPage: string;\n    lastPage: string;\n    pageOf: string;\n    chooseDate: string;\n    previousMonth: string;\n    nextMonth: string;\n    selection: string;\n    selectedCount: string;\n    selectAllCount: string;\n    selectAll: string;\n    selectPage: string;\n    selectRow: string;\n    reorderRow: string;\n    reorderColumn: string;\n    dragInstructions: string;\n    dragStarted: string;\n    dragOver: string;\n    dragOutside: string;\n    dragDropped: string;\n    dragCanceled: string;\n    shareOfTotal: string;\n    rowActions: string;\n    columns: string;\n    show: string;\n    rows: string;\n    compactRows: string;\n    resetView: string;\n    resetColumns: string;\n    columnMenu: string;\n    sortAscending: string;\n    sortDescending: string;\n    pinStart: string;\n    pinEnd: string;\n    unpin: string;\n    hideColumn: string;\n    from: string;\n    to: string;\n    chosenCount: string;\n    contains: string;\n    savedQuestions: string;\n    view: string;\n    tableSettings: string;\n    metrics: string;\n    groupBy: string;\n    groupedBy: string;\n    noGrouping: string;\n    filters: string;\n    clearAllFilters: string;\n    details: string;\n    parts: string;\n    detailsLabel: string;\n    reorder: string;\n    rowsError: string;\n    nothingHere: string;\n    nothingToShow: string;\n    noResults: string;\n    noMatches: string;\n    retry: string;\n    chartError: string;\n    chartPath: string;\n    showChart: string;\n    showTable: string;\n    download: string;\n    expand: string;\n    tableLabel: string;\n    paginationLabel: string;\n    loadingLabel: string;\n    target: string;\n    point: string;\n    points: string;\n    value: string;\n    downloadCsv: string;\n    downloadPng: string;\n    resizeColumn: string;\n    resize: string;\n    month: string;\n    year: string;\n    selected: string;\n    calendarWeek: string;\n    preview: string;\n    previewRow: string;\n    collapse: string;\n    collapseLabel: string;\n    expandLabel: string;\n    tableScrolls: string;\n    tableScrollsLabel: string;\n    code: string;\n    copyFailed: string;\n    today: string;\n    choose: string;\n    saveFailed: string;\n    saving: string;\n    saved: string;\n    notSaved: string;\n    rowRange: string;\n    zeroRows: string;\n    copy: string;\n    copied: string;\n    required: string;\n    editLabel: string;\n    save: string;\n    more: string;\n    lightMode: string;\n    darkMode: string;\n    systemMode: string;\n    colorMode: string;\n}"
+        "declaration": "defaultMessages: {\n    close: string;\n    open: string;\n    back: string;\n    next: string;\n    previous: string;\n    cancel: string;\n    confirm: string;\n    clear: string;\n    search: string;\n    loading: string;\n    skipTo: string;\n    closeSideNavigation: string;\n    resizeSideNavigation: string;\n    resizeDetails: string;\n    closeDetails: string;\n    skipLinks: string;\n    banner: string;\n    topNavigation: string;\n    sideNavigation: string;\n    collapseSideNavigation: string;\n    expandSideNavigation: string;\n    mainContent: string;\n    pageContext: string;\n    actions: string;\n    switchProduct: string;\n    pixelsWide: string;\n    refreshing: string;\n    notifications: string;\n    pagination: string;\n    pageLabel: string;\n    previousPage: string;\n    nextPage: string;\n    firstPage: string;\n    lastPage: string;\n    pageOf: string;\n    chooseDate: string;\n    previousMonth: string;\n    nextMonth: string;\n    selection: string;\n    selectedCount: string;\n    selectAllCount: string;\n    selectAll: string;\n    selectPage: string;\n    selectRow: string;\n    reorderRow: string;\n    reorderColumn: string;\n    dragInstructions: string;\n    dragStarted: string;\n    dragOver: string;\n    dragOutside: string;\n    dragDropped: string;\n    dragCanceled: string;\n    shareOfTotal: string;\n    rowActions: string;\n    columns: string;\n    show: string;\n    rows: string;\n    compactRows: string;\n    resetView: string;\n    resetColumns: string;\n    columnMenu: string;\n    sortAscending: string;\n    sortDescending: string;\n    pinStart: string;\n    pinEnd: string;\n    unpin: string;\n    hideColumn: string;\n    from: string;\n    to: string;\n    chosenCount: string;\n    contains: string;\n    savedQuestions: string;\n    view: string;\n    tableSettings: string;\n    metrics: string;\n    groupBy: string;\n    groupedBy: string;\n    noGrouping: string;\n    filters: string;\n    clearAllFilters: string;\n    details: string;\n    parts: string;\n    detailsLabel: string;\n    reorder: string;\n    rowsError: string;\n    nothingHere: string;\n    nothingToShow: string;\n    noResults: string;\n    noMatches: string;\n    noMatchesHint: string;\n    clearFilters: string;\n    retry: string;\n    chartError: string;\n    chartPath: string;\n    showChart: string;\n    showTable: string;\n    download: string;\n    expand: string;\n    tableLabel: string;\n    paginationLabel: string;\n    loadingLabel: string;\n    target: string;\n    point: string;\n    points: string;\n    value: string;\n    downloadCsv: string;\n    downloadPng: string;\n    resizeColumn: string;\n    resize: string;\n    month: string;\n    year: string;\n    selected: string;\n    calendarWeek: string;\n    preview: string;\n    previewRow: string;\n    collapse: string;\n    collapseLabel: string;\n    expandLabel: string;\n    tableScrolls: string;\n    tableScrollsLabel: string;\n    code: string;\n    copyFailed: string;\n    today: string;\n    choose: string;\n    saveFailed: string;\n    saving: string;\n    saved: string;\n    notSaved: string;\n    rowRange: string;\n    zeroRows: string;\n    rowsPerPage: string;\n    perPage: string;\n    copy: string;\n    copied: string;\n    required: string;\n    editLabel: string;\n    save: string;\n    more: string;\n    lightMode: string;\n    darkMode: string;\n    systemMode: string;\n    colorMode: string;\n}"
       }
     ],
     "\"src/lib/locale-format\".LedgerDirection": [
@@ -6284,6 +6784,12 @@
       {
         "source": "src/lib/status-tone.d.ts",
         "declaration": "tones: readonly [\n    \"neutral\",\n    \"information\",\n    \"success\",\n    \"warning\",\n    \"danger\"\n]"
+      }
+    ],
+    "\"src/lib/use-fill-window\".useFillWindow": [
+      {
+        "source": "src/lib/use-fill-window.d.ts",
+        "declaration": "export declare function useFillWindow(ref: RefObject<HTMLElement | null>, enabled?: boolean): number;"
       }
     ],
     "\"src/mode/density\".Density": [
@@ -6772,10 +7278,22 @@
         "declaration": "DataTable: typeof DataTableRoot & {\n    GroupBy: typeof GroupBy;\n    SelectionBar: typeof SelectionBar;\n    Filter: typeof Filter;\n    Filters: typeof Filters;\n    Search: typeof Search;\n    Presets: typeof Presets;\n    Columns: typeof Columns;\n    Settings: typeof Settings;\n    Metrics: typeof Metrics;\n    MetricsTrigger: typeof MetricsTrigger;\n    MetricsContent: typeof MetricsContent;\n}"
       }
     ],
+    "\"src/patterns/data-table/data-table\".DataTableEmpty": [
+      {
+        "source": "src/patterns/data-table/data-table.d.ts",
+        "declaration": "export type DataTableEmpty = {\n    title: string;\n    description?: string | undefined;\n    action?: ReactNode;\n    secondary?: ReactNode;\n    illustration?: EmptyIllustrationKind | false | undefined;\n    filtered?: DataTableFilteredEmpty | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/data-table/data-table\".DataTableFilteredEmpty": [
+      {
+        "source": "src/patterns/data-table/data-table.d.ts",
+        "declaration": "export type DataTableFilteredEmpty = {\n    title?: string | undefined;\n    description?: string | undefined;\n    action?: ReactNode;\n    illustration?: EmptyIllustrationKind | false | undefined;\n};"
+      }
+    ],
     "\"src/patterns/data-table/data-table\".DataTableProps": [
       {
         "source": "src/patterns/data-table/data-table.d.ts",
-        "declaration": "export type DataTableProps<TData extends RowData> = {\n    table: DataTableInstance<TData>;\n    toolbar?: ReactNode;\n    state?: DataTableState | undefined;\n    empty?: {\n        title: string;\n        description?: string | undefined;\n        action?: ReactNode;\n    } | undefined;\n    error?: ReactNode;\n    onRowClick?: ((row: TData) => void) | undefined;\n    maxHeight?: number | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type DataTableProps<TData extends RowData> = {\n    table: DataTableInstance<TData>;\n    toolbar?: ReactNode;\n    state?: DataTableState | undefined;\n    empty?: DataTableEmpty | undefined;\n    error?: ReactNode;\n    onRowClick?: ((row: TData) => void) | undefined;\n    maxHeight?: number | undefined;\n    fill?: boolean | undefined;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/patterns/data-table/data-table\".DataTableState": [
@@ -6811,7 +7329,7 @@
     "\"src/patterns/data-table/features\".DataTableMeta": [
       {
         "source": "src/patterns/data-table/features.d.ts",
-        "declaration": "export type DataTableMeta = {\n    pageSize?: number | undefined;\n    label?: string | undefined;\n    pinnable?: boolean | undefined;\n    hideable?: boolean | undefined;\n    resizable?: boolean | undefined;\n    reorderable?: boolean | undefined;\n    columnMenu?: boolean | undefined;\n    layout?: \"auto\" | \"fixed\" | undefined;\n    view?: string | undefined;\n    density?: Density | undefined;\n    defaultDensity?: Density | undefined;\n    setDensity?: ((density: Density) => void) | undefined;\n    editable?: boolean | undefined;\n    tree?: {\n        label: (row: never) => string;\n        hint?: ((row: never, childCount: number) => ReactNode) | undefined;\n    } | undefined;\n    detail?: ((row: never) => ReactNode) | undefined;\n    detailColumn?: boolean | undefined;\n    detailOpen?: ((rowId: string) => boolean) | undefined;\n    toggleDetail?: ((rowId: string) => void) | undefined;\n    groupBy?: string | undefined;\n    pinRows?: boolean | undefined;\n    virtualize?: {\n        estimate?: number | undefined;\n        overscan?: number | undefined;\n    } | undefined;\n    reorderRows?: ((moved: never, target: never, position: \"before\" | \"after\") => void) | undefined;\n};"
+        "declaration": "export type DataTableMeta = {\n    pageSize?: number | undefined;\n    pageSizes?: number[] | undefined;\n    label?: string | undefined;\n    pinnable?: boolean | undefined;\n    hideable?: boolean | undefined;\n    resizable?: boolean | undefined;\n    reorderable?: boolean | undefined;\n    columnMenu?: boolean | undefined;\n    layout?: \"auto\" | \"fixed\" | undefined;\n    view?: string | undefined;\n    density?: Density | undefined;\n    defaultDensity?: Density | undefined;\n    setDensity?: ((density: Density) => void) | undefined;\n    editable?: boolean | undefined;\n    tree?: {\n        label: (row: never) => string;\n        hint?: ((row: never, childCount: number) => ReactNode) | undefined;\n    } | undefined;\n    detail?: ((row: never) => ReactNode) | undefined;\n    detailColumn?: boolean | undefined;\n    detailOpen?: ((rowId: string) => boolean) | undefined;\n    toggleDetail?: ((rowId: string) => void) | undefined;\n    groupBy?: string | undefined;\n    pinRows?: boolean | undefined;\n    virtualize?: {\n        estimate?: number | undefined;\n        overscan?: number | undefined;\n    } | undefined;\n    reorderRows?: ((moved: never, target: never, position: \"before\" | \"after\") => void) | undefined;\n};"
       }
     ],
     "\"src/patterns/data-table/features\".RowAction": [
@@ -6955,7 +7473,7 @@
     "\"src/patterns/data-table/use-data-table\".DataTableOptions": [
       {
         "source": "src/patterns/data-table/use-data-table.d.ts",
-        "declaration": "export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TData>> & {\n    columns: ReadonlyArray<DataTableColumn<TData>>;\n    data: ReadonlyArray<TData>;\n    selectable?: boolean | ((row: TData) => boolean) | undefined;\n    pageSize?: number | undefined;\n    label?: string | undefined;\n    manual?: {\n        sorting?: boolean;\n        filtering?: boolean;\n        pagination?: boolean;\n    } | undefined;\n    pinnable?: boolean | undefined;\n    hideable?: boolean | undefined;\n    resizable?: boolean | undefined;\n    reorderable?: boolean | undefined;\n    columnMenu?: boolean | undefined;\n    layout?: \"auto\" | \"fixed\" | undefined;\n    view?: string | undefined;\n    density?: Density | undefined;\n    tree?: {\n        children: (row: TData) => ReadonlyArray<TData> | undefined;\n        label: (row: TData) => string;\n        hint?: ((row: TData, childCount: number) => ReactNode) | undefined;\n        initialExpanded?: true | string[] | undefined;\n    } | undefined;\n    detail?: ((row: TData) => ReactNode) | undefined;\n    detailColumn?: boolean | undefined;\n    groupBy?: string | undefined;\n    pinRows?: boolean | undefined;\n    virtualize?: boolean | {\n        estimate?: number | undefined;\n        overscan?: number | undefined;\n    } | undefined;\n    reorderRows?: ((moved: TData, target: TData, position: \"before\" | \"after\") => void) | undefined;\n};"
+        "declaration": "export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TData>> & {\n    columns: ReadonlyArray<DataTableColumn<TData>>;\n    data: ReadonlyArray<TData>;\n    selectable?: boolean | ((row: TData) => boolean) | undefined;\n    pageSize?: number | undefined;\n    pageSizes?: number[] | undefined;\n    label?: string | undefined;\n    manual?: {\n        sorting?: boolean;\n        filtering?: boolean;\n        pagination?: boolean;\n    } | undefined;\n    pinnable?: boolean | undefined;\n    hideable?: boolean | undefined;\n    resizable?: boolean | undefined;\n    reorderable?: boolean | undefined;\n    columnMenu?: boolean | undefined;\n    layout?: \"auto\" | \"fixed\" | undefined;\n    view?: string | undefined;\n    density?: Density | undefined;\n    tree?: {\n        children: (row: TData) => ReadonlyArray<TData> | undefined;\n        label: (row: TData) => string;\n        hint?: ((row: TData, childCount: number) => ReactNode) | undefined;\n        initialExpanded?: true | string[] | undefined;\n    } | undefined;\n    detail?: ((row: TData) => ReactNode) | undefined;\n    detailColumn?: boolean | undefined;\n    groupBy?: string | undefined;\n    pinRows?: boolean | undefined;\n    virtualize?: boolean | {\n        estimate?: number | undefined;\n        overscan?: number | undefined;\n    } | undefined;\n    reorderRows?: ((moved: TData, target: TData, position: \"before\" | \"after\") => void) | undefined;\n};"
       }
     ],
     "\"src/patterns/data-table/use-data-table\".useCellContext": [
@@ -6967,7 +7485,7 @@
     "\"src/patterns/data-table/use-data-table\".useDataTable": [
       {
         "source": "src/patterns/data-table/use-data-table.d.ts",
-        "declaration": "export declare function useDataTable<TData extends RowData>({ columns, data, selectable, pageSize, label, manual, pinnable, hideable, resizable, reorderable, columnMenu, layout, view, density: defaultDensity, tree, detail, detailColumn, groupBy, pinRows, reorderRows, virtualize, initialState, ...rest }: DataTableOptions<TData>): import(\"@tanstack/react-table\").AppReactTable<{\n    rowSortingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnFilteringFeature: import(\"@tanstack/table-core\").TableFeature;\n    globalFilteringFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnFacetingFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowPaginationFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowSelectionFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowExpandingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnPinningFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnSizingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnResizingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnOrderingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnVisibilityFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnGroupingFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowAggregationFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowPinningFeature: import(\"@tanstack/table-core\").TableFeature;\n    sortedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    filteredRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    facetedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>, columnId: string) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    facetedUniqueValues: (table: import(\"@tanstack/table-core\").Table<import(\"@tanstack/table-core\").TableFeatures, any>, columnId: string) => () => Map<any, number>;\n    facetedMinMaxValues: (table: import(\"@tanstack/table-core\").Table<import(\"@tanstack/table-core\").TableFeatures, any>, columnId: string) => () => undefined | [\n        number,\n        number\n    ];\n    paginatedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    expandedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    groupedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    sortFns: {\n        alphanumeric: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        alphanumericCaseSensitive: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        basic: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        datetime: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        text: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        textCaseSensitive: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n    };\n    filterFns: {\n        matches: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        dateRange: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        arrIncludes: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        arrIncludesAll: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        arrHas: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        arrIncludesSome: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        between: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        betweenInclusive: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        empty: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        endsWith: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        equals: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        equalsString: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        equalsStringSensitive: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        inDateRange: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        inNumberRange: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        includesString: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        includesStringSensitive: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        notEmpty: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        startsWith: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        weakEquals: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n    };\n    aggregationFns: {\n        sum: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number>;\n        min: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, (number | Date) | undefined>;\n        max: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, (number | Date) | undefined>;\n        extent: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, [\n            (number | Date) | undefined,\n            (number | Date) | undefined\n        ]>;\n        mean: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number | undefined>;\n        median: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number | undefined>;\n        unique: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, unknown[]>;\n        uniqueCount: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number>;\n        count: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number>;\n        first: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, unknown>;\n        last: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, unknown>;\n    };\n    columnMeta: import(\"./features\").DataTableColumnMeta;\n    tableMeta: import(\"./features\").DataTableMeta;\n}, TData, import(\"@tanstack/table-core\").TableState_ColumnFiltering & import(\"@tanstack/table-core\").TableState_ColumnGrouping & import(\"@tanstack/table-core\").TableState_ColumnPinning & import(\"@tanstack/table-core\").TableState_ColumnVisibility & import(\"@tanstack/table-core\").TableState_RowExpanding & import(\"@tanstack/table-core\").TableState_RowPinning & import(\"@tanstack/table-core\").TableState_RowSelection & import(\"@tanstack/table-core\").TableState_ColumnOrdering & import(\"@tanstack/table-core\").TableState_ColumnResizing & import(\"@tanstack/table-core\").TableState_ColumnSizing & import(\"@tanstack/table-core\").TableState_GlobalFiltering & import(\"@tanstack/table-core\").TableState_RowPagination & import(\"@tanstack/table-core\").TableState_RowSorting, Record<string, import(\"react\").ComponentType<any>>, Record<string, import(\"react\").ComponentType<any>>, Record<string, import(\"react\").ComponentType<any>>>;"
+        "declaration": "export declare function useDataTable<TData extends RowData>({ columns, data, selectable, pageSize, pageSizes, label, manual, pinnable, hideable, resizable, reorderable, columnMenu, layout, view, density: defaultDensity, tree, detail, detailColumn, groupBy, pinRows, reorderRows, virtualize, initialState, ...rest }: DataTableOptions<TData>): import(\"@tanstack/react-table\").AppReactTable<{\n    rowSortingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnFilteringFeature: import(\"@tanstack/table-core\").TableFeature;\n    globalFilteringFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnFacetingFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowPaginationFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowSelectionFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowExpandingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnPinningFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnSizingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnResizingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnOrderingFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnVisibilityFeature: import(\"@tanstack/table-core\").TableFeature;\n    columnGroupingFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowAggregationFeature: import(\"@tanstack/table-core\").TableFeature;\n    rowPinningFeature: import(\"@tanstack/table-core\").TableFeature;\n    sortedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    filteredRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    facetedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>, columnId: string) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    facetedUniqueValues: (table: import(\"@tanstack/table-core\").Table<import(\"@tanstack/table-core\").TableFeatures, any>, columnId: string) => () => Map<any, number>;\n    facetedMinMaxValues: (table: import(\"@tanstack/table-core\").Table<import(\"@tanstack/table-core\").TableFeatures, any>, columnId: string) => () => undefined | [\n        number,\n        number\n    ];\n    paginatedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    expandedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    groupedRowModel: (table: import(\"@tanstack/table-core\").Table<any, any>) => () => import(\"@tanstack/table-core\").RowModel<any, any>;\n    sortFns: {\n        alphanumeric: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        alphanumericCaseSensitive: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        basic: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        datetime: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        text: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n        textCaseSensitive: import(\"@tanstack/table-core\").CreatedSortFn<any, any>;\n    };\n    filterFns: {\n        matches: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        dateRange: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        arrIncludes: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        arrIncludesAll: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        arrHas: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        arrIncludesSome: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        between: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        betweenInclusive: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        empty: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        endsWith: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        equals: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        equalsString: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        equalsStringSensitive: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        inDateRange: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        inNumberRange: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        includesString: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        includesStringSensitive: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        notEmpty: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        startsWith: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n        weakEquals: import(\"@tanstack/table-core\").CreatedFilterFn<any, any>;\n    };\n    aggregationFns: {\n        sum: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number>;\n        min: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, (number | Date) | undefined>;\n        max: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, (number | Date) | undefined>;\n        extent: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, [\n            (number | Date) | undefined,\n            (number | Date) | undefined\n        ]>;\n        mean: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number | undefined>;\n        median: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number | undefined>;\n        unique: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, unknown[]>;\n        uniqueCount: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number>;\n        count: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, number>;\n        first: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, unknown>;\n        last: import(\"@tanstack/table-core\").AggregationFnDef<any, any, unknown, unknown>;\n    };\n    columnMeta: import(\"./features\").DataTableColumnMeta;\n    tableMeta: import(\"./features\").DataTableMeta;\n}, TData, import(\"@tanstack/table-core\").TableState_ColumnFiltering & import(\"@tanstack/table-core\").TableState_ColumnGrouping & import(\"@tanstack/table-core\").TableState_ColumnPinning & import(\"@tanstack/table-core\").TableState_ColumnVisibility & import(\"@tanstack/table-core\").TableState_RowExpanding & import(\"@tanstack/table-core\").TableState_RowPinning & import(\"@tanstack/table-core\").TableState_RowSelection & import(\"@tanstack/table-core\").TableState_ColumnOrdering & import(\"@tanstack/table-core\").TableState_ColumnResizing & import(\"@tanstack/table-core\").TableState_ColumnSizing & import(\"@tanstack/table-core\").TableState_GlobalFiltering & import(\"@tanstack/table-core\").TableState_RowPagination & import(\"@tanstack/table-core\").TableState_RowSorting, Record<string, import(\"react\").ComponentType<any>>, Record<string, import(\"react\").ComponentType<any>>, Record<string, import(\"react\").ComponentType<any>>>;"
       }
     ],
     "\"src/patterns/data-table/use-data-table\".useHeaderContext": [
@@ -6997,7 +7515,7 @@
     "\"src/patterns/data-table/view-state\".StoredView": [
       {
         "source": "src/patterns/data-table/view-state.d.ts",
-        "declaration": "export type StoredView = {\n    v: 1;\n    order: string[];\n    sizing: Record<string, number>;\n    visibility: Record<string, boolean>;\n    pinning: {\n        start: string[];\n        end: string[];\n    };\n    density?: \"default\" | \"compact\" | undefined;\n};"
+        "declaration": "export type StoredView = {\n    v: 1;\n    order: string[];\n    sizing: Record<string, number>;\n    visibility: Record<string, boolean>;\n    pinning: {\n        start: string[];\n        end: string[];\n    };\n    density?: \"default\" | \"compact\" | undefined;\n    pageSize?: number | undefined;\n};"
       }
     ],
     "\"src/patterns/data-table/view-state\".viewKey": [
@@ -7135,7 +7653,7 @@
     "\"src/patterns/record-browser\".RecordBrowserProps": [
       {
         "source": "src/patterns/record-browser.d.ts",
-        "declaration": "export type RecordBrowserProps<T extends {\n    id: string;\n}> = {\n    open: boolean;\n    onClose: () => void;\n    title: string;\n    description: string;\n    records: readonly T[];\n    columns: readonly DataTableColumn<T>[];\n    filters?: readonly string[];\n    recordTitle: (record: T) => ReactNode;\n    renderPreview: (record: T) => ReactNode;\n    onConfirm: (records: T[]) => void | Promise<void>;\n    confirmLabel: string;\n    context?: ReactNode;\n    actions?: ReactNode;\n};"
+        "declaration": "export type RecordBrowserProps<T extends {\n    id: string;\n}> = {\n    open: boolean;\n    onClose: () => void;\n    title: string;\n    description: string;\n    records: readonly T[];\n    columns: readonly DataTableColumn<T>[];\n    filters?: readonly string[];\n    recordTitle: (record: T) => ReactNode;\n    renderPreview: (record: T) => ReactNode;\n    onConfirm: (records: T[]) => void | Promise<void>;\n    confirmLabel: string;\n    context?: ReactNode;\n    actions?: ReactNode;\n    selectedIds?: readonly string[] | undefined;\n    onSelectionChange?: ((ids: string[]) => void) | undefined;\n};"
       }
     ],
     "\"src/patterns/record-picker\".PickerRecord": [
@@ -7645,7 +8163,7 @@
     "src/components/table.d.ts#TableRoot": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "declare function TableRoot({ label, className, maxHeight, frameRef, role, density, ...props }: TableProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+        "declaration": "declare function TableRoot({ label, className, maxHeight, fill, frameRef, role, density, ...props }: TableProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
       }
     ],
     "src/components/table.d.ts#Td": [
@@ -7657,7 +8175,7 @@
     "src/components/table.d.ts#Th": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "declare function Th({ ref, className, sort, onSort, sticky, pinned: pinnedProp, offset, edge, width, resize, trailing, style, children, ...props }: ThProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function Th({ ref, className, sort, onSort, sticky, pinned: pinnedProp, offset, edge, hairline, width, resize, trailing, style, children, ...props }: ThProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/table.d.ts#Tr": [
@@ -7696,166 +8214,16 @@
         "declaration": "declare function FactRoot({ label, children }: FactProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/layout/page-header.d.ts#Actions": [
-      {
-        "source": "src/layout/page-header.d.ts",
-        "declaration": "declare function Actions({ className, ...props }: ComponentProps<\"div\">): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/page-header.d.ts#Description": [
-      {
-        "source": "src/layout/page-header.d.ts",
-        "declaration": "declare function Description({ className, ...props }: ComponentProps<\"p\">): import(\"react\").JSX.Element;"
-      }
-    ],
     "src/layout/page-header.d.ts#PageHeaderRoot": [
       {
         "source": "src/layout/page-header.d.ts",
         "declaration": "declare function PageHeaderRoot({ className, ...props }: PageHeaderProps): import(\"react\").JSX.Element;"
       }
     ],
-    "src/layout/page-header.d.ts#Title": [
+    "src/layout/section.d.ts#SectionRoot": [
       {
-        "source": "src/layout/page-header.d.ts",
-        "declaration": "declare function Title({ className, ...props }: ComponentProps<\"h1\">): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#AppLogo": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function AppLogo({ mark, name, secondaryName, render, className, children, ...props }: AppLogoProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
-      }
-    ],
-    "src/layout/shell.d.ts#AppSwitcher": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function AppSwitcher({ label, onClick }: AppSwitcherProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#Aside": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function Aside({ children, label, className, ...props }: ShellAsideProps): import(\"react\").JSX.Element | null;"
-      }
-    ],
-    "src/layout/shell.d.ts#BannerArea": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function BannerArea({ id, label, children }: ShellBannerProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#Main": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function Main({ id, label, className, children, ...props }: ShellMainProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#Mark": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function Mark(): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#PanelRoot": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function PanelRoot(props: ShellPanelProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#Profile": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function Profile({ avatar, name, role, onClick }: ProfileProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#ShellRoot": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function ShellRoot({ children, defaultSideNavCollapsed, sideNavShortcut, persist, className, }: ShellProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#SideNavBody": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function SideNavBody({ children }: SideNavSlotProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#SideNavExpandable": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function SideNavExpandable({ label, icon: Icon, badge, defaultOpen, open, onOpenChange, children, }: SideNavExpandableProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#SideNavFooter": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function SideNavFooter({ children }: SideNavSlotProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#SideNavHeader": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function SideNavHeader({ children }: SideNavSlotProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#SideNavItem": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function SideNavItem({ render, isActive, icon: Icon, badge, className, children, ...props }: SideNavItemProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
-      }
-    ],
-    "src/layout/shell.d.ts#SideNavRoot": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function SideNavRoot({ id, label, defaultWidth, onCollapse, onExpand, className, children, }: SideNavProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#SideNavSection": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function SideNavSection({ heading, children }: SideNavSectionProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#SideNavSplitter": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function SideNavSplitter(props: ShellSplitterProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#SideNavToggleButton": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function SideNavToggleButton({ collapseLabel, expandLabel, }: SideNavToggleButtonProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#TopNavEnd": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function TopNavEnd({ label, moreLabel, children }: ShellTopNavEndProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#TopNavMiddle": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function TopNavMiddle({ children }: ShellTopNavMiddleProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#TopNavRoot": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function TopNavRoot({ id, label, className, children }: ShellTopNavProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#TopNavStart": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "declare function TopNavStart({ toggle, children }: ShellTopNavStartProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/layout/shell.d.ts#Trigger": [
-      {
-        "source": "src/layout/shell.d.ts",
-        "declaration": "type Trigger = \"toggle-button\" | \"shortcut\" | \"splitter\" | \"scrim\" | \"escape\" | \"hook\" | \"viewport\";"
+        "source": "src/layout/section.d.ts",
+        "declaration": "declare function SectionRoot({ title, count, description, action, divided, className, children, ...props }: SectionProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/mode/mode.d.ts#ModeContextValue": [
@@ -7897,7 +8265,7 @@
     "src/patterns/data-table/data-table.d.ts#DataTableRoot": [
       {
         "source": "src/patterns/data-table/data-table.d.ts",
-        "declaration": "declare function DataTableRoot<TData extends RowData>({ table, toolbar, state, empty, error, onRowClick, maxHeight, className, }: DataTableProps<TData>): import(\"react\").JSX.Element;"
+        "declaration": "declare function DataTableRoot<TData extends RowData>({ table, toolbar, state, empty, error, onRowClick, maxHeight, fill, className, }: DataTableProps<TData>): import(\"react\").JSX.Element;"
       }
     ],
     "src/patterns/data-table/filter.d.ts#FilterProps": [

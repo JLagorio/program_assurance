@@ -129,6 +129,10 @@ function utilityFor(token) {
       prop: "border-width",
     };
   if (a === "dimension") {
+    // A breakpoint is a Tailwind theme key (`md:`, `panel:` variants; `theme(--breakpoint-panel)` in a
+    // media query) written as its literal value, since a media query cannot read a custom property.
+    if (b === "breakpoint")
+      return { kind: "theme", ns: "breakpoint", key: rest(p, 2), cls: null, literal: true };
     if (b === "icon") return { kind: "size", cls: `size-icon-${rest(p, 2)}` };
     if (b === "control")
       return {
@@ -216,6 +220,7 @@ const themeLines = [];
 const utilityBlocks = [];
 const docs = [];
 const names = {}; // dotName -> cssVar
+const literals = {}; // dotName -> the light value as a literal, for a document without the stylesheet
 const groups = {
   bg: [],
   text: [],
@@ -272,6 +277,7 @@ for (const token of all) {
     lightCss = cssValue(token.original.$value, token.$value, type);
   }
   lightVars.push([v, lightCss], ...extraLight);
+  literals[name] = type === "typography" ? lightCss : literal(token.$value, type);
   if (darkOriginal !== null) darkVars.push([v, cssValue(darkOriginal, darkResolved, type)]);
 
   const u = utilityFor(token);
@@ -281,16 +287,18 @@ for (const token of all) {
         u.key.startsWith("negative-") ? name.replace(".negative", "") : name,
         u.key,
       ]);
-    else classByToken[name] = u.cls;
+    else if (u.cls) classByToken[name] = u.cls;
     allClasses.push(
       ...(u.kind === "theme" && u.ns === "spacing"
         ? u.key.startsWith("negative-")
           ? u.cls.split(" · ") // Bleed's classes are literal in the allowlist; the positive ramp is a regex
           : []
-        : [u.cls]),
+        : u.cls
+          ? [u.cls]
+          : []),
     );
     if (u.kind === "theme") {
-      themeLines.push(`  --${u.ns}-${u.key}: var(${v});`);
+      themeLines.push(`  --${u.ns}-${u.key}: ${u.literal ? lightCss : `var(${v})`};`);
       if (u.ns === "shadow") groups.shadow.push(u.key);
       if (u.ns === "radius") groups.rounded.push(u.key);
       if (u.ns === "font-weight") groups["font-weight"].push(u.key);
@@ -326,8 +334,13 @@ for (const token of all) {
     }
   }
 
-  // Content-rich rows retain a token minimum while growing for descriptions and avatars.
-  if (u && /^dimension\.(control|row)(\.|$)/.test(name)) {
+  // Content-rich rows retain a token minimum while growing for descriptions and avatars; the
+  // shell's bars the same (a panel header level with the top nav that grows when its title wraps).
+  if (
+    u &&
+    (/^dimension\.(control|row)(\.|$)/.test(name) ||
+      (u.prop === "height" && /^dimension\.layout\./.test(name)))
+  ) {
     const suffix = u.cls.slice(2);
     const cls = `min-h-${suffix}`;
     utilityBlocks.push(`@utility ${cls} {\n  min-height: var(${v});\n}`);
@@ -442,9 +455,16 @@ export function token(name: TokenName): string {
   return \`var(\${tokens[name]})\`;
 }
 
-/** The computed value of a token in the current mode, for canvas and SVG. */
-export function tokenValue(name: TokenName, el: Element = document.documentElement): string {
-  return getComputedStyle(el).getPropertyValue(tokens[name]).trim();
+/** Each token's light value as written in the tokens: what tokenValue() returns without a document or before the stylesheet loads. */
+export const tokenLiterals = ${JSON.stringify(literals, null, 2)} as const satisfies Record<TokenName, string>;
+
+/** The computed value of a token in the current mode, for canvas, SVG and media queries. Without a document, or while the stylesheet is not loaded, the token's light value. */
+export function tokenValue(name: TokenName, el?: Element): string {
+  if (typeof document === "undefined") return tokenLiterals[name];
+  const computed = getComputedStyle(el ?? document.documentElement)
+    .getPropertyValue(tokens[name])
+    .trim();
+  return computed || tokenLiterals[name];
 }
 
 /** Every generated class. Space tokens are reachable through Tailwind's spacing utilities (p-100, gap-100 …) and are not listed. */

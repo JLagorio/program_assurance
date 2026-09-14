@@ -12,7 +12,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { memo, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 
 import { AlertDescription, Alert } from "../../components/alert";
-import { IconButton } from "../../components/button";
+import { Button, IconButton } from "../../components/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -25,12 +25,16 @@ import { TablePagination } from "./pagination";
 import { Skeleton } from "../../components/skeleton";
 import { PreviewButton, Table } from "../../components/table";
 import { cn } from "../../lib/cn";
+import { useFillWindow } from "../../lib/use-fill-window";
 import {
   Empty,
   EmptyHeader,
   EmptyContent,
+  EmptyIllustration,
+  EmptyMedia,
   EmptyTitle,
   EmptyDescription,
+  type EmptyIllustrationKind,
 } from "../../components/empty";
 import type { DataTableFeatures } from "./features";
 import { Columns, HeaderMenu, Settings } from "./columns-menu";
@@ -50,19 +54,43 @@ import type { DataTableInstance } from "./use-data-table";
 
 export type DataTableState = "ready" | "loading" | "empty" | "error";
 
+/** What the empty state says when a search or a filter left nothing. Each part has a localized default; the default action clears the table's search and column filters. */
+export type DataTableFilteredEmpty = {
+  title?: string | undefined;
+  description?: string | undefined;
+  /** In place of the kit's Clear filters. `null` for no action. */
+  action?: ReactNode;
+  illustration?: EmptyIllustrationKind | false | undefined;
+};
+
+export type DataTableEmpty = {
+  title: string;
+  description?: string | undefined;
+  /** The primary next step: the button that creates the first record. */
+  action?: ReactNode;
+  /** A quieter action beside it: a link to the docs, an import. */
+  secondary?: ReactNode;
+  /** The picture above the message. `records` by default; `false` for none. */
+  illustration?: EmptyIllustrationKind | false | undefined;
+  /** The narrowed state: shown instead of the above while a search or a column filter is active. */
+  filtered?: DataTableFilteredEmpty | undefined;
+};
+
 export type DataTableProps<TData extends RowData> = {
   table: DataTableInstance<TData>;
   /** Search, filters and actions. Sits above the header, flush with the table's edge. */
   toolbar?: ReactNode;
   state?: DataTableState | undefined;
-  /** What the empty state says. */
-  empty?: { title: string; description?: string | undefined; action?: ReactNode } | undefined;
+  /** What the empty state says: one message for no records, another while a search or a filter leaves none. */
+  empty?: DataTableEmpty | undefined;
   /** What the error state says. */
   error?: ReactNode;
   /** The row opens something: the record, a peek. */
   onRowClick?: ((row: TData) => void) | undefined;
   /** The table scrolls inside itself past this height; the header stays. */
   maxHeight?: number | undefined;
+  /** The register is the page's one block: it takes the rest of the window, the rows scroll under the header, and the pagination sits at the bottom. Wins over `maxHeight`. */
+  fill?: boolean | undefined;
   className?: string | undefined;
 };
 
@@ -188,9 +216,9 @@ function HeaderCell<TData extends RowData>({
     <Table.Header
       ref={drag.setNodeRef}
       colSpan={header.colSpan}
+      hairline={!header.isPlaceholder}
       className={cn(
         alignClass(meta?.align),
-        header.isPlaceholder && "border-b-0",
         !leaf && "text-center",
         drag.isDragging && "bg-surface-hovered",
       )}
@@ -638,6 +666,45 @@ function treeKeys<TData extends RowData>(
   };
 }
 
+/** The empty state. With no records at all it stands alone on its dashed frame; under the header, the table's rules bound it, so it has no frame of its own. */
+function EmptyState({
+  frame,
+  illustration,
+  title,
+  description,
+  action,
+  secondary,
+  className,
+}: {
+  frame: "dashed" | "none";
+  className?: string | undefined;
+  illustration: EmptyIllustrationKind | false;
+  title: string;
+  description?: string | undefined;
+  action?: ReactNode;
+  secondary?: ReactNode;
+}) {
+  return (
+    <Empty frame={frame} className={className}>
+      {illustration ? (
+        <EmptyMedia aria-hidden>
+          <EmptyIllustration kind={illustration} />
+        </EmptyMedia>
+      ) : null}
+      <EmptyHeader>
+        <EmptyTitle>{title}</EmptyTitle>
+        {description ? <EmptyDescription>{description}</EmptyDescription> : null}
+      </EmptyHeader>
+      {action || secondary ? (
+        <EmptyContent>
+          {action}
+          {secondary}
+        </EmptyContent>
+      ) : null}
+    </Empty>
+  );
+}
+
 /** The first row is the treegrid's tab stop; whichever row is focused holds it after that. */
 const claimTabStop = (event: { target: EventTarget }) => {
   const el = event.target as HTMLElement;
@@ -652,6 +719,7 @@ function DataTableRoot<TData extends RowData>({
   error,
   onRowClick,
   maxHeight,
+  fill,
   className,
 }: DataTableProps<TData>) {
   const { t, direction } = useLedgerLocale();
@@ -663,7 +731,8 @@ function DataTableRoot<TData extends RowData>({
     handle: Boolean(options?.reorderRows),
     detail: Boolean(options?.detail) && options?.detailColumn !== false,
   };
-  const pageSize = options?.pageSize;
+  // The page size is the reader's while the table pages; the option is the author's default.
+  const pageSize = options?.pageSize === undefined ? undefined : table.state.pagination.pageSize;
   const label = options?.label;
   const tree = options?.tree;
   const groupBy = options?.groupBy;
@@ -708,6 +777,16 @@ function DataTableRoot<TData extends RowData>({
   // Rows are dimension.row tall, so the estimate is the table's density and nothing measures.
   const virtual = options?.virtualize && !groupBy ? options.virtualize : undefined;
   const frame = useRef<HTMLDivElement>(null);
+  // The register that is the page: its root takes the rest of the window from its own top edge,
+  // and the toolbar, the frame and the pagination share that height as a column.
+  const root = useRef<HTMLDivElement>(null);
+  const top = useFillWindow(root, Boolean(fill));
+  const rootProps = {
+    ref: root,
+    ...(fill ? { "data-fill": "" } : {}),
+    className: cn(fill && "fill-window", className) || undefined,
+    style: fill ? ({ "--fill-top": `${top}px` } as CSSProperties) : undefined,
+  };
   const virtualizer = useVirtualizer({
     count: virtual ? rows.length : 0,
     getScrollElement: () => frame.current,
@@ -722,9 +801,33 @@ function DataTableRoot<TData extends RowData>({
   const groups = groupBy ? allRows.filter((r) => r.getIsGrouped() && r.depth === 0) : [];
   const showRows = state === "ready" && allRows.length > 0;
   const isEmpty = state === "empty" || (state === "ready" && allRows.length === 0);
+  // A search or a column filter is what emptied the table, so the way out is to clear it.
+  const narrowed =
+    table.state.columnFilters.length > 0 || String(table.state.globalFilter ?? "") !== "";
+  const clearFilters = () => {
+    table.setColumnFilters([]);
+    table.setGlobalFilter("");
+  };
   const footerGroup = visibleColumns.some((c) => c.columnDef.footer !== undefined)
     ? table.getFooterGroups().find((g) => g.headers.every((h) => h.subHeaders.length === 0))
     : undefined;
+
+  // No records at all: nothing to search, filter, sort or page, so the register is only its empty
+  // state, on its own frame, and the action in it creates the first record.
+  if (isEmpty && !narrowed)
+    return (
+      <div {...rootProps}>
+        <EmptyState
+          className={fill ? "flex-1" : undefined}
+          frame="dashed"
+          illustration={empty?.illustration ?? "records"}
+          title={empty?.title ?? t("nothingHere")}
+          description={empty?.description}
+          action={empty?.action}
+          secondary={empty?.secondary}
+        />
+      </div>
+    );
 
   const drawRow = (row: Row<F, TData>, isPinnedRow = false) => (
     <BodyRow
@@ -783,17 +886,21 @@ function DataTableRoot<TData extends RowData>({
         <Table.Row isStatic>
           <Table.Cell
             colSpan={columnCount}
-            className="h-auto max-w-none whitespace-normal px-150 py-150"
+            className="h-auto max-w-none whitespace-normal px-200 py-200"
           >
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{empty?.title ?? t("nothingHere")}</EmptyTitle>
-                {empty?.description ? (
-                  <EmptyDescription>{empty?.description}</EmptyDescription>
-                ) : null}
-              </EmptyHeader>
-              {empty?.action ? <EmptyContent>{empty?.action}</EmptyContent> : null}
-            </Empty>
+            <EmptyState
+              frame="none"
+              illustration={empty?.filtered?.illustration ?? "search"}
+              title={empty?.filtered?.title ?? t("noMatches")}
+              description={empty?.filtered?.description ?? t("noMatchesHint")}
+              action={
+                empty?.filtered?.action === undefined ? (
+                  <Button onClick={clearFilters}>{t("clearFilters")}</Button>
+                ) : (
+                  empty.filtered.action
+                )
+              }
+            />
           </Table.Cell>
         </Table.Row>
       ) : null}
@@ -801,14 +908,14 @@ function DataTableRoot<TData extends RowData>({
   );
 
   return (
-    <div className={className}>
-      {toolbar ? <div className="pb-200">{toolbar}</div> : null}
+    <div {...rootProps}>
+      {toolbar ? <div className="shrink-0 pb-200">{toolbar}</div> : null}
       <DragContext table={table}>
         <Table
           frameRef={frame}
           density={options?.density ?? "default"}
           label={label}
-          {...(maxHeight === undefined ? {} : { maxHeight })}
+          {...(fill ? { fill } : maxHeight === undefined ? {} : { maxHeight })}
           {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}
           className={cn("border-b border-default", fixed && "table-fixed")}
           style={minWidth === undefined ? undefined : { minWidth }}
@@ -837,7 +944,7 @@ function DataTableRoot<TData extends RowData>({
                     </>
                   ) : (
                     Array.from({ length: leadingCount(leading) }, (_, j) => (
-                      <Table.Header key={j} className="border-b-0" aria-hidden />
+                      <Table.Header key={j} hairline={false} aria-hidden />
                     ))
                   )}
                   {group.headers.map((header) => (
@@ -913,15 +1020,17 @@ function DataTableRoot<TData extends RowData>({
           ) : null}
         </Table>
       </DragContext>
-      {pageSize !== undefined && !groupBy && state !== "loading" ? (
+      {pageSize !== undefined && !groupBy && state !== "loading" && !isEmpty ? (
         <TablePagination
           page={table.state.pagination.pageIndex + 1}
           pageCount={Math.max(1, table.getPageCount())}
           onPageChange={(p) => table.setPageIndex(p - 1)}
           total={table.getRowCount()}
           pageSize={pageSize}
+          pageSizes={options?.pageSizes}
+          onPageSizeChange={(size) => table.setPageSize(size)}
           label={label ? t("paginationLabel", { label }) : undefined}
-          className="pt-100"
+          className="shrink-0 pt-100"
         />
       ) : null}
     </div>

@@ -865,6 +865,50 @@ function PinnedSelection() {
   );
 }
 
+/** The frame takes the rest of a bounded column and scrolls inside it; the header sticks to the frame. The DataTable's `fill` builds this column for the register that is the page. */
+export const FillFrame: Story = {
+  name: "Fill frame",
+  render: () => (
+    <div className="flex flex-col" style={{ height: 320 }}>
+      <Table fill label="Fitted controls">
+        <thead>
+          <Table.Row>
+            <Table.Header>Id</Table.Header>
+            <Table.Header>Control</Table.Header>
+            <Table.Header>Owner</Table.Header>
+          </Table.Row>
+        </thead>
+        <tbody>
+          {Array.from({ length: 40 }, (_, i) => (
+            <Table.Row key={i}>
+              <Table.Cell>CTRL-{String(400 + i)}</Table.Cell>
+              <Table.Cell>Access review {i + 1}</Table.Cell>
+              <Table.Cell>Dana Whitfield</Table.Cell>
+            </Table.Row>
+          ))}
+        </tbody>
+      </Table>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frame = canvas.getByRole("table", { name: "Fitted controls" }).parentElement!;
+    await waitFor(() => expect(frame).toHaveAttribute("tabindex", "0"));
+    await expect(frame).toHaveAttribute("role", "region");
+    await expect(frame.clientHeight).toBeLessThanOrEqual(320);
+    await expect(frame.scrollHeight).toBeGreaterThan(frame.clientHeight);
+    frame.scrollTop = 200;
+    const header = canvas.getAllByRole("columnheader")[0]!;
+    await waitFor(() =>
+      expect(
+        Math.abs(header.getBoundingClientRect().top - frame.getBoundingClientRect().top),
+      ).toBeLessThanOrEqual(1),
+    );
+    // The hairline is the heading's own, so it stays under the stuck header.
+    await expect(getComputedStyle(header, "::before").borderBottomWidth).toBe("1px");
+  },
+};
+
 /** Content can grow inside a fixed frame; refs retain their native targets and cleanup. */
 export const DynamicFrame: Story = {
   render: function Example() {

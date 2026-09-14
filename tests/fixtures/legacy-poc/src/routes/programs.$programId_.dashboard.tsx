@@ -1,0 +1,472 @@
+import {
+  Badge,
+  Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Dot,
+  Eyebrow,
+  Grid,
+  Id,
+  Inline,
+  PageHeader,
+  Person,
+  Progress,
+  ProgressStacked,
+  Section,
+  Stack,
+  Table,
+  TextLink,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+
+import { ControlMatrixSection } from "@/components/app/control-matrix";
+import { FamilyCoverageChart } from "@/components/app/coverage-chart";
+import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
+import { isOpen } from "@/lib/findings";
+import { gateKindTone, gatesForProgram, lifecyclePhases, programs } from "@/lib/grc-data";
+import { catalogVersion } from "@/lib/nist-catalog";
+import { findingsForProgram, programPosture } from "@/lib/program-actions";
+import {
+  coverageFromRows,
+  gateOutlook,
+  programDeadlines,
+  type Deadline,
+} from "@/lib/program-coverage";
+import { poamItems } from "@/lib/register";
+
+import { cn } from "@ledger/design-system/cn";
+
+export const Route = createFileRoute("/programs/$programId_/dashboard")({
+  loader: ({ params }) => {
+    const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
+    if (!program) throw notFound();
+    return program;
+  },
+  head: ({ loaderData }) => ({
+    meta: [
+      { title: `${loaderData?.name ?? "Program"} dashboard — Equinox` },
+      {
+        name: "description",
+        content: `Program dashboard: 800-53 coverage by control family, remaining RMF gates, the next deadlines, and the full control matrix for ${loaderData?.id ?? "the program"}.`,
+      },
+      { property: "og:title", content: `${loaderData?.name ?? "Program"} dashboard — Equinox` },
+      {
+        property: "og:description",
+        content: "Coverage by family, remaining gates, next deadlines and the control matrix.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: ProgramDashboard,
+});
+
+/** A single headline number. No plot, so no hover layer — the number is the mark. */
+function DashboardStat({
+  label,
+  value,
+  hint,
+  tone = "neutral",
+  children,
+}: {
+  label: string;
+  value: ReactNode;
+  hint?: ReactNode;
+  tone?: "neutral" | "success" | "warning" | "danger";
+  children?: ReactNode;
+}) {
+  return (
+    <Box
+      className="min-w-0 border-l border-default first:border-0 first:ps-0"
+      paddingInlineStart="space.150"
+    >
+      <Eyebrow>{label}</Eyebrow>
+      <Box
+        className={cn(
+          "tabular-nums font-heading-medium font-semibold",
+          tone === "danger" && "text-danger",
+          tone === "warning" && "text-warning",
+          tone === "success" && "text-success",
+        )}
+        paddingBlockStart="space.050"
+      >
+        {value}
+      </Box>
+      {hint ? (
+        <Box className="truncate font-body-small text-subtle" paddingBlockStart="space.050">
+          {hint}
+        </Box>
+      ) : null}
+      {children ? <Box paddingBlockStart="space.100">{children}</Box> : null}
+    </Box>
+  );
+}
+
+const deadlineTone: Record<string, "success" | "warning" | "danger" | "information" | "neutral"> = {
+  Gate: "information",
+  "POA&M": "warning",
+  Control: "neutral",
+};
+
+function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
+  const timing =
+    d.daysOut === null
+      ? d.date
+      : d.daysOut < 0
+        ? `${Math.abs(d.daysOut)}d overdue`
+        : `${d.daysOut}d out`;
+
+  const idCell =
+    d.kind === "POA&M" ? (
+      <TextLink render={<Link to="/register/poam/$poamId" params={{ poamId: d.id }} />}>
+        <Id>{d.id}</Id>
+      </TextLink>
+    ) : d.kind === "Control" ? (
+      <TextLink
+        render={
+          <Link
+            to="/programs/$programId/controls/$controlId"
+            params={{ programId, controlId: d.id }}
+          />
+        }
+      >
+        <Id>{d.id}</Id>
+      </TextLink>
+    ) : (
+      <Id>{d.id}</Id>
+    );
+
+  return (
+    <Table.Row>
+      <Table.Cell>{idCell}</Table.Cell>
+      <Table.Cell>
+        <Badge variant="secondary" tone={deadlineTone[d.kind] ?? "neutral"} size="xsmall">
+          {d.kind}
+        </Badge>
+      </Table.Cell>
+      <Table.Cell className="truncate" title={d.label}>
+        {d.label}
+      </Table.Cell>
+      <Table.Cell className="truncate" title={d.note}>
+        {d.note}
+      </Table.Cell>
+      <Table.Cell className="tabular-nums text-right">{d.date}</Table.Cell>
+      <Table.Cell
+        className={cn(
+          "tabular-nums text-right",
+          d.tone === "danger" ? "text-danger" : d.tone === "warning" ? "text-warning" : "",
+        )}
+      >
+        {timing}
+      </Table.Cell>
+      <Table.Cell className="truncate">
+        <Person name={d.owner} />
+      </Table.Cell>
+    </Table.Row>
+  );
+}
+
+function ProgramDashboard() {
+  const program = Route.useLoaderData();
+  const [family, setFamily] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<ControlStatus | "All">("All");
+
+  const matrix = useControlMatrix(program.id);
+  const coverage = useMemo(() => coverageFromRows(matrix), [matrix]);
+  const outlook = useMemo(() => gateOutlook(program, matrix), [program, matrix]);
+  const posture = useMemo(() => programPosture(program), [program]);
+  const openFindings = useMemo(() => findingsForProgram(program.id).filter(isOpen), [program.id]);
+  const programPoams = useMemo(
+    () => poamItems.filter((p) => p.program === program.id),
+    [program.id],
+  );
+  const deadlines = useMemo(
+    () => programDeadlines(program, matrix, programPoams),
+    [program, matrix, programPoams],
+  );
+
+  const gates = useMemo(() => gatesForProgram(program.id), [program.id]);
+  const byPhase = useMemo(
+    () =>
+      lifecyclePhases
+        .map((phase) => {
+          const inPhase = gates.filter((g) => g.phase === phase);
+          return {
+            phase,
+            total: inPhase.length,
+            done: inPhase.filter((g) => g.status === "Complete").length,
+          };
+        })
+        .filter((p) => p.total > 0),
+    [gates],
+  );
+
+  const overdueGates = outlook.remaining.filter((g) => g.daysOut !== null && g.daysOut < 0).length;
+  const high = openFindings.filter((f) => f.mitigatedSeverity === "High").length;
+  const next = outlook.next;
+
+  const families = useMemo(
+    () =>
+      [...new Map(matrix.map((r) => [r.family, r.familyName])).entries()]
+        .map(([id, name]) => ({ id, name }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    [matrix],
+  );
+
+  return (
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <Breadcrumb className="col-span-full">
+          <BreadcrumbList>
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                >
+                  {program.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Id>{program.id}</Id>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="min-w-0">
+          <PageHeader.Title>{`${program.name} — dashboard`}</PageHeader.Title>
+          <Inline
+            space="space.100"
+            alignBlock="center"
+            shouldWrap
+            className="pt-050 font-body-small text-subtle"
+          >{`${program.baseline} · ${catalogVersion} · ${coverage.total} tailored controls`}</Inline>
+        </div>
+        <PageHeader.Actions>
+          <TextLink
+            size="small"
+            className="inline-flex items-center gap-025"
+            render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+          >
+            Program record
+            <ChevronRight className="size-icon-small" />
+          </TextLink>
+        </PageHeader.Actions>
+      </PageHeader>
+      <div className="border-b border-default" />
+      <Stack space="space.300" className="min-w-0 pt-200">
+        <Section title="Where the program stands">
+          <Grid
+            className="pt-200"
+            columnGap="space.200"
+            rowGap="space.250"
+            templateColumns={{
+              base: "repeat(2, minmax(0, 1fr))",
+              md: "repeat(3, minmax(0, 1fr))",
+              lg: "repeat(5, minmax(0, 1fr))",
+            }}
+          >
+            <DashboardStat
+              label="Control coverage"
+              value={`${coverage.pct}%`}
+              hint={`${coverage.satisfied} of ${coverage.total} satisfied`}
+              tone={coverage.pct >= 90 ? "success" : coverage.pct >= 75 ? "neutral" : "warning"}
+            >
+              <ProgressStacked
+                size="small"
+                segments={coverage.segments.map((s) => ({
+                  key: s.key,
+                  value: s.value,
+                  tone: s.tone,
+                  title: `${s.label} — ${s.value}`,
+                }))}
+              ></ProgressStacked>
+            </DashboardStat>
+            <DashboardStat
+              label="Not satisfied"
+              value={coverage.total - coverage.satisfied}
+              hint={`${coverage.segments[2]?.value ?? 0} other than satisfied · ${coverage.segments[1]?.value ?? 0} partial`}
+              tone={(coverage.segments[2]?.value ?? 0) > 0 ? "warning" : "neutral"}
+            />
+            <DashboardStat
+              label="Open findings"
+              value={openFindings.length}
+              hint={high ? `${high} high` : "No high open"}
+              tone={high > 0 ? "danger" : openFindings.length ? "warning" : "success"}
+            />
+            <DashboardStat
+              label="POA&M open"
+              value={posture.poamOpen}
+              hint={posture.poamOverdue ? `${posture.poamOverdue} overdue` : "None overdue"}
+              tone={posture.poamOverdue > 0 ? "danger" : "neutral"}
+            />
+            <DashboardStat
+              label="Gates remaining"
+              value={`${outlook.remaining.length}`}
+              hint={
+                next
+                  ? `Next: ${next.gate.id} ${next.daysOut !== null && next.daysOut < 0 ? `${Math.abs(next.daysOut)}d overdue` : `in ${next.daysOut}d`}`
+                  : "All gates closed"
+              }
+              tone={overdueGates > 0 ? "danger" : "neutral"}
+            >
+              <Progress
+                value={outlook.total ? (outlook.completed / outlook.total) * 100 : 0}
+                tone={overdueGates > 0 ? "danger" : "success"}
+                aria-hidden
+              />
+            </DashboardStat>
+          </Grid>
+        </Section>
+        <FamilyCoverageChart
+          coverage={coverage}
+          baseline={`${program.baseline} — ${program.impact} impact`}
+          onSelect={(f, status) => {
+            setFamily(f);
+            setStatusFilter(status);
+          }}
+        />
+        <Section
+          title="Remaining gates"
+          description={`${outlook.completed} of ${outlook.total} closed. A gate cannot pass while the controls under it are other than satisfied.`}
+          action={
+            <TextLink
+              size="small"
+              render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+            >
+              Full timeline
+            </TextLink>
+          }
+        >
+          <Inline className="py-150" space="space.300" rowSpace="space.100" shouldWrap>
+            {byPhase.map((p) => (
+              <Box key={p.phase} as="span" style={{ minWidth: 136 }}>
+                <Inline as="span" space="space.100" alignBlock="center">
+                  <span className="shrink-0 w-800">
+                    <ProgressStacked
+                      size="small"
+                      segments={[
+                        { key: "d", value: p.done, tone: "success" },
+                        { key: "r", value: p.total - p.done, tone: "neutral" },
+                      ]}
+                    ></ProgressStacked>
+                  </span>
+                  <span className="truncate font-body-small text-subtle">{p.phase}</span>
+                  <span className="tabular-nums font-body-small">
+                    {p.done}/{p.total}
+                  </span>
+                </Inline>
+              </Box>
+            ))}
+          </Inline>
+
+          <Table className="table-fixed">
+            <thead>
+              <tr>
+                <Table.Header width={72}>Gate</Table.Header>
+                <Table.Header>Name</Table.Header>
+                <Table.Header width={128}>Kind</Table.Header>
+                <Table.Header width={104}>Status</Table.Header>
+                <Table.Header width={104} className="text-right">
+                  Planned
+                </Table.Header>
+                <Table.Header width={96} className="text-right">
+                  Timing
+                </Table.Header>
+                <Table.Header width={128}>Blocking</Table.Header>
+              </tr>
+            </thead>
+            <tbody>
+              {outlook.remaining.map(({ gate, daysOut, tone, blockers }) => (
+                <Table.Row key={gate.id}>
+                  <Table.Cell>
+                    <Inline as="span" space="space.075" alignBlock="center">
+                      <Dot tone={tone} />
+                      <Id>{gate.id}</Id>
+                    </Inline>
+                  </Table.Cell>
+                  <Table.Cell className="truncate" title={gate.cyberGate}>
+                    {gate.name}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Badge variant="secondary" tone={gateKindTone[gate.kind]} size="xsmall">
+                      {gate.kind}
+                    </Badge>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Badge variant="secondary" tone={tone} size="xsmall">
+                      {gate.status}
+                    </Badge>
+                  </Table.Cell>
+                  <Table.Cell className="tabular-nums text-right">{gate.planned}</Table.Cell>
+                  <Table.Cell
+                    className={cn(
+                      "tabular-nums text-right",
+                      tone === "danger" ? "text-danger" : "",
+                    )}
+                  >
+                    {daysOut === null
+                      ? "—"
+                      : daysOut < 0
+                        ? `${Math.abs(daysOut)}d overdue`
+                        : `${daysOut}d out`}
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
+                    {blockers ? `${blockers} controls open` : <Person name={gate.owner} />}
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </tbody>
+          </Table>
+        </Section>
+        <Section title="Next RMF deadlines">
+          <Table className="table-fixed">
+            <thead>
+              <tr>
+                <Table.Header width={92}>ID</Table.Header>
+                <Table.Header width={80}>Kind</Table.Header>
+                <Table.Header>What is due</Table.Header>
+                <Table.Header width={220}>Context</Table.Header>
+                <Table.Header width={104} className="text-right">
+                  Date
+                </Table.Header>
+                <Table.Header width={96} className="text-right">
+                  Timing
+                </Table.Header>
+                <Table.Header width={128}>Owner</Table.Header>
+              </tr>
+            </thead>
+            <tbody>
+              {deadlines.map((d) => (
+                <DeadlineRow key={`${d.kind}-${d.id}`} programId={program.id} d={d} />
+              ))}
+            </tbody>
+          </Table>
+        </Section>
+        <div id="control-matrix">
+          <ControlMatrixSection
+            programId={program.id}
+            rows={matrix}
+            family={family}
+            onFamily={setFamily}
+            status={statusFilter}
+            onStatus={setStatusFilter}
+            families={families}
+          />
+        </div>
+      </Stack>
+    </Stack>
+  );
+}

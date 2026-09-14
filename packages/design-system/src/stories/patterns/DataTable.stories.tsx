@@ -7,6 +7,7 @@ import {
   DataTable,
   DragContext,
   HeaderMenu,
+  PageHeader,
   RowSortable,
   Toolbar,
   columnKinds,
@@ -162,7 +163,7 @@ function Register() {
             <DataTable.Search table={table} placeholder="Search findings" />
           </Toolbar>
         }
-        empty={{ title: "No findings match", description: "Clear the search or a filter." }}
+        empty={{ title: "No findings yet", description: "The first assessment creates them." }}
       />
       <Text size="small" color="color.text.subtle">
         sorted by {table.state.sorting[0]?.id ?? "nothing"} · {table.getRowCount()} of{" "}
@@ -962,34 +963,155 @@ function TableParts() {
 }
 
 /** Loading keeps the header; empty and error sit under it. */
+/** Loading, empty, error and ready; and the narrowed empty, which the table draws itself when a search or a filter leaves no rows. */
 function States() {
-  const [state, setState] = useState<DataTableState>("loading");
+  const [state, setState] = useState<DataTableState | "filtered">("loading");
   const table = useDataTable({
     label: "Findings, the states",
     columns,
-    data: state === "ready" ? findings : [],
+    data: state === "ready" || state === "filtered" ? findings : [],
     pageSize: 5,
   });
+  const narrowed = String(table.state.globalFilter ?? "") !== "";
   return (
     <Stack space="space.150">
       <Inline space="space.100">
-        {(["loading", "empty", "error", "ready"] as const).map((s) => (
-          <Button key={s} size="small" isSelected={state === s} onClick={() => setState(s)}>
+        {(["loading", "empty", "filtered", "error", "ready"] as const).map((s) => (
+          <Button
+            key={s}
+            size="small"
+            isSelected={s === "filtered" ? state === "filtered" && narrowed : state === s}
+            onClick={() => {
+              setState(s);
+              table.setGlobalFilter(s === "filtered" ? "zz-nothing" : "");
+            }}
+          >
             {s}
           </Button>
         ))}
       </Inline>
       <DataTable
         table={table}
-        state={state}
-        empty={{ title: "No findings yet", description: "The first assessment creates them." }}
+        state={state === "filtered" ? "ready" : state}
+        toolbar={
+          <Toolbar filters={<DataTable.Filter table={table} column="status" />}>
+            <DataTable.Search table={table} placeholder="Search findings" />
+          </Toolbar>
+        }
+        empty={{
+          title: "No findings yet",
+          description: "The first assessment creates them. Until then there is nothing to review.",
+          action: (
+            <Button variant="primary" onClick={() => setState("ready")}>
+              Record an assessment
+            </Button>
+          ),
+          secondary: <Button variant="link">How assessments work</Button>,
+        }}
         error="Findings could not be loaded. Try again."
       />
     </Stack>
   );
 }
 
-export const StatesStory: Story = { name: "States", render: () => <States /> };
+export const StatesStory: Story = {
+  name: "States",
+  render: () => <States />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // No records: the caller's message and its actions.
+    await userEvent.click(canvas.getByRole("button", { name: "empty" }));
+    await expect(canvas.getByText("No findings yet")).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Record an assessment" })).toBeVisible();
+    // A search that matches nothing: the kit's message, and Clear filters brings the rows back.
+    await userEvent.click(canvas.getByRole("button", { name: "filtered" }));
+    await expect(canvas.getByText("Nothing matches")).toBeVisible();
+    await expect(canvas.queryByText("No findings yet")).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Clear filters" }));
+    await expect(canvas.getByLabelText("Search findings")).toHaveValue("");
+    await waitFor(() => expect(canvas.queryByText("Nothing matches")).toBeNull());
+    await expect(canvas.getAllByRole("row").length).toBeGreaterThan(2);
+  },
+};
+
+/** The register that is the page: it takes the rest of the window below its own top edge, the header sticks to the frame, the rows scroll inside it and the pagination, with its Rows per page choice, sits at the bottom at any window height. */
+function Filling() {
+  const data = useMemo(() => makeFindings(200), []);
+  const table = useDataTable({
+    columns,
+    data,
+    getRowId: (r) => r.id,
+    selectable: true,
+    pageSize: 25,
+    label: "Findings",
+  });
+  return (
+    <div className="px-300 pt-200">
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <PageHeader.Title>Findings</PageHeader.Title>
+        </PageHeader>
+        <DataTable
+          fill
+          table={table}
+          toolbar={
+            <Toolbar
+              actions={
+                <Button size="small" variant="primary">
+                  New finding
+                </Button>
+              }
+              filters={
+                <>
+                  <DataTable.Filter table={table} column="status" />
+                  <DataTable.Filter table={table} column="owner" />
+                </>
+              }
+            >
+              <DataTable.Search table={table} placeholder="Search findings" />
+            </Toolbar>
+          }
+          empty={{ title: "No findings yet" }}
+        />
+      </Stack>
+    </div>
+  );
+}
+
+export const FillStory: Story = {
+  name: "Fills the window",
+  parameters: { layout: "fullscreen" },
+  render: () => <Filling />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frame = canvas.getByRole("table", { name: "Findings" }).parentElement!;
+    // The frame is the scroller, so the keyboard can reach it.
+    await waitFor(() => expect(frame.scrollHeight).toBeGreaterThan(frame.clientHeight));
+    await expect(frame).toHaveAttribute("tabindex", "0");
+    // The page fits the window and the pagination sits inside it.
+    const pagination = canvas.getByRole("navigation", { name: /pagination/i });
+    await waitFor(() =>
+      expect(document.documentElement.scrollHeight).toBeLessThanOrEqual(window.innerHeight),
+    );
+    await expect(pagination.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight);
+    // The header sticks to the frame while the rows scroll under it.
+    frame.scrollTop = 240;
+    const header = canvas.getAllByRole("columnheader")[0]!;
+    await waitFor(() =>
+      expect(
+        Math.abs(header.getBoundingClientRect().top - frame.getBoundingClientRect().top),
+      ).toBeLessThanOrEqual(1),
+    );
+    // The hairline is the heading's own, so it stays under the stuck header.
+    await expect(getComputedStyle(header, "::before").borderBottomWidth).toBe("1px");
+    // The reader chooses the rows per page; the range follows.
+    await userEvent.click(canvas.getByRole("combobox", { name: "Rows per page" }));
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(await body.findByRole("option", { name: "50 per page" }));
+    await waitFor(() => expect(canvas.getByText("1–50 of 200")).toBeVisible());
+    await waitFor(() => expect(body.queryByRole("listbox")).toBeNull());
+  },
+};
 
 /** Ten thousand rows without pagination: only the rows in view are drawn, the frame scrolls the rest, sorting and choosing still work. */
 function Virtualized() {
@@ -1209,7 +1331,7 @@ function FilterRow() {
           <Table.Header width={140}>Status</Table.Header>
         </tr>
         <tr>
-          <Table.Header className="border-b-0" aria-hidden />
+          <Table.Header hairline={false} aria-hidden />
           <Table.Header>
             <Input size="small" placeholder="Filter" aria-label="Filter findings" />
           </Table.Header>

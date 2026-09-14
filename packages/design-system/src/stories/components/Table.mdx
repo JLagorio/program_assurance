@@ -76,6 +76,7 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 
 - **`label`** names the table when no heading above does. A DataTable takes the same.
 - **`maxHeight`** makes the frame scroll down inside itself; the header sticks to the frame.
+- **`fill`** makes the frame take the rest of a bounded flex column and scroll inside it, the companion of Stack's `grow="fill"`; the DataTable's `fill` builds that column.
 - **`sort` and `onSort`** on a header. `useSort` gives a plain table `dir(key)` and `toggle(key)`; `usePage` with [Pagination](?path=/docs/components-pagination--docs) pages it.
 - **`sticky`, `pinned`, `offset`, `edge`** on a header and its cells: `pinned="start"` or `"end"`, `offset` the widths of the pinned columns before it, `edge` on the one that touches the middle. `sticky` is `pinned="start"` with no offset.
 - **`width`** in pixels on the header, or on the cells of a table with no header row.
@@ -104,8 +105,8 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 
 | Element     | Token                                                                                                                                                             |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frame       | full width · scrolls sideways · scrolls down past `maxHeight`                                                                                                     |
-| Header      | `dimension.row.header` 32px · `font.body.small` `font.weight.medium` `color.text.subtle` · `elevation.surface.current` · `color.border` under · `space.150` sides |
+| Frame       | full width · scrolls sideways · scrolls down past `maxHeight` or, with `fill`, inside the height its column gives it                                              |
+| Header      | `dimension.row.header` 32px · `font.body.small` `font.weight.medium` `color.text.subtle` · `elevation.surface.current` · `color.border` under, the cell's own so it stays while the frame scrolls · `space.150` sides |
 | Sort button | `dimension.control.xsmall` · `radius.small` · arrow 12px · hover `color.text`                                                                                     |
 | Row         | `dimension.row` 40px, `dimension.row.compact` 36px · `color.border` hairline · hover `color.background.surface.hovered`                                           |
 | Selected    | `color.background.selected` · hover `color.background.selected.hovered`                                                                                           |
@@ -133,6 +134,8 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 Table, Table.Header, Table.Row and Table.Cell accept native element props and refs. Table's ref targets the table; frameRef targets its scroll container and supports React 19 callback cleanup. Sorting, pinning and sizing keep their existing contracts. The frame tracks size changes in both itself and its table, so keyboard scroll access and pinned edges update when content grows or shrinks.
 
 <Canvas of={Stories.DynamicFrame} />
+
+<Canvas of={Stories.FillFrame} />
 
 
 <ArgTypes of={Table} />

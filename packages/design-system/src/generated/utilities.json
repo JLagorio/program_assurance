@@ -250,6 +250,8 @@
     "min-h-control-medium",
     "min-h-control-small",
     "min-h-control-xsmall",
+    "min-h-layout-banner",
+    "min-h-layout-topnav",
     "min-h-row",
     "min-h-row-compact",
     "min-h-row-header",

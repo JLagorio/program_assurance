@@ -1,0 +1,200 @@
+/* The navigation system's own rules: the Shell root's grid, its areas, the flyout, the scrim and the
+   pre-paint state. Page-level layout utilities are in layout.css. */
+/* The breakpoints are the `dimension.breakpoint.*` tokens, read here as Tailwind theme keys
+   (`theme(--breakpoint-panel)`), in the shell as `tokenValue("dimension.breakpoint.panel")`, and as
+   the `lg:` and `panel:` variants: one source for the CSS, the JavaScript and the docs. */
+
+/* The navigation system. The root is a grid of named areas in a fixed order: banner, top nav,
+   side nav, main, panel. The banner and the top nav stick to the top; the side nav sticks under
+   them and scrolls inside itself; main uses the body scroll. The panel is the last column for the
+   whole height of the window: the banner and the top nav stop at its edge, so opening it narrows
+   everything and covers nothing. An area that is not rendered takes no column. The root sets the
+   widths as variables from its state. */
+@utility shell-root {
+  --shell-top: calc(var(--shell-banner, 0px) + var(--ds-dimension-layout-topnav));
+  /* The tokens, unless the browser remembered a dragged width (set on the root element by the
+     shell script) or the root sets one inline after a drag. */
+  --shell-sidenav-width: var(--shell-sidenav-stored, var(--ds-dimension-layout-sidenav));
+  --shell-panel-width: var(--shell-panel-stored, var(--ds-dimension-layout-panel));
+  /* The stacking order, lowest first: the chrome (banner, top nav), the scrim under a flyout, the
+     flyout itself. Popups and dialogs portal to the body at 50 and win by document order. */
+  --shell-z-chrome: 30;
+  --shell-z-scrim: 40;
+  --shell-z-overlay: 50;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) var(--shell-aside-inset, 0px) var(
+      --shell-panel-inset,
+      0px
+    );
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "banner banner banner panel"
+    "topnav topnav topnav panel"
+    "sidenav main aside panel"
+    "sidenav context context panel";
+  min-height: 100dvh;
+  /* The panel's column opening or closing moves the page; it moves on the standard curve. */
+  transition: grid-template-columns var(--ds-motion-duration-moderate)
+    var(--ds-motion-easing-standard);
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+@utility shell-banner {
+  grid-area: banner;
+  position: sticky;
+  top: 0;
+  z-index: var(--shell-z-chrome);
+  height: var(--ds-dimension-layout-banner);
+}
+@utility shell-topnav {
+  grid-area: topnav;
+  position: sticky;
+  top: var(--shell-banner, 0px);
+  z-index: var(--shell-z-chrome);
+  height: var(--ds-dimension-layout-topnav);
+}
+/* The start slot takes the side nav's width while the side nav is expanded, so the logo reads as
+   the head of that column and the side nav looks full height; the toggle moves to the slot's end,
+   whichever child it is. */
+@utility shell-topnav-start {
+  width: var(--shell-sidenav-width);
+  & > [data-slot="shell-sidenav-toggle"] {
+    order: 1;
+    margin-inline-start: auto;
+  }
+}
+@utility shell-sidenav {
+  grid-area: sidenav;
+  position: sticky;
+  top: var(--shell-top);
+  height: calc(100dvh - var(--shell-top));
+  width: var(--shell-sidenav-width);
+}
+/* Main also publishes the inset under the page, its bottom padding, so a block that fills the
+   window (fill-window) ends where the page does. */
+@utility shell-main {
+  grid-area: main;
+  min-width: 0;
+  --shell-inset-bottom: var(--ds-space-300);
+  @media (width >= theme(--breakpoint-lg)) {
+    --shell-inset-bottom: var(--ds-space-400);
+  }
+}
+/* In place of Main on a compact screen the panel sits under the top nav; beside the page it is the
+   full height of the window, and the banner and the top nav stop at its edge. */
+@utility shell-panel {
+  scroll-padding-block-start: var(--ds-space-800);
+  position: sticky;
+  top: var(--shell-top);
+  height: calc(100dvh - var(--shell-top));
+  width: 100%;
+  @media (width >= theme(--breakpoint-panel)) {
+    top: 0;
+    height: 100dvh;
+    border-inline-start-width: 1px;
+  }
+}
+[data-shell-slot="aside"] {
+  grid-area: context;
+  min-width: 0;
+}
+[data-shell-slot="panel"] {
+  grid-area: panel;
+  min-width: 0;
+}
+[data-shell-slot="aside"]:empty,
+[data-shell-slot="panel"]:empty {
+  display: none;
+}
+[data-shell-area="aside"] {
+  border-block-start: 1px solid var(--ds-color-border);
+}
+/* The blanket under the side nav's overlay on a narrow screen; a click on it closes the overlay. */
+@utility shell-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--shell-z-scrim);
+}
+@media (width >= theme(--breakpoint-panel)) {
+  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) {
+    --shell-panel-inset: var(--shell-panel-width);
+  }
+}
+@media (width >= theme(--breakpoint-aside)) {
+  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])):has(
+      > [data-shell-slot="aside"] > [data-shell-area="aside"]
+    ) {
+    --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
+  }
+  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
+    > [data-shell-slot="aside"] {
+    grid-area: aside;
+  }
+  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
+    [data-shell-area="aside"] {
+    border-block-start: 0;
+    border-inline-start: 1px solid var(--ds-color-border);
+  }
+}
+@media (width < theme(--breakpoint-panel)) {
+  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) > .shell-main,
+  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
+    > [data-shell-slot="aside"] {
+    display: none;
+  }
+  [data-shell-slot="panel"] {
+    grid-area: main;
+  }
+  [data-shell-area="panel"] [data-slot="shell-splitter"] {
+    display: none;
+  }
+}
+/* Below the large breakpoint, and for the flyout, the side nav overlays the page. It keeps its grid
+   area and carries no other position class: a stray `relative` outranks the `fixed` here, puts the
+   overlay back in flow, and pushes the header down by its height. The splitter positions against
+   the fixed or sticky area itself. */
+@utility shell-sidenav-overlay {
+  grid-area: sidenav;
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: var(--shell-z-overlay);
+  height: 100dvh;
+  width: min(var(--shell-sidenav-width), 90vw);
+}
+
+/* Before React takes over, the collapsed state the shell script found in storage hides the side
+   nav and narrows the start slot, so a collapsed side nav does not flash open on reload. React
+   removes the attribute once it has restored the state: these rules are unlayered, so left in
+   place they would beat the flyout's utilities. */
+@media (width >= theme(--breakpoint-lg)) {
+  html[data-shell-sidenav="collapsed"] [data-shell-area="sidenav"] {
+    display: none;
+  }
+  html[data-shell-sidenav="collapsed"] [data-shell-slot="start"] {
+    width: auto;
+    background-color: transparent;
+    border-inline-end-width: 0;
+  }
+}
+
+@media (width >= theme(--breakpoint-wide)) {
+  .shell-root:has(> [data-shell-slot="aside"] > [data-shell-area="aside"]) {
+    --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
+  }
+  .shell-root > [data-shell-slot="aside"] {
+    grid-area: aside;
+  }
+  .shell-root [data-shell-area="aside"] {
+    border-block-start: 0;
+    border-inline-start: 1px solid var(--ds-color-border);
+  }
+}
+
+@media (width < theme(--breakpoint-panel)) {
+  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
+    [data-shell-skip="main"] {
+    display: none;
+  }
+}

@@ -1,290 +1,256 @@
-import { downloadText } from "@/components/app/export";
-import { UnavailableAction } from "@/components/app/unavailable-action";
-import { PageHeader } from "@ledger/design-system";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Download } from "lucide-react";
-
-import { activity, frameworks, risks, riskStatusTone } from "@/lib/grc-data";
 import {
   Badge,
   Box,
   Button,
-  Dot,
   Grid,
-  Id,
   Inline,
-  Item,
-  Progress,
+  PageHeader,
   Section,
   Stack,
   Table,
   TextLink,
-  Timeline,
 } from "@ledger/design-system";
-
+import { Download, Plus } from "lucide-react";
+import { useRows } from "@/lib/models";
+import { useWorkspace } from "@/components/app/workspace";
+import { labelFor } from "@/lib/records";
+import {
+  downloadJson,
+  QueryState,
+  RelationName,
+  StateBadge,
+} from "@/components/prototype/record-tools";
+import { EmptyState } from "@/components/prototype/work-common";
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Overview — Equinox GRC" },
-      {
-        name: "description",
-        content:
-          "Program overview for Equinox: audit readiness, open risk posture, control health, and the live assurance stream in one dense workspace.",
-      },
-      { property: "og:title", content: "Overview — Equinox GRC" },
-      {
-        property: "og:description",
-        content:
-          "Audit readiness, open risk posture, control health, and the live assurance stream.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: Overview,
+  head: () => ({ meta: [{ title: "Portfolio — Equinox" }] }),
+  component: Portfolio,
 });
-
-const summary = [
-  {
-    label: "Audit readiness",
-    value: "92.4%",
-    delta: "+1.8 pts",
-    tone: "success" as const,
-    note: "SOC 2 Type II",
-  },
-  { label: "Open risks", value: "24", delta: "+3", tone: "danger" as const, note: "4 critical" },
-  {
-    label: "Controls failing",
-    value: "2",
-    delta: "−1",
-    tone: "success" as const,
-    note: "of 118 monitored",
-  },
-  {
-    label: "Evidence freshness",
-    value: "97%",
-    delta: "±0",
-    tone: "neutral" as const,
-    note: "1,402 artifacts",
-  },
-];
-
-function Overview() {
+function Portfolio() {
+  const workspace = useWorkspace();
+  const programs = useRows("programs"),
+    risks = useRows("risks"),
+    riskVersions = useRows("risk_revisions"),
+    findings = useRows("assessment_findings"),
+    evidence = useRows("evidence_artifacts"),
+    activity = useRows("activity_events"),
+    baselines = useRows("scope_baselines");
+  const metrics = [
+    { label: "Programs", query: programs, value: programs.data?.length, note: "Recorded programs" },
+    {
+      label: "Open risks",
+      query: risks,
+      value: risks.data?.filter((row) => row.status !== "closed").length,
+      note: "Includes accepted risks",
+    },
+    {
+      label: "Unsatisfied findings",
+      query: findings,
+      value: findings.data?.filter((row) =>
+        ["partially_satisfied", "other_than_satisfied"].includes(row.determination),
+      ).length,
+      note: "Recorded assessment determinations",
+    },
+    {
+      label: "Evidence artifacts",
+      query: evidence,
+      value: evidence.data?.length,
+      note: "Registered evidence identities",
+    },
+  ];
+  const recentRisks = risks.data
+    ?.slice()
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+    .slice(0, 5);
+  const latest = (id: string) =>
+    riskVersions.data
+      ?.filter((row) => row.risk_id === id)
+      .sort((a, b) => b.version_number - a.version_number)[0];
   return (
     <Stack className="animate-rise" space="space.300">
       <PageHeader>
-        <div className="col-span-full font-body text-subtle">{"Program"}</div>
+        <PageHeader.Lead className="font-body text-subtle">Portfolio</PageHeader.Lead>
         <div className="min-w-0">
-          <PageHeader.Title>{"Overview"}</PageHeader.Title>
+          <PageHeader.Title>Overview</PageHeader.Title>
         </div>
         <PageHeader.Actions>
-          <>
-            <Button
-              variant="secondary"
-              iconBefore={<Download />}
-              onClick={() =>
-                downloadText(
-                  "portfolio.json",
-                  JSON.stringify({ risks, frameworks }, null, 2),
-                  "application/json",
-                )
-              }
-            >
-              Export
+          <Button
+            variant="secondary"
+            iconBefore={<Download />}
+            disabled={!programs.data || !risks.data || !findings.data}
+            onClick={() =>
+              downloadJson("portfolio.json", {
+                programs: programs.data,
+                risks: risks.data,
+                findings: findings.data,
+              })
+            }
+          >
+            Export recorded data
+          </Button>
+          {workspace.role !== "viewer" && (
+            <Button variant="primary" iconBefore={<Plus />} render={<Link to="/programs/new" />}>
+              Create program
             </Button>
-            <UnavailableAction
-              reason="Choose a program and request evidence from its control workspace."
-              variant="primary"
-            >
-              Request evidence
-            </UnavailableAction>
-          </>
+          )}
         </PageHeader.Actions>
       </PageHeader>
-
-      {/* Metric row — hairline rules only, no floating cards */}
       <Grid
         className="border-y border-default"
-        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }}
+        templateColumns={{ base: "repeat(2,minmax(0,1fr))", md: "repeat(4,minmax(0,1fr))" }}
       >
-        {summary.map((item) => (
+        {metrics.map((metric) => (
           <Box
-            key={item.label}
+            key={metric.label}
             className="border-b border-default first:ps-0 md:border-b-0 md:border-r md:last:border-r-0"
             paddingInline="space.200"
             paddingBlock="space.150"
           >
-            <div className="font-body-small text-subtle">{item.label}</div>
-            <Inline className="pt-025" space="space.100" alignBlock="baseline">
-              <span className="tabular-nums font-heading-small font-semibold">{item.value}</span>
-              <span
-                className={
-                  item.tone === "success"
-                    ? "tabular-nums font-body-small font-medium text-success"
-                    : item.tone === "danger"
-                      ? "tabular-nums font-body-small font-medium text-danger"
-                      : "tabular-nums font-body-small font-medium text-subtle"
-                }
-              >
-                {item.delta}
-              </span>
-            </Inline>
-            <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
-              {item.note}
-            </Box>
+            <p className="font-body-small text-subtle">{metric.label}</p>
+            <p className="tabular-nums font-heading-small font-semibold pt-025">
+              {metric.query.isError
+                ? "Unavailable"
+                : metric.value === undefined
+                  ? "Loading…"
+                  : metric.value.toLocaleString()}
+            </p>
+            <p className="font-body-small text-subtle pt-025">{metric.note}</p>
           </Box>
         ))}
       </Grid>
-
-      <Grid
-        gap="space.400"
-        templateColumns={{ base: "repeat(1, minmax(0, 1fr))", xl: "minmax(0,1fr) 320px" }}
-      >
+      <Grid gap="space.400" templateColumns={{ base: "minmax(0,1fr)", xl: "minmax(0,1fr) 320px" }}>
         <Stack space="space.300">
           <Section
-            title="Highest residual risk"
+            title="Risk posture"
             action={<TextLink render={<Link to="/risks" />}>Risk register</TextLink>}
           >
-            <Table>
-              <thead>
-                <tr>
-                  <Table.Header width={88}>ID</Table.Header>
-                  <Table.Header>Risk</Table.Header>
-                  <Table.Header width={92}>Framework</Table.Header>
-                  <Table.Header width={120}>Owner</Table.Header>
-                  <Table.Header width={124}>Residual</Table.Header>
-                  <Table.Header className="text-right" width={100}>
-                    Status
-                  </Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                {risks.slice(0, 5).map((risk) => (
-                  <Table.Row key={risk.id} className="group">
-                    <Table.Cell>
-                      <Id>{risk.id}</Id>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <TextLink
-                        weight="medium"
-                        className="text-default group-hover:text-brand"
-                        render={<Link to="/risks/$riskId" params={{ riskId: risk.id }} />}
-                      >
-                        {risk.title}
-                      </TextLink>
-                    </Table.Cell>
-                    <Table.Cell>{risk.framework}</Table.Cell>
-                    <Table.Cell>{risk.owner}</Table.Cell>
-                    <Table.Cell>
-                      <Inline space="space.100" alignBlock="center">
-                        <Progress
-                          value={risk.residual}
-                          tone={
-                            risk.residual > 60
-                              ? "danger"
-                              : risk.residual > 30
-                                ? "warning"
-                                : "success"
-                          }
-                          aria-hidden
-                        />
-                        <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-250">
-                          {risk.residual}
-                        </span>
-                      </Inline>
-                    </Table.Cell>
-                    <Table.Cell className="text-right">
-                      <Badge variant="secondary" tone={riskStatusTone[risk.status]}>
-                        {risk.status}
-                      </Badge>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </tbody>
-            </Table>
+            <QueryState query={risks}>
+              <QueryState query={riskVersions}>
+                {recentRisks?.length ? (
+                  <Table>
+                    <thead>
+                      <Table.Row>
+                        <Table.Header>Risk</Table.Header>
+                        <Table.Header>Program</Table.Header>
+                        <Table.Header>Owner</Table.Header>
+                        <Table.Header>Latest severity</Table.Header>
+                        <Table.Header>Status</Table.Header>
+                      </Table.Row>
+                    </thead>
+                    <tbody>
+                      {recentRisks.map((row) => (
+                        <Table.Row key={row.id}>
+                          <Table.Cell>
+                            <TextLink
+                              render={<Link to="/risks/$riskId" params={{ riskId: row.id }} />}
+                            >
+                              {row.title}
+                            </TextLink>
+                          </Table.Cell>
+                          <Table.Cell>
+                            <RelationName table="programs" id={row.program_id} />
+                          </Table.Cell>
+                          <Table.Cell>
+                            <RelationName table="parties" id={row.owner_party_id} />
+                          </Table.Cell>
+                          <Table.Cell>
+                            <StateBadge value={latest(row.id)?.severity} />
+                          </Table.Cell>
+                          <Table.Cell>
+                            <StateBadge value={row.status} />
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <EmptyState
+                    illustration="records"
+                    title="No risks recorded"
+                    description="Risk assessments appear here when they are saved."
+                  />
+                )}
+              </QueryState>
+            </QueryState>
           </Section>
-
-          <Section title="Framework coverage">
-            <Table>
-              <thead>
-                <tr>
-                  <Table.Header>Framework</Table.Header>
-                  <Table.Header width={180}>Coverage</Table.Header>
-                  <Table.Header className="text-right" width={92}>
-                    Controls
-                  </Table.Header>
-                  <Table.Header className="text-right" width={176}>
-                    Window
-                  </Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                {frameworks.map((fw) => (
-                  <Table.Row key={fw.name}>
-                    <Table.Cell>{fw.name}</Table.Cell>
-                    <Table.Cell>
-                      <Inline space="space.100" alignBlock="center">
-                        <Progress value={fw.coverage} tone={fw.tone} aria-hidden />
-                        <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-400">
-                          {fw.coverage}%
-                        </span>
-                      </Inline>
-                    </Table.Cell>
-                    <Table.Cell className="tabular-nums text-right">{fw.controls}</Table.Cell>
-                    <Table.Cell className="text-right">{fw.window}</Table.Cell>
-                  </Table.Row>
-                ))}
-              </tbody>
-            </Table>
+          <Section
+            title="Programs"
+            action={<TextLink render={<Link to="/programs" />}>All programs</TextLink>}
+          >
+            <QueryState query={programs}>
+              {programs.data?.length ? (
+                <Table>
+                  <thead>
+                    <Table.Row>
+                      <Table.Header>Program</Table.Header>
+                      <Table.Header>Name</Table.Header>
+                      <Table.Header>Status</Table.Header>
+                    </Table.Row>
+                  </thead>
+                  <tbody>
+                    {programs.data.map((row) => (
+                      <Table.Row key={row.id}>
+                        <Table.Cell>{row.code}</Table.Cell>
+                        <Table.Cell>
+                          <TextLink
+                            render={
+                              <Link to="/programs/$programId" params={{ programId: row.id }} />
+                            }
+                          >
+                            {row.name}
+                          </TextLink>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <StateBadge value={row.status} />
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : (
+                <p className="text-subtle py-200">
+                  Create your first program to start building its assurance record.
+                </p>
+              )}
+            </QueryState>
           </Section>
         </Stack>
-
         <Stack space="space.300">
-          <Section
-            title="Assurance stream"
-            action={
-              <UnavailableAction
-                reason="This overview has no separate activity history. Program records have an Activity tab."
-                variant="link"
-              >
-                History
-              </UnavailableAction>
-            }
-          >
-            <Timeline className="pt-100">
-              {activity.map((item) => (
-                <Timeline.Item
-                  key={item.title}
-                  tone={item.tone}
-                  title={item.title}
-                  meta={item.actor}
-                  time={item.time}
-                >
-                  {item.body}
-                </Timeline.Item>
-              ))}
-            </Timeline>
+          <Section title="Assurance activity">
+            <QueryState query={activity}>
+              {activity.data?.length ? (
+                <Stack space="space.200">
+                  {activity.data
+                    .slice()
+                    .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))
+                    .slice(0, 10)
+                    .map((row) => (
+                      <Box key={row.id} className="border-b border-default pb-150">
+                        <p className="font-medium">{labelFor(row.event_type)}</p>
+                        {row.description && <p>{row.description}</p>}
+                        <p className="font-body-small text-subtle">
+                          {new Date(row.occurred_at).toLocaleString()}
+                        </p>
+                      </Box>
+                    ))}
+                </Stack>
+              ) : (
+                <p className="text-subtle">No activity events have been recorded.</p>
+              )}
+            </QueryState>
           </Section>
-
-          <Section title="Upcoming obligations">
-            <Item.Group>
-              {[
-                { label: "SOC 2 evidence cutoff", date: "Oct 31", tone: "warning" as const },
-                {
-                  label: "ISO 27001 stage 2 audit",
-                  date: "Nov 12",
-                  tone: "information" as const,
-                },
-                { label: "Quarterly access review", date: "Sep 30", tone: "neutral" as const },
-              ].map((row) => (
-                <Item
-                  key={row.label}
-                  leading={<Dot tone={row.tone} />}
-                  title={row.label}
-                  trailing={row.date}
-                />
-              ))}
-            </Item.Group>
+          <Section title="Reference and baseline coverage">
+            <QueryState query={baselines}>
+              <p>{baselines.data?.length} adopted scope baselines</p>
+            </QueryState>
+            <p className="text-subtle pt-100">
+              Reference controls are available in the catalog. Assessment outcomes remain unrecorded
+              until your work produces them.
+            </p>
+            <Inline space="space.150" className="pt-150" shouldWrap>
+              <TextLink render={<Link to="/catalog" />}>Browse catalog</TextLink>
+              <TextLink render={<Link to="/schema" />}>Inspect backend data</TextLink>
+            </Inline>
           </Section>
         </Stack>
       </Grid>

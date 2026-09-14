@@ -79,7 +79,14 @@ screens consume `@ledger/design-system`; the references are source material for 
 families to shadcn/Base UI. Their presence is intentional, not a second product component library.
 
 Use native props and refs, familiar component names and explicit composable parts. Preserve
-keyboard, focus, ARIA and `render` behavior when extending a component. Document defaults,
+keyboard, focus, ARIA and `render` behavior when extending a component. Spread props in one
+order in every part: the part's defaults first (a default `aria-label`), then the consumer's
+props, then the part's identity last (`data-slot`, a landmark role, the `id` and `tabIndex` a
+skip link needs, the accessible name the part computes from its own props), so a stray prop
+cannot un-landmark an area; merge `className` with `cn` and, in a `render` part, pass the
+consumer's props to `mergeProps` first for the same effect. Spell every optional prop
+`?: T | undefined`: the package has `exactOptionalPropertyTypes` on, and `label={maybe}` must
+typecheck. Document defaults,
 interactions between options and intentional visual differences in the same component's page.
 Port source with relative imports and package `cn`; never import application source into the
 package. Use Ledger tokens for styling and keep the existing layer boundaries.
@@ -137,7 +144,7 @@ The root route mounts `AppLayout` once around its outlet. Routes compose `PageHe
 
 Control and Requirement content lives in `src/features/controls/` and `src/features/requirements/`. Full-record routes and collection previews consume the same feature content, editors and action rules; each caller supplies its header and properties placement. Routes own `PageHeader`, `Shell.Aside` and `Shell.Panel`. Keep domain workflow out of the design-system package. Record names are full-record links; the eye opens the preview. Selected record, control scope and work tab live in route search parameters so Back, Forward and refresh reproduce the view. Tabs use separate `keepMounted` panels to retain drafts while changing tabs; changing records or leaving the view ends the local editing session.
 
-Aside follows Main below 1200px and sits beside it above that. A Panel is inline from 1280px; below that it replaces the visible work area while Main remains mounted. With both regions present, Aside follows Main until 1760px. Main uses document scrolling; Panel scrolls within the available viewport. Resizing, Escape, visible close and focus return belong to Panel. Use Base UI Sheet when the task needs modal focus containment.
+Aside follows Main below 1200px and sits beside it above that. A Panel is inline from 1280px, the full height of the window, with the banner and the top nav stopping at its edge; below that it replaces the visible work area under the top nav while Main remains mounted. With both regions present, Aside follows Main until 1760px. Main uses document scrolling; Panel scrolls within the available viewport. Resizing, Escape, visible close and focus return belong to Panel. Use Base UI Sheet when the task needs modal focus containment.
 
 Collection previews put previous/next controls and an Open full record in new tab link in `Shell.Panel.actions`, immediately before Close. Navigation follows the table's current filtered, sorted and expanded rows. For linking many related records, use [RecordBrowser](../../packages/design-system/src/stories/patterns/RecordBrowser.mdx): a large dialog with table search, filters, multi-selection and an internal preview. Application adapters supply eligible records and relationship rules. Previewing is independent of selecting; confirmation links the selection, including records hidden by a filter or another page.
 

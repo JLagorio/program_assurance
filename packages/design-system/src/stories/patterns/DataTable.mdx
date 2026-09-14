@@ -15,8 +15,8 @@ The register with its state. [Table](?path=/docs/components-table--docs) is the 
 | Part                                   | What it is                                                                                                                                                                                                                                                                                                                                                                                               |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `defineColumns<T>((c) => [...])`       | The columns of a record type, by kind. A kind decides alignment, minimum width, sort and filter, and the part that draws the value. Keep the call at module level.                                                                                                                                                                                                                                       |
-| `useDataTable({ columns, data, ... })` | The table instance. `getRowId` names rows; `selectable` draws the checkbox column; `pageSize` pages and draws Pagination; `label` names the table. Any TanStack state slice can be owned outside: pass `sorting` and `onSortingChange`, or `state.columnFilters` from the route's own filters. `initialState` seeds what the table keeps. `manual` hands sorting, filtering or pagination to the server. |
-| `DataTable table={table}`              | The renderer: the `toolbar` slot above the header, the Table parts closed by a hairline under the last row, the states drawn under the header so it never moves, and [Pagination](?path=/docs/components-pagination--docs) below when the table pages. No frame: the register sits on the page and its rules are the only lines.                                                                            |
+| `useDataTable({ columns, data, ... })` | The table instance. `getRowId` names rows; `selectable` draws the checkbox column; `pageSize` pages and draws Pagination, with the Rows per page choice from `pageSizes`; `label` names the table. Any TanStack state slice can be owned outside: pass `sorting` and `onSortingChange`, or `state.columnFilters` from the route's own filters. `initialState` seeds what the table keeps. `manual` hands sorting, filtering or pagination to the server. |
+| `DataTable table={table}`              | The renderer: the `toolbar` slot above the header, the Table parts closed by a hairline under the last row, the states drawn under the header so it never moves, and [Pagination](?path=/docs/components-pagination--docs) below when the table pages. No frame: the register sits on the page and its rules are the only lines. With `fill` it is the page's one block: it takes the rest of the window, the rows scroll under the header and the pagination sits at the bottom. |
 | The toolbar parts                      | `DataTable.Search`, `.Filter`, `.Presets`, `.Columns` and `.Settings`, each taking the `table`; `.SelectionBar` appears above the table while rows are chosen. `Presets` is a strip on its own line, or `variant="menu"` for one button in a toolbar that also holds search and filters.                                                                                                                  |
 | The Table parts                        | It draws `Table.Header`, `.Row`, `.Cell`, `.Id`, `.List`, `.Selection`, `.Disclosure`, `.Group`, `.Detail` and `.Handle`; nothing of its own.                                                                                                                                                                                                                                                                           |
 
@@ -82,7 +82,8 @@ Which table first: a table sorts, filters, pages, chooses, pins, nests or scroll
 | Records under headings             | `groupBy`                     | `table`    |
 | Rows held above and below          | `pinRows`                     | `table`    |
 | Rows in the reader's order         | `reorderRows`                 | `table`    |
-| A thousand rows                    | `virtualize` with `maxHeight` | `table`    |
+| A thousand rows                    | `virtualize` with `maxHeight` or `fill` | `table` |
+| The register that is the page      | `fill` on the renderer        | `table`    |
 | The server sorts, filters or pages | `manual` with `rowCount`      | `table`    |
 | Cells the reader edits in place    | `editable` on a column        | `grid`     |
 
@@ -102,7 +103,7 @@ There is no per-column filter row under the header: filters are chips in the too
 
 ## Sizes
 
-Rows are `dimension.row` 40px, and `dimension.row.compact` 36px through the reader's density setting, never a prop; the header `dimension.row.header` 32px. Because rows are one height, `virtualize` measures nothing. Widths come from the kind (id 92, status 120, person 160, date 112, number 96, actions 40) as minimums; the author gives `width` for fixed columns and one column takes the slack. `resizable` or `reorderable` switches the layout to `fixed`, so a change to one column leaves the others alone; `layout` sets it by hand. `maxHeight` makes the frame scroll inside itself.
+Rows are `dimension.row` 40px, and `dimension.row.compact` 36px through the reader's density setting, never a prop; the header `dimension.row.header` 32px. Because rows are one height, `virtualize` measures nothing. Widths come from the kind (id 92, status 120, person 160, date 112, number 96, actions 40) as minimums; the author gives `width` for fixed columns and one column takes the slack. `resizable` or `reorderable` switches the layout to `fixed`, so a change to one column leaves the others alone; `layout` sets it by hand. `maxHeight` makes the frame scroll inside itself; `fill` takes the rest of the window instead, and wins when both are given.
 
 <Canvas of={Stories.PinnedColumns} />
 
@@ -114,7 +115,8 @@ Rows are `dimension.row` 40px, and `dimension.row.compact` 36px through the read
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Ready    | The rows. With none left after the filters, the empty state.                                                                                      |
 | Loading  | The header kept, a skeleton line per row where the records will be, no Pagination. The height of what is already there never changes.             |
-| Empty    | An [Empty](?path=/docs/components-empty--docs) under the header: `empty.title`, its description, its action.                                        |
+| Empty    | No records at all: nothing to search, sort or page, so the toolbar, the header and the hairline go, and the register is one [Empty](?path=/docs/components-empty--docs) on its dashed frame: the `records` picture (or `empty.illustration`), `empty.title`, its description, its `action`, which creates the first record, and `secondary`. |
+| Filtered empty | A search or a column filter is active and no rows remain: the toolbar and the header stay, and under the header the table draws the `search` picture, **Nothing matches**, a line of copy and **Clear filters**, which clears the search and every column filter. No Pagination under it. `empty.filtered` overrides each part. |
 | Error    | `error` under the header.                                                                                                                         |
 | Sorted   | The header's arrow and `aria-sort`; one column at a time unless the table says `multiSort`.                                                       |
 | Filtered | The applied value on each chip; the presets' counts; the range in Pagination.                                                                     |
@@ -128,14 +130,18 @@ The row states (hover, selected, active id, static, scrolled edge, expanded) are
 
 The hook's options, each one feature:
 
-- **`selectable`**: the checkbox column; a function says which rows can be chosen. **`pageSize`** pages. **`label`** names the table. **`manual`** with `rowCount` hands sorting, filtering or pagination to a server.
+- **`selectable`**: the checkbox column; a function says which rows can be chosen. **`pageSize`** pages, and **`pageSizes`** are the sizes the reader can choose from in the Pagination (`10, 20, 50, 100` unsaid); the choice persists with `view`. **`label`** names the table. **`manual`** with `rowCount` hands sorting, filtering or pagination to a server.
 - **`pinnable`, `hideable`, `resizable`, `reorderable`, `columnMenu`, `layout`, `view`**: the columns the reader owns. The column menu on a header's hover sorts, pins and hides; `DataTable.Columns` in the toolbar shows and hides, and the gear beside it, `DataTable.Settings`, holds the rows' density and Reset view. The checkbox, the disclosure, the handle and the detail chevron are always the first columns and always pinned; the row's actions are always the last and always pinned to the end, so the kebab sits at the table's trailing edge however far the columns scroll; a pinned column keeps its hairline while the frame is scrolled; a band's heading sticks to the frame's leading edge. The preview eye sits at the end of the row's first value cell, taking no room: it appears on the row's hover and on focus, and stays on the row whose preview is open. A column's `pin` is the author's default and `hideable: false` keeps it on screen. `view: "risks"` names the table, and the reader's order, widths, visibility and pins persist in this browser under `ledger.table.risks.view`; the URL keeps sort, filters and page.
 - **`tree`**: `children` reads a row's parts, `label` names the row for the chevron, `hint` is the muted text after a folded row's first value, `initialExpanded` says which open first; a filter or a search keeps a matching row's ancestors, so a child never shows without its parent. The chevron is a leading column of its own, always first and always pinned, so the disclosure never moves when the reader reorders, hides or pins a column. It is one narrow width at every depth, so opening and closing a row never shifts the columns; the nesting reads as an indent on the row's first value. **`detail`** opens a row into what it returns, a child table included; its open rows are its own state, so a tree's row opens its parts and its detail apart and neither closes the other (`initialState.expanded` still says which details start open). It draws a leading chevron column of its own, which **`detailColumn: false`** leaves out: in a treegrid two chevron columns read as twins, so the row is opened from a cell instead, a `list` column with `opens: "detail"`. **`groupBy`** puts the rows under a band per value; pagination is off while it is on. **`pinRows`** lets `row.pin("top")` and `"bottom"` hold rows under the header or above the footer. **`reorderRows`** puts a handle on every row and tells you which row moved next to which; sorting is off while it is on.
-- **`virtualize`**: only the rows in view are drawn; give the renderer a `maxHeight` and leave `pageSize` off.
+- **`virtualize`**: only the rows in view are drawn; give the renderer a `maxHeight` or `fill` and leave `pageSize` off.
 - **A number column's `footer`** totals the rows the filters leave: sum, mean, min, max, count, or your own.
 - **`editable`** on a text or status column: `onChange` commits the value at once, `save` settles it (the cell shows saving, saved or the error and rolls back on failure), `validate` blocks a bad value, and a status column's `options` are its menu.
 
-The renderer's: **`toolbar`**, **`state`**, **`empty`**, **`error`**, **`onRowClick`**, **`maxHeight`**, **`className`**. `toRows(table)` and `toCsv(table)` export the rows the filters leave, in the sort chosen, every page, with the columns the reader shows; a custom column exports what its `text` says. The kit has no router, so the app binds sort, page, search and filters to the URL itself (`useTableSearch` in `src/lib/table-state.ts`).
+The renderer's: **`toolbar`**, **`state`**, **`empty`**, **`error`**, **`onRowClick`**, **`maxHeight`**, **`fill`**, **`className`**. `toRows(table)` and `toCsv(table)` export the rows the filters leave, in the sort chosen, every page, with the columns the reader shows; a custom column exports what its `text` says. The kit has no router, so the app binds sort, page, search and filters to the URL itself (`useTableSearch` in `src/lib/table-state.ts`).
+
+**`fill`** is for the register that is the page: a collection route, a record's register tab, anywhere the table is the one block of content and only a page header, a section heading or a note sits above it. The register takes the rest of the window below its own top edge, the header sticks to the frame, the rows scroll inside it, and the pagination sits at the bottom of the page's inset whether the page has three rows or three thousand; below a header, six rows and the pagination the page scrolls again. Do not fill a table in a dialog, a sheet, a panel, a rail or a card, or one stacked above other content: give those `maxHeight` or let them scroll with the page. The document keeps scrolling for every other page.
+
+<Canvas of={Stories.FillStory} />
 
 <Canvas of={Stories.ThousandRows} />
 
@@ -168,25 +174,26 @@ Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sort
 
 | Element       | Token                                                                                                                 |
 | ------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Frame         | none: no border, no radius; the header's hairline and the one under the last row bound the register                   |
+| Frame         | none: no border, no radius; the header's hairline and the one under the last row bound the register · `fill`: the rest of the window from the register's top edge, never under a header, six rows and the pagination |
 | Toolbar slot  | above the header, flush with the table's edge, `space.200` under, no rule                                             |
 | Header, rows  | As Table: `dimension.row.header`, `dimension.row`, the hairline, the hovered and selected surfaces                    |
 | Leading columns | the checkbox, the handle and the detail chevron 32px, the disclosure 28px, each centred; the tree's indent is `space.200` per level on the row's first value |
 | Preview eye   | over the end of the first value cell, `opacity` 0 until the row is hovered or focused, on the row's own surface |
 | Pinned column | `elevation.surface.current` · `color.border.bold` at the edge while the frame is scrolled                             |
 | Skeleton rows | one `Skeleton` line per row, the row's height                                                                         |
-| Empty, error  | under the header, `space.150` around                                                                                  |
+| Empty         | no records: the Empty alone, on its dashed frame · filtered: under the header, `space.200` around, no frame           |
+| Error         | under the header, `space.150` around                                                                                  |
 | Selection bar | `color.border.brand` · `color.background.selected` · `color.text.brand` · `radius.medium` · `space.150` × `space.075` |
 | Footer        | `color.border` above · a static row                                                                                   |
-| Pagination    | under the closing hairline, `space.100` above, flush with the table's edge                                            |
+| Pagination    | under the closing hairline, `space.100` above, flush with the table's edge · the range, then Rows per page as a small Select, then the pager at the end |
 | Resize guide  | `color.background.brand.bold`, 2px, on hover and while dragging                                                       |
 
 ## Accessibility
 
 - **The role follows the mode.** A DataTable is a `table`: Tab moves through the interactive elements in reading order and that is enough. A `tree` is a `treegrid`: the arrow keys move, open and close, Home and End jump. An editable table is a `grid` with a roving tabindex: Enter commits and moves down the column, Tab keeps its meaning and moves across. The plain table stays a table; the treegrid and grid roles are the ARIA patterns for what those modes add.
-- **Named.** `label` names the table and, through it, its pagination ("Findings pagination"). The header checkbox is "Select all rows on this page"; each row's is "Select" and the id. The eye is "Preview row"; the tree's chevron names its row; the detail row's chevron carries `aria-controls`; the handle is "Reorder row"; the resize handle is a vertical `separator` named "Resize column".
+- **Named.** `label` names the table and, through it, its pagination ("Findings pagination"). The header checkbox is "Select all rows on this page"; each row's is "Select" and the id. The eye is "Preview row"; the tree's chevron names its row; the detail row's chevron carries `aria-controls`; the handle is "Reorder row"; the resize handle is a vertical `separator` named "Resize column"; the Rows per page select is named so.
 - **Sorting** reports `aria-sort`; the chevron shows on hover and on focus. **Filtering** reads on the chips (pressed or expanded, the value in the text) and in the presets' counts. **Selection** is the checkbox, never the row's click; the SelectionBar is a region named "Selection" and Escape clears it.
-- **Loading never removes the header** or changes the height of what is already there, so nothing jumps under a screen reader's cursor. Empty and error sit under the header.
+- **Loading never removes the header** or changes the height of what is already there, so nothing jumps under a screen reader's cursor. Error and the filtered empty sit under the header. With no records at all there is no table: the region is the Empty and its action, so a screen reader meets the message first and the way forward second, not eight empty column headers.
 - **A thousand rows may be chosen one at a time**: a row is memoized on what it shows, so one checkbox redraws one row.
 - **Known gap.** Resizing is pointer-only; a keyboard user's widths come from `Reset view`. Reordering columns and rows takes the keyboard (Space, the arrow keys).
 
@@ -199,10 +206,11 @@ Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sort
 | `table`      | `DataTableInstance<T>`                       | From `useDataTable`. Required.                                          |
 | `toolbar`    | `ReactNode`                                  | Sits above the header, flush with the table's edge.                     |
 | `state`      | `"ready"`, `"loading"`, `"empty"`, `"error"` | Drawn under the header. Default `ready`; `ready` with no rows is empty. |
-| `empty`      | `{ title, description?, action? }`           | What the empty state says.                                              |
+| `empty`      | `{ title, description?, action?, secondary?, illustration?, filtered? }` | What the empty state says. `illustration` is `records`, `search`, `done` or `false`. `filtered` is the narrowed state's `{ title?, description?, action?, illustration? }`; its defaults are localized and its default action clears the filters. |
 | `error`      | `ReactNode`                                  | What the error state shows.                                             |
 | `onRowClick` | `(row: T) => void`                           | Opens the record. Never selects.                                        |
 | `maxHeight`  | `number`                                     | Pixels; the frame scrolls inside itself past it.                        |
+| `fill`       | `boolean`                                    | The register is the page's one block: it fills the window, the frame scrolls inside, the pagination stays at the bottom. Wins over `maxHeight`. |
 | `className`  | `string`                                     |                                                                         |
 
 The hook's options are the Modifiers above; `DataTableOptions<T>` is exported with each one described.

@@ -6,6 +6,7 @@ export type StoredView = {
   visibility: Record<string, boolean>;
   pinning: { start: string[]; end: string[] };
   density?: "default" | "compact" | undefined;
+  pageSize?: number | undefined;
 };
 const record = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -39,6 +40,12 @@ export function parseStoredView(value: unknown): StoredView | null {
     value["density"] !== "compact"
   )
     return null;
+  const size = value["pageSize"];
+  if (
+    size !== undefined &&
+    !(typeof size === "number" && Number.isInteger(size) && size >= 1 && size <= 1000)
+  )
+    return null;
   const unique = (list: string[]) => [...new Set(list)];
   const start = unique(pinning["start"]);
   return {
@@ -48,6 +55,7 @@ export function parseStoredView(value: unknown): StoredView | null {
     visibility: Object.fromEntries(Object.entries(value["visibility"])) as Record<string, boolean>,
     pinning: { start, end: unique(pinning["end"]).filter((id) => !start.includes(id)) },
     ...(value["density"] ? { density: value["density"] } : {}),
+    ...(typeof size === "number" ? { pageSize: size } : {}),
   };
 }
 

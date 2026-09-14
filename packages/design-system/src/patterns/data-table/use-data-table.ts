@@ -42,6 +42,8 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   selectable?: boolean | ((row: TData) => boolean) | undefined;
   /** Rows per page. Unset, the table shows every row and no Pagination. */
   pageSize?: number | undefined;
+  /** The sizes the reader can choose from, `pageSize` among them; the Pagination offers them as Rows per page when there is more than one. `[10, 20, 50, 100]` unsaid. The choice persists with `view`. */
+  pageSizes?: number[] | undefined;
   /** The accessible name of the table. */
   label?: string | undefined;
   /** The server sorts, filters or pages: the table stops doing it and `rowCount` says how many there are. */
@@ -114,6 +116,7 @@ export function useDataTable<TData extends RowData>({
   data,
   selectable = false,
   pageSize,
+  pageSizes,
   label,
   manual,
   pinnable = true,
@@ -144,6 +147,10 @@ export function useDataTable<TData extends RowData>({
     return seed && typeof seed === "object" ? { ...seed } : {};
   });
   const editable = columns.some((c) => c.meta?.editable);
+  const sizes =
+    pageSize === undefined
+      ? undefined
+      : [...new Set([...(pageSizes ?? [10, 20, 50, 100]), pageSize])].sort((a, b) => a - b);
   const expanded =
     tree?.initialExpanded === true || groupBy
       ? true
@@ -179,6 +186,7 @@ export function useDataTable<TData extends RowData>({
     },
     meta: {
       pageSize,
+      pageSizes: sizes,
       label,
       pinnable,
       hideable,

@@ -1,101 +1,54 @@
-import { PageHeader } from "@ledger/design-system";
-import { createFileRoute, Link } from "@tanstack/react-router";
-
-import { Box, buttonVariants, Section, Stack, TextLink } from "@ledger/design-system";
-
-import { ActivityFeed } from "@/components/app/record-activity";
-import { myWorkPresets, TaskTable } from "@/components/app/task-table";
-import { activityByActor, mentionsOf, useActivityVersion } from "@/lib/activity";
-import { currentSession } from "@/lib/control-work";
-import {
-  openTasks,
-  sortTasks,
-  tasksAssignedTo,
-  tasksWaitingOn,
-  useTasksVersion,
-} from "@/lib/tasks";
+import { Box } from "@ledger/design-system";
+import { PageHeader, Section, Stack } from "@ledger/design-system";
+import { createFileRoute } from "@tanstack/react-router";
+import { WorkTable } from "@/components/prototype/work-table";
+import { EmptyState, QueryState } from "@/components/prototype/work-common";
+import { displayDate } from "@/components/prototype/work-format";
+import { useRows } from "@/lib/models";
+import { useWorkspace } from "@/components/app/workspace";
+import { labelFor } from "@/lib/records";
 
 export const Route = createFileRoute("/work")({
-  head: () => ({
-    meta: [
-      { title: "My work — Equinox" },
-      {
-        name: "description",
-        content: "Your tasks, what you are waiting on, and where you were mentioned.",
-      },
-    ],
-  }),
   component: MyWork,
+  head: () => ({ meta: [{ title: "My work — Equinox" }] }),
 });
-
-/** One table of what is yours and what you wait on, then the mentions and your own trail. */
 function MyWork() {
-  useTasksVersion();
-  useActivityVersion();
-  const me = currentSession().name;
-  const mine = tasksAssignedTo(me);
-  const waiting = tasksWaitingOn(me);
-  const all = sortTasks([...new Map([...mine, ...waiting].map((t) => [t.id, t])).values()]);
-  const mentions = mentionsOf(me).slice(0, 20);
-  const recent = activityByActor(me).slice(0, 10);
-
+  const workspace = useWorkspace();
+  const parties = useRows("parties", { auth_user_id: workspace.userId });
+  const activity = useRows("activity_events");
+  const mine = (activity.data ?? [])
+    .filter((event) => parties.data?.some((party) => party.id === event.actor_party_id))
+    .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))
+    .slice(0, 10);
   return (
     <Stack space="space.400" className="animate-rise">
       <PageHeader>
-        <div className="min-w-0">
-          <PageHeader.Title>{"My work"}</PageHeader.Title>
-        </div>
-        <PageHeader.Actions>
-          <Link to="/scope" className={buttonVariants({ size: "small" })}>
-            Control set changes
-          </Link>
-        </PageHeader.Actions>
-      </PageHeader>
-
-      <Section title="Tasks" count={openTasks(mine).length || null}>
-        <Box paddingBlockStart="space.100">
-          <TaskTable
-            tasks={all}
-            me={me}
-            label="My work"
-            view="my-work"
-            showSubject
-            presets={myWorkPresets}
-            defaultPreset="mine"
-            empty={{
-              title: "Nothing here",
-              description:
-                "Tasks land here when someone asks, and requests until they are answered.",
-            }}
-          />
+        <Box className="min-w-0">
+          <PageHeader.Title>My work</PageHeader.Title>
         </Box>
+      </PageHeader>
+      <Section title="Tasks">
+        <WorkTable mineOnly />
       </Section>
-
-      <Section title="Mentions" count={mentions.length || null}>
-        <Stack space="space.100" className="pt-100">
-          <ActivityFeed
-            entries={mentions}
-            me={me}
-            showSubject
-            emptyTitle="Nobody has mentioned you"
-          />
-        </Stack>
-      </Section>
-
-      <Section
-        title="Your recent activity"
-        action={
-          <TextLink
-            size="small"
-            render={<Link to="/people/$personId" params={{ personId: "PPL-0101" }} />}
-          >
-            Your record
-          </TextLink>
-        }
-      >
-        <Stack space="space.100" className="pt-100">
-          <ActivityFeed entries={recent} me={me} showSubject emptyTitle="Nothing logged yet" />
-        </Stack>
+      <Section title="Your recent activity">
+        <QueryState queries={[parties, activity]}>
+          {mine.length ? (
+            <Stack space="space.150">
+              {mine.map((event) => (
+                <Box className="border-b border-default py-150" key={event.id}>
+                  <p>{event.description ?? labelFor(event.event_type)}</p>
+                  <p className="font-body-small text-subtle">{displayDate(event.occurred_at)}</p>
+                </Box>
+              ))}
+            </Stack>
+          ) : (
+            <EmptyState
+              illustration="inbox"
+              title="Nothing logged yet"
+              description="Recorded activity attributed to your workspace identity appears here."
+            />
+          )}
+        </QueryState>
       </Section>
     </Stack>
   );

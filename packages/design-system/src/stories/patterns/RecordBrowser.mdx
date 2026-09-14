@@ -17,7 +17,7 @@ The caller supplies eligible records, columns including a `c.id` column, preview
 
 ## Behavior
 
-Previewing never selects or links a record. Checkboxes select; only the footer confirms. Selection survives search, filtering, pagination and preview navigation. Clear selection resets it. Closing the dialog discards the selection; reopening starts a new session. Link failures show an error and preserve selection for retry.
+Previewing never selects or links a record. Checkboxes select; only the footer confirms. Selection survives search, filtering, pagination and preview navigation. Clear selection resets it. By default, closing the dialog discards the selection; reopening starts a new session. Callers can retain selection across a related creation workflow with `selectedIds` and `onSelectionChange`. Link failures show an error and preserve selection for retry.
 
 Arrows traverse the rows on the current table page in their displayed order. At the ends they are disabled. When a preview is outside the filtered results, its arrows are disabled and its selection remains available.
 
@@ -32,6 +32,10 @@ Name each column and provide a clear `recordTitle`. Preview content can contain 
 ## Props
 
 `records` contains eligible records with stable IDs. `columns` uses `defineColumns`; `filters` names filterable columns. `recordTitle` and `renderPreview` describe the preview. `onConfirm` receives all selected records, including selections hidden by filters or pagination; it may return a promise. `confirmLabel` names the action. `context` is optional relationship context; `actions` holds permanent controls such as New evidence reference.
+
+`selectedIds` and `onSelectionChange` optionally let the caller own selection. This supports a sequential New evidence flow that closes the browser temporarily and returns with the earlier selections intact. The caller decides when to clear its controlled selection. The default behavior is unchanged when these props are omitted.
+
+<Canvas of={Stories.RetainedSelection} />
 
 ## Related
 

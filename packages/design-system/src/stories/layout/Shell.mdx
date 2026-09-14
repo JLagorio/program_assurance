@@ -9,15 +9,54 @@ import * as Stories from "./Shell.stories";
 The persistent application frame, inspired by [Atlassian's navigation layout](https://atlassian.design/components/navigation-system/layout/). It owns navigation, page gutters, responsive placement and panel scrolling. Product code supplies navigation links and route content.
 
 <Canvas of={Stories.Frame} />
+<Canvas of={Stories.ComposedPanel} />
 
 Mount Shell once in a shared router layout. Place Banner, TopNav, SideNav and Main there. Child routes render Shell.Aside or Shell.Panel to contribute to the frame's stable region slots. Contributions preserve route React context and disappear when their route unmounts. They mount on the client after slot destinations exist.
 
-Aside contains supporting context. Panel contains dismissible selected-record or task content and includes a heading, close control and keyboard resizer. Panel.onClose is required. Main, Aside and Panel forward native props and refs. The built-in resizer replaces manual Shell.Panel.Splitter composition. The panel replaces the visible Main area below 1280px while retaining its state, and returns focus on close. Global navigation remains available; use Sheet for modal work.
+Every part renders one element and forwards its native props and its ref to it; AppLogo, Profile, SideNav.Item and Panel.Title take Base UI `render` where the element may change, so Profile is a menu's trigger through `render` and a side nav item is a router link. The SideNav.ToggleButton is a child of TopNav.Start and places itself; TopNav.End is a named group that renders its children as given, and a product that needs them to fold on a phone renders its own menu there.
 
-SideNav retains its existing collapse, persistence, keyboard and resize behavior. Main uses document scrolling; Panel scrolls inside the available viewport. The layout owns placement, so content patterns do not add sticky rails or nested page frames.
+Aside contains supporting context. Panel contains dismissible selected-record or task content. With `title` (and `actions`) it renders its built-in header, close and resizer; without them compose Panel.Header, Panel.Title, Panel.Actions, Panel.Close, Panel.Body and Panel.Splitter yourself, as Composed panel shows, to change the heading's level, the labels or the padding. Panel.onClose is required either way and the Title names the landmark. From the `panel` breakpoint (`dimension.breakpoint.panel`, 80rem: 1280px at the default root size; see [Metrics](?path=/docs/tokens-metrics--docs)) the panel is the last column for the whole height of the window: the banner and the top nav stop at its edge, so opening it narrows everything and covers nothing. Below it the panel replaces the visible Main area under the top nav while retaining Main's state, and it returns focus on close. Global navigation remains available; use Sheet for modal work.
+
+Every default name (Banner, Top navigation, Side navigation, Main content, Page context, Details, Actions, Switch product, the toggle's two labels, the splitters' and the skip links') is a locale message, so a product translates them once with `LedgerLocaleProvider`; a `label` prop overrides one instance. The splitters take the arrow keys, Home for the minimum and End for the maximum. What `persist` restores is validated and clamped to the screen it is restored on.
+
+SideNav retains its existing collapse, persistence, keyboard and resize behavior. Main uses document scrolling; Panel scrolls inside the available viewport. A register that is the page fills the rest of the window with DataTable `fill`: Main publishes its bottom inset as `--shell-inset-bottom`, and the layout otherwise owns placement, so content patterns do not add sticky rails or nested page frames.
 
 `Shell.Panel.actions` places route-owned controls immediately before Close. Collection previews use it for previous/next navigation through the table's displayed rows and a native link that opens the full record in a new tab. The route owns row order, destinations and endpoint availability; Shell only supplies their position.
 
 See [page composition](?path=/docs/layout-pages--docs) for route and tab examples.
 
+## Props
+
+The parts with props of their own. The others (SideNav.Header, Body and Footer, TopNav.Middle, Mark, Panel.Header, Actions and Body) take only their element's native props; Panel.Title takes `render`.
+
 <ArgTypes of={Shell} />
+
+### Top nav
+
+<ArgTypes of={Shell.TopNav} />
+<ArgTypes of={Shell.TopNav.Start} />
+<ArgTypes of={Shell.TopNav.End} />
+<ArgTypes of={Shell.AppLogo} />
+<ArgTypes of={Shell.AppSwitcher} />
+<ArgTypes of={Shell.Profile} />
+
+### Side nav
+
+<ArgTypes of={Shell.SideNav} />
+<ArgTypes of={Shell.SideNav.Section} />
+<ArgTypes of={Shell.SideNav.Item} />
+<ArgTypes of={Shell.SideNav.Expandable} />
+<ArgTypes of={Shell.SideNav.ToggleButton} />
+<ArgTypes of={Shell.SideNav.Splitter} />
+
+### Areas
+
+<ArgTypes of={Shell.Banner} />
+<ArgTypes of={Shell.Main} />
+<ArgTypes of={Shell.Aside} />
+
+### Panel
+
+<ArgTypes of={Shell.Panel} />
+<ArgTypes of={Shell.Panel.Close} />
+<ArgTypes of={Shell.Panel.Splitter} />

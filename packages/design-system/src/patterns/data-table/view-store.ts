@@ -6,7 +6,7 @@ export { readView, writeView, clearView, viewKey } from "./view-state";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
- * The reader's view: column order, widths, visibility, pins and density, per table, per browser. The URL
+ * The reader's view: column order, widths, visibility, pins, density and page size, per table, per browser. The URL
  * keeps the question (sort, filters, page); this keeps the layout. Read on mount and applied over
  * the author's defaults in one commit; written on every change of the four slices. A stored column
  * the table no longer has is dropped; a column the store does not know takes its default place.
@@ -21,6 +21,8 @@ export function useViewStore<TData extends RowData>(
   const skipWrite = useRef(false);
   const { columnOrder, columnSizing, columnVisibility, columnPinning } = table.state;
   const density = table.options.meta?.density;
+  const pageSize =
+    table.options.meta?.pageSize === undefined ? undefined : table.state.pagination.pageSize;
 
   useEffect(() => {
     loaded.current = null;
@@ -32,6 +34,7 @@ export function useViewStore<TData extends RowData>(
     table.resetColumnVisibility();
     table.resetColumnPinning();
     table.options.meta?.setDensity?.(table.options.meta.defaultDensity ?? "default");
+    if (table.options.meta?.pageSize !== undefined) table.setPageSize(table.options.meta.pageSize);
     const raw = readView(view);
     if (raw) {
       const stored = reconcileStoredView(
@@ -48,6 +51,8 @@ export function useViewStore<TData extends RowData>(
       table.setColumnVisibility(stored.visibility);
       table.setColumnPinning(stored.pinning);
       if (stored.density) table.options.meta?.setDensity?.(stored.density);
+      if (stored.pageSize && table.options.meta?.pageSizes?.includes(stored.pageSize))
+        table.setPageSize(stored.pageSize);
     }
     loaded.current = view;
     // Runs once per view name; the table instance is stable.
@@ -66,8 +71,9 @@ export function useViewStore<TData extends RowData>(
       visibility: columnVisibility,
       pinning: { start: columnPinning.start, end: columnPinning.end },
       ...(density ? { density } : {}),
+      ...(pageSize === undefined ? {} : { pageSize }),
     });
-  }, [view, columnOrder, columnSizing, columnVisibility, columnPinning, density]);
+  }, [view, columnOrder, columnSizing, columnVisibility, columnPinning, density, pageSize]);
 }
 
 /** Back to the author's layout, and the store forgets the reader's. */
@@ -77,6 +83,7 @@ export function resetView<TData extends RowData>(table: DataTableInstance<TData>
   table.resetColumnVisibility();
   table.resetColumnPinning();
   table.options.meta?.setDensity?.(table.options.meta.defaultDensity ?? "default");
+  if (table.options.meta?.pageSize !== undefined) table.setPageSize(table.options.meta.pageSize);
   const view = table.options.meta?.view;
   if (view) clearView(view);
 }

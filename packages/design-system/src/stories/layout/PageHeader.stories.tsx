@@ -25,20 +25,21 @@ type Story = StoryObj<typeof meta>;
 export const Collection: Story = {
   render: () => (
     <PageHeader>
-      <div>
+      <PageHeader.Heading>
         <PageHeader.Title>Findings</PageHeader.Title>
         <PageHeader.Description>12 open · 3 need review</PageHeader.Description>
-      </div>
+      </PageHeader.Heading>
       <PageHeader.Actions>
         <Button variant="primary">New finding</Button>
       </PageHeader.Actions>
     </PageHeader>
   ),
 };
+/** The breadcrumb is the Lead, across both columns; the title and its line are the Heading, the first column. */
 export const Record: Story = {
   render: () => (
     <PageHeader>
-      <Breadcrumb className="col-span-full">
+      <PageHeader.Lead render={<Breadcrumb />}>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
@@ -48,10 +49,13 @@ export const Record: Story = {
             <BreadcrumbPage>REQ-104</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>
-      <PageHeader.Title>
-        Review privileged access across the platform and supporting services
-      </PageHeader.Title>
+      </PageHeader.Lead>
+      <PageHeader.Heading>
+        <PageHeader.Title>
+          Review privileged access across the platform and supporting services
+        </PageHeader.Title>
+        <PageHeader.Description>REQ-104 · Access management</PageHeader.Description>
+      </PageHeader.Heading>
       <PageHeader.Actions>
         <DropdownMenu>
           <DropdownMenuTrigger render={<Button />}>Actions</DropdownMenuTrigger>
@@ -63,6 +67,17 @@ export const Record: Story = {
       </PageHeader.Actions>
     </PageHeader>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const header = canvas.getByRole("banner").getBoundingClientRect();
+    const lead = canvas.getByRole("navigation", { name: "breadcrumb" }).getBoundingClientRect();
+    const title = canvas.getByRole("heading", { level: 1 }).getBoundingClientRect();
+    const action = canvas.getByRole("button", { name: "Actions" }).getBoundingClientRect();
+    await expect(Math.round(lead.right)).toBe(Math.round(header.right));
+    await expect(Math.round(title.left)).toBe(Math.round(lead.left));
+    await expect(title.top).toBeGreaterThanOrEqual(lead.bottom);
+    await expect(action.left).toBeGreaterThan(title.right);
+  },
 };
 
 /** A long title wraps beside its permanent action, including on a phone. */

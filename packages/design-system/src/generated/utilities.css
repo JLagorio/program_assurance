@@ -839,8 +839,14 @@
 @utility h-layout-topnav {
   height: var(--ds-dimension-layout-topnav);
 }
+@utility min-h-layout-topnav {
+  min-height: var(--ds-dimension-layout-topnav);
+}
 @utility h-layout-banner {
   height: var(--ds-dimension-layout-banner);
+}
+@utility min-h-layout-banner {
+  min-height: var(--ds-dimension-layout-banner);
 }
 @utility w-layout-panel {
   width: var(--ds-dimension-layout-panel);

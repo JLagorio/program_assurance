@@ -35,6 +35,8 @@ export type TableProps = {
   label?: string | undefined;
   /** Pixels. Past it the frame scrolls down inside itself and the header sticks to the frame. */
   maxHeight?: number | undefined;
+  /** The frame takes the rest of a bounded flex column (a `fill-window` block, a Stack with `grow="fill"`) and scrolls inside it; the header sticks to the frame. Wins over `maxHeight`. */
+  fill?: boolean | undefined;
   /** The scroll frame, for a virtualizer that needs the element that scrolls. */
   frameRef?: Ref<HTMLDivElement> | undefined;
   /** `treegrid` for a hierarchy with columns; `grid` only when cells are editable. */
@@ -46,13 +48,23 @@ export type TableProps = {
 } & Omit<ComponentProps<"table">, "className" | "children" | "role">;
 
 /**
- * The register. The wrapper is the scroll frame: sideways always, and down past `maxHeight`, so the
- * sticky header sticks to it and not to the page. While the frame is scrolled sideways it carries
+ * The register. The wrapper is the scroll frame: sideways always, and down past `maxHeight` or,
+ * with `fill`, inside the height its column gives it, so the sticky header sticks to it and not to
+ * the page. While the frame is scrolled sideways it carries
  * `data-scrolled-start` and `data-scrolled-end`, which the pinned columns read for their edge. A
  * frame that overflows is a tab stop, so the keyboard can scroll it too: a landmark named after the
  * table's `label` when it has one, else a plain named group, since two landmarks cannot share a name.
  */
-function TableRoot({ label, className, maxHeight, frameRef, role, density, ...props }: TableProps) {
+function TableRoot({
+  label,
+  className,
+  maxHeight,
+  fill,
+  frameRef,
+  role,
+  density,
+  ...props
+}: TableProps) {
   const { t, direction } = useLedgerLocale();
   const frame = useRef<HTMLDivElement>(null);
   const table = useRef<HTMLTableElement>(null);
@@ -106,9 +118,13 @@ function TableRoot({ label, className, maxHeight, frameRef, role, density, ...pr
       ...(density === "compact" ? { "data-density": "compact" } : {}),
       className: cn(
         "group/scroll w-full rounded-small outline-none focus-visible:outline-focused",
-        maxHeight === undefined ? "overflow-x-auto" : "overflow-auto",
+        fill
+          ? "min-h-0 flex-1 overflow-auto"
+          : maxHeight === undefined
+            ? "overflow-x-auto"
+            : "overflow-auto",
       ),
-      style: maxHeight === undefined ? undefined : { maxHeight },
+      style: fill || maxHeight === undefined ? undefined : { maxHeight },
       children: tableElement,
     },
   });
@@ -126,6 +142,10 @@ export type PinnedProps = {
    the table and stay put while a sticky cell moves, so a border would vanish on the first scroll. */
 const rule = "after:pointer-events-none after:absolute after:inset-y-0 after:border-default";
 
+// The header's hairline is the cell's own for the same reason: a collapsed border stays put while
+// the sticky heading moves, so the line would scroll away with the first row.
+const HEADER_RULE =
+  "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:border-b before:border-default";
 const edgeClass = {
   start: {
     rest: `${rule} after:end-0 after:border-e`,
@@ -163,6 +183,8 @@ export type ThProps = ComponentProps<"th"> &
     /** Makes the heading a button that reports its direction (aria-sort) and shows the arrow. */
     sort?: "asc" | "desc" | false | undefined;
     onSort?: (() => void) | undefined;
+    /** The hairline under the heading, drawn on the cell so it stays while the frame scrolls. Off for a placeholder cell in a second header row. */
+    hairline?: boolean | undefined;
     /** Pins the column to the leading edge. The same as `pinned="start"` with no offset. */
     sticky?: boolean | undefined;
     /** The column's width in pixels. Column widths are content decisions, so they are a prop, not a class. */
@@ -199,6 +221,7 @@ function Th({
   pinned: pinnedProp,
   offset,
   edge,
+  hairline = true,
   width,
   resize,
   trailing,
@@ -214,7 +237,8 @@ function Th({
       ref={ref}
       aria-sort={sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined}
       className={cn(
-        "group/th sticky top-0 z-10 h-row-header whitespace-nowrap border-b border-default bg-surface-current px-150 font-body-small font-medium text-subtle",
+        "group/th sticky top-0 z-10 h-row-header whitespace-nowrap bg-surface-current px-150 font-body-small font-medium text-subtle",
+        hairline && HEADER_RULE,
         pinnedClass(pinned, edge, "z-20"),
         className,
       )}

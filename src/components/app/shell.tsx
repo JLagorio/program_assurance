@@ -1,9 +1,5 @@
-import { currentSession, useWorkVersion } from "@/lib/control-work";
-import { findings } from "@/lib/findings";
-import { programs, risks } from "@/lib/grc-data";
-import { useProgramsVersion } from "@/lib/program-store";
-import { useRisksVersion } from "@/lib/risk-store";
-import { openTasks, tasksAssignedTo, useTasksVersion } from "@/lib/tasks";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Avatar,
   AvatarFallback,
@@ -11,32 +7,36 @@ import {
   avatarInitials,
   Box,
   Button,
-  buttonVariants,
   CommandPalette,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  Shell as DsShell,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   IconButton,
   ModeSwitch,
+  Shell,
   Stack,
   useSideNav,
 } from "@ledger/design-system";
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Archive,
   Bell,
   Bug,
   CircleHelp,
   ClipboardList,
+  Database,
   FileCheck2,
   FlaskConical,
   Gauge,
   Gavel,
   Library,
-  Package as PackageIcon,
+  MoreHorizontal,
+  Package,
   Search,
   Settings,
   ShieldAlert,
@@ -44,32 +44,29 @@ import {
   Sparkle,
   Users,
 } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { database } from "@/lib/database";
+import { useRows } from "@/lib/models";
+import { labelFor } from "@/lib/records";
+import { useWorkspace } from "./workspace";
+import { SchemaLayout } from "./schema-shell";
 
-/** Persistent product navigation. Routes own Main content and contribute Shell.Aside / Shell.Panel. */
-const navGroups: {
-  label: string;
-  items: { label: string; to: string; icon: typeof Gauge; badge?: string }[];
-}[] = [
+const groups = [
   {
     label: "Work",
     items: [
-      { label: "My work", to: "/work", icon: ShieldCheck, badge: "" },
+      { label: "My work", to: "/work", icon: ShieldCheck },
       { label: "Programs", to: "/programs", icon: ClipboardList },
       { label: "Test campaigns", to: "/campaigns", icon: FlaskConical },
       { label: "Portfolio", to: "/", icon: Gauge },
     ],
   },
   {
-    // The assessment chain in order: evidence supports a result, a failed result
-    // becomes a finding, a finding becomes a risk tracked by a POA&M item, and the
-    // package carries all of it to the decision.
     label: "Assessment",
     items: [
       { label: "Evidence", to: "/evidence", icon: Archive },
-      { label: "Findings & assets", to: "/findings", icon: Bug, badge: "7" },
-      { label: "POA&M & risk", to: "/register", icon: ShieldAlert, badge: "4" },
-      { label: "Packages", to: "/packages", icon: PackageIcon },
+      { label: "Findings & assets", to: "/findings", icon: Bug },
+      { label: "POA&M & risk", to: "/register", icon: ShieldAlert },
+      { label: "Packages", to: "/packages", icon: Package },
       { label: "Authorization decisions", to: "/briefing", icon: Gavel },
     ],
   },
@@ -86,217 +83,211 @@ const navGroups: {
     items: [
       { label: "Supply chain", to: "/vendors", icon: Users },
       { label: "Design system", to: "/components", icon: Sparkle },
+      { label: "Schema inspector", to: "/schema", icon: Database },
     ],
   },
-];
-
-const topNavEnd = [
-  [CircleHelp, "Help and shortcuts"],
-  [Bell, "Notifications"],
-  [Settings, "Settings"],
 ] as const;
 
+/** The prototype frame and the backend inspector are two views of the same workspace. */
 export function AppLayout({ children }: { children: ReactNode }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  useTasksVersion();
-  useWorkVersion();
-  useRisksVersion();
-  useProgramsVersion();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  return pathname.startsWith("/records/") || pathname === "/schema" ? (
+    <SchemaLayout>{children}</SchemaLayout>
+  ) : (
+    <PrototypeLayout>{children}</PrototypeLayout>
+  );
+}
+function PrototypeLayout({ children }: { children: ReactNode }) {
+  const workspace = useWorkspace();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
+  const programs = useRows("programs");
+  const risks = useRows("risks");
+  const findings = useRows("assessment_findings");
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const session = currentSession();
-  const openCount = openTasks(tasksAssignedTo(currentSession().name)).length;
+  const [error, setError] = useState("");
+  async function signOut() {
+    const result = await database().auth.signOut({ scope: "local" });
+    if (result.error) setError(result.error.message);
+  }
+  const commands = [
+    ...(programs.data ?? []).map((row) => ({
+      id: `program-${row.id}`,
+      group: "Programs",
+      label: `${row.code} · ${row.name}`,
+      run: () => void navigate({ to: "/programs/$programId", params: { programId: row.id } }),
+    })),
+    ...(risks.data ?? []).map((row) => ({
+      id: `risk-${row.id}`,
+      group: "Risks",
+      label: row.title,
+      run: () => void navigate({ to: "/risks/$riskId", params: { riskId: row.id } }),
+    })),
+    ...(findings.data ?? []).map((row) => ({
+      id: `finding-${row.id}`,
+      group: "Findings",
+      label: row.title,
+      run: () => void navigate({ to: "/findings/$findingId", params: { findingId: row.id } }),
+    })),
+  ];
   return (
-    <DsShell sideNavShortcut persist>
+    <Shell sideNavShortcut persist>
       <RouteNavigation pathname={pathname} />
-      <DsShell.TopNav>
-        <DsShell.TopNav.Start toggle={<DsShell.SideNav.ToggleButton />}>
-          <DsShell.AppLogo
+      <Shell.TopNav>
+        <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
+          <Shell.AppLogo
             name="Equinox"
-            secondaryName="Northwind Corp"
+            secondaryName={workspace.name}
             render={<Link to="/" aria-label="Equinox home" />}
           />
-        </DsShell.TopNav.Start>
-        <DsShell.TopNav.Middle>
-          <Button
-            variant="secondary"
-            iconBefore={<Search />}
-            onClick={() => setSearchOpen(true)}
-            aria-label="Search programs, risks, and findings"
-          >
+        </Shell.TopNav.Start>
+        <Shell.TopNav.Middle>
+          <Button variant="secondary" iconBefore={<Search />} onClick={() => setSearchOpen(true)}>
             Search programs, risks, and findings
           </Button>
-        </DsShell.TopNav.Middle>
-        <DsShell.TopNav.End>
+        </Shell.TopNav.Middle>
+        <Shell.TopNav.End>
           <ModeSwitch />
-          {topNavEnd.map(([Icon, label]) => (
+          {/* The three actions as buttons from the medium breakpoint; one More menu below it. */}
+          <span className="hidden md:contents">
             <IconButton
-              key={label}
-              label={label}
+              label="Help and shortcuts"
               variant="subtle"
-              icon={<Icon />}
-              onClick={() =>
-                label === "Help and shortcuts"
-                  ? setHelpOpen(true)
-                  : label === "Settings"
-                    ? setSettingsOpen(true)
-                    : void navigate({ to: "/work" })
-              }
+              icon={<CircleHelp />}
+              onClick={() => setHelpOpen(true)}
             />
+            <IconButton
+              label="Open my work"
+              variant="subtle"
+              icon={<Bell />}
+              onClick={() => void navigate({ to: "/work" })}
+            />
+            <IconButton
+              label="Settings"
+              variant="subtle"
+              icon={<Settings />}
+              onClick={() => setSettingsOpen(true)}
+            />
+          </span>
+          <span className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setHelpOpen(true)}>
+                  Help and shortcuts
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void navigate({ to: "/work" })}>
+                  My work
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSettingsOpen(true)}>Settings</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </span>
+        </Shell.TopNav.End>
+      </Shell.TopNav>
+      <Shell.SideNav>
+        <Shell.SideNav.Body>
+          {groups.map((group) => (
+            <Shell.SideNav.Section key={group.label} heading={group.label}>
+              {group.items.map((item) => (
+                <Shell.SideNav.Item
+                  key={item.to}
+                  icon={item.icon}
+                  isActive={item.to === "/" ? pathname === "/" : pathname.startsWith(item.to)}
+                  render={<Link to={item.to} />}
+                >
+                  {item.label}
+                </Shell.SideNav.Item>
+              ))}
+            </Shell.SideNav.Section>
           ))}
-        </DsShell.TopNav.End>
-      </DsShell.TopNav>
-      <DsShell.SideNav>
-        <DsShell.SideNav.Body>
-          {navGroups.map((group) => (
-            <DsShell.SideNav.Section key={group.label} heading={group.label}>
-              {group.items.map((item) => {
-                const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
-                return (
-                  <DsShell.SideNav.Item
-                    key={item.label}
-                    icon={item.icon}
-                    isActive={active}
-                    badge={
-                      item.to === "/work"
-                        ? openCount
-                          ? String(openCount)
-                          : undefined
-                        : item.badge || undefined
-                    }
-                    render={<Link to={item.to} />}
-                  >
-                    {item.label}
-                  </DsShell.SideNav.Item>
-                );
-              })}
-            </DsShell.SideNav.Section>
-          ))}
-        </DsShell.SideNav.Body>
-        <DsShell.SideNav.Footer>
-          <DsShell.Profile
+        </Shell.SideNav.Body>
+        <Shell.SideNav.Footer>
+          <Shell.Profile
             avatar={
-              <Avatar
-                size="small"
-                role="img"
-                aria-label={session.name}
-                hue={avatarHue(session.name)}
-                title={session.name}
-              >
-                <AvatarFallback>{avatarInitials(session.name, 2)}</AvatarFallback>
+              <Avatar size="small" hue={avatarHue(workspace.email)} title={workspace.email}>
+                <AvatarFallback>{avatarInitials(workspace.email, 2)}</AvatarFallback>
               </Avatar>
             }
-            name={session.name}
-            role={session.role}
+            name={workspace.email}
+            description={labelFor(workspace.role)}
             onClick={() => setSettingsOpen(true)}
           />
-        </DsShell.SideNav.Footer>
-        <DsShell.SideNav.Splitter label="Resize side navigation" />
-      </DsShell.SideNav>
-      <DsShell.Main>{children}</DsShell.Main>
+        </Shell.SideNav.Footer>
+        <Shell.SideNav.Splitter label="Resize side navigation" />
+      </Shell.SideNav>
+      <Shell.Main>{children}</Shell.Main>
       <CommandPalette
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         placeholder="Search programs, risks, and findings…"
-        commands={[
-          ...programs.map((program) => ({
-            id: program.id,
-            group: "Programs",
-            label: `${program.id} · ${program.name}${program.archivedAt ? " (archived)" : ""}`,
-            run: () => {
-              void navigate({ to: "/programs/$programId", params: { programId: program.id } });
-            },
-          })),
-          ...risks.map((risk) => ({
-            id: risk.id,
-            group: "Risks",
-            label: `${risk.id} · ${risk.title}`,
-            run: () => {
-              void navigate({ to: "/risks/$riskId", params: { riskId: risk.id } });
-            },
-          })),
-          ...findings.map((finding) => ({
-            id: finding.id,
-            group: "Findings",
-            label: `${finding.id} · ${finding.title}`,
-            run: () => {
-              void navigate({ to: "/findings/$findingId", params: { findingId: finding.id } });
-            },
-          })),
-        ]}
+        commands={commands}
       />
-      <Dialog
-        open={helpOpen}
-        onOpenChange={(next) => {
-          if (!next) {
-            setHelpOpen(false);
-          }
-        }}
-      >
-        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+      {searchOpen && (programs.isError || risks.isError || findings.isError) && (
+        <Box padding="space.200">
+          <p role="alert">
+            Search records could not be loaded. Retry the connection before searching.
+          </p>
+        </Box>
+      )}
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Help and shortcuts</DialogTitle>
             <DialogDescription>
-              Find records with the search button. My work shows requests, tasks, and mentions
-              assigned to you.
+              Work in the prototype and inspect the same saved records in the schema view.
             </DialogDescription>
           </DialogHeader>
-          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
-            <Stack space="space.150">
+          <Box padding="space.250">
+            <Stack space="space.200">
               <p>
-                Use Tab to move between controls and Enter or Space to activate buttons. Press
-                Escape to close a dialog.
+                Use the search button to find programs, risks, and findings. Tab moves between
+                controls; Enter or Space activates them; Escape closes a dialog.
               </p>
-              <p>On a program record, ⌘K or Ctrl+K opens its command palette.</p>
-              <Link to="/work" className={buttonVariants({ variant: "secondary" })}>
-                Open my work
-              </Link>
+              <p>
+                Create a program, define its systems and scope, then connect implementation,
+                assessment, evidence, and remediation records.
+              </p>
+              <Button render={<Link to="/schema" />}>Open schema inspector</Button>
             </Stack>
           </Box>
         </DialogContent>
       </Dialog>
-      <Dialog
-        open={settingsOpen}
-        onOpenChange={(next) => {
-          if (!next) {
-            setSettingsOpen(false);
-          }
-        }}
-      >
-        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Profile and appearance</DialogTitle>
-            <DialogDescription>{`Acting as ${session.name} · ${session.role}`}</DialogDescription>
+            <DialogDescription>
+              {workspace.email} · {labelFor(workspace.role)}
+            </DialogDescription>
           </DialogHeader>
-          <Box className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
-            <Stack space="space.150">
-              <p>Choose the appearance for this browser.</p>
+          <Box padding="space.250">
+            <Stack space="space.200">
+              <p>{workspace.name}</p>
               <ModeSwitch />
-              <p>
-                The role switch in the lower corner lets you review the prototype with a different
-                role.
-              </p>
+              {error && <p role="alert">{error}</p>}
+              <Button onClick={() => void signOut()}>Sign out</Button>
             </Stack>
           </Box>
         </DialogContent>
       </Dialog>
-    </DsShell>
+    </Shell>
   );
 }
-
-/** Route navigation closes the mobile flyout without remounting the persistent frame. */
 function RouteNavigation({ pathname }: { pathname: string }) {
   const { collapse } = useSideNav();
-  const collapseRef = useRef(collapse);
-  collapseRef.current = collapse;
+  const current = useRef(collapse);
+  current.current = collapse;
   const previous = useRef(pathname);
   useEffect(() => {
     if (previous.current === pathname) return;
     previous.current = pathname;
     if (!window.matchMedia("(min-width: 64rem)").matches) {
-      collapseRef.current();
+      current.current();
       const frame = requestAnimationFrame(() => document.querySelector("main")?.focus());
       return () => cancelAnimationFrame(frame);
     }

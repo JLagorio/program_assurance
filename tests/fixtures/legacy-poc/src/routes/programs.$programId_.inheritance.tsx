@@ -1,0 +1,327 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  PageHeader,
+  Stack,
+  Tabs,
+  TabsContent,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
+
+import {
+  carriesObligation,
+  ConflictList,
+  InheritanceSummaryStats,
+  NotApplicableTable,
+  ObligationList,
+  obligationUnstated,
+  ResolutionRail,
+  ResolutionTable,
+} from "@/components/app/inheritance-resolution";
+import { programs } from "@/lib/grc-data";
+import {
+  inheritanceConflicts,
+  inheritanceSummary,
+  offeredNotApplicable,
+  resolveInheritance,
+} from "@/lib/inheritance";
+import { systemComponents } from "@/lib/reusable-components";
+import {
+  Badge,
+  Box,
+  BreadcrumbLink,
+  Count,
+  Inspector,
+  KeyValue,
+  Section,
+  Shell,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+} from "@ledger/design-system";
+
+const inheritanceTabs = ["Resolved", "Conflicts", "Obligations", "Not applicable"] as const;
+type InheritanceTab = (typeof inheritanceTabs)[number];
+
+/** "AC-2", "IA-5(1)" — the natural key `resolveInheritance` is keyed on. */
+const controlKey = /^[A-Za-z]{2}-\d{1,3}(\(\d{1,3}\))?$/;
+
+/** Counts read as prose on this page, and "1 controls" reads as a bug. */
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
+export const Route = createFileRoute("/programs/$programId_/inheritance")({
+  // Both keys are ALWAYS emitted, `undefined` included, and never spread from
+  // the raw search: an unrecognised `?tab=` value is therefore replaced rather
+  // than carried through, so the body always matches a tab instead of rendering
+  // an empty page. The keys are declared optional only so a `<Link>` to this
+  // route does not have to name them.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { tab?: InheritanceTab | undefined; control?: string | undefined } => {
+    const rawTab = String(search["tab"] ?? "");
+    const tab = inheritanceTabs.find((t) => t.toLowerCase() === rawTab.toLowerCase());
+    const rawControl = search["control"];
+    const control =
+      typeof rawControl === "string" && controlKey.test(rawControl) ? rawControl : undefined;
+    return { tab, control };
+  },
+  loader: ({ params }) => {
+    const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
+    if (!program) throw notFound();
+    return program;
+  },
+  head: ({ loaderData }) => ({
+    meta: [
+      { title: `${loaderData?.name ?? "Program"} inheritance — Equinox` },
+      {
+        name: "description",
+        content: `Inheritance and shared-responsibility resolution for ${loaderData?.id ?? "the program"}: which common control provider won each control, what the consuming system still owes, and which offers do not reach its inventory.`,
+      },
+      { property: "og:title", content: `${loaderData?.name ?? "Program"} inheritance — Equinox` },
+      {
+        property: "og:description",
+        content:
+          "Why this provider, and what do I still owe — the CCP tier ladder, the versioned acceptance, and every consumer obligation on a shared control.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: ProgramInheritance,
+});
+
+function ProgramInheritance() {
+  const program = Route.useLoaderData();
+  const search = Route.useSearch();
+  const tab = search.tab ?? "Resolved";
+  const navigate = useNavigate({ from: Route.fullPath });
+
+  // `resolveInheritance` memoises on the composition graph version and returns a
+  // stable reference, so these are cheap to read on every render and stay honest
+  // when a node is reclassified underneath them.
+  const resolved = resolveInheritance(program.id);
+  const notApplicable = offeredNotApplicable(program.id);
+  const conflicts = inheritanceConflicts(program.id);
+  const summary = inheritanceSummary(program.id);
+
+  const rows = useMemo(
+    () => [...resolved.values()].sort((a, b) => a.control.localeCompare(b.control)),
+    [resolved],
+  );
+
+  // Deliberately NOT `consumerObligations`, which filters on the obligation text:
+  // a shared row whose obligation was never written down is the gap this tab
+  // exists to show, and filtering on the text is exactly what hides it.
+  const obligations = useMemo(() => rows.filter(carriesObligation), [rows]);
+  const unstated = useMemo(() => obligations.filter(obligationUnstated).length, [obligations]);
+
+  const componentNames = useMemo(() => new Map(systemComponents.map((c) => [c.id, c.name])), []);
+  const nameOf = (componentId: string) => componentNames.get(componentId) ?? componentId;
+
+  const selected = useMemo(() => {
+    const wanted = search.control ? resolved.get(search.control) : undefined;
+    return wanted ?? rows[0] ?? null;
+  }, [resolved, rows, search.control]);
+
+  const go = (next: InheritanceTab) =>
+    navigate({ search: { ...search, tab: next }, replace: true });
+
+  const select = (control: string) => navigate({ search: { ...search, control }, replace: true });
+
+  const counts: Record<InheritanceTab, number | null> = {
+    Resolved: rows.length || null,
+    Conflicts: conflicts.length || null,
+    Obligations: obligations.length || null,
+    "Not applicable": notApplicable.length || null,
+  };
+
+  const failing = summary.failed;
+  const drifted = summary.drifted;
+  const providerCount = new Set(rows.map((r) => r.component.id)).size;
+
+  return (
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                  >
+                    {program.name}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{program.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{`${program.name} — inheritance resolution`}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >{`${program.system} · ${program.environment} · impact ${program.impact} · ${plural(rows.length, "inherited control")} from ${plural(providerCount, "provider")}`}</Inline>
+          </div>
+          <PageHeader.Actions>
+            <>
+              {failing > 0 ? (
+                <Badge variant="secondary" tone="danger">
+                  {failing} provider failed
+                </Badge>
+              ) : (
+                <Badge variant="secondary" tone="success">
+                  No failing provider
+                </Badge>
+              )}
+              {unstated > 0 ? (
+                <Badge variant="secondary" tone="danger">
+                  {unstated} obligation unstated
+                </Badge>
+              ) : null}
+              <TextLink
+                size="small"
+                render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+              >
+                Program record
+              </TextLink>
+            </>
+          </PageHeader.Actions>
+        </PageHeader>
+        <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {inheritanceTabs.map((key) => (
+              <TabsTrigger key={key} value={key}>
+                {key}
+                {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {tab === "Resolved" ? (
+                <>
+                  <Section title="Inheritance posture">
+                    <InheritanceSummaryStats summary={summary} unstated={unstated} />
+                  </Section>
+
+                  <Section
+                    title="Resolved controls"
+                    description={`${plural(rows.length, "control")} reach this system. ${drifted} of them were accepted at a version the provider has since moved past; ${summary.current} are current. Select a row to see why that provider won and what is still owed.`}
+                  >
+                    <ResolutionTable
+                      rows={rows}
+                      selected={selected?.control ?? null}
+                      onSelect={select}
+                    />
+                  </Section>
+                </>
+              ) : null}
+              {tab === "Conflicts" ? (
+                <Section title="Why this provider">
+                  <Box paddingBlockStart="space.050">
+                    <ConflictList items={conflicts} nameOf={nameOf} />
+                  </Box>
+                </Section>
+              ) : null}
+              {tab === "Obligations" ? (
+                <Section
+                  title="What this system still owes"
+                  description={
+                    obligations.length === 0
+                      ? "Nothing on this system carries residual work on an inherited control: every offer it accepted is implemented by the provider end to end."
+                      : `${plural(obligations.length, "control")} carry residual work on this side of the boundary — the provider implements part of the control and names the rest as the consumer's. ${
+                          unstated > 0
+                            ? `${unstated} of them name no obligation at all, which is the gap: shared responsibility that nobody has written down.`
+                            : "Each one states what is owed."
+                        }`
+                  }
+                >
+                  <Box paddingBlockStart="space.050">
+                    <ObligationList rows={obligations} />
+                  </Box>
+                </Section>
+              ) : null}
+              {tab === "Not applicable" ? (
+                <Section title="Offered but not applicable">
+                  <NotApplicableTable rows={notApplicable} />
+                </Section>
+              ) : null}
+            </Stack>
+          </TabsContent>
+        </Tabs>
+      </Stack>
+      {tab === "Resolved" && !!search.control && selected !== null ? (
+        <Shell.Panel label="Details" onClose={() => navigate({ search: { tab }, replace: true })}>
+          {selected ? (
+            <>
+              <ResolutionRail row={selected} />
+              <Inspector.Group title="Joins">
+                <KeyValue label="Provider">
+                  <TextLink
+                    render={
+                      <Link
+                        to="/library/components/$componentKey"
+                        params={{ componentKey: selected.component.key }}
+                      />
+                    }
+                  >
+                    <Id>{selected.component.key}</Id>
+                  </TextLink>
+                </KeyValue>
+                <KeyValue label="Control">
+                  <TextLink
+                    render={
+                      <Link
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId: program.id, controlId: selected.control }}
+                      />
+                    }
+                  >
+                    <Id>{selected.control}</Id>
+                  </TextLink>
+                </KeyValue>
+                <KeyValue label="Matrix">
+                  <TextLink
+                    render={
+                      <Link to="/programs/$programId/sctm" params={{ programId: program.id }} />
+                    }
+                  >
+                    <span className="font-body-small">Open the SCTM</span>
+                  </TextLink>
+                </KeyValue>
+                <KeyValue label="Program">
+                  <TextLink
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                  >
+                    <Id>{program.id}</Id>
+                  </TextLink>
+                </KeyValue>
+              </Inspector.Group>
+            </>
+          ) : null}
+        </Shell.Panel>
+      ) : null}
+    </>
+  );
+}

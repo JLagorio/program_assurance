@@ -1,0 +1,1133 @@
+import {
+  AttackChain,
+  AttackSurfaceSummary,
+  CriteriaTable,
+  MissionEffectTable,
+  PhaseReadinessSummary,
+  PhaseStateChip,
+  PhaseTrack,
+  ScenarioTable,
+  TierChip,
+  type ChainHop,
+  type ChainNode,
+} from "@/components/app/te-phases";
+import { useBaselines } from "@/lib/baselines";
+import { campaignById } from "@/lib/campaigns";
+import {
+  childrenOf,
+  crossesBoundary,
+  edgesFrom,
+  nodeById,
+  trustRank,
+  useCompositionGraph,
+} from "@/lib/composition";
+import { programs } from "@/lib/grc-data";
+import { statusTone } from "@/lib/spine";
+import {
+  criteria as allCriteria,
+  attackSurfaceCoverage,
+  effectsForScenario,
+  missionEffects,
+  phaseById,
+  phaseReadiness,
+  phasesForProgram,
+  scenarioById,
+  scenariosForProgram,
+  tePhaseIds,
+  unwalkableSteps,
+  type CriterionResult,
+  type PhaseReadiness,
+  type TePhase,
+  type TePhaseId,
+} from "@/lib/te-phases";
+import {
+  Badge,
+  Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Grid,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  Section,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Shell,
+  Stack,
+  Table,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+  Toolbar,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
+
+const teTabs = ["Phases", "Gate readiness", "Threat scenarios", "Mission effects"] as const;
+type TeTab = (typeof teTabs)[number];
+
+/** The dataset clock. A render path never calls `new Date()`. */
+const asOf = "Aug 30, 2026";
+
+function isPhaseId(value: string): value is TePhaseId {
+  return (tePhaseIds as readonly string[]).includes(value);
+}
+
+/**
+ * Resolves a scenario's ordered `CN-` path against the live graph. A node the
+ * graph does not carry is returned as `missing` rather than dropped — a path
+ * with a hole in it is a defect the reader has to see, not one to tidy away.
+ */
+function chainNodes(path: string[]): ChainNode[] {
+  return path.map((id) => {
+    const node = nodeById.get(id);
+    if (!node) {
+      return { id, name: "—", kind: "—", zone: "—", criticality: "—", missing: true };
+    }
+    return {
+      id,
+      name: node.name,
+      kind: node.kind,
+      zone: node.zone,
+      criticality: node.criticality,
+      missing: false,
+    };
+  });
+}
+
+/**
+ * How the adversary actually gets from each node to the next: over a
+ * reachability edge in the direction of travel, or down a containment link into
+ * what a component is made of. Anything else is an unwalkable step, and it is
+ * labelled as one rather than drawn as a line.
+ */
+function chainHops(path: string[]): ChainHop[] {
+  const out: ChainHop[] = [];
+  for (let i = 0; i < path.length - 1; i += 1) {
+    const from = path[i];
+    const to = path[i + 1];
+    if (!from || !to) continue;
+
+    const edge = edgesFrom(from).find((e) => e.to === to);
+    if (edge) {
+      out.push({
+        from,
+        to,
+        via: "Edge",
+        kind: edge.kind,
+        label: edge.via,
+        critical: edge.critical,
+        crossesBoundary: crossesBoundary(edge),
+      });
+      continue;
+    }
+
+    const contained = childrenOf(from).some((c) => c.id === to);
+    if (contained) {
+      const parent = nodeById.get(from);
+      const child = nodeById.get(to);
+      out.push({
+        from,
+        to,
+        via: "Containment",
+        kind: "Contains",
+        label: child && parent ? `${child.name} is a part of ${parent.name}` : "—",
+        critical: false,
+        crossesBoundary: parent && child ? trustRank(parent.zone) !== trustRank(child.zone) : false,
+      });
+      continue;
+    }
+
+    out.push({
+      from,
+      to,
+      via: "Unwalkable",
+      kind: "—",
+      label: "—",
+      critical: false,
+      crossesBoundary: false,
+    });
+  }
+  return out;
+}
+
+export const Route = createFileRoute("/programs/$programId_/te-phases")({
+  // The router MERGES the validated object over the raw parsed search rather
+  // than replacing it, so omitting `tab` on a miss would leave `?tab=Bogus`
+  // intact and the `?? "Phases"` fallback below would never fire — the page
+  // would render with no active tab and an empty body. Emitting the key
+  // explicitly, as `undefined`, is what deletes it, and `encode()` drops
+  // undefined values so nothing leaks back into the URL. The `| undefined` in
+  // the return type is load-bearing: `exactOptionalPropertyTypes` is on, so a
+  // bare `tab?: TeTab` rejects the explicit undefined (TS2375). It stays
+  // OPTIONAL rather than widening to a required `tab:` so that linking to this
+  // route does not demand a `search`.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { tab?: TeTab | undefined; phase?: TePhaseId; scenario?: string } => {
+    const raw = String(search["tab"] ?? "");
+    const match = teTabs.find((t) => t.toLowerCase() === raw.toLowerCase());
+    const phase = search["phase"];
+    const selectedPhase = typeof phase === "string" && isPhaseId(phase) ? phase : null;
+    const scenario = search["scenario"];
+    const selectedScenario =
+      typeof scenario === "string" && /^THR-\d+$/.test(scenario) ? scenario : null;
+    return {
+      tab: match,
+      ...(selectedPhase ? { phase: selectedPhase } : {}),
+      ...(selectedScenario ? { scenario: selectedScenario } : {}),
+    };
+  },
+  // Synchronous by design. Every derived criterion on this page is computed
+  // from the SCTM skeleton — `buildSctm(program, matrix, null)` — so the 1.25 MB
+  // 800-53A catalog is never needed here and is deliberately not imported.
+  loader: ({ params }) => {
+    const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
+    if (!program) throw notFound();
+    return program;
+  },
+  head: ({ loaderData }) => ({
+    meta: [
+      { title: `${loaderData?.name ?? "Program"} cyber T&E — Equinox` },
+      {
+        name: "description",
+        content: `The six-phase cyber test and evaluation model for ${loaderData?.id ?? "the program"}: the developmental and operational phases, entry and exit criteria computed live from the record, the threat scenarios walked through the composition graph, and the mission effects an adversarial assessment actually produced.`,
+      },
+      { property: "og:title", content: `${loaderData?.name ?? "Program"} cyber T&E — Equinox` },
+      {
+        property: "og:description",
+        content:
+          "A phase gate that is a checkbox is worthless. Every criterion here shows its arithmetic or its signature, and an adversarial assessment is scored in mission effect, not in findings count.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: ProgramTePhases,
+});
+
+function ProgramTePhases() {
+  const program = Route.useLoaderData();
+  const search = Route.useSearch();
+  const tab = search.tab ?? "Phases";
+  const navigate = useNavigate({ from: Route.fullPath });
+
+  // Two subscriptions, both load-bearing. PH-6's entry criterion reads the
+  // unacknowledged Significant changes and its second exit criterion reads
+  // `nodeImpact` over the executed scenario paths, so acknowledging a change on
+  // the baseline page has to move this gate too. The graph subscription does
+  // the same for a node reclassification.
+  const { changes } = useBaselines(program.id);
+  const nodes = useCompositionGraph(program.id);
+
+  const phases = useMemo(() => phasesForProgram(program.id), [program.id]);
+  const scenarios = useMemo(() => scenariosForProgram(program.id), [program.id]);
+
+  const readiness = useMemo(() => {
+    const map = new Map<TePhaseId, PhaseReadiness>();
+    for (const phase of phases) map.set(phase.id, phaseReadiness(phase.id, program.id, asOf));
+    return map;
+    // `changes` and `nodes` are here because the derivations read them, not
+    // because this loop does.
+  }, [phases, program.id, changes, nodes]);
+
+  const effects = useMemo(
+    () => missionEffects.filter((e) => scenarios.some((s) => s.id === e.scenario)),
+    [scenarios],
+  );
+
+  const coverage = useMemo(() => attackSurfaceCoverage(program.id), [program.id, nodes]);
+
+  // The live gate: the phase actually in flight is what a reader opens this
+  // page for. Falling back to the first phase would open on a 2025 record.
+  const liveGate =
+    phases.find((p) => p.state === "Executing") ??
+    phases.find((p) => p.state === "Planning") ??
+    phases.find((p) => p.state === "Reporting") ??
+    phases[phases.length - 1] ??
+    null;
+
+  const requestedPhase = search.phase ?? null;
+  const selectedPhase: TePhase | null =
+    (requestedPhase ? (phases.find((p) => p.id === requestedPhase) ?? null) : null) ?? liveGate;
+  const selectedReadiness = selectedPhase ? (readiness.get(selectedPhase.id) ?? null) : null;
+  const phaseCriteria = useMemo(
+    () => (selectedPhase ? allCriteria.filter((c) => c.phase === selectedPhase.id) : []),
+    [selectedPhase],
+  );
+  const criterionResults = useMemo(() => {
+    const map = new Map<string, CriterionResult>();
+    if (!selectedPhase) return map;
+    for (const result of [
+      ...(selectedReadiness?.entry ?? []),
+      ...(selectedReadiness?.exit ?? []),
+    ]) {
+      map.set(result.criterion, result);
+    }
+    return map;
+  }, [selectedPhase, selectedReadiness]);
+
+  const requestedScenario = search.scenario ?? null;
+  const selectedScenario =
+    (requestedScenario ? (scenarios.find((s) => s.id === requestedScenario) ?? null) : null) ??
+    scenarios.find((s) => s.status === "Executed") ??
+    scenarios[0] ??
+    null;
+
+  const scenarioPath = useMemo(
+    () => (selectedScenario ? chainNodes(selectedScenario.path) : []),
+    [selectedScenario, nodes],
+  );
+  const scenarioHops = useMemo(
+    () => (selectedScenario ? chainHops(selectedScenario.path) : []),
+    [selectedScenario, nodes],
+  );
+  const scenarioEffects = useMemo(
+    () => (selectedScenario ? effectsForScenario(selectedScenario.id) : []),
+    [selectedScenario],
+  );
+
+  const campaignName = (id: string) => campaignById.get(id)?.name ?? id;
+  const phaseShort = (id: TePhaseId) => phaseById.get(id)?.short ?? id;
+  const scenarioName = (id: string) => scenarioById.get(id)?.name ?? id;
+
+  const go = (next: TeTab) => navigate({ search: { ...search, tab: next }, replace: true });
+  const selectPhase = (next: TePhaseId) =>
+    navigate({ search: { ...search, phase: next }, replace: true });
+  const openGate = (next: TePhaseId) =>
+    navigate({ search: { ...search, phase: next, tab: "Gate readiness" }, replace: true });
+  const selectScenario = (next: string) =>
+    navigate({ search: { ...search, scenario: next }, replace: true });
+
+  // Program-wide gate arithmetic, stated once so the header and the doctrine
+  // block below cannot drift from each other.
+  const programCriteria = useMemo(
+    () => allCriteria.filter((c) => phases.some((p) => p.id === c.phase)),
+    [phases],
+  );
+  const derivedCount = programCriteria.filter((c) => c.basis === "Derived").length;
+  const attestedCount = programCriteria.length - derivedCount;
+  const unsignedCount = programCriteria.filter(
+    (c) => c.basis === "Attested" && (c.attestedBy === "—" || c.attestedOn === "—"),
+  ).length;
+  const blockedPhases = phases.filter((p) => readiness.get(p.id)?.blocker !== "—").length;
+  const brokenPaths = useMemo(
+    () => scenarios.filter((s) => unwalkableSteps(s.id).length > 0).length,
+    [scenarios, nodes],
+  );
+
+  // Each tab's count is the number of rows that tab can show, so the badges
+  // stay comparable. How many phases are blocked is a verdict, not a row count,
+  // and it belongs in the header badge rather than on a tab.
+  const counts: Record<TeTab, number | null> = {
+    Phases: phases.length,
+    "Gate readiness": programCriteria.length,
+    "Threat scenarios": scenarios.length,
+    "Mission effects": effects.length,
+  };
+
+  const railBody =
+    tab === "Phases" && selectedPhase ? (
+      <PhaseRail
+        phase={selectedPhase}
+        readiness={readiness.get(selectedPhase.id) ?? null}
+        campaignName={campaignName}
+        scenarioCount={scenarios.filter((s) => s.phase === selectedPhase.id).length}
+        onOpenGate={() => openGate(selectedPhase.id)}
+      />
+    ) : tab === "Threat scenarios" && selectedScenario ? (
+      <Inspector.Group title="Scenario">
+        <KeyValue label="Scenario">
+          <Id>{selectedScenario.id}</Id>
+        </KeyValue>
+        <KeyValue label="Phase">
+          {phaseShort(selectedScenario.phase)} · {selectedScenario.phase}
+        </KeyValue>
+        <KeyValue label="Regime">{phaseById.get(selectedScenario.phase)?.kind ?? "—"}</KeyValue>
+        <KeyValue label="Tier">
+          <TierChip tier={selectedScenario.tier} />
+        </KeyValue>
+        <KeyValue label="Entry point">
+          <Id>{selectedScenario.entryPoint}</Id>
+        </KeyValue>
+        <KeyValue label="Mission">{selectedScenario.missionFunction}</KeyValue>
+        <KeyValue label="Event">
+          {selectedScenario.event ? (
+            <TextLink
+              render={
+                <Link to="/campaigns/$campaignId" params={{ campaignId: selectedScenario.event }} />
+              }
+            >
+              <Id>{selectedScenario.event}</Id>
+            </TextLink>
+          ) : (
+            "—"
+          )}
+        </KeyValue>
+        <KeyValue label="Techniques">
+          <span className="tabular-nums">{selectedScenario.chain.length}</span>
+        </KeyValue>
+        <KeyValue label="Path">
+          <span className="tabular-nums">{selectedScenario.path.length} nodes</span>
+        </KeyValue>
+        <KeyValue label="Effects">
+          <span className="tabular-nums">{scenarioEffects.length}</span>
+        </KeyValue>
+      </Inspector.Group>
+    ) : null;
+
+  const idItems = phases.map((p) => {
+    const r = readiness.get(p.id);
+    return {
+      value: p.id,
+      label: (
+        <>
+          {p.id}— {p.short}— {p.kind}— {p.state}
+          {r ? ` — entry ${r.entryMet}/${r.entryTotal}, exit ${r.exitMet}/${r.exitTotal}` : ""}
+        </>
+      ),
+    };
+  });
+  return (
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                  >
+                    {program.name}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{program.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{`${program.name} — cyber test & evaluation`}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >{`${phases.length} phases · ${programCriteria.length} gate criteria · ${scenarios.length} threat scenarios · ${effects.length} mission effects`}</Inline>
+          </div>
+          <PageHeader.Actions>
+            <>
+              {/* A program with no phase record has neither a clean gate nor a
+                    dirty one, and claiming "no phase blocked" over an empty
+                    record would be the laundering this page exists to avoid. */}
+              {phases.length === 0 ? (
+                <Badge variant="secondary" tone="neutral">
+                  No cyber T&amp;E record
+                </Badge>
+              ) : (
+                <>
+                  <Badge variant="secondary" tone={blockedPhases > 0 ? "warning" : "success"}>
+                    {blockedPhases === 0
+                      ? "No phase blocked"
+                      : `${blockedPhases} phase${blockedPhases === 1 ? "" : "s"} blocked`}
+                  </Badge>
+                  <Badge variant="secondary" tone={unsignedCount > 0 ? "danger" : "success"}>
+                    {unsignedCount === 0
+                      ? "Every attestation signed"
+                      : `${unsignedCount} unsigned attestation${unsignedCount === 1 ? "" : "s"}`}
+                  </Badge>
+                </>
+              )}
+              <TextLink
+                size="small"
+                render={
+                  <Link to="/programs/$programId/composition" params={{ programId: program.id }} />
+                }
+              >
+                Composition
+              </TextLink>
+              <TextLink
+                size="small"
+                render={
+                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }} />
+                }
+              >
+                Baseline
+              </TextLink>
+            </>
+          </PageHeader.Actions>
+        </PageHeader>
+        <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {teTabs.map((key) => (
+              <TabsTrigger key={key} value={key}>
+                {key}
+                {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {tab === "Phases" ? (
+                <>
+                  <Section
+                    title="The six-phase model"
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {phases.filter((p) => p.state === "Complete").length} complete ·{" "}
+                        {phases.filter((p) => p.kind === "Developmental").length} developmental ·{" "}
+                        {phases.filter((p) => p.kind === "Operational").length} operational
+                      </span>
+                    }
+                  >
+                    {phases.length === 0 ? (
+                      <Box paddingBlockStart="space.200">
+                        <Empty>
+                          <EmptyHeader>
+                            <EmptyTitle>{"No cyber T&E phases recorded"}</EmptyTitle>
+                            <EmptyDescription>{`${program.id} carries no phase record, so there is no gate to judge and no threat portrayal to execute against.`}</EmptyDescription>
+                          </EmptyHeader>
+                        </Empty>
+                      </Box>
+                    ) : (
+                      <PhaseTrack
+                        phases={phases}
+                        readiness={readiness}
+                        selected={selectedPhase?.id ?? null}
+                        onSelect={selectPhase}
+                        campaignName={campaignName}
+                      />
+                    )}
+                  </Section>
+
+                  {phases.length === 0 ? null : (
+                    <Section title="What each phase is executing">
+                      <Table className="table-fixed">
+                        <thead>
+                          <tr>
+                            <Table.Header width={72}>Phase</Table.Header>
+                            <Table.Header width={120}>Regime</Table.Header>
+                            <Table.Header width={124}>Campaign</Table.Header>
+                            <Table.Header>Scope</Table.Header>
+                            <Table.Header width={168}>Campaign lead</Table.Header>
+                            <Table.Header width={116}>Campaign state</Table.Header>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {phases.flatMap((phase) =>
+                            phase.campaigns.length === 0
+                              ? [
+                                  <Table.Row key={phase.id}>
+                                    <Table.Cell>
+                                      <Id>{phase.id}</Id>
+                                    </Table.Cell>
+                                    <Table.Cell>{phase.kind}</Table.Cell>
+                                    <Table.Cell>—</Table.Cell>
+                                    <Table.Cell className="truncate">
+                                      No campaign — {phase.short} produces the record later phases
+                                      are judged against
+                                    </Table.Cell>
+                                    <Table.Cell>—</Table.Cell>
+                                    <Table.Cell>—</Table.Cell>
+                                  </Table.Row>,
+                                ]
+                              : phase.campaigns.map((id) => {
+                                  const campaign = campaignById.get(id) ?? null;
+                                  return (
+                                    <Table.Row key={`${phase.id}-${id}`}>
+                                      <Table.Cell>
+                                        <Id>{phase.id}</Id>
+                                      </Table.Cell>
+                                      <Table.Cell>{phase.kind}</Table.Cell>
+                                      <Table.Cell>
+                                        <TextLink
+                                          render={
+                                            <Link
+                                              to="/campaigns/$campaignId"
+                                              params={{ campaignId: id }}
+                                            />
+                                          }
+                                        >
+                                          <Id>{id}</Id>
+                                        </TextLink>
+                                      </Table.Cell>
+                                      <Table.Cell
+                                        className="truncate"
+                                        title={campaign?.scope ?? ""}
+                                      >
+                                        {campaign ? `${campaign.name} — ${campaign.scope}` : "—"}
+                                      </Table.Cell>
+                                      <Table.Cell className="truncate">
+                                        {campaign?.lead ?? "—"}
+                                      </Table.Cell>
+                                      <Table.Cell>
+                                        {campaign ? (
+                                          <Badge
+                                            variant="secondary"
+                                            tone={statusTone(campaign.state)}
+                                          >
+                                            {campaign.state}
+                                          </Badge>
+                                        ) : (
+                                          <span className="text-subtle">—</span>
+                                        )}
+                                      </Table.Cell>
+                                    </Table.Row>
+                                  );
+                                }),
+                          )}
+                        </tbody>
+                      </Table>
+                    </Section>
+                  )}
+                </>
+              ) : null}
+              {tab === "Gate readiness" ? (
+                selectedPhase && selectedReadiness ? (
+                  <>
+                    <Toolbar
+                      actions={
+                        <span className="tabular-nums font-body-small text-subtle">
+                          {derivedCount} derived · {attestedCount} attested · {unsignedCount}{" "}
+                          unsigned
+                        </span>
+                      }
+                    >
+                      <span className="font-body-small text-subtle">Phase</span>
+                      <Select<string>
+                        items={idItems}
+                        value={selectedPhase.id}
+                        onValueChange={(value) => {
+                          if (value === null) return;
+                          const next = value;
+                          if (isPhaseId(next)) selectPhase(next);
+                        }}
+                      >
+                        <SelectTrigger
+                          className={"w-full " + "h-control-small font-body"}
+                          aria-label="Phase"
+                          style={{ width: 560, maxWidth: "100%" }}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {idItems.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Toolbar>
+
+                    <Section
+                      title={`${selectedPhase.id} — ${selectedPhase.name}`}
+                      description={selectedPhase.purpose}
+                      action={
+                        <span className="font-body-small text-subtle">
+                          Informs {selectedPhase.gate}
+                        </span>
+                      }
+                    >
+                      <PhaseReadinessSummary
+                        phase={selectedPhase}
+                        readiness={selectedReadiness}
+                        criteria={phaseCriteria}
+                      />
+                    </Section>
+
+                    <Section title="Entry criteria">
+                      <CriteriaTable
+                        criteria={phaseCriteria}
+                        results={criterionResults}
+                        kind="Entry"
+                      />
+                    </Section>
+
+                    <Section title="Exit criteria">
+                      <CriteriaTable
+                        criteria={phaseCriteria}
+                        results={criterionResults}
+                        kind="Exit"
+                      />
+                    </Section>
+
+                    <Section title="Why two kinds of criterion">
+                      <Grid
+                        className="pt-200"
+                        gap="space.150"
+                        templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
+                      >
+                        <Box
+                          className="rounded-large border border-brand bg-selected"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold text-brand">
+                              {derivedCount}
+                            </span>
+                            <span className="font-body-small font-medium">derived</span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            Computed from records the platform already holds, and re-computed every
+                            time anything underneath them moves. Each one prints the sentence it
+                            produced, with the real numbers in it and the ids it read, so a reader
+                            can go and disagree with the arithmetic rather than with the verdict.
+                          </p>
+                        </Box>
+                        <Box
+                          className="rounded-large border border-default bg-surface-sunken"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold">
+                              {attestedCount}
+                            </span>
+                            <span className="font-body-small font-medium">attested</span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            A signed test plan, an approved threat portrayal, an ROE agreement, an
+                            operational test agency concurrence. No selector can judge these, so the
+                            platform does not pretend to — it records who signed and when, and{" "}
+                            {unsignedCount === 0
+                              ? "every one of them is on file."
+                              : `${unsignedCount} of them ${unsignedCount === 1 ? "has" : "have"} no signature at all, which is rendered as the gap it is rather than as a pending computation.`}
+                          </p>
+                        </Box>
+                      </Grid>
+                    </Section>
+                  </>
+                ) : (
+                  <Box paddingBlockStart="space.200">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"No phase to judge"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} carries no cyber T&E phase record, so there is no entry or exit criterion to evaluate.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  </Box>
+                )
+              ) : null}
+              {tab === "Threat scenarios" ? (
+                scenarios.length === 0 ? (
+                  <Box paddingBlockStart="space.200">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"No threat scenario written"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} carries no threat portrayal, so there is no attack surface characterised and nothing for a red team to execute against.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  </Box>
+                ) : (
+                  <>
+                    <Section
+                      title="Attack surface exercised"
+                      action={
+                        <span className="tabular-nums font-body-small text-subtle">
+                          {brokenPaths === 0
+                            ? "Every path traversable"
+                            : `${brokenPaths} unwalkable path${brokenPaths === 1 ? "" : "s"}`}
+                        </span>
+                      }
+                    >
+                      <AttackSurfaceSummary coverage={coverage} scenarios={scenarios} />
+                    </Section>
+
+                    <Section
+                      title="Threat scenarios"
+                      action={
+                        <span className="tabular-nums font-body-small text-subtle">
+                          {coverage.exercised} executed of {scenarios.length}
+                        </span>
+                      }
+                    >
+                      <Box paddingBlockStart="space.100">
+                        <ScenarioTable
+                          scenarios={scenarios}
+                          selected={selectedScenario?.id ?? null}
+                          onSelect={selectScenario}
+                          phaseShort={phaseShort}
+                          showPhase
+                        />
+                      </Box>
+                    </Section>
+
+                    {selectedScenario ? (
+                      <Section
+                        title="Chain and path"
+                        action={
+                          <TextLink
+                            size="small"
+                            render={
+                              <Link
+                                to="/programs/$programId/composition"
+                                params={{ programId: program.id }}
+                                // The entry point is where the reader wants to land: the
+                                // composition tree opens on the assumed foothold rather
+                                // than on the system root.
+                                search={
+                                  selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}
+                                }
+                              />
+                            }
+                          >
+                            Open in composition
+                          </TextLink>
+                        }
+                      >
+                        <Box paddingBlockStart="space.200">
+                          <AttackChain
+                            scenario={selectedScenario}
+                            path={scenarioPath}
+                            hops={scenarioHops}
+                            effects={scenarioEffects}
+                          />
+                        </Box>
+                      </Section>
+                    ) : null}
+                  </>
+                )
+              ) : null}
+              {tab === "Mission effects" ? (
+                effects.length === 0 ? (
+                  <Box paddingBlockStart="space.200">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"No mission effect recorded"}</EmptyTitle>
+                        <EmptyDescription>{`${program.id} has executed no scenario against a mission function, so there is nothing to score. An adversarial assessment with no recorded effect has not been run — it is not a clean result.`}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  </Box>
+                ) : (
+                  <>
+                    <Section
+                      title="What the adversary did to the mission"
+                      action={
+                        <span className="tabular-nums font-body-small text-subtle">
+                          {effects.filter((e) => e.effect === "No effect").length} of{" "}
+                          {effects.length} with no effect
+                        </span>
+                      }
+                    >
+                      <Grid
+                        className="pt-200"
+                        gap="space.150"
+                        templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}
+                      >
+                        <Box
+                          className="rounded-large border border-danger-subtle bg-danger"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold text-danger">
+                              {
+                                effects.filter(
+                                  (e) =>
+                                    e.effect === "Denied" ||
+                                    e.effect === "Destroyed" ||
+                                    e.effect === "Exfiltrated",
+                                ).length
+                              }
+                            </span>
+                            <span className="font-body-small font-medium">
+                              mission denied or taken
+                            </span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            The adversary stopped the mission, destroyed what it runs on, or took
+                            the data it runs on. These are the results a findings count cannot
+                            express.
+                          </p>
+                        </Box>
+                        <Box
+                          className="rounded-large border border-warning-subtle bg-warning"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold text-warning">
+                              {
+                                effects.filter(
+                                  (e) => e.effect === "Degraded" || e.effect === "Manipulated",
+                                ).length
+                              }
+                            </span>
+                            <span className="font-body-small font-medium">
+                              degraded or manipulated
+                            </span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            The mission continued, worse or wrong. A degraded effect with a
+                            workaround is still an effect: the workaround is manual, and the page
+                            names it so the cost is visible.
+                          </p>
+                        </Box>
+                        <Box
+                          className="rounded-large border border-success-subtle bg-success"
+                          paddingInline="space.200"
+                          paddingBlock="space.150"
+                        >
+                          <Inline space="space.100" alignBlock="baseline">
+                            <span className="tabular-nums font-heading-small font-semibold text-success">
+                              {effects.filter((e) => e.effect === "No effect").length}
+                            </span>
+                            <span className="font-body-small font-medium">no effect</span>
+                          </Inline>
+                          <p className="pt-075 font-body-small text-subtle">
+                            Executed, and the objective was not achieved — the control held and
+                            refused the adversary. That is a result, and a product that records only
+                            the successes is lying about what the assessment found.
+                          </p>
+                        </Box>
+                      </Grid>
+                    </Section>
+
+                    <Section title="Confirmed effects">
+                      <Box paddingBlockStart="space.100">
+                        <MissionEffectTable effects={effects} scenarioName={scenarioName} />
+                      </Box>
+                    </Section>
+
+                    <Section title="Mission functions touched">
+                      <MissionFunctionTable effects={effects} />
+                    </Section>
+                  </>
+                )
+              ) : null}
+            </Stack>
+          </TabsContent>
+        </Tabs>
+      </Stack>
+      {(search.phase || search.scenario) && railBody !== null ? (
+        <Shell.Panel label="Details" onClose={() => navigate({ search: { tab }, replace: true })}>
+          {railBody}
+        </Shell.Panel>
+      ) : null}
+    </>
+  );
+}
+
+/* ── Rails and small tables ──────────────────────────────────────────────── */
+
+function PhaseRail({
+  phase,
+  readiness,
+  campaignName,
+  scenarioCount,
+  onOpenGate,
+}: {
+  phase: TePhase;
+  readiness: PhaseReadiness | null;
+  campaignName: (id: string) => string;
+  scenarioCount: number;
+  onOpenGate: () => void;
+}) {
+  return (
+    <>
+      <Inspector.Group title="Phase">
+        <KeyValue label="Phase">
+          <Id>{phase.id}</Id>
+        </KeyValue>
+        <KeyValue label="Short">{phase.short}</KeyValue>
+        <KeyValue label="Regime">{phase.kind}</KeyValue>
+        <KeyValue label="State">
+          <PhaseStateChip phase={phase} />
+        </KeyValue>
+        <KeyValue label="Window">{phase.window}</KeyValue>
+        <KeyValue label="Lead">{phase.lead}</KeyValue>
+        <KeyValue label="Informs">{phase.gate}</KeyValue>
+        <KeyValue label="Scenarios">
+          <span className="tabular-nums">{scenarioCount}</span>
+        </KeyValue>
+      </Inspector.Group>
+
+      <Inspector.Group title="Gate">
+        <KeyValue label="Entry">
+          <span className="tabular-nums">
+            {readiness ? `${readiness.entryMet}/${readiness.entryTotal}` : "—"}
+          </span>
+        </KeyValue>
+        <KeyValue label="Exit">
+          <span className="tabular-nums">
+            {readiness ? `${readiness.exitMet}/${readiness.exitTotal}` : "—"}
+          </span>
+        </KeyValue>
+        <KeyValue label="Can enter">
+          <Badge
+            variant="secondary"
+            size="xsmall"
+            tone={readiness?.canEnter ? "success" : "danger"}
+          >
+            {readiness?.canEnter ? "Yes" : "No"}
+          </Badge>
+        </KeyValue>
+        <KeyValue label="Can exit">
+          <Badge
+            variant="secondary"
+            size="xsmall"
+            tone={readiness?.canExit ? "success" : "warning"}
+          >
+            {readiness?.canExit ? "Yes" : "No"}
+          </Badge>
+        </KeyValue>
+        <Box paddingBlockStart="space.075">
+          <Button onClick={onOpenGate} variant="link" size="small">
+            Read the criteria
+          </Button>
+        </Box>
+      </Inspector.Group>
+
+      <Inspector.Group title="Campaigns">
+        {phase.campaigns.length === 0 ? (
+          <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
+            None. This phase produces the record later phases are judged against, not an execution.
+          </Box>
+        ) : (
+          phase.campaigns.map((id) => (
+            <KeyValue key={id} label={id}>
+              <TextLink render={<Link to="/campaigns/$campaignId" params={{ campaignId: id }} />}>
+                {campaignName(id)}
+              </TextLink>
+            </KeyValue>
+          ))
+        )}
+      </Inspector.Group>
+
+      <Inspector.Group title="Purpose">
+        <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
+          {phase.purpose}
+        </Box>
+      </Inspector.Group>
+    </>
+  );
+}
+
+/** Worst-first, because the point of the view is which mission function is worst off. */
+const effectRank: Record<string, number> = {
+  Destroyed: 5,
+  Denied: 4,
+  Exfiltrated: 3,
+  Manipulated: 2,
+  Degraded: 1,
+  "No effect": 0,
+};
+
+function MissionFunctionTable({
+  effects,
+}: {
+  effects: { missionFunction: string; effect: string; scenario: string; workaround: string }[];
+}) {
+  const rows = useMemo(() => {
+    const map = new Map<
+      string,
+      { fn: string; count: number; worst: string; scenarios: Set<string>; noWorkaround: number }
+    >();
+    for (const e of effects) {
+      let row = map.get(e.missionFunction);
+      if (!row) {
+        row = {
+          fn: e.missionFunction,
+          count: 0,
+          worst: "No effect",
+          scenarios: new Set<string>(),
+          noWorkaround: 0,
+        };
+        map.set(e.missionFunction, row);
+      }
+      row.count += 1;
+      row.scenarios.add(e.scenario);
+      if (e.workaround === "None identified") row.noWorkaround += 1;
+      if ((effectRank[e.effect] ?? 0) > (effectRank[row.worst] ?? 0)) row.worst = e.effect;
+    }
+    return [...map.values()].sort(
+      (a, b) => (effectRank[b.worst] ?? 0) - (effectRank[a.worst] ?? 0) || b.count - a.count,
+    );
+  }, [effects]);
+
+  if (rows.length === 0) {
+    return (
+      <p className="pt-200 font-body-small text-subtle">
+        No mission function has been exercised yet.
+      </p>
+    );
+  }
+
+  return (
+    <Table className="table-fixed">
+      <thead>
+        <tr>
+          <Table.Header>Mission function</Table.Header>
+          <Table.Header width={132}>Worst outcome</Table.Header>
+          <Table.Header width={96} className="text-right">
+            Effects
+          </Table.Header>
+          <Table.Header width={104} className="text-right">
+            Scenarios
+          </Table.Header>
+          <Table.Header width={180}>Operator recourse</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <Table.Row key={r.fn}>
+            <Table.Cell className="truncate" title={r.fn}>
+              {r.fn}
+            </Table.Cell>
+            <Table.Cell>
+              <Badge
+                variant="secondary"
+                tone={
+                  r.worst === "No effect"
+                    ? "success"
+                    : (effectRank[r.worst] ?? 0) >= 3
+                      ? "danger"
+                      : "warning"
+                }
+              >
+                {r.worst}
+              </Badge>
+            </Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{r.count}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{r.scenarios.size}</Table.Cell>
+            <Table.Cell className={r.noWorkaround > 0 ? "text-danger" : undefined}>
+              {r.noWorkaround > 0
+                ? `${r.noWorkaround} with none identified`
+                : r.worst === "No effect"
+                  ? "Not required — the mission held"
+                  : "A workaround exists for every effect"}
+            </Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  );
+}

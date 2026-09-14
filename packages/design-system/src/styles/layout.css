@@ -1,5 +1,6 @@
-/* Page-level layout on the layout dimension tokens. These are the few templates a class string
-   cannot say without an arbitrary value; each reads a token, so the widths stay in one place. */
+/* Page-level layout on the layout dimension tokens: the few templates a class string cannot say
+   without an arbitrary value; each reads a token, so the widths stay in one place. The navigation
+   system's own rules are in shell.css. */
 @utility grid-cols-list-detail {
   grid-template-columns: var(--ds-dimension-layout-list) minmax(0, 1fr);
 }
@@ -20,153 +21,23 @@
       var(--ds-space-600)
   );
 }
+/* A register that is the page's one block takes the rest of the window, and its rows scroll
+   inside it. The block measures its own offset from the top of the document into --fill-top
+   (useFillWindow); the shell's main area publishes the inset under the page. Never shorter than
+   a header, six rows and the pagination: past that the page scrolls again. */
+@utility fill-window {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: max(
+    calc(var(--ds-dimension-row-header) + 6 * var(--ds-dimension-row) + var(--ds-space-600)),
+    calc(100dvh - var(--fill-top, 0px) - var(--shell-inset-bottom, 0px))
+  );
+}
 
-/* The navigation system. The root is a grid of named areas in a fixed order: banner, top nav,
-   side nav, main, panel. The banner and the top nav stick to the top; the side nav and the panel
-   stick under them and scroll inside themselves; main uses the body scroll. An area that is not
-   rendered takes no column. The root sets the widths as variables from its state. */
-@utility shell-root {
-  --shell-top: calc(var(--shell-banner, 0px) + var(--ds-dimension-layout-topnav));
-  /* The tokens, unless the browser remembered a dragged width (set on the root element by the
-     shell script) or the root sets one inline after a drag. */
-  --shell-sidenav-width: var(--shell-sidenav-stored, var(--ds-dimension-layout-sidenav));
-  --shell-panel-width: var(--shell-panel-stored, var(--ds-dimension-layout-panel));
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) var(--shell-aside-inset, 0px) var(
-      --shell-panel-inset,
-      0px
-    );
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    "banner banner banner banner"
-    "topnav topnav topnav topnav"
-    "sidenav main aside panel"
-    "sidenav context context panel";
-  min-height: 100dvh;
-  /* The panel's column opening or closing moves the page; it moves on the standard curve. */
-  transition: grid-template-columns var(--ds-motion-duration-moderate)
-    var(--ds-motion-easing-standard);
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
-}
-@utility shell-banner {
-  grid-area: banner;
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  height: var(--ds-dimension-layout-banner);
-}
-@utility shell-topnav {
-  grid-area: topnav;
-  position: sticky;
-  top: var(--shell-banner, 0px);
-  z-index: 30;
-  height: var(--ds-dimension-layout-topnav);
-}
-/* The start slot takes the side nav's width while the side nav is expanded, so the logo reads as
-   the head of that column and the side nav looks full height. */
-@utility shell-topnav-start {
-  width: var(--shell-sidenav-width);
-}
-@utility shell-sidenav {
-  grid-area: sidenav;
-  position: sticky;
-  top: var(--shell-top);
-  height: calc(100dvh - var(--shell-top));
-  width: var(--shell-sidenav-width);
-}
-@utility shell-main {
-  grid-area: main;
-  min-width: 0;
-}
-@utility shell-panel {
-  scroll-padding-block-start: var(--ds-space-800);
-  position: sticky;
-  top: var(--shell-top);
-  height: calc(100dvh - var(--shell-top));
-  width: 100%;
-  @media (width >= 80rem) {
-    border-inline-start-width: 1px;
-  }
-}
-[data-shell-slot="aside"] {
-  grid-area: context;
-  min-width: 0;
-}
-[data-shell-slot="panel"] {
-  grid-area: panel;
-  min-width: 0;
-}
-[data-shell-slot="aside"]:empty,
-[data-shell-slot="panel"]:empty {
-  display: none;
-}
-[data-shell-area="aside"] {
-  border-block-start: 1px solid var(--ds-color-border);
-}
-.page-header {
+/* The page header's two columns: what names the page, then its actions. */
+@utility page-header {
   grid-template-columns: minmax(0, 1fr) auto;
-}
-@media (width >= 80rem) {
-  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) {
-    --shell-panel-inset: var(--shell-panel-width);
-  }
-}
-@media (width >= 75rem) {
-  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])):has(
-      > [data-shell-slot="aside"] > aside
-    ) {
-    --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
-  }
-  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
-    > [data-shell-slot="aside"] {
-    grid-area: aside;
-  }
-  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
-    [data-shell-area="aside"] {
-    border-block-start: 0;
-    border-inline-start: 1px solid var(--ds-color-border);
-  }
-}
-@media (width < 80rem) {
-  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) > .shell-main,
-  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
-    > [data-shell-slot="aside"] {
-    display: none;
-  }
-  [data-shell-slot="panel"] {
-    grid-area: main;
-  }
-  [data-shell-area="panel"] > [role="separator"] {
-    display: none;
-  }
-}
-/* Below the large breakpoint, and for the flyout, the side nav overlays the page. It keeps its grid
-   area and carries no other position class: a stray `relative` outranks the `fixed` here, puts the
-   overlay back in flow, and pushes the header down by its height. The splitter positions against
-   the fixed or sticky area itself. */
-@utility shell-sidenav-overlay {
-  grid-area: sidenav;
-  position: fixed;
-  inset-block: 0;
-  inset-inline-start: 0;
-  z-index: 50;
-  height: 100dvh;
-  width: min(var(--shell-sidenav-width), 90vw);
-}
-
-/* Before React takes over, the collapsed state the shell script found in storage hides the side
-   nav and narrows the start slot, so a collapsed side nav does not flash open on reload. */
-@media (width >= 64rem) {
-  html[data-shell-sidenav="collapsed"] [data-shell-area="sidenav"] {
-    display: none;
-  }
-  html[data-shell-sidenav="collapsed"] [data-shell-slot="start"] {
-    width: auto;
-    background-color: transparent;
-    border-inline-end-width: 0;
-  }
 }
 
 /* A bar that stays put under the shell's header while the page scrolls: the ActionBar. */
@@ -181,26 +52,6 @@
       var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-200)
     )
     var(--ds-space-1000);
-}
-
-@media (width >= 110rem) {
-  .shell-root:has(> [data-shell-slot="aside"] > aside) {
-    --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
-  }
-  .shell-root > [data-shell-slot="aside"] {
-    grid-area: aside;
-  }
-  .shell-root [data-shell-area="aside"] {
-    border-block-start: 0;
-    border-inline-start: 1px solid var(--ds-color-border);
-  }
-}
-
-@media (width < 80rem) {
-  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
-    [data-shell-skip="main"] {
-    display: none;
-  }
 }
 
 /* A relationship chooser owns its internal preview, independently of the page shell. */

@@ -88,6 +88,8 @@ export type DataTableColumnMeta = {
 export type DataTableMeta = {
   /** Rows per page; unset means every row, no Pagination. */
   pageSize?: number | undefined;
+  /** The sizes the reader can choose from; the Pagination shows them when there is more than one. */
+  pageSizes?: number[] | undefined;
   /** The accessible name of the table. */
   label?: string | undefined;
   /** The reader can pin and unpin columns from the column menu. */

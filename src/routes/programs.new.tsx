@@ -1,24 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-
 import { ProgramWizard } from "@/components/app/program-wizard";
 
 export const Route = createFileRoute("/programs/new")({
   head: () => ({
     meta: [
-      { title: "New program — Equinox GRC" },
+      { title: "New program — Program Assurance" },
       {
         name: "description",
         content:
-          "Create a program: choose a framework edition, draw its systems and subsystems, categorize each scope under CNSSI 1253, apply overlays, tailor controls, and freeze the first control-set revision.",
+          "Create a program, define its systems, and tailor controls from published OSCAL catalogs and profiles.",
       },
-      { property: "og:title", content: "New program — Equinox GRC" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: NewProgram,
+  component: ProgramWizard,
 });
-
-function NewProgram() {
-  return <ProgramWizard />;
-}

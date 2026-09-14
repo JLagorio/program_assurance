@@ -568,7 +568,7 @@
     "CommandPalette": {
       "domTarget": "Portaled Command.Dialog/Radix dialog; its input and listbox/options come from cmdk. There is no root DOM/ref passthrough on the pattern.",
       "controlledBehavior": "Caller owns open; cmdk internally owns search and active-option navigation. Choosing requests onClose before invoking command.run synchronously. Neither callback is awaited or caught; caller owns action failures. useCommandPalette is a separate optional hook with local false initial state and window Cmd/Ctrl+K listener.",
-      "defaultBehavior": "Placeholder defaults to Type a command\u2026. Input hint is explicitly null. Empty matching result uses No commands match. Contiguous commands with equal group share a heading; repeated nonadjacent groups remain separate. Unique command ids identify options and group runs; group, label and hint remain searchable keywords.",
+      "defaultBehavior": "Placeholder defaults to Type a command…. Input hint is explicitly null. Empty matching result uses No commands match. Contiguous commands with equal group share a heading; repeated nonadjacent groups remain separate. Unique command ids identify options and group runs; group, label and hint remain searchable keywords.",
       "reviewSources": [
         "packages/design-system/src/patterns/command-palette.tsx",
         "packages/design-system/src/components/command.tsx",
@@ -631,9 +631,9 @@
       }
     },
     "DataTable": {
-      "domTarget": "Outer frame div receives className; internal Table receives table metadata label/density, computed grid role and layout. No native rest props/ref; maxHeight targets Table scroll frame.",
+      "domTarget": "Outer frame div receives className; internal Table receives table metadata label/density, computed grid role and layout. No native rest props/ref; maxHeight and fill target the Table scroll frame, and fill also sets --fill-top on the root and marks it data-fill.",
       "controlledBehavior": "The supplied useDataTable instance owns sorting/filtering/pagination/selection/layout; TanStack supports caller-controlled slices through hook options. Renderer reads and requests instance changes. Caller owns state/error/empty and onRowClick effects; no network request is performed.",
-      "defaultBehavior": "state=ready; zero rows while ready resolves empty. Localized missing empty title and error body; toolbar absent renders no toolbar. maxHeight absent leaves natural height (virtualizer initial rect uses 480). Hook defaults selectable/resizable/reorderable/pinRows=false, pinnable/hideable=true, density=default; omitted pageSize shows all rows. Tree/detail/group/reorder/virtualization features are opt-in; options table meta supplies all renderer feature switches.",
+      "defaultBehavior": "state=ready; zero rows while ready resolves empty. Localized missing empty title and error body; toolbar absent renders no toolbar. maxHeight absent leaves natural height (virtualizer initial rect uses 480); fill absent keeps the page scroll, and fill wins over maxHeight. Hook defaults selectable/resizable/reorderable/pinRows=false, pinnable/hideable=true, density=default; omitted pageSize shows all rows. Tree/detail/group/reorder/virtualization features are opt-in; options table meta supplies all renderer feature switches.",
       "reviewSources": [
         "packages/design-system/src/patterns/data-table/data-table.tsx",
         "packages/design-system/src/patterns/data-table/use-data-table.ts",
@@ -641,6 +641,11 @@
         "packages/design-system/src/patterns/data-table/features.ts"
       ],
       "props": {
+        "fill": {
+          "meaning": "The register is the page's one block and fills the rest of the window; layout intent, not a size axis.",
+          "migration": "Replace a hard-coded maxHeight on a page-level register with fill; keep maxHeight for tables inside dialogs, panels and stacked sections.",
+          "defaultBehavior": "Off: the register scrolls with the page."
+        },
         "empty": {
           "meaning": "Structured recovery content {title, description?, action?}; only shown for explicit empty state or ready with zero rows.",
           "migration": "Retain structured recovery contract and ReactNode action slot; do not reinterpret empty as loading or error.",
@@ -1045,10 +1050,10 @@
       }
     },
     "PageHeader": {
-      "domTarget": "Root div containing h1 and optional p; no DOM/ref forwarding.",
+      "domTarget": "header (a two-column grid) receiving every native prop and the ref; parts Lead (useRender, spans both columns), Heading, Title (h1), Description, Actions each forward theirs.",
       "controlledBehavior": "Stateless page title and action composition.",
-      "defaultBehavior": "Falsy eyebrow, description or actions omit their wrappers. Description is truncated and copied to native title tooltip.",
-      "reviewSources": ["packages/design-system/src/patterns/page-header.tsx"],
+      "defaultBehavior": "Nothing renders that is not composed; no eyebrow, description or actions props.",
+      "reviewSources": ["packages/design-system/src/layout/page-header.tsx"],
       "props": {
         "actions": {
           "meaning": "Rendered action content in its named position; the pattern does not clone it or invoke it as a callback.",
@@ -1057,10 +1062,11 @@
       }
     },
     "PageSkeleton": {
-      "domTarget": "div role=status with aria-busy=true and aria-label=Loading; no DOM/ref passthrough.",
+      "domTarget": "div role=status with aria-busy=true and aria-label=Loading (a locale message) receiving every native prop and the ref.",
       "controlledBehavior": "Stateless loading presentation; caller mounts/unmounts it as loading changes.",
       "defaultBehavior": "rows defaults to 8; Array.from length coercion controls row count (zero/negative yields none and fractions truncate). Each row/header uses fixed Skeleton shapes; text label remains Loading.",
       "reviewSources": [
+        "packages/design-system/src/layout/page-skeleton.tsx",
         "packages/design-system/src/patterns/page-skeleton.tsx",
         "packages/design-system/src/components/skeleton.tsx"
       ]
@@ -1285,11 +1291,11 @@
       ]
     },
     "Section": {
-      "domTarget": "section receiving className with h2 header. No arbitrary DOM attributes/ref forwarding.",
+      "domTarget": "section receiving every native prop and the ref; parts Header, Heading, Title (h2 through useRender), Description, Actions each forward theirs. aria-labelledby points at the Title only while one is rendered.",
       "controlledBehavior": "Stateless region; action children own behavior.",
-      "defaultBehavior": "count includes zero and hides only null/undefined. Falsy description/action omit wrappers. Children render directly with no body inset imposed.",
+      "defaultBehavior": "title optional: with it the built-in header (count includes zero and hides only null/undefined; falsy description/action omit their wrappers); without it the parts compose. divided draws the rule.",
       "reviewSources": [
-        "packages/design-system/src/patterns/section.tsx",
+        "packages/design-system/src/layout/section.tsx",
         "packages/design-system/src/components/badge.tsx"
       ],
       "props": {
@@ -1306,25 +1312,30 @@
       "reviewSources": ["packages/design-system/src/components/separator.tsx"]
     },
     "Shell": {
-      "domTarget": "div.shell-root wraps skip navigation and caller areas; className targets root. No native rest/ref API.",
-      "controlledBehavior": "Root owns responsive/expanded/overlay/peek/width/skip-link state. defaultSideNavCollapsed initializes only; useSideNav requests changes and SideNav callbacks report transitions. Optional browser persistence restores collapsed state and widths.",
+      "domTarget": "div.shell-root receives every native div prop and the ref; className merges onto the root. Skip links, then the areas as children, then the aside and panel portal targets.",
+      "controlledBehavior": "Root owns responsive/expanded/overlay/peek/width/skip-link state. defaultSideNavCollapsed initializes only; useSideNav reads and drives it; persist restores and writes the collapsed state and the dragged widths (validated and clamped on restore).",
       "defaultBehavior": "defaultSideNavCollapsed=false, sideNavShortcut=false; initial desktop=true until media query mount, overlay/peek=false. persist absent/false/empty means no storage; true uses ledger.shell, string custom key. Stored values override initial values after mount. Widths absent use CSS tokens; detached parts assume expanded desktop with no-op setters.",
       "reviewSources": [
-        "packages/design-system/src/shell/shell.tsx",
-        "packages/design-system/src/shell/storage.ts"
+        "packages/design-system/src/layout/shell/root.tsx",
+        "packages/design-system/src/layout/shell/context.tsx",
+        "packages/design-system/src/layout/storage.ts",
+        "packages/design-system/src/layout/slots.tsx"
       ]
     },
     "Shell.AppSwitcher": {
       "domTarget": "IconButton button; no general DOM/ref passthrough.",
       "controlledBehavior": "Caller owns onClick outcome.",
-      "defaultBehavior": "label=Switch product; omitted onClick has no action.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "defaultBehavior": "label=Switch product (a locale message); omitted onClick has no action.",
+      "reviewSources": ["packages/design-system/src/layout/shell/top-nav.tsx"]
     },
     "Shell.Banner": {
-      "domTarget": "div role=region receives id/label and supported className; tabIndex=-1 supports skip focus. No general DOM spread/public ref.",
+      "domTarget": "div role=region receives every native prop and the ref; id, tabIndex=-1, aria-label and data-slot are the part's and win.",
       "controlledBehavior": "Shell context owns skip-link registration; mounted area has no controlled value. Mount/unmount reports banner presence to root.",
-      "defaultBehavior": "label=Banner; id falls back to a generated stable useId-derived shell id. Optional className is absent.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"],
+      "defaultBehavior": "label=Banner; id falls back to a generated stable useId-derived shell id. className merges.",
+      "reviewSources": [
+        "packages/design-system/src/layout/shell/root.tsx",
+        "packages/design-system/src/layout/shell/context.tsx"
+      ],
       "props": {
         "id": {
           "meaning": "DOM identity for the area and registered skip-link destination.",
@@ -1334,10 +1345,13 @@
       }
     },
     "Shell.Main": {
-      "domTarget": "main receives id/label and supported className; tabIndex=-1 supports skip focus. No general DOM spread/public ref.",
+      "domTarget": "main receives every native prop and the ref; id, tabIndex=-1, aria-label and data-slot are the part's and win.",
       "controlledBehavior": "Shell context owns skip-link registration; mounted area has no controlled value.",
-      "defaultBehavior": "label=Main content; id falls back to a generated stable useId-derived shell id. Optional className is absent.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"],
+      "defaultBehavior": "label=Main content; id falls back to a generated stable useId-derived shell id. className merges. Publishes --shell-inset-bottom (space.300, space.400 from lg) for fill-window blocks.",
+      "reviewSources": [
+        "packages/design-system/src/layout/shell/root.tsx",
+        "packages/design-system/src/layout/shell/context.tsx"
+      ],
       "props": {
         "id": {
           "meaning": "DOM identity for the area and registered skip-link destination.",
@@ -1350,13 +1364,13 @@
       "domTarget": "Decorative nested spans.",
       "controlledBehavior": "Stateless brand placeholder.",
       "defaultBehavior": "No props/default overrides; uses brand/surface tokens.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "reviewSources": ["packages/design-system/src/layout/shell/top-nav.tsx"]
     },
     "Shell.Panel": {
-      "domTarget": "aside receives id/label and supported className; tabIndex=-1 supports skip focus. No general DOM spread/public ref.",
+      "domTarget": "aside receives every native prop and the ref; id, tabIndex=-1, the accessible name and data-slot are the part's and win. With title or actions the built-in header (Splitter, Header with Title, actions, Close; Body); without them the children compose Panel.Header, Panel.Title, Panel.Actions, Panel.Close, Panel.Body and Panel.Splitter.",
       "controlledBehavior": "Shell context owns skip-link registration; mounted area has no controlled value. Caller owns mounting; Shell owns width.",
-      "defaultBehavior": "label=Panel; id falls back to a generated stable useId-derived shell id. Optional className is absent. Missing defaultWidth keeps root/token width; truthy defaultWidth applies on mount. Mounted panel overlays below desktop breakpoint.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"],
+      "defaultBehavior": "label=Details (a locale message) names the landmark until a Title does. id falls back to a generated stable id. defaultWidth applies only while nothing has been dragged or remembered.",
+      "reviewSources": ["packages/design-system/src/layout/shell/panel.tsx"],
       "props": {
         "id": {
           "meaning": "DOM identity for the area and registered skip-link destination.",
@@ -1368,20 +1382,23 @@
     "Shell.Panel.Splitter": {
       "domTarget": "Focusable div role=separator positioned at panel start; internal ref only.",
       "controlledBehavior": "Shell owns width; local pointer capture tracks drag. onResizeStart reports pointer start and onResizeEnd reports pointer or keyboard completion.",
-      "defaultBehavior": "label required. Minimum 240px and maximum half viewport; arrow step=16px reversed versus side-nav. No double-click collapse. Optional callbacks omitted are not invoked; desktop-only CSS visibility.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "defaultBehavior": "label=Resize details (a locale message). Minimum 240px and maximum half the viewport; arrow step 16px reversed versus the side nav, Home to the minimum, End to the maximum. No double-click collapse.",
+      "reviewSources": [
+        "packages/design-system/src/layout/shell/panel.tsx",
+        "packages/design-system/src/layout/shell/splitter.tsx"
+      ]
     },
     "Shell.Profile": {
-      "domTarget": "button when onClick supplied, otherwise div; avatar/name/role are rendered content. No DOM/ref passthrough.",
+      "domTarget": "button when onClick or render is given, otherwise div, through Base UI useRender; native props and the ref forward; avatar, name and description are rendered content.",
       "controlledBehavior": "Caller owns profile menu and click outcome.",
-      "defaultBehavior": "No onClick means static content and no chevron; missing role omits subtitle.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "defaultBehavior": "No onClick and no render means static content and no chevron; missing description omits the subtitle; `role` is a deprecated alias of description.",
+      "reviewSources": ["packages/design-system/src/layout/shell/top-nav.tsx"]
     },
     "Shell.SideNav": {
-      "domTarget": "nav plus mobile scrim button receives id/label and supported className; tabIndex=-1 supports skip focus. No general DOM spread/public ref.",
+      "domTarget": "nav plus mobile scrim button; nav receives every native prop and the ref; id, tabIndex=-1, aria-label and data-slot are the part's and win.",
       "controlledBehavior": "Shell context owns skip-link registration; mounted area has no controlled value. Shell owns open/expanded/peek/width; onCollapse/onExpand are notifications and defaultWidth initializes only.",
       "defaultBehavior": "label=Side navigation; id falls back to a generated stable useId-derived shell id. Optional className is absent. Missing defaultWidth keeps root/token width; truthy supplied defaultWidth applies on mount. Detached nav is expanded desktop.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"],
+      "reviewSources": ["packages/design-system/src/layout/shell/side-nav.tsx"],
       "props": {
         "id": {
           "meaning": "DOM identity for the area and registered skip-link destination.",
@@ -1391,16 +1408,16 @@
       }
     },
     "Shell.SideNav.Body": {
-      "domTarget": "Scrollable div; no DOM/ref passthrough.",
+      "domTarget": "Scrollable div; every native prop and the ref forward.",
       "controlledBehavior": "Stateless scrolling content layout.",
       "defaultBehavior": "Required children only.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "reviewSources": ["packages/design-system/src/layout/shell/side-nav.tsx"]
     },
     "Shell.SideNav.Expandable": {
       "domTarget": "div with button aria-expanded and conditionally mounted nested div; no native/ref passthrough.",
       "controlledBehavior": "open controls state when provided; otherwise local state initializes defaultOpen. onOpenChange reports next boolean in either mode. DepthContext increments for descendants.",
       "defaultBehavior": "defaultOpen=false; omitted open uses local state. Icon/badge absent render no adornment; required label names button.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"],
+      "reviewSources": ["packages/design-system/src/layout/shell/side-nav.tsx"],
       "props": {
         "open": {
           "meaning": "Controlled boolean expansion; when supplied local state does not update.",
@@ -1424,40 +1441,43 @@
       }
     },
     "Shell.SideNav.Footer": {
-      "domTarget": "div; no DOM/ref passthrough.",
+      "domTarget": "div; every native prop and the ref forward.",
       "controlledBehavior": "Stateless fixed footer content.",
       "defaultBehavior": "Required children only.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "reviewSources": ["packages/design-system/src/layout/shell/side-nav.tsx"]
     },
     "Shell.SideNav.Header": {
-      "domTarget": "div; no DOM/ref passthrough.",
+      "domTarget": "div; every native prop and the ref forward.",
       "controlledBehavior": "Stateless fixed header content.",
       "defaultBehavior": "Required children only.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "reviewSources": ["packages/design-system/src/layout/shell/side-nav.tsx"]
     },
     "Shell.SideNav.Section": {
-      "domTarget": "div role=group, optional Eyebrow; no DOM/ref passthrough.",
+      "domTarget": "div role=group, optional Eyebrow; every native prop and the ref forward.",
       "controlledBehavior": "Stateless section content.",
       "defaultBehavior": "Absent heading removes heading and group accessible name; required children.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "reviewSources": ["packages/design-system/src/layout/shell/side-nav.tsx"]
     },
     "Shell.SideNav.Splitter": {
       "domTarget": "Focusable div role=separator positioned at side-nav edge; internal ref only.",
       "controlledBehavior": "Shell owns width; local pointer capture tracks drag. onResizeStart reports pointer start and onResizeEnd reports pointer or keyboard completion. Double-click requests collapse.",
-      "defaultBehavior": "label required. Minimum 200px and maximum half viewport; arrow step=16px. Optional callbacks omitted are not invoked. Desktop-only CSS visibility.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "defaultBehavior": "label=Resize side navigation (a locale message). Minimum 200px and maximum half the viewport; arrow step 16px, Home to the minimum, End to the maximum; double-click collapses. Optional callbacks omitted are not invoked.",
+      "reviewSources": [
+        "packages/design-system/src/layout/shell/side-nav.tsx",
+        "packages/design-system/src/layout/shell/splitter.tsx"
+      ]
     },
     "Shell.SideNav.ToggleButton": {
-      "domTarget": "Tooltip holder span with IconButton button; internal holder ref supports focus return, no public ref.",
+      "domTarget": "IconButton inside a Tooltip; native button props and the ref forward. A child of TopNav.Start that places itself.",
       "controlledBehavior": "Shell owns expansion/overlay/peek. Button click calls context toggle and hover requests peek; detached context no-ops.",
-      "defaultBehavior": "collapseLabel=Collapse side navigation; expandLabel=Expand side navigation. Tooltip includes shortcut only when Shell enables it.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "defaultBehavior": "collapseLabel=Collapse side navigation, expandLabel=Expand side navigation (locale messages). Tooltip includes the shortcut only when the Shell enables it.",
+      "reviewSources": ["packages/design-system/src/layout/shell/side-nav.tsx"]
     },
     "Shell.TopNav": {
-      "domTarget": "header receives id/label and supported className; tabIndex=-1 supports skip focus. No general DOM spread/public ref.",
+      "domTarget": "header receives every native prop and the ref; id, tabIndex=-1, aria-label and data-slot are the part's and win.",
       "controlledBehavior": "Shell context owns skip-link registration; mounted area has no controlled value.",
       "defaultBehavior": "label=Top navigation; id falls back to a generated stable useId-derived shell id. Optional className is absent.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"],
+      "reviewSources": ["packages/design-system/src/layout/shell/top-nav.tsx"],
       "props": {
         "id": {
           "meaning": "DOM identity for the area and registered skip-link destination.",
@@ -1467,22 +1487,22 @@
       }
     },
     "Shell.TopNav.End": {
-      "domTarget": "div with desktop ul and narrow Popover trigger/list; no DOM/ref passthrough.",
-      "controlledBehavior": "Radix owns narrow menu open state; caller owns action elements.",
-      "defaultBehavior": "label=Actions, moreLabel=More; children converted to list items, fold below medium breakpoint.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "domTarget": "div role=group receiving every native prop and the ref; children render as given, no list.",
+      "controlledBehavior": "Stateless; the caller owns the action elements and, on a phone, its own More menu.",
+      "defaultBehavior": "label=Actions (a locale message). No fold, no moreLabel.",
+      "reviewSources": ["packages/design-system/src/layout/shell/top-nav.tsx"]
     },
     "Shell.TopNav.Middle": {
       "domTarget": "div; no DOM/ref passthrough.",
       "controlledBehavior": "Stateless content layout.",
       "defaultBehavior": "Required children; no additional defaults.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "reviewSources": ["packages/design-system/src/layout/shell/top-nav.tsx"]
     },
     "Shell.TopNav.Start": {
-      "domTarget": "div data-shell-slot=start; no DOM/ref passthrough.",
+      "domTarget": "div data-shell-slot=start receiving every native prop and the ref; a SideNav.ToggleButton child places itself at the slot's end while the side nav is inline (CSS order), `toggle` is the older spelling.",
       "controlledBehavior": "Reads Shell desktop/expanded context to position toggle before/after children.",
       "defaultBehavior": "Optional toggle/children render nothing when absent; expanded desktop places toggle at trailing end.",
-      "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
+      "reviewSources": ["packages/design-system/src/layout/shell/top-nav.tsx"]
     },
     "ShowPage": {
       "domTarget": "Page div composed through Tabs render; body div composed through TabsContent render when tab is supplied. rail renders in aside labeled Details. No arbitrary DOM/ref forwarding.",

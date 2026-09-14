@@ -25,14 +25,22 @@ const meta = {
 export default meta;
 type Story = StoryObj;
 
-function Example({ fail = false }: { fail?: boolean }) {
+function Example({
+  fail = false,
+  retainSelection = false,
+}: {
+  fail?: boolean;
+  retainSelection?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [linked, setLinked] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   return (
     <div className="p-200">
       <Button onClick={() => setOpen(true)}>Add evidence</Button>
       <p>Linked records: {linked.join(", ") || "None"}</p>
       <RecordBrowser
+        {...(retainSelection ? { selectedIds, onSelectionChange: setSelectedIds } : {})}
         open={open}
         onClose={() => setOpen(false)}
         title="Link evidence"
@@ -117,5 +125,27 @@ export const FailedLink: Story = {
     await expect(dialog.getByRole("checkbox", { name: "Select row EVD-001" })).toBeChecked();
     await userEvent.click(dialog.getByRole("button", { name: "Cancel" }));
     await expect(canvas.getByText("Linked records: None")).toBeVisible();
+  },
+};
+
+export const RetainedSelection: Story = {
+  render: () => <Example retainSelection />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Add evidence" }));
+    let dialog = within(await screen.findByRole("dialog", { name: "Link evidence" }));
+    await userEvent.click(dialog.getByRole("checkbox", { name: "Select row EVD-001" }));
+    await userEvent.click(dialog.getByRole("button", { name: "Cancel" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Link evidence" })).not.toBeInTheDocument(),
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Add evidence" }));
+    dialog = within(await screen.findByRole("dialog", { name: "Link evidence" }));
+    await expect(dialog.getByRole("checkbox", { name: "Select row EVD-001" })).toBeChecked();
+    await expect(dialog.getByText("1 selected", { exact: true })).toBeVisible();
+    await userEvent.click(dialog.getByRole("button", { name: "Clear selection" }));
+    await expect(dialog.getByText("0 selected", { exact: true })).toBeVisible();
+    await userEvent.click(dialog.getByRole("button", { name: "Cancel" }));
   },
 };

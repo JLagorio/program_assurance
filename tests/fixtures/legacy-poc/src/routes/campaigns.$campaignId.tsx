@@ -1,0 +1,538 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Id,
+  Inline,
+  PageHeader,
+  Stack,
+  Tabs,
+  TabsContent,
+} from "@ledger/design-system";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+
+import {
+  ExecutionSummary,
+  ObjectiveExecutionTable,
+  ObjectiveRail,
+  PreconditionList,
+  ProcedureList,
+  ProcedureRail,
+  RegressionTable,
+  RunRail,
+  RunRecordView,
+  RunTable,
+  StepTable,
+  type ObjectiveExecutionRow,
+  type ProcedureListRow,
+  type RunListRow,
+} from "@/components/app/test-execution";
+import {
+  assessmentEventState,
+  assessmentState,
+  useAssessmentsVersion,
+} from "@/lib/assessment-store";
+import {
+  campaignById,
+  eventsByCampaign,
+  objectiveById,
+  type ObjectiveResult,
+} from "@/lib/campaigns";
+import { statusTone } from "@/lib/spine";
+import {
+  campaignExecution,
+  completionBlockedBy,
+  objectiveDisagrees,
+  objectivesForCampaign,
+  procedureById,
+  proceduresForCampaign,
+  proceduresForObjective,
+  regressionsForCampaign,
+  resolvedObjectiveResult,
+  runsForCampaign,
+  runsForObjective,
+  runsForProcedure,
+  runVerdict,
+  setRunState,
+  useTestRuns,
+} from "@/lib/test-execution";
+import {
+  Badge,
+  Box,
+  BreadcrumbLink,
+  Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Eyebrow,
+  Section,
+  Shell,
+  TabsList,
+  TabsTrigger,
+  TextLink,
+} from "@ledger/design-system";
+
+const campaignTabs = ["Execution", "Procedures", "Runs", "Regression"] as const;
+type CampaignTab = (typeof campaignTabs)[number];
+
+export const Route = createFileRoute("/campaigns/$campaignId")({
+  // The key is always emitted, never omitted on a miss. The router merges the
+  // validated object OVER the raw search, so returning `{}` for an unrecognized
+  // tab leaves `tab=Bogus` standing and the component's `?? "Execution"` never
+  // fires — an explicit `undefined` is what strips it.
+  validateSearch: (search: Record<string, unknown>): { tab?: CampaignTab | undefined } => {
+    const raw = String(search["tab"] ?? "");
+    const match = campaignTabs.find((t) => t.toLowerCase() === raw.toLowerCase());
+    return { tab: match };
+  },
+  loader: ({ params }) => {
+    const campaign = campaignById.get(params.campaignId.toUpperCase());
+    if (!campaign) throw notFound();
+    return { campaign };
+  },
+  head: ({ loaderData }) => {
+    const name = loaderData?.campaign.name ?? "Campaign";
+    const id = loaderData?.campaign.id ?? "the campaign";
+    const title = `${name} — Equinox`;
+    const description = `Execution record for ${id}: the procedures written against each test objective, the runs executed against a named build, the step records the operator took, and where the run log disagrees with the declared objective result.`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+    };
+  },
+  component: CampaignRecord,
+});
+
+function CampaignRecord() {
+  useAssessmentsVersion();
+  const { campaign } = Route.useLoaderData();
+  const tab = Route.useSearch().tab ?? "Execution";
+  const navigate = useNavigate({ from: Route.fullPath });
+
+  // Subscribe to the run log so a recorded step or a state change re-renders the
+  // whole page. Every selector below already reads the resolved snapshot; this
+  // is what tells React the snapshot moved.
+  const runLog = useTestRuns();
+
+  const [objective, setObjective] = useState<string | null>(null);
+  const [procedure, setProcedure] = useState<string | null>(null);
+  const [run, setRun] = useState<string | null>(null);
+
+  const execution = useMemo(
+    () => campaignExecution(campaign.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaign.id, runLog],
+  );
+
+  const objectiveRows = useMemo<ObjectiveExecutionRow[]>(
+    () =>
+      objectivesForCampaign(campaign.id).map((id) => {
+        const declared = objectiveById.get(id);
+        const resolved = resolvedObjectiveResult(id);
+        const declaredResult: ObjectiveResult = declared?.result ?? "Not run";
+        return {
+          objective: id,
+          statement: declared?.statement ?? "—",
+          ccis: declared?.ccis ?? [],
+          event: declared?.event ?? null,
+          declared: declaredResult,
+          executed: resolved.result,
+          source: resolved.source,
+          run: resolved.run,
+          basis: resolved.basis,
+          disagrees: objectiveDisagrees(id),
+          procedures: proceduresForObjective(id).map((p) => p.id),
+          runs: runsForObjective(id).length,
+        };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaign.id, runLog],
+  );
+
+  const gaps = useMemo(
+    () =>
+      execution.unproceduredObjectives.map((id) => ({
+        id,
+        statement: objectiveById.get(id)?.statement ?? "—",
+        declared: objectiveById.get(id)?.result ?? ("Not run" as ObjectiveResult),
+      })),
+    [execution.unproceduredObjectives],
+  );
+
+  const disagreements = useMemo(
+    () =>
+      objectiveRows
+        .filter((r) => r.disagrees)
+        .map((r) => ({ id: r.objective, declared: r.declared, executed: r.executed, run: r.run })),
+    [objectiveRows],
+  );
+
+  const procedureRows = useMemo<ProcedureListRow[]>(
+    () =>
+      proceduresForCampaign(campaign.id).map((p) => {
+        const runs = runsForProcedure(p.id);
+        // The latest run that actually happened. A Planned run has no records,
+        // so reading a verdict off it would report "Not run" over a real one.
+        const executed = runs.filter((r) => r.state !== "Planned");
+        const latest = executed[executed.length - 1];
+        return {
+          procedure: p,
+          runs: runs.length,
+          verdict: latest ? runVerdict(latest.id) : null,
+        };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaign.id, runLog],
+  );
+
+  const runRows = useMemo<RunListRow[]>(
+    () =>
+      runsForCampaign(campaign.id).map((r) => ({
+        run: r,
+        procedure: procedureById.get(r.procedure) ?? null,
+        verdict: runVerdict(r.id),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaign.id, runLog],
+  );
+
+  const regressionRows = useMemo(
+    () => regressionsForCampaign(campaign.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaign.id, runLog],
+  );
+
+  const events = eventsByCampaign(campaign.id);
+  const state = assessmentState(campaign);
+
+  const selectedObjective = objective
+    ? (objectiveRows.find((r) => r.objective === objective) ?? null)
+    : null;
+  const selectedProcedure = procedure
+    ? (procedureRows.find((r) => r.procedure.id === procedure) ?? null)
+    : null;
+  const selectedRun = run ? (runRows.find((r) => r.run.id === run) ?? null) : null;
+
+  const go = (next: CampaignTab) => navigate({ search: { tab: next }, replace: true });
+
+  const counts: Record<CampaignTab, number | null> = {
+    Execution: objectiveRows.length,
+    Procedures: procedureRows.length,
+    Runs: runRows.length,
+    // A number — including 0 — is a count the strip shows; `null` would mean
+    // "no count concept here", which is not true of any of these four tabs.
+    Regression: regressionRows.length,
+  };
+
+  const showRail =
+    (tab === "Execution" && selectedObjective !== null) ||
+    (tab === "Procedures" && selectedProcedure !== null) ||
+    (tab === "Runs" && selectedRun !== null);
+
+  const railTitle =
+    tab === "Execution"
+      ? "Objective"
+      : tab === "Procedures"
+        ? "Procedure"
+        : tab === "Runs"
+          ? "Run"
+          : "";
+
+  const railId =
+    tab === "Execution"
+      ? (selectedObjective?.objective ?? "")
+      : tab === "Procedures"
+        ? (selectedProcedure?.procedure.id ?? "")
+        : (selectedRun?.run.id ?? "");
+
+  const closeRail = () => {
+    if (tab === "Execution") setObjective(null);
+    else if (tab === "Procedures") setProcedure(null);
+    else setRun(null);
+  };
+
+  const blocked = selectedRun ? completionBlockedBy(selectedRun.run.id) : null;
+
+  return (
+    <>
+      <Stack space="space.200" className="min-w-0">
+        <PageHeader>
+          <Breadcrumb className="col-span-full">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/campaigns" />}>Test campaigns</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{campaign.id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="min-w-0">
+            <PageHeader.Title>{campaign.name}</PageHeader.Title>
+            <Inline
+              space="space.100"
+              alignBlock="center"
+              shouldWrap
+              className="pt-050 font-body-small text-subtle"
+            >{`${campaign.program} · ${campaign.trigger} · ${campaign.gate} gate · lead ${campaign.lead} · ${campaign.opened} → ${campaign.target}`}</Inline>
+          </div>
+          <PageHeader.Actions>
+            <>
+              <Badge variant="secondary" tone={statusTone(state)}>
+                {state}
+              </Badge>
+              {disagreements.length > 0 ? (
+                <Badge variant="secondary" tone="warning">
+                  {disagreements.length} declared{" "}
+                  {disagreements.length === 1 ? "result disagrees" : "results disagree"}
+                </Badge>
+              ) : null}
+              {execution.unproceduredObjectives.length > 0 ? (
+                <Badge variant="secondary" tone="danger">
+                  {execution.unproceduredObjectives.length} without a procedure
+                </Badge>
+              ) : null}
+            </>
+          </PageHeader.Actions>
+          <div className="col-span-full">
+            <p className="max-w-layout-measure font-body text-subtle">{campaign.scope}</p>
+          </div>
+        </PageHeader>
+        <Tabs value={tab} onValueChange={(value) => go(value as typeof tab)} className="gap-150">
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+            {campaignTabs.map((t) => (
+              <TabsTrigger key={t} value={t}>
+                {t}
+                {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={tab}>
+            <Stack space="space.300" className="min-w-0 pt-200">
+              {tab === "Execution" ? (
+                <>
+                  {objectiveRows.length > 0 ? (
+                    <ExecutionSummary
+                      execution={execution}
+                      gaps={gaps}
+                      disagreements={disagreements}
+                    />
+                  ) : null}
+
+                  <Section
+                    title="Declared result versus executed result"
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {objectiveRows.length} objectives · {events.length} events
+                      </span>
+                    }
+                  >
+                    <ObjectiveExecutionTable
+                      rows={objectiveRows}
+                      selected={objective}
+                      onSelect={(row) =>
+                        setObjective((current) =>
+                          current === row.objective ? null : row.objective,
+                        )
+                      }
+                    />
+                  </Section>
+                </>
+              ) : null}
+              {tab === "Procedures" ? (
+                <>
+                  <Section
+                    title="Written procedures"
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {procedureRows.length} procedures · {execution.withProcedure} of{" "}
+                        {objectiveRows.length} objectives covered
+                      </span>
+                    }
+                  >
+                    <ProcedureList
+                      rows={procedureRows}
+                      selected={procedure}
+                      onSelect={(row) =>
+                        setProcedure((current) =>
+                          current === row.procedure.id ? null : row.procedure.id,
+                        )
+                      }
+                    />
+                  </Section>
+
+                  {selectedProcedure ? (
+                    <>
+                      <Section
+                        title={
+                          <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
+                            <Id>{selectedProcedure.procedure.id}</Id>
+                            <span>Preconditions</span>
+                          </Inline>
+                        }
+                        description="What has to be true before the first step is taken. A run started outside these conditions does not prove the objective."
+                      >
+                        <Box paddingBlockStart="space.100">
+                          <PreconditionList items={selectedProcedure.procedure.preconditions} />
+                        </Box>
+                      </Section>
+
+                      <Section
+                        title="Steps"
+                        description={`${selectedProcedure.procedure.steps.length} steps · ${selectedProcedure.procedure.duration} minutes · ${selectedProcedure.procedure.method} · ${selectedProcedure.procedure.author} ${selectedProcedure.procedure.version}`}
+                      >
+                        <StepTable steps={selectedProcedure.procedure.steps} />
+                      </Section>
+                    </>
+                  ) : procedureRows.length > 0 ? (
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"Select a procedure"}</EmptyTitle>
+                        <EmptyDescription>
+                          {
+                            "Open a row above to read its preconditions and the step-by-step action, pass criterion and artifact to collect."
+                          }
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  ) : null}
+                </>
+              ) : null}
+              {tab === "Runs" ? (
+                <>
+                  <Section
+                    title="Runs"
+                    action={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {runRows.filter((r) => r.run.state === "Complete").length} complete of{" "}
+                        {runRows.length}
+                      </span>
+                    }
+                  >
+                    <RunTable
+                      rows={runRows}
+                      selected={run}
+                      onSelect={(row) =>
+                        setRun((current) => (current === row.run.id ? null : row.run.id))
+                      }
+                    />
+                  </Section>
+
+                  {selectedRun ? (
+                    <RunRecordView
+                      run={selectedRun.run}
+                      procedure={selectedRun.procedure}
+                      verdict={selectedRun.verdict}
+                      blockedReason={blocked}
+                      onComplete={() => setRunState(selectedRun.run.id, "Complete")}
+                    />
+                  ) : runRows.length > 0 ? (
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>{"Select a run"}</EmptyTitle>
+                        <EmptyDescription>
+                          {
+                            "Open a row above to read every step record: what was observed, what was collected, and why the verdict is what it is."
+                          }
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  ) : null}
+                </>
+              ) : null}
+              {tab === "Regression" ? (
+                <Section
+                  title="Step movement across retests"
+                  action={
+                    <span className="tabular-nums font-body-small text-subtle">
+                      {regressionRows.filter((r) => r.state === "Regressed").length} regressed ·{" "}
+                      {regressionRows.filter((r) => r.state === "Fixed").length} fixed
+                    </span>
+                  }
+                >
+                  <RegressionTable rows={regressionRows} />
+                </Section>
+              ) : null}
+              <Section title="Events under this campaign">
+                {events.length === 0 ? (
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyTitle>{"This campaign has no events"}</EmptyTitle>
+                      <EmptyDescription>{`${campaign.id} was opened on the ${campaign.trigger.toLowerCase()} trigger but nothing was scheduled under it, so no objective is in scope and nothing can be executed.`}</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : (
+                  <Stack className="pt-100" space="space.100">
+                    {events.map((e) => (
+                      <Inline
+                        key={e.id}
+                        space="space.150"
+                        rowSpace="space.050"
+                        alignBlock="baseline"
+                        shouldWrap
+                      >
+                        <TextLink
+                          className="shrink-0"
+                          render={
+                            <Link to="/campaigns" aria-label={`Back to campaigns for ${e.id}`} />
+                          }
+                        >
+                          <Id>{e.id}</Id>
+                        </TextLink>
+                        <span className="font-body font-medium">{e.name}</span>
+                        <Badge variant="secondary" tone={statusTone(assessmentEventState(e))}>
+                          {assessmentEventState(e)}
+                        </Badge>
+                        <span className="font-body-small text-subtle">{e.kind}</span>
+                        <span className="tabular-nums font-body-small text-subtle">{e.window}</span>
+                        <span className="font-body-small text-subtle">{e.team}</span>
+                      </Inline>
+                    ))}
+                  </Stack>
+                )}
+              </Section>
+            </Stack>
+          </TabsContent>
+        </Tabs>
+      </Stack>
+      {showRail ? (
+        <Shell.Panel label="Details" onClose={closeRail}>
+          {showRail ? (
+            <div>
+              <Inline className="pb-150" space="space.100" alignBlock="center">
+                <Eyebrow as="span">{railTitle}</Eyebrow>
+                <Id>{railId}</Id>
+                <button
+                  onClick={closeRail}
+                  className="ml-auto font-body-small text-subtle hover:text-default"
+                >
+                  Close
+                </button>
+              </Inline>
+              {tab === "Execution" && selectedObjective ? (
+                <ObjectiveRail row={selectedObjective} />
+              ) : null}
+              {tab === "Procedures" && selectedProcedure ? (
+                <ProcedureRail row={selectedProcedure} />
+              ) : null}
+              {tab === "Runs" && selectedRun ? <RunRail row={selectedRun} /> : null}
+            </div>
+          ) : null}
+        </Shell.Panel>
+      ) : null}
+    </>
+  );
+}

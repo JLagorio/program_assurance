@@ -303,6 +303,11 @@
   --ds-dimension-row-menu: 28px;
   --ds-dimension-icon-small: 14px;
   --ds-dimension-icon-medium: 16px;
+  --ds-dimension-breakpoint-md: 48rem;
+  --ds-dimension-breakpoint-lg: 64rem;
+  --ds-dimension-breakpoint-aside: 75rem;
+  --ds-dimension-breakpoint-panel: 80rem;
+  --ds-dimension-breakpoint-wide: 110rem;
   --ds-dimension-layout-sidenav: 228px;
   --ds-dimension-layout-topnav: 48px;
   --ds-dimension-layout-banner: 48px;

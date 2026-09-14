@@ -5,6 +5,7 @@ import { ChevronDown, Plus } from "lucide-react";
 import {
   Badge,
   Button,
+  DataTable,
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -30,6 +31,10 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  Text,
+  defineColumns,
+  useDataTable,
+  type Tone,
 } from "../..";
 
 const meta = { title: "Layout/Pages", parameters: { layout: "fullscreen" } } satisfies Meta;
@@ -88,10 +93,10 @@ function RecordPage() {
     <RecordContext.Provider value="Alex Morgan">
       <Stack space="space.200">
         <PageHeader>
-          <div>
+          <PageHeader.Heading>
             <PageHeader.Title>Review privileged access</PageHeader.Title>
             <PageHeader.Description>REQ-104 · Access management</PageHeader.Description>
-          </div>
+          </PageHeader.Heading>
           <PageHeader.Actions>
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />} />}>
@@ -217,7 +222,103 @@ function Queue() {
   );
 }
 
-function Workspace({ initial = "record" }: { initial?: "record" | "queue" }) {
+type Risk = {
+  id: string;
+  title: string;
+  status: "Open" | "Mitigated" | "Accepted";
+  owner: string;
+  updated: string;
+};
+const riskTitles = [
+  "A password on its own reaches the flightline",
+  "Payload telemetry maintenance happens outside the work-order gate",
+  "Unlisted hardware was announced onto the internal segment",
+  "Primary and alternate bearers converge on one switch port group",
+];
+const riskOwners = ["Alex Morgan", "Dana Whitfield", "Marcus Ryde", "Priya Raghavan"];
+const riskStatuses: Risk["status"][] = ["Open", "Open", "Mitigated", "Accepted"];
+const riskTone: Record<Risk["status"], Tone> = {
+  Open: "warning",
+  Mitigated: "success",
+  Accepted: "neutral",
+};
+const risks: Risk[] = Array.from({ length: 60 }, (_, i) => ({
+  id: `RSK-${100 + i}`,
+  title: riskTitles[i % riskTitles.length] ?? "",
+  status: riskStatuses[(i * 3) % riskStatuses.length] ?? "Open",
+  owner: riskOwners[(i * 7) % riskOwners.length] ?? "",
+  updated: `2026-0${1 + (i % 9)}-${String(1 + (i % 28)).padStart(2, "0")}`,
+}));
+const riskColumns = defineColumns<Risk>((c) => [
+  c.id("id"),
+  c.text("title", { header: "Risk", minWidth: 240 }),
+  c.status("status", { header: "Status", tone: (r) => riskTone[r.status] }),
+  c.person("owner", { header: "Owner" }),
+  c.date("updated", { header: "Updated", width: 120 }),
+]);
+
+/** A record's register tab: the header, the tab strip, a section heading, and the register filling the rest of the window. A note added above it re-fits the page. */
+function RegisterPage() {
+  const [noted, setNoted] = useState(false);
+  const table = useDataTable({
+    columns: riskColumns,
+    data: risks,
+    getRowId: (r) => r.id,
+    pageSize: 20,
+    label: "Risks",
+  });
+  return (
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <PageHeader.Heading>
+          <PageHeader.Title>WS-X90 Sentinel Mission System</PageHeader.Title>
+          <PageHeader.Description>PRG-1090 · Program</PageHeader.Description>
+        </PageHeader.Heading>
+        <PageHeader.Actions>
+          <Button onClick={() => setNoted(true)}>Add note</Button>
+        </PageHeader.Actions>
+      </PageHeader>
+      <Tabs value="risk">
+        <TabsList variant="line" aria-label="Program sections">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="risk">Risk</TabsTrigger>
+        </TabsList>
+        <TabsContent value="risk">
+          <Stack space="space.150" className="pt-200">
+            {noted && (
+              <Text role="status">The register was reviewed on 12 Sep 2026; no risk was closed.</Text>
+            )}
+            <Section title="Risk register">
+              <DataTable
+                fill
+                table={table}
+                toolbar={
+                  <Inline space="space.100" alignBlock="center" shouldWrap>
+                    <DataTable.Search table={table} placeholder="Find risks" />
+                    <DataTable.Filter table={table} column="status" />
+                    <Inline className="ml-auto" space="space.100" alignBlock="center">
+                      <DataTable.Columns table={table} />
+                      <Button size="small" variant="primary" iconBefore={<Plus />}>
+                        Record risk
+                      </Button>
+                    </Inline>
+                  </Inline>
+                }
+                empty={{ title: "No risks yet" }}
+              />
+            </Section>
+          </Stack>
+        </TabsContent>
+      </Tabs>
+    </Stack>
+  );
+}
+
+function Workspace({
+  initial = "record",
+}: {
+  initial?: "record" | "queue" | "register";
+}) {
   const [route, setRoute] = useState(initial);
   return (
     <Shell>
@@ -229,10 +330,13 @@ function Workspace({ initial = "record" }: { initial?: "record" | "queue" }) {
           <Inline space="space.100">
             <Button onClick={() => setRoute("record")}>Record route</Button>
             <Button onClick={() => setRoute("queue")}>Queue route</Button>
+            <Button onClick={() => setRoute("register")}>Register route</Button>
           </Inline>
         </Shell.TopNav.Middle>
       </Shell.TopNav>
-      <Shell.Main>{route === "record" ? <RecordPage /> : <Queue />}</Shell.Main>
+      <Shell.Main>
+        {route === "record" ? <RecordPage /> : route === "queue" ? <Queue /> : <RegisterPage />}
+      </Shell.Main>
     </Shell>
   );
 }
@@ -279,7 +383,7 @@ export const Record: Story = {
 };
 
 export const QueueWithPanel: Story = {
-  globals: { viewport: { value: "layoutWide", isRotated: false } },
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
   render: () => <Workspace initial="queue" />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -303,6 +407,15 @@ export const QueueWithPanel: Story = {
       "Request evidence",
     );
     if (wide) {
+      // Beside the page the panel is the full height of the window; the top nav stops at its edge.
+      await waitFor(() => {
+        const box = panel.getBoundingClientRect();
+        expect(box.top).toBe(0);
+        expect(Math.abs(box.height - window.innerHeight)).toBeLessThanOrEqual(1);
+        expect(
+          canvas.getByRole("banner", { name: "Top navigation" }).getBoundingClientRect().right,
+        ).toBeLessThanOrEqual(box.left + 1);
+      });
       const resize = canvas.getByRole("separator", { name: "Resize details" });
       resize.focus();
       const before = Number(resize.getAttribute("aria-valuenow"));
@@ -326,6 +439,38 @@ export const QueueWithPanel: Story = {
     await expect(
       canvas.getByRole("heading", { level: 1, name: "Review privileged access" }),
     ).toBeVisible();
+  },
+};
+
+/** The register that is the page, inside the shell: it fills the window under the header and the tabs, the pagination sits at Main's bottom inset, and a note added above it keeps the fit. */
+export const Register: Story = {
+  render: () => <Workspace initial="register" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frame = canvas.getByRole("table", { name: "Risks" }).parentElement!;
+    const fits = async () => {
+      await waitFor(() =>
+        expect(document.documentElement.scrollHeight).toBeLessThanOrEqual(window.innerHeight),
+      );
+      const pagination = canvas.getByRole("navigation", { name: /pagination/i });
+      await expect(pagination.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        window.innerHeight,
+      );
+      await expect(frame.scrollHeight).toBeGreaterThan(frame.clientHeight);
+    };
+    await fits();
+    frame.scrollTop = 200;
+    const header = canvas.getAllByRole("columnheader")[0]!;
+    await waitFor(() =>
+      expect(
+        Math.abs(header.getBoundingClientRect().top - frame.getBoundingClientRect().top),
+      ).toBeLessThanOrEqual(1),
+    );
+    const before = frame.clientHeight;
+    await userEvent.click(canvas.getByRole("button", { name: "Add note" }));
+    await expect(canvas.getByText(/The register was reviewed/)).toBeVisible();
+    await waitFor(() => expect(frame.clientHeight).toBeLessThan(before));
+    await fits();
   },
 };
 

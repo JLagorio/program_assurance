@@ -3,26 +3,54 @@ export {
   useSideNav,
   type AppLogoProps,
   type AppSwitcherProps,
+  type IconComponent,
   type ProfileProps,
   type ShellAsideProps,
   type ShellBannerProps,
   type ShellMainProps,
+  type ShellMarkProps,
+  type ShellPanelActionsProps,
+  type ShellPanelBodyProps,
+  type ShellPanelCloseProps,
+  type ShellPanelHeaderProps,
   type ShellPanelProps,
+  type ShellPanelTitleProps,
   type ShellProps,
   type ShellSplitterProps,
   type ShellTopNavEndProps,
   type ShellTopNavMiddleProps,
   type ShellTopNavProps,
   type ShellTopNavStartProps,
+  type SideNavBodyProps,
   type SideNavExpandableProps,
+  type SideNavFooterProps,
+  type SideNavHeaderProps,
+  type SideNavIcon,
   type SideNavItemProps,
   type SideNavProps,
   type SideNavSectionProps,
   type SideNavSlotProps,
   type SideNavToggleButtonProps,
+  type SideNavTrigger,
 } from "./shell";
 export { SHELL_STORAGE_KEY, shellScript, shellScriptFor, type ShellStored } from "./storage";
 
-export { PageHeader, type PageHeaderProps } from "./page-header";
+export {
+  PageHeader,
+  type PageHeaderActionsProps,
+  type PageHeaderDescriptionProps,
+  type PageHeaderHeadingProps,
+  type PageHeaderLeadProps,
+  type PageHeaderProps,
+  type PageHeaderTitleProps,
+} from "./page-header";
 export { PageSkeleton, type PageSkeletonProps } from "./page-skeleton";
-export { Section, type SectionProps } from "./section";
+export {
+  Section,
+  type SectionActionsProps,
+  type SectionDescriptionProps,
+  type SectionHeaderProps,
+  type SectionHeadingProps,
+  type SectionProps,
+  type SectionTitleProps,
+} from "./section";

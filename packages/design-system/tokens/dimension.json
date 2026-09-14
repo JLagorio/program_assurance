@@ -47,6 +47,28 @@
         "$description": "Standalone icon, icon button glyph."
       }
     },
+    "breakpoint": {
+      "md": {
+        "$value": "48rem",
+        "$description": "Tailwind's md, 768px. The product folds the top nav's end items into a menu below it."
+      },
+      "lg": {
+        "$value": "64rem",
+        "$description": "Tailwind's lg, 1024px. The side nav is inline from here and an overlay below."
+      },
+      "aside": {
+        "$value": "75rem",
+        "$description": "1200px. The aside sits beside Main from here while no panel is open; below, it follows Main."
+      },
+      "panel": {
+        "$value": "80rem",
+        "$description": "1280px. The panel is a full-height column beside the page from here; below, it replaces Main under the top nav."
+      },
+      "wide": {
+        "$value": "110rem",
+        "$description": "1760px. The aside sits beside Main even while a panel is open."
+      }
+    },
     "layout": {
       "sidenav": {
         "$value": "228px",

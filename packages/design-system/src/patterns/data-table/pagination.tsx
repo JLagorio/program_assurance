@@ -6,6 +6,7 @@ import {
   PaginationItem,
   PaginationEllipsis,
 } from "../../components/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/select";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 
@@ -15,16 +16,21 @@ type TablePaginationProps = {
   onPageChange: (page: number) => void;
   total?: number | undefined;
   pageSize?: number | undefined;
+  /** The sizes the reader can choose from; the choice shows when there is more than one. */
+  pageSizes?: number[] | undefined;
+  onPageSizeChange?: ((size: number) => void) | undefined;
   label?: string | undefined;
   className?: string | undefined;
 };
-/** Table state and row counts belong to the pattern. In-memory paging uses buttons; URL navigation uses PaginationLink. */
+/** Table state and row counts belong to the pattern. In-memory paging uses buttons; URL navigation uses PaginationLink. The range first, then Rows per page, then the pager at the end. */
 export function TablePagination({
   page,
   pageCount,
   onPageChange,
   total,
   pageSize,
+  pageSizes,
+  onPageSizeChange,
   label,
   className,
 }: TablePaginationProps) {
@@ -42,6 +48,29 @@ export function TablePagination({
             : t("rowRange", { from: num(from), to: num(to), total: num(total) })}
         </span>
       )}
+      {pageSizes && pageSizes.length > 1 && onPageSizeChange && pageSize !== undefined ? (
+        <Select<number>
+          value={pageSize}
+          onValueChange={(value) => {
+            if (typeof value === "number") onPageSizeChange(value);
+          }}
+          items={pageSizes.map((size) => ({
+            value: size,
+            label: t("perPage", { count: num(size) }),
+          }))}
+        >
+          <SelectTrigger size="sm" aria-label={t("rowsPerPage")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false} aria-label={t("rowsPerPage")}>
+            {pageSizes.map((size) => (
+              <SelectItem key={size} value={size} label={t("perPage", { count: num(size) })}>
+                {t("perPage", { count: num(size) })}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
       <Pagination
         aria-label={label ?? t("pagination")}
         className="ms-auto w-auto"

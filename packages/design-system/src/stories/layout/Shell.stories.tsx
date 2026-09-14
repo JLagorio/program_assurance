@@ -5,6 +5,8 @@ import {
   Boxes,
   Bug,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   CircleHelp,
   ClipboardList,
   Command as CommandIcon,
@@ -17,7 +19,6 @@ import {
   Settings,
   ShieldAlert,
   ShieldCheck,
-  X,
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
@@ -50,6 +51,18 @@ import {
   BreadcrumbLink,
   Button,
   Count,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   IconButton,
   InputGroup,
   InputGroupAddon,
@@ -64,7 +77,7 @@ import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
-  title: "Shell",
+  title: "Layout/Shell",
   parameters: { layout: "fullscreen" },
 } satisfies Meta;
 export default meta;
@@ -154,11 +167,13 @@ function Demo({
   banner = false,
   panel = false,
   collapsed = false,
+  dialog = false,
   persist,
 }: {
   banner?: boolean;
   panel?: boolean;
   collapsed?: boolean;
+  dialog?: boolean;
   persist?: string | undefined;
 }) {
   const [showBanner, setShowBanner] = useState(banner);
@@ -173,7 +188,8 @@ function Demo({
         </Shell.Banner>
       ) : null}
       <Shell.TopNav>
-        <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
+        <Shell.TopNav.Start>
+          <Shell.SideNav.ToggleButton />
           <Shell.AppSwitcher onClick={() => undefined} />
           <Shell.AppLogo
             name="Equinox"
@@ -226,21 +242,21 @@ function Demo({
               </Avatar>
             }
             name="Sarah Chen"
-            role="Compliance lead"
+            description="Compliance lead"
             onClick={() => undefined}
           />
         </Shell.SideNav.Footer>
-        <Shell.SideNav.Splitter label="Resize side navigation" />
+        <Shell.SideNav.Splitter />
       </Shell.SideNav>
       <Shell.Main>
         <PageHeader>
-          <div className="col-span-full font-body text-subtle">{"Work"}</div>
-          <div className="min-w-0">
+          <PageHeader.Lead className="font-body text-subtle">{"Work"}</PageHeader.Lead>
+          <PageHeader.Heading>
             <PageHeader.Title>{"Programs"}</PageHeader.Title>
             <PageHeader.Description>
               {"Every programme in flight, with its phase and its next gate."}
             </PageHeader.Description>
-          </div>
+          </PageHeader.Heading>
           <PageHeader.Actions>
             <>
               <Button onClick={() => setShowBanner((v) => !v)}>
@@ -250,6 +266,23 @@ function Demo({
                 {showPanel ? "Close the panel" : "Open the panel"}
               </Button>
               <SideNavControls />
+              {dialog ? (
+                <Dialog>
+                  <DialogTrigger render={<Button />}>Archive the program</DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Archive the program</DialogTitle>
+                      <DialogDescription>
+                        While a dialog is open the side nav shortcut stays out of its way.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+                      <DialogClose render={<Button variant="primary" />}>Archive</DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              ) : null}
             </>
           </PageHeader.Actions>
         </PageHeader>
@@ -273,31 +306,14 @@ function Demo({
         </Stack>
       </Shell.Main>
       {showPanel ? (
-        <Shell.Panel label="Preview" onClose={() => setShowPanel(false)}>
-          <Inline
-            space="space.100"
-            alignBlock="center"
-            spread="space-between"
-            className="border-b border-default px-200 py-100"
-          >
-            <Text weight="medium">PRG-014 · Payload integration</Text>
-            <IconButton
-              label="Close preview"
-              variant="subtle"
-              onClick={() => setShowPanel(false)}
-              icon={<X />}
-            />
-          </Inline>
-          <Box padding="space.200">
-            <Stack space="space.150">
-              <Text color="color.text.subtle">
-                The selected record, a thread, or a form. The shell owns placement and focus.
-              </Text>
-              <Text>
-                Phase: Authorise. Owner: Sarah Chen. Next gate: SCA sign-off, 12 September.
-              </Text>
-            </Stack>
-          </Box>
+        <Shell.Panel title="PRG-014 · Payload integration" onClose={() => setShowPanel(false)}>
+          <Stack space="space.150">
+            <Text color="color.text.subtle">
+              The selected record, a thread, or a form. The shell owns placement, the heading, the
+              close and focus.
+            </Text>
+            <Text>Phase: Authorise. Owner: Sarah Chen. Next gate: SCA sign-off, 12 September.</Text>
+          </Stack>
         </Shell.Panel>
       ) : null}
     </Shell>
@@ -320,14 +336,117 @@ export const Frame: Story = {
     await expect(splitter).toHaveAttribute("aria-valuetext", `${initialWidth + 16} pixels wide`);
     await userEvent.keyboard("{ArrowLeft}");
     await waitFor(() => expect(Number(splitter.getAttribute("aria-valuenow"))).toBe(initialWidth));
+    // Home is the narrowest the side nav goes; End is the widest, half the window.
+    await userEvent.keyboard("{Home}");
+    await waitFor(() => expect(splitter).toHaveAttribute("aria-valuenow", "200"));
+    await userEvent.keyboard("{End}");
+    await waitFor(() =>
+      expect(splitter).toHaveAttribute("aria-valuenow", String(Math.round(window.innerWidth / 2))),
+    );
+    await userEvent.keyboard("{Home}");
+    await waitFor(() => expect(splitter).toHaveAttribute("aria-valuenow", "200"));
   },
 };
 
-/** A banner above the top nav and a panel beside the page. Both push the layout; neither covers it. */
-export const WithBannerAndPanel: Story = { render: () => <Demo banner panel /> };
+/** A banner above the top nav and a panel beside the page. Both push the layout; neither covers it. The panel is the full height of the window: the banner and the top nav stop at its edge. */
+export const WithBannerAndPanel: Story = {
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: () => <Demo banner panel />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const panel = await canvas.findByRole("complementary", {
+      name: "PRG-014 · Payload integration",
+    });
+    const banner = canvas.getByRole("region", { name: "Banner" });
+    const topNav = canvas.getByRole("banner", { name: "Top navigation" });
+    if (!window.matchMedia("(min-width: 80rem)").matches) return;
+    await waitFor(() => {
+      const box = panel.getBoundingClientRect();
+      expect(box.top).toBe(0);
+      expect(Math.abs(box.height - window.innerHeight)).toBeLessThanOrEqual(1);
+      expect(banner.getBoundingClientRect().right).toBeLessThanOrEqual(box.left + 1);
+      expect(topNav.getBoundingClientRect().right).toBeLessThanOrEqual(box.left + 1);
+    });
+  },
+};
 
 /** Collapsed on first render. Hover the toggle for the flyout; Ctrl+[ toggles. */
 export const Collapsed: Story = { render: () => <Demo collapsed /> };
+
+/** Ctrl+[ toggles the side nav from anywhere on the page, except while a dialog is open. */
+export const Shortcut: Story = {
+  name: "Side nav shortcut",
+  render: () => <Demo dialog />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    if (!window.matchMedia("(min-width: 64rem)").matches) return;
+    const toggle = canvas.getByRole("button", { name: "Collapse side navigation" });
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    // user-event reads a bare "[" as the start of a key code; "[[" is the character.
+    const shortcut = () => userEvent.keyboard("{Control>}[[{/Control}");
+    await shortcut();
+    await waitFor(() => expect(toggle).toHaveAttribute("aria-expanded", "false"));
+    await shortcut();
+    await waitFor(() => expect(toggle).toHaveAttribute("aria-expanded", "true"));
+    // Not while a dialog is open: the same keys leave the side nav alone.
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Archive the program" }));
+    const dialog = await body.findByRole("dialog", { name: "Archive the program" });
+    await shortcut();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    // Released once the dialog has gone.
+    await shortcut();
+    await waitFor(() => expect(toggle).toHaveAttribute("aria-expanded", "false"));
+    await shortcut();
+    await waitFor(() => expect(toggle).toHaveAttribute("aria-expanded", "true"));
+  },
+};
+
+/** Visually hidden links come first in the tab order, one per area; each moves focus to its area. */
+export const SkipLinks: Story = {
+  name: "Skip links",
+  render: () => <Demo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument;
+    const nav = canvas.getByRole("navigation", { name: /skip to/i });
+    await expect(within(nav).getAllByRole("link")).toHaveLength(3);
+    // From the top of the document, the first Tab lands on the first skip link.
+    if (doc.activeElement instanceof HTMLElement) doc.activeElement.blur();
+    await userEvent.tab();
+    await expect(canvas.getByRole("link", { name: /skip to top navigation/i })).toHaveFocus();
+    await userEvent.click(canvas.getByRole("link", { name: /skip to main content/i }));
+    await expect(canvas.getByRole("main")).toHaveFocus();
+  },
+};
+
+/** Dropping the banner pulls the top nav to the top of the window; raising it pushes the top nav down by the banner's height. */
+export const BannerToggle: Story = {
+  name: "Banner toggle",
+  render: () => <Demo banner />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const topNav = canvas.getByRole("banner", { name: "Top navigation" });
+    const banner = () => canvas.queryByRole("region", { name: "Banner" });
+    await expect(banner()).toBeInTheDocument();
+    await waitFor(() => expect(topNav.getBoundingClientRect().top).toBe(48));
+    await userEvent.click(canvas.getByRole("button", { name: "Drop the banner" }));
+    await waitFor(() => {
+      expect(banner()).not.toBeInTheDocument();
+      expect(topNav.getBoundingClientRect().top).toBe(0);
+    });
+    await userEvent.click(canvas.getByRole("button", { name: "Raise a banner" }));
+    await waitFor(() => {
+      const region = banner();
+      expect(region).toBeInTheDocument();
+      expect(region?.getBoundingClientRect().height).toBe(48);
+      expect(topNav.getBoundingClientRect().top).toBe(48);
+    });
+  },
+};
 
 const storyKey = `${SHELL_STORAGE_KEY}.story`;
 /** Collapse it, drag it, reload: the browser remembers. The shell script for the head is `shellScript`, or `shellScriptFor(key)` for a key of your own. The head script is not in Storybook, so here the side nav may flash on reload; in an app with the script it does not. */
@@ -339,6 +458,30 @@ export const Remembered: Story = {
         story: `Stored under ${storyKey}. Head script: ${shellScriptFor(storyKey).length} characters; the default is shellScript (${shellScript.length}).`,
       },
     },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    if (!window.matchMedia("(min-width: 64rem)").matches) return;
+    const sideNav = () => canvas.queryByRole("navigation", { name: "Side navigation" });
+    // Start expanded, whatever the last run left in storage.
+    const expand = canvas.queryByRole("button", { name: "Expand side navigation" });
+    if (expand) await userEvent.click(expand);
+    await waitFor(() => expect(sideNav()).toBeVisible());
+    await userEvent.click(canvas.getByRole("button", { name: "Collapse side navigation" }));
+    await waitFor(() => expect(sideNav()).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(JSON.parse(localStorage.getItem(storyKey) ?? "{}").collapsed).toBe(true),
+    );
+    // The flyout still shows while the browser remembers the side nav collapsed.
+    const toggle = canvas.getByRole("button", { name: "Expand side navigation" });
+    await userEvent.hover(toggle);
+    await waitFor(() => expect(sideNav()).toBeVisible());
+    await userEvent.unhover(toggle);
+    await waitFor(() => expect(sideNav()).not.toBeInTheDocument());
+    // Leave it as found.
+    await userEvent.click(toggle);
+    await waitFor(() => expect(sideNav()).toBeVisible());
+    localStorage.removeItem(storyKey);
   },
 };
 
@@ -462,13 +605,13 @@ export const ShellMatrix: Story = {
                 </Avatar>
               }
               name="Sarah Chen"
-              role="Compliance lead"
+              description="Compliance lead"
               onClick={() => undefined}
             />
           </Box>
         </Inline>
       </Specimens>
-      <Specimens title="Top nav end items, a list that folds into More below the medium breakpoint">
+      <Specimens title="Top nav end items, a named group of icon buttons">
         <Box className="rounded-medium border border-default" backgroundColor="elevation.surface">
           <Shell.TopNav.End>
             <EndItems />
@@ -554,7 +697,7 @@ function RecordDemo() {
       <Shell.Main>
         <Stack space="space.200" className="min-w-0">
           <PageHeader>
-            <Breadcrumb className="col-span-full">
+            <PageHeader.Lead render={<Breadcrumb />}>
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
@@ -566,13 +709,13 @@ function RecordDemo() {
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
-            </Breadcrumb>
-            <div className="min-w-0">
+            </PageHeader.Lead>
+            <PageHeader.Heading>
               <PageHeader.Title>{"Payload integration"}</PageHeader.Title>
               <div className="pt-050 flex flex-wrap items-center gap-100 font-body-small text-subtle">
                 {"Authorise · Sarah Chen"}
               </div>
-            </div>
+            </PageHeader.Heading>
             <PageHeader.Actions>
               <>
                 <Button>Export</Button>
@@ -640,6 +783,109 @@ function RecordDemo() {
 
 /** Context occupies Aside; selected work occupies Panel; modal flows use Sheet. */
 export const RecordRail: Story = { name: "Record rail", render: () => <RecordDemo /> };
+
+/** The panel from its parts instead of `title` and `actions`: the header, the title at another level, the actions, the close, the body, the splitter with a name of its own. Without a title, the landmark's name is its `label`. */
+function ComposedPanelDemo({ titled = true }: { titled?: boolean }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <Shell>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Shell.SideNav.ToggleButton />
+          <Shell.AppLogo name="Equinox" render={<a href="#home" aria-label="Equinox home" />} />
+        </Shell.TopNav.Start>
+        <Shell.TopNav.Middle>
+          <Button onClick={() => setOpen(true)}>Open the panel</Button>
+        </Shell.TopNav.Middle>
+      </Shell.TopNav>
+      <Shell.SideNav>
+        <Shell.SideNav.Body>
+          <Nav />
+        </Shell.SideNav.Body>
+      </Shell.SideNav>
+      <Shell.Main>
+        <Stack space="space.300">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>Programs</PageHeader.Title>
+            </PageHeader.Heading>
+          </PageHeader>
+          <Section title="In flight" count={programs.length}>
+            <Text color="color.text.subtle">
+              The page's h2, so the panel's h3 follows in order.
+            </Text>
+          </Section>
+        </Stack>
+      </Shell.Main>
+      {open ? (
+        <Shell.Panel label="Preview" onClose={() => setOpen(false)} className="bg-surface-sunken">
+          <Shell.Panel.Splitter label="Resize preview" />
+          <Shell.Panel.Header className="bg-surface-sunken">
+            {titled ? (
+              <>
+                <Shell.Panel.Title render={<h3 />}>PRG-014 · Payload integration</Shell.Panel.Title>
+                <Shell.Panel.Actions>
+                  <IconButton
+                    label="Previous"
+                    variant="subtle"
+                    size="small"
+                    icon={<ChevronLeft />}
+                  />
+                  <IconButton label="Next" variant="subtle" size="small" icon={<ChevronRight />} />
+                </Shell.Panel.Actions>
+              </>
+            ) : null}
+            <Shell.Panel.Close label="Close preview" />
+          </Shell.Panel.Header>
+          <Shell.Panel.Body className="p-300">
+            <Text color="color.text.subtle">
+              The body's padding, the header's surface, the heading's level and the labels are the
+              route's here.
+            </Text>
+          </Shell.Panel.Body>
+        </Shell.Panel>
+      ) : null}
+    </Shell>
+  );
+}
+
+export const ComposedPanel: Story = {
+  name: "Composed panel",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: () => <ComposedPanelDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const name = "PRG-014 · Payload integration";
+    const panel = await canvas.findByRole("complementary", { name });
+    await expect(within(panel).getByRole("heading", { level: 3 })).toBeVisible();
+    await expect(
+      within(panel).getByRole("separator", { name: "Resize preview" }),
+    ).toBeInTheDocument();
+    await expect(within(panel).getByRole("button", { name: "Next" })).toBeVisible();
+    const opener = canvas.getByRole("button", { name: "Open the panel" });
+    await userEvent.click(within(panel).getByRole("button", { name: "Close preview" }));
+    await waitFor(() =>
+      expect(canvas.queryByRole("complementary", { name })).not.toBeInTheDocument(),
+    );
+    await userEvent.click(opener);
+    await canvas.findByRole("complementary", { name });
+  },
+};
+
+/** The parts without a title: the landmark is named by `label`, not by a heading. */
+export const LabelledPanel: Story = {
+  name: "Labelled panel",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: () => <ComposedPanelDemo titled={false} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const panel = await canvas.findByRole("complementary", { name: "Preview" });
+    await expect(panel).toHaveAttribute("aria-label", "Preview");
+    await expect(panel).not.toHaveAttribute("aria-labelledby");
+    await expect(within(panel).queryByRole("heading")).toBeNull();
+    await expect(within(panel).getByRole("button", { name: "Close preview" })).toBeVisible();
+  },
+};
 
 /** A side nav column on its own, for a pair. */
 function NavBox({ children }: { children: React.ReactNode }) {
@@ -754,7 +1000,7 @@ export const Dont: Story = {
   ),
 };
 
-/** Slot actions and landmark labels retain the contract of the product-supplied props. */
+/** Every part forwards its native props and its ref: an area takes a data attribute, the toggle a ref, the profile is a menu's trigger through render. */
 export const Forwarding: Story = {
   render: () => <ForwardingExample />,
   play: async ({ canvasElement }) => {
@@ -763,6 +1009,20 @@ export const Forwarding: Story = {
       "id",
       "account-content",
     );
+    await expect(canvas.getByRole("banner", { name: "Top navigation" })).toHaveAttribute(
+      "data-testid",
+      "nav",
+    );
+    // The end slot's children as given: the mode switch's three buttons and three icon buttons, no list around them.
+    const actions = canvas.getByRole("group", { name: "Actions" });
+    await expect(actions.querySelectorAll("button")).toHaveLength(6);
+    await expect(actions.querySelector("li")).toBeNull();
+    await expect(canvas.getByText("Toggle is a button")).toBeVisible();
+    const profile = canvas.getByRole("button", { name: /Sarah Chen/ });
+    await userEvent.click(profile);
+    await within(canvasElement.ownerDocument.body).findByRole("menuitem", { name: "Sign out" });
+    await waitFor(() => expect(profile).toHaveAttribute("aria-expanded", "true"));
+    await userEvent.keyboard("{Escape}");
     await userEvent.click(canvas.getByRole("button", { name: "Account console" }));
     await expect(canvas.getByText("Opened 1 time")).toBeVisible();
     await userEvent.keyboard(" ");
@@ -786,10 +1046,48 @@ export const Forwarding: Story = {
 function ForwardingExample() {
   const [count, setCount] = useState(0);
   const [navigated, setNavigated] = useState(0);
+  const [toggleIsButton, setToggleIsButton] = useState(false);
   const rootRef = useRef<HTMLAnchorElement>(null);
   const linkRef = useRef<HTMLAnchorElement>(null);
   return (
     <Stack>
+      <Shell.TopNav data-testid="nav">
+        <Shell.TopNav.Start>
+          <Shell.SideNav.ToggleButton
+            ref={(node) => setToggleIsButton(node instanceof HTMLButtonElement)}
+          />
+          <Shell.AppLogo name="Equinox" />
+        </Shell.TopNav.Start>
+        <Shell.TopNav.End>
+          <EndItems />
+        </Shell.TopNav.End>
+      </Shell.TopNav>
+      <Text>{toggleIsButton ? "Toggle is a button" : "Toggle is not a button"}</Text>
+      <Box className="w-layout-sidenav">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Shell.Profile
+                avatar={
+                  <Avatar
+                    size="small"
+                    role="img"
+                    aria-label="Sarah Chen"
+                    hue={avatarHue("Sarah Chen")}
+                  >
+                    <AvatarFallback>{avatarInitials("Sarah Chen", 2)}</AvatarFallback>
+                  </Avatar>
+                }
+                name="Sarah Chen"
+                description="Compliance lead"
+              />
+            }
+          />
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem>Sign out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </Box>
       <Shell.AppLogo
         name="Account console"
         onClick={() => setCount((n) => n + 1)}

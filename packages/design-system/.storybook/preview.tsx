@@ -43,6 +43,7 @@ const preview: Preview = {
       options: {
         ledgerNarrow: { name: "Narrow (320 CSS px)", styles: { width: "320px", height: "900px" } },
         ledgerDesktop: { name: "Desktop", styles: { width: "1200px", height: "900px" } },
+        ledgerWide: { name: "Wide (1440 CSS px)", styles: { width: "1440px", height: "900px" } },
       },
     },
     backgrounds: { disable: true },

@@ -15,6 +15,7 @@ const valid = {
   visibility: { old: false, name: true },
   pinning: { start: ["name"], end: ["name", "old"] },
   density: "compact",
+  pageSize: 50,
 };
 test("rejects incomplete or malformed persisted view state", () => {
   for (const value of [
@@ -29,12 +30,16 @@ test("rejects incomplete or malformed persisted view state", () => {
     { ...valid, visibility: { name: "false" } },
     { ...valid, pinning: {} },
     { ...valid, density: "dense" },
+    { ...valid, pageSize: 0 },
+    { ...valid, pageSize: "20" },
+    { ...valid, pageSize: 2.5 },
     { ...valid, v: 2 },
   ])
     assert.equal(parseStoredView(value), null);
 });
 test("deduplicates pins and reconciles changed column IDs and width bounds", () => {
   const parsed = parseStoredView(valid);
+  assert.equal(parsed.pageSize, 50);
   assert.deepEqual(parsed.pinning, { start: ["name"], end: ["old"] });
   const restored = reconcileStoredView(parsed, [
     { id: "name", minSize: 80, maxSize: 240 },

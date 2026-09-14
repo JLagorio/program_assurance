@@ -1,178 +1,310 @@
+import { Box } from "@ledger/design-system";
+import { displayDate } from "@/components/prototype/work-format";
+import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-  Id,
+  Button,
   Inline,
+  Inspector,
   PageHeader,
+  Section,
   Shell,
   Stack,
+  Table,
 } from "@ledger/design-system";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo } from "react";
-
+import { useModelSave, useRow, useRows } from "@/lib/models";
+import { labelFor, type DataRecord } from "@/lib/records";
+import { useWorkspace } from "@/components/app/workspace";
 import {
-  Badge,
-  Box,
-  BreadcrumbLink,
-  Button,
-  Editable,
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-  Inspector,
-  Section,
-} from "@ledger/design-system";
+  DetailFacts,
+  EmptyState,
+  ModelForm,
+  QueryState,
+  SchemaLink,
+  StatusBadge,
+  type FormTarget,
+} from "@/components/prototype/work-common";
 
-import { RecordActivity } from "@/components/app/record-activity";
-import { stateTone, TaskProperties } from "@/components/app/task-table";
-import { useActivityVersion } from "@/lib/activity";
-import { currentSession } from "@/lib/control-work";
-import { programs } from "@/lib/grc-data";
-import { mentionablePeople } from "@/lib/people";
-import {
-  completeTask,
-  renameTask,
-  reopenTask,
-  setTaskNote,
-  taskById,
-  tasksRestored,
-  useTasksVersion,
-} from "@/lib/tasks";
-
-/**
- * The task record: the full page behind the panel. Header is the trail, the title and Complete;
- * the rail is the properties, every one edited in place; the body is the note and the task's own log.
- */
 export const Route = createFileRoute("/tasks/$taskId")({
-  loader: ({ params }) => {
-    // Browser-saved tasks are restored after mount; the server cannot decide
-    // whether a well-formed task ID exists in this user's workspace.
-    if (!/^TSK-\d+$/.test(params.taskId)) throw notFound();
-  },
-  head: ({ params }) => ({ meta: [{ title: `${params.taskId} — Equinox` }] }),
-  component: TaskPage,
+  component: TaskRoute,
+  head: () => ({ meta: [{ title: "Task — Equinox" }] }),
 });
-
-const noop = () => undefined;
-
-function TaskPage() {
+function TaskRoute() {
   const { taskId } = Route.useParams();
-  useTasksVersion();
-  useActivityVersion();
-  const task = taskById(taskId);
-  const me = currentSession().name;
-  const people = useMemo(
-    () => mentionablePeople(task?.program).map((p) => p.name),
-    [task?.program],
-  );
-  if (!task)
-    return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyTitle>{tasksRestored() ? "Task not found" : "Loading task"}</EmptyTitle>
-          <EmptyDescription>
-            {tasksRestored()
-              ? "This task is not available in this workspace."
-              : "Restoring your saved tasks."}
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    );
-  const program = programs.find((p) => p.id === task.program);
-  const done = task.state === "Done";
-
+  return <TaskDetail key={taskId} taskId={taskId} />;
+}
+function TaskDetail({ taskId }: { taskId: string }) {
+  const workspace = useWorkspace();
+  const taskQuery = useRow("tasks", taskId);
+  const task = taskQuery.data;
+  const program = useRow("programs", task?.program_id);
+  const workstream = useRow("workstreams", task?.workstream_id);
+  const assignments = useRows("task_assignments", { task_id: taskId });
+  const parties = useRows("parties");
+  const comments = useRows("comments", { task_id: taskId });
+  const activity = useRows("activity_events", { task_id: taskId });
+  const save = useModelSave("tasks");
+  const [form, setForm] = useState<FormTarget | null>(null);
+  const [error, setError] = useState("");
+  const me = parties.data?.find((party) => party.auth_user_id === workspace.userId);
+  async function toggleDone() {
+    if (!task || save.isPending) return;
+    setError("");
+    try {
+      await save.mutateAsync({
+        id: task.id,
+        revision: task.revision,
+        values: {
+          status: task.status === "done" ? "open" : "done",
+          completed_at: task.status === "done" ? null : new Date().toISOString(),
+        },
+      });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The task could not be saved.");
+    }
+  }
   return (
     <Stack space="space.200" className="min-w-0">
-      <PageHeader>
-        <Breadcrumb className="col-span-full">
-          <BreadcrumbList>
-            <>
-              <BreadcrumbItem>
-                <BreadcrumbLink render={<Link to="/work" />}>My work</BreadcrumbLink>
-              </BreadcrumbItem>
-              {program ? (
-                <>
+      {form && <ModelForm target={form} onClose={() => setForm(null)} />}
+      <QueryState queries={[taskQuery]}>
+        {task ? (
+          <>
+            <PageHeader>
+              <PageHeader.Lead render={<Breadcrumb />}>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/work" />}>My work</BreadcrumbLink>
+                  </BreadcrumbItem>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbLink
                       render={
-                        <Link
-                          to="/programs/$programId"
-                          params={{ programId: program.id }}
-                          search={{ tab: "Schedule", scheduleView: "Tasks", peek: undefined }}
-                        />
+                        <Link to="/programs/$programId" params={{ programId: task.program_id }} />
                       }
                     >
-                      {program.name}
+                      {program.data?.name ?? "Program"}
                     </BreadcrumbLink>
                   </BreadcrumbItem>
-                </>
-              ) : null}
-            </>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>
-                <Id>{task.id}</Id>
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="min-w-0">
-          <PageHeader.Title>
-            <Editable.Text
-              label="Title"
-              value={task.title}
-              onChange={noop}
-              save={async (next) => renameTask(task.id, next, me)}
-            />
-          </PageHeader.Title>
-          <Inline
-            space="space.100"
-            alignBlock="center"
-            shouldWrap
-            className="pt-050 font-body-small text-subtle"
-          >
-            <Badge variant="secondary" tone={stateTone(task.state)}>
-              {task.state}
-            </Badge>
-          </Inline>
-        </div>
-        <PageHeader.Actions>
-          <Button
-            variant={done ? "secondary" : "primary"}
-            onClick={() => (done ? reopenTask(task.id, me) : completeTask(task.id, me))}
-          >
-            {done ? "Reopen" : "Complete"}
-          </Button>
-        </PageHeader.Actions>
-      </PageHeader>
-      <Stack space="space.300" className="min-w-0 pt-200">
-        <Section title="Note">
-          <Box paddingBlockStart="space.100">
-            <Editable.Text
-              label="Note"
-              placeholder="Add a note"
-              value={task.note}
-              onChange={noop}
-              save={async (next) => setTaskNote(task.id, next, me)}
-            />
-          </Box>
-        </Section>
-        <RecordActivity
-          program={task.program}
-          subject={{ kind: "task", id: task.id, label: task.title }}
-          me={me}
-        />
-      </Stack>
-      <Shell.Aside label="Record properties">
-        <Inspector.Group title="Details">
-          <TaskProperties task={task} me={me} people={people} />
-        </Inspector.Group>
-      </Shell.Aside>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{task.title}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </PageHeader.Lead>
+              <Box className="min-w-0">
+                <PageHeader.Title>{task.title}</PageHeader.Title>
+                <Inline className="pt-100">
+                  <StatusBadge value={task.status} />
+                </Inline>
+              </Box>
+              <PageHeader.Actions>
+                {workspace.role !== "viewer" && (
+                  <>
+                    <Button
+                      disabled={!!form || save.isPending}
+                      onClick={() => setForm({ table: "tasks", existing: task as DataRecord })}
+                    >
+                      Edit task
+                    </Button>
+                    <Button
+                      variant={task.status === "done" ? "secondary" : "primary"}
+                      disabled={save.isPending || !!form}
+                      onClick={() => void toggleDone()}
+                    >
+                      {save.isPending ? "Saving…" : task.status === "done" ? "Reopen" : "Complete"}
+                    </Button>
+                  </>
+                )}
+              </PageHeader.Actions>
+            </PageHeader>
+            {error && (
+              <p role="alert" className="text-danger">
+                {error}
+              </p>
+            )}
+            <Stack space="space.300" className="min-w-0 pt-200">
+              <Section title="Note">
+                <p className="whitespace-pre-wrap pt-100 text-subtle">
+                  {task.description || "No note recorded."}
+                </p>
+              </Section>
+              <Section
+                title="Assignments"
+                action={
+                  workspace.role !== "viewer" ? (
+                    <Button
+                      size="small"
+                      disabled={!!form}
+                      onClick={() =>
+                        setForm({ table: "task_assignments", initialValues: { task_id: task.id } })
+                      }
+                    >
+                      Assign person
+                    </Button>
+                  ) : undefined
+                }
+              >
+                <QueryState queries={[assignments, parties]}>
+                  {assignments.data?.length ? (
+                    <Table>
+                      <thead>
+                        <tr>
+                          <Table.Header>Person</Table.Header>
+                          <Table.Header>Role</Table.Header>
+                          <Table.Header width={100}>Actions</Table.Header>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {assignments.data.map((assignment) => (
+                          <Table.Row key={assignment.id}>
+                            <Table.Cell>
+                              {parties.data?.find((party) => party.id === assignment.party_id)
+                                ?.name ?? "Unavailable person"}
+                            </Table.Cell>
+                            <Table.Cell>{labelFor(assignment.assignment_role)}</Table.Cell>
+                            <Table.Cell>
+                              {workspace.role !== "viewer" && (
+                                <Button
+                                  size="small"
+                                  variant="subtle"
+                                  disabled={!!form}
+                                  onClick={() =>
+                                    setForm({
+                                      table: "task_assignments",
+                                      existing: assignment as DataRecord,
+                                    })
+                                  }
+                                >
+                                  Edit
+                                </Button>
+                              )}
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </tbody>
+                    </Table>
+                  ) : (
+                    <EmptyState
+                      illustration="people"
+                      title="Nobody assigned"
+                      description="Assign accountable, responsible, consulted, or informed people to this task."
+                    />
+                  )}
+                </QueryState>
+              </Section>
+              <Section
+                title="Comments"
+                action={
+                  workspace.role !== "viewer" ? (
+                    <Button
+                      size="small"
+                      disabled={!!form}
+                      onClick={() =>
+                        setForm({
+                          table: "comments",
+                          initialValues: {
+                            task_id: task.id,
+                            ...(me ? { author_party_id: me.id } : {}),
+                          },
+                        })
+                      }
+                    >
+                      Add comment
+                    </Button>
+                  ) : undefined
+                }
+              >
+                <QueryState queries={[comments, parties]}>
+                  {comments.data?.length ? (
+                    <Stack space="space.150">
+                      {[...comments.data]
+                        .sort((a, b) => a.created_at.localeCompare(b.created_at))
+                        .map((comment) => (
+                          <Box key={comment.id} className="border-b border-default py-150">
+                            <p className="font-body-small text-subtle">
+                              {parties.data?.find((party) => party.id === comment.author_party_id)
+                                ?.name ?? "Unavailable author"}{" "}
+                              · {displayDate(comment.created_at)}
+                            </p>
+                            <p className="whitespace-pre-wrap pt-100">{comment.body}</p>
+                          </Box>
+                        ))}
+                    </Stack>
+                  ) : (
+                    <EmptyState
+                      illustration="inbox"
+                      title="No comments yet"
+                      description="Questions and decisions about this task are kept here."
+                    />
+                  )}
+                </QueryState>
+              </Section>
+              <Section title="Activity">
+                <QueryState queries={[activity]}>
+                  {activity.data?.length ? (
+                    <Stack space="space.150">
+                      {[...activity.data]
+                        .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))
+                        .map((event) => (
+                          <Box key={event.id} className="border-b border-default py-150">
+                            <p>{event.description ?? labelFor(event.event_type)}</p>
+                            <p className="font-body-small text-subtle">
+                              {displayDate(event.occurred_at)}
+                            </p>
+                          </Box>
+                        ))}
+                    </Stack>
+                  ) : (
+                    <EmptyState
+                      illustration="inbox"
+                      title="No activity yet"
+                      description="Changes to this task are logged here as they happen."
+                    />
+                  )}
+                </QueryState>
+              </Section>
+            </Stack>
+            <Shell.Aside label="Record properties">
+              <Inspector.Group title="Details">
+                <DetailFacts
+                  facts={[
+                    ["State", <StatusBadge value={task.status} />],
+                    ["Priority", task.priority ? labelFor(task.priority) : null],
+                    ["Due", displayDate(task.due_at)],
+                    ["Completed", displayDate(task.completed_at)],
+                    [
+                      "Workstream",
+                      task.workstream_id ? (
+                        <Link
+                          to="/workstreams/$workstreamId"
+                          params={{ workstreamId: task.workstream_id }}
+                        >
+                          {workstream.data?.title ?? "Open workstream"}
+                        </Link>
+                      ) : null,
+                    ],
+                  ]}
+                />
+                <Box className="pt-200">
+                  <SchemaLink table="tasks" id={task.id} />
+                </Box>
+              </Inspector.Group>
+            </Shell.Aside>
+          </>
+        ) : (
+          <EmptyState
+            illustration="search"
+            title="Task not found"
+            description="This task may have been removed or may not belong to your workspace."
+          />
+        )}
+      </QueryState>
     </Stack>
   );
 }

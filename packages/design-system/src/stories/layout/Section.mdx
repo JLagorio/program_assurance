@@ -6,10 +6,15 @@ import * as Stories from "./Section.stories";
 
 # Section
 
-Optional presentation for a titled content region. It supplies an h2, optional count, description and actions. Native section props and refs pass through. A rule is opt-in with `divided`.
+Optional presentation for a titled content region. `title`, `count`, `description` and `action` render the built-in header; leave `title` out and compose Section.Header, Section.Heading, Section.Title, Section.Description and Section.Actions yourself when the heading needs another level, a badge, or two actions. The Title names the region either way. Native section props and refs pass through every part. A rule is opt-in with `divided`.
 
 <Canvas of={Stories.Presentation} />
+<Canvas of={Stories.Composed} />
+<Canvas of={Stories.Untitled} />
 
 Use Stack or Grid directly when no titled region is needed. Compose Collapsible when disclosure helps the workflow. Section imposes no distinction between work, reference, forms or narrative.
 
 <ArgTypes of={Section} />
+<ArgTypes of={Section.Header} />
+
+Heading, Description and Actions take only their element's native props; Title takes `render` for another heading level.

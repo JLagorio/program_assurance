@@ -6,14 +6,14 @@ import * as Stories from "./PageHeader.stories";
 
 # PageHeader
 
-One composable page header for collections and records. Native header, heading, paragraph and div props and refs pass through the parts.
+One composable page header for collections and records. Two columns: Heading, what names the page, on the left; Actions on the right; Lead across both above them. Native header, heading, paragraph and div props and refs pass through every part.
 
 <Canvas of={Stories.Collection} />
 <Canvas of={Stories.Record} />
 <Canvas of={Stories.Constrained} />
 
-Compose a title, optional breadcrumb and one primary action or Actions menu. Record fields, owner/status editors and property strips belong in the work area or Aside, not in PageHeader or a preview header. Breadcrumbs span the header with `col-span-full`. Description is optional and wraps without hiding content behind a tooltip.
+Compose a Heading with a Title, an optional Lead and one primary action or Actions menu. A breadcrumb is the Lead through `render={<Breadcrumb />}`; a category line is a Lead with text. Record fields, owner/status editors and property strips belong in the work area or Aside, not in PageHeader or a preview header. Description is optional and wraps without hiding content behind a tooltip.
 
 Use PageHeader.Title once for the page's h1. Panel and dialog headings use their own h2 semantics. Actions always occupy a fixed column beside the title, including at phone widths; titles wrap to their left. Keep action groups on one line; use a dropdown when several actions compete for space.
 
-<ArgTypes of={PageHeader} />
+No part has props of its own: the root is a `header`, Heading and Actions are `div`s, Title an `h1`, Description a `p`, and Lead a `div` or the element given to `render`; each takes its element's native props and ref.

@@ -7,8 +7,8 @@ export const SlotsContext = createContext<{
   opener: RefObject<HTMLElement | null>;
 } | null>(null);
 
-/** Stable destinations preserve route context and state. Unmounting a route removes its contribution. */
-export function Slot({ name, children }: { name: "aside" | "panel"; children: ReactNode }) {
+/** Renders a route's contribution into the shell's stable area for it, so the route's React context and state travel with it and unmounting the route removes it. Outside a Shell the children render in place. */
+export function AreaPortal({ name, children }: { name: "aside" | "panel"; children: ReactNode }) {
   const slots = useContext(SlotsContext);
   if (!slots) return children;
   const target = slots[name];

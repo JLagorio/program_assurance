@@ -3,6 +3,7 @@ import {
   Empty,
   EmptyHeader,
   EmptyMedia,
+  EmptyIllustration,
   EmptyTitle,
   EmptyDescription,
   EmptyContent,
@@ -13,60 +14,133 @@ import * as Stories from "./Empty.stories";
 
 # Empty
 
-Explain why a region has no content and offer a useful next action. The message, media and controls are composed by the caller.
+A region with nothing in it says why, and offers the next step. The picture, the message and the actions sit at the centre of the region; the caller composes them from the parts. A [DataTable](?path=/docs/patterns-data-table--docs) draws its own, so a register never needs to.
+
+<Canvas of={Stories.Playground} />
 
 ## Anatomy
 
 ```tsx
 <Empty>
-  <EmptyMedia variant="icon" aria-hidden>
-    <Search />
+  <EmptyMedia aria-hidden>
+    <EmptyIllustration kind="records" />
   </EmptyMedia>
   <EmptyHeader>
-    <EmptyTitle>No controls match</EmptyTitle>
-    <EmptyDescription>Clear a filter or widen the date range.</EmptyDescription>
+    <EmptyTitle>No programs yet</EmptyTitle>
+    <EmptyDescription>Create one to define its systems and their work.</EmptyDescription>
   </EmptyHeader>
   <EmptyContent>
-    <Button variant="link">Clear filters</Button>
+    <Button variant="primary" iconBefore={<Plus />}>New program</Button>
+    <Button variant="secondary">Import</Button>
   </EmptyContent>
 </Empty>
 ```
 
-EmptyHeader groups the message. EmptyMedia accepts any content; `variant="icon"` adds the neutral circle and default icon size without cloning the child. EmptyContent holds actions, links or additional content.
+| Part                | What it is                                                                                                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Empty`             | The region: a column, centred, on a dashed frame. `size="compact"` for the rail's row; `frame="none"` on a surface that already bounds it.                                     |
+| `EmptyMedia`        | The picture. Holds an `EmptyIllustration`, or `variant="icon"` draws a Lucide icon in the neutral circle. Anything else fits: an avatar, a chart's ghost.                    |
+| `EmptyIllustration` | The kit's picture, on the surface tokens: a scene of ghost records the shape of what the region will hold, sometimes with a badge that says why it is empty. Twelve kinds, below. Decorative. |
+| `EmptyHeader`       | The title and its description, at a readable measure.                                                                                                                        |
+| `EmptyTitle`        | A heading in the default size, body text in compact.                                                                                                                         |
+| `EmptyDescription`  | One or two lines: why there is nothing, what creates it.                                                                                                                     |
+| `EmptyContent`      | The actions, centred, wrapping. A second `EmptyContent` holds a quieter row: a link, suggested searches.                                                                     |
 
-<Canvas of={Stories.Playground} />
+## Variants
 
-## Variants and states
+Which empty this is decides the picture and the action. The picture is the shape of what the region will hold, so a reader who has never seen a record still learns what one is:
 
-Ledger retains the left-aligned dashed frame by default. `size="compact"` removes the frame and places top-level media beside the message and actions. For compact layouts, place EmptyMedia before EmptyHeader and EmptyContent as direct children of Empty. Omit media or actions when they add nothing.
+| The region                          | `kind`     | Action                                       |
+| ----------------------------------- | ---------- | -------------------------------------------- |
+| Nothing exists yet                  | `records`  | The primary: create the first, import        |
+| A search or a filter left nothing   | `search`   | Clear filters; suggestions under it          |
+| Empty because the work is finished  | `done`     | A link to the closed items, or none          |
+| Nothing assigned or waiting for you | `inbox`    | None, or a link to everything                |
+| The reader may not see this         | `locked`   | Request access                               |
+| No controls or requirements yet     | `shield`   | Allocate, map, import a catalog              |
+| No files, evidence or documents     | `document` | Upload, attach                               |
+| No tasks or work items              | `tasks`    | Add a task                                   |
+| No people, owners or assignees      | `people`   | Assign, invite                               |
+| No systems, components or parts     | `tree`     | Add the first node                           |
+| No data to chart                    | `chart`    | None; the records make the chart             |
+| Nothing scheduled                   | `calendar` | Schedule                                     |
+| A tab or a card body with no items  | an icon    | One small action                             |
+| A rail's related list               | compact    | One link                                     |
+
+A [DataTable](?path=/docs/patterns-data-table--docs) with no records at all is only its Empty: the toolbar, the header and the hairline go, the frame stays, and the action in it creates the first record. While a search or a filter is what emptied it, the toolbar and header stay and the Empty sits under them without a frame.
+
+<Canvas of={Stories.NoMatches} />
+
+<Canvas of={Stories.Illustrations} />
+
+<Canvas of={Stories.Icon} />
 
 <Canvas of={Stories.Compact} />
 
-For other layouts, use native composition and className. A default Empty can also put media inside EmptyHeader, following shadcn's examples.
+## Sizes
 
-<Canvas of={Stories.CustomMedia} />
+`default` is the hero: the picture, a small heading, body copy, medium buttons, `space.300` between the three, `space.600` above and below. `compact` is the rail's row: `EmptyMedia` beside the message, a medium-weight body title, small body copy, a small link. In compact, place `EmptyMedia` before `EmptyHeader` and keep `EmptyContent` a direct child, so the grid puts media in the first column and the message and actions in the second.
+
+## States
+
+Empty has no states of its own. Loading is [Skeleton](?path=/docs/components-skeleton--docs) or [Spinner](?path=/docs/components-spinner--docs); an error is an [Alert](?path=/docs/components-alert--docs). A DataTable chooses between its two empties itself: the caller's message when there are no records, the kit's **Nothing matches** with **Clear filters** while a search or a column filter is active.
+
+## Modifiers
+
+- **`size`**: `default` or `compact`.
+- **`frame`**: `dashed` (the default region) or `none`, for a table cell, a page body, a panel that has its own edges. Compact never draws a frame.
+- **`kind`** on `EmptyIllustration`: the twelve above. Every scene is 128 by 84px, so empty states sit at one height across a page.
+
+<Canvas of={Stories.OnAPage} />
+
+## Content
+
+- **The title says what is missing, in the reader's words**: "No programs yet", "Nothing matches", "Nothing open". Not "Empty", not "No data".
+- **The description says why, or what creates it**, in one or two lines. Never advice that points at another control ("Choose another tab").
+- **One primary action**, the same verb as the page's own; a secondary beside it at most. In a filtered table the action is **Clear filters**.
+- **Suggestions are small secondary buttons** in a second row, after a "Try" in `color.text.subtlest`.
+
+## Style
+
+| Element       | Token                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| Frame         | `color.border` dashed · `radius.large` · `space.300` × `space.600`                          |
+| Gaps          | `space.300` between picture, message and actions · `space.100` between title and description |
+| Title         | `font.heading.small` · `color.text`                                                         |
+| Description   | `font.body` · `color.text.subtle` · 400px measure                                           |
+| Icon circle   | `dimension.control.large` · `color.background.neutral` · `color.icon.subtle`                |
+| Illustration  | 128 × 84px · `elevation.surface.raised` and `.sunken` · `color.border` and `.bold` · `color.skeleton` · `color.background.neutral` |
+| Badge         | `dimension.control.medium` · `color.background.neutral.bold`, `.success.bold` or `.brand.bold` · `color.icon.inverse` · `elevation.shadow.raised` |
+| Compact       | no frame · `space.150` between media and message · `font.body` medium · `font.body.small`   |
 
 ## Accessibility
 
-The parts are divs with no automatic landmark or announcement. Use native roles and ARIA only when the surrounding workflow needs them. Hide decorative media explicitly with `aria-hidden`; meaningful media keeps its own accessible name. Text precedes the actions in reading order. Loading uses Skeleton or Spinner.
+The parts are divs with no automatic landmark or announcement. Give the root `role="region"` and `aria-labelledby` the title when the region is a page's main content; inside a table the cell is enough. The illustration and the icon circle are decorative: `EmptyIllustration` hides itself, and `EmptyMedia` takes `aria-hidden`. Text precedes the actions in reading order, so a screen reader hears why before what.
 
 ## Props
 
 <ArgTypes of={Empty} />
-<ArgTypes of={EmptyHeader} />
 <ArgTypes of={EmptyMedia} />
+<ArgTypes of={EmptyIllustration} />
+<ArgTypes of={EmptyHeader} />
 <ArgTypes of={EmptyTitle} />
 <ArgTypes of={EmptyDescription} />
 <ArgTypes of={EmptyContent} />
 
-Every part accepts native div attributes, events, styles and refs. EmptyDescription's ref matches its rendered div. Icon children retain their own props, classes and refs.
+Every part accepts native div attributes, events, styles and refs. Icon children retain their own props, classes and refs.
 
 ### Migration
 
-Replace configured `title`, `description`, `icon`, `action` and `secondary` with the corresponding children. The root's native `title` now means an HTML tooltip. Keep `size="compact"` on existing compact states. Related and DataTable still accept their workflow-specific empty-message options and compose these parts internally.
+The default was left-aligned with a body-weight title; it is now centred with a heading, the description at a measure, and the actions under it. A caller that wanted the old row keeps `size="compact"`. `Related`, `Item.Group` and `DataTable` compose the parts themselves; a DataTable's `empty` now takes `illustration`, `secondary` and `filtered`, and draws **Nothing matches** with **Clear filters** on its own while a search or a filter is active.
+
+<Canvas of={Stories.EmptyMatrix} />
 
 ## Related
 
-[Card](?path=/docs/components-card--docs), [Related](?path=/docs/patterns-related--docs), [DataTable](?path=/docs/patterns-datatable--docs), [Skeleton](?path=/docs/components-skeleton--docs).
+[DataTable](?path=/docs/patterns-data-table--docs), [Related](?path=/docs/patterns-related--docs), [Card](?path=/docs/components-card--docs), [Skeleton](?path=/docs/components-skeleton--docs).
 
-Sources: [shadcn Empty](https://ui.shadcn.com/docs/components/base/empty), [Base UI catalog implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/empty.tsx).
+Sources: [shadcn Empty](https://ui.shadcn.com/docs/components/base/empty), [ReUI empty state](https://reui.io/blocks/empty-state), [Atlassian Empty state](https://atlassian.design/components/empty-state), [Carbon empty states pattern](https://carbondesignsystem.com/patterns/empty-states-pattern).
+
+## Don't
+
+<Canvas of={Stories.Dont} />

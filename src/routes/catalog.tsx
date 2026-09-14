@@ -9,9 +9,9 @@ import {
   Inline,
   Inspector,
   KeyValue,
+  PageHeader,
   Shell,
   Stack,
-  PageHeader,
   Tabs,
   TabsContent,
   TabsList,
@@ -19,417 +19,205 @@ import {
   TextLink,
   useDataTable,
 } from "@ledger/design-system";
-import { cciById, cciItems, controlIdsForCci, type Cci } from "@/lib/cci-catalog";
-import { catalogVersion, nistControls, type NistControl } from "@/lib/nist-catalog";
-import { cciIdsForControl } from "@/lib/cci-catalog";
-import { referenceSourceName, referenceSources } from "@/lib/reference-sources";
-import type { ReferenceProvenance } from "@/lib/reference-provenance";
+import { useRows, type Row } from "@/lib/models";
+import { ControlInspector, LibraryControlTable } from "@/components/prototype/library-controls";
+import { LibraryLoading } from "@/components/prototype/library-shared";
 
 export const Route = createFileRoute("/catalog")({
-  head: () => ({
-    meta: [
-      { title: "Catalog — 800-53 controls, CCIs and their sources | Equinox" },
-      {
-        name: "description",
-        content:
-          "The reference layer: NIST SP 800-53 Rev. 5 controls and SP 800-53A objectives, the DISA CCI crosswalk, and the provenance of every source behind them.",
-      },
-      { property: "og:title", content: "Catalog — Equinox" },
-      { property: "og:type", content: "website" },
-    ],
-  }),
+  head: () => ({ meta: [{ title: "Catalog — Program Assurance" }] }),
   component: CatalogPage,
 });
 
-const tabs = ["Controls", "CCIs", "Sources"] as const;
-type Tab = (typeof tabs)[number];
-
-/** The catalog rows, with the joins a column sorts and filters on precomputed. */
-type ControlRow = NistControl & { cciCount: number; baselineText: string };
-type CciRow = Cci & { controls: string };
-
-const controlRows: ControlRow[] = nistControls.map((control) => ({
-  ...control,
-  cciCount: cciIdsForControl(control.id).length,
-  baselineText: control.baselines.join(", ") || "Tailored in only",
-}));
-
-const cciRows: CciRow[] = cciItems.map((cci) => ({
-  ...cci,
-  controls: controlIdsForCci(cci.id).join(", "),
-}));
-
 function CatalogPage() {
-  const [tab, setTab] = useState<Tab>("Controls");
-  const [control, setControl] = useState<ControlRow | null>(null);
-  const [cci, setCci] = useState<CciRow | null>(null);
-
-  const counts = {
-    Controls: controlRows.length,
-    CCIs: cciRows.length,
-    Sources: referenceSources.length,
-  } as const;
-
+  const [tab, setTab] = useState("Controls");
+  const [control, setControl] = useState<Row<"controls"> | null>(null);
+  const controls = useRows("controls");
   return (
     <Stack className="animate-rise" space="space.200">
       <PageHeader>
         <div className="min-w-0">
-          <PageHeader.Title>{"Catalog"}</PageHeader.Title>
+          <PageHeader.Title>Catalog</PageHeader.Title>
+          <p className="pt-050 font-body-small text-subtle">
+            Published control text, assessment objectives, correlation identifiers, and their
+            sources.
+          </p>
         </div>
       </PageHeader>
-
       <Tabs
         value={tab}
         onValueChange={(value) => {
-          setTab(value as Tab);
+          setTab(String(value));
           setControl(null);
-          setCci(null);
         }}
         className="contents"
       >
         <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-          {tabs.map((t) => (
-            <TabsTrigger key={t} value={t}>
-              {t}
-              <Count value={counts[t]} max={9999} />
+          {["Controls", "CCIs", "Sources"].map((name) => (
+            <TabsTrigger key={name} value={name}>
+              {name}
+              {name === "Controls" && controls.data && (
+                <Count value={controls.data.length} max={99999} />
+              )}
             </TabsTrigger>
           ))}
         </TabsList>
         <TabsContent value={tab} className="contents">
-          {tab === "Controls" ? <ControlsTable onSelect={setControl} /> : null}
-          {tab === "CCIs" ? <CcisTable onSelect={setCci} /> : null}
-          {tab === "Sources" ? <SourcesList /> : null}
+          {tab === "Controls" && (
+            <LibraryLoading queries={[controls]}>
+              <LibraryControlTable controls={controls.data ?? []} onSelect={setControl} />
+            </LibraryLoading>
+          )}
+          {tab === "CCIs" && <CciTable />}
+          {tab === "Sources" && <SourcesList />}
         </TabsContent>
       </Tabs>
-
-      {control ? <ControlPanel control={control} onClose={() => setControl(null)} /> : null}
-      {cci ? <CciPanel cci={cci} onClose={() => setCci(null)} /> : null}
+      {control && (
+        <ControlInspector key={control.id} control={control} onClose={() => setControl(null)} />
+      )}
     </Stack>
   );
 }
 
-/* ------------------------------------------------------------------ Controls */
-
-function ControlsTable({ onSelect }: { onSelect: (control: ControlRow) => void }) {
+function CciTable() {
+  const items = useRows("cci_items");
+  const references = useRows("cci_references");
+  const links = useRows("cci_control_links");
+  const controls = useRows("controls");
+  const types = useRows("cci_item_types");
+  const [selected, setSelected] = useState<Row<"cci_items"> | null>(null);
+  const rows = useMemo(() => {
+    const controlsById = new Map(controls.data?.map((row) => [row.id, row]));
+    const itemByReference = new Map(references.data?.map((row) => [row.id, row.cci_item_id]));
+    const controlsByItem = new Map<string, Set<string>>();
+    for (const link of links.data ?? []) {
+      const itemId = itemByReference.get(link.cci_reference_id);
+      const control = controlsById.get(link.control_id);
+      if (!itemId || !control) continue;
+      if (!controlsByItem.has(itemId)) controlsByItem.set(itemId, new Set());
+      controlsByItem.get(itemId)!.add(control.code);
+    }
+    const typesByItem = new Map<string, string[]>();
+    for (const type of types.data ?? [])
+      typesByItem.set(type.cci_item_id, [...(typesByItem.get(type.cci_item_id) ?? []), type.type]);
+    return (items.data ?? []).map((item) => ({
+      ...item,
+      controls: [...(controlsByItem.get(item.id) ?? [])].join(", "),
+      types: typesByItem.get(item.id)?.join(", ") ?? "Not recorded",
+    }));
+  }, [items.data, references.data, links.data, controls.data, types.data]);
   const columns = useMemo(
     () =>
-      defineColumns<ControlRow>((c) => [
-        c.id("id", { header: "Control", width: 116, hideable: false }),
-        c.text("title", { header: "Title", hideable: false }),
-        c.text("family", { header: "Family", width: 88 }),
-        c.custom("baselines", {
-          header: "SP 800-53B baselines",
-          width: 210,
-          cell: (row) =>
-            row.baselines.length ? (
-              <Inline space="space.050" shouldWrap>
-                {row.baselines.map((b) => (
-                  <Badge key={b} variant="secondary" tone="neutral">
-                    {b}
-                  </Badge>
-                ))}
-              </Inline>
-            ) : (
-              <span className="text-subtle">Tailored in only</span>
-            ),
-          text: (row) => row.baselines.join(" ") || "Tailored in only",
-        }),
-        c.number("cciCount", { header: "CCIs", width: 84 }),
-      ]),
-    [],
-  );
-
-  const table = useDataTable({
-    data: controlRows,
-    columns,
-    getRowId: (row) => row.id,
-    label: "Catalog controls",
-    view: "catalog-controls",
-    resizable: true,
-    reorderable: true,
-    virtualize: true,
-  });
-
-  return (
-    <DataTable
-      table={table}
-      maxHeight={620}
-      onRowClick={onSelect}
-      empty={{ title: "No controls match", description: "Clear the search or the family filter." }}
-      toolbar={
-        <Inline space="space.100" alignBlock="center" shouldWrap>
-          <DataTable.Search table={table} placeholder="Find a control" />
-          <DataTable.Presets
-            table={table}
-            variant="menu"
-            presets={[
-              { id: "all", label: "All controls" },
-              { id: "low", label: "Low baseline", filters: [{ id: "baselines", value: "Low" }] },
-              {
-                id: "moderate",
-                label: "Moderate baseline",
-                filters: [{ id: "baselines", value: "Moderate" }],
-              },
-              { id: "high", label: "High baseline", filters: [{ id: "baselines", value: "High" }] },
-            ]}
-          />
-          <DataTable.Filter table={table} column="family" />
-          <Inline className="ml-auto" space="space.100" alignBlock="center">
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Inline>
-        </Inline>
-      }
-    />
-  );
-}
-
-function ControlPanel({ control, onClose }: { control: ControlRow; onClose: () => void }) {
-  const ccis = cciIdsForControl(control.id);
-  return (
-    <Shell.Panel title={control.id} onClose={onClose}>
-      <>
-        <Inspector.Group title="Identity">
-          <KeyValue label="Title">{control.title}</KeyValue>
-          <KeyValue label="Family">{control.family}</KeyValue>
-          {control.parent ? (
-            <KeyValue label="Enhances">
-              <Id>{control.parent}</Id>
-            </KeyValue>
-          ) : null}
-          <KeyValue label="Catalog">{catalogVersion}</KeyValue>
-        </Inspector.Group>
-        <Inspector.Group title="Selected by">
-          <KeyValue label="SP 800-53B">
-            {control.baselines.length ? control.baselines.join(", ") : "No baseline — tailored in"}
-          </KeyValue>
-        </Inspector.Group>
-        <Inspector.Group title="Cross-referenced by">
-          {ccis.length ? (
-            <Stack className="font-body-small" space="space.050">
-              {ccis.map((id) => (
-                <Id key={id}>{id}</Id>
-              ))}
-            </Stack>
-          ) : (
-            <span className="font-body-small text-subtle">
-              No CCI in the published list maps to this control.
-            </span>
-          )}
-        </Inspector.Group>
-      </>
-    </Shell.Panel>
-  );
-}
-
-/* ---------------------------------------------------------------------- CCIs */
-
-function CcisTable({ onSelect }: { onSelect: (cci: CciRow) => void }) {
-  const columns = useMemo(
-    () =>
-      defineColumns<CciRow>((c) => [
-        c.id("id", { header: "CCI", width: 132, hideable: false }),
-        c.custom("controls", {
-          header: "Controls",
-          width: 180,
-          cell: (row) =>
-            row.controls ? (
-              <Id>{row.controls}</Id>
-            ) : (
-              <span className="text-subtle">No Rev. 5 mapping</span>
-            ),
-          text: (row) => row.controls || "No Rev. 5 mapping",
-        }),
-        c.text("type", { header: "Type", width: 104 }),
+      defineColumns<(typeof rows)[number]>((c) => [
+        c.id("code", { header: "CCI", width: 132, hideable: false }),
+        c.text("definition", { header: "Definition", hideable: false }),
+        c.text("controls", { header: "Mapped controls", width: 180 }),
+        c.text("types", { header: "Type", width: 132 }),
         c.status("status", {
-          header: "Status",
-          width: 124,
+          header: "Source status",
+          width: 130,
           tone: (row) => (row.status === "deprecated" ? "warning" : "neutral"),
         }),
-        c.text("family", { header: "Family", width: 96 }),
-        c.text("publishDate", { header: "Published", width: 124 }),
+        c.text("published_on", { header: "Published", width: 125 }),
       ]),
     [],
   );
-
   const table = useDataTable({
-    data: cciRows,
+    data: rows,
     columns,
     getRowId: (row) => row.id,
     label: "Control correlation identifiers",
-    view: "catalog-ccis",
+    view: "live-catalog-ccis",
     resizable: true,
     reorderable: true,
     virtualize: true,
   });
-
   return (
-    <DataTable
-      table={table}
-      maxHeight={620}
-      onRowClick={onSelect}
-      empty={{ title: "No CCIs match", description: "Clear the search or the filters." }}
-      toolbar={
-        <Inline space="space.100" alignBlock="center" shouldWrap>
-          <DataTable.Search table={table} placeholder="Find a CCI" />
-          <DataTable.Presets
-            table={table}
-            variant="menu"
-            presets={[
-              { id: "all", label: "All CCIs" },
-              {
-                id: "technical",
-                label: "Technical",
-                filters: [{ id: "type", value: "technical" }],
-              },
-              { id: "policy", label: "Policy", filters: [{ id: "type", value: "policy" }] },
-              {
-                id: "deprecated",
-                label: "Deprecated",
-                filters: [{ id: "status", value: "deprecated" }],
-              },
-            ]}
-          />
-          <DataTable.Filter table={table} column="type" />
-          <DataTable.Filter table={table} column="family" />
-          <Inline className="ml-auto" space="space.100" alignBlock="center">
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
+    <LibraryLoading queries={[items, references, links, controls, types]}>
+      <DataTable
+        table={table}
+        fill
+        onRowClick={setSelected}
+        empty={{
+          illustration: "shield",
+          title: "No CCIs yet",
+          description: "Import a CCI release to fill the catalog.",
+        }}
+        toolbar={
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            <DataTable.Search table={table} placeholder="Find a CCI" />
+            <DataTable.Filter table={table} column="types" />
+            <DataTable.Filter table={table} column="status" />
+            <span className="font-body-small text-subtle">{rows.length} records</span>
+            <Inline className="ml-auto" space="space.100">
+              <DataTable.Columns table={table} />
+              <DataTable.Settings table={table} />
+            </Inline>
           </Inline>
-        </Inline>
-      }
-    />
+        }
+      />
+      {selected && (
+        <Shell.Panel title={selected.code} onClose={() => setSelected(null)}>
+          <Stack space="space.200">
+            <Inspector.Group title="Definition">
+              <p className="font-body-small">{selected.definition}</p>
+            </Inspector.Group>
+            <Inspector.Group title="Source record">
+              <KeyValue label="Status">{selected.status}</KeyValue>
+              <KeyValue label="Contributor">{selected.contributor ?? "Not recorded"}</KeyValue>
+              <KeyValue label="Published">{selected.published_on}</KeyValue>
+            </Inspector.Group>
+            <Inspector.Group title="Publication references">
+              <Stack space="space.150">
+                {references.data
+                  ?.filter((reference) => reference.cci_item_id === selected.id)
+                  .map((reference) => (
+                    <Stack key={reference.id} space="space.050">
+                      <p className="font-body-small font-semibold">
+                        {reference.publication_title} · {reference.publication_version}
+                      </p>
+                      <Id>{reference.source_index}</Id>
+                      <span className="font-body-small text-subtle">
+                        {reference.resolution_status.replaceAll("-", " ")}
+                      </span>
+                    </Stack>
+                  ))}
+              </Stack>
+            </Inspector.Group>
+          </Stack>
+        </Shell.Panel>
+      )}
+    </LibraryLoading>
   );
 }
 
-function CciPanel({ cci, onClose }: { cci: CciRow; onClose: () => void }) {
-  const [definition, setDefinition] = useState<string | null>(null);
-  const [state, setState] = useState<"loading" | "ready" | "missing">("loading");
-  const controls = cci.controls ? cci.controls.split(", ") : [];
-
-  useMemo(() => {
-    let live = true;
-    void import("@/lib/cci-catalog")
-      .then((m) => m.loadCciDefinition(cci.id))
-      .then((text) => {
-        if (!live) return;
-        setDefinition(text);
-        setState(text ? "ready" : "missing");
-      })
-      .catch(() => live && setState("missing"));
-    return () => {
-      live = false;
-    };
-  }, [cci.id]);
-
-  return (
-    <Shell.Panel title={cci.id} onClose={onClose}>
-      <>
-        <Inspector.Group title="Statement">
-          <p className="font-body-small">
-            {state === "loading"
-              ? "Loading the published definition…"
-              : (definition ?? "No definition is published for this identifier.")}
-          </p>
-        </Inspector.Group>
-        <Inspector.Group title="Identity">
-          <KeyValue label="Type">{cci.type}</KeyValue>
-          <KeyValue label="Status">{cci.status}</KeyValue>
-          <KeyValue label="Published">{cci.publishDate}</KeyValue>
-          <KeyValue label="Contributor">{cci.contributor}</KeyValue>
-        </Inspector.Group>
-        <Inspector.Group title="Cross-references">
-          {controls.length ? (
-            <Stack className="font-body-small" space="space.050">
-              {controls.map((id) => (
-                <Id key={id}>{id}</Id>
-              ))}
-            </Stack>
-          ) : (
-            <span className="font-body-small text-subtle">
-              This identifier carries no SP 800-53 Rev. 5 reference. It is cited only by an earlier
-              revision.
-            </span>
-          )}
-        </Inspector.Group>
-      </>
-    </Shell.Panel>
-  );
-}
-
-/* ------------------------------------------------------------------- Sources */
-
-/**
- * The provenance of everything above.
- *
- * `authoritative` is the load-bearing field and the reason this tab exists: it is
- * true only for a machine-readable release published by the body that owns the
- * document. Two of the five are not, and both are in use.
- */
 function SourcesList() {
+  const sources = useRows("ref_sources");
   return (
-    <Stack space="space.200" className="min-w-0 pt-100">
-      {referenceSources.map((source) => (
-        <SourceCard key={source.id} source={source} />
-      ))}
-    </Stack>
-  );
-}
-
-function SourceCard({ source }: { source: ReferenceProvenance }) {
-  // A couple of sources repeat their rights statement as a note; it is already
-  // shown above, so printing it twice just makes the caveats harder to read.
-  const notes = (source.notes ?? []).filter((note) => note !== source.rights);
-  return (
-    <Stack space="space.100" className="min-w-0 border-b pb-200 last:border-b-0">
-      <Inline space="space.100" alignBlock="center" shouldWrap>
-        <span className="font-heading-small">{referenceSourceName(source)}</span>
-        <Badge variant="secondary" tone={source.authoritative ? "success" : "warning"}>
-          {source.authoritative ? "Authoritative" : "Not authoritative"}
-        </Badge>
-        <Id className="text-subtle">{source.id}</Id>
-      </Inline>
-      <p className="font-body-small text-subtle">{source.citation}</p>
-      <Inline space="space.300" shouldWrap>
-        <KeyValue label="Authority">{source.authority}</KeyValue>
-        <KeyValue label="Release">{source.release}</KeyValue>
-      </Inline>
-      {source.normativePublication ? (
-        <KeyValue label="Expresses">{source.normativePublication}</KeyValue>
-      ) : null}
-      <KeyValue label="Fetched from">
-        <TextLink
-          render={<a href={source.sourceUrl} target="_blank" rel="noreferrer noopener" />}
-          className="break-all"
-        >
-          {source.sourceUrl}
-        </TextLink>
-      </KeyValue>
-      {source.officialLandingPage ? (
-        <KeyValue label="Publisher">
-          <TextLink
-            render={
-              <a href={source.officialLandingPage} target="_blank" rel="noreferrer noopener" />
-            }
-            className="break-all"
-          >
-            {source.officialLandingPage}
-          </TextLink>
-        </KeyValue>
-      ) : null}
-      {source.sha256 ? (
-        <KeyValue label="SHA-256">
-          <span className="break-all font-code">{source.sha256}</span>
-        </KeyValue>
-      ) : null}
-      <KeyValue label="Rights">{source.rights}</KeyValue>
-      {notes.length ? (
-        <Stack space="space.050" className="font-body-small text-subtle">
-          {notes.map((note) => (
-            <p key={note}>{note}</p>
-          ))}
-        </Stack>
-      ) : null}
-    </Stack>
+    <LibraryLoading queries={[sources]}>
+      <Stack space="space.250">
+        {sources.data?.length ? (
+          sources.data.map((source) => (
+            <Stack key={source.id} space="space.100" className="border-b pb-250">
+              <Inline space="space.100" alignBlock="center" shouldWrap>
+                <h2 className="font-heading-small">{source.title}</h2>
+                <Badge variant="secondary" tone={source.authoritative ? "success" : "warning"}>
+                  {source.authoritative ? "Authoritative source" : "Mirror or derived source"}
+                </Badge>
+              </Inline>
+              <KeyValue label="Authority">{source.authority}</KeyValue>
+              <KeyValue label="Source" wrap>
+                <TextLink href={source.source_uri} target="_blank" rel="noreferrer">
+                  {source.source_uri}
+                </TextLink>
+              </KeyValue>
+              {source.rights && <p className="font-body-small text-subtle">{source.rights}</p>}
+              {source.notes && <p className="font-body-small text-subtle">{source.notes}</p>}
+            </Stack>
+          ))
+        ) : (
+          <p className="text-subtle">No reference sources have been imported.</p>
+        )}
+      </Stack>
+    </LibraryLoading>
   );
 }

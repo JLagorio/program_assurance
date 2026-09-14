@@ -6,7 +6,13 @@ export {
   type EditableOptions,
   type Footer,
 } from "./columns";
-export { DataTable, type DataTableProps, type DataTableState } from "./data-table";
+export {
+  DataTable,
+  type DataTableEmpty,
+  type DataTableFilteredEmpty,
+  type DataTableProps,
+  type DataTableState,
+} from "./data-table";
 export { countRows, type Preset } from "./filter";
 export { HeaderMenu } from "./columns-menu";
 export { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";

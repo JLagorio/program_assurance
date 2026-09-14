@@ -43,6 +43,10 @@ export type RecordBrowserProps<T extends { id: string }> = {
   context?: ReactNode;
   /** Permanent actions, such as creating a new record. */
   actions?: ReactNode;
+  /** Own selection across related workflows that temporarily close the browser. */
+  selectedIds?: readonly string[] | undefined;
+  /** Reports selection changes. Pair with selectedIds for controlled selection. */
+  onSelectionChange?: ((ids: string[]) => void) | undefined;
 };
 
 /** Search, compare, preview and select records before confirming a relationship. */
@@ -85,12 +89,22 @@ function RecordBrowserContent<T extends { id: string }>({
   confirmLabel,
   context,
   actions,
+  selectedIds,
+  onSelectionChange,
   onClose,
 }: Omit<RecordBrowserProps<T>, "open"> & { dismissPreview: RefObject<(() => void) | null> }) {
   const { t } = useLedgerLocale();
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [internalSelection, setInternalSelection] = useState<Record<string, true>>({});
+  const rowSelection = useMemo(
+    () =>
+      selectedIds === undefined
+        ? internalSelection
+        : Object.fromEntries(selectedIds.map((id) => [id, true as const])),
+    [selectedIds, internalSelection],
+  );
   const previewHeading = useRef<HTMLHeadingElement>(null);
   const previewBody = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -122,6 +136,12 @@ function RecordBrowserContent<T extends { id: string }>({
     columns: previewColumns,
     getRowId: (record) => record.id,
     selectable: true,
+    state: { rowSelection },
+    onRowSelectionChange: (updater) => {
+      const next = typeof updater === "function" ? updater(rowSelection) : updater;
+      if (selectedIds === undefined) setInternalSelection(next);
+      onSelectionChange?.(Object.keys(next).filter((id) => next[id]));
+    },
     pageSize: 20,
     label: title,
     density: "compact",

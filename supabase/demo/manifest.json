@@ -1,0 +1,506 @@
+{
+  "format": 2,
+  "description": "Explicit fictional demo: original POC records and their original WS-X90 registration projections. Never authoritative operational claims; authoritative reference records are imported separately.",
+  "fixture": "original-poc.json.gz",
+  "compression": "gzip",
+  "fixture_sha256": "aaec4d33a73b6093609c57740edb966807e74e5778c2eebea5526981b3de65fd",
+  "extractor": {
+    "path": "scripts/extract-demo.mjs",
+    "sha256": "be00a5e4f21c70e72c8878f264836d7e95176a663b224adabadfb1fce86aaa1e"
+  },
+  "extraction_clock": "2026-08-30T12:00:00Z",
+  "sha256": "49eb8dacf62a0a8f5a6fb53006db187324966b9b3510ae22c047787389a0a52f",
+  "counts": {
+    "programs": 6,
+    "risks": 6,
+    "programPoams": 6,
+    "lifecycleGates": 19,
+    "portfolioActivity": 4,
+    "people": 14,
+    "workstreams": 7,
+    "compositionNodes": 64,
+    "compositionEdges": 12,
+    "bomDocuments": 5,
+    "assessmentScopes": 30,
+    "assets": 26,
+    "findings": 62,
+    "requirements": 646,
+    "allocations": 1336,
+    "campaigns": 6,
+    "events": 9,
+    "objectives": 431,
+    "procedures": 429,
+    "runs": 367,
+    "tasks": 10,
+    "activity": 43,
+    "evidence": 390,
+    "packages": 3,
+    "packageArtifacts": 8,
+    "packageSubmissions": 5,
+    "poamItems": 49,
+    "registerRisks": 43,
+    "controlWork": 1863,
+    "controlWorkActivity": 24,
+    "controlWorkComments": 3,
+    "programMilestones": 95,
+    "programControls": 10,
+    "programTimeline": 5,
+    "servesEdges": 2,
+    "systemComponents": 6,
+    "securityProcesses": 2,
+    "authorizationArtifacts": 6,
+    "enclaveGrants": 5,
+    "scaObservations": 6,
+    "residualRisks": 5,
+    "scanRuns": 12,
+    "nativeResults": 56,
+    "scopeSelections": 30,
+    "vendors": 6,
+    "riskDetailTimeline": 4,
+    "riskDetailEvidence": 3
+  },
+  "platform_counts": {
+    "control_sources": 1,
+    "profiles": 1,
+    "systems": 1,
+    "subsystems": 6,
+    "components": 20,
+    "requirements": 640,
+    "control_implementations": 546,
+    "evidence": 368,
+    "assessments": 2,
+    "assessment_results": 420,
+    "findings": 52,
+    "risks": 40,
+    "poam_items": 40,
+    "reference_datasets": 5
+  },
+  "library_counts": {
+    "entries": 19,
+    "uses": 5,
+    "assignments": 3,
+    "decisions": 0,
+    "programEvidence": 0
+  },
+  "sources": [
+    {
+      "path": "tests/fixtures/legacy-poc/src/data/wsx90-platform-seed.json",
+      "sha256": "4221c55b7c7892eefc2d175f35883064c06cfe699874d4c8efec2850911803b3"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/activity.ts",
+      "sha256": "bb47ce1a70505d4fe1d01f9ba7dfaf8922d6fa04cd462607381e7a552662efd8"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/assurance-library-examples.json",
+      "sha256": "06fdd31691c19fef312a19f425211b0a75d6d69bd062f9c1748f0652706f3016"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/assurance-library-seed.ts",
+      "sha256": "be1df001b32f1ba53e0d5c75fb0341d28f905f71e6d593d0cc033916ce4e2e94"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/assurance-record-store.ts",
+      "sha256": "2a3c438d14874dac0d59fefa3b23057d49e11698c661f77f35eedac588a88cf9"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/authorization.ts",
+      "sha256": "7739d8cefe6d4eed8dbfd4df7cb8eafeb48283b7b7c61a9fe9fd8f02fe5537e6"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/baselines.ts",
+      "sha256": "3a5a4d6768f7c1a11538f921c7add57f1c9364bd8133c6972150d522a925d48f"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/campaigns.ts",
+      "sha256": "236c2b56d51ee38209a3a71d8880d9b8f119c5bcf537d02dfd1b860a0895399f"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-catalog.ts",
+      "sha256": "584e2f53abc8104557a5a28f76ed9c2b29ded93c95c06558e493e27546637d94"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ac.ts",
+      "sha256": "3b264a8b18acc33f43268f6d184eccda36ea2c1076f3ae48119815c4b51c7ffe"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ap.ts",
+      "sha256": "a6ea2abb1235270e0c47feb09ccd958038ec6e20bff97e54a361572d0b962977"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ar.ts",
+      "sha256": "a3476cab6d757b7714c50a02f91e02d38b99799736fac8f121689539b070f325"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/at.ts",
+      "sha256": "9c23afce31b860945db396a61c7a4b0c798e172b3f9c3668766b02666e77b69c"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/au.ts",
+      "sha256": "a33196aced803d405f22567b32d8fcc98b16d18b8d93d139b8db4cbbf32f598e"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ca.ts",
+      "sha256": "84b3ab8b17b5fac94546e67546ffba1ba505f8522121e979d89c134e6b89652c"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/cm.ts",
+      "sha256": "f6daddb7c31107414b457d4679d78bb806f3f0f4034677669c316667ef9cb606"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/cp.ts",
+      "sha256": "21b5b5dfdedd98c27f8f5306e17d9ab084baf093b277e24c791306cbaa7db91e"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/di.ts",
+      "sha256": "fc1faafdb82c64c4c35bbff76972c0309cce90266ae4c77a56243c3d7586b8d4"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/dm.ts",
+      "sha256": "b4c6347397e0f24e394cda842f20cbb17d46378692790676f66f0c8e7a7d86f7"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ia.ts",
+      "sha256": "a6bc3257cc6ea8fdfde3e72c11aac22ee31edd5b18a4f6eb8ed9f7c0a2a2f2f5"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ip.ts",
+      "sha256": "4cb25bb76470ad70ba038260d6bd69667783692c2efdd3065f4b2c65c45ca562"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ir.ts",
+      "sha256": "4697c07ed427a14d64138edbbad9307d337b938cf596e4597fa709740d8d8969"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ma.ts",
+      "sha256": "57165739dd6d200e3b50c9a02d8f3b1f376d8fb8e60fb4a5bc34ab0262a6fa2f"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/mp.ts",
+      "sha256": "80648ac05caa3eb2ae5dd8bc73da1028f69a8e64136b9e2871f810b9c32dc1b2"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/pe.ts",
+      "sha256": "40de7488ae5be8e9696faccfe46cab23119487543fb01affed16855aabd8b219"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/pl.ts",
+      "sha256": "35b42bd1b007a76282c69fcf4b368ee79d1f39894397fb9f6c4b918ef17dd933"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/pm.ts",
+      "sha256": "c9ccd836c9a17e7d53c670ca5c5f4099ba6dca17aa8e0ec8e7e6d2aa4feab25e"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ps.ts",
+      "sha256": "831848cc0b11206b72f7262440e87021308d739b09d4397401a6effb21e75a8c"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/pt.ts",
+      "sha256": "5daad629c8a0e202620ef945ede8e7d529cf7251ffb9effb86fc2476a6282dee"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ra.ts",
+      "sha256": "cc7b9674a414f469ae05bc87d58da012a7579089ae91c57d7bffa14008cd788b"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/sa.ts",
+      "sha256": "7bad886663bd2d50f6c13b72aed6fc378cf5f88b33f989664b4801e46d55489f"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/sc.ts",
+      "sha256": "52f537e5cef4c7d9f2b2c0565385d9bea03326e42612734b5bf7341d181a5144"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/se.ts",
+      "sha256": "264e66175d1cd87be30c7f076662adf30f20a7be431d1546ab8e7b3ded188bc3"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/si.ts",
+      "sha256": "097df1db0dd189f58188e2fd87bd9cf987e510a018b4d4cd435d935b5b831ce3"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/sr.ts",
+      "sha256": "febf0e95baafe7a46718f9e101c30296bb872b6ee1215c148a4d91b85001f7fa"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/tr.ts",
+      "sha256": "8dba27b746d407346a47fc9faa21bcc9791d9359587d545b066477f5a9949fcf"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cci-text/ul.ts",
+      "sha256": "44a62b77057397e1e6b5fb37bfa947fac2c51db6f8d4f87e03ac12d94489c8e0"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/change-impact.ts",
+      "sha256": "cc794664c4d426c0b34657089a3c7b778e4fd6def10760862d8debce4f775a75"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/cnssi-1253.ts",
+      "sha256": "ecb7a2bae726b6663b8cb1013446e55be1cecab5c1b2015342f056154179836b"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/composition.ts",
+      "sha256": "be70da127686940ea480c87023509ba616456ba57e4a83c1cfa3ddc37bbc14f0"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/control-matrix.ts",
+      "sha256": "d1a5baa4f3ff8aca92dd30c8d17dedf9c89ce84d2ee531f4a4bba8f747165c9d"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/control-set.ts",
+      "sha256": "ae4bd2e4d70d6b4383b3e0a77f43c4839d4e5a9aeec90ae5f06ee720c728ecf8"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/control-work.ts",
+      "sha256": "3cc81cbe519c7851e835c7d7b1374bf3a8e781a59a356b97388c188052c4246d"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/dataset-clock.ts",
+      "sha256": "2635f5d3a07a4944e3c910a44c174f4c919e8e0600a27602ff1a6cddf45ac1d1"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/digital-thread.ts",
+      "sha256": "8d16264b0cb73b58347114aa51c37aeb9098896e579dfe1599a85f5291f5f95c"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/evidence-catalog.ts",
+      "sha256": "4c0812fb059e0a64aeedd74a5c7fe7a5198fcffd76c621538685e2f408ddb74e"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/findings.ts",
+      "sha256": "2aee6c393459d7bdb4fff25c173aac2888d7ec0cbfca16b56bc6ee56f82c78a0"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/frameworks.ts",
+      "sha256": "2a0d6f9be355e98eeb9ae76a5859e99da2d5ef5c42a40bdff309229a8851cc77"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/grc-data.ts",
+      "sha256": "67251c56abc837600f02abcb730268d2a92e4b3b9ba5b3f822591dfd43c18db0"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/ingestion.ts",
+      "sha256": "e300619c2069a80e340e3e3d5c127cb401b4f69eafd993f5185c38a605d96361"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/inheritance.ts",
+      "sha256": "491701f4dca089d3476c7362d66e731b3039e4d3846a2726f1cb7a617f4571a4"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/link-currency.ts",
+      "sha256": "e9e600c29df0ad3ee08ead77f40d8d5d5f518742fad17e68da194ea8e050124f"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/mentions.ts",
+      "sha256": "ee6bc714f2ad848eee4572f8ac9d6dd9551702960d6d03b4b8c10fc35429c361"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-catalog.ts",
+      "sha256": "e006807452a21483a9364c6dc8389e0dcb7d9ee5168b032152a4315df021a9e0"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text.ts",
+      "sha256": "82ba8a6a24f83106672ff69507a35cc8b521532d17bf3ff9c623928e04bb64f8"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/ac.ts",
+      "sha256": "bf35783b5d119ea9f4b51b6628edb498cea2d75fad0f53d03fe9bc63b1d6a035"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/at.ts",
+      "sha256": "e66869d44c5c67773330259dc30a20036ab9756f3f976d6b67105883252f5cc7"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/au.ts",
+      "sha256": "568772e8206ac284831241538a249a92afcc3ff60128edecb28705726672f684"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/ca.ts",
+      "sha256": "0f4ee8919a66c8a18c370fa9d55a9db96325c2584ec5888d3e086267aaaf6c73"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/cm.ts",
+      "sha256": "b9c9eb3338d6dd0fd4792efa3d3e81130f9606cdfb294d42f60e6b3d181bb793"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/cp.ts",
+      "sha256": "fa982e4bad155658299dab277dacdeb1a8756ba7cf133adcf1e8a2502ab37052"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/ia.ts",
+      "sha256": "7d1c6c8b4b6247f9d1a3f803082f10c2e0e9839a13cc459ef6968aff217634e6"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/ir.ts",
+      "sha256": "13240b494ed17604e36e1aa403b2c8234ffed39e9c64d7d2ea95b43b314d91d5"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/ma.ts",
+      "sha256": "19b9f171d79fe84330d19b529500ada2d10ea19624c164057f862544f5fd529a"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/mp.ts",
+      "sha256": "98a710ac0b4925011a8701de7b055038a59088665a64d5bac3b8fc23c54d8d72"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/pe.ts",
+      "sha256": "337ff99c9b29063a5259f4cf3351f68b6b41705798b375a983566c6e09109af5"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/pl.ts",
+      "sha256": "80ebfbcd0a637fbd92a1895b0585ac115d154923a94f356ffc932345190dfede"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/pm.ts",
+      "sha256": "22ac2ec80cbfbf17bbce786d3beb7b03b479240787c26eb34ff91700f6ae6618"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/ps.ts",
+      "sha256": "1140b606f3a5363ba9a2104dde277df7a79d0be357fabd963be0c571f74ea466"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/pt.ts",
+      "sha256": "bf2dec7db32051c0e5146bf0f072bfb76595d396e1d42a5e12413ee5491f95d2"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/ra.ts",
+      "sha256": "38629e36744a021fa1e09c18744834b74f951e32e7e35fe8565c3bf12d1d98dd"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/registry.ts",
+      "sha256": "1cddb85da24ead55a4b01ec07947352680d2b4eb10e728470092b86eec158469"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/sa.ts",
+      "sha256": "6dcabd1880f12ffaa84cd646ff0893f11ee0141aed09c605a6590bbe4d0fef0a"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/sc.ts",
+      "sha256": "64e257603eb7eee5426b26f4b0ea223dac063f72a1accc0965cd460da0999897"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/si.ts",
+      "sha256": "5501054050a883e3966bae6529b8bed073b9ee0af7bf20d5ed3963f6275c522e"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/nist-control-text/sr.ts",
+      "sha256": "373d495a8b2cfc5093976a6314f7c80ae066f2f26b66d534923b09f8e38dd00d"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/packages.ts",
+      "sha256": "1067b81a1222a4caaf728625aee8f642cbbe74be57c68232dc263d3564e999f0"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/people.ts",
+      "sha256": "31311d6361ac0a9f56a6ec4f875f6dd20fc793e3f54e8c0fa8f4aab0b3e573cb"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/platform-assurance.ts",
+      "sha256": "a19fb60a408d68e3cb7a91fa9b5d925863fc2fe591ec8bc3bbd39e81d8d19eaa"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/platform-controls.ts",
+      "sha256": "ef6a8e3fe0d8937d8dc9c506559cc4f18a35477c4ffdaea0173a4904141a0ab1"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/platform-ids.ts",
+      "sha256": "28a0dda846aee0b85928d9c2d68677ff64a5f82631e3c0f4ab07aa4c999e03e8"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/platform-ingestion.ts",
+      "sha256": "2523c6bd3d0bdda0acb9c02fd95b9ca0d725d7fd631a74d56a7463cf18f1e143"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/platform-program.ts",
+      "sha256": "c3114e1270ea621f3108fa919bb34a322915a358b0ed32f1110ff2847f8c4aaf"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/platform-seed.ts",
+      "sha256": "7ba036a860db158767b873ca562b3cc966c4b1b428cc1a86547eae72bd03da83"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/platform-structure.ts",
+      "sha256": "6357153f0e45e90c09973df828bcd7201cc3cf3607a335dfd08861499d939cad"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/program-stage.ts",
+      "sha256": "16ce9ffd0e300294378fbd7da4d0dbfca066927e779c3745e47e8857bc249e57"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/register.ts",
+      "sha256": "b3a8ff2b5823c8b8c923b8768ae9b6ef9a99048e36aceae2a02e0863198134aa"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/requirement-verification.ts",
+      "sha256": "b033b576b571ded3572cbeaae81186a4d8d94a066415ee2c53a8a39c17aab2cc"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/requirements.ts",
+      "sha256": "94437e291fb049266d1088cae070abcaabf0394500332264617485d78f8767ee"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/reusable-components.ts",
+      "sha256": "42ef1abf3b4b597dff9506c1cf2c640eced4c33a06146cae434e7b92502a645b"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/scopes.ts",
+      "sha256": "e1b3283b74005bc7bb92922b9efe429446ea91504a36fa7e82d75b39b03f6a80"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/sctm.ts",
+      "sha256": "f695b9df7aea60e56a89392de67a477d8018ab5529aca2eade655f8fa01d9d73"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/spine.ts",
+      "sha256": "2f67e979eb0e4929336c12c20d688092b4164c70acb9c6eb56d74ed4f7194552"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/tailoring.ts",
+      "sha256": "fe3827133d379cdd5c9b2fffad57b8073d152b0a70e96a677e8903cccf8d0984"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/tasks.ts",
+      "sha256": "729eedfb231a8d80653d52cf3250e51a08b64f43c57889bd420ea6d70d04262c"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/test-execution.ts",
+      "sha256": "b1029ab7296bafe7d4bc0e588e7d0f531c8a563fe903b871baa444f577212074"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/lib/workspace-storage.ts",
+      "sha256": "48e736feeefc0d56c030d2ae52261f0e38e9c3e2c0f4a5535847634622bbadd0"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/routes/risks.$riskId.tsx",
+      "sha256": "19354310735738fc9a3b9e1107060cdf507f3c97c403f490686ff792740550a9"
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/routes/vendors.tsx",
+      "sha256": "faf12b6ad1fb55ac795c202ffe976e71684e2f5eaf38436f2471b60200bb9378"
+    }
+  ],
+  "assets": [
+    {
+      "path": "tests/fixtures/legacy-poc/src/assets/evidence-datacenter.jpg",
+      "bytes": 61871,
+      "sha256": "c61995d1e6f32e1d4727866461c0d458857cc9fb64d7839bffaa45db6eea3fdb",
+      "evidence_ids": [],
+      "relationship": "No archived source import or evidence record identifies this file as an artifact; do not assign it to evidence by filename."
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/assets/evidence-headers.png",
+      "bytes": 45069,
+      "sha256": "31f18b9ad3ed7b939b2bd1ce88f17f8e8a6dbfe119c6ade78f8e0c75e2fe571e",
+      "evidence_ids": [],
+      "relationship": "No archived source import or evidence record identifies this file as an artifact; do not assign it to evidence by filename."
+    },
+    {
+      "path": "tests/fixtures/legacy-poc/src/assets/evidence-iam.png",
+      "bytes": 34945,
+      "sha256": "783731c4af27b0f39bac97b5e46be5108665fe4dfeabbad2fed3b25ebb600dc9",
+      "evidence_ids": [],
+      "relationship": "No archived source import or evidence record identifies this file as an artifact; do not assign it to evidence by filename."
+    }
+  ]
+}
