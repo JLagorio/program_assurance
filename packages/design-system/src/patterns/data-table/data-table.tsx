@@ -258,6 +258,75 @@ function HeaderCell<TData extends RowData>({
   );
 }
 
+/** Guided trees keep the disclosure, connectors and value in the same indented cell. */
+function TreeIndent<TData extends RowData>({
+  row,
+  children,
+}: {
+  row: Row<F, TData>;
+  children: ReactNode;
+}) {
+  const { t, direction } = useLedgerLocale();
+  const { depth } = row;
+  const expanded = row.getIsExpanded();
+  const hasChildren = row.getCanExpand();
+  const label = row.table.options.meta?.tree?.label(row.original as never) ?? row.id;
+  return (
+    <span
+      className="relative flex min-h-row min-w-0 items-center gap-100"
+      style={{ paddingInlineStart: depth * INDENT }}
+    >
+      <span
+        aria-hidden
+        data-tree-guides=""
+        className="pointer-events-none absolute inset-y-0 flex items-stretch"
+        style={{ insetInlineStart: 10 }}
+      >
+        {Array.from({ length: depth }, (_, level) => (
+          <span key={level} className="relative w-200 shrink-0 border-s border-default">
+            {level === depth - 1 ? (
+              <span
+                className="absolute start-0 top-1/2 border-t border-default"
+                style={{ width: INDENT + (hasChildren ? 0 : 10) }}
+              />
+            ) : null}
+          </span>
+        ))}
+      </span>
+      {hasChildren && expanded ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 bottom-0 border-s border-default"
+          style={{ insetInlineStart: depth * INDENT + 10 }}
+        />
+      ) : null}
+      {hasChildren ? (
+        <button
+          type="button"
+          aria-label={expanded ? t("collapseLabel", { label }) : t("expandLabel", { label })}
+          aria-expanded={expanded}
+          onClick={(event) => {
+            event.stopPropagation();
+            row.toggleExpanded();
+          }}
+          className="relative inline-flex size-250 shrink-0 items-center justify-center rounded-small bg-surface-current icon-subtle outline-none transition-colors duration-fast ease-standard group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
+        >
+          <ChevronRight
+            aria-hidden
+            className={cn(
+              "size-icon-small transition-transform duration-fast ease-standard",
+              expanded ? "rotate-90" : direction === "rtl" && "rotate-180",
+            )}
+          />
+        </button>
+      ) : (
+        <span aria-hidden className="block size-250 shrink-0" />
+      )}
+      <span className="min-w-0 flex-1">{children}</span>
+    </span>
+  );
+}
+
 function BodyCell<TData extends RowData>({
   cell,
   row,
@@ -292,8 +361,7 @@ function BodyCell<TData extends RowData>({
       }
     : undefined;
 
-  // A folded row's hint sits after its first value; the chevron and the indent are the leading
-  // disclosure column's, so no data column changes shape in tree mode.
+  // A folded row's hint sits after its first value.
   const hint =
     options?.tree &&
     cell.column.id === hintAt &&
@@ -302,22 +370,28 @@ function BodyCell<TData extends RowData>({
     options.tree.hint
       ? options.tree.hint(record, row.subRows.length)
       : null;
-  const body = hint ? (
-    <span className="flex min-w-0 items-center gap-100">
-      <span className="min-w-0 truncate">{content}</span>
-      {hint}
-    </span>
-  ) : (
-    content
+  // Guided trees indent their disclosure with the value; unguided trees retain a leading column.
+  const depth = options?.tree && cell.column.id === hintAt ? row.depth : 0;
+  const guides = options?.tree?.guides && cell.column.id === hintAt;
+  const indent = guides ? 0 : depth * INDENT;
+  const withGuides = (value: ReactNode) =>
+    guides ? <TreeIndent row={row}>{value}</TreeIndent> : value;
+  const body = withGuides(
+    hint ? (
+      <span className="flex min-w-0 items-center gap-100">
+        <span className="min-w-0 truncate">{content}</span>
+        {hint}
+      </span>
+    ) : (
+      content
+    ),
   );
-  // The nesting reads on the row's first value; the disclosure stays one narrow column.
-  const indent = options?.tree && cell.column.id === hintAt ? row.depth * INDENT : 0;
 
   if (meta?.kind === "id") {
     const glance = meta.glance?.(record);
     return (
       <Table.Id
-        id={
+        id={withGuides(
           glance ? (
             <HoverCard>
               <HoverCardTrigger
@@ -336,8 +410,8 @@ function BodyCell<TData extends RowData>({
             </HoverCard>
           ) : (
             content
-          )
-        }
+          ),
+        )}
         tone={meta.tone ?? "brand"}
         pinned={pin.pinned}
         offset={pin.offset}
@@ -727,7 +801,7 @@ function DataTableRoot<TData extends RowData>({
   const selectable = Boolean(table.options.enableRowSelection);
   const leading: Leading = {
     selectable,
-    tree: Boolean(options?.tree),
+    tree: Boolean(options?.tree) && !options?.tree?.guides,
     handle: Boolean(options?.reorderRows),
     detail: Boolean(options?.detail) && options?.detailColumn !== false,
   };

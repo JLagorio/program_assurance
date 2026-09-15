@@ -40,6 +40,7 @@ import { WorkTable } from "@/components/prototype/work-table";
 import { ObservationsRegister } from "./observations-register";
 import { RequirementsTable } from "./requirements-table";
 import { ProgramSystemsTree } from "./program-systems-tree";
+import { ProgramTimeline } from "./program-timeline";
 import { ProgramSspAssembly } from "./ssp-assembly";
 import type { SystemElement } from "@/lib/system-tree";
 import type { RequirementTab } from "./requirement-record";
@@ -235,43 +236,12 @@ export function ProgramWorkspace({
                   {tab === "Overview" && (
                     <>
                       <ProgramQueryState loading={gates.isPending} error={gates.error} />
-                      {gates.isSuccess &&
-                        (gates.data.length ? (
-                          <Inline space="space.100" shouldWrap aria-label="Program lifecycle gates">
-                            {[...gates.data]
-                              .sort(
-                                (a, b) =>
-                                  (a.sequence_number ?? Infinity) - (b.sequence_number ?? Infinity),
-                              )
-                              .map((gate) => (
-                                <Box
-                                  key={gate.id}
-                                  padding="space.150"
-                                  className="rounded-medium border border-default"
-                                >
-                                  <Stack space="space.050">
-                                    <span className="font-body-small font-medium">
-                                      {gate.title}
-                                    </span>
-                                    <StatusValue value={gate.status} />
-                                  </Stack>
-                                </Box>
-                              ))}
-                          </Inline>
-                        ) : (
-                          <Box padding="space.200" className="rounded-medium border border-default">
-                            <Inline alignBlock="center" spread="space-between">
-                              <p className="text-subtle">No lifecycle gates defined.</p>
-                              <Button
-                                size="small"
-                                variant="subtle"
-                                onClick={() => select("Schedule")}
-                              >
-                                Set up program work
-                              </Button>
-                            </Inline>
-                          </Box>
-                        ))}
+                      {gates.isSuccess && (
+                        <ProgramTimeline
+                          gates={gates.data}
+                          onOpenSchedule={() => select("Schedule")}
+                        />
+                      )}
                       <Grid
                         gap="space.100"
                         templateColumns={{
@@ -371,33 +341,7 @@ export function ProgramWorkspace({
                       </Section>
                     </>
                   )}
-                  {tab === "System" && (
-                    <>
-                      <ProgramSystemsTree programId={programId} />
-                      {systems.isSuccess && (
-                        <ProgramCollection
-                          name="scopes"
-                          title="Assessment scopes"
-                          where={(row) =>
-                            boundaries.some((system) => system.id === row["system_id"])
-                          }
-                          initialValues={
-                            boundaries.length === 1 ? { system_id: boundaries[0]!.id } : undefined
-                          }
-                          columns={[
-                            { key: "code", title: "Scope" },
-                            { key: "name", title: "Name" },
-                            { key: "confidentiality_impact", title: "Confidentiality" },
-                            { key: "integrity_impact", title: "Integrity" },
-                            { key: "availability_impact", title: "Availability" },
-                          ]}
-                          createLabel="Add scope"
-                          canCreate={boundaries.length > 0}
-                          prerequisite="Scopes sit under a system. Add a system first, then define what each assessment covers."
-                        />
-                      )}
-                    </>
-                  )}
+                  {tab === "System" && <ProgramSystemsTree programId={programId} fill />}
                   {tab === "Library" &&
                     (systems.isSuccess ? (
                       <ProgramCollection

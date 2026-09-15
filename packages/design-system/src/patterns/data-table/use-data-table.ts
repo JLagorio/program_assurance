@@ -70,6 +70,8 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
         children: (row: TData) => ReadonlyArray<TData> | undefined;
         label: (row: TData) => string;
         hint?: ((row: TData, childCount: number) => ReactNode) | undefined;
+        /** Draws decorative connector lines within the first value's existing tree indent. */
+        guides?: boolean | undefined;
         /** Row ids open at first, or `true` for every row. */
         initialExpanded?: true | string[] | undefined;
       }
@@ -203,6 +205,7 @@ export function useDataTable<TData extends RowData>({
             tree: {
               label: tree.label as (row: never) => string,
               hint: tree.hint as ((row: never, childCount: number) => ReactNode) | undefined,
+              guides: tree.guides,
             },
           }
         : {}),

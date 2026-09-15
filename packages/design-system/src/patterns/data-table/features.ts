@@ -39,15 +39,7 @@ import type { ReactNode } from "react";
 
 /** What a column is, which decides its alignment, its sort, its filter and the part that draws it. */
 export type ColumnKind =
-  | "id"
-  | "text"
-  | "number"
-  | "date"
-  | "status"
-  | "person"
-  | "list"
-  | "actions"
-  | "custom";
+  "id" | "text" | "number" | "date" | "status" | "person" | "list" | "actions" | "custom";
 
 /** A row action in the overflow menu of an `actions` column. */
 export type RowAction = {
@@ -120,6 +112,8 @@ export type DataTableMeta = {
         label: (row: never) => string;
         /** Muted text after a folded row's first value: a count of parts. */
         hint?: ((row: never, childCount: number) => ReactNode) | undefined;
+        /** Decorative connector lines confined to the first value's tree indent. */
+        guides?: boolean | undefined;
       }
     | undefined;
   /** A row opens into this. */

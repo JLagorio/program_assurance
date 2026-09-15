@@ -503,6 +503,7 @@ function Tree() {
     tree: {
       children: (r) => r.parts,
       label: (r) => r.name,
+      guides: true,
       hint: (_, n) => (
         <Text size="xsmall" color="color.text.subtle">
           {n} part{n === 1 ? "" : "s"}
@@ -521,7 +522,43 @@ function Tree() {
   );
 }
 
-export const TreeStory: Story = { name: "Tree", render: () => <Tree /> };
+export const TreeStory: Story = {
+  name: "Tree",
+  render: () => <Tree />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("treegrid", { name: "System" });
+    const mainBoard = within(grid).getByRole("row", { name: /Main board/ });
+    const guide = mainBoard.querySelector<HTMLElement>("[data-tree-guides]")!;
+    await expect(guide).toHaveAttribute("aria-hidden", "true");
+    await expect(guide.closest("td")).toBe(mainBoard.children[0]);
+    const rootToggle = within(grid).getByRole("button", { name: "Collapse Flight computer" });
+    const childToggle = within(mainBoard).getByRole("button", { name: "Expand Main board" });
+    await expect(childToggle.closest("td")).toBe(guide.closest("td"));
+    const rootRect = rootToggle.getBoundingClientRect();
+    const childRect = childToggle.getBoundingClientRect();
+    await expect(
+      Math.abs(childRect.x + childRect.width / 2 - rootRect.x - rootRect.width / 2),
+    ).toBeCloseTo(16, 0);
+    await userEvent.click(childToggle);
+    await expect(mainBoard).toHaveAttribute("aria-expanded", "true");
+    await expect(canvas.queryByText("opened Main board")).toBeNull();
+    await userEvent.click(within(mainBoard).getByRole("button", { name: "Collapse Main board" }));
+
+    // Decorative guides must preserve the treegrid's row focus and disclosure behavior.
+    mainBoard.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(mainBoard).toHaveAttribute("aria-expanded", "true");
+    const chip = within(grid).getByRole("row", { name: /SoC/ });
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(chip).toHaveFocus();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(mainBoard).toHaveFocus();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(mainBoard).toHaveAttribute("aria-expanded", "false");
+    await expect(within(grid).queryByRole("row", { name: /SoC/ })).toBeNull();
+  },
+};
 
 /** A tree whose rows also open into a child table. One chevron only: the leading disclosure shows the parts, and the row opens into its claims from the Claims cell, which carries its own chevron. Two chevron columns in a row read as twins, so `detailColumn: false` leaves the second out. The two disclosures are separate state, so neither closes the other. */
 type Claim = { id: string; requirement: string; responsibility: string; coverage: string };

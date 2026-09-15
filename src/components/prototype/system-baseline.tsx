@@ -39,7 +39,13 @@ type ProfileChoice = {
 };
 
 /** The read model is shared by allocation/mapping and SSP views; no UI fallback guesses. */
-export function SystemBaseline({ systemId }: { systemId: string }) {
+export function SystemBaseline({
+  systemId,
+  readOnly = false,
+}: {
+  systemId: string;
+  readOnly?: boolean | undefined;
+}) {
   const workspace = useWorkspace();
   const system = useRow("systems", systemId);
   const effective = useRow("system_effective_baselines", systemId);
@@ -156,6 +162,7 @@ export function SystemBaseline({ systemId }: { systemId: string }) {
   const error = queries.find((query) => query.error)?.error;
   const ready = queries.every((query) => query.data !== undefined && !query.error);
   const canEdit =
+    !readOnly &&
     workspace.role !== "viewer" &&
     workspace.collections.some((row) => row.name === "systems" && row.can_update);
   return (

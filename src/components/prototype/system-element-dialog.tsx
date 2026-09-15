@@ -19,6 +19,7 @@ import {
   DialogTitle,
   Field,
   FieldLabel,
+  Grid,
   Input,
   Select,
   SelectContent,
@@ -33,6 +34,13 @@ import { database, requireIdentity } from "@/lib/database";
 import { useModelSave, useRows } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import type { SystemElement } from "@/lib/system-tree";
+
+const impactFields = [
+  { name: "confidentiality_impact", label: "Confidentiality impact" },
+  { name: "integrity_impact", label: "Integrity impact" },
+  { name: "availability_impact", label: "Availability impact" },
+] as const;
+const impactLevels = ["low", "moderate", "high"] as const;
 
 /** Focused authoring for a canonical system identity; containment and boundary edits stay separate. */
 export function SystemElementDialog({
@@ -60,6 +68,14 @@ export function SystemElementDialog({
   const [type, setType] = useState(existing?.system_type ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
   const [ownerId, setOwnerId] = useState(existing?.system_owner_party_id ?? null);
+  const [impacts, setImpacts] = useState({
+    confidentiality_impact: existing?.confidentiality_impact ?? null,
+    integrity_impact: existing?.integrity_impact ?? null,
+    availability_impact: existing?.availability_impact ?? null,
+  });
+  const [categorizationRationale, setCategorizationRationale] = useState(
+    existing?.categorization_rationale ?? "",
+  );
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -101,6 +117,14 @@ export function SystemElementDialog({
       setError("Choose an available owner.");
       return;
     }
+    if (
+      Object.values(impacts).some(
+        (value) => value !== null && !impactLevels.some((level) => level === value),
+      )
+    ) {
+      setError("Choose Low, Moderate, High, or Not categorized for each impact.");
+      return;
+    }
     inFlight.current = true;
     setBusy(true);
     setError("");
@@ -110,6 +134,8 @@ export function SystemElementDialog({
       description: description.trim() || null,
       system_type: type,
       system_owner_party_id: ownerId,
+      ...impacts,
+      categorization_rationale: categorizationRationale.trim() || null,
     };
     const created = {
       ...authored,
@@ -270,6 +296,49 @@ export function SystemElementDialog({
                       </ComboboxList>
                     </ComboboxContent>
                   </Combobox>
+                </Field>
+                <Grid
+                  gap="space.150"
+                  templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(3, minmax(0, 1fr))" }}
+                >
+                  {impactFields.map((field) => (
+                    <Field key={field.name}>
+                      <FieldLabel htmlFor={`${fieldId}-${field.name}`}>{field.label}</FieldLabel>
+                      <Select
+                        value={impacts[field.name] ?? ""}
+                        onValueChange={(value) => {
+                          setImpacts((current) => ({ ...current, [field.name]: value || null }));
+                          setDirty(true);
+                        }}
+                        disabled={busy || !canWrite}
+                      >
+                        <SelectTrigger id={`${fieldId}-${field.name}`} className="w-full">
+                          <SelectValue>
+                            {labelFor(impacts[field.name] ?? "not_categorized")}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Not categorized</SelectItem>
+                          {impactLevels.map((level) => (
+                            <SelectItem key={level} value={level}>
+                              {labelFor(level)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  ))}
+                </Grid>
+                <Field>
+                  <FieldLabel htmlFor={`${fieldId}-categorization-rationale`}>
+                    Categorization rationale (optional)
+                  </FieldLabel>
+                  <Textarea
+                    id={`${fieldId}-categorization-rationale`}
+                    value={categorizationRationale}
+                    onChange={(event) => setCategorizationRationale(event.target.value)}
+                    rows={3}
+                  />
                 </Field>
                 {!baseline && !parent && (
                   <label className="flex items-center gap-100">
