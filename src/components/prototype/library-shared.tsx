@@ -13,6 +13,7 @@ import {
 } from "@ledger/design-system";
 import { ProductRecordDialog } from "./product-record-dialog";
 import type { DataRecord, RecordValue } from "@/lib/records";
+import { QueryState, type QueryStatus } from "./work-common";
 
 export function LibrarySelect({
   label,
@@ -55,35 +56,22 @@ export function LibraryLoading({
   queries,
   children,
 }: {
-  queries: { isPending: boolean; error: Error | null }[];
+  queries: QueryStatus[];
   children: ReactNode;
 }) {
-  const error = queries.find((query) => query.error)?.error;
-  if (error)
-    return (
-      <p role="alert" className="text-danger">
-        {error.message}
-      </p>
-    );
-  if (queries.some((query) => query.isPending))
-    return (
-      <p role="status" className="text-subtle">
-        Loading library records…
-      </p>
-    );
-  return <>{children}</>;
+  return <QueryState queries={queries}>{children}</QueryState>;
 }
 
 export function LibraryEditor({
   table,
-  title,
+  description,
   initialValues,
   existing,
   onClose,
   onSaved,
 }: {
   table: string;
-  title: string;
+  description?: string | undefined;
   initialValues?: Record<string, RecordValue>;
   existing?: DataRecord;
   onClose: () => void;
@@ -92,7 +80,7 @@ export function LibraryEditor({
   return (
     <ProductRecordDialog
       table={table}
-      title={title}
+      description={description}
       existing={existing}
       initialValues={initialValues}
       onSaved={onSaved}

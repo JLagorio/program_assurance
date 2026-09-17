@@ -31,6 +31,7 @@
     "build": "node build/dist.mjs",
     "prepack": "npm run build",
     "build:tokens": "node build/tokens.mjs",
+    "build:lint": "node build/lint-inventory.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build",

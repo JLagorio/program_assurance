@@ -1,3 +1,4 @@
+import { useConfirmation } from "@/components/app/confirmation";
 import { useId, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -44,6 +45,7 @@ export function CatalogStep({
   editingKey: string | null;
   onEditingKeyChange: (key: string | null) => void;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const id = useId();
   const [error, setError] = useState("");
   const matching = profiles.filter(
@@ -51,7 +53,7 @@ export function CatalogStep({
   );
   const chosen = (option: WizardProfileOption) =>
     draft.profiles.find((profile) => profile.baseResolutionId === option.id);
-  function changeCatalog(catalogRevisionId: string) {
+  async function changeCatalog(catalogRevisionId: string) {
     if (draft.catalogRevisionId === catalogRevisionId) return;
     const decisions = draft.profiles.reduce(
       (count, profile) => count + profile.tailoring.length,
@@ -63,9 +65,12 @@ export function CatalogStep({
     );
     if (
       draft.profiles.length &&
-      !window.confirm(
-        `Change the catalog? This clears the ${draft.profiles.length} chosen profile(s), ${decisions} control decisions, and ${overrides} parameter overrides. Program details, systems, and categorization will be kept.`,
-      )
+      !(await confirm({
+        title: "Change catalog?",
+        confirmLabel: "Change catalog",
+        variant: "danger",
+        description: `Change the catalog? This clears the ${draft.profiles.length} chosen profile(s), ${decisions} control decisions, and ${overrides} parameter overrides. Program details, systems, and categorization will be kept.`,
+      }))
     )
       return;
     onChange({
@@ -77,7 +82,7 @@ export function CatalogStep({
     onEditingKeyChange(null);
     setError("");
   }
-  function toggleProfile(option: WizardProfileOption, checked: boolean) {
+  async function toggleProfile(option: WizardProfileOption, checked: boolean) {
     const existing = chosen(option);
     if (checked && !existing) {
       onChange({
@@ -100,9 +105,12 @@ export function CatalogStep({
       }
       if (
         (existing.tailoring.length || existing.parameters.length) &&
-        !window.confirm(
-          `Remove ${option.title}? Its ${existing.tailoring.length} control decisions and ${existing.parameters.length} parameter overrides will be discarded.`,
-        )
+        !(await confirm({
+          title: "Remove profile?",
+          confirmLabel: "Remove profile",
+          variant: "danger",
+          description: `Remove ${option.title}? Its ${existing.tailoring.length} control decisions and ${existing.parameters.length} parameter overrides will be discarded.`,
+        }))
       )
         return;
       onChange({
@@ -283,6 +291,7 @@ export function CatalogStep({
           </p>
         ) : null}
       </Section>
+      {confirmation}
     </Stack>
   );
 }

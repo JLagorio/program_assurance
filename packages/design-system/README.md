@@ -57,6 +57,8 @@ Run inside the package, or from the repo root with `-w @ledger/design-system`.
 
 Never edit `src/generated/` by hand; run `npm run build:tokens -w @ledger/design-system`.
 
+The package build also regenerates `eslint-plugin/components.json` from the public barrel. After changing exports, run `npm run build:lint -w @ledger/design-system` to refresh that inventory without a full build. Package tests check it for drift. The installed ESLint plugin reads the generated data without loading TypeScript or scanning component source.
+
 ## Install in a separate application
 
 This package is private. Install an approved internal artifact or a tarball produced by `npm pack`; a public registry publication is not assumed.

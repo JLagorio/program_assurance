@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useMemo, useState } from "react";
 import {
   Box,
@@ -47,6 +48,7 @@ export function ControlPicker({
   catalogRevisionId: string;
   data: ReferenceData;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<string | null>("all");
   const [selected, setSelected] = useState(initialControlId);
@@ -69,14 +71,21 @@ export function ControlPicker({
     [data.controls, catalogRevisionId, search, filter, selectedControlIds],
   );
   const control = data.controls.find((item) => item.id === selected);
-  function close() {
-    if (!editorDirty || window.confirm("Discard the unrecorded control rationale?")) {
+  async function close() {
+    if (
+      !editorDirty ||
+      (await confirm(discardChanges("Discard the unrecorded control rationale?")))
+    ) {
       setEditorDirty(false);
       onClose();
     }
   }
-  function select(controlId: string) {
-    if (editorDirty && !window.confirm("Discard the unrecorded control rationale?")) return;
+  async function select(controlId: string) {
+    if (
+      editorDirty &&
+      !(await confirm(discardChanges("Discard the unrecorded control rationale?")))
+    )
+      return;
     setEditorDirty(false);
     setSelected(controlId);
   }
@@ -85,12 +94,8 @@ export function ControlPicker({
       open={open}
       onOpenChange={(next, details) => {
         if (!next) {
-          if (editorDirty && !window.confirm("Discard the unrecorded control rationale?")) {
-            details.cancel();
-            return;
-          }
-          setEditorDirty(false);
-          onClose();
+          details.cancel();
+          void close();
         }
       }}
     >
@@ -172,6 +177,7 @@ export function ControlPicker({
           </Button>
         </SheetFooter>
       </SheetContent>
+      {confirmation}
     </Sheet>
   );
 }

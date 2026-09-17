@@ -1,6 +1,16 @@
 import { labelFor, type Column } from "./records";
 
 const nouns: Record<string, string> = {
+  component_definitions: "component",
+  defined_components: "component",
+  defined_component_implementations: "control implementation",
+  component_definition_revisions: "component version",
+  product_configurations: "configuration",
+  product_revisions: "product version",
+  requirement_definition_revisions: "requirement version",
+  profile_imports: "profile import",
+  profile_rules: "tailoring rule",
+  requirement_definitions: "requirement",
   evidence_artifacts: "evidence artifact",
   evidence_versions: "evidence version",
   assessment_campaigns: "assessment campaign",
@@ -28,11 +38,32 @@ const nouns: Record<string, string> = {
   scope_baselines: "scope baseline",
   oscal_documents: "OSCAL document",
   oscal_document_revisions: "OSCAL document revision",
+  security_processes: "security process",
+  provider_capabilities: "provider capability",
+  offered_implementations: "offering",
+  authorization_decisions: "authorization decision",
+  risk_responses: "risk response",
 };
 
 /** Labels describe real tables; fields and choices still come from the database. */
-export function productRecordNoun(table: string): string {
+export function productRecordNoun(table: string, values?: Record<string, unknown>): string {
+  if (table === "parties") {
+    const type = values?.["party_type"];
+    if (type === "organization" || type === "person" || type === "team") return type;
+  }
   return nouns[table] ?? labelFor(table.replace(/ies$/, "y").replace(/s$/, "")).toLowerCase();
+}
+
+/** The same operation label belongs on a create trigger, its form and its submit button. */
+export function productCreateLabel(table: string, values?: Record<string, unknown>): string {
+  return `Create ${productRecordNoun(table, values)}`;
+}
+
+export function productCollectionNoun(table: string, values?: Record<string, unknown>): string {
+  const noun = productRecordNoun(table, values);
+  if (noun === "person") return "people";
+  if (noun.endsWith("y") && !/[aeiou]y$/.test(noun)) return `${noun.slice(0, -1)}ies`;
+  return `${noun}${/(s|x|ch|sh)$/.test(noun) ? "es" : "s"}`;
 }
 
 const leadingFields = [

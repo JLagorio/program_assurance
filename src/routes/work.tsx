@@ -1,8 +1,18 @@
 import { Box } from "@ledger/design-system";
-import { PageHeader, Section, Stack } from "@ledger/design-system";
+import {
+  PageHeader,
+  Section,
+  Stack,
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyMedia,
+  EmptyIllustration,
+  EmptyDescription,
+} from "@ledger/design-system";
 import { createFileRoute } from "@tanstack/react-router";
 import { WorkTable } from "@/components/prototype/work-table";
-import { EmptyState, QueryState } from "@/components/prototype/work-common";
+import { QueryState } from "@/components/prototype/work-common";
 import { displayDate } from "@/components/prototype/work-format";
 import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
@@ -10,7 +20,7 @@ import { labelFor } from "@/lib/records";
 
 export const Route = createFileRoute("/work")({
   component: MyWork,
-  head: () => ({ meta: [{ title: "My work — Equinox" }] }),
+  head: () => ({ meta: [{ title: "My work — Program Assurance" }] }),
 });
 function MyWork() {
   const workspace = useWorkspace();
@@ -42,11 +52,17 @@ function MyWork() {
               ))}
             </Stack>
           ) : (
-            <EmptyState
-              illustration="inbox"
-              title="Nothing logged yet"
-              description="Recorded activity attributed to your workspace identity appears here."
-            />
+            <Empty>
+              <EmptyMedia aria-hidden>
+                <EmptyIllustration kind="inbox" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>Nothing logged yet</EmptyTitle>
+                <EmptyDescription>
+                  Recorded activity attributed to your workspace identity appears here.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           )}
         </QueryState>
       </Section>

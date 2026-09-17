@@ -1,21 +1,15 @@
 import { useMemo, useState, type ReactNode, useRef } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import {
   Badge,
-  Box,
   Button,
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-  Inline,
-  Input,
   KeyValue,
   Section,
   Stack,
-  Table,
   TextLink,
+  Shell,
+  Toolbar,
   type Tone,
   Absent,
   DataTable,
@@ -27,30 +21,18 @@ import { ProductRecordDialog } from "./product-record-dialog";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRow, useRows, type TableName, type Filters } from "@/lib/models";
 import { displayValue, labelFor, type DataRecord } from "@/lib/records";
+import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
+import { QueryState as SharedQueryState, type QueryStatus } from "./work-common";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "./record-preview";
 
-export function QueryState({
-  query,
-  children,
-}: {
-  query: { isPending: boolean; isError: boolean; error: Error | null; data?: unknown };
-  children: ReactNode;
-}) {
-  return (
-    <>
-      {query.isError ? (
-        <p role="alert" className="text-danger">
-          {query.data !== undefined &&
-            "Could not refresh records. Showing the last loaded records. "}
-          {query.error?.message}
-        </p>
-      ) : query.isPending ? (
-        <p role="status" className="text-subtle">
-          Loading records…
-        </p>
-      ) : null}
-      {(query.data !== undefined || (!query.isPending && !query.isError)) && children}
-    </>
-  );
+export function QueryState({ query, children }: { query: QueryStatus; children: ReactNode }) {
+  return <SharedQueryState queries={[query]}>{children}</SharedQueryState>;
 }
 export function stateTone(value: unknown): Tone {
   return ["critical", "other_than_satisfied", "denied", "revoked"].includes(String(value))
@@ -63,7 +45,7 @@ export function stateTone(value: unknown): Tone {
 }
 export function StateBadge({ value }: { value: unknown }) {
   return value === null || value === undefined ? (
-    <span className="text-subtlest">Not recorded</span>
+    <Absent />
   ) : (
     <Badge tone={stateTone(value)} variant="secondary" size="xsmall">
       {labelFor(String(value))}
@@ -72,16 +54,16 @@ export function StateBadge({ value }: { value: unknown }) {
 }
 export function RelationName({ table, id }: { table: TableName; id: string | null | undefined }) {
   const query = useRow(table, id);
-  if (!id) return <span className="text-subtlest">Not recorded</span>;
-  if (query.isPending) return <span>Loading…</span>;
-  if (query.isError) return <span role="alert">{query.error.message}</span>;
+  if (!id) return <Absent />;
   const row = query.data as unknown as DataRecord | null;
   return (
-    <>
-      {row
-        ? String(row["name"] ?? row["title"] ?? row["code"] ?? row["source_id"] ?? row.id)
-        : "Unavailable record"}
-    </>
+    <SharedQueryState queries={[query]}>
+      {row ? (
+        String(row["name"] ?? row["title"] ?? row["code"] ?? row["source_id"] ?? row.id)
+      ) : (
+        <Absent />
+      )}
+    </SharedQueryState>
   );
 }
 export type DisplayColumn = {
@@ -109,9 +91,12 @@ const DATE_KEYS = /_(at|on)$/;
 const NUMBER_KEYS = /_number$/;
 /** A register of records on the kit's DataTable: the toolbar, the kinds decided by the key, the two empties. */
 export function ModelTable({
+  model,
   rows,
   columns,
-  onOpen,
+  onPreview,
+  selectedId,
+  onDisplayedRowsChange,
   empty,
   searchLabel = "Search records",
   filters,
@@ -119,9 +104,12 @@ export function ModelTable({
   view,
   fill,
 }: {
+  model: TableName;
   rows: DataRecord[];
   columns: DisplayColumn[];
-  onOpen?: ((row: DataRecord) => void) | undefined;
+  onPreview?: ((row: DataRecord) => void) | undefined;
+  selectedId?: string | undefined;
+  onDisplayedRowsChange?: ((rows: DataRecord[]) => void) | undefined;
   /** A string is the description under "Nothing recorded yet". */
   empty?: string | ModelTableEmpty;
   searchLabel?: string;
@@ -134,6 +122,7 @@ export function ModelTable({
   /** The register is the page's one block: it takes the rest of the window. */
   fill?: boolean | undefined;
 }) {
+  const navigate = useNavigate();
   // Status fields read as labels so the chips and the badges agree; renders and the row click see the record as it came.
   const byId = useMemo(() => new Map(rows.map((row) => [row.id, row])), [rows]);
   const byIdRef = useRef(byId);
@@ -150,9 +139,11 @@ export function ModelTable({
           const value = row[key];
           if (typeof value === "string") next[key] = labelFor(value);
         }
+        for (const column of columns)
+          if (DATE_KEYS.test(column.key) && next[column.key] == null) delete next[column.key];
         return next;
       }),
-    [rows, statusKeys],
+    [rows, statusKeys, columns],
   );
   const tableColumns = useMemo(
     () =>
@@ -172,19 +163,18 @@ export function ModelTable({
           };
           const cell = render ? (row: DataRecord) => render(raw(row)) : plain;
           if (index === 0)
-            return c.text(column.key, {
+            return c.id(column.key, {
               header,
               hideable: false,
               minWidth: 200,
               ...size,
-              cell: (row) =>
-                onOpen ? (
-                  <TextLink render={<button type="button" onClick={() => onOpen(raw(row))} />}>
-                    {render?.(raw(row)) ?? displayValue(row[column.key])}
-                  </TextLink>
-                ) : (
-                  cell(row)
-                ),
+              preview: onPreview ? (row) => onPreview(raw(row)) : undefined,
+              active: (row) => row.id === selectedId,
+              cell: (row) => (
+                <RecordLink table={model} record={raw(row)}>
+                  {render?.(raw(row)) ?? displayValue(row[column.key])}
+                </RecordLink>
+              ),
             });
           if (STATUS_KEYS.has(column.key))
             return c.status(column.key, {
@@ -206,7 +196,7 @@ export function ModelTable({
           return c.text(column.key, { header, ...size, cell });
         }),
       ),
-    [columns, onOpen],
+    [columns, model, onPreview, selectedId],
   );
   const chips =
     filters ??
@@ -228,13 +218,15 @@ export function ModelTable({
     reorderable: true,
     ...(view ? { view } : {}),
   });
+  useDisplayedRecords(table, onDisplayedRowsChange, byId);
   const message: ModelTableEmpty =
     typeof empty === "string" ? { description: empty } : (empty ?? {});
   return (
     <DataTable
+      responsive
       table={table}
       fill={fill}
-      onRowClick={onOpen ? (row) => onOpen(byId.get(row.id) ?? row) : undefined}
+      onRowClick={(row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))}
       empty={{
         illustration: message.illustration ?? "records",
         title: message.title ?? "Nothing recorded yet",
@@ -242,17 +234,18 @@ export function ModelTable({
         action: message.action,
       }}
       toolbar={
-        <Inline space="space.100" alignBlock="center" shouldWrap>
-          <DataTable.Search table={table} placeholder={searchLabel} />
-          {chips.map((key) => (
+        <Toolbar
+          search={String(table.state.globalFilter ?? "")}
+          onSearch={(value) => table.setGlobalFilter(value)}
+          placeholder={searchLabel}
+          filters={chips.map((key) => (
             <DataTable.Filter key={key} table={table} column={key} />
           ))}
-          <Inline className="ml-auto" space="space.100" alignBlock="center">
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-            {actions}
-          </Inline>
-        </Inline>
+          actions={actions}
+        >
+          <DataTable.Columns table={table} />
+          <DataTable.Settings table={table} />
+        </Toolbar>
       }
     />
   );
@@ -313,6 +306,8 @@ export function EntitySection({
   columns,
   initialValues,
   onOpen,
+  selectedId,
+  onDisplayedRowsChange,
   description,
   readOnly = false,
   appendOnly = false,
@@ -324,6 +319,8 @@ export function EntitySection({
   columns: DisplayColumn[];
   initialValues?: Record<string, unknown>;
   onOpen?: ((row: DataRecord) => void) | undefined;
+  selectedId?: string | undefined;
+  onDisplayedRowsChange?: ((rows: DataRecord[]) => void) | undefined;
   description?: string;
   readOnly?: boolean;
   appendOnly?: boolean;
@@ -334,6 +331,7 @@ export function EntitySection({
   const query = useRows(table, filters);
   const [editing, setEditing] = useState<DataRecord | "new" | null>(null);
   const [selected, setSelected] = useState<DataRecord | null>(null);
+  const [displayed, setDisplayed] = useState<DataRecord[]>([]);
   const collection = workspace.collections.find((item) => item.name === table);
   const canAdd = !readOnly && workspace.role !== "viewer" && Boolean(collection?.can_insert);
   const add = (size: "small" | "medium") =>
@@ -345,7 +343,7 @@ export function EntitySection({
         disabled={editing === "new"}
         onClick={() => setEditing("new")}
       >
-        Add {title.toLowerCase()}
+        {productCreateLabel(table, { ...filters, ...initialValues })}
       </Button>
     ) : undefined;
   return (
@@ -366,30 +364,51 @@ export function EntitySection({
           />
         )}
         {selected && (
-          <Box padding="space.250" backgroundColor="elevation.surface.sunken">
+          <RecordPreviewPanel
+            title={String(
+              selected["name"] ?? selected["title"] ?? selected["code"] ?? productRecordNoun(table),
+            )}
+            label={`${productRecordNoun(table)} preview`}
+            defaultWidth={560}
+            onClose={() => setSelected(null)}
+            recordActions={
+              !readOnly &&
+              !appendOnly &&
+              workspace.role !== "viewer" &&
+              collection?.can_update &&
+              selected["state"] !== "published" &&
+              selected["tenant_id"] !== null && (
+                <Button size="small" variant="primary" onClick={() => setEditing(selected)}>
+                  Edit record
+                </Button>
+              )
+            }
+            navigation={
+              <RecordPreviewActions
+                table={table}
+                record={selected}
+                rows={displayed}
+                onSelect={setSelected}
+              />
+            }
+          >
             <Stack space="space.150">
               <ModelFacts record={selected} fields={columns} />
-              <Inline space="space.150">
-                {!readOnly &&
-                  !appendOnly &&
-                  workspace.role !== "viewer" &&
-                  collection?.can_update &&
-                  selected["state"] !== "published" &&
-                  selected["tenant_id"] !== null && (
-                    <Button onClick={() => setEditing(selected)}>Edit record</Button>
-                  )}
-                <Button onClick={() => setSelected(null)}>Close record</Button>
-                <InspectLink table={table} id={selected.id} />
-              </Inline>
             </Stack>
-          </Box>
+          </RecordPreviewPanel>
         )}
         <QueryState query={query}>
           <ModelTable
+            model={table}
             rows={(query.data ?? []) as unknown as DataRecord[]}
             columns={columns}
             fill={fill}
-            onOpen={onOpen ?? setSelected}
+            onPreview={onOpen ?? setSelected}
+            selectedId={selectedId ?? selected?.id}
+            onDisplayedRowsChange={(rows) => {
+              setDisplayed(rows);
+              onDisplayedRowsChange?.(rows);
+            }}
             searchLabel={`Search ${title.toLowerCase()}`}
             actions={add("small")}
             empty={{

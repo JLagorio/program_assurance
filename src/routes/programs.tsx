@@ -1,9 +1,11 @@
+import { QueryState } from "@/components/prototype/work-common";
 import { useMemo } from "react";
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Button,
   DataTable,
   Inline,
+  Toolbar,
   PageHeader,
   Stack,
   TextLink,
@@ -140,59 +142,71 @@ function ProgramList() {
   return (
     <Stack space="space.200" className="min-w-0">
       <PageHeader>
-        <div>
+        <PageHeader.Heading>
           <PageHeader.Title>Programs</PageHeader.Title>
-        </div>
+        </PageHeader.Heading>
       </PageHeader>
-      <DataTable
-        table={table}
-        fill
-        state={error ? "error" : loading ? "loading" : "ready"}
-        error={error instanceof Error ? error.message : "Programs could not be loaded."}
-        onRowClick={(program) =>
-          void navigate({ to: "/programs/$programId", params: { programId: program.id } })
-        }
-        empty={{
-          title: "No programs yet",
-          description:
-            "A program holds the systems it assures, their requirements and the work that proves them. Create the first to start.",
-          action: canCreate ? (
-            <Button variant="primary" iconBefore={<Plus />} render={<Link to="/programs/new" />}>
-              New program
-            </Button>
-          ) : undefined,
-        }}
-        toolbar={
-          <Inline space="space.100" alignBlock="center" shouldWrap>
-            <DataTable.Search table={table} placeholder="Find programs" />
-            <DataTable.Presets table={table} variant="menu" presets={statusPresets} />
-            <DataTable.Filter table={table} column="state" />
-            <DataTable.Filter table={table} column="sponsor" />
-            <Inline className="ml-auto" space="space.100" alignBlock="center">
+      <QueryState queries={[programs, systems, parties]}>
+        <DataTable
+          responsive
+          table={table}
+          fill
+          onRowClick={(program) =>
+            void navigate({ to: "/programs/$programId", params: { programId: program.id } })
+          }
+          empty={{
+            illustration: "tree",
+            title: "No programs yet",
+            description:
+              "A program holds the systems it assures, their requirements and the work that proves them. Create the first to start.",
+            action: canCreate ? (
+              <Button variant="primary" iconBefore={<Plus />} render={<Link to="/programs/new" />}>
+                Create program
+              </Button>
+            ) : undefined,
+          }}
+          toolbar={
+            <Toolbar
+              search={String(table.state.globalFilter ?? "")}
+              onSearch={(value) => table.setGlobalFilter(value)}
+              placeholder="Find programs"
+              views={<DataTable.Presets table={table} variant="menu" presets={statusPresets} />}
+              filters={
+                <>
+                  <DataTable.Filter table={table} column="state" />
+                  <DataTable.Filter table={table} column="sponsor" />
+                </>
+              }
+              actions={
+                <>
+                  {" "}
+                  <Button
+                    size="small"
+                    iconBefore={<Download />}
+                    onClick={download}
+                    disabled={loading || !!error || rows.length === 0}
+                  >
+                    Export
+                  </Button>
+                  {canCreate && (
+                    <Button
+                      size="small"
+                      variant="primary"
+                      iconBefore={<Plus />}
+                      render={<Link to="/programs/new" />}
+                    >
+                      Create program
+                    </Button>
+                  )}
+                </>
+              }
+            >
               <DataTable.Columns table={table} />
               <DataTable.Settings table={table} />
-              <Button
-                size="small"
-                iconBefore={<Download />}
-                onClick={download}
-                disabled={loading || !!error || rows.length === 0}
-              >
-                Export
-              </Button>
-              {canCreate && (
-                <Button
-                  size="small"
-                  variant="primary"
-                  iconBefore={<Plus />}
-                  render={<Link to="/programs/new" />}
-                >
-                  New program
-                </Button>
-              )}
-            </Inline>
-          </Inline>
-        }
-      />
+            </Toolbar>
+          }
+        />
+      </QueryState>
     </Stack>
   );
 }

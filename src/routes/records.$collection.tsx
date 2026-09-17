@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { RecordList } from "@/components/app/record-browser";
 export const Route = createFileRoute("/records/$collection")({
+  head: () => ({ meta: [{ title: "Schema records — Program Assurance" }] }),
   validateSearch: (search: Record<string, unknown>): { field?: string; value?: string } => ({
     ...(typeof search["field"] === "string" ? { field: search["field"] } : {}),
     ...(typeof search["value"] === "string" ? { value: search["value"] } : {}),

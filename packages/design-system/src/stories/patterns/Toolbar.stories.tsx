@@ -344,6 +344,7 @@ export const Constrained: Story = {
             search={query}
             onSearch={setQuery}
             placeholder="Find controls"
+            views={<Button size="small">Saved views</Button>}
             actions={
               <>
                 <Button size="small">Columns</Button>
@@ -374,16 +375,23 @@ export const Constrained: Story = {
     await userEvent.type(canvas.getByRole("searchbox", { name: "Find controls" }), "AC-2");
     await userEvent.click(canvas.getByRole("button", { name: "Narrow container" }));
     const more = await canvas.findByRole("button", { name: "More filters" });
-    for (const name of ["New control", "Columns", "Settings"]) {
+    for (const name of ["Saved views", "New control", "Columns", "Settings"]) {
       const action = canvas.getByRole("button", { name });
       await expect(action).toBeVisible();
-      await expect(action.getBoundingClientRect().top).toBe(more.getBoundingClientRect().top);
+      const container = canvas.getByTestId("toolbar-container").getBoundingClientRect();
+      const bounds = action.getBoundingClientRect();
+      await expect(bounds.left).toBeGreaterThanOrEqual(container.left);
+      await expect(bounds.right).toBeLessThanOrEqual(container.right + 1);
     }
+    const savedViews = canvas.getByRole("button", { name: "Saved views" });
+    await expect(
+      savedViews.compareDocumentPosition(more) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     await userEvent.click(more);
     const popup = await screen.findByRole("dialog", { name: "Filters" });
     await userEvent.click(within(popup).getByRole("button", { name: /Gaps/ }));
     await expect(canvas.getByText("Showing gaps")).toBeVisible();
-    for (const name of ["New control", "Columns", "Settings"]) {
+    for (const name of ["Saved views", "New control", "Columns", "Settings"]) {
       await expect(within(popup).queryByRole("button", { name })).not.toBeInTheDocument();
     }
     await userEvent.keyboard("{Escape}");

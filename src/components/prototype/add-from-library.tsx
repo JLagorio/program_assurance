@@ -505,6 +505,7 @@ export function AddFromLibrary({
     >
       {frame === "choose" ? (
         <DataTable
+          responsive
           table={table}
           state={
             [

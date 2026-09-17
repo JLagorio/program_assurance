@@ -14,7 +14,10 @@ page.setDefaultTimeout(30000);
 const errors = [];
 let otherOwner;
 page.on("pageerror", (error) => errors.push(error.message));
-page.on("dialog", (dialog) => dialog.accept());
+page.on("dialog", (dialog) => {
+  errors.push(`Unexpected native ${dialog.type()}: ${dialog.message()}`);
+  void dialog.dismiss();
+});
 async function data(query) {
   const response = await query;
   assert.ifError(response.error);
@@ -199,6 +202,11 @@ try {
   dialog = page.getByRole("dialog", { name: "Map control", exact: true });
   await dialog.getByLabel("Rationale (optional)").fill("Discarded draft");
   await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page
+    .getByRole("alertdialog", { name: "Discard changes?", exact: true })
+    .getByRole("button", { name: "Discard changes", exact: true })
+    .click();
+  await page.getByRole("alertdialog").waitFor({ state: "hidden" });
   await dialog.waitFor({ state: "hidden" });
   links = await data(
     client.from("requirement_control_links").select().eq("requirement_revision_id", content.id),

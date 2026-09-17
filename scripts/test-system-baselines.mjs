@@ -1,6 +1,6 @@
 /** Exercise baseline adoption/tailoring/inheritance only in a disposable local workspace. */
 import assert from "node:assert/strict";
-import { chromium } from "playwright";
+import { chromium, expect } from "playwright/test";
 import { localWorkspace } from "./tests/local-workspace.mjs";
 const origin = process.env.APP_TEST_URL || "http://127.0.0.1:8080";
 assert.ok(["localhost", "127.0.0.1"].includes(new URL(origin).hostname));
@@ -11,7 +11,10 @@ const page = await browser.newPage({ viewport: { width: 1500, height: 1050 } });
 page.setDefaultTimeout(30000);
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
-page.on("dialog", (dialog) => dialog.accept());
+page.on("dialog", (dialog) => {
+  errors.push(`Unexpected native ${dialog.type()}: ${dialog.message()}`);
+  void dialog.dismiss();
+});
 async function data(query) {
   const result = await query;
   assert.ifError(result.error);
@@ -34,7 +37,13 @@ async function select(label, name) {
 async function baselineUrl(programId, systemId) {
   await page.goto(`${origin}/programs/${programId}/systems/${systemId}`);
   await page.getByRole("tab", { name: "Controls", exact: true }).click();
-  await page.getByRole("button", { name: "Change baseline", exact: true }).waitFor();
+  await expect(page.getByRole("button", { name: "Change baseline", exact: true })).toBeEnabled({
+    timeout: 30000,
+  });
+}
+async function baselineDetails() {
+  const trigger = page.getByRole("button", { name: "Baseline details", exact: true });
+  if ((await trigger.getAttribute("aria-expanded")) !== "true") await trigger.click();
 }
 try {
   const profile = await data(
@@ -86,6 +95,24 @@ try {
     resolution.id,
   );
   await baselineUrl(program.id, child.id);
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Baseline details", exact: true })
+      .getAttribute("aria-expanded"),
+    "false",
+    "Baseline provenance is available without introducing the controls table",
+  );
+  await page.screenshot({
+    path: "/tmp/system-baseline-controls-desktop.png",
+    animations: "disabled",
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "/tmp/system-baseline-controls-mobile.png",
+    animations: "disabled",
+  });
+  await page.setViewportSize({ width: 1500, height: 1050 });
+  await baselineDetails();
   await page
     .getByText(/^Inherited from /)
     .first()
@@ -116,7 +143,12 @@ try {
     0,
   );
   // Since program setup v2 the tailored profile is published at creation and layered on its base.
-  await page.getByText(`Layered on ${record.title}`, { exact: true }).waitFor();
+  await baselineDetails();
+  await page
+    .locator("dl")
+    .filter({ has: page.getByText("Layered on", { exact: true }) })
+    .getByText(record.title, { exact: true })
+    .waitFor();
   await page.screenshot({ path: "/tmp/system-baseline-tailoring.png", fullPage: true });
   await page.getByRole("button", { name: "Change baseline", exact: true }).click();
   assert.ok(
@@ -175,6 +207,11 @@ try {
   await page.getByRole("button", { name: "Change baseline", exact: true }).click();
   await page.getByRole("checkbox").first().uncheck();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page
+    .getByRole("alertdialog", { name: "Discard changes?", exact: true })
+    .getByRole("button", { name: "Discard changes", exact: true })
+    .click();
+  await page.getByRole("alertdialog").waitFor({ state: "hidden" });
   assert.equal(
     (await data(client.from("system_baseline_requests").select().eq("tenant_id", tenantId))).length,
     before,
@@ -212,6 +249,11 @@ try {
     null,
   );
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page
+    .getByRole("alertdialog", { name: "Discard changes?", exact: true })
+    .getByRole("button", { name: "Discard changes", exact: true })
+    .click();
+  await page.getByRole("alertdialog").waitFor({ state: "hidden" });
   assert.deepEqual(errors, []);
   console.log(
     "Baseline browser passed: published adoption, child inheritance, tailored draft persistence, restore inheritance, discard without writes, conflict retains draft.",

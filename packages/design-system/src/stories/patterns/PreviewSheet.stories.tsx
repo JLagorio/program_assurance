@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { PreviewSheet, Section } from "../..";
+import { PreviewNavigation, PreviewSheet, Section } from "../..";
 import { Badge, Button, Fact, Id, Table, TextLink } from "../../components";
 import { Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -14,6 +14,85 @@ const meta = {
 } satisfies Meta<typeof PreviewSheet>;
 export default meta;
 type Story = StoryObj;
+
+function CollectionReview() {
+  const [open, setOpen] = useState(false);
+  const [index, setIndex] = useState(0);
+  const names = ["Access review evidence", "Recovery exercise evidence"];
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Review evidence</Button>
+      <PreviewSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        id={null}
+        title={names[index]}
+        navigation={
+          <PreviewNavigation
+            position={index + 1}
+            total={names.length}
+            onPrevious={index > 0 ? () => setIndex(index - 1) : undefined}
+            onNext={index < names.length - 1 ? () => setIndex(index + 1) : undefined}
+            openLink={
+              <a href={`#evidence-${index + 1}`} target="_blank" rel="noopener noreferrer" />
+            }
+          />
+        }
+        openTo={<a href={`#evidence-${index + 1}`}>Open evidence record</a>}
+        actions={
+          <Button size="small" variant="primary">
+            Edit artifact
+          </Button>
+        }
+      >
+        <Section title="Details">
+          <Fact label="Review">Awaiting decision</Fact>
+        </Section>
+      </PreviewSheet>
+    </>
+  );
+}
+
+export const CollectionTask: Story = {
+  render: () => <CollectionReview />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const opener = canvas.getByRole("button", { name: "Review evidence" });
+    await userEvent.click(opener);
+    const first = await page.findByRole("dialog", { name: "Access review evidence" });
+    const navigationHeader = first.querySelector('[data-slot="sheet-header"]') as HTMLElement;
+    const recordHeader = first.querySelector('[data-slot="page-header"]') as HTMLElement;
+    await expect(within(navigationHeader).queryByRole("heading")).toBeNull();
+    await expect(
+      within(navigationHeader).queryByRole("button", { name: "Edit artifact" }),
+    ).toBeNull();
+    await expect(within(navigationHeader).getByRole("button", { name: "Close" })).toBeVisible();
+    await expect(
+      within(recordHeader).getByRole("heading", { name: "Access review evidence" }),
+    ).toHaveFocus();
+    await expect(
+      within(first).getAllByRole("heading", { name: "Access review evidence" }),
+    ).toHaveLength(1);
+    await expect(
+      within(recordHeader)
+        .getByRole("button", { name: "Edit artifact" })
+        .closest('[data-slot="page-header-actions"]'),
+    ).not.toBeNull();
+    await expect(within(first).getAllByRole("link")).toHaveLength(1);
+    await expect(first.querySelector('[data-slot="sheet-footer"]')).toBeNull();
+    await expect(within(first).getByRole("button", { name: "Previous record" })).toBeDisabled();
+    await userEvent.click(within(first).getByRole("button", { name: "Next record" }));
+    const next = page.getByRole("dialog", { name: "Recovery exercise evidence" });
+    await expect(within(next).getByRole("button", { name: "Next record" })).toBeDisabled();
+    await expect(
+      within(next).getByRole("link", { name: "Open full record in new tab" }),
+    ).toHaveAttribute("href", "#evidence-2");
+    await expect(within(next).getByRole("status")).toHaveTextContent("2 of 2 records");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(opener).toHaveFocus());
+  },
+};
 
 function PreviewSheetStates() {
   const [open, setOpen] = useState<"plain" | "full" | "stack" | null>(null);
@@ -90,8 +169,12 @@ function PreviewSheetStates() {
         actions={
           open === "full" ? (
             <>
-              <Button variant="secondary">Propose change</Button>
-              <Button variant="primary">Allocate</Button>
+              <Button size="small" variant="secondary">
+                Propose change
+              </Button>
+              <Button size="small" variant="primary">
+                Allocate
+              </Button>
             </>
           ) : null
         }
@@ -170,6 +253,11 @@ export const PreviewSheetStory: Story = {
       "href",
       "#record",
     );
+    await expect(
+      page
+        .getByRole("link", { name: "Open the full record" })
+        .closest('[data-slot="sheet-header"]'),
+    ).not.toBeNull();
     await expect(page.getByRole("heading", { name: "Telemetry gateway" })).toHaveFocus();
     // Verify modal behavior rather than prescribing Base UI's background-hiding technique.
     await expect(page.queryByRole("button", { name: "Facts only" })).toBeNull();
@@ -188,6 +276,15 @@ export const PreviewSheetStory: Story = {
       "href",
       "#record",
     );
+    const fullDialog = page.getByRole("dialog", { name: "Telemetry gateway" });
+    const fullRecordHeader = fullDialog.querySelector('[data-slot="page-header"]') as HTMLElement;
+    await expect(within(fullRecordHeader).getByRole("button", { name: "Allocate" })).toBeVisible();
+    const footer = fullDialog.querySelector('[data-slot="sheet-footer"]') as HTMLElement;
+    await expect(
+      within(footer).getByRole("link", { name: "Control set and revisions" }),
+    ).toBeVisible();
+    await expect(within(footer).queryByRole("button")).toBeNull();
+    await expect(within(footer).queryByRole("link", { name: "Open component record" })).toBeNull();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
     const opener = canvas.getByRole("button", { name: "Compact header, a frame deeper" });
@@ -196,6 +293,18 @@ export const PreviewSheetStory: Story = {
     await expect(
       page.getByRole("dialog", { name: "The gateway shall encrypt telemetry in transit" }),
     ).toBeVisible();
+    const nestedDialog = page.getByRole("dialog", {
+      name: "The gateway shall encrypt telemetry in transit",
+    });
+    const nestedHeader = nestedDialog.querySelector('[data-slot="sheet-header"]') as HTMLElement;
+    await expect(within(nestedHeader).getByRole("button", { name: "Back" })).toBeVisible();
+    await expect(within(nestedHeader).queryByText("REQ-0118")).toBeNull();
+    await expect(within(nestedHeader).queryByText("Verified")).toBeNull();
+    await expect(within(nestedDialog).getByText("REQ-0118")).toBeVisible();
+    await expect(within(nestedDialog).getByText("Verified")).toBeVisible();
+    await expect(
+      within(nestedDialog).getByText("Requirement · Derived · Dan Whitlock"),
+    ).toHaveAttribute("id", nestedDialog.getAttribute("aria-describedby"));
     await userEvent.click(page.getByRole("button", { name: "Back" }));
     await expect(page.getByRole("dialog", { name: "Telemetry gateway" })).toBeVisible();
     await expect(page.queryByRole("button", { name: "Back" })).toBeNull();
@@ -226,6 +335,8 @@ function CompletePreview() {
         openTo={<a href="#requirement">Open requirement</a>}
         actions={
           <Button
+            size="small"
+            variant="primary"
             onClick={() => {
               setDone(true);
               setOpen(false);

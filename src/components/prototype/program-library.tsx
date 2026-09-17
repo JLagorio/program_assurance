@@ -170,6 +170,7 @@ export function ProgramLibrary({
   const pending = assurancePending || queries.some((query) => query.isPending);
   return (
     <DataTable
+      responsive
       table={table}
       fill={fill}
       state={error ? "error" : pending ? "loading" : "ready"}

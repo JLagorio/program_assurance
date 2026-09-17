@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Button,
   DataTable,
+  Toolbar,
   defineColumns,
-  Inline,
   Stack,
+  TextLink,
   useDataTable,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
@@ -14,13 +15,13 @@ import { useWorkspace } from "@/components/app/workspace";
 import { labelFor } from "@/lib/records";
 import { QueryState } from "./work-common";
 import { CreateTaskDialog } from "./create-task-dialog";
-import { displayDate, statusTone } from "./work-format";
+import { statusTone } from "./work-format";
 
 type TaskRow = Row<"tasks"> & {
   program: string;
   assignees: string;
   state: string;
-  due: string;
+  due: string | undefined;
   role: string;
   priorityLabel: string;
 };
@@ -69,7 +70,7 @@ export function WorkTable({
               )
               .join(", ") || "Unassigned",
           state: labelFor(task.status),
-          due: displayDate(task.due_at),
+          due: task.due_at ?? undefined,
           role: mine ? "Assigned to you" : "Other tasks",
           priorityLabel: task.priority ? labelFor(task.priority) : "Not recorded",
         };
@@ -79,11 +80,28 @@ export function WorkTable({
   const columns = useMemo(
     () =>
       defineColumns<TaskRow>((c) => [
-        c.text("title", { header: "Task", width: 330, hideable: false }),
+        c.text("title", {
+          header: "Task",
+          width: 330,
+          hideable: false,
+          cell: (row) => (
+            <TextLink
+              render={
+                <Link
+                  to="/tasks/$taskId"
+                  params={{ taskId: row.id }}
+                  onClick={(event) => event.stopPropagation()}
+                />
+              }
+            >
+              {row.title}
+            </TextLink>
+          ),
+        }),
         c.status("state", { header: "State", width: 130, tone: (row) => statusTone(row.status) }),
         c.text("assignees", { header: "Assigned to", width: 180 }),
         ...(programId ? [] : [c.text("program", { header: "Program", width: 180 })]),
-        c.text("due", { header: "Due", width: 135 }),
+        c.date("due", { header: "Due", width: 135 }),
         c.text("priorityLabel", { header: "Priority", width: 110 }),
         c.text("role", { header: "Assignment", width: 160 }),
       ]),
@@ -111,6 +129,7 @@ export function WorkTable({
       )}
       <QueryState queries={[tasks, assignments, parties, programs]}>
         <DataTable
+          responsive
           table={table}
           fill={fill}
           onRowClick={(row) => void navigate({ to: "/tasks/$taskId", params: { taskId: row.id } })}
@@ -126,51 +145,64 @@ export function WorkTable({
                   disabled={adding}
                   onClick={() => setAdding(true)}
                 >
-                  Add task
+                  Create task
                 </Button>
               ) : undefined,
           }}
           toolbar={
-            <Inline space="space.100" alignBlock="center" shouldWrap>
-              <DataTable.Search table={table} placeholder="Find tasks" />
-              <DataTable.Presets
-                table={table}
-                variant="menu"
-                presets={[
-                  { id: "all", label: "All tasks" },
-                  {
-                    id: "mine",
-                    label: "Assigned to you",
-                    filters: [{ id: "role", value: ["Assigned to you"] }],
-                  },
-                  {
-                    id: "open",
-                    label: "Open",
-                    filters: [
-                      { id: "state", value: ["Open", "In progress", "Waiting", "Blocked"] },
-                    ],
-                  },
-                  { id: "done", label: "Done", filters: [{ id: "state", value: ["Done"] }] },
-                ]}
-              />
-              <DataTable.Filter table={table} column="state" />
-              <DataTable.Filter table={table} column="assignees" />
-              <Inline className="ml-auto" space="space.100" alignBlock="center">
-                <DataTable.Columns table={table} />
-                <DataTable.Settings table={table} />
-                {workspace.role !== "viewer" && (
-                  <Button
-                    size="small"
-                    variant="primary"
-                    iconBefore={<Plus />}
-                    disabled={adding}
-                    onClick={() => setAdding(true)}
-                  >
-                    Add task
-                  </Button>
-                )}
-              </Inline>
-            </Inline>
+            <Toolbar
+              search={String(table.state.globalFilter ?? "")}
+              onSearch={(value) => table.setGlobalFilter(value)}
+              placeholder="Find tasks"
+              views={
+                <>
+                  <DataTable.Presets
+                    table={table}
+                    variant="menu"
+                    presets={[
+                      { id: "all", label: "All tasks" },
+                      {
+                        id: "mine",
+                        label: "Assigned to you",
+                        filters: [{ id: "role", value: ["Assigned to you"] }],
+                      },
+                      {
+                        id: "open",
+                        label: "Open",
+                        filters: [
+                          { id: "state", value: ["Open", "In progress", "Waiting", "Blocked"] },
+                        ],
+                      },
+                      { id: "done", label: "Done", filters: [{ id: "state", value: ["Done"] }] },
+                    ]}
+                  />
+                </>
+              }
+              filters={
+                <>
+                  <DataTable.Filter table={table} column="state" />
+                  <DataTable.Filter table={table} column="assignees" />
+                </>
+              }
+              actions={
+                <>
+                  {workspace.role !== "viewer" && (
+                    <Button
+                      size="small"
+                      variant="primary"
+                      iconBefore={<Plus />}
+                      disabled={adding}
+                      onClick={() => setAdding(true)}
+                    >
+                      Create task
+                    </Button>
+                  )}
+                </>
+              }
+            >
+              <DataTable.Columns table={table} />
+              <DataTable.Settings table={table} />
+            </Toolbar>
           }
         />
       </QueryState>

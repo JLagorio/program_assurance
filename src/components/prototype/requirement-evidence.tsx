@@ -1,10 +1,12 @@
 import { useMemo, useRef, useState } from "react";
-import { Link, useBlocker } from "@tanstack/react-router";
+import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import {
   Box,
   Button,
   buttonVariants,
   DataTable,
+  Toolbar,
+  Shell,
   defineColumns,
   Dialog,
   DialogContent,
@@ -17,6 +19,13 @@ import {
   RecordBrowser,
   Stack,
   useDataTable,
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyMedia,
+  EmptyIllustration,
+  EmptyDescription,
+  EmptyContent,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
 import { useWorkspace } from "@/components/app/workspace";
@@ -26,8 +35,14 @@ import { labelFor } from "@/lib/records";
 import type { CreateEvidenceResult } from "@/lib/evidence-create";
 import { CreateEvidenceDialog } from "./create-evidence-dialog";
 import { EvidenceVersionDetails } from "./evidence-version-details";
-import { EmptyState, QueryState } from "./work-common";
-import { displayDate } from "./work-format";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "./record-preview";
+import { QueryState } from "./work-common";
 
 type EvidenceChoice = {
   id: string;
@@ -37,7 +52,7 @@ type EvidenceChoice = {
   owner: string;
   context: string;
   state: string;
-  collected: string;
+  collected: string | undefined;
   artifact: Row<"evidence_artifacts">;
   version: Row<"evidence_versions">;
 };
@@ -49,7 +64,7 @@ const pickerColumns = defineColumns<EvidenceChoice>((c) => [
   c.status("state", { header: "State", width: 115, tone: () => "success" }),
   c.text("owner", { header: "Owner", width: 165 }),
   c.text("context", { header: "Context", width: 150 }),
-  c.text("collected", { header: "Collected", width: 125 }),
+  c.date("collected", { header: "Collected", width: 125 }),
 ]);
 
 export function RequirementEvidence({
@@ -62,6 +77,7 @@ export function RequirementEvidence({
   readOnly?: boolean;
 }) {
   const workspace = useWorkspace();
+  const navigate = useNavigate();
   const requirement = useRow("requirement_revisions", requirementRevisionId);
   const identity = useRow("engineering_requirements", requirement.data?.engineering_requirement_id);
   const links = useRows("requirement_evidence", { requirement_revision_id: requirementRevisionId });
@@ -98,7 +114,7 @@ export function RequirementEvidence({
                 "Unavailable owner")
               : "Not recorded",
             context: artifact.program_id ? "This program" : "Workspace",
-            collected: displayDate(version.collected_at),
+            collected: version.collected_at ?? undefined,
             artifact,
             version,
           },
@@ -132,14 +148,25 @@ export function RequirementEvidence({
         c.id("versionLabel", {
           header: "Version",
           width: 130,
+          priority: 1,
           hideable: false,
           preview: (row) => setPreviewId(row.id),
           active: (row) => row.id === previewId,
         }),
-        c.text("title", { header: "Artifact", minWidth: 240, hideable: false }),
+        c.text("title", {
+          header: "Artifact",
+          minWidth: 180,
+          priority: 0,
+          hideable: false,
+          cell: (row) => (
+            <RecordLink table="evidence_versions" record={row.version}>
+              {row.title}
+            </RecordLink>
+          ),
+        }),
         c.text("kind", { header: "Kind", width: 135 }),
         c.text("owner", { header: "Owner", width: 165 }),
-        c.text("collected", { header: "Collected", width: 130 }),
+        c.date("collected", { header: "Collected", width: 130 }),
       ]),
     [previewId],
   );
@@ -152,6 +179,7 @@ export function RequirementEvidence({
     resizable: true,
     reorderable: true,
   });
+  const displayed = useDisplayedRecords(table);
   useBlocker({ shouldBlockFn: () => inFlight.current, enableBeforeUnload: () => inFlight.current });
   function closeBrowser() {
     if (inFlight.current) return;
@@ -178,37 +206,40 @@ export function RequirementEvidence({
       inFlight.current = false;
     }
   }
+  const addEvidence = writable ? (
+    <Button
+      iconBefore={<Plus />}
+      size="small"
+      variant="primary"
+      disabled={!ready || !contextValid}
+      onClick={beginBrowse}
+    >
+      Add evidence
+    </Button>
+  ) : null;
   return (
     <Stack space="space.150">
-      <Inline alignBlock="center" space="space.150" shouldWrap>
-        <p className="min-w-0 flex-1 text-subtle">
-          Evidence is pinned to the exact published version supporting this requirement.
-        </p>
-        {writable ? (
-          <Button
-            iconBefore={<Plus />}
-            size="small"
-            variant="primary"
-            disabled={!ready || !contextValid}
-            onClick={beginBrowse}
-          >
-            Add evidence
-          </Button>
-        ) : null}
-      </Inline>
       <QueryState queries={queries}>
         <DataTable
+          responsive
           table={table}
-          onRowClick={(row) => setPreviewId(row.id)}
+          onRowClick={(row) => void navigate(recordDestination("evidence_versions", row.version))}
           toolbar={
-            <Inline space="space.100" alignBlock="center">
-              <DataTable.Search table={table} placeholder="Find linked evidence" />
+            <Toolbar
+              search={String(table.state.globalFilter ?? "")}
+              onSearch={(value) => table.setGlobalFilter(value)}
+              placeholder="Find linked evidence"
+              actions={addEvidence}
+            >
               <DataTable.Columns table={table} />
-            </Inline>
+              <DataTable.Settings table={table} />
+            </Toolbar>
           }
           empty={{
+            illustration: "document",
             title: "No linked evidence",
             description: "Choose published evidence versions that support this requirement.",
+            action: addEvidence,
           }}
         />
       </QueryState>
@@ -237,21 +268,25 @@ export function RequirementEvidence({
               </KeyValue>
             </Box>
             <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
-              <EmptyState
-                illustration="document"
-                title={
-                  publishedVersions.length
-                    ? "All available evidence is already linked"
-                    : "No published evidence available"
-                }
-                description={
-                  publishedVersions.length
-                    ? `${publishedVersions.length} published ${publishedVersions.length === 1 ? "version is" : "versions are"} already linked to this requirement.`
-                    : draftVersions.length
-                      ? `${draftVersions.length} draft evidence ${draftVersions.length === 1 ? "version exists" : "versions exist"} in this program or the workspace. Drafts become available here after publication.`
-                      : "This program and the workspace have no published evidence versions to link."
-                }
-                action={
+              <Empty>
+                <EmptyMedia aria-hidden>
+                  <EmptyIllustration kind="document" />
+                </EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>
+                    {publishedVersions.length
+                      ? "All available evidence is already linked"
+                      : "No published evidence available"}
+                  </EmptyTitle>
+                  <EmptyDescription>
+                    {publishedVersions.length
+                      ? `${publishedVersions.length} published ${publishedVersions.length === 1 ? "version is" : "versions are"} already linked to this requirement.`
+                      : draftVersions.length
+                        ? `${draftVersions.length} draft evidence ${draftVersions.length === 1 ? "version exists" : "versions exist"} in this program or the workspace. Drafts become available here after publication.`
+                        : "This program and the workspace have no published evidence versions to link."}
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
                   <Stack space="space.150">
                     {publishedVersions.length && draftVersions.length ? (
                       <p className="font-body-small text-subtle">
@@ -276,12 +311,12 @@ export function RequirementEvidence({
                         Open program evidence
                       </Link>
                       <Button variant="primary" onClick={() => setSurface("create")}>
-                        New evidence / Upload
+                        Create evidence artifact
                       </Button>
                     </Inline>
                   </Stack>
-                }
-              />
+                </EmptyContent>
+              </Empty>
             </Box>
             <DialogFooter>
               <Button onClick={closeBrowser}>Close</Button>
@@ -330,7 +365,7 @@ export function RequirementEvidence({
                 if (!inFlight.current) setSurface("create");
               }}
             >
-              New evidence / Upload
+              Create evidence artifact
             </Button>
           }
         />
@@ -356,43 +391,41 @@ export function RequirementEvidence({
         />
       ) : null}
       {preview && !surface ? (
-        <Dialog
-          open
-          onOpenChange={(open) => {
-            if (!open) setPreviewId(null);
-          }}
+        <RecordPreviewPanel
+          title={preview.title}
+          label="Evidence version preview"
+          defaultWidth={640}
+          onClose={() => setPreviewId(null)}
+          navigation={
+            <RecordPreviewActions
+              table="evidence_versions"
+              record={preview.version}
+              rows={displayed}
+              onSelect={(row) => setPreviewId(row.id)}
+            />
+          }
         >
-          <DialogContent style={{ maxWidth: 800, height: "85dvh" }}>
-            <DialogHeader>
-              <DialogTitle>{preview.title}</DialogTitle>
-              <DialogDescription>
-                Evidence linked to {identity.data?.code} · Version {preview.version.version_number}
-              </DialogDescription>
-            </DialogHeader>
-            <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
-              <EvidenceVersionDetails artifact={preview.artifact} version={preview.version} />
-              {(links.data ?? [])
-                .filter((row) => row.evidence_version_id === preview.id)
-                .map((row) => (
-                  <Stack key={row.id} space="space.150" className="pt-200">
-                    {row.claim ? (
-                      <KeyValue label="Claim" wrap>
-                        {row.claim}
-                      </KeyValue>
-                    ) : null}
-                    {row.applicability_rationale ? (
-                      <KeyValue label="Applicability rationale" wrap>
-                        {row.applicability_rationale}
-                      </KeyValue>
-                    ) : null}
-                  </Stack>
-                ))}
-            </Box>
-            <DialogFooter>
-              <Button onClick={() => setPreviewId(null)}>Close preview</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          <Stack space="space.200">
+            <KeyValue label="Version">{preview.version.version_number}</KeyValue>
+            <EvidenceVersionDetails artifact={preview.artifact} version={preview.version} />
+            {(links.data ?? [])
+              .filter((row) => row.evidence_version_id === preview.id)
+              .map((row) => (
+                <Stack key={row.id} space="space.150" className="pt-200">
+                  {row.claim ? (
+                    <KeyValue label="Claim" wrap>
+                      {row.claim}
+                    </KeyValue>
+                  ) : null}
+                  {row.applicability_rationale ? (
+                    <KeyValue label="Applicability rationale" wrap>
+                      {row.applicability_rationale}
+                    </KeyValue>
+                  ) : null}
+                </Stack>
+              ))}
+          </Stack>
+        </RecordPreviewPanel>
       ) : null}
     </Stack>
   );
@@ -462,7 +495,7 @@ function PrepareEvidence({
         showCloseButton={!publish.isPending && !fileBusy}
       >
         <DialogHeader>
-          <DialogTitle>{artifact.data?.title ?? "Prepare evidence"}</DialogTitle>
+          <DialogTitle>Prepare evidence</DialogTitle>
           <DialogDescription>
             Attach a file or review the external reference, then publish this version when ready.
           </DialogDescription>
@@ -500,7 +533,7 @@ function PrepareEvidence({
           ) : null}
         </Box>
         <DialogFooter>
-          <Button disabled={publish.isPending || fileBusy} onClick={close}>
+          <Button variant="subtle" disabled={publish.isPending || fileBusy} onClick={close}>
             Back to evidence browser
           </Button>
           {current?.state === "draft" ? (

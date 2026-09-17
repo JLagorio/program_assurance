@@ -60,3 +60,43 @@ jobs:
       - run: npm ci
       - name: The Storybook builds
         run: npm run build-storybook -w packages/design-system
+  product-patterns:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      APP_TEST_URL: http://127.0.0.1:8080
+      PATTERN_ARTIFACT_DIR: artifacts/pattern-checks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.107.0
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start an isolated local database with the committed migrations
+        run: supabase start
+      - name: Load pinned reference data and public browser settings
+        run: npm run seed:reference && node scripts/prepare-pattern-ci.mjs
+      - run: npm run build -w packages/design-system
+      - name: Verify product workflows at desktop and phone widths
+        run: |
+          mkdir -p artifacts/pattern-checks
+          npm run dev -- --host 127.0.0.1 --port 8080 > artifacts/pattern-checks/app.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8080 > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8080 > /dev/null
+          npm run test:patterns
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-pattern-checks
+          path: artifacts/pattern-checks
+      - name: Stop the disposable local stack
+        if: always()
+        run: supabase stop --no-backup

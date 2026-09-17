@@ -93,6 +93,11 @@ export function defaultValue(column: Column): string {
     : "";
 }
 
+/** The system-tree trigger derives this context on insert and keeps it immutable on update. */
+export function isDerivedRecordField(table: string, column: string): boolean {
+  return table === "systems" && column === "boundary_system_id";
+}
+
 /** Empty optional values remain NULL; missing values with defaults are left to Postgres. */
 export function recordPayload(
   collection: Collection,
@@ -101,7 +106,12 @@ export function recordPayload(
 ): Record<string, unknown> {
   const output: Record<string, unknown> = {};
   for (const column of collection.columns) {
-    if (systemColumns.has(column.name) || !(column.name in fields)) continue;
+    if (
+      systemColumns.has(column.name) ||
+      isDerivedRecordField(collection.name, column.name) ||
+      !(column.name in fields)
+    )
+      continue;
     const raw = fields[column.name] ?? "";
     if (!raw.trim()) {
       if (column.required && (existing || !column.default))

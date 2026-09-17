@@ -14,6 +14,7 @@ export * from "./data-table";
 export { Glance, type GlanceProps } from "./glance";
 export { PickerSheet, type PickerSheetProps } from "./picker-sheet";
 export { PreviewSheet, type PreviewSheetProps } from "./preview-sheet";
+export { PreviewNavigation, type PreviewNavigationProps } from "./preview-navigation";
 export { RecordPicker, type PickerRecord, type RecordPickerProps } from "./record-picker";
 export { Related, type RelatedProps } from "./related";
 export { TaskRow, type TaskRowProps } from "./task-row";

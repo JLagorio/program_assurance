@@ -1,2 +1,2 @@
-export const campaignTabs = ["Execution", "Procedures", "Runs", "Regression"] as const;
+export const campaignTabs = ["Overview", "Execution", "Procedures", "Runs", "Regression"] as const;
 export type CampaignTab = (typeof campaignTabs)[number];

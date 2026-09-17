@@ -5,6 +5,7 @@ import {
   type RequirementTab,
 } from "@/components/prototype/requirement-record";
 export const Route = createFileRoute("/programs/$programId_/requirements/$requirementId")({
+  head: () => ({ meta: [{ title: "Program requirement — Program Assurance" }] }),
   validateSearch: (search: Record<string, unknown>): { tab?: RequirementTab | undefined } => ({
     tab: requirementTab(search["tab"]),
   }),

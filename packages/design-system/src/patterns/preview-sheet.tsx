@@ -1,8 +1,9 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, X } from "lucide-react";
 import { cloneElement, useRef, type ReactElement, type ReactNode } from "react";
-import { Button, Fact } from "../components";
+import { Fact, IconButton, Id } from "../components";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -11,7 +12,9 @@ import {
   type SheetContentProps,
 } from "../components/sheet";
 import { TextLink } from "../components/text-link";
-import { PreviewHeader } from "./preview-header";
+import { PageHeader } from "../layout/page-header";
+import { useLedgerLocale } from "../lib/locale";
+import { Stack } from "../primitives/stack";
 
 /**
  * Modal record details. Base UI owns focus containment, Escape and focus return.
@@ -22,21 +25,23 @@ export type PreviewSheetProps = {
   onClose: () => void;
   /** Back to the previous frame of the stack. */
   onBack?: (() => void) | undefined;
-  /** The record's id, beside its status. */
+  /** The record's id, beside its status in the body metadata. */
   id: ReactNode;
-  /** The record's name, the sheet's title. */
+  /** The record's name in the inner record header; also names the modal. */
   title: ReactNode;
+  /** Global collection navigation in the outer header, before Close. Includes the full-record link. */
+  navigation?: ReactNode;
   /** The record's meta line: kind, path, owner. */
   subtitle?: ReactNode;
   /** One status, beside the id. A Badge or an Indicator. */
   status?: ReactNode;
   /** At most three Facts under the meta line: the ones the reader acts on. */
   facts?: ReactNode;
-  /** The link element to the full record. Given no children it reads "Open the full record". */
+  /** Full-record link in the outer header when navigation is absent. Empty children default to "Open the full record". */
   openTo: ReactElement<{ children?: ReactNode }>;
-  /** More TextLinks after the first: a tab of the record, a related record. */
+  /** Related destination TextLinks in the footer. Do not repeat the full-record link. */
   links?: ReactNode;
-  /** Actions that make sense without leaving, on the right of the footer. */
+  /** Record commands in the inner PageHeader.Actions, beside the title. Use small controls. */
   actions?: ReactNode;
   /** Pixels, 720 by default: about half the screen. */
   width?: number | undefined;
@@ -53,6 +58,7 @@ export function PreviewSheet({
   onBack,
   id,
   title,
+  navigation,
   subtitle,
   status,
   facts,
@@ -64,6 +70,7 @@ export function PreviewSheet({
   finalFocus,
   children,
 }: PreviewSheetProps) {
+  const { t } = useLedgerLocale();
   const titleRef = useRef<HTMLHeadingElement>(null);
   // TextLink's render element owns children, even when explicitly undefined.
   // Fill the default before composition so an empty router link stays named.
@@ -81,52 +88,68 @@ export function PreviewSheet({
     >
       <SheetContent
         side="end"
+        showCloseButton={false}
         style={{ maxWidth: width }}
         initialFocus={initialFocus ?? titleRef}
         finalFocus={finalFocus}
       >
-        <SheetHeader>
-          <div className="flex items-start gap-100">
-            {onBack && (
-              <Button
-                aria-label="Back"
-                variant="subtle"
-                size="small"
-                className="size-control-small p-0"
-                onClick={onBack}
-              >
-                <ChevronLeft aria-hidden />
-              </Button>
-            )}
-            <div className="min-w-0 flex-1">
-              <PreviewHeader
-                id={id}
-                status={status}
-                title={
-                  <SheetTitle ref={titleRef} tabIndex={-1} className="break-words outline-none">
-                    {title}
-                  </SheetTitle>
-                }
-                subtitle={subtitle ? <SheetDescription>{subtitle}</SheetDescription> : null}
-              />
-              {facts ? <Fact.Group className="pt-100">{facts}</Fact.Group> : null}
-            </div>
+        <SheetHeader className="flex-row items-center gap-050 pe-200">
+          {onBack ? (
+            <IconButton
+              label={t("back")}
+              variant="subtle"
+              icon={<ChevronLeft />}
+              isTooltipDisabled
+              onClick={onBack}
+            />
+          ) : null}
+          <div className="flex min-w-0 flex-1 items-center justify-end">
+            {navigation || <TextLink weight="medium" render={open_} />}
           </div>
+          <SheetClose
+            render={
+              <IconButton label={t("close")} variant="subtle" icon={<X />} isTooltipDisabled />
+            }
+          />
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
-          {children}
+          <Stack space="space.250">
+            <PageHeader>
+              <PageHeader.Heading>
+                <SheetTitle
+                  ref={titleRef}
+                  tabIndex={-1}
+                  className="break-words font-heading-small font-semibold outline-none"
+                >
+                  {title}
+                </SheetTitle>
+              </PageHeader.Heading>
+              {actions ? <PageHeader.Actions>{actions}</PageHeader.Actions> : null}
+            </PageHeader>
+            {id != null || status || subtitle || facts ? (
+              <Stack space="space.100">
+                {id != null || status ? (
+                  <div className="flex min-w-0 flex-wrap items-center gap-100">
+                    {id != null ? (
+                      <Id className="break-words font-body-small text-subtle">{id}</Id>
+                    ) : null}
+                    {status}
+                  </div>
+                ) : null}
+                {subtitle ? <SheetDescription>{subtitle}</SheetDescription> : null}
+                {facts ? <Fact.Group>{facts}</Fact.Group> : null}
+              </Stack>
+            ) : null}
+            {children}
+          </Stack>
         </div>
-        <SheetFooter>
-          <div className="flex w-full flex-wrap items-center justify-between gap-150">
-            <div className="flex min-w-0 flex-wrap items-center gap-200 font-body">
-              <TextLink weight="medium" render={open_} />
+        {links ? (
+          <SheetFooter>
+            <div className="flex w-full min-w-0 flex-wrap items-center gap-200 font-body">
               {links}
             </div>
-            {actions ? (
-              <div className="flex max-w-full flex-wrap items-center gap-100">{actions}</div>
-            ) : null}
-          </div>
-        </SheetFooter>
+          </SheetFooter>
+        ) : null}
       </SheetContent>
     </Sheet>
   );

@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -53,6 +54,7 @@ export function AddRequirementDetailsDialog({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const requirement = useRow("engineering_requirements", requirementId);
   const parties = useRows("parties");
@@ -88,19 +90,19 @@ export function AddRequirementDetailsDialog({
     setFields((previous) => ({ ...previous, [field]: value }));
     setDirty(true);
   };
-  const close = () => {
+  const close = async () => {
     if (inFlight.current) return;
-    if (!dirty || window.confirm("Discard your unsaved requirement details?")) {
+    if (!dirty || (await confirm(discardChanges("Discard your unsaved requirement details?")))) {
       bypassClose.current = true;
       onClose();
     }
   };
   useBlocker({
-    shouldBlockFn: () =>
+    shouldBlockFn: async () =>
       inFlight.current ||
       (dirty &&
         !bypassClose.current &&
-        !window.confirm("Discard your unsaved requirement details?")),
+        !(await confirm(discardChanges("Discard your unsaved requirement details?")))),
     enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
   });
 
@@ -305,15 +307,16 @@ export function AddRequirementDetailsDialog({
             </fieldset>
           </Box>
           <DialogFooter>
-            <Button type="button" variant="secondary" disabled={busy} onClick={close}>
+            <Button type="button" variant="subtle" disabled={busy} onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" disabled={busy || !canWrite}>
-              {busy ? "Saving…" : "Save requirement details"}
+            <Button type="submit" variant="primary" disabled={busy || !canWrite}>
+              {busy ? "Saving…" : "Add requirement details"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

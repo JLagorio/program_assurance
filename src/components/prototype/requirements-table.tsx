@@ -1,21 +1,18 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Columns3, ExternalLink, Plus } from "lucide-react";
+import { Columns3, Plus } from "lucide-react";
 import {
   Absent,
   Button,
   DataTable,
-  IconButton,
   Id,
-  Inline,
   Shell,
   Stack,
   Table,
   Text,
   TextLink,
   Toolbar,
-  buttonVariants,
   defineColumns,
   useDataTable,
   type Preset,
@@ -31,6 +28,7 @@ import {
   type RequirementTreeNode,
 } from "@/lib/requirement-tree";
 import { ProgramEditor } from "./program-shared";
+import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { RequirementRecordContent, type RequirementTab } from "./requirement-record";
 
 type Allocation = { id: string; name: string; kind: string; rationale: string | null };
@@ -38,6 +36,7 @@ type RequirementView = {
   id: string;
   code: string;
   revisionId: string | null;
+  name: string;
   statement: string;
   requirementType: string | null;
   owner: string | null;
@@ -166,9 +165,9 @@ export function RequirementsTable({
   const parties = useRows("parties");
   const [adding, setAdding] = useState(false);
   const [localPreviewId, setLocalPreviewId] = useState<string>();
-  const [localTab, setLocalTab] = useState<RequirementTab>("Statement");
+  const [localTab, setLocalTab] = useState<RequirementTab>("Overview");
   const selectedId = onPreview ? previewId : localPreviewId;
-  const selectedTab = onPreviewTabChange ? (previewTab ?? "Statement") : localTab;
+  const selectedTab = onPreviewTabChange ? (previewTab ?? "Overview") : localTab;
   const openPreview = onPreview ?? setLocalPreviewId;
   const changePreviewTab = onPreviewTabChange ?? setLocalTab;
   const previewRef = useRef({ selectedId, openPreview });
@@ -265,6 +264,7 @@ export function RequirementsTable({
           id: requirement.id,
           code: requirement.code,
           revisionId: revision?.id ?? null,
+          name: revision?.title ?? requirement.code,
           statement: revision?.statement ?? "Details not recorded",
           requirementType: revision ? labelFor(revision.requirement_type) : null,
           owner: revision?.owner_party_id
@@ -315,6 +315,7 @@ export function RequirementsTable({
         c.id("code", {
           header: "Requirement",
           width: 152,
+          priority: 1,
           pin: "start",
           hideable: false,
           preview: (row) => previewRef.current.openPreview(row.id),
@@ -333,8 +334,9 @@ export function RequirementsTable({
           ),
         }),
         c.text("statement", {
-          header: "Statement",
-          minWidth: 300,
+          header: "Overview",
+          minWidth: 200,
+          priority: 0,
           hideable: false,
           cell: (row) => (
             <TextLink
@@ -440,18 +442,12 @@ export function RequirementsTable({
     );
   const newRequirement = canCreate ? (
     <Button size="small" variant="primary" iconBefore={<Plus />} onClick={() => setAdding(true)}>
-      Add requirement
+      Create engineering requirement
     </Button>
   ) : null;
   return (
     <>
       <Stack space="space.150">
-        <div>
-          <h2 className="font-heading-small font-semibold">Engineering requirements</h2>
-          <p className="font-body-small text-subtle">
-            Statements, allocation, and control traceability for the program’s requirements.
-          </p>
-        </div>
         {!loading && !error && projection.unstructuredCount > 0 && (
           <p role="status" className="font-body-small text-subtle">
             Some requirements have multiple parents or circular relationships. They remain listed
@@ -459,8 +455,15 @@ export function RequirementsTable({
           </p>
         )}
         <DataTable
+          responsive
           table={table}
           fill={fill}
+          onRowClick={(row) =>
+            void navigate({
+              to: "/programs/$programId/requirements/$requirementId",
+              params: { programId, requirementId: row.id },
+            })
+          }
           state={error ? "error" : loading ? "loading" : "ready"}
           error={error instanceof Error ? error.message : "Requirements could not be loaded."}
           empty={{
@@ -474,6 +477,14 @@ export function RequirementsTable({
               search={String(table.state.globalFilter ?? "")}
               onSearch={(value) => table.setGlobalFilter(value)}
               placeholder="Find a requirement"
+              views={
+                <DataTable.Presets
+                  table={table}
+                  presets={presets}
+                  variant="menu"
+                  aria-label="Saved views"
+                />
+              }
               actions={newRequirement}
               filters={
                 <>
@@ -482,12 +493,6 @@ export function RequirementsTable({
                 </>
               }
             >
-              <DataTable.Presets
-                table={table}
-                presets={presets}
-                variant="menu"
-                aria-label="Saved views"
-              />
               <DataTable.Columns table={table}>
                 <Button size="small" iconBefore={<Columns3 />}>
                   Columns
@@ -512,69 +517,38 @@ export function RequirementsTable({
         />
       )}
       {selectedId && (
-        <RequirementRecordContent
-          key={`${programId}/${selectedId}`}
-          programId={programId}
-          requirementId={selectedId}
-          tab={selectedTab}
-          onTabChange={changePreviewTab}
-          preview
-          renderFrame={({ content }) => (
-            <Shell.Panel
-              title={projection.byId.get(selectedId)?.code ?? "Requirement"}
-              label="Requirement preview"
-              defaultWidth={640}
-              onClose={() => openPreview(undefined)}
-              actions={
-                <Inline space="space.050" alignBlock="center">
-                  <span className="sr-only" role="status">
-                    {selectedIndex < 0
-                      ? "Record outside the current results"
-                      : `${selectedIndex + 1} of ${visibleRows.length} records`}
-                  </span>
-                  <IconButton
-                    label="Previous requirement"
-                    variant="subtle"
-                    icon={<ChevronLeft />}
-                    disabled={selectedIndex <= 0}
-                    onClick={() => {
-                      const row = visibleRows[selectedIndex - 1];
-                      if (row) openPreview(row.id);
-                    }}
-                  />
-                  <IconButton
-                    label="Next requirement"
-                    variant="subtle"
-                    icon={<ChevronRight />}
-                    disabled={selectedIndex < 0 || selectedIndex >= visibleRows.length - 1}
-                    onClick={() => {
-                      const row = visibleRows[selectedIndex + 1];
-                      if (row) openPreview(row.id);
-                    }}
-                  />
-                  <Link
-                    aria-label="Open full requirement in new tab"
-                    title="Open full requirement in new tab"
-                    className={buttonVariants({
-                      variant: "subtle",
-                      size: "small",
-                      className: "size-control-small shrink-0 px-0",
-                    })}
-                    to="/programs/$programId/requirements/$requirementId"
-                    params={{ programId, requirementId: selectedId }}
-                    search={{ tab: selectedTab }}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <ExternalLink aria-hidden="true" />
-                  </Link>
-                </Inline>
+        <RecordPreviewPanel
+          title={projection.byId.get(selectedId)?.name ?? "Requirement"}
+          label="Requirement preview"
+          defaultWidth={640}
+          onClose={() => openPreview(undefined)}
+          navigation={
+            <RecordPreviewActions
+              table="engineering_requirements"
+              record={{ id: selectedId, program_id: programId }}
+              rows={visibleRows}
+              onSelect={(row) => openPreview(row.id)}
+              openLink={
+                <Link
+                  to="/programs/$programId/requirements/$requirementId"
+                  params={{ programId, requirementId: selectedId }}
+                  search={{ tab: selectedTab }}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
               }
-            >
-              {content}
-            </Shell.Panel>
-          )}
-        />
+            />
+          }
+        >
+          <RequirementRecordContent
+            key={`${programId}/${selectedId}`}
+            programId={programId}
+            requirementId={selectedId}
+            tab={selectedTab}
+            onTabChange={changePreviewTab}
+            preview
+          />
+        </RecordPreviewPanel>
       )}
     </>
   );

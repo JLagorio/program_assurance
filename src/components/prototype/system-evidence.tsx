@@ -1,3 +1,5 @@
+import { useBlocker } from "@tanstack/react-router";
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useMemo, useRef, useState } from "react";
 import {
   Absent,
@@ -312,6 +314,7 @@ export function SystemEvidence({
   return (
     <>
       <DataTable
+        responsive
         table={table}
         state={error ? "error" : pending ? "loading" : "ready"}
         error={error?.message}
@@ -347,13 +350,38 @@ export function SystemEvidence({
 
 function DecideEvidenceUse({ line, onClose }: { line: Line; onClose: () => void }) {
   const decide = useDecideEvidenceUse();
+  const { confirm, confirmation } = useConfirmation();
+  const bypassClose = useRef(false);
   const [decision, setDecision] = useState<"accepted" | "not_applicable">("accepted");
   const [rationale, setRationale] = useState("");
   const [error, setError] = useState("");
   const use = line.use!;
   const submitted = useRef(false);
+  const dirty = decision !== "accepted" || rationale !== "";
+  const close = async () => {
+    if (submitted.current) return;
+    if (
+      !dirty ||
+      (await confirm(discardChanges("Your evidence decision has not been recorded.")))
+    ) {
+      bypassClose.current = true;
+      onClose();
+    }
+  };
+  useBlocker({
+    shouldBlockFn: async () =>
+      !bypassClose.current &&
+      (submitted.current ||
+        (dirty &&
+          !(await confirm(discardChanges("Your evidence decision has not been recorded."))))),
+    enableBeforeUnload: () => !bypassClose.current && (dirty || submitted.current),
+  });
   async function submit() {
     if (submitted.current) return;
+    if (decision === "not_applicable" && !rationale.trim()) {
+      setError("Explain why this evidence does not apply.");
+      return;
+    }
     submitted.current = true;
     setError("");
     try {
@@ -369,6 +397,7 @@ function DecideEvidenceUse({ line, onClose }: { line: Line; onClose: () => void 
         type: "success",
         description: `${line.title} · ${line.supports}`,
       });
+      bypassClose.current = true;
       onClose();
     } catch (cause) {
       submitted.current = false;
@@ -378,60 +407,76 @@ function DecideEvidenceUse({ line, onClose }: { line: Line; onClose: () => void 
   return (
     <Dialog
       open
-      onOpenChange={(open) => {
-        if (!open) onClose();
+      onOpenChange={(open, details) => {
+        if (!open) {
+          details.cancel();
+          void close();
+        }
       }}
     >
-      <DialogContent style={{ maxWidth: 560 }}>
+      <DialogContent style={{ maxWidth: 560 }} showCloseButton={!decide.isPending}>
         <DialogHeader>
           <DialogTitle>Decide on library evidence</DialogTitle>
           <DialogDescription>
             {line.title} · {line.version} · supports {line.supports}
           </DialogDescription>
         </DialogHeader>
-        <Stack space="space.200" className="p-250">
-          <Stack space="space.075">
-            {(["accepted", "not_applicable"] as const).map((value) => (
-              <label key={value} className="flex items-center gap-100 font-body-small">
-                <Checkbox
-                  checked={decision === value}
-                  onCheckedChange={(checked) => checked && setDecision(value)}
-                  aria-label={value === "accepted" ? "Accept" : "Not applicable"}
-                />
-                {value === "accepted"
-                  ? "Accept: link this exact version as support here"
-                  : "Not applicable here"}
-              </label>
-            ))}
+        <form
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit();
+          }}
+        >
+          <Stack space="space.200" className="min-h-0 flex-1 overflow-y-auto p-250">
+            <Stack space="space.075">
+              {(["accepted", "not_applicable"] as const).map((value) => (
+                <label key={value} className="flex items-center gap-100 font-body-small">
+                  <Checkbox
+                    disabled={decide.isPending}
+                    checked={decision === value}
+                    onCheckedChange={(checked) => checked && setDecision(value)}
+                    aria-label={value === "accepted" ? "Accept" : "Not applicable"}
+                  />
+                  {value === "accepted"
+                    ? "Accept: link this exact version as support here"
+                    : "Not applicable here"}
+                </label>
+              ))}
+            </Stack>
+            <Field>
+              <FieldLabel htmlFor="evidence-use-rationale">
+                {decision === "accepted" ? "Applicability (optional)" : "Why it does not apply"}
+              </FieldLabel>
+              <Textarea
+                disabled={decide.isPending}
+                id="evidence-use-rationale"
+                value={rationale}
+                onChange={(event) => setRationale(event.target.value)}
+              />
+            </Field>
+            {error && (
+              <p role="alert" className="font-body-small text-danger">
+                {error}
+              </p>
+            )}
           </Stack>
-          <Field>
-            <FieldLabel htmlFor="evidence-use-rationale">
-              {decision === "accepted" ? "Applicability (optional)" : "Why it does not apply"}
-            </FieldLabel>
-            <Textarea
-              id="evidence-use-rationale"
-              value={rationale}
-              onChange={(event) => setRationale(event.target.value)}
-            />
-          </Field>
-          {error && (
-            <p role="alert" className="font-body-small text-danger">
-              {error}
-            </p>
-          )}
-        </Stack>
-        <DialogFooter>
-          <Button variant="subtle" disabled={decide.isPending} onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            disabled={decide.isPending || (decision === "not_applicable" && !rationale.trim())}
-            onClick={() => void submit()}
-          >
-            {decide.isPending ? "Saving…" : decision === "accepted" ? "Accept" : "Record"}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="button" variant="subtle" disabled={decide.isPending} onClick={close}>
+              Cancel
+            </Button>
+            <Button variant="primary" disabled={decide.isPending} type="submit">
+              {decide.isPending
+                ? "Saving…"
+                : decision === "accepted"
+                  ? "Accept evidence"
+                  : "Record decision"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

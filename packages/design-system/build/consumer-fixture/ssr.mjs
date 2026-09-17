@@ -90,7 +90,9 @@ import assert from "node:assert/strict";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { cn } from "@ledger/design-system/cn";
+import ledgerLint from "@ledger/design-system/eslint";
 
+assert.equal(typeof ledgerLint.rules["no-kit-shadow"].create, "function");
 for (const name of ["Activity", "Task", "parseMentions", "NativeSelect"])
   assert.equal(name in ledger, false, name + " must remain application-owned");
 assert.equal(typeof Composer, "function");

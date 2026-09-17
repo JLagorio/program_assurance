@@ -1,6 +1,8 @@
+import { EmptyMessage, MissingRecord } from "./work-common";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  Absent,
   Badge,
   Box,
   Breadcrumb,
@@ -142,16 +144,8 @@ export function ProgramWorkspace({
     void navigate({ to: "/programs/$programId", params: { programId }, search: { tab: next } });
   }
   if (!query.data && (query.isPending || query.error))
-    return <ProgramQueryState loading={query.isPending} error={query.error} />;
-  if (!query.data)
-    return (
-      <Stack>
-        <PageHeader>
-          <PageHeader.Title>Program not found</PageHeader.Title>
-        </PageHeader>
-        <TextLink render={<Link to="/programs" />}>Return to programs</TextLink>
-      </Stack>
-    );
+    return <ProgramQueryState queries={[query]} />;
+  if (!query.data) return <MissingRecord backTo="/programs" kind="Program" />;
   const program = query.data;
   const counts: Partial<Record<ProgramTab, number>> = {
     ...(systems.isSuccess && { System: systems.data.length }),
@@ -168,7 +162,7 @@ export function ProgramWorkspace({
   return (
     <>
       <Stack space="space.200" className="min-w-0">
-        {query.error && <ProgramQueryState loading={false} error={query.error} />}
+        {query.error && <ProgramQueryState queries={[query]} />}
         <PageHeader>
           <PageHeader.Lead render={<Breadcrumb />}>
             <BreadcrumbList>
@@ -191,19 +185,17 @@ export function ProgramWorkspace({
               )}
             </BreadcrumbList>
           </PageHeader.Lead>
-          <div>
+          <PageHeader.Heading>
             <PageHeader.Title>{view ?? program.name}</PageHeader.Title>
-            {view && <p className="text-subtle mt-050">{program.name}</p>}
-          </div>
+          </PageHeader.Heading>
           <PageHeader.Actions>
-            {workspace.role !== "viewer" && (
-              <Button variant="secondary" iconBefore={<Pencil />} onClick={() => setEditing(true)}>
-                Edit program
-              </Button>
-            )}
             <DropdownMenu>
-              <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Views</Button>} />
+              <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
               <DropdownMenuContent align="end">
+                {" "}
+                {workspace.role !== "viewer" && (
+                  <DropdownMenuItem onClick={() => setEditing(true)}>Edit program</DropdownMenuItem>
+                )}
                 {(
                   [
                     ["Configuration baseline", "/programs/$programId/baseline"],
@@ -229,11 +221,7 @@ export function ProgramWorkspace({
           </PageHeader.Actions>
         </PageHeader>
         <Tabs value={tab} onValueChange={(value) => select(programTab(value))} className="gap-150">
-          <TabsList
-            variant="line"
-            className="w-full justify-start overflow-x-auto"
-            aria-label="Program work"
-          >
+          <TabsList variant="line" aria-label="Program work">
             {programTabs.map((name) => (
               <TabsTrigger key={name} value={name}>
                 {name}
@@ -244,17 +232,19 @@ export function ProgramWorkspace({
           <TabsContent value={tab}>
             <Stack space="space.300" className="min-w-0 pt-200">
               {view ? (
-                <ProgramFocusedView
-                  programId={programId}
-                  view={view}
-                  systemIds={systemIds}
-                  systemsReady={systems.isSuccess}
-                />
+                <ProgramQueryState queries={[systems]}>
+                  <ProgramFocusedView
+                    programId={programId}
+                    view={view}
+                    systemIds={systemIds}
+                    systemsReady={systems.data !== undefined}
+                  />
+                </ProgramQueryState>
               ) : (
                 <>
                   {tab === "Overview" && (
                     <>
-                      <ProgramQueryState loading={gates.isPending} error={gates.error} />
+                      <ProgramQueryState queries={[gates]} />
                       {gates.isSuccess && (
                         <ProgramTimeline
                           gates={gates.data}
@@ -309,7 +299,7 @@ export function ProgramWorkspace({
                       </Grid>
                       <Section title="Program summary">
                         <p className="whitespace-pre-wrap text-subtle">
-                          {program.description ?? "No program description recorded."}
+                          {program.description ?? <Absent />}
                         </p>
                       </Section>
                       <Section
@@ -321,7 +311,7 @@ export function ProgramWorkspace({
                           </Button>
                         }
                       >
-                        <ProgramQueryState loading={systems.isPending} error={systems.error} />
+                        <ProgramQueryState queries={[systems]} />
                         {systems.isSuccess &&
                           (boundaries.length ? (
                             <Stack space="space.150">
@@ -342,10 +332,10 @@ export function ProgramWorkspace({
                               ))}
                             </Stack>
                           ) : (
-                            <p className="text-subtle">
-                              Add the systems governed by this program before selecting baselines or
-                              recording implementation.
-                            </p>
+                            <EmptyMessage
+                              title="No systems yet"
+                              description="Create a system before selecting baselines or recording implementation."
+                            />
                           ))}
                       </Section>
                       <Section
@@ -397,11 +387,13 @@ export function ProgramWorkspace({
                     />
                   )}
                   {tab === "Controls" && (
-                    <ProgramControls
-                      programId={programId}
-                      systemIds={systemIds}
-                      systemsReady={systems.isSuccess}
-                    />
+                    <ProgramQueryState queries={[systems]}>
+                      <ProgramControls
+                        programId={programId}
+                        systemIds={systemIds}
+                        systemsReady={systems.data !== undefined}
+                      />
+                    </ProgramQueryState>
                   )}
                   {tab === "Assessments" && <AssessmentBrowser programId={programId} />}
                   {tab === "Schedule" && (
@@ -450,7 +442,6 @@ export function ProgramWorkspace({
                         name="operational_issues"
                         empty={{ title: "No findings yet" }}
                         title="Findings and operational issues"
-                        description="Recorded deficiencies are separate from formal assessment determinations."
                         filters={{ program_id: programId }}
                         columns={[
                           { key: "title", title: "Finding" },
@@ -459,9 +450,6 @@ export function ProgramWorkspace({
                           { key: "opened_at", title: "Opened" },
                         ]}
                         createLabel="Record finding"
-                        onSelect={(row) =>
-                          void navigate({ to: "/issues/$issueId", params: { issueId: row.id } })
-                        }
                       />
                       <ObservationsRegister programId={programId} />
                     </>
@@ -480,9 +468,6 @@ export function ProgramWorkspace({
                         { key: "updated_at", title: "Updated" },
                       ]}
                       createLabel="Record risk"
-                      onSelect={(row) =>
-                        void navigate({ to: "/risks/$riskId", params: { riskId: row.id } })
-                      }
                     />
                   )}
                   {tab === "Activity" && (
@@ -508,7 +493,7 @@ export function ProgramWorkspace({
       </Stack>
       {tab === "Overview" && !view && (
         <Shell.Aside label="Program properties">
-          <Inspector.Group title="Program">
+          <Inspector.Group title="Details">
             <KeyValue label="Status">
               <StatusValue value={program.status} />
             </KeyValue>
@@ -517,110 +502,126 @@ export function ProgramWorkspace({
               {parties.data?.find((party) => party.id === program.sponsor_party_id)?.name ??
                 (parties.isPending ? "Loading…" : "Not assigned")}
             </KeyValue>
-            <KeyValue label="Starts">{program.starts_on ?? "Not scheduled"}</KeyValue>
-            <KeyValue label="Ends">{program.ends_on ?? "Not scheduled"}</KeyValue>
+            <KeyValue label="Starts">{program.starts_on ?? <Absent />}</KeyValue>
+            <KeyValue label="Ends">{program.ends_on ?? <Absent />}</KeyValue>
             <KeyValue label="Updated">{new Date(program.updated_at).toLocaleString()}</KeyValue>
           </Inspector.Group>
           <Inspector.Group title="References">
-            {references.data?.length || variants.length ? (
-              <>
-                {references.data?.length ? (
-                  <KeyValue label="Catalog" wrap>
-                    {(() => {
-                      const catalog = catalogRevisions.data?.find(
-                        (row) => row.id === references.data?.[0]?.catalog_revision_id,
-                      );
-                      const stable = catalogs.data?.find((row) => row.id === catalog?.catalog_id);
-                      if (!catalog) return "Unavailable";
-                      if (!stable && catalogs.isPending) return "Loading…";
-                      return (
-                        <TextLink render={<Link to="/catalog" search={{ edition: catalog.id }} />}>
-                          {stable?.title ?? catalog.title} · {catalog.version}
-                        </TextLink>
-                      );
-                    })()}
-                  </KeyValue>
-                ) : null}
-                {variants.length ? (
-                  <KeyValue label="Products" wrap>
-                    <Stack space="space.050">
-                      {variants.map(({ system, lineage }) =>
-                        lineage ? (
-                          <TextLink
-                            key={system.id}
-                            render={
-                              <Link
-                                to="/library/products/$productKey"
-                                params={{ productKey: lineage.product.id }}
-                                search={{ version: lineage.revision.id }}
-                              />
-                            }
-                          >
-                            {lineage.label}
-                          </TextLink>
-                        ) : (
-                          <span key={system.id} className="text-subtle">
-                            {products.pending ? "Loading…" : "Unavailable product"}
-                          </span>
-                        ),
-                      )}
-                    </Stack>
-                  </KeyValue>
-                ) : null}
-                <KeyValue label="Program profiles" wrap>
-                  <Stack space="space.050">
-                    {(references.data ?? []).map((choice) => {
-                      const resolution = profileResolutions.data?.find(
-                        (row) => row.id === choice.profile_resolution_id,
-                      );
-                      const revision = profileRevisions.data?.find(
-                        (row) => row.id === resolution?.profile_revision_id,
-                      );
-                      const layered = !!resolution?.base_profile_resolution_id;
-                      const record = profiles.data?.find((row) => row.id === revision?.profile_id);
-                      if (revision && !record && profiles.isPending)
+            <ProgramQueryState
+              queries={[
+                references,
+                catalogRevisions,
+                catalogs,
+                profileResolutions,
+                profileRevisions,
+                profiles,
+                ...products.queries,
+              ]}
+            >
+              {references.data?.length || variants.length ? (
+                <>
+                  {references.data?.length ? (
+                    <KeyValue label="Catalog" wrap>
+                      {(() => {
+                        const catalog = catalogRevisions.data?.find(
+                          (row) => row.id === references.data?.[0]?.catalog_revision_id,
+                        );
+                        const stable = catalogs.data?.find((row) => row.id === catalog?.catalog_id);
+                        if (!catalog) return <Absent />;
+                        if (!stable && catalogs.isPending) return <Absent />;
                         return (
+                          <TextLink
+                            render={<Link to="/catalog" search={{ edition: catalog.id }} />}
+                          >
+                            {stable?.title ?? catalog.title} · {catalog.version}
+                          </TextLink>
+                        );
+                      })()}
+                    </KeyValue>
+                  ) : null}
+                  {variants.length ? (
+                    <KeyValue label="Products" wrap>
+                      <Stack space="space.050">
+                        {variants.map(({ system, lineage }) =>
+                          lineage ? (
+                            <TextLink
+                              key={system.id}
+                              render={
+                                <Link
+                                  to="/library/products/$productKey"
+                                  params={{ productKey: lineage.product.id }}
+                                  search={{ version: lineage.revision.id }}
+                                />
+                              }
+                            >
+                              {lineage.label}
+                            </TextLink>
+                          ) : (
+                            <span key={system.id} className="text-subtle">
+                              <Absent />
+                            </span>
+                          ),
+                        )}
+                      </Stack>
+                    </KeyValue>
+                  ) : null}
+                  <KeyValue label="Program profiles" wrap>
+                    <Stack space="space.050">
+                      {(references.data ?? []).map((choice) => {
+                        const resolution = profileResolutions.data?.find(
+                          (row) => row.id === choice.profile_resolution_id,
+                        );
+                        const revision = profileRevisions.data?.find(
+                          (row) => row.id === resolution?.profile_revision_id,
+                        );
+                        const layered = !!resolution?.base_profile_resolution_id;
+                        const record = profiles.data?.find(
+                          (row) => row.id === revision?.profile_id,
+                        );
+                        if (revision && !record && profiles.isPending)
+                          return (
+                            <span key={choice.id} className="text-subtle">
+                              <Absent />
+                            </span>
+                          );
+                        return revision ? (
+                          <Inline key={choice.id} space="space.075" alignBlock="center" shouldWrap>
+                            <TextLink
+                              render={
+                                <Link
+                                  to="/profiles/$profileId"
+                                  params={{ profileId: revision.profile_id }}
+                                />
+                              }
+                            >
+                              {record?.title ?? revision.title} · {revision.version}
+                            </TextLink>
+                            {layered && (
+                              <Badge size="xsmall" variant="secondary" tone="information">
+                                Tailored
+                              </Badge>
+                            )}
+                          </Inline>
+                        ) : (
                           <span key={choice.id} className="text-subtle">
-                            Loading…
+                            <Absent />
                           </span>
                         );
-                      return revision ? (
-                        <Inline key={choice.id} space="space.075" alignBlock="center" shouldWrap>
-                          <TextLink
-                            render={
-                              <Link
-                                to="/profiles/$profileId"
-                                params={{ profileId: revision.profile_id }}
-                              />
-                            }
-                          >
-                            {record?.title ?? revision.title} · {revision.version}
-                          </TextLink>
-                          {layered && (
-                            <Badge size="xsmall" variant="secondary" tone="information">
-                              Tailored
-                            </Badge>
-                          )}
-                        </Inline>
-                      ) : (
-                        <span key={choice.id} className="text-subtle">
-                          Unavailable profile
-                        </span>
-                      );
-                    })}
-                  </Stack>
-                </KeyValue>
-              </>
-            ) : (
-              <Empty size="compact">
-                <EmptyHeader>
-                  <EmptyTitle>No references recorded</EmptyTitle>
-                  <EmptyDescription>
-                    A program made outside the setup flow records no catalog or profile choice.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            )}
+                      })}
+                    </Stack>
+                  </KeyValue>
+                </>
+              ) : (
+                <Empty size="compact">
+                  <EmptyHeader>
+                    <EmptyTitle>No references recorded</EmptyTitle>
+                    <EmptyDescription>
+                      A program made outside the setup flow records no catalog or profile choice.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              )}
+            </ProgramQueryState>
           </Inspector.Group>
         </Shell.Aside>
       )}
@@ -670,7 +671,7 @@ function ProgramPoams({ programId }: { programId: string }) {
         ]}
         createLabel="Add POA&M plan"
       />
-      <ProgramQueryState loading={documents.isPending} error={documents.error} />
+      <ProgramQueryState queries={[documents]} />
       {documents.isSuccess && (
         <ProgramCollection
           name="poam_items"
@@ -684,9 +685,6 @@ function ProgramPoams({ programId }: { programId: string }) {
             { key: "updated_at", title: "Updated" },
           ]}
           createLabel="Add remediation item"
-          onSelect={(row) =>
-            void navigate({ to: "/register/poam/$poamId", params: { poamId: row.id } })
-          }
           canCreate={ids.size > 0}
           prerequisite="Remediation items belong to a plan of action. Add a POA&M plan first."
         />

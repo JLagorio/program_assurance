@@ -4,7 +4,7 @@ import { AssessmentBrowser } from "@/components/prototype/assessment-browser";
 
 export const Route = createFileRoute("/campaigns")({
   component: CampaignsLayout,
-  head: () => ({ meta: [{ title: "Test campaigns — Equinox" }] }),
+  head: () => ({ meta: [{ title: "Test campaigns — Program Assurance" }] }),
 });
 function CampaignsLayout() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });

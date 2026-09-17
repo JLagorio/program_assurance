@@ -17,6 +17,7 @@ import {
   Input,
   KeyValue,
   PageHeader,
+  PreviewNavigation,
   Person,
   Select,
   SelectTrigger,
@@ -191,7 +192,18 @@ function Queue() {
       </Field>
       <Button onClick={() => setSelected(true)}>Inspect FND-104</Button>
       {selected && (
-        <Shell.Panel title="FND-104" onClose={() => setSelected(false)}>
+        <Shell.Panel
+          title="Incomplete account review"
+          label="Finding preview"
+          onClose={() => setSelected(false)}
+          actions={
+            <PreviewNavigation
+              position={1}
+              total={1}
+              openLink={<a href="#finding-fnd-104" target="_blank" rel="noopener noreferrer" />}
+            />
+          }
+        >
           <Stack space="space.200">
             <KeyValue label="Owner">Alex Morgan</KeyValue>
             <Field>
@@ -286,7 +298,9 @@ function RegisterPage() {
         <TabsContent value="risk">
           <Stack space="space.150" className="pt-200">
             {noted && (
-              <Text role="status">The register was reviewed on 12 Sep 2026; no risk was closed.</Text>
+              <Text role="status">
+                The register was reviewed on 12 Sep 2026; no risk was closed.
+              </Text>
             )}
             <Section title="Risk register">
               <DataTable
@@ -314,11 +328,7 @@ function RegisterPage() {
   );
 }
 
-function Workspace({
-  initial = "record",
-}: {
-  initial?: "record" | "queue" | "register";
-}) {
+function Workspace({ initial = "record" }: { initial?: "record" | "queue" | "register" }) {
   const [route, setRoute] = useState(initial);
   return (
     <Shell>
@@ -391,7 +401,7 @@ export const QueueWithPanel: Story = {
     await userEvent.type(filter, "access");
     const opener = canvas.getByRole("button", { name: "Inspect FND-104" });
     await userEvent.click(opener);
-    const panel = await canvas.findByRole("complementary", { name: "FND-104" });
+    const panel = await canvas.findByRole("complementary", { name: "Incomplete account review" });
     await expect(canvasElement.querySelector("main")).not.toContainElement(panel);
     await waitFor(() => expect(panel.scrollWidth).toBeLessThanOrEqual(panel.clientWidth + 1));
     const wide = window.matchMedia("(min-width: 80rem)").matches;
@@ -435,7 +445,9 @@ export const QueueWithPanel: Story = {
     await waitFor(() => expect(opener).toHaveFocus());
     await userEvent.click(opener);
     await userEvent.click(canvas.getByRole("button", { name: "Record route" }));
-    await expect(canvas.queryByRole("complementary", { name: "FND-104" })).not.toBeInTheDocument();
+    await expect(
+      canvas.queryByRole("complementary", { name: "Incomplete account review" }),
+    ).not.toBeInTheDocument();
     await expect(
       canvas.getByRole("heading", { level: 1, name: "Review privileged access" }),
     ).toBeVisible();

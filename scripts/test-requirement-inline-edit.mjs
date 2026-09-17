@@ -269,7 +269,7 @@ try {
   await details
     .getByRole("textbox", { name: "Acceptance criteria", exact: true })
     .fill("The authored criterion can be verified.");
-  await details.getByRole("button", { name: "Save requirement details", exact: true }).click();
+  await details.getByRole("button", { name: "Add requirement details", exact: true }).click();
   await details.waitFor({ state: "hidden" });
   await page.getByRole("button", { name: /^Title: New requirement details/ }).waitFor();
   await noRevisionControls();

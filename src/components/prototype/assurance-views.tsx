@@ -1,9 +1,20 @@
+import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
+import { LibrarySelect } from "./library-shared";
+import { EmptyMessage, MissingRecord, RecordActions } from "./work-common";
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Inspector,
   Button,
   Grid,
+  Heading,
   Inline,
   PageHeader,
   Section,
@@ -49,7 +60,7 @@ const versionColumns: DisplayColumn[] = [
   { key: "published_at", label: "Published" },
 ];
 
-export function RiskList() {
+export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "section" }) {
   const workspace = useWorkspace(),
     navigate = useNavigate();
   const query = useRows("risks"),
@@ -62,9 +73,17 @@ export function RiskList() {
       .sort((a, b) => b.version_number - a.version_number)[0];
   return (
     <Stack space="space.200">
-      <PageHeader>
-        <PageHeader.Title>Risk register</PageHeader.Title>
-      </PageHeader>
+      {headingScope === "page" ? (
+        <PageHeader>
+          <PageHeader.Heading>
+            <PageHeader.Title>Risk register</PageHeader.Title>
+          </PageHeader.Heading>
+        </PageHeader>
+      ) : (
+        <Heading size="small" as="h2" className="min-w-0 break-words font-semibold text-default">
+          Risk register
+        </Heading>
+      )}
       {creating && (
         <EntityEditor
           table="risks"
@@ -75,6 +94,7 @@ export function RiskList() {
       <QueryState query={query}>
         <QueryState query={versions}>
           <ModelTable
+            model="risks"
             fill
             rows={asRecords(rows)}
             columns={[
@@ -89,7 +109,6 @@ export function RiskList() {
               status,
               { key: "updated_at", label: "Updated" },
             ]}
-            onOpen={(row) => void navigate({ to: "/risks/$riskId", params: { riskId: row.id } })}
             empty={{
               title: "No risks yet",
               description:
@@ -144,29 +163,40 @@ export function RiskRecord({ id }: { id: string }) {
     versions.data?.slice().sort((a, b) => b.version_number - a.version_number)[0];
   return (
     <Stack space="space.250">
-      <TextLink render={<Link to="/register" />}>POA&M & risk register</TextLink>
       <QueryState query={query}>
         {record ? (
           <>
             <PageHeader>
-              <div>
+              <PageHeader.Lead render={<Breadcrumb />}>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/register" />}>
+                      POA&M & risk register
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{record.title}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </PageHeader.Lead>
+              <PageHeader.Heading>
                 <PageHeader.Title>{record.title}</PageHeader.Title>
-                <PageHeader.Description>
-                  <StateBadge value={record.status} />
-                </PageHeader.Description>
-              </div>
+              </PageHeader.Heading>
               <PageHeader.Actions>
-                {workspace.role !== "viewer" && (
-                  <Button onClick={() => setEditing(record as DataRecord)}>Edit risk</Button>
-                )}
-                <InspectLink table="risks" id={id} />
+                <RecordActions
+                  table="risks"
+                  id={id}
+                  onEdit={() => setEditing(record as DataRecord)}
+                  editLabel="Edit risk"
+                />
               </PageHeader.Actions>
             </PageHeader>
             {editing && (
               <EntityEditor table="risks" existing={editing} onCancel={() => setEditing(null)} />
             )}
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList>
+              <TabsList variant="line" aria-label="Risk sections">
                 {["overview", "assessments", "responses", "evidence", "work", "activity"].map(
                   (value) => (
                     <TabsTrigger key={value} value={value}>
@@ -177,27 +207,26 @@ export function RiskRecord({ id }: { id: string }) {
               </TabsList>
             </Tabs>
             {tab === "overview" && (
-              <Grid
-                gap="space.400"
-                templateColumns={{ base: "minmax(0,1fr)", lg: "minmax(0,1fr) 320px" }}
-              >
-                <Section title="Risk context">
-                  <ModelFacts
-                    record={record as DataRecord}
-                    fields={[
-                      program,
-                      party(),
-                      "status",
-                      {
-                        key: "scope_id",
-                        label: "Scope",
-                        render: (row) => (
-                          <RelationName table="scopes" id={row["scope_id"] as string | null} />
-                        ),
-                      },
-                    ]}
-                  />
-                </Section>
+              <>
+                <Shell.Aside label="Risk details">
+                  <Inspector.Group title="Details">
+                    <ModelFacts
+                      record={record as DataRecord}
+                      fields={[
+                        program,
+                        party(),
+                        "status",
+                        {
+                          key: "scope_id",
+                          label: "Scope",
+                          render: (row) => (
+                            <RelationName table="scopes" id={row["scope_id"] as string | null} />
+                          ),
+                        },
+                      ]}
+                    />
+                  </Inspector.Group>
+                </Shell.Aside>
                 <Section title="Latest assessment">
                   <QueryState query={versions}>
                     {assessment ? (
@@ -216,11 +245,11 @@ export function RiskRecord({ id }: { id: string }) {
                         ]}
                       />
                     ) : (
-                      <p className="text-subtle">No risk assessment has been recorded.</p>
+                      <EmptyMessage title="No risk assessment has been recorded" />
                     )}
                   </QueryState>
                 </Section>
-              </Grid>
+              </>
             )}
             {tab === "assessments" && (
               <EntitySection
@@ -228,16 +257,21 @@ export function RiskRecord({ id }: { id: string }) {
                 filters={{ risk_id: id }}
                 title="Risk assessments"
                 columns={[...versionColumns, { key: "severity" }]}
-                onOpen={(row) => {
-                  setSelected(row.id);
-                  setTab("responses");
-                }}
               />
             )}
             {tab === "responses" && (
               <QueryState query={versions}>
                 {assessment ? (
                   <Stack space="space.250">
+                    <LibrarySelect
+                      label="Assessment version"
+                      value={assessment.id}
+                      options={(versions.data ?? []).map((item) => ({
+                        value: item.id,
+                        label: `Version ${item.version_number}`,
+                      }))}
+                      onChange={setSelected}
+                    />
                     <Section title={`Assessment version ${assessment.version_number}`}>
                       <ModelFacts
                         record={assessment as DataRecord}
@@ -288,7 +322,10 @@ export function RiskRecord({ id }: { id: string }) {
                     />
                   </Stack>
                 ) : (
-                  <p>Create an assessment version before recording its response.</p>
+                  <EmptyMessage
+                    title="No assessment version"
+                    description="Create an assessment version before recording its response."
+                  />
                 )}
               </QueryState>
             )}
@@ -310,7 +347,7 @@ export function RiskRecord({ id }: { id: string }) {
                     readOnly={assessment.state === "published"}
                   />
                 ) : (
-                  <p>No assessment evidence is recorded.</p>
+                  <EmptyMessage title="No assessment evidence is recorded" />
                 )}
               </QueryState>
             )}
@@ -338,7 +375,7 @@ export function RiskRecord({ id }: { id: string }) {
             )}
           </>
         ) : (
-          <p>Risk not found in this workspace.</p>
+          <MissingRecord backTo="/register" kind="Risk" />
         )}
       </QueryState>
     </Stack>
@@ -366,7 +403,9 @@ export function Register() {
   return (
     <Stack space="space.200">
       <PageHeader>
-        <PageHeader.Title>POA&M & risk register</PageHeader.Title>
+        <PageHeader.Heading>
+          <PageHeader.Title>POA&M & risk register</PageHeader.Title>
+        </PageHeader.Heading>
         <PageHeader.Actions>
           <Button
             iconBefore={<Download />}
@@ -378,7 +417,7 @@ export function Register() {
         </PageHeader.Actions>
       </PageHeader>
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList variant="line" aria-label="POA&M and risk collections">
           <TabsTrigger value="poam">POA&M</TabsTrigger>
           <TabsTrigger value="risks">Risks</TabsTrigger>
           <TabsTrigger value="unrolled">Unrolled findings</TabsTrigger>
@@ -402,22 +441,17 @@ export function Register() {
               ),
             },
           ]}
-          onOpen={(row) =>
-            void navigate({ to: "/register/poam/$poamId", params: { poamId: row.id } })
-          }
         />
       )}
-      {tab === "risks" && <RiskList />}
+      {tab === "risks" && <RiskList headingScope="section" />}
       {tab === "unrolled" && (
         <QueryState query={findings}>
           <QueryState query={links}>
             <ModelTable
+              model="assessment_findings"
               fill
               rows={asRecords(unrolled)}
               columns={[{ key: "title" }, { key: "determination" }, { key: "determined_at" }]}
-              onOpen={(row) =>
-                void navigate({ to: "/findings/$findingId", params: { findingId: row.id } })
-              }
               empty={{
                 illustration: "done",
                 title: "Nothing unrolled",
@@ -443,9 +477,6 @@ export function Register() {
               ),
             },
           ]}
-          onOpen={(row) =>
-            void navigate({ to: "/poam-documents/$documentId", params: { documentId: row.id } })
-          }
         />
       )}
     </Stack>
@@ -463,22 +494,33 @@ export function PoamRecord({ id }: { id: string }) {
     versions.data?.slice().sort((a, b) => b.version_number - a.version_number)[0];
   return (
     <Stack space="space.250">
-      <TextLink render={<Link to="/register" />}>POA&M & risk register</TextLink>
       <QueryState query={query}>
         {record ? (
           <>
             <PageHeader>
-              <div>
+              <PageHeader.Lead render={<Breadcrumb />}>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/register" />}>
+                      POA&M & risk register
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{record.title}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </PageHeader.Lead>
+              <PageHeader.Heading>
                 <PageHeader.Title>{record.title}</PageHeader.Title>
-                <PageHeader.Description>
-                  <StateBadge value={record.status} />
-                </PageHeader.Description>
-              </div>
+              </PageHeader.Heading>
               <PageHeader.Actions>
-                {workspace.role !== "viewer" && (
-                  <Button onClick={() => setEditing(record as DataRecord)}>Edit commitment</Button>
-                )}
-                <InspectLink table="poam_items" id={id} />
+                <RecordActions
+                  table="poam_items"
+                  id={id}
+                  onEdit={() => setEditing(record as DataRecord)}
+                  editLabel="Edit commitment"
+                />
               </PageHeader.Actions>
             </PageHeader>
             {editing && (
@@ -488,20 +530,27 @@ export function PoamRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <ModelFacts
-              record={record as DataRecord}
-              fields={[
-                party(),
-                "status",
-                {
-                  key: "poam_document_id",
-                  label: "Document",
-                  render: (row) => (
-                    <RelationName table="poam_documents" id={row["poam_document_id"] as string} />
-                  ),
-                },
-              ]}
-            />
+            <Shell.Aside label="Record details">
+              <Inspector.Group title="Details">
+                <ModelFacts
+                  record={record as DataRecord}
+                  fields={[
+                    party(),
+                    "status",
+                    {
+                      key: "poam_document_id",
+                      label: "Document",
+                      render: (row) => (
+                        <RelationName
+                          table="poam_documents"
+                          id={row["poam_document_id"] as string}
+                        />
+                      ),
+                    },
+                  ]}
+                />
+              </Inspector.Group>
+            </Shell.Aside>
             <EntitySection
               table="poam_item_revisions"
               filters={{ poam_item_id: id }}
@@ -512,18 +561,28 @@ export function PoamRecord({ id }: { id: string }) {
                 { key: "planned_completion_date" },
                 { key: "actual_completion_date" },
               ]}
-              onOpen={(row) => setSelected(row.id)}
             />
             <QueryState query={versions}>
               {version ? (
-                <PoamVersion key={version.id} version={version} />
+                <>
+                  <LibrarySelect
+                    label="Remediation plan version"
+                    value={version.id}
+                    options={(versions.data ?? []).map((item) => ({
+                      value: item.id,
+                      label: `Version ${item.version_number}`,
+                    }))}
+                    onChange={setSelected}
+                  />
+                  <PoamVersion key={version.id} version={version} />
+                </>
               ) : (
-                <p>No remediation plan version has been recorded.</p>
+                <EmptyMessage title="No remediation plan version has been recorded" />
               )}
             </QueryState>
           </>
         ) : (
-          <p>POA&M item not found.</p>
+          <MissingRecord backTo="/register" kind="POA&M commitment" />
         )}
       </QueryState>
     </Stack>
@@ -598,55 +657,109 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
 export function PoamDocument({ id }: { id: string }) {
   const workspace = useWorkspace();
   const query = useRow("poam_documents", id);
+  const [displayedRevisions, setDisplayedRevisions] = useState<DataRecord[]>([]);
+  const [editingRevision, setEditingRevision] = useState(false);
   const [revision, setRevision] = useState<DataRecord | null>(null);
   return (
     <Stack space="space.250">
-      <TextLink render={<Link to="/register" />}>POA&M register</TextLink>
       <QueryState query={query}>
         {query.data ? (
           <>
             <PageHeader>
-              <PageHeader.Title>{query.data.title}</PageHeader.Title>
+              <PageHeader.Lead render={<Breadcrumb />}>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/register" />}>
+                      POA&M & risk register
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{query.data.title}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </PageHeader.Lead>
+              <PageHeader.Heading>
+                <PageHeader.Title>{query.data.title}</PageHeader.Title>
+              </PageHeader.Heading>
             </PageHeader>
             <EntitySection
               table="poam_revisions"
               filters={{ poam_document_id: id }}
               title="Document revisions"
               columns={versionColumns}
-              onOpen={setRevision}
+              onOpen={(row) => {
+                setRevision(row);
+                setEditingRevision(false);
+              }}
+              selectedId={revision?.id}
+              onDisplayedRowsChange={setDisplayedRevisions}
             />
             {revision && (
-              <Stack space="space.200">
-                <EntitySection
-                  table="poam_revision_items"
-                  filters={{ poam_revision_id: revision.id }}
-                  initialValues={{ poam_document_id: id }}
-                  title="Included commitment versions"
-                  columns={[
-                    {
-                      key: "poam_item_revision_id",
-                      render: (row) => (
-                        <RelationName
-                          table="poam_item_revisions"
-                          id={row["poam_item_revision_id"] as string}
-                        />
-                      ),
-                    },
-                  ]}
-                  readOnly={revision["state"] === "published"}
-                />
-                {revision["state"] === "draft" && workspace.role !== "viewer" && (
-                  <EntityEditor
+              <RecordPreviewPanel
+                title={`Version ${String(revision["version_number"])}`}
+                label="POA&M revision preview"
+                defaultWidth={640}
+                onClose={() => {
+                  setRevision(null);
+                  setEditingRevision(false);
+                }}
+                recordActions={
+                  revision["state"] === "draft" &&
+                  workspace.role !== "viewer" && (
+                    <Button size="small" variant="primary" onClick={() => setEditingRevision(true)}>
+                      Edit revision
+                    </Button>
+                  )
+                }
+                navigation={
+                  <RecordPreviewActions
                     table="poam_revisions"
-                    existing={revision}
-                    onCancel={() => setRevision(null)}
+                    record={revision}
+                    rows={displayedRevisions}
+                    onSelect={(row) => {
+                      setRevision(row);
+                      setEditingRevision(false);
+                    }}
                   />
-                )}
-              </Stack>
+                }
+              >
+                <Stack space="space.200">
+                  <ModelFacts
+                    record={revision}
+                    fields={["version_number", "state", "published_at"]}
+                  />
+                  <EntitySection
+                    table="poam_revision_items"
+                    filters={{ poam_revision_id: revision.id }}
+                    initialValues={{ poam_document_id: id }}
+                    title="Included commitment versions"
+                    columns={[
+                      {
+                        key: "poam_item_revision_id",
+                        render: (row) => (
+                          <RelationName
+                            table="poam_item_revisions"
+                            id={row["poam_item_revision_id"] as string}
+                          />
+                        ),
+                      },
+                    ]}
+                    readOnly={revision["state"] === "published"}
+                  />
+                  {editingRevision && (
+                    <EntityEditor
+                      table="poam_revisions"
+                      existing={revision}
+                      onCancel={() => setEditingRevision(false)}
+                    />
+                  )}
+                </Stack>
+              </RecordPreviewPanel>
             )}
           </>
         ) : (
-          <p>Document not found.</p>
+          <MissingRecord backTo="/register" kind="POA&M document" />
         )}
       </QueryState>
     </Stack>

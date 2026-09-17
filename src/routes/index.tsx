@@ -1,5 +1,7 @@
+import { EmptyMessage } from "@/components/prototype/work-common";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  Absent,
   Badge,
   Box,
   Button,
@@ -10,6 +12,12 @@ import {
   Stack,
   Table,
   TextLink,
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyMedia,
+  EmptyIllustration,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { Download, Plus } from "lucide-react";
 import { useRows } from "@/lib/models";
@@ -21,9 +29,9 @@ import {
   RelationName,
   StateBadge,
 } from "@/components/prototype/record-tools";
-import { EmptyState } from "@/components/prototype/work-common";
+
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [{ title: "Portfolio — Equinox" }] }),
+  head: () => ({ meta: [{ title: "Portfolio — Program Assurance" }] }),
   component: Portfolio,
 });
 function Portfolio() {
@@ -164,11 +172,17 @@ function Portfolio() {
                     </tbody>
                   </Table>
                 ) : (
-                  <EmptyState
-                    illustration="records"
-                    title="No risks recorded"
-                    description="Risk assessments appear here when they are saved."
-                  />
+                  <Empty>
+                    <EmptyMedia aria-hidden>
+                      <EmptyIllustration kind="records" />
+                    </EmptyMedia>
+                    <EmptyHeader>
+                      <EmptyTitle>No risks recorded</EmptyTitle>
+                      <EmptyDescription>
+                        Risk assessments appear here when they are saved.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 )}
               </QueryState>
             </QueryState>
@@ -235,7 +249,10 @@ function Portfolio() {
                     ))}
                 </Stack>
               ) : (
-                <p className="text-subtle">No activity events have been recorded.</p>
+                <EmptyMessage
+                  title="No activity events"
+                  description="Activity will appear here as records change."
+                />
               )}
             </QueryState>
           </Section>

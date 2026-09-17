@@ -12,18 +12,23 @@ import {
   Section,
   Stack,
 } from "@ledger/design-system";
-export const Route = createFileRoute("/components")({ component: DesignSystem });
+export const Route = createFileRoute("/components")({
+  head: () => ({ meta: [{ title: "Design system — Program Assurance" }] }),
+  component: DesignSystem,
+});
 function DesignSystem() {
   const [count, setCount] = useState(0);
   return (
     <Stack space="space.250">
       <PageHeader>
         <PageHeader.Lead className="text-subtle">System</PageHeader.Lead>
-        <PageHeader.Title>Design system</PageHeader.Title>
-        <PageHeader.Description>
-          Interface primitives used by the prototype and schema inspector. This page previews
-          presentation components.
-        </PageHeader.Description>
+        <PageHeader.Heading>
+          <PageHeader.Title>Design system</PageHeader.Title>
+          <PageHeader.Description>
+            Interface primitives used by the prototype and schema inspector. This page previews
+            presentation components.
+          </PageHeader.Description>
+        </PageHeader.Heading>
       </PageHeader>
       <Grid
         gap="space.300"

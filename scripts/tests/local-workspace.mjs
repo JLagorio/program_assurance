@@ -2,18 +2,12 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { homedir } from "node:os";
-import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { localDockerEnv } from "../local-docker-env.mjs";
 
 export async function localWorkspace(prefix = "program-wizard") {
   assert.match(prefix, /^[a-z-]+$/);
-  const dockerEnv = {
-    ...process.env,
-    DOCKER_HOST: `unix://${join(homedir(), ".colima", "program-assurance", "docker.sock")}`,
-  };
-  for (const key of ["DOCKER_CONTEXT", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH"])
-    delete dockerEnv[key];
+  const dockerEnv = localDockerEnv();
   const status = JSON.parse(
     execFileSync("supabase", ["status", "--output", "json"], {
       env: dockerEnv,

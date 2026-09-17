@@ -14,6 +14,7 @@ import {
   FlaskConical,
   Gauge,
   Library,
+  MoreHorizontal,
   Plus,
   Search,
   Settings,
@@ -31,6 +32,7 @@ import {
   Id,
   Inspector,
   PageHeader,
+  PreviewNavigation,
   Section,
   Shell,
   SHELL_STORAGE_KEY,
@@ -1129,3 +1131,272 @@ function ForwardingExample() {
     </Stack>
   );
 }
+
+/** A desktop panel responds to its own width, independently of the viewport. */
+function PanelHeaderWidthDemo({
+  width,
+  composed = false,
+  withNavigation = true,
+  bodyHeader = false,
+}: {
+  width: number;
+  composed?: boolean;
+  withNavigation?: boolean;
+  bodyHeader?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState(1);
+  const title = `AC Enforcement Requirement ${String(position).padStart(3, "0")}`;
+  const navigation = (
+    <PreviewNavigation
+      position={position}
+      total={3}
+      onPrevious={position > 1 ? () => setPosition((value) => value - 1) : undefined}
+      onNext={position < 3 ? () => setPosition((value) => value + 1) : undefined}
+      openLink={<a href={`#requirement-${position}`} target="_blank" rel="noopener noreferrer" />}
+    />
+  );
+  return (
+    <Shell>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Text>Program Assurance</Text>
+        </Shell.TopNav.Start>
+      </Shell.TopNav>
+      <Shell.Main>
+        <Stack space="space.200">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>Requirements</PageHeader.Title>
+            </PageHeader.Heading>
+          </PageHeader>
+          <Section title="Records">
+            <Button onClick={() => setOpen(true)}>Open preview</Button>
+          </Section>
+        </Stack>
+      </Shell.Main>
+      {open &&
+        (composed || bodyHeader ? (
+          <Shell.Panel
+            label={bodyHeader ? "Record preview" : undefined}
+            defaultWidth={width}
+            onClose={() => setOpen(false)}
+          >
+            <Shell.Panel.Splitter />
+            <Shell.Panel.Header data-testid="composed-header">
+              {!bodyHeader && (
+                <Shell.Panel.Title render={<h3 data-testid="composed-title" />}>
+                  {title}
+                </Shell.Panel.Title>
+              )}
+              <Shell.Panel.Actions data-testid="composed-actions">{navigation}</Shell.Panel.Actions>
+              <Shell.Panel.Close data-testid="composed-close" />
+            </Shell.Panel.Header>
+            <Shell.Panel.Body>
+              {bodyHeader ? (
+                <PageHeader>
+                  <PageHeader.Heading>
+                    <h2 className="font-heading-small">{title}</h2>
+                  </PageHeader.Heading>
+                  <PageHeader.Actions>
+                    <Button size="small" variant="primary">
+                      Edit system
+                    </Button>
+                    <IconButton
+                      label="More system actions"
+                      icon={<MoreHorizontal />}
+                      size="small"
+                      variant="subtle"
+                    />
+                  </PageHeader.Actions>
+                </PageHeader>
+              ) : (
+                <Text>The selected requirement's details.</Text>
+              )}
+            </Shell.Panel.Body>
+          </Shell.Panel>
+        ) : (
+          <Shell.Panel
+            title={title}
+            actions={withNavigation ? navigation : undefined}
+            defaultWidth={width}
+            onClose={() => setOpen(false)}
+          >
+            <Text>The selected requirement's details.</Text>
+          </Shell.Panel>
+        ))}
+    </Shell>
+  );
+}
+
+async function checkPanelHeaderWidth(canvasElement: HTMLElement, width: number, composed = false) {
+  const canvas = within(canvasElement);
+  const opener = canvas.getByRole("button", { name: "Open preview" });
+  await userEvent.click(opener);
+  const panel = await canvas.findByRole("complementary", {
+    name: "AC Enforcement Requirement 001",
+  });
+  const content = within(panel);
+  const heading = content.getByRole("heading", { name: "AC Enforcement Requirement 001" });
+  const header = heading.closest('[data-slot="shell-panel-header"]') as HTMLElement;
+  const actions = header.querySelector('[data-slot="shell-panel-actions"]') as HTMLElement;
+  const close = content.getByRole("button", { name: "Close details" });
+  await waitFor(() => {
+    const titleBox = heading.getBoundingClientRect();
+    const actionBox = actions.getBoundingClientRect();
+    const closeBox = close.getBoundingClientRect();
+    expect(Math.abs(panel.getBoundingClientRect().width - width)).toBeLessThanOrEqual(1);
+    expect(header.scrollWidth).toBeLessThanOrEqual(header.clientWidth);
+    expect(actionBox.right).toBeLessThanOrEqual(closeBox.left);
+    expect(
+      Math.abs((actionBox.top + actionBox.bottom) / 2 - (closeBox.top + closeBox.bottom) / 2),
+    ).toBeLessThanOrEqual(1);
+    if (width < 400) {
+      expect(titleBox.width).toBeGreaterThanOrEqual(width - 36);
+      expect(titleBox.bottom).toBeLessThanOrEqual(actionBox.top);
+      expect(titleBox.height).toBeLessThanOrEqual(
+        parseFloat(getComputedStyle(heading).lineHeight) * 3,
+      );
+    } else {
+      expect(titleBox.right).toBeLessThanOrEqual(actionBox.left);
+      expect(
+        Math.abs((titleBox.top + titleBox.bottom) / 2 - (closeBox.top + closeBox.bottom) / 2),
+      ).toBeLessThanOrEqual(1);
+      expect(header.getBoundingClientRect().height).toBe(48);
+    }
+  });
+  if (composed) {
+    await expect(content.getByTestId("composed-header")).toBe(header);
+    await expect(content.getByTestId("composed-title")).toBe(heading);
+    await expect(heading.tagName).toBe("H3");
+    await expect(content.getByTestId("composed-actions")).toBe(actions);
+    await expect(content.getByTestId("composed-close")).toBe(close);
+  }
+  const next = content.getByRole("button", { name: "Next record" });
+  await userEvent.click(next);
+  await expect(content.getByRole("status")).toHaveTextContent("2 of 3 records");
+  await expect(content.getByRole("link", { name: "Open full record in new tab" })).toHaveAttribute(
+    "href",
+    "#requirement-2",
+  );
+  await expect(next).toHaveFocus();
+  await userEvent.click(close);
+  await waitFor(() => expect(opener).toHaveFocus());
+  await expect(canvas.queryByRole("complementary")).not.toBeInTheDocument();
+  await userEvent.click(opener);
+  const reopened = await canvas.findByRole("complementary", {
+    name: "AC Enforcement Requirement 002",
+  });
+  reopened.focus();
+  await userEvent.keyboard("{Escape}");
+  await waitFor(() => expect(opener).toHaveFocus());
+  await expect(canvas.queryByRole("complementary")).not.toBeInTheDocument();
+  await userEvent.click(opener);
+}
+
+export const HeaderAt240: Story = {
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  name: "Panel header · 240px",
+  render: () => <PanelHeaderWidthDemo width={240} />,
+  play: ({ canvasElement }) => checkPanelHeaderWidth(canvasElement, 240),
+};
+export const HeaderAt320: Story = {
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  name: "Panel header · 320px",
+  render: () => <PanelHeaderWidthDemo width={320} />,
+  play: ({ canvasElement }) => checkPanelHeaderWidth(canvasElement, 320),
+};
+export const HeaderAt640: Story = {
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  name: "Panel header · 640px",
+  render: () => <PanelHeaderWidthDemo width={640} />,
+  play: ({ canvasElement }) => checkPanelHeaderWidth(canvasElement, 640),
+};
+export const ComposedHeaderAt240: Story = {
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  name: "Composed panel header · 240px",
+  render: () => <PanelHeaderWidthDemo width={240} composed />,
+  play: ({ canvasElement }) => checkPanelHeaderWidth(canvasElement, 240, true),
+};
+
+export const TitleOnlyAt240: Story = {
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  name: "Panel title and close · 240px",
+  render: () => <PanelHeaderWidthDemo width={240} withNavigation={false} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const opener = canvas.getByRole("button", { name: "Open preview" });
+    await userEvent.click(opener);
+    const panel = await canvas.findByRole("complementary", {
+      name: "AC Enforcement Requirement 001",
+    });
+    const heading = within(panel).getByRole("heading", { name: "AC Enforcement Requirement 001" });
+    const close = within(panel).getByRole("button", { name: "Close details" });
+    const header = heading.closest('[data-slot="shell-panel-header"]') as HTMLElement;
+    await expect(header.querySelector('[data-slot="shell-panel-actions"]')).toBeNull();
+    await waitFor(() => {
+      const titleBox = heading.getBoundingClientRect();
+      const closeBox = close.getBoundingClientRect();
+      expect(Math.abs(panel.getBoundingClientRect().width - 240)).toBeLessThanOrEqual(1);
+      expect(titleBox.width).toBeGreaterThanOrEqual(160);
+      expect(titleBox.right).toBeLessThanOrEqual(closeBox.left);
+      expect(
+        Math.abs((titleBox.top + titleBox.bottom) / 2 - (closeBox.top + closeBox.bottom) / 2),
+      ).toBeLessThanOrEqual(1);
+      expect(header.getBoundingClientRect().height).toBe(Math.max(48, titleBox.height + 17));
+    });
+    await userEvent.click(close);
+    await waitFor(() => expect(opener).toHaveFocus());
+    await userEvent.click(opener);
+  },
+};
+
+async function checkPanelRecordHeaderWidth(canvasElement: HTMLElement, width: number) {
+  const canvas = within(canvasElement);
+  const opener = canvas.getByRole("button", { name: "Open preview" });
+  await userEvent.click(opener);
+  const panel = await canvas.findByRole("complementary", { name: "Record preview" });
+  const heading = within(panel).getByRole("heading", { name: "AC Enforcement Requirement 001" });
+  const header = heading.closest('[data-slot="page-header"]') as HTMLElement;
+  const navigation = panel.querySelector('[data-slot="shell-panel-header"]') as HTMLElement;
+  await expect(within(navigation).queryByRole("heading")).toBeNull();
+  await expect(within(navigation).queryByRole("button", { name: "Edit system" })).toBeNull();
+  await expect(navigation.querySelector('[data-slot="preview-navigation"]')).not.toBeNull();
+  await expect(within(navigation).getByRole("button", { name: "Close details" })).toBeVisible();
+  await expect(navigation.getBoundingClientRect().height).toBe(48);
+
+  const actions = header.querySelector('[data-slot="page-header-actions"]') as HTMLElement;
+  await waitFor(() => {
+    const titleBox = heading.getBoundingClientRect();
+    const actionBox = actions.getBoundingClientRect();
+    const panelBox = panel.getBoundingClientRect();
+    expect(Math.abs(panelBox.width - width)).toBeLessThanOrEqual(1);
+    expect(header.scrollWidth).toBeLessThanOrEqual(header.clientWidth);
+    expect(actionBox.right).toBeLessThanOrEqual(panelBox.right);
+    if (width < 320) {
+      expect(titleBox.width).toBeGreaterThanOrEqual(width - 36);
+      expect(titleBox.bottom).toBeLessThanOrEqual(actionBox.top);
+    } else {
+      expect(titleBox.width).toBeGreaterThanOrEqual(100);
+      expect(titleBox.right).toBeLessThanOrEqual(actionBox.left);
+      expect(titleBox.top).toBe(actionBox.top);
+    }
+  });
+  await expect(canvas.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  await userEvent.click(within(panel).getByRole("button", { name: "Close details" }));
+  await waitFor(() => expect(opener).toHaveFocus());
+  await userEvent.click(opener);
+}
+
+export const BodyHeaderAt240: Story = {
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  name: "Panel record header · 240px",
+  render: () => <PanelHeaderWidthDemo width={240} bodyHeader />,
+  play: ({ canvasElement }) => checkPanelRecordHeaderWidth(canvasElement, 240),
+};
+export const BodyHeaderAt340: Story = {
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  name: "Panel record header · 340px",
+  render: () => <PanelHeaderWidthDemo width={340} bodyHeader />,
+  play: ({ canvasElement }) => checkPanelRecordHeaderWidth(canvasElement, 340),
+};

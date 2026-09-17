@@ -159,7 +159,7 @@ export function PanelSurface({
             <PanelSplitter />
             <PanelHeader>
               <PanelTitle>{title ?? name}</PanelTitle>
-              {actions}
+              {actions != null && actions !== false && <PanelActions>{actions}</PanelActions>}
               <PanelClose />
             </PanelHeader>
             <PanelBody>{children}</PanelBody>
@@ -172,14 +172,14 @@ export function PanelSurface({
   );
 }
 
-/** The bar at the top of the panel: the title, the route's actions, the close. The top nav's height, so beside it the two hairlines are one line; a title that wraps grows it. */
+/** The title, actions and close share the top-nav-height bar; a narrow panel gives the title its own row. */
 export function PanelHeader({ className, ...props }: ShellPanelHeaderProps) {
   return (
     <div
       {...props}
       data-slot="shell-panel-header"
       className={cn(
-        "sticky top-0 z-10 flex min-h-layout-topnav items-center gap-100 border-b border-default bg-surface px-200 py-100",
+        "sticky top-0 z-10 grid min-h-layout-topnav items-center gap-100 border-b border-default bg-surface px-200 py-100",
         className,
       )}
     />

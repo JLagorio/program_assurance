@@ -1,3 +1,4 @@
+import { RecordLink } from "@/components/prototype/record-preview";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -7,6 +8,7 @@ import {
   defineColumns,
   Inline,
   PageHeader,
+  Toolbar,
   Stack,
   useDataTable,
 } from "@ledger/design-system";
@@ -69,7 +71,16 @@ function ProfilesIndex() {
   const columns = useMemo(
     () =>
       defineColumns<(typeof rows)[number]>((c) => [
-        c.text("title", { header: "Profile", hideable: false, minWidth: 220 }),
+        c.text("title", {
+          header: "Profile",
+          hideable: false,
+          minWidth: 220,
+          cell: (row) => (
+            <RecordLink table="profiles" record={row}>
+              {row.title}
+            </RecordLink>
+          ),
+        }),
         c.id("code", { header: "Identifier", width: 230 }),
         c.text("kind", { header: "Source", width: 160 }),
         c.text("version", { header: "Latest revision", width: 125 }),
@@ -92,17 +103,13 @@ function ProfilesIndex() {
   return (
     <Stack className="animate-rise" space="space.200">
       <PageHeader>
-        <div className="min-w-0">
+        <PageHeader.Heading>
           <PageHeader.Title>Profiles</PageHeader.Title>
-          <p className="pt-050 font-body-small text-subtle">
-            Versioned control selections, their exact source imports, and recorded tailoring.
-          </p>
-        </div>
+        </PageHeader.Heading>
       </PageHeader>
       {creating && (
         <LibraryEditor
           table="profiles"
-          title="New profile"
           onClose={() => setCreating(false)}
           onSaved={(record) => {
             void navigate({ to: "/profiles/$profileId", params: { profileId: record.id } });
@@ -111,6 +118,7 @@ function ProfilesIndex() {
       )}
       <LibraryLoading queries={[profiles, revisions, resolutions, selections]}>
         <DataTable
+          responsive
           table={table}
           fill
           onRowClick={(row) => {
@@ -123,33 +131,46 @@ function ProfilesIndex() {
               "A profile is a versioned control selection with its source imports and tailoring. Author the first, or import a shared reference.",
             action: canCreate ? (
               <Button variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
-                New profile
+                Create profile
               </Button>
             ) : undefined,
           }}
           toolbar={
-            <Inline space="space.100" alignBlock="center" shouldWrap>
-              <DataTable.Search table={table} placeholder="Find a profile" />
-              <DataTable.Presets table={table} variant="menu" presets={presets} />
-              <DataTable.Filter table={table} column="kind" />
-              <DataTable.Filter table={table} column="status" />
-              <DataTable.Filter table={table} column="drafts" />
-              <Inline className="ml-auto" space="space.100" alignBlock="center">
-                <DataTable.Columns table={table} />
-                <DataTable.Settings table={table} />
-                {canCreate && (
-                  <Button
-                    size="small"
-                    variant="primary"
-                    iconBefore={<Plus />}
-                    disabled={creating}
-                    onClick={() => setCreating(true)}
-                  >
-                    New profile
-                  </Button>
-                )}
-              </Inline>
-            </Inline>
+            <Toolbar
+              search={String(table.state.globalFilter ?? "")}
+              onSearch={(value) => table.setGlobalFilter(value)}
+              placeholder="Find profiles"
+              views={
+                <>
+                  <DataTable.Presets table={table} variant="menu" presets={presets} />
+                </>
+              }
+              filters={
+                <>
+                  <DataTable.Filter table={table} column="kind" />
+                  <DataTable.Filter table={table} column="status" />
+                  <DataTable.Filter table={table} column="drafts" />
+                </>
+              }
+              actions={
+                <>
+                  {canCreate && (
+                    <Button
+                      size="small"
+                      variant="primary"
+                      iconBefore={<Plus />}
+                      disabled={creating}
+                      onClick={() => setCreating(true)}
+                    >
+                      Create profile
+                    </Button>
+                  )}
+                </>
+              }
+            >
+              <DataTable.Columns table={table} />
+              <DataTable.Settings table={table} />
+            </Toolbar>
           }
         />
       </LibraryLoading>

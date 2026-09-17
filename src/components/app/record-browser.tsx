@@ -1,7 +1,26 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Box,
   Button,
   Combobox,
@@ -10,6 +29,7 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  DialogFooter,
   Field,
   FieldDescription,
   FieldLabel,
@@ -42,6 +62,7 @@ import {
   recordPayload,
   recordTitle,
   systemColumns,
+  isDerivedRecordField,
   titleColumn,
   type Collection,
   type Column,
@@ -63,23 +84,29 @@ function ErrorMessage({ error }: { error: unknown }) {
     </p>
   );
 }
-function collectionDescription(name: string) {
-  const descriptions: Record<string, string> = {
-    programs: "Manage program identity, ownership, and lifecycle.",
-    systems: "Define the systems and authorization boundaries within a program.",
-    engineering_requirements:
-      "Author engineering requirements, then allocate and verify their revisions.",
-    controls: "Review versioned control definitions imported from reference publications.",
-    operational_issues: "Track deficiencies and the observations supporting them.",
-    assessment_findings:
-      "Record an assessor’s determination for a specific control statement or objective.",
-    risks: "Maintain risk identities and their versioned assessments.",
-    tasks: "Assign and track work using recorded owners, dates, and status.",
-    evidence_artifacts: "Register evidence and preserve its collected versions and provenance.",
-  };
+function CollectionNotFound() {
   return (
-    descriptions[name] ??
-    `Create and review ${labelFor(name).toLowerCase()} and their related records.`
+    <Box padding="space.400">
+      <Stack space="space.300">
+        <PageHeader>
+          <PageHeader.Heading>
+            <PageHeader.Title>Schema inspector</PageHeader.Title>
+          </PageHeader.Heading>
+        </PageHeader>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia>
+              <EmptyIllustration kind="search" />
+            </EmptyMedia>
+            <EmptyTitle>Collection not found</EmptyTitle>
+            <EmptyDescription>This collection is unavailable in your workspace.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <TextLink render={<Link to="/schema" />}>Open schema inspector</TextLink>
+          </EmptyContent>
+        </Empty>
+      </Stack>
+    </Box>
   );
 }
 function relatedCollection(collection: Collection, column: string, collections: Collection[]) {
@@ -159,12 +186,7 @@ export function RecordList({
     enabled: !!collection,
     retry: false,
   });
-  if (!collection)
-    return (
-      <Box padding="space.400">
-        <h1 className="font-heading-small">Collection not found</h1>
-      </Box>
-    );
+  if (!collection) return <CollectionNotFound />;
   const keyColumn = titleColumn(collection);
   const preferred = [
     keyColumn,
@@ -185,10 +207,9 @@ export function RecordList({
     <Box padding="space.400">
       <Stack space="space.300">
         <PageHeader>
-          <div>
+          <PageHeader.Heading>
             <PageHeader.Title>{labelFor(name)}</PageHeader.Title>
-            <PageHeader.Description>{collectionDescription(name)}</PageHeader.Description>
-          </div>
+          </PageHeader.Heading>
           <PageHeader.Actions>
             {canCreate && (
               <Button
@@ -201,7 +222,7 @@ export function RecordList({
                   />
                 }
               >
-                Create record
+                Create {productRecordNoun(name)}
               </Button>
             )}
           </PageHeader.Actions>
@@ -277,7 +298,7 @@ export function RecordList({
                     />
                   }
                 >
-                  Create record
+                  Create {productRecordNoun(name)}
                 </Button>
               </EmptyContent>
             ) : null}
@@ -500,7 +521,12 @@ function ReferencePicker({
   );
 }
 
-export type RecordEditorState = { dirty: boolean; busy: boolean; requestClose: () => void };
+export type RecordEditorState = {
+  dirty: boolean;
+  busy: boolean;
+  noun: string;
+  requestClose: () => void;
+};
 
 export function RecordEditor({
   collection,
@@ -511,6 +537,7 @@ export function RecordEditor({
   onCancel,
   presentation = "schema",
   onStateChange,
+  formLayout = "page",
 }: {
   collection: Collection;
   existing?: DataRecord | undefined;
@@ -519,8 +546,10 @@ export function RecordEditor({
   onSaved?: ((record: DataRecord) => void | Promise<void>) | undefined;
   onCancel: () => void;
   presentation?: "schema" | "product";
+  formLayout?: "page" | "dialog";
   onStateChange?: ((state: RecordEditorState) => void) | undefined;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const [baseline] = useState(existing);
   const queryClient = useQueryClient();
@@ -530,6 +559,7 @@ export function RecordEditor({
       collection.columns.filter(
         (column) =>
           !systemColumns.has(column.name) &&
+          !isDerivedRecordField(collection.name, column.name) &&
           column.name !== "published_at" &&
           !(
             collection.name === "evidence_versions" &&
@@ -565,6 +595,7 @@ export function RecordEditor({
       }),
     ),
   );
+  const noun = productRecordNoun(collection.name, fields);
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
@@ -572,20 +603,25 @@ export function RecordEditor({
   const inFlight = useRef(false);
   const stateRef = useRef({ dirty, onCancel, onStateChange });
   stateRef.current = { dirty, onCancel, onStateChange };
-  const cancel = useCallback(() => {
+  const cancel = useCallback(async () => {
     if (inFlight.current) return;
-    if (!stateRef.current.dirty || window.confirm("Discard your unsaved changes?")) {
+    if (
+      !stateRef.current.dirty ||
+      (await confirm(discardChanges("Discard your unsaved changes?")))
+    ) {
       bypassBlock.current = true;
       stateRef.current.onCancel();
     }
-  }, []);
+  }, [confirm]);
   useEffect(() => {
-    stateRef.current.onStateChange?.({ dirty, busy, requestClose: cancel });
-  }, [dirty, busy, cancel]);
+    stateRef.current.onStateChange?.({ dirty, busy, noun, requestClose: cancel });
+  }, [dirty, busy, noun, cancel]);
   useBlocker({
-    shouldBlockFn: () =>
+    shouldBlockFn: async () =>
       inFlight.current ||
-      (dirty && !bypassBlock.current && !window.confirm("Discard your unsaved changes?")),
+      (dirty &&
+        !bypassBlock.current &&
+        !(await confirm(discardChanges("Discard your unsaved changes?")))),
     enableBeforeUnload: () => (dirty || inFlight.current) && !bypassBlock.current,
   });
   async function submit(event: FormEvent) {
@@ -694,6 +730,13 @@ export function RecordEditor({
             value={value}
             onChange={change}
             choices={column.choices.map((value) => ({ value, label: labelFor(value) }))}
+            disabled={
+              presentation === "product" &&
+              !existing &&
+              collection.name === "parties" &&
+              column.name === "party_type" &&
+              typeof initialValues?.["party_type"] === "string"
+            }
             required={presentation === "product" && column.required && !column.default}
           />
         ) : column.type === "boolean" ? (
@@ -708,6 +751,7 @@ export function RecordEditor({
           />
         ) : multiline ? (
           <Textarea
+            autoFocus={formLayout === "dialog" && mainColumns[0]?.name === column.name}
             id={`field-${column.name}`}
             value={value}
             onChange={(event) => change(event.target.value)}
@@ -716,6 +760,7 @@ export function RecordEditor({
           />
         ) : (
           <Input
+            autoFocus={formLayout === "dialog" && mainColumns[0]?.name === column.name}
             id={`field-${column.name}`}
             type={
               column.type === "date"
@@ -740,55 +785,70 @@ export function RecordEditor({
       </Field>
     );
   };
+  const actions = (
+    <>
+      <Button type="button" variant="subtle" disabled={busy} onClick={cancel}>
+        Cancel
+      </Button>
+      <Button type="submit" variant="primary" isLoading={busy} disabled={busy}>
+        {existing ? `Save ${noun}` : `Create ${noun}`}
+      </Button>
+    </>
+  );
   return (
-    <form onSubmit={(event) => void submit(event)} aria-busy={busy}>
-      <fieldset disabled={busy} className="min-w-0">
-        <Stack space="space.250" className="max-w-layout-measure">
-          {columns.filter(contextual).map((column) => (
-            <Box key={column.name} padding="space.150" backgroundColor="elevation.surface.sunken">
-              <p className="font-body-small text-subtle">
-                {labelFor(column.name.replace(/_id$/, ""))}
+    <>
+      <form
+        noValidate
+        onSubmit={(event) => void submit(event)}
+        aria-busy={busy}
+        className={formLayout === "dialog" ? "flex min-h-0 flex-1 flex-col" : undefined}
+      >
+        <fieldset
+          disabled={busy}
+          className={
+            formLayout === "dialog" ? "min-h-0 min-w-0 flex-1 overflow-y-auto p-250" : "min-w-0"
+          }
+        >
+          <Stack space="space.250" className="max-w-layout-measure">
+            {columns.filter(contextual).map((column) => (
+              <Box key={column.name} padding="space.150" backgroundColor="elevation.surface.sunken">
+                <p className="font-body-small text-subtle">
+                  {labelFor(column.name.replace(/_id$/, ""))}
+                </p>
+                <ReferenceLink
+                  collection={relatedCollection(collection, column.name, workspace.collections)!}
+                  id={fields[column.name]!}
+                />
+              </Box>
+            ))}
+            {mainColumns.map(renderField)}
+            {additionalColumns.length > 0 && (
+              <details>
+                <summary className="cursor-pointer font-body-small font-medium">
+                  Additional details
+                </summary>
+                <Stack space="space.200" className="pt-200">
+                  {additionalColumns.map(renderField)}
+                </Stack>
+              </details>
+            )}
+            {error && (
+              <p role="alert" className="text-danger">
+                {error}
               </p>
-              <ReferenceLink
-                collection={relatedCollection(collection, column.name, workspace.collections)!}
-                id={fields[column.name]!}
-              />
-            </Box>
-          ))}
-          {mainColumns.map(renderField)}
-          {additionalColumns.length > 0 && (
-            <details>
-              <summary className="cursor-pointer font-body-small font-medium">
-                Additional details
-              </summary>
-              <Stack space="space.200" className="pt-200">
-                {additionalColumns.map(renderField)}
-              </Stack>
-            </details>
-          )}
-          {error && (
-            <p role="alert" className="text-danger">
-              {error}
-            </p>
-          )}
-          <Inline space="space.150">
-            <Button type="submit" variant="primary" disabled={busy}>
-              {busy
-                ? "Saving…"
-                : presentation === "product"
-                  ? existing
-                    ? "Save changes"
-                    : `Create ${productRecordNoun(collection.name)}`
-                  : "Save record"}
-            </Button>
-            <Button type="button" variant="secondary" disabled={busy} onClick={cancel}>
-              Cancel
-            </Button>
-            {dirty && <span className="font-body-small text-subtle">Unsaved changes</span>}
+            )}
+          </Stack>
+        </fieldset>
+        {formLayout === "dialog" ? (
+          <DialogFooter>{actions}</DialogFooter>
+        ) : (
+          <Inline space="space.150" alignInline="end" className="pt-250">
+            {actions}
           </Inline>
-        </Stack>
-      </fieldset>
-    </form>
+        )}
+      </form>
+      {confirmation}
+    </>
   );
 }
 
@@ -805,9 +865,15 @@ export function RecordDetail({
   const collection = workspace.collections.find((item) => item.name === name);
   // Preserve the exact revision the user started editing, even if queries refetch.
   const [editing, setEditing] = useState<DataRecord | null>(null);
+  const [editorNoun, setEditorNoun] = useState(() => productRecordNoun(name));
+  const onEditorStateChange = useCallback(
+    (state: RecordEditorState) => setEditorNoun(state.noun),
+    [],
+  );
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const deleteInFlight = useRef(false);
   const cache = useQueryClient();
   const query = useQuery({
     queryKey: ["record", workspace.tenantId, name, id],
@@ -816,8 +882,13 @@ export function RecordDetail({
     retry: false,
   });
   const navigate = useNavigate();
+  useBlocker({
+    shouldBlockFn: () => deleteInFlight.current,
+    enableBeforeUnload: () => deleteInFlight.current,
+  });
   async function remove() {
-    if (!collection || !query.data) return;
+    if (!collection || !query.data || deleteInFlight.current) return;
+    deleteInFlight.current = true;
     setDeleting(true);
     setDeleteError("");
     try {
@@ -825,19 +896,17 @@ export function RecordDetail({
       await cache.invalidateQueries({ queryKey: ["records"] });
       await cache.invalidateQueries({ queryKey: ["reference-options"] });
       cache.removeQueries({ queryKey: ["record", workspace.tenantId, name, id] });
+      deleteInFlight.current = false;
+      setConfirmDelete(false);
       await navigate({ to: "/records/$collection", params: { collection: name }, search: {} });
     } catch (cause) {
       setDeleteError(cause instanceof Error ? cause.message : "The record could not be deleted.");
     } finally {
+      deleteInFlight.current = false;
       setDeleting(false);
     }
   }
-  if (!collection)
-    return (
-      <Box padding="space.400">
-        <h1>Collection not found</h1>
-      </Box>
-    );
+  if (!collection) return <CollectionNotFound />;
   const creating = id === "new";
   const canEdit =
     workspace.role !== "viewer" &&
@@ -860,71 +929,106 @@ export function RecordDetail({
   return (
     <Box padding="space.400">
       <Stack space="space.300">
-        <TextLink render={<Link to="/records/$collection" params={{ collection: name }} />}>
-          {labelFor(name)}
-        </TextLink>
         <PageHeader>
-          <div>
+          <PageHeader.Lead render={<Breadcrumb />}>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/schema" />}>Schema inspector</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  render={<Link to="/records/$collection" params={{ collection: name }} />}
+                >
+                  {labelFor(name)}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  {creating
+                    ? `Create ${editorNoun}`
+                    : query.data
+                      ? recordTitle(query.data, collection)
+                      : "Record"}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </PageHeader.Lead>
+          <PageHeader.Heading>
             <PageHeader.Title>
               {creating
-                ? `Create ${labelFor(name).toLowerCase()} record`
+                ? `Create ${editorNoun}`
                 : query.data
                   ? recordTitle(query.data, collection)
                   : "Record"}
             </PageHeader.Title>
-            {query.data && (
-              <PageHeader.Description>
-                {query.data["code"] ? String(query.data["code"]) : ""}
-                {query.data.revision ? ` · Revision ${query.data.revision}` : ""}
-              </PageHeader.Description>
-            )}
-          </div>
-          <PageHeader.Actions>
-            {!creating && !editing && canEdit && collection.can_delete && (
-              <Button variant="subtle" onClick={() => setConfirmDelete(true)}>
-                Delete record
-              </Button>
-            )}
-            {!creating && !editing && canEdit && (
-              <Button variant="primary" onClick={() => setEditing(query.data!)}>
-                Edit record
-              </Button>
-            )}
-          </PageHeader.Actions>
+          </PageHeader.Heading>
+          {!creating && !editing && canEdit && (
+            <PageHeader.Actions>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button />}>Actions</DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setEditing(query.data!)}>
+                    Edit {productRecordNoun(name, query.data)}
+                  </DropdownMenuItem>
+                  {collection.can_delete && (
+                    <DropdownMenuItem variant="destructive" onClick={() => setConfirmDelete(true)}>
+                      Delete {productRecordNoun(name, query.data)}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </PageHeader.Actions>
+          )}
         </PageHeader>
-        {confirmDelete && (
-          <Box padding="space.250" backgroundColor="elevation.surface.sunken">
-            <Stack space="space.150">
-              <p>
-                Delete this record permanently? The database will block deletion if retained records
+        <AlertDialog
+          open={confirmDelete}
+          onOpenChange={(open, details) => {
+            if (deleteInFlight.current) {
+              details.cancel();
+              return;
+            }
+            setConfirmDelete(open);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete {productRecordNoun(name, query.data)}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Delete this record permanently? The database blocks deletion if retained records
                 still reference it.
-              </p>
-              <Inline space="space.150">
-                <Button variant="danger" disabled={deleting} onClick={() => void remove()}>
-                  {deleting ? "Deleting…" : "Confirm deletion"}
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={deleting}
-                  onClick={() => setConfirmDelete(false)}
-                >
-                  Keep record
-                </Button>
-              </Inline>
-              {deleteError && (
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {deleteError && (
+              <Box padding="space.250">
                 <p role="alert" className="text-danger">
                   {deleteError}
                 </p>
-              )}
-            </Stack>
-          </Box>
-        )}
+              </Box>
+            )}
+            <AlertDialogFooter>
+              <AlertDialogCancel variant="subtle" disabled={deleting}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                variant="danger"
+                isLoading={deleting}
+                disabled={deleting}
+                onClick={() => void remove()}
+              >
+                Delete {productRecordNoun(name, query.data)}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         {creating ? (
           collection.can_insert && workspace.role !== "viewer" ? (
             <RecordEditor
               key={`${name}-new`}
               collection={collection}
               initial={initial}
+              onStateChange={onEditorStateChange}
               onCancel={() =>
                 void navigate({
                   to: "/records/$collection",
@@ -1041,17 +1145,13 @@ function RecordCount({ name }: { name: string }) {
   );
 }
 export function WorkspaceHome() {
-  const workspace = useWorkspace();
   return (
     <Box padding="space.400">
       <Stack space="space.300">
         <PageHeader>
-          <div>
-            <PageHeader.Title>{workspace.name}</PageHeader.Title>
-            <PageHeader.Description>
-              Manage programs, implementation, assessment, and remediation using your recorded data.
-            </PageHeader.Description>
-          </div>
+          <PageHeader.Heading>
+            <PageHeader.Title>Schema inspector</PageHeader.Title>
+          </PageHeader.Heading>
         </PageHeader>
         <Grid className="grid-cols-1 md:grid-cols-2 xl:grid-cols-4" gap="space.200">
           {["programs", "systems", "operational_issues", "tasks"].map((name) => (

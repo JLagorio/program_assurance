@@ -1,14 +1,20 @@
+import { MissingRecord } from "@/components/prototype/work-common";
 import { Box } from "@ledger/design-system";
 import { displayDate } from "@/components/prototype/work-format";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  Absent,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   Button,
   Inline,
   Inspector,
@@ -17,13 +23,18 @@ import {
   Shell,
   Stack,
   Table,
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyMedia,
+  EmptyIllustration,
+  EmptyDescription,
 } from "@ledger/design-system";
 import { useModelSave, useRow, useRows } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { useWorkspace } from "@/components/app/workspace";
 import {
   DetailFacts,
-  EmptyState,
   ModelForm,
   QueryState,
   SchemaLink,
@@ -33,7 +44,7 @@ import {
 
 export const Route = createFileRoute("/tasks/$taskId")({
   component: TaskRoute,
-  head: () => ({ meta: [{ title: "Task — Equinox" }] }),
+  head: () => ({ meta: [{ title: "Task — Program Assurance" }] }),
 });
 function TaskRoute() {
   const { taskId } = Route.useParams();
@@ -97,29 +108,32 @@ function TaskDetail({ taskId }: { taskId: string }) {
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </PageHeader.Lead>
-              <Box className="min-w-0">
+              <PageHeader.Heading>
                 <PageHeader.Title>{task.title}</PageHeader.Title>
-                <Inline className="pt-100">
-                  <StatusBadge value={task.status} />
-                </Inline>
-              </Box>
+              </PageHeader.Heading>
               <PageHeader.Actions>
                 {workspace.role !== "viewer" && (
-                  <>
-                    <Button
-                      disabled={!!form || save.isPending}
-                      onClick={() => setForm({ table: "tasks", existing: task as DataRecord })}
-                    >
-                      Edit task
-                    </Button>
-                    <Button
-                      variant={task.status === "done" ? "secondary" : "primary"}
-                      disabled={save.isPending || !!form}
-                      onClick={() => void toggleDone()}
-                    >
-                      {save.isPending ? "Saving…" : task.status === "done" ? "Reopen" : "Complete"}
-                    </Button>
-                  </>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger render={<Button>Actions</Button>} />
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        disabled={!!form || save.isPending}
+                        onClick={() => setForm({ table: "tasks", existing: task as DataRecord })}
+                      >
+                        Edit task
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={save.isPending || !!form}
+                        onClick={() => void toggleDone()}
+                      >
+                        {save.isPending
+                          ? "Saving…"
+                          : task.status === "done"
+                            ? "Reopen"
+                            : "Complete"}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </PageHeader.Actions>
             </PageHeader>
@@ -131,7 +145,7 @@ function TaskDetail({ taskId }: { taskId: string }) {
             <Stack space="space.300" className="min-w-0 pt-200">
               <Section title="Note">
                 <p className="whitespace-pre-wrap pt-100 text-subtle">
-                  {task.description || "No note recorded."}
+                  {task.description || <Absent />}
                 </p>
               </Section>
               <Section
@@ -190,11 +204,7 @@ function TaskDetail({ taskId }: { taskId: string }) {
                       </tbody>
                     </Table>
                   ) : (
-                    <EmptyState
-                      illustration="people"
-                      title="Nobody assigned"
-                      description="Assign accountable, responsible, consulted, or informed people to this task."
-                    />
+                    <MissingRecord backTo="/work" kind="Task" />
                   )}
                 </QueryState>
               </Section>
@@ -237,11 +247,7 @@ function TaskDetail({ taskId }: { taskId: string }) {
                         ))}
                     </Stack>
                   ) : (
-                    <EmptyState
-                      illustration="inbox"
-                      title="No comments yet"
-                      description="Questions and decisions about this task are kept here."
-                    />
+                    <MissingRecord backTo="/work" kind="Task" />
                   )}
                 </QueryState>
               </Section>
@@ -261,11 +267,7 @@ function TaskDetail({ taskId }: { taskId: string }) {
                         ))}
                     </Stack>
                   ) : (
-                    <EmptyState
-                      illustration="inbox"
-                      title="No activity yet"
-                      description="Changes to this task are logged here as they happen."
-                    />
+                    <MissingRecord backTo="/work" kind="Task" />
                   )}
                 </QueryState>
               </Section>
@@ -276,8 +278,8 @@ function TaskDetail({ taskId }: { taskId: string }) {
                   facts={[
                     ["State", <StatusBadge value={task.status} />],
                     ["Priority", task.priority ? labelFor(task.priority) : null],
-                    ["Due", displayDate(task.due_at)],
-                    ["Completed", displayDate(task.completed_at)],
+                    ["Due", task.due_at ? displayDate(task.due_at) : null],
+                    ["Completed", task.completed_at ? displayDate(task.completed_at) : null],
                     [
                       "Workstream",
                       task.workstream_id ? (
@@ -298,11 +300,7 @@ function TaskDetail({ taskId }: { taskId: string }) {
             </Shell.Aside>
           </>
         ) : (
-          <EmptyState
-            illustration="search"
-            title="Task not found"
-            description="This task may have been removed or may not belong to your workspace."
-          />
+          <MissingRecord backTo="/work" kind="Task" />
         )}
       </QueryState>
     </Stack>

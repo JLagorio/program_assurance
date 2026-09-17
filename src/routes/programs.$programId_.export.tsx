@@ -1,9 +1,25 @@
+import { MissingRecord } from "@/components/prototype/work-common";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Button, KeyValue, PageHeader, Stack, TextLink } from "@ledger/design-system";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  KeyValue,
+  PageHeader,
+  Stack,
+  TextLink,
+} from "@ledger/design-system";
 import { Download } from "lucide-react";
 import { useRow, useRows } from "@/lib/models";
 import { ProgramQueryState } from "@/components/prototype/program-shared";
-export const Route = createFileRoute("/programs/$programId_/export")({ component: ProgramExport });
+export const Route = createFileRoute("/programs/$programId_/export")({
+  head: () => ({ meta: [{ title: "Program export — Program Assurance" }] }),
+  component: ProgramExport,
+});
 function ProgramExport() {
   const { programId } = Route.useParams();
   const program = useRow("programs", programId);
@@ -42,15 +58,31 @@ function ProgramExport() {
     link.click();
     URL.revokeObjectURL(url);
   }
+  if (program.isSuccess && !program.data)
+    return <MissingRecord backTo="/programs" kind="Program" />;
   return (
     <Stack space="space.250">
       <PageHeader>
-        <div>
-          <TextLink render={<Link to="/programs/$programId" params={{ programId }} />}>
-            {program.data?.name ?? "Program"}
-          </TextLink>
+        <PageHeader.Lead render={<Breadcrumb />}>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink render={<Link to="/programs/$programId" params={{ programId }} />}>
+                {program.data?.name ?? "Program"}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Program transfer</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </PageHeader.Lead>
+        <PageHeader.Heading>
           <PageHeader.Title>Program transfer</PageHeader.Title>
-        </div>
+        </PageHeader.Heading>
         <PageHeader.Actions>
           <Button
             iconBefore={<Download />}
@@ -62,8 +94,7 @@ function ProgramExport() {
           </Button>
         </PageHeader.Actions>
       </PageHeader>
-      <ProgramQueryState loading={loading} error={error} />
-      {!loading && !error && (
+      <ProgramQueryState queries={queries}>
         <>
           <p className="text-subtle">
             Download this program’s recorded register as JSON. The register includes program and
@@ -76,7 +107,7 @@ function ProgramExport() {
           <KeyValue label="Security plan revisions">{programPlans?.length}</KeyValue>
           <KeyValue label="Evidence artifacts">{evidence.data?.length}</KeyValue>
         </>
-      )}
+      </ProgramQueryState>
     </Stack>
   );
 }

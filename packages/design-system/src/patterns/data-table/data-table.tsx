@@ -7,9 +7,24 @@ import {
   type Row,
   type RowData,
 } from "@tanstack/react-table";
-import { ChevronRight, MoreHorizontal } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import {
+  createContext,
+  memo,
+  useCallback,
+  useContext,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
+import { fitColumns } from "./responsive";
+import { KeyValue } from "../../components/key-value";
+import { Stack } from "../../primitives/stack";
 
 import { AlertDescription, Alert } from "../../components/alert";
 import { Button, IconButton } from "../../components/button";
@@ -91,10 +106,36 @@ export type DataTableProps<TData extends RowData> = {
   maxHeight?: number | undefined;
   /** The register is the page's one block: it takes the rest of the window, the rows scroll under the header, and the pagination sits at the bottom. Wins over `maxHeight`. */
   fill?: boolean | undefined;
+  /** Fit the container and disclose lower-priority fields within the row instead of horizontal scrolling. */
+  responsive?: boolean | undefined;
   className?: string | undefined;
 };
 
 type F = DataTableFeatures;
+
+type ResponsiveLayout = ReturnType<typeof fitColumns> & {
+  columns: { id: string; pin: false | "start" | "end" }[];
+};
+const ResponsiveLayoutContext = createContext<ResponsiveLayout | null>(null);
+function visibleHeaders<T extends RowData>(
+  header: Header<F, T, unknown>,
+  layout: ResponsiveLayout | null,
+): number {
+  if (!layout) return header.colSpan;
+  return header.subHeaders.length
+    ? header.subHeaders.reduce((sum, child) => sum + visibleHeaders(child, layout), 0)
+    : Number(layout.ids.has(header.column.id));
+}
+function fittedHeaderWidth<T extends RowData>(
+  header: Header<F, T, unknown>,
+  layout: ResponsiveLayout,
+): number {
+  return header.subHeaders.length
+    ? header.subHeaders.reduce((sum, child) => sum + fittedHeaderWidth(child, layout), 0)
+    : layout.ids.has(header.column.id)
+      ? (layout.widths.get(header.column.id) ?? 0)
+      : 0;
+}
 
 /** `Table.Selection` and `Table.Handle` are `w-400`. */
 const NARROW = 32;
@@ -114,9 +155,26 @@ const sizeStyle = (
 };
 
 /** Where a column is pinned, how far from that edge, and whether it is the one that touches the middle. */
-const pinning = <TData extends RowData>(column: Column<F, TData, unknown>, before = 0) => {
+const pinning = <TData extends RowData>(
+  column: Column<F, TData, unknown>,
+  before = 0,
+  layout: ResponsiveLayout | null = null,
+) => {
   const pinned = column.getIsPinned();
   if (!pinned) return { pinned: false as const, offset: undefined, edge: false };
+  if (layout) {
+    const band = layout.columns.filter((item) => layout.ids.has(item.id) && item.pin === pinned);
+    const index = band.findIndex((item) => item.id === column.id);
+    const adjacent = pinned === "start" ? band.slice(0, index) : band.slice(index + 1);
+    return {
+      pinned,
+      offset:
+        (pinned === "start" ? before : 0) +
+        adjacent.reduce((sum, item) => sum + (layout.widths.get(item.id) ?? 0), 0),
+      edge: pinned === "start" ? index === band.length - 1 : index === 0,
+    };
+  }
+
   return {
     pinned,
     offset: pinned === "start" ? before + column.getStart("start") : column.getAfter("end"),
@@ -185,6 +243,7 @@ function HeaderCell<TData extends RowData>({
   /** The width of the pinned leading columns, added to every start offset. */
   before: number;
 }) {
+  const layout = useContext(ResponsiveLayoutContext);
   const column = header.column;
   const meta = column.columnDef.meta;
   const options = table.options.meta;
@@ -197,7 +256,7 @@ function HeaderCell<TData extends RowData>({
     Boolean(options?.reorderable) && leaf && !column.getIsPinned() && !header.isPlaceholder,
   );
   const pin = leaf
-    ? pinning(column, before)
+    ? pinning(column, before, layout)
     : { pinned: false as const, offset: undefined, edge: false };
   const canResize = Boolean(options?.resizable) && leaf && column.getCanResize();
   const resizing = table.state.columnResizing;
@@ -215,14 +274,22 @@ function HeaderCell<TData extends RowData>({
   return (
     <Table.Header
       ref={drag.setNodeRef}
-      colSpan={header.colSpan}
+      colSpan={visibleHeaders(header, layout)}
       hairline={!header.isPlaceholder}
       className={cn(
         alignClass(meta?.align),
         !leaf && "text-center",
         drag.isDragging && "bg-surface-hovered",
       )}
-      style={{ ...sizeStyle(header as Header<F, RowData, unknown>, sized), ...drag.style }}
+      style={{
+        ...(layout
+          ? {
+              width: fittedHeaderWidth(header, layout),
+              minWidth: fittedHeaderWidth(header, layout),
+            }
+          : sizeStyle(header as Header<F, RowData, unknown>, sized)),
+        ...drag.style,
+      }}
       pinned={pin.pinned}
       offset={pin.offset}
       edge={pin.edge}
@@ -334,7 +401,8 @@ function BodyCell<TData extends RowData>({
   const options = cell.column.table.options.meta;
   const content = flexRender(cell.column.columnDef.cell, cell.getContext());
   const record = row.original as never;
-  const pin = pinning(cell.column, before);
+  const layout = useContext(ResponsiveLayoutContext);
+  const pin = pinning(cell.column, before, layout);
   const idMeta =
     previewAt === cell.column.id
       ? cell.column.table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "id")
@@ -541,6 +609,10 @@ type BodyRowProps<TData extends RowData> = {
   previewAt: string | undefined;
   columnCount: number;
   isPinnedRow: boolean;
+  moreOpen: boolean;
+  onMoreToggle: (id: string) => void;
+  virtualIndex?: number | undefined;
+  onMeasure?: ((index: number, height: number) => void) | undefined;
   onRowClick?: ((row: TData) => void) | undefined;
   onKeyDown?: ((event: KeyboardEvent<HTMLTableRowElement>) => void) | undefined;
 };
@@ -566,6 +638,10 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   previewAt,
   columnCount,
   isPinnedRow,
+  moreOpen,
+  onMoreToggle,
+  virtualIndex,
+  onMeasure,
   onRowClick,
   onKeyDown,
 }: BodyRowProps<TData>) {
@@ -575,11 +651,65 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   const detail = options?.detail;
   const drag = useRowDrag(row.id, leading.handle);
   const detailId = `${options?.view ?? "table"}-${row.id}-detail`;
+  const layout = useContext(ResponsiveLayoutContext);
+  const moreId = useId();
+  const rowElement = useRef<HTMLTableRowElement | null>(null);
+  const setRowElement = useCallback(
+    (element: HTMLTableRowElement | null) => {
+      rowElement.current = element;
+      drag.setNodeRef?.(element);
+    },
+    [drag.setNodeRef],
+  );
+  useLayoutEffect(() => {
+    const element = rowElement.current;
+    if (!element || virtualIndex === undefined || !onMeasure) return;
+    // A virtual item is one logical record: its main row plus either disclosed sibling.
+    // Observe the actual table rows so wrapping, asynchronous content and resize all remeasure.
+    const parts: Element[] = [element];
+    let sibling = element.nextElementSibling;
+    while (sibling && (sibling.id === moreId || sibling.id === detailId)) {
+      parts.push(sibling);
+      sibling = sibling.nextElementSibling;
+    }
+    const measure = () =>
+      onMeasure(
+        virtualIndex,
+        parts.reduce((height, part) => height + part.getBoundingClientRect().height, 0),
+      );
+    const observer = new ResizeObserver(measure);
+    parts.forEach((part) => observer.observe(part));
+    measure();
+    return () => observer.disconnect();
+  }, [
+    virtualIndex,
+    onMeasure,
+    moreOpen,
+    isDetailOpen,
+    moreId,
+    detailId,
+    layout?.collapsed,
+    _columnsKey,
+  ]);
+  const cells = row.getVisibleCells();
+  const overflowCells = layout ? cells.filter((cell) => !layout.ids.has(cell.column.id)) : [];
+  const identity = layout
+    ? cells.find(
+        (cell) => layout.ids.has(cell.column.id) && cell.column.columnDef.meta?.kind !== "actions",
+      )
+    : undefined;
+  const identityValue = identity?.getValue();
+  const moreLabel = t("moreFieldsFor", {
+    label:
+      options?.tree?.label(row.original as never) ??
+      (typeof identityValue === "string" ? identityValue : row.id),
+  });
+
   const pins = leadingPins(leading, dataPinned);
   return (
     <>
       <Table.Row
-        ref={drag.setNodeRef}
+        ref={setRowElement}
         style={drag.style}
         data-row-id={row.id}
         isSelected={isSelected}
@@ -649,17 +779,55 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
             />
           </Table.Cell>
         ) : null}
-        {row.getVisibleCells().map((cell) => (
-          <BodyCell
-            key={cell.id}
-            cell={cell}
-            row={row}
-            before={before}
-            hintAt={hintAt}
-            previewAt={previewAt}
-          />
-        ))}
+        {cells
+          .filter((cell) => !layout || layout.ids.has(cell.column.id))
+          .map((cell) => (
+            <BodyCell
+              key={cell.id}
+              cell={cell}
+              row={row}
+              before={before}
+              hintAt={hintAt}
+              previewAt={previewAt}
+            />
+          ))}
+
+        {layout?.collapsed && (
+          <Table.Cell
+            className="max-w-none px-0 text-center"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <IconButton
+              variant="subtle"
+              size="small"
+              label={moreLabel}
+              aria-expanded={moreOpen}
+              aria-controls={moreId}
+              icon={<ChevronDown className={moreOpen ? "rotate-180" : undefined} />}
+              onClick={() => onMoreToggle(row.id)}
+            />
+          </Table.Cell>
+        )}
       </Table.Row>
+      {layout?.collapsed && moreOpen && (
+        <Table.Detail id={moreId} colSpan={columnCount}>
+          <Stack space="space.150">
+            {overflowCells.map((cell) => (
+              <KeyValue
+                key={cell.id}
+                wrap
+                label={
+                  typeof cell.column.columnDef.header === "string"
+                    ? cell.column.columnDef.header
+                    : cell.column.id
+                }
+              >
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </KeyValue>
+            ))}
+          </Stack>
+        </Table.Detail>
+      )}
       {detail && isDetailOpen ? (
         <Table.Detail id={detailId} colSpan={columnCount}>
           {detail(row.original as never)}
@@ -780,6 +948,7 @@ function DataTableRoot<TData extends RowData>({
   onRowClick,
   maxHeight,
   fill,
+  responsive = false,
   className,
 }: DataTableProps<TData>) {
   const { t, direction } = useLedgerLocale();
@@ -797,34 +966,83 @@ function DataTableRoot<TData extends RowData>({
   const tree = options?.tree;
   const groupBy = options?.groupBy;
   const headerGroups = table.getHeaderGroups();
-  const visibleColumns = table.getVisibleLeafColumns();
-  const columnCount = visibleColumns.length + leadingCount(leading);
+  const requestedColumns = table.getVisibleLeafColumns();
+  const root = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [moreOpenIds, setMoreOpenIds] = useState<ReadonlySet<string>>(() => new Set());
+  const toggleMore = useCallback((id: string) => {
+    setMoreOpenIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+  useLayoutEffect(() => {
+    const element = root.current;
+    if (!element || !responsive) return;
+    const observer = new ResizeObserver(() => setContainerWidth(element.clientWidth));
+    observer.observe(element);
+    setContainerWidth(element.clientWidth);
+    return () => observer.disconnect();
+  }, [responsive]);
+  const layout: ResponsiveLayout | null =
+    responsive && containerWidth > 0
+      ? {
+          ...fitColumns(
+            requestedColumns.map((column) => ({
+              id: column.id,
+              width:
+                column.columnDef.size !== undefined ||
+                table.state.columnSizing[column.id] !== undefined ||
+                column.getIsPinned()
+                  ? column.getSize()
+                  : (column.columnDef.minSize ?? 120),
+              priority: column.columnDef.meta?.priority,
+              action: column.columnDef.meta?.kind === "actions",
+            })),
+            containerWidth,
+            leadingWidth(leading),
+          ),
+          columns: [
+            ...table.getStartVisibleLeafColumns(),
+            ...table.getCenterVisibleLeafColumns(),
+            ...table.getEndVisibleLeafColumns(),
+          ].map((column) => ({ id: column.id, pin: column.getIsPinned() })),
+        }
+      : null;
+  const visibleColumns = requestedColumns.filter((column) => !layout || layout.ids.has(column.id));
+  const columnCount =
+    visibleColumns.length + leadingCount(leading) + Number(layout?.collapsed ?? false);
   const columnsKey = [
     ...visibleColumns.map((c) => c.id),
     ...table.state.columnPinning.start,
     "|",
     ...table.state.columnPinning.end,
     JSON.stringify(table.state.columnSizing),
+    layout ? [...layout.widths].filter(([id]) => layout.ids.has(id)).join("|") : "",
   ].join(" ");
   const idMeta = table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "id")
     ?.columnDef.meta;
   const active = idMeta?.active;
   const previewAt = idMeta?.preview ? previewColumn(visibleColumns) : undefined;
   const hintAt = tree ? previewColumn(visibleColumns) : undefined;
-  const fixed = options?.layout === "fixed";
+  const fixed = responsive || options?.layout === "fixed";
   // The leading columns are always pinned, so every start offset begins after them.
   const before = leadingWidth(leading);
-  const dataPinned = table.state.columnPinning.start.length > 0;
+  const dataPinned = visibleColumns.some((column) => column.getIsPinned() === "start");
   const pins = leadingPins(leading, dataPinned);
-  const minWidth = fixed
-    ? visibleColumns.reduce((sum, c) => {
-        const sized =
-          c.columnDef.size !== undefined ||
-          table.state.columnSizing[c.id] !== undefined ||
-          c.getIsPinned();
-        return sum + (sized ? c.getSize() : (c.columnDef.minSize ?? 120));
-      }, leadingWidth(leading))
-    : undefined;
+  const minWidth = layout
+    ? undefined
+    : fixed
+      ? visibleColumns.reduce((sum, c) => {
+          const sized =
+            c.columnDef.size !== undefined ||
+            table.state.columnSizing[c.id] !== undefined ||
+            c.getIsPinned();
+          return sum + (sized ? c.getSize() : (c.columnDef.minSize ?? 120));
+        }, leadingWidth(leading))
+      : undefined;
   const onKeyDown = tree ? treeKeys(table, direction) : undefined;
 
   const allRows = table.getRowModel().rows;
@@ -833,13 +1051,12 @@ function DataTableRoot<TData extends RowData>({
   const bottomRows = pinRows ? table.getBottomRows() : [];
   const rows = pinRows ? table.getCenterRows() : allRows;
 
-  // Only the rows in view are drawn; a spacer row above and below keeps the scroll height honest.
-  // Rows are dimension.row tall, so the estimate is the table's density and nothing measures.
+  // Only visible records mount. BodyRow measures each record together with its disclosed fields;
+  // the density estimate covers records that have not been measured yet.
   const virtual = options?.virtualize && !groupBy ? options.virtualize : undefined;
   const frame = useRef<HTMLDivElement>(null);
   // The register that is the page: its root takes the rest of the window from its own top edge,
   // and the toolbar, the frame and the pagination share that height as a column.
-  const root = useRef<HTMLDivElement>(null);
   const top = useFillWindow(root, Boolean(fill));
   const rootProps = {
     ref: root,
@@ -851,9 +1068,19 @@ function DataTableRoot<TData extends RowData>({
     count: virtual ? rows.length : 0,
     getScrollElement: () => frame.current,
     estimateSize: () => virtual?.estimate ?? (options?.density === "compact" ? 36 : 40),
+    getItemKey: (index) => rows[index]?.id ?? index,
     overscan: virtual?.overscan ?? 8,
     initialRect: { width: 0, height: maxHeight ?? 480 },
   });
+  const measureRow = useCallback(
+    (index: number, height: number) => virtualizer.resizeItem(index, height),
+    [virtualizer],
+  );
+  useLayoutEffect(() => {
+    // Offscreen records cannot observe a width/column change. Drop their old heights;
+    // mounted rows reconnect their observers for the same columnsKey and remeasure.
+    virtualizer.measure();
+  }, [virtualizer, columnsKey]);
   const items = virtual ? virtualizer.getVirtualItems() : [];
   const paddingTop = virtual && items.length ? (items[0]?.start ?? 0) : 0;
   const paddingBottom =
@@ -889,7 +1116,7 @@ function DataTableRoot<TData extends RowData>({
       </div>
     );
 
-  const drawRow = (row: Row<F, TData>, isPinnedRow = false) => (
+  const drawRow = (row: Row<F, TData>, isPinnedRow = false, virtualIndex?: number) => (
     <BodyRow
       key={row.id}
       row={row}
@@ -906,6 +1133,10 @@ function DataTableRoot<TData extends RowData>({
       previewAt={previewAt}
       columnCount={columnCount}
       isPinnedRow={isPinnedRow}
+      moreOpen={moreOpenIds.has(row.id)}
+      onMoreToggle={toggleMore}
+      virtualIndex={virtualIndex}
+      onMeasure={virtualIndex === undefined ? undefined : measureRow}
       onRowClick={onRowClick}
       onKeyDown={onKeyDown}
     />
@@ -968,118 +1199,130 @@ function DataTableRoot<TData extends RowData>({
   );
 
   return (
-    <div {...rootProps}>
+    <div {...rootProps} data-responsive={responsive || undefined}>
       {toolbar ? <div className="shrink-0 pb-200">{toolbar}</div> : null}
-      <DragContext table={table}>
-        <Table
-          frameRef={frame}
-          density={options?.density ?? "default"}
-          label={label}
-          {...(fill ? { fill } : maxHeight === undefined ? {} : { maxHeight })}
-          {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}
-          className={cn("border-b border-default", fixed && "table-fixed")}
-          style={minWidth === undefined ? undefined : { minWidth }}
-        >
-          <thead>
-            <ColumnSortable table={table}>
-              {headerGroups.map((group, i) => (
-                <tr key={group.id}>
-                  {i === headerGroups.length - 1 ? (
-                    <>
-                      {leading.selectable ? (
-                        <Table.Selection
-                          header
-                          checked={table.getIsAllPageRowsSelected()}
-                          indeterminate={
-                            !table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()
-                          }
-                          onCheckedChange={(next) => table.toggleAllPageRowsSelected(next)}
-                          label={t("selectPage")}
-                          {...pins("selectable")}
-                        />
-                      ) : null}
-                      {leading.tree ? narrowHeader("tree") : null}
-                      {leading.handle ? narrowHeader("handle") : null}
-                      {leading.detail ? narrowHeader("detail") : null}
-                    </>
-                  ) : (
-                    Array.from({ length: leadingCount(leading) }, (_, j) => (
-                      <Table.Header key={j} hairline={false} aria-hidden />
-                    ))
-                  )}
-                  {group.headers.map((header) => (
-                    <HeaderCell key={header.id} header={header} table={table} before={before} />
+      <ResponsiveLayoutContext.Provider value={layout}>
+        <DragContext table={table}>
+          <Table
+            frameRef={frame}
+            density={options?.density ?? "default"}
+            label={label}
+            {...(fill ? { fill } : maxHeight === undefined ? {} : { maxHeight })}
+            {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}
+            className={cn("border-b border-default", fixed && "table-fixed")}
+            style={minWidth === undefined ? undefined : { minWidth }}
+          >
+            <thead>
+              <ColumnSortable table={table}>
+                {headerGroups.map((group, i) => (
+                  <tr key={group.id}>
+                    {i === headerGroups.length - 1 ? (
+                      <>
+                        {leading.selectable ? (
+                          <Table.Selection
+                            header
+                            checked={table.getIsAllPageRowsSelected()}
+                            indeterminate={
+                              !table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()
+                            }
+                            onCheckedChange={(next) => table.toggleAllPageRowsSelected(next)}
+                            label={t("selectPage")}
+                            {...pins("selectable")}
+                          />
+                        ) : null}
+                        {leading.tree ? narrowHeader("tree") : null}
+                        {leading.handle ? narrowHeader("handle") : null}
+                        {leading.detail ? narrowHeader("detail") : null}
+                      </>
+                    ) : (
+                      Array.from({ length: leadingCount(leading) }, (_, j) => (
+                        <Table.Header key={j} hairline={false} aria-hidden />
+                      ))
+                    )}
+                    {group.headers
+                      .filter((header) => visibleHeaders(header, layout) > 0)
+                      .map((header) => (
+                        <HeaderCell key={header.id} header={header} table={table} before={before} />
+                      ))}
+                    {layout?.collapsed && (
+                      <Table.Header width={32} className="px-0">
+                        <span className="sr-only">{t("moreFields")}</span>
+                      </Table.Header>
+                    )}
+                  </tr>
+                ))}
+              </ColumnSortable>
+            </thead>
+            {groupBy && showRows ? (
+              groups.map((group) => (
+                <Table.Group
+                  key={group.id}
+                  colSpan={columnCount}
+                  open={group.getIsExpanded()}
+                  onToggle={() => group.toggleExpanded()}
+                  title={String(group.groupingValue ?? "")}
+                  count={group.getLeafRows().length}
+                >
+                  {group.subRows.map((row) => drawRow(row))}
+                </Table.Group>
+              ))
+            ) : (
+              <tbody {...(tree ? { onFocus: claimTabStop } : {})}>
+                {states}
+                {showRows ? (
+                  <RowSortable table={table}>
+                    {topRows.map((row) => drawRow(row, true))}
+                    {virtual ? (
+                      <>
+                        {paddingTop > 0 ? (
+                          <tr aria-hidden style={{ height: paddingTop }}>
+                            <td colSpan={columnCount} />
+                          </tr>
+                        ) : null}
+                        {items.map((item) => {
+                          const row = rows[item.index];
+                          return row ? drawRow(row, false, item.index) : null;
+                        })}
+                        {paddingBottom > 0 ? (
+                          <tr aria-hidden style={{ height: paddingBottom }}>
+                            <td colSpan={columnCount} />
+                          </tr>
+                        ) : null}
+                      </>
+                    ) : (
+                      rows.map((row) => drawRow(row))
+                    )}
+                    {bottomRows.map((row) => drawRow(row, true))}
+                  </RowSortable>
+                ) : null}
+              </tbody>
+            )}
+            {footerGroup && showRows ? (
+              <tfoot>
+                <Table.Row isStatic className="border-t border-default">
+                  {Array.from({ length: leadingCount(leading) }, (_, j) => (
+                    <Table.Cell key={j} className="w-400 max-w-none pe-0" />
                   ))}
-                </tr>
-              ))}
-            </ColumnSortable>
-          </thead>
-          {groupBy && showRows ? (
-            groups.map((group) => (
-              <Table.Group
-                key={group.id}
-                colSpan={columnCount}
-                open={group.getIsExpanded()}
-                onToggle={() => group.toggleExpanded()}
-                title={String(group.groupingValue ?? "")}
-                count={group.getLeafRows().length}
-              >
-                {group.subRows.map((row) => drawRow(row))}
-              </Table.Group>
-            ))
-          ) : (
-            <tbody {...(tree ? { onFocus: claimTabStop } : {})}>
-              {states}
-              {showRows ? (
-                <RowSortable table={table}>
-                  {topRows.map((row) => drawRow(row, true))}
-                  {virtual ? (
-                    <>
-                      {paddingTop > 0 ? (
-                        <tr aria-hidden style={{ height: paddingTop }}>
-                          <td colSpan={columnCount} />
-                        </tr>
-                      ) : null}
-                      {items.map((item) => {
-                        const row = rows[item.index];
-                        return row ? drawRow(row) : null;
-                      })}
-                      {paddingBottom > 0 ? (
-                        <tr aria-hidden style={{ height: paddingBottom }}>
-                          <td colSpan={columnCount} />
-                        </tr>
-                      ) : null}
-                    </>
-                  ) : (
-                    rows.map((row) => drawRow(row))
-                  )}
-                  {bottomRows.map((row) => drawRow(row, true))}
-                </RowSortable>
-              ) : null}
-            </tbody>
-          )}
-          {footerGroup && showRows ? (
-            <tfoot>
-              <Table.Row isStatic className="border-t border-default">
-                {Array.from({ length: leadingCount(leading) }, (_, j) => (
-                  <Table.Cell key={j} className="w-400 max-w-none pe-0" />
-                ))}
-                {footerGroup.headers.map((header) => (
-                  <Table.Cell
-                    key={header.id}
-                    className={alignClass(header.column.columnDef.meta?.align)}
-                    colSpan={header.colSpan}
-                  >
-                    {header.isPlaceholder || header.column.columnDef.footer === undefined
-                      ? null
-                      : flexRender(header.column.columnDef.footer, header.getContext())}
-                  </Table.Cell>
-                ))}
-              </Table.Row>
-            </tfoot>
-          ) : null}
-        </Table>
-      </DragContext>
+                  {footerGroup.headers
+                    .filter((header) => visibleHeaders(header, layout) > 0)
+                    .map((header) => (
+                      <Table.Cell
+                        key={header.id}
+                        className={alignClass(header.column.columnDef.meta?.align)}
+                        colSpan={visibleHeaders(header, layout)}
+                      >
+                        {header.isPlaceholder || header.column.columnDef.footer === undefined
+                          ? null
+                          : flexRender(header.column.columnDef.footer, header.getContext())}
+                      </Table.Cell>
+                    ))}
+                  {layout?.collapsed && <Table.Cell />}
+                </Table.Row>
+              </tfoot>
+            ) : null}
+          </Table>
+        </DragContext>
+      </ResponsiveLayoutContext.Provider>
       {pageSize !== undefined && !groupBy && state !== "loading" && !isEmpty ? (
         <TablePagination
           page={table.state.pagination.pageIndex + 1}

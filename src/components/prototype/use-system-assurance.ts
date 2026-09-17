@@ -54,6 +54,7 @@ export function useSystemAssurance(programId: string) {
   return {
     rows,
     elements,
+    queries,
     error: queries.find((query) => query.error)?.error,
     pending: queries.some((query) => query.isPending),
   };

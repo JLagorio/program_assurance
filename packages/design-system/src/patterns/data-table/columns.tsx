@@ -46,6 +46,8 @@ type Shared<TData> = {
   /** Pixels. Content decisions are props, not classes. */
   width?: number | undefined;
   minWidth?: number | undefined;
+  /** Lower numbers remain in the row longer when the renderer is responsive. */
+  priority?: number | undefined;
   sortable?: boolean | undefined;
   /** Sort by something other than the value: a rank for a status, a number behind a bar. */
   sortBy?: ((row: TData) => string | number) | undefined;
@@ -143,6 +145,7 @@ export function columnKinds<TData extends RowData>() {
       header,
       width,
       minWidth,
+      priority,
       sortable = true,
       sortBy,
       pin,
@@ -166,7 +169,7 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { pin, kind: "text", align: "start", wrap, editable: Boolean(editable) },
+      meta: { priority, pin, kind: "text", align: "start", wrap, editable: Boolean(editable) },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -188,8 +191,9 @@ export function columnKinds<TData extends RowData>() {
     key: Key<TData>,
     {
       header = "ID",
-      width = minWidths.id,
+      width,
       minWidth,
+      priority,
       sortable = true,
       sortBy,
       pin,
@@ -213,13 +217,13 @@ export function columnKinds<TData extends RowData>() {
     helper.accessor(read<TData>(key), {
       id: key,
       header,
-      size: width,
+      size: width ?? minWidth ?? minWidths.id,
       minSize: minOf(width, minWidth ?? minWidths.id),
       enableSorting: sortable,
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { pin, kind: "id", align: "start", tone, preview, active, glance },
+      meta: { priority, pin, kind: "id", align: "start", tone, preview, active, glance },
       cell: ({ row, getValue }) => (cell ? cell(row.original) : String(getValue())),
     });
 
@@ -229,6 +233,7 @@ export function columnKinds<TData extends RowData>() {
       header,
       width,
       minWidth,
+      priority,
       sortable = true,
       sortBy,
       pin,
@@ -270,7 +275,7 @@ export function columnKinds<TData extends RowData>() {
       filterFn: "inNumberRange",
       enableGlobalFilter: false,
       ...shared({ pin, hideable, resizable }),
-      meta: { pin, kind: "number", align: "end" },
+      meta: { priority, pin, kind: "number", align: "end" },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -285,6 +290,7 @@ export function columnKinds<TData extends RowData>() {
       header,
       width,
       minWidth,
+      priority,
       sortable = true,
       sortBy,
       pin,
@@ -304,7 +310,7 @@ export function columnKinds<TData extends RowData>() {
       filterFn: "dateRange",
       enableGlobalFilter: false,
       ...shared({ pin, hideable, resizable }),
-      meta: { pin, kind: "date", align: "start" },
+      meta: { priority, pin, kind: "date", align: "start" },
       cell: ({ row, getValue }) =>
         cell ? cell(row.original) : <LocalizedDate value={getValue()} pattern={fmt} />,
     });
@@ -315,6 +321,7 @@ export function columnKinds<TData extends RowData>() {
       header,
       width,
       minWidth,
+      priority,
       sortable = true,
       sortBy,
       pin,
@@ -338,7 +345,7 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { pin, kind: "status", align: "start", editable: Boolean(editable) },
+      meta: { priority, pin, kind: "status", align: "start", editable: Boolean(editable) },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -378,6 +385,7 @@ export function columnKinds<TData extends RowData>() {
       header,
       width,
       minWidth,
+      priority,
       sortable = true,
       sortBy,
       pin,
@@ -395,7 +403,7 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("text", sortBy),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { pin, kind: "person", align: "start" },
+      meta: { priority, pin, kind: "person", align: "start" },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -414,6 +422,7 @@ export function columnKinds<TData extends RowData>() {
       header,
       width,
       minWidth,
+      priority,
       sortable = true,
       pin,
       hideable,
@@ -424,7 +433,7 @@ export function columnKinds<TData extends RowData>() {
       opens = "preview",
     }: Pick<
       Shared<TData>,
-      "header" | "width" | "minWidth" | "sortable" | "pin" | "hideable" | "resizable"
+      "header" | "width" | "minWidth" | "priority" | "sortable" | "pin" | "hideable" | "resizable"
     > & {
       /** The row's items, in the order they show. */
       items: (row: TData) => ReadonlyArray<ListItem>;
@@ -453,12 +462,17 @@ export function columnKinds<TData extends RowData>() {
       filterFn: "matches",
       enableGlobalFilter: false,
       ...shared({ pin, hideable, resizable }),
-      meta: { pin, kind: "list", align: "start", export: labels as (row: never) => string },
+      meta: {
+        priority,
+        pin,
+        kind: "list",
+        align: "start",
+        export: labels as (row: never) => string,
+      },
       cell: ({ row, table }) => {
         const meta = table.options.meta;
-        const preview = table
-          .getAllLeafColumns()
-          .find((c) => c.columnDef.meta?.kind === "id")?.columnDef.meta?.preview;
+        const preview = table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "id")
+          ?.columnDef.meta?.preview;
         const opensDetail = opens === "detail" && Boolean(meta?.detail);
         const onOpen = opensDetail
           ? () => meta?.toggleDetail?.(row.id)
@@ -507,6 +521,7 @@ export function columnKinds<TData extends RowData>() {
       header,
       width,
       minWidth,
+      priority,
       align = "start",
       pin,
       hideable,
@@ -518,6 +533,8 @@ export function columnKinds<TData extends RowData>() {
       header?: ReactNode | undefined;
       width?: number | undefined;
       minWidth?: number | undefined;
+      /** Lower numbers remain in the row longer when the renderer is responsive. */
+      priority?: number | undefined;
       align?: "start" | "end" | undefined;
       cell: (row: TData) => ReactNode;
       sort?: ((row: TData) => string | number) | undefined;
@@ -526,6 +543,7 @@ export function columnKinds<TData extends RowData>() {
     },
   ): DataTableColumn<TData> => {
     const meta = {
+      priority,
       pin,
       kind: "custom" as const,
       align,

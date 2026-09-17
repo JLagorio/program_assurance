@@ -4,7 +4,7 @@ import { ProgramWizard } from "@/components/app/program-wizard";
 export const Route = createFileRoute("/programs/new")({
   head: () => ({
     meta: [
-      { title: "New program — Program Assurance" },
+      { title: "Create program — Program Assurance" },
       {
         name: "description",
         content:

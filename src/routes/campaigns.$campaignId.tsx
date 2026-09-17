@@ -1,6 +1,12 @@
+import { MissingRecord } from "@/components/prototype/work-common";
 import { campaignTabs, type CampaignTab } from "@/components/prototype/assessment-tabs";
 import { displayDate } from "@/components/prototype/work-format";
 import {
+  Absent,
+  Inspector,
+  Shell,
+  KeyValue,
+  Section,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -10,10 +16,15 @@ import {
   Inline,
   PageHeader,
   Stack,
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyMedia,
+  EmptyIllustration,
 } from "@ledger/design-system";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AssessmentCampaign } from "@/components/prototype/assessment-campaign";
-import { EmptyState, QueryState, StatusBadge } from "@/components/prototype/work-common";
+import { QueryState, StatusBadge } from "@/components/prototype/work-common";
 import { useRow } from "@/lib/models";
 
 export const Route = createFileRoute("/campaigns/$campaignId")({
@@ -23,23 +34,18 @@ export const Route = createFileRoute("/campaigns/$campaignId")({
       (tab) => tab.toLowerCase() === String(search["tab"] ?? "").toLowerCase(),
     ),
   }),
-  head: () => ({ meta: [{ title: "Test campaign — Equinox" }] }),
+  head: () => ({ meta: [{ title: "Test campaign — Program Assurance" }] }),
 });
 function CampaignDetail() {
   const { campaignId } = Route.useParams();
-  const { tab = "Execution" } = Route.useSearch();
+  const { tab = "Overview" } = Route.useSearch();
   const navigate = useNavigate();
   const query = useRow("assessment_campaigns", campaignId);
   const campaign = query.data;
   const program = useRow("programs", campaign?.program_id);
   return (
     <Stack space="space.200" className="min-w-0">
-      {query.isError && campaign && (
-        <p role="alert" className="text-danger">
-          Campaign refresh failed. The open draft is retained.
-        </p>
-      )}
-      <QueryState queries={campaign ? [] : [query]}>
+      <QueryState queries={[query]}>
         {campaign ? (
           <>
             <PageHeader>
@@ -69,19 +75,33 @@ function CampaignDetail() {
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </PageHeader.Lead>
-              <div className="min-w-0">
+              <PageHeader.Heading>
                 <PageHeader.Title>{campaign.title}</PageHeader.Title>
-                <Inline space="space.150" alignBlock="center" className="pt-100">
-                  <StatusBadge value={campaign.status} />
-                  <span className="font-body-small text-subtle">
-                    {displayDate(campaign.starts_at)} → {displayDate(campaign.ends_at)}
-                  </span>
-                </Inline>
-              </div>
+              </PageHeader.Heading>
             </PageHeader>
+            {tab === "Overview" && (
+              <Shell.Aside label="Campaign details">
+                <Inspector.Group title="Details">
+                  <KeyValue label="Status">
+                    <StatusBadge value={campaign.status} />
+                  </KeyValue>
+                  <KeyValue label="Starts">
+                    {campaign.starts_at ? displayDate(campaign.starts_at) : <Absent />}
+                  </KeyValue>
+                  <KeyValue label="Ends">
+                    {campaign.ends_at ? displayDate(campaign.ends_at) : <Absent />}
+                  </KeyValue>
+                </Inspector.Group>
+              </Shell.Aside>
+            )}
             <AssessmentCampaign
               key={campaign.id}
               campaign={campaign}
+              overview={
+                <Section title="Description">
+                  <p>{campaign.description || <Absent />}</p>
+                </Section>
+              }
               tab={tab}
               onTab={(next) =>
                 void navigate({
@@ -94,7 +114,7 @@ function CampaignDetail() {
             />
           </>
         ) : (
-          <EmptyState title="Campaign not found" illustration="search" />
+          <MissingRecord backTo="/campaigns" kind="Test campaign" />
         )}
       </QueryState>
     </Stack>

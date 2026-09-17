@@ -1,6 +1,11 @@
+import { EmptyMessage, MissingRecord } from "./work-common";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
+  Absent,
+  Inspector,
+  Shell,
+  Id,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -34,7 +39,7 @@ import { AddRequirementDetailsDialog } from "./add-requirement-details-dialog";
 import { ProgramCollection, ProgramQueryState } from "./program-shared";
 
 export const REQUIREMENT_TABS = [
-  "Statement",
+  "Overview",
   "Control mappings",
   "Allocation",
   "Verification",
@@ -44,11 +49,12 @@ export const REQUIREMENT_TABS = [
 export type RequirementTab = (typeof REQUIREMENT_TABS)[number];
 
 export function requirementTab(value: unknown): RequirementTab | undefined {
+  if (value === "Statement") return "Overview";
   if (value === "History") return "Edit history";
   return REQUIREMENT_TABS.find((tab) => tab === value);
 }
 
-export type RequirementRecordFrame = { content: ReactNode };
+export type RequirementRecordFrame = { content: ReactNode; title: string };
 
 type RequirementRecordProps = {
   programId: string;
@@ -74,7 +80,7 @@ export function RequirementRecordContent({
     engineering_requirement_id: requirementId,
   });
   const workspace = useWorkspace();
-  const [localTab, setLocalTab] = useState<RequirementTab>("Statement");
+  const [localTab, setLocalTab] = useState<RequirementTab>("Overview");
   const [lockedRecord, setLockedRecord] = useState<Row<"requirement_revisions"> | null>(null);
   const activeRef = useRef<Row<"requirement_revisions"> | undefined>(undefined);
   const onEditStateChange = useCallback((state: RequirementEditState) => {
@@ -94,30 +100,31 @@ export function RequirementRecordContent({
     workspace.role !== "viewer" && requirement.data?.tenant_id === workspace.tenantId;
   const canCreate = canWrite && collection?.can_insert;
   const canEdit = canWrite && collection?.can_update;
-  const frame = (content: ReactNode) => (renderFrame ? renderFrame({ content }) : content);
+  const frame = (content: ReactNode) =>
+    renderFrame ? renderFrame({ content, title: active?.title ?? "Requirement" }) : content;
 
   if (
     (requirement.data === undefined || revisions.data === undefined) &&
     (requirement.isPending || requirement.error || revisions.isPending || revisions.error)
   )
+    return frame(<ProgramQueryState queries={[requirement, revisions]} />);
+  if (!requirement.data || requirement.data.program_id !== programId)
     return frame(
-      <ProgramQueryState
-        loading={requirement.isPending || revisions.isPending}
-        error={requirement.error ?? revisions.error}
+      <EmptyMessage
+        title="Requirement not found"
+        description="This requirement is unavailable in this program."
       />,
     );
-  if (!requirement.data || requirement.data.program_id !== programId)
-    return frame(<p role="alert">Requirement not found in this program.</p>);
   const content = (
     <Stack space="space.250">
-      <ProgramQueryState loading={false} error={requirement.error ?? revisions.error} />
+      <ProgramQueryState queries={[requirement, revisions]} />
       {active ? (
         <>
           <Tabs
             value={currentTab}
-            onValueChange={(value) => changeTab(requirementTab(value) ?? "Statement")}
+            onValueChange={(value) => changeTab(requirementTab(value) ?? "Overview")}
           >
-            <TabsList variant="line" className="flex-wrap" aria-label="Requirement sections">
+            <TabsList variant="line" aria-label="Requirement sections">
               {REQUIREMENT_TABS.map((value) => (
                 <TabsTrigger key={value} value={value}>
                   {value}
@@ -126,7 +133,7 @@ export function RequirementRecordContent({
             </TabsList>
             <TabsContent value={currentTab}>
               <Stack space="space.250" className="pt-200">
-                {currentTab === "Statement" && (
+                {currentTab === "Overview" && (
                   <>
                     <RequirementForm
                       key={`${active.id}/${active.revision}`}
@@ -190,6 +197,17 @@ export function RequirementRecordContent({
               </Stack>
             </TabsContent>
           </Tabs>
+          {!preview && currentTab === "Overview" && (
+            <Shell.Aside label="Requirement details">
+              <Inspector.Group title="Details">
+                <KeyValue label="Code">
+                  <Id>{requirement.data.code}</Id>
+                </KeyValue>
+                <KeyValue label="Version">{active.version_number}</KeyValue>
+                <KeyValue label="Status">{active.state}</KeyValue>
+              </Inspector.Group>
+            </Shell.Aside>
+          )}
         </>
       ) : (
         <Section
@@ -208,7 +226,7 @@ export function RequirementRecordContent({
           programId={programId}
           requirementId={requirementId}
           onClose={() => setCreating(false)}
-          onSaved={() => changeTab("Statement")}
+          onSaved={() => changeTab("Overview")}
         />
       )}
     </Stack>
@@ -218,7 +236,7 @@ export function RequirementRecordContent({
 
 const changeLabels: Record<string, string> = {
   title: "Title",
-  statement: "Statement",
+  statement: "Overview",
   acceptanceCriteria: "Acceptance criteria",
   rationale: "Rationale",
   requirementType: "Requirement type",
@@ -246,17 +264,15 @@ function RequirementActivity({
     )
     .sort((a, b) => String(b["occurred_at"]).localeCompare(String(a["occurred_at"])));
   const diffValue = (field: string, value: unknown) => {
-    if (value === null || value === undefined || value === "") return "Not recorded";
+    if (value === null || value === undefined || value === "") return <Absent />;
     if (field === "ownerPartyId")
       return parties.data?.find((party) => party.id === value)?.name ?? String(value);
     return field === "requirementType" ? labelFor(String(value)) : String(value);
   };
   return (
     <Section title="Edit history" count={events.length}>
-      <ProgramQueryState loading={query.isPending} error={query.error} />
-      {query.isSuccess && !events.length && (
-        <p className="text-subtle font-body-small">No edits recorded yet.</p>
-      )}
+      <ProgramQueryState queries={[query]} />
+      {query.isSuccess && !events.length && <EmptyMessage title="No edits recorded yet" />}
       {!!events.length && (
         <Timeline label="Edit history" size="small" wrap>
           {events.map((event) => {
@@ -319,12 +335,7 @@ function RequirementHierarchy({
   const relationships = useRows("requirement_decompositions");
   const contents = useRows("requirement_revisions");
   if (relationships.isPending || relationships.error || contents.isPending || contents.error)
-    return (
-      <ProgramQueryState
-        loading={relationships.isPending || contents.isPending}
-        error={relationships.error ?? contents.error}
-      />
-    );
+    return <ProgramQueryState queries={[relationships, contents]} />;
   const links = requirementIdentityLinks(relationships.data ?? [], contents.data ?? []);
   const currentParents = links.filter((link) => link.child_requirement_revision_id === revisionId);
   const currentChildren = links.filter(
@@ -399,15 +410,16 @@ export function ProgramRequirementRecord({
     (program.data === undefined || requirement.data === undefined) &&
     (program.isPending || program.error || requirement.isPending || requirement.error)
   )
+    return <ProgramQueryState queries={[program, requirement]} />;
+  if (!program.data || !requirement.data || requirement.data.program_id !== programId)
     return (
-      <ProgramQueryState
-        loading={program.isPending || requirement.isPending}
-        error={program.error ?? requirement.error}
+      <MissingRecord
+        backTo="/programs"
+        kind="Requirement"
+        description="This requirement is unavailable in this program."
       />
     );
-  if (!program.data || !requirement.data || requirement.data.program_id !== programId)
-    return <p role="alert">Requirement not found in this program.</p>;
-  const programCode = program.data.code;
+  const programName = program.data.name;
   const requirementCode = requirement.data.code;
   return (
     <RequirementRecordContent
@@ -416,7 +428,7 @@ export function ProgramRequirementRecord({
       requirementId={requirementId}
       tab={tab}
       onTabChange={onTabChange}
-      renderFrame={({ content }) => (
+      renderFrame={({ content, title }) => (
         <Stack space="space.250">
           <PageHeader>
             <PageHeader.Lead render={<Breadcrumb />}>
@@ -429,7 +441,7 @@ export function ProgramRequirementRecord({
                   <BreadcrumbLink
                     render={<Link to="/programs/$programId" params={{ programId }} />}
                   >
-                    {programCode}
+                    {programName}
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
@@ -448,11 +460,13 @@ export function ProgramRequirementRecord({
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{requirementCode}</BreadcrumbPage>
+                  <BreadcrumbPage>{title}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </PageHeader.Lead>
-            <PageHeader.Title>{requirementCode}</PageHeader.Title>
+            <PageHeader.Heading>
+              <PageHeader.Title>{title}</PageHeader.Title>
+            </PageHeader.Heading>
           </PageHeader>
           {content}
         </Stack>

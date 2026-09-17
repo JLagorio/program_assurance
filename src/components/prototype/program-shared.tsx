@@ -1,3 +1,5 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { QueryState, type QueryStatus } from "./work-common";
 import {
   createContext,
   useCallback,
@@ -16,18 +18,27 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  Inline,
+  Heading,
   Input,
   KeyValue,
-  PageHeader,
   Stack,
   TextLink,
+  Shell,
+  Toolbar,
   defineColumns,
   useDataTable,
   Absent,
   type EmptyIllustrationKind,
 } from "@ledger/design-system";
 import { Plus, Pencil } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "./record-preview";
 import { useRows, type TableName } from "@/lib/models";
 import {
   displayValue,
@@ -42,7 +53,7 @@ import {
   ProductRecordForm,
   type ProductEditorState,
 } from "./product-record-dialog";
-import { productRecordNoun } from "@/lib/product-records";
+import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
 import { RelationName } from "@/components/prototype/record-tools";
 
 export type ProgramTableName = Parameters<typeof useRows>[0];
@@ -73,27 +84,41 @@ export const programTone = (value: unknown) => {
 };
 export function StatusValue({ value }: { value: unknown }) {
   return value == null ? (
-    <span className="text-subtle">Not recorded</span>
+    <Absent />
   ) : (
     <Badge tone={programTone(value)} variant="secondary" size="xsmall">
       {labelFor(String(value))}
     </Badge>
   );
 }
-export function ProgramQueryState({ loading, error }: { loading: boolean; error: unknown }) {
-  if (error)
-    return (
-      <p role="alert" className="text-danger">
-        {error instanceof Error ? error.message : "These program records could not be loaded."}
-      </p>
-    );
-  if (loading)
-    return (
-      <p role="status" className="text-subtle">
-        Loading program records…
-      </p>
-    );
-  return null;
+export function ProgramQueryState({
+  loading = false,
+  error,
+  queries,
+  children,
+}: {
+  loading?: boolean;
+  error?: unknown;
+  queries?: QueryStatus[];
+  children?: ReactNode;
+}) {
+  const client = useQueryClient();
+  return (
+    <QueryState
+      queries={
+        queries ?? [
+          {
+            isPending: loading,
+            isError: !!error,
+            error,
+            refetch: () => client.refetchQueries({ type: "active" }),
+          },
+        ]
+      }
+    >
+      {children}
+    </QueryState>
+  );
 }
 export function ProgramEditor({
   table,
@@ -125,64 +150,55 @@ type ProgramDialogTarget = {
   initialValues?: Record<string, RecordValue> | undefined;
   children?: ReactNode;
   startEditing?: boolean;
+  records?: DataRecord[];
+  onSelect?: (row: DataRecord) => void;
   readOnly?: boolean;
 };
 const ProgramDialogNavigation = createContext<{
   openRecord: (target: ProgramDialogTarget) => void;
+  target: ProgramDialogTarget | null;
 } | null>(null);
 
-/** Linked records replace this dialog's content; they never open a dialog inside a dialog. */
+/** Linked records share the panel host and retain the parent's mounted collection for Back. */
 export function ProgramRecordDialog({
   onClose,
   ...initialTarget
 }: ProgramDialogTarget & { onClose: () => void }) {
-  const [stack, setStack] = useState<ProgramDialogTarget[]>([]);
-  const openRecord = useCallback(
-    (target: ProgramDialogTarget) => setStack((previous) => [...previous, target]),
-    [],
-  );
-  const navigation = useMemo(() => ({ openRecord }), [openRecord]);
-  const target = stack.at(-1) ?? initialTarget;
-  const close = () => {
-    if (stack.length) setStack((previous) => previous.slice(0, -1));
-    else onClose();
-  };
+  const [linked, setLinked] = useState<ProgramDialogTarget | null>(null);
+  const openRecord = useCallback((target: ProgramDialogTarget) => setLinked(target), []);
+  const navigation = useMemo(() => ({ openRecord, target: linked }), [openRecord, linked]);
   return (
     <ProgramDialogNavigation.Provider value={navigation}>
-      <ProgramRecordDialogSurface
-        key={`${target.table}/${target.row?.id ?? "new"}/${stack.length}`}
-        {...target}
-        onClose={close}
-        hasParent={stack.length > 0}
-      />
+      <ProgramRecordDialogSurface {...initialTarget} onClose={onClose}>
+        {initialTarget.children}
+        {linked && (
+          <ProgramRecordDialog
+            {...linked}
+            onClose={() => setLinked(null)}
+            onSelect={(row) => setLinked((previous) => (previous ? { ...previous, row } : null))}
+          />
+        )}
+      </ProgramRecordDialogSurface>
     </ProgramDialogNavigation.Provider>
   );
 }
 
 function ProgramRecordDialogSurface({
   table,
-  row,
+  row: initialRow,
   onClose,
   initialValues,
   children,
   startEditing = false,
   readOnly = false,
-  hasParent,
-}: ProgramDialogTarget & { onClose: () => void; hasParent: boolean }) {
+  records,
+  onSelect,
+}: ProgramDialogTarget & { onClose: () => void }) {
   const workspace = useWorkspace();
   const collection = workspace.collections.find((item) => item.name === table);
   const [editing, setEditing] = useState(startEditing);
-  const [busy, setBusy] = useState(false);
-  const editorState = useRef<ProductEditorState | null>(null);
-  const onEditorStateChange = useCallback((state: ProductEditorState) => {
-    editorState.current = state;
-    setBusy(state.busy);
-  }, []);
-  const close = () => {
-    if (editorState.current?.busy) return;
-    if (editorState.current) editorState.current.requestClose();
-    else onClose();
-  };
+  const [saved, setSaved] = useState<DataRecord | null>(null);
+  const row = saved?.id === initialRow?.id ? saved : initialRow;
   if (!collection) return null;
   const writable =
     !readOnly &&
@@ -190,90 +206,80 @@ function ProgramRecordDialogSurface({
     workspace.role !== "viewer" &&
     collection.can_update &&
     row?.["state"] !== "published";
-  const formOpen = !row || editing;
+  if (!row || editing)
+    return (
+      <ProductRecordDialog
+        table={table}
+        existing={row ?? undefined}
+        initialValues={initialValues}
+        onClose={() => (row ? setEditing(false) : onClose())}
+        onSaved={(record) => {
+          if (row) {
+            setSaved(record);
+            setEditing(false);
+          } else onClose();
+        }}
+      />
+    );
   return (
-    <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          close();
-        }
-      }}
+    <RecordPreviewPanel
+      title={recordTitle(row, collection)}
+      label={`${productRecordNoun(table)} preview`}
+      defaultWidth={640}
+      onClose={onClose}
+      recordActions={
+        writable && (
+          <Button
+            variant="primary"
+            size="small"
+            iconBefore={<Pencil />}
+            onClick={() => setEditing(true)}
+          >
+            Edit {productRecordNoun(table)}
+          </Button>
+        )
+      }
+      navigation={
+        <RecordPreviewActions
+          table={table}
+          record={row}
+          rows={records ?? [row]}
+          onSelect={onSelect ?? (() => {})}
+        />
+      }
     >
-      <DialogContent style={{ maxWidth: 820 }} showCloseButton={!busy}>
-        <DialogHeader>
-          <DialogTitle>
-            {formOpen
-              ? `${row ? "Edit" : "Create"} ${productRecordNoun(table)}`
-              : recordTitle(row, collection)}
-          </DialogTitle>
-        </DialogHeader>
-        <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
-          <Stack space="space.200">
-            {hasParent && (
-              <Inline>
-                <Button variant="subtle" size="small" disabled={busy} onClick={close}>
-                  Back to previous record
-                </Button>
-              </Inline>
-            )}
-            {formOpen ? (
-              <ProductRecordForm
-                table={table}
-                existing={row ?? undefined}
-                initialValues={initialValues}
-                readOnly={readOnly}
-                onStateChange={onEditorStateChange}
-                onClose={onClose}
-              />
-            ) : (
-              <>
-                <Inline alignInline="end">
-                  {writable && (
-                    <Button
-                      variant="secondary"
-                      iconBefore={<Pencil />}
-                      onClick={() => setEditing(true)}
-                    >
-                      Edit record
-                    </Button>
-                  )}
-                </Inline>
-                {collection.columns
-                  .filter(
-                    (column) =>
-                      !["id", "tenant_id", "created_by", "updated_by"].includes(column.name),
-                  )
-                  .map((column) => (
-                    <KeyValue key={column.name} label={labelFor(column.name)} wrap>
-                      {(() => {
-                        const relation = collection.relations.find(
-                          (item) =>
-                            item.target_schema === "public" &&
-                            item.columns.includes(column.name) &&
-                            item.target_columns[item.columns.indexOf(column.name)] === "id" &&
-                            column.name !== "tenant_id",
-                        );
-                        return relation && row[column.name] ? (
-                          <RelationName
-                            table={relation.target_table as TableName}
-                            id={String(row[column.name])}
-                          />
-                        ) : (
-                          displayValue(row[column.name])
-                        );
-                      })()}
-                    </KeyValue>
-                  ))}
-                <ProgramLinkedRecords table={table} row={row} />
-                {children}
-              </>
-            )}
-          </Stack>
-        </Box>
-      </DialogContent>
-    </Dialog>
+      <Stack space="space.200">
+        {collection.columns
+          .filter(
+            (column) => !["id", "tenant_id", "created_by", "updated_by"].includes(column.name),
+          )
+          .map((column) => (
+            <KeyValue key={column.name} label={labelFor(column.name)} wrap>
+              {(() => {
+                const relation = collection.relations.find(
+                  (item) =>
+                    item.target_schema === "public" &&
+                    item.columns.includes(column.name) &&
+                    item.target_columns[item.columns.indexOf(column.name)] === "id" &&
+                    column.name !== "tenant_id",
+                );
+                return relation && row[column.name] ? (
+                  <RelationName
+                    table={relation.target_table as TableName}
+                    id={String(row[column.name])}
+                  />
+                ) : row[column.name] == null || row[column.name] === "" ? (
+                  <Absent />
+                ) : (
+                  displayValue(row[column.name])
+                );
+              })()}
+            </KeyValue>
+          ))}
+        <ProgramLinkedRecords table={table} row={row} />
+        {children}
+      </Stack>
+    </RecordPreviewPanel>
   );
 }
 /* Which kit picture a program register shows when it holds nothing: the shape of what it will hold. */
@@ -318,12 +324,10 @@ const NUMBER_KEYS = /_number$/;
 export function ProgramCollection({
   name,
   title,
-  description,
   filters,
   where,
   columns,
   initialValues,
-  onSelect,
   createLabel,
   canCreate = true,
   readOnly = false,
@@ -334,12 +338,10 @@ export function ProgramCollection({
 }: {
   name: ProgramTableName;
   title: string;
-  description?: string;
   filters?: Record<string, string | number | null> | undefined;
   where?: (row: DataRecord) => boolean;
   columns: ProgramColumn[];
   initialValues?: Record<string, RecordValue> | undefined;
-  onSelect?: (row: DataRecord) => void;
   createLabel?: string;
   canCreate?: boolean;
   readOnly?: boolean;
@@ -352,9 +354,13 @@ export function ProgramCollection({
   fill?: boolean | undefined;
 }) {
   const dialogNavigation = useContext(ProgramDialogNavigation);
+  const navigate = useNavigate();
+  const displayedRef = useRef<DataRecord[]>([]);
   const query = useRows(name, filters);
   const workspace = useWorkspace();
   const [selected, setSelected] = useState<DataRecord | null | undefined>(undefined);
+  const activeId =
+    dialogNavigation?.target?.table === name ? dialogNavigation.target.row?.id : selected?.id;
   const collection = workspace.collections.find((item) => item.name === name);
   const records = useMemo(
     () => ((query.data ?? []) as DataRecord[]).filter((row) => !where || where(row)),
@@ -376,6 +382,8 @@ export function ProgramCollection({
             if (typeof value === "string") view[column.key] = labelFor(value);
           }
         }
+        for (const column of columns)
+          if (DATE_KEYS.test(column.key) && view[column.key] == null) delete view[column.key];
         return view;
       }),
     [records, columns],
@@ -383,22 +391,24 @@ export function ProgramCollection({
   const open = useCallback(
     (row: DataRecord) => {
       const record = byIdRef.current.get(row.id) ?? row;
-      if (onSelect) onSelect(record);
-      else if (dialogNavigation)
+      if (dialogNavigation)
         dialogNavigation.openRecord({
           table: name,
           row: record,
           initialValues: { ...filters, ...initialValues },
           readOnly,
+          records: displayedRef.current,
         });
       else setSelected(record);
     },
-    [onSelect, dialogNavigation, name, filters, initialValues, readOnly],
+    [dialogNavigation, name, filters, initialValues, readOnly],
   );
   const tableColumns = useMemo(
     () =>
       defineColumns<DataRecord>((c) =>
         columns.map((column, index) => {
+          const namedColumn = columns.findIndex(({ key }) => key === "name" || key === "title");
+          const primary = index === (namedColumn < 0 ? 0 : namedColumn);
           const raw = (row: DataRecord) => byIdRef.current.get(row.id) ?? row;
           const header = column.title;
           const render = column.render;
@@ -412,14 +422,17 @@ export function ProgramCollection({
           };
           const cell = render ? (row: DataRecord) => render(raw(row)) : plain;
           if (index === 0)
-            return c.text(column.key, {
+            return c.id(column.key, {
               header,
               hideable: false,
-              minWidth: 200,
+              minWidth: 160,
+              priority: primary ? 0 : 1,
+              preview: open,
+              active: (row) => row.id === activeId,
               cell: (row) => (
-                <TextLink render={<button type="button" onClick={() => open(row)} />}>
+                <RecordLink table={name} record={raw(row)}>
                   {render?.(raw(row)) ?? displayValue(row[column.key])}
-                </TextLink>
+                </RecordLink>
               ),
             });
           if (STATUS_KEYS.has(column.key))
@@ -433,10 +446,20 @@ export function ProgramCollection({
             return c.date(column.key, { header, width: 130, ...(render ? { cell } : {}) });
           if (NUMBER_KEYS.test(column.key))
             return c.number(column.key, { header, width: 110, ...(render ? { cell } : {}) });
-          return c.text(column.key, { header, cell });
+          return c.text(column.key, {
+            header,
+            cell: primary
+              ? (row) => (
+                  <RecordLink table={name} record={raw(row)}>
+                    {cell(row)}
+                  </RecordLink>
+                )
+              : cell,
+            ...(primary ? { priority: 0, minWidth: 180 } : {}),
+          });
         }),
       ),
-    [columns, open],
+    [columns, open, name, activeId],
   );
   const chips = columns
     .filter(
@@ -456,6 +479,8 @@ export function ProgramCollection({
     resizable: true,
     reorderable: true,
   });
+  const displayed = useDisplayedRecords(table, undefined, byId);
+  displayedRef.current = displayed;
   const openCreate = () => {
     if (dialogNavigation)
       dialogNavigation.openRecord({
@@ -468,7 +493,10 @@ export function ProgramCollection({
   };
   const allowCreate =
     !readOnly && canCreate && workspace.role !== "viewer" && Boolean(collection?.can_insert);
-  const createVerb = createLabel ?? `Add ${title.toLowerCase()}`;
+  const createVerb =
+    createLabel && /^(Link|Pin|Set|Adopt|Assign|Connect|Attach)\b/i.test(createLabel)
+      ? createLabel
+      : productCreateLabel(name, { ...filters, ...initialValues });
   // The table's name in running text: "SSP revisions" keeps its acronym, "Lifecycle gates" loses its capital.
   const noun = labelFor(name)
     .split(" ")
@@ -476,13 +504,15 @@ export function ProgramCollection({
     .join(" ");
   return (
     <Stack space="space.150">
-      <PageHeader>
-        <div>
-          <PageHeader.Title>{title}</PageHeader.Title>
-          {description && <p className="text-subtle font-body-small mt-050">{description}</p>}
-        </div>
-      </PageHeader>
+      <Heading
+        as={dialogNavigation ? "h3" : "h2"}
+        size="small"
+        className="min-w-0 break-words font-semibold text-default"
+      >
+        {title}
+      </Heading>
       <DataTable
+        responsive
         table={table}
         fill={fill}
         state={query.isError ? "error" : query.isPending ? "loading" : "ready"}
@@ -491,7 +521,7 @@ export function ProgramCollection({
             ? query.error.message
             : "These program records could not be loaded."
         }
-        onRowClick={open}
+        onRowClick={(row) => void navigate(recordDestination(name, byId.get(row.id) ?? row))}
         empty={{
           illustration: empty?.illustration ?? collectionIllustration[name] ?? "records",
           title: empty?.title ?? `No ${noun} yet`,
@@ -507,30 +537,36 @@ export function ProgramCollection({
           ) : undefined,
         }}
         toolbar={
-          <Inline space="space.100" alignBlock="center" shouldWrap>
-            <DataTable.Search table={table} placeholder={`Find ${noun}`} width={240} />
-            {chips.map((key) => (
+          <Toolbar
+            search={String(table.state.globalFilter ?? "")}
+            onSearch={(value) => table.setGlobalFilter(value)}
+            placeholder={`Find ${noun}`}
+            filters={chips.map((key) => (
               <DataTable.Filter key={key} table={table} column={key} />
             ))}
-            <Inline className="ml-auto" space="space.100" alignBlock="center">
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-              {extraActions}
-              {allowCreate && (
-                <Button size="small" variant="primary" iconBefore={<Plus />} onClick={openCreate}>
-                  {createVerb}
-                </Button>
-              )}
-            </Inline>
-          </Inline>
+            actions={
+              <>
+                {extraActions}
+                {allowCreate && (
+                  <Button size="small" variant="primary" iconBefore={<Plus />} onClick={openCreate}>
+                    {createVerb}
+                  </Button>
+                )}
+              </>
+            }
+          >
+            <DataTable.Columns table={table} />
+            <DataTable.Settings table={table} />
+          </Toolbar>
         }
       />
       {selected !== undefined && (
         <ProgramRecordDialog
-          key={selected?.id ?? "new"}
           table={name}
           readOnly={readOnly}
           row={selected}
+          records={displayed}
+          onSelect={setSelected}
           initialValues={{ ...filters, ...initialValues }}
           onClose={() => setSelected(undefined)}
         />

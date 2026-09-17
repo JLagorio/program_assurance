@@ -1,3 +1,5 @@
+import { useBlocker } from "@tanstack/react-router";
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useMemo, useRef, useState } from "react";
 import {
   Badge,
@@ -62,6 +64,9 @@ export function LibraryUpdateReview({
   });
   const controls = useRows("controls");
   const update = useUpdateLibraryAssignment();
+  const { confirm: confirmDiscard, confirmation } = useConfirmation();
+  const inFlight = useRef(false);
+  const bypassClose = useRef(false);
   const [rationale, setRationale] = useState("");
   const [error, setError] = useState("");
   const requestId = useRef(crypto.randomUUID());
@@ -117,7 +122,35 @@ export function LibraryUpdateReview({
   const pending = [contributions, currentImplementations, newImplementations, controls].some(
     (query) => query.isPending,
   );
+  const close = async () => {
+    if (inFlight.current) return;
+    if (
+      !rationale ||
+      (await confirmDiscard(
+        discardChanges("Your reason for taking this library version has not been saved."),
+      ))
+    ) {
+      bypassClose.current = true;
+      onClose();
+    }
+  };
+  useBlocker({
+    shouldBlockFn: async () =>
+      !bypassClose.current &&
+      (inFlight.current ||
+        (!!rationale &&
+          !(await confirmDiscard(
+            discardChanges("Your reason for taking this library version has not been saved."),
+          )))),
+    enableBeforeUnload: () => !bypassClose.current && (!!rationale || inFlight.current),
+  });
   async function confirm() {
+    if (inFlight.current || pending) return;
+    if (!rationale.trim()) {
+      setError("Explain why you are taking this version.");
+      return;
+    }
+    inFlight.current = true;
     setError("");
     try {
       const result = await update.mutateAsync({
@@ -131,95 +164,109 @@ export function LibraryUpdateReview({
         type: "success",
         description: `${result.updated} narratives updated, ${result.keptLocal} kept as changed here, ${result.seeded} seeded, ${result.conflicting} to review.`,
       });
+      bypassClose.current = true;
       onClose();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The update could not be taken.");
+    } finally {
+      inFlight.current = false;
     }
   }
   return (
     <Dialog
       open
-      onOpenChange={(open) => {
-        if (!open) onClose();
+      onOpenChange={(open, details) => {
+        if (!open) {
+          details.cancel();
+          void close();
+        }
       }}
     >
-      <DialogContent style={{ maxWidth: 960 }}>
+      <DialogContent style={{ maxWidth: 960 }} showCloseButton={!update.isPending}>
         <DialogHeader>
           <DialogTitle>Take version {newRevision.version}</DialogTitle>
           <DialogDescription>{name}</DialogDescription>
         </DialogHeader>
-        <Stack space="space.200" className="min-h-0 flex-1 overflow-y-auto p-250">
-          <p className="font-body-small text-subtle">
-            Narratives the program left as seeded take the new text. Narratives changed here keep
-            their text and are marked for review. Controls the new version covers for the first time
-            are seeded into the boundary's draft SSP.
-          </p>
-          {pending ? (
-            <p className="text-subtle">Comparing versions…</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table aria-label="Changes by control">
-                <thead>
-                  <Table.Row>
-                    <Table.Header width={200}>Control</Table.Header>
-                    <Table.Header>Now</Table.Header>
-                    <Table.Header>Version {newRevision.version}</Table.Header>
-                    <Table.Header width={200}>Outcome</Table.Header>
-                  </Table.Row>
-                </thead>
-                <tbody>
-                  {lines.map((line) => (
-                    <Table.Row key={line.id}>
-                      <Table.Cell className="whitespace-normal">{line.control}</Table.Cell>
-                      <Table.Cell className="whitespace-normal">
-                        {line.now || <span className="text-subtle">—</span>}
-                      </Table.Cell>
-                      <Table.Cell className="whitespace-normal">
-                        {line.next ?? <span className="text-subtle">Not covered</span>}
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Badge variant="secondary" size="xsmall" tone={outcomeTone[line.outcome]}>
-                          {outcomeLabel[line.outcome]}
-                        </Badge>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                  {!lines.length && (
-                    <Table.Row>
-                      <Table.Cell colSpan={4}>No narratives to compare.</Table.Cell>
-                    </Table.Row>
-                  )}
-                </tbody>
-              </Table>
-            </div>
-          )}
-          <Field>
-            <FieldLabel htmlFor="library-update-rationale">Why this update is taken</FieldLabel>
-            <Textarea
-              id="library-update-rationale"
-              value={rationale}
-              onChange={(event) => setRationale(event.target.value)}
-              placeholder="What changed in the library and why it applies here"
-            />
-          </Field>
-          {error && (
-            <p role="alert" className="font-body-small text-danger">
-              {error}
+        <form
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void confirm();
+          }}
+        >
+          <Stack space="space.200" className="min-h-0 flex-1 overflow-y-auto p-250">
+            <p className="font-body-small text-subtle">
+              Narratives the program left as seeded take the new text. Narratives changed here keep
+              their text and are marked for review. Controls the new version covers for the first
+              time are seeded into the boundary's draft SSP.
             </p>
-          )}
-        </Stack>
-        <DialogFooter>
-          <Button variant="subtle" disabled={update.isPending} onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            disabled={update.isPending || pending || !rationale.trim()}
-            onClick={() => void confirm()}
-          >
-            {update.isPending ? "Taking…" : `Take version ${newRevision.version}`}
-          </Button>
-        </DialogFooter>
+            {pending ? (
+              <p className="text-subtle">Comparing versions…</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table aria-label="Changes by control">
+                  <thead>
+                    <Table.Row>
+                      <Table.Header width={200}>Control</Table.Header>
+                      <Table.Header>Now</Table.Header>
+                      <Table.Header>Version {newRevision.version}</Table.Header>
+                      <Table.Header width={200}>Outcome</Table.Header>
+                    </Table.Row>
+                  </thead>
+                  <tbody>
+                    {lines.map((line) => (
+                      <Table.Row key={line.id}>
+                        <Table.Cell className="whitespace-normal">{line.control}</Table.Cell>
+                        <Table.Cell className="whitespace-normal">
+                          {line.now || <span className="text-subtle">—</span>}
+                        </Table.Cell>
+                        <Table.Cell className="whitespace-normal">
+                          {line.next ?? <span className="text-subtle">Not covered</span>}
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Badge variant="secondary" size="xsmall" tone={outcomeTone[line.outcome]}>
+                            {outcomeLabel[line.outcome]}
+                          </Badge>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                    {!lines.length && (
+                      <Table.Row>
+                        <Table.Cell colSpan={4}>No narratives to compare.</Table.Cell>
+                      </Table.Row>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+            <Field>
+              <FieldLabel htmlFor="library-update-rationale">Why this update is taken</FieldLabel>
+              <Textarea
+                disabled={update.isPending}
+                id="library-update-rationale"
+                value={rationale}
+                onChange={(event) => setRationale(event.target.value)}
+                placeholder="What changed in the library and why it applies here"
+              />
+            </Field>
+            {error && (
+              <p role="alert" className="font-body-small text-danger">
+                {error}
+              </p>
+            )}
+          </Stack>
+          <DialogFooter>
+            <Button type="button" variant="subtle" disabled={update.isPending} onClick={close}>
+              Cancel
+            </Button>
+            <Button variant="primary" disabled={update.isPending || pending} type="submit">
+              {update.isPending ? "Taking…" : `Take version ${newRevision.version}`}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

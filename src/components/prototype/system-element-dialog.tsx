@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -56,6 +57,7 @@ export function SystemElementDialog({
   onClose: () => void;
   onSaved?: ((systemId: string) => void) | undefined;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const parties = useRows("parties");
   const save = useModelSave("systems");
@@ -93,17 +95,19 @@ export function SystemElementDialog({
     (!baseline ||
       (baseline.tenant_id === workspace.tenantId && baseline.program_id === programId)) &&
     (!parent || (parent.tenant_id === workspace.tenantId && parent.program_id === programId));
-  const close = () => {
+  const close = async () => {
     if (inFlight.current) return;
-    if (!dirty || window.confirm("Discard your unsaved system details?")) {
+    if (!dirty || (await confirm(discardChanges("Discard your unsaved system details?")))) {
       bypassClose.current = true;
       onClose();
     }
   };
   useBlocker({
-    shouldBlockFn: () =>
+    shouldBlockFn: async () =>
       inFlight.current ||
-      (dirty && !bypassClose.current && !window.confirm("Discard your unsaved system details?")),
+      (dirty &&
+        !bypassClose.current &&
+        !(await confirm(discardChanges("Discard your unsaved system details?")))),
     enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
   });
   async function submit(event: FormEvent) {
@@ -194,9 +198,7 @@ export function SystemElementDialog({
     >
       <DialogContent style={{ maxWidth: 720 }} showCloseButton={!busy}>
         <DialogHeader>
-          <DialogTitle>
-            {baseline ? "Edit system" : parent ? "Add child system" : "Add system"}
-          </DialogTitle>
+          <DialogTitle>{baseline ? "Edit system" : "Create system"}</DialogTitle>
           <DialogDescription>
             {baseline
               ? `${baseline.code} · ${baseline.name}`
@@ -361,21 +363,16 @@ export function SystemElementDialog({
             </fieldset>
           </Box>
           <DialogFooter>
-            <Button type="button" variant="secondary" disabled={busy} onClick={close}>
+            <Button type="button" variant="subtle" disabled={busy} onClick={close}>
               Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={busy || !canWrite}>
-              {busy
-                ? "Saving…"
-                : baseline
-                  ? "Save system"
-                  : parent
-                    ? "Add child system"
-                    : "Add system"}
+              {busy ? "Saving…" : baseline ? "Save system" : "Create system"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

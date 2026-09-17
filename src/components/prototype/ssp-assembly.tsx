@@ -1,18 +1,24 @@
 import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "./record-preview";
 import { useQuery } from "@tanstack/react-query";
+import { EmptyMessage, QueryState } from "./work-common";
 import {
   Badge,
   Box,
   Button,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
   DataTable,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   Inline,
+  KeyValue,
   Section,
   Select,
   SelectContent,
@@ -22,9 +28,11 @@ import {
   Stack,
   Table,
   TextLink,
+  Toolbar,
   defineColumns,
   useDataTable,
 } from "@ledger/design-system";
+import { ChevronDown } from "lucide-react";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "@/lib/database";
 import { useRow, useRows, type Row } from "@/lib/models";
@@ -38,7 +46,7 @@ type Editor = {
   table: ProgramTableName;
   existing?: DataRecord;
   initialValues?: Record<string, unknown>;
-  title: string;
+  description: string;
 };
 
 export function ProgramSspAssembly({ programId }: { programId: string }) {
@@ -63,7 +71,7 @@ export function ProgramSspAssembly({ programId }: { programId: string }) {
             if (value) setChosen(value);
           }}
         >
-          <SelectTrigger aria-label="Authorization boundary" className="w-96">
+          <SelectTrigger aria-label="Authorization boundary" className="w-layout-list max-w-full">
             <SelectValue>
               {boundary.code} · {boundary.name}
             </SelectValue>
@@ -140,12 +148,7 @@ export function SspAssembly({ programId, systemId }: { programId: string; system
   return (
     <Stack space="space.250">
       <Inline space="space.200" alignBlock="center" spread="space-between" shouldWrap>
-        <div>
-          <h2 className="font-heading-small">SSP assembly</h2>
-          <p className="text-subtle">
-            {system.data.name} · Authored implementation content and its recorded support.
-          </p>
-        </div>
+        <h2 className="font-heading-small">SSP assembly</h2>
         {plan && (
           <Select
             value={plan.id}
@@ -153,7 +156,7 @@ export function SspAssembly({ programId, systemId }: { programId: string; system
               if (value) setChosenId(value);
             }}
           >
-            <SelectTrigger aria-label="SSP selection" className="w-72">
+            <SelectTrigger aria-label="SSP selection" className="w-layout-rail max-w-full">
               <SelectValue>
                 SSP {plan.version_number} · {labelFor(plan.state)}
               </SelectValue>
@@ -178,7 +181,7 @@ export function SspAssembly({ programId, systemId }: { programId: string; system
               its control implementations.
             </p>
             {workspace.role !== "viewer" && (
-              <Button onClick={() => setCreating(true)}>Create SSP</Button>
+              <Button onClick={() => setCreating(true)}>Create SSP revision</Button>
             )}
           </Stack>
         </Section>
@@ -186,7 +189,7 @@ export function SspAssembly({ programId, systemId }: { programId: string; system
       {creating && (
         <ProductRecordDialog
           table="ssp_revisions"
-          title="Create system security plan"
+          description="Create a system security plan with an explicit resolved baseline."
           initialValues={{ system_id: systemId }}
           onClose={() => setCreating(false)}
           onSaved={(row) => setChosenId(row.id)}
@@ -321,22 +324,34 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
   });
   const [editor, setEditor] = useState<Editor>();
   const [evidenceId, setEvidenceId] = useState<string>();
+  const navigate = useNavigate();
   const selected = rows.find((row) => row.id === selectedId);
   const editable = plan.state === "draft" && workspace.role !== "viewer";
   const columns = useMemo(
     () =>
       defineColumns<SspControlAssembly>((c) => [
-        c.text("code", {
+        c.id("code", {
           header: "Control",
           width: 130,
+          priority: 1,
+          hideable: false,
+          preview: (row) => {
+            setSelectedId(row.id);
+            setEvidenceId(undefined);
+          },
+          active: (row) => row.id === selectedId,
+        }),
+        c.text("title", {
+          header: "Title",
+          minWidth: 180,
+          priority: 0,
           hideable: false,
           cell: (row) => (
-            <TextLink render={<button type="button" onClick={() => setSelectedId(row.id)} />}>
-              {row.code}
-            </TextLink>
+            <RecordLink table="selected_controls" record={row.selection}>
+              {row.title}
+            </RecordLink>
           ),
         }),
-        c.text("title", { header: "Title", minWidth: 230, hideable: false }),
         c.text("status", {
           header: "Recorded implementation",
           width: 180,
@@ -347,7 +362,7 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
         c.number("requirementCount", { header: "Requirements", width: 130 }),
         c.number("evidenceCount", { header: "Evidence", width: 105 }),
       ]),
-    [],
+    [selectedId],
   );
   const table = useDataTable({
     columns,
@@ -358,6 +373,7 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
     pageSize: 20,
     resizable: true,
   });
+  const displayedRows = useDisplayedRecords(table);
   const version = versions.data?.find((row) => row.id === evidenceId);
   const artifact = artifacts.data?.find((row) => row.id === version?.artifact_id);
   const authored = rows.filter((row) => row.narrative === "Recorded").length;
@@ -375,33 +391,16 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
   const openNarrative = (row: SspControlAssembly) =>
     setEditor({
       table: "implemented_requirements",
-      title: `${row.implementation ? "Edit" : "Write"} ${row.code} implementation`,
+      description: `${row.code} · ${row.title}`,
       ...(row.implementation ? { existing: row.implementation as DataRecord } : {}),
       initialValues: { ssp_revision_id: plan.id, selected_control_id: row.id },
     });
   return (
     <Stack space="space.200">
-      <p className="text-subtle">
-        Baseline: {profileRecord.data?.title ?? "Loading stored profile…"}. This preview uses the
-        SSP’s exact stored selection. Implementation claims, supporting records and assessment
-        conclusions remain separate.
-      </p>
-      {!loading && !error && (
-        <Inline space="space.100" shouldWrap>
-          {resolution.data?.resolver_name === "archived-demo-explicit-selection" && (
-            <Badge variant="secondary">Imported demo selection</Badge>
-          )}
-          <Badge variant="secondary">{rows.length} selected controls</Badge>
-          <Badge variant="secondary">{authored} control narratives</Badge>
-          <Badge variant="secondary">{linkedRequirements} related requirements</Badge>
-          <Badge variant="secondary">{linkedEvidence} linked evidence versions</Badge>
-        </Inline>
-      )}
       {!loading && !error && boundaryBaselineDiffers && (
         <Section title="System baseline differs from this SSP">
           <p className="text-subtle">
-            The authorization boundary currently uses a different resolved baseline. This SSP
-            retains its exact stored profile and control selection. Review the difference before
+            This SSP retains its stored selection. Review the boundary’s changed baseline before
             creating an updated SSP.
           </p>
         </Section>
@@ -409,10 +408,7 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
       {!loading && !error && !!selectionGaps.length && (
         <Section title="System controls outside this SSP selection">
           <Stack space="space.150">
-            <p className="text-subtle">
-              These recorded system baselines contain additional controls. They remain outside this
-              SSP until its selection is deliberately updated.
-            </p>
+            <p className="text-subtle">These controls are outside this SSP’s stored selection.</p>
             {selectionGaps.map((gap) => (
               <p key={gap.system.id}>
                 <strong>{gap.system.name}:</strong>{" "}
@@ -422,313 +418,344 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
           </Stack>
         </Section>
       )}
-      <DataTable
-        table={table}
-        state={error ? "error" : loading ? "loading" : "ready"}
-        error={error instanceof Error ? error.message : "SSP support records could not be loaded."}
-        onRowClick={(row) => setSelectedId(row.id)}
-        empty={{
-          title: "No controls in this SSP selection",
-          description: "The stored baseline contains no selected controls.",
-        }}
-        toolbar={
-          <Inline space="space.100" alignBlock="center" shouldWrap>
-            <DataTable.Search table={table} placeholder="Search selected controls…" width={280} />
-            <DataTable.Filter table={table} column="narrative" />
-            <Inline className="ml-auto">
-              <DataTable.Columns table={table} />
-            </Inline>
-          </Inline>
-        }
-      />
-      {selected && !editor && (
-        <Dialog
-          open
-          onOpenChange={(open) => {
-            if (!open) {
-              setSelectedId(undefined);
-              setEvidenceId(undefined);
-            }
+      <QueryState queries={queries}>
+        <DataTable
+          responsive
+          table={table}
+          onRowClick={(row) => void navigate(recordDestination("selected_controls", row.selection))}
+          empty={{
+            title: "No controls in this SSP selection",
+            description: "The stored baseline contains no selected controls.",
           }}
+          toolbar={
+            <Toolbar
+              search={String(table.state.globalFilter ?? "")}
+              onSearch={table.setGlobalFilter}
+              placeholder="Find selected controls"
+              filters={<DataTable.Filter table={table} column="narrative" />}
+            >
+              <DataTable.Columns table={table} />
+              <DataTable.Settings table={table} />
+            </Toolbar>
+          }
+        />
+      </QueryState>
+      {!loading && !error && (
+        <Collapsible>
+          <CollapsibleTrigger
+            render={<Button variant="subtle" size="small" iconAfter={<ChevronDown />} />}
+          >
+            SSP details
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <Stack space="space.100" className="pt-150">
+              <KeyValue label="Stored baseline" wrap>
+                {profileRecord.data?.title}
+              </KeyValue>
+              <KeyValue label="Selected controls">{rows.length}</KeyValue>
+              <KeyValue label="Control narratives">{authored}</KeyValue>
+              <KeyValue label="Related requirements">{linkedRequirements}</KeyValue>
+              <KeyValue label="Linked evidence versions">{linkedEvidence}</KeyValue>
+              {resolution.data?.resolver_name === "archived-demo-explicit-selection" && (
+                <KeyValue label="Source">Imported demo selection</KeyValue>
+              )}
+            </Stack>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+      {selected && !editor && (
+        <RecordPreviewPanel
+          title={selected.title}
+          label="SSP control preview"
+          defaultWidth={640}
+          onClose={() => {
+            setSelectedId(undefined);
+            setEvidenceId(undefined);
+          }}
+          navigation={
+            <RecordPreviewActions
+              table="selected_controls"
+              record={selected.selection}
+              rows={displayedRows}
+              onSelect={(row) => {
+                setSelectedId(row.id);
+                setEvidenceId(undefined);
+              }}
+            />
+          }
         >
-          <DialogContent style={{ width: "90vw", maxWidth: 1440, height: "90dvh" }}>
-            <DialogHeader>
-              <DialogTitle>
-                {version && artifact ? artifact.title : `${selected.code} · ${selected.title}`}
-              </DialogTitle>
-              <DialogDescription>
-                {version && artifact
-                  ? `Exact evidence version ${version.version_number}`
-                  : `${systems.data?.find((row) => row.id === plan.system_id)?.name ?? "Boundary"} · SSP ${plan.version_number}`}
-              </DialogDescription>
-            </DialogHeader>
-            <Box padding="space.300" className="min-h-0 flex-1 overflow-y-auto">
-              {version && artifact ? (
+          <Stack space="space.200">
+            <KeyValue label="Control">{selected.code}</KeyValue>
+            <KeyValue label="SSP">
+              {systems.data?.find((row) => row.id === plan.system_id)?.name ?? "Boundary"} · SSP{" "}
+              {plan.version_number}
+            </KeyValue>
+            {version && artifact && (
+              <RecordPreviewPanel
+                title={artifact.title}
+                label="Supporting evidence preview"
+                defaultWidth={640}
+                onClose={() => setEvidenceId(undefined)}
+                navigation={
+                  <RecordPreviewActions
+                    table="evidence_versions"
+                    record={version}
+                    rows={selected.evidence.flatMap((support) =>
+                      support.version ? [support.version] : [],
+                    )}
+                    onSelect={(next) =>
+                      setEvidenceId(
+                        selected.evidence.find((support) => support.version?.id === next.id)?.id,
+                      )
+                    }
+                  />
+                }
+              >
                 <Stack space="space.200">
-                  <Button variant="secondary" onClick={() => setEvidenceId(undefined)}>
-                    Back to control
-                  </Button>
+                  <p>Exact evidence version {version.version_number}</p>
                   <EvidenceVersionDetails artifact={artifact} version={version} />
                 </Stack>
-              ) : (
-                <Stack space="space.300">
-                  <Section
-                    title="Control implementation"
-                    action={
-                      editable ? (
-                        <Button onClick={() => openNarrative(selected)}>
-                          {selected.implementation ? "Edit narrative" : "Write narrative"}
-                        </Button>
-                      ) : undefined
-                    }
-                  >
-                    <Stack space="space.150">
-                      <StatusValue value={selected.implementation?.implementation_status} />
-                      <p className="whitespace-pre-wrap">
-                        {selected.implementation?.description ||
-                          "No control implementation narrative recorded."}
-                      </p>
-                      {selected.implementation?.not_applicable_rationale && (
-                        <p className="whitespace-pre-wrap text-subtle">
-                          Not applicable rationale:{" "}
-                          {selected.implementation.not_applicable_rationale}
-                        </p>
-                      )}
-                    </Stack>
-                  </Section>
-                  {!!selected.gaps.length && (
-                    <Section title="Recorded gaps">
-                      <ul className="list-disc pl-5 text-subtle">
-                        {selected.gaps.map((gap) => (
-                          <li key={gap}>{gap}</li>
-                        ))}
-                      </ul>
-                    </Section>
-                  )}
-                  {!!selected.statements.length && (
-                    <Section title="Statement narratives">
-                      <Stack space="space.200">
-                        {selected.statements.map((statement) => (
-                          <div key={statement.id}>
-                            <p className="font-medium">
-                              {parts.data?.find((part) => part.id === statement.control_part_id)
-                                ?.source_id ?? "Control statement"}
-                            </p>
-                            <p className="whitespace-pre-wrap">{statement.description}</p>
-                            {editable && (
-                              <Button
-                                size="small"
-                                variant="secondary"
-                                onClick={() =>
-                                  setEditor({
-                                    table: "implementation_statements",
-                                    existing: statement as DataRecord,
-                                    initialValues: {
-                                      ssp_revision_id: plan.id,
-                                      implemented_requirement_id: selected.implementation!.id,
-                                      control_part_id: statement.control_part_id,
-                                    },
-                                    title: "Edit statement narrative",
-                                  })
-                                }
-                              >
-                                Edit statement
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </Stack>
-                    </Section>
-                  )}
-                  <Section title="Contributing systems">
-                    <Stack space="space.200">
-                      {!selected.contributions.length && (
-                        <p className="text-subtle">
-                          No component contribution recorded. A nested system or inherited control
-                          selection does not create an implementation narrative.
-                        </p>
-                      )}
-                      {selected.contributions.map(({ record, component, path, binding }) => (
-                        <Section
-                          key={record.id}
-                          title={component?.name ?? "Component unavailable"}
-                          action={
-                            editable ? (
-                              <Button
-                                size="small"
-                                variant="secondary"
-                                onClick={() =>
-                                  setEditor({
-                                    table: "component_contributions",
-                                    existing: record as DataRecord,
-                                    initialValues: {
-                                      ssp_revision_id: plan.id,
-                                      implemented_requirement_id: selected.implementation!.id,
-                                      system_component_id: record.system_component_id,
-                                    },
-                                    title: "Edit contribution narrative",
-                                  })
-                                }
-                              >
-                                Edit contribution
-                              </Button>
-                            ) : undefined
-                          }
-                        >
-                          <Stack space="space.100">
-                            <p className="text-subtle">
-                              {path}
-                              {["unbound", "ambiguous"].includes(binding)
-                                ? " · Identity needs review"
-                                : ""}
-                            </p>
-                            <StatusValue value={record.implementation_status} />
-                            <p className="whitespace-pre-wrap">{record.description}</p>
-                          </Stack>
-                        </Section>
-                      ))}
-                    </Stack>
-                  </Section>
-                  <Section title="Requirements">
-                    <p className="text-subtle mb-150">
-                      Explicit implementation links and control mappings retain their separate
-                      meanings.
+              </RecordPreviewPanel>
+            )}
+            <Stack space="space.300">
+              <Section
+                title="Control implementation"
+                action={
+                  editable ? (
+                    <Button onClick={() => openNarrative(selected)}>
+                      {selected.implementation
+                        ? "Edit control implementation"
+                        : "Create control implementation"}
+                    </Button>
+                  ) : undefined
+                }
+              >
+                <Stack space="space.150">
+                  <StatusValue value={selected.implementation?.implementation_status} />
+                  <p className="whitespace-pre-wrap">
+                    {selected.implementation?.description ||
+                      "No control implementation narrative recorded."}
+                  </p>
+                  {selected.implementation?.not_applicable_rationale && (
+                    <p className="whitespace-pre-wrap text-subtle">
+                      Not applicable rationale: {selected.implementation.not_applicable_rationale}
                     </p>
-                    <Table aria-label="SSP supporting requirements">
-                      <thead>
-                        <Table.Row>
-                          <Table.Header>Requirement</Table.Header>
-                          <Table.Header>Statement</Table.Header>
-                          <Table.Header>Relationship</Table.Header>
-                        </Table.Row>
-                      </thead>
-                      <tbody>
-                        {selected.requirements.map((support) => (
-                          <Table.Row key={support.content.id}>
-                            <Table.Cell>
-                              <TextLink
-                                render={
-                                  <Link
-                                    to="/programs/$programId/requirements/$requirementId"
-                                    params={{ programId, requirementId: support.requirement.id }}
-                                  />
-                                }
-                              >
-                                {support.requirement.code}
-                              </TextLink>
-                            </Table.Cell>
-                            <Table.Cell>{support.content.statement}</Table.Cell>
-                            <Table.Cell>
-                              {support.descriptions.join(" · ")}
-                              {support.rationale.map((rationale) => (
-                                <p className="text-subtle" key={rationale}>
-                                  {rationale}
-                                </p>
-                              ))}
-                            </Table.Cell>
-                          </Table.Row>
-                        ))}
-                      </tbody>
-                    </Table>
-                    {!selected.requirements.length && (
-                      <p className="text-subtle mt-150">
-                        No requirement support or allocated control mapping recorded.
-                      </p>
-                    )}
-                  </Section>
-                  <Section title="Evidence">
-                    <Table aria-label="SSP supporting evidence">
-                      <thead>
-                        <Table.Row>
-                          <Table.Header>Evidence</Table.Header>
-                          <Table.Header>Exact version</Table.Header>
-                          <Table.Header>Recorded support</Table.Header>
-                        </Table.Row>
-                      </thead>
-                      <tbody>
-                        {selected.evidence.map((support) => (
-                          <Table.Row key={support.id}>
-                            <Table.Cell>
-                              {support.artifact && support.version ? (
-                                <TextLink
-                                  render={
-                                    <button
-                                      type="button"
-                                      onClick={() => setEvidenceId(support.id)}
-                                    />
-                                  }
-                                >
-                                  {support.artifact.title}
-                                </TextLink>
-                              ) : (
-                                "Evidence unavailable"
-                              )}
-                            </Table.Cell>
-                            <Table.Cell>
-                              {support.version
-                                ? `Version ${support.version.version_number} · ${labelFor(support.version.state)}`
-                                : "Version unavailable"}
-                            </Table.Cell>
-                            <Table.Cell>
-                              {support.origins.map((origin) => (
-                                <div key={`${origin.id}/${origin.label}`}>
-                                  <p>{origin.label}</p>
-                                  {origin.claim && <p className="text-subtle">{origin.claim}</p>}
-                                  {origin.rationale && (
-                                    <p className="text-subtle">{origin.rationale}</p>
-                                  )}
-                                </div>
-                              ))}
-                            </Table.Cell>
-                          </Table.Row>
-                        ))}
-                      </tbody>
-                    </Table>
-                    {!selected.evidence.length && (
-                      <p className="text-subtle mt-150">
-                        No evidence is linked through this implementation or its related
-                        requirements.
-                      </p>
-                    )}
-                  </Section>
-                  {!!selected.inherited.length && (
-                    <Section title="Accepted provider contributions">
-                      <Stack space="space.200">
-                        {selected.inherited.map(({ acceptance, offering, contribution }) => (
-                          <div key={acceptance.id}>
-                            <p className="font-medium">
-                              {offering?.name ?? "Provider offering unavailable"}
-                            </p>
-                            <p className="whitespace-pre-wrap">
-                              {contribution?.description ?? "Pinned provider narrative unavailable"}
-                            </p>
-                            <p className="text-subtle">
-                              Recorded acceptance: {acceptance.accepted_at}. {acceptance.rationale}
-                            </p>
-                            {acceptance.consumer_responsibility && (
-                              <p>Consumer responsibility: {acceptance.consumer_responsibility}</p>
-                            )}
-                          </div>
-                        ))}
-                      </Stack>
-                    </Section>
                   )}
                 </Stack>
+              </Section>
+              {!!selected.gaps.length && (
+                <Section title="Recorded gaps">
+                  <Box as="ul" paddingInlineStart="space.250" className="list-disc text-subtle">
+                    {selected.gaps.map((gap) => (
+                      <li key={gap}>{gap}</li>
+                    ))}
+                  </Box>
+                </Section>
               )}
-            </Box>
-            <DialogFooter>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setSelectedId(undefined);
-                  setEvidenceId(undefined);
-                }}
-              >
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              {!!selected.statements.length && (
+                <Section title="Statement narratives">
+                  <Stack space="space.200">
+                    {selected.statements.map((statement) => (
+                      <div key={statement.id}>
+                        <p className="font-medium">
+                          {parts.data?.find((part) => part.id === statement.control_part_id)
+                            ?.source_id ?? "Control statement"}
+                        </p>
+                        <p className="whitespace-pre-wrap">{statement.description}</p>
+                        {editable && (
+                          <Button
+                            size="small"
+                            variant="secondary"
+                            onClick={() =>
+                              setEditor({
+                                table: "implementation_statements",
+                                existing: statement as DataRecord,
+                                initialValues: {
+                                  ssp_revision_id: plan.id,
+                                  implemented_requirement_id: selected.implementation!.id,
+                                  control_part_id: statement.control_part_id,
+                                },
+                                description: "Update this statement’s implementation narrative.",
+                              })
+                            }
+                          >
+                            Edit implementation statement
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </Stack>
+                </Section>
+              )}
+              <Section title="Contributing systems">
+                <Stack space="space.200">
+                  {!selected.contributions.length && (
+                    <EmptyMessage
+                      compact
+                      title="No component contributions"
+                      description="A nested system or inherited control selection does not create an implementation narrative."
+                    />
+                  )}
+                  {selected.contributions.map(({ record, component, path, binding }) => (
+                    <Section
+                      key={record.id}
+                      title={component?.name ?? "Component unavailable"}
+                      action={
+                        editable ? (
+                          <Button
+                            size="small"
+                            variant="secondary"
+                            onClick={() =>
+                              setEditor({
+                                table: "component_contributions",
+                                existing: record as DataRecord,
+                                initialValues: {
+                                  ssp_revision_id: plan.id,
+                                  implemented_requirement_id: selected.implementation!.id,
+                                  system_component_id: record.system_component_id,
+                                },
+                                description: "Update this component’s contribution narrative.",
+                              })
+                            }
+                          >
+                            Edit component contribution
+                          </Button>
+                        ) : undefined
+                      }
+                    >
+                      <Stack space="space.100">
+                        <p className="text-subtle">
+                          {path}
+                          {["unbound", "ambiguous"].includes(binding)
+                            ? " · Identity needs review"
+                            : ""}
+                        </p>
+                        <StatusValue value={record.implementation_status} />
+                        <p className="whitespace-pre-wrap">{record.description}</p>
+                      </Stack>
+                    </Section>
+                  ))}
+                </Stack>
+              </Section>
+              <Section title="Requirements">
+                <Table aria-label="SSP supporting requirements">
+                  <thead>
+                    <Table.Row>
+                      <Table.Header>Requirement</Table.Header>
+                      <Table.Header>Statement</Table.Header>
+                      <Table.Header>Relationship</Table.Header>
+                    </Table.Row>
+                  </thead>
+                  <tbody>
+                    {selected.requirements.map((support) => (
+                      <Table.Row key={support.content.id}>
+                        <Table.Cell>
+                          <TextLink
+                            render={
+                              <Link
+                                to="/programs/$programId/requirements/$requirementId"
+                                params={{ programId, requirementId: support.requirement.id }}
+                              />
+                            }
+                          >
+                            {support.requirement.code}
+                          </TextLink>
+                        </Table.Cell>
+                        <Table.Cell>{support.content.statement}</Table.Cell>
+                        <Table.Cell>
+                          {support.descriptions.join(" · ")}
+                          {support.rationale.map((rationale) => (
+                            <p className="text-subtle" key={rationale}>
+                              {rationale}
+                            </p>
+                          ))}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </tbody>
+                </Table>
+                {!selected.requirements.length && (
+                  <EmptyMessage
+                    compact
+                    title="No requirement support"
+                    description="No requirement support or allocated control mapping is recorded."
+                  />
+                )}
+              </Section>
+              <Section title="Evidence">
+                <Table aria-label="SSP supporting evidence">
+                  <thead>
+                    <Table.Row>
+                      <Table.Header>Evidence</Table.Header>
+                      <Table.Header>Exact version</Table.Header>
+                      <Table.Header>Recorded support</Table.Header>
+                    </Table.Row>
+                  </thead>
+                  <tbody>
+                    {selected.evidence.map((support) => (
+                      <Table.Row key={support.id}>
+                        <Table.Cell>
+                          {support.artifact && support.version ? (
+                            <Button variant="link" onClick={() => setEvidenceId(support.id)}>
+                              {support.artifact.title}
+                            </Button>
+                          ) : (
+                            "Evidence unavailable"
+                          )}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {support.version
+                            ? `Version ${support.version.version_number} · ${labelFor(support.version.state)}`
+                            : "Version unavailable"}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {support.origins.map((origin) => (
+                            <div key={`${origin.id}/${origin.label}`}>
+                              <p>{origin.label}</p>
+                              {origin.claim && <p className="text-subtle">{origin.claim}</p>}
+                              {origin.rationale && (
+                                <p className="text-subtle">{origin.rationale}</p>
+                              )}
+                            </div>
+                          ))}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </tbody>
+                </Table>
+                {!selected.evidence.length && (
+                  <EmptyMessage
+                    compact
+                    title="No supporting evidence"
+                    description="No evidence is linked through this implementation or its related requirements."
+                  />
+                )}
+              </Section>
+              {!!selected.inherited.length && (
+                <Section title="Accepted provider contributions">
+                  <Stack space="space.200">
+                    {selected.inherited.map(({ acceptance, offering, contribution }) => (
+                      <div key={acceptance.id}>
+                        <p className="font-medium">
+                          {offering?.name ?? "Provider offering unavailable"}
+                        </p>
+                        <p className="whitespace-pre-wrap">
+                          {contribution?.description ?? "Pinned provider narrative unavailable"}
+                        </p>
+                        <p className="text-subtle">
+                          Recorded acceptance: {acceptance.accepted_at}. {acceptance.rationale}
+                        </p>
+                        {acceptance.consumer_responsibility && (
+                          <p>Consumer responsibility: {acceptance.consumer_responsibility}</p>
+                        )}
+                      </div>
+                    ))}
+                  </Stack>
+                </Section>
+              )}
+            </Stack>
+          </Stack>
+        </RecordPreviewPanel>
       )}
       {editor && <ProductRecordDialog {...editor} onClose={() => setEditor(undefined)} />}
     </Stack>

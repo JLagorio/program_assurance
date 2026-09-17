@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useMemo, useState } from "react";
-import { expect, userEvent, waitFor, within } from "storybook/test";
+import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
 
 import {
   ColumnSortable,
@@ -16,6 +16,7 @@ import {
   resetView,
   useColumnDrag,
   useDataTable,
+  toCsv,
   viewKey,
   writeView,
   type ColumnFiltersState,
@@ -216,15 +217,16 @@ function MetricsExample() {
   return (
     <DataTable.Metrics>
       <Toolbar
+        search={table.state.globalFilter}
+        onSearch={table.setGlobalFilter}
+        placeholder="Search findings"
         actions={<DataTable.MetricsTrigger />}
         filters={
           <>
             <DataTable.Filter table={table} column="status" />
           </>
         }
-      >
-        <DataTable.Search table={table} placeholder="Search findings" />
-      </Toolbar>
+      />
       <DataTable.MetricsContent className="px-200 py-100">
         <div className="grid grid-cols-2 gap-200 sm:grid-cols-3">
           <Stat label="Total findings" value={findings.length} />
@@ -286,14 +288,15 @@ function Wide({ view }: { view?: string | undefined }) {
   });
   return (
     <Stack space="space.150">
-      <Inline space="space.100" alignBlock="center">
-        <DataTable.Search table={table} />
-        <DataTable.Presets table={table} presets={presets} variant="menu" />
-        <Inline className="ml-auto" space="space.100">
-          <DataTable.Columns table={table} />
-          <DataTable.Settings table={table} />
-        </Inline>
-      </Inline>
+      <Toolbar
+        search={table.state.globalFilter}
+        onSearch={table.setGlobalFilter}
+        placeholder="Find findings"
+        views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
+      >
+        <DataTable.Columns table={table} />
+        <DataTable.Settings table={table} />
+      </Toolbar>
       <DataTable table={table} maxHeight={420} />
       <Text size="small" color="color.text.subtle">
         pinned: {table.state.columnPinning.start.join(", ") || "none"} ·{" "}
@@ -1528,5 +1531,261 @@ export const StoredViewsMatrix: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Restore author layout" }));
     await waitFor(() => expect(nameWidth()).toBe("340"));
     await expect(firstHeader()).toHaveTextContent("Count");
+  },
+};
+
+function ResponsiveRegister() {
+  const [width, setWidth] = useState(390);
+  const table = useDataTable({
+    data: findings.slice(0, 3),
+    columns: defineColumns<Finding>((c) => [
+      c.id("id", { header: "Code", width: 100, priority: 1, pin: "start" }),
+      c.custom("name", {
+        header: "Finding",
+        minWidth: 200,
+        priority: 0,
+        pin: "start",
+        sort: (row) => row.name,
+        text: (row) => row.name,
+        cell: (row) => row.name,
+      }),
+      c.status("status", {
+        header: "Status",
+        width: 120,
+        priority: 2,
+        tone: (row) => statusTone[row.status],
+      }),
+      c.text("owner", { header: "Owner", width: 160, priority: 3 }),
+      c.text("family", { header: "Family", width: 140 }),
+      c.date("due", { header: "Due", width: 120 }),
+    ]),
+    getRowId: (row) => row.id,
+    label: "Responsive findings",
+    initialState: {
+      columnVisibility: { family: false },
+      columnPinning: { start: ["name", "id"], end: [] },
+    },
+  });
+  return (
+    <Stack>
+      <Inline>
+        <Button onClick={() => setWidth(280)}>Narrow container</Button>
+        <Button onClick={() => setWidth(1000)}>Wide container</Button>
+        <Button onClick={() => table.getColumn("owner")?.toggleVisibility(false)}>
+          Hide owner
+        </Button>
+      </Inline>
+      <div data-testid="responsive-container" style={{ width, maxWidth: "100%" }}>
+        <DataTable responsive table={table} />
+      </div>
+      <output data-testid="responsive-visibility">
+        {JSON.stringify(table.state.columnVisibility)}
+      </output>
+      <output data-testid="responsive-export">{toCsv(table)}</output>
+    </Stack>
+  );
+}
+
+export const ResponsiveContainers: Story = {
+  name: "Responsive containers",
+  render: () => <ResponsiveRegister />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Responsive findings" });
+    const container = canvas.getByTestId("responsive-container");
+    const fits = () => {
+      expect(table.getBoundingClientRect().width).toBeLessThanOrEqual(container.clientWidth + 1);
+      expect(table.parentElement!.scrollWidth).toBeLessThanOrEqual(container.clientWidth + 1);
+    };
+    await waitFor(fits);
+    await userEvent.click(canvas.getByRole("button", { name: "Narrow container" }));
+    const more = await canvas.findByRole("button", {
+      name: `More fields for ${findings[0]!.name}`,
+    });
+    await waitFor(fits);
+    await userEvent.click(more);
+    await expect(more).toHaveAttribute("aria-expanded", "true");
+    const fields = canvasElement.ownerDocument.getElementById(more.getAttribute("aria-controls")!);
+    await expect(within(fields!).getByText("Code", { exact: true })).toBeVisible();
+    await expect(within(fields!).getByText("Dana Whitfield", { exact: true })).toBeVisible();
+    await expect(within(fields!).queryByText("Family", { exact: true })).not.toBeInTheDocument();
+    const before = canvas.getByTestId("responsive-export").textContent;
+    await expect(canvas.getByTestId("responsive-visibility")).toHaveTextContent('{"family":false}');
+    await userEvent.click(canvas.getByRole("button", { name: "Wide container" }));
+    await waitFor(() =>
+      expect(canvas.queryAllByRole("button", { name: /^More fields for/ })).toHaveLength(0),
+    );
+    await waitFor(fits);
+    const headers = within(table).getAllByRole("columnheader");
+    expect(headers[1]!.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+      headers[0]!.getBoundingClientRect().right - 1,
+    );
+    expect(canvas.getByTestId("responsive-export").textContent).toBe(before);
+    await userEvent.click(canvas.getByRole("button", { name: "Hide owner" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Narrow container" }));
+    await waitFor(() =>
+      expect(canvas.getByTestId("responsive-visibility")).toHaveTextContent('"owner":false'),
+    );
+    const reopened = await canvas.findByRole("button", {
+      name: `More fields for ${findings[0]!.name}`,
+    });
+    if (reopened.getAttribute("aria-expanded") !== "true") await userEvent.click(reopened);
+    const retained = canvasElement.ownerDocument.getElementById(
+      reopened.getAttribute("aria-controls")!,
+    );
+    expect(within(retained!).queryByText("Owner", { exact: true })).not.toBeInTheDocument();
+    expect(canvas.getByTestId("responsive-export").textContent).not.toContain("Dana Whitfield");
+  },
+};
+
+function ResponsiveGroups() {
+  const table = useDataTable({
+    data: findings.slice(0, 2),
+    columns: defineColumns<Finding>((c) => [
+      c.group("Identity", [
+        c.id("id", { width: 100, priority: 1 }),
+        c.text("name", { header: "Finding", minWidth: 200, priority: 0 }),
+      ]),
+      c.group("Context", [
+        c.text("owner", { header: "Owner", width: 160 }),
+        c.text("family", { header: "Family", width: 140 }),
+      ]),
+    ]),
+    getRowId: (row) => row.id,
+    label: "Grouped responsive findings",
+    selectable: true,
+  });
+  return (
+    <div style={{ width: 280 }}>
+      <DataTable responsive table={table} />
+    </div>
+  );
+}
+export const ResponsiveGroupedHeaders: Story = {
+  name: "Responsive grouped headers",
+  render: () => <ResponsiveGroups />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Grouped responsive findings" });
+    await waitFor(() => {
+      expect(table.getBoundingClientRect().width).toBeLessThanOrEqual(281);
+      expect(table.parentElement!.scrollWidth).toBeLessThanOrEqual(281);
+    });
+    expect(canvas.queryByRole("columnheader", { name: "Context" })).not.toBeInTheDocument();
+    expect(canvas.getByRole("columnheader", { name: "Identity" })).toHaveAttribute("colspan", "1");
+    await userEvent.click(canvas.getByRole("checkbox", { name: "Select all rows on this page" }));
+    expect(
+      canvas.getAllByRole("checkbox").every((el) => el.getAttribute("aria-checked") === "true"),
+    ).toBe(true);
+    await userEvent.click(canvas.getAllByRole("button", { name: /^More fields for/ })[0]!);
+    await expect(canvas.getByText("Dana Whitfield", { exact: true })).toBeVisible();
+  },
+};
+
+type VirtualResponsiveRow = { id: string; name: string; description: string; owner: string };
+const virtualResponsiveRows: VirtualResponsiveRow[] = Array.from({ length: 2000 }, (_, index) => ({
+  id: String(index),
+  name: `Record ${String(index + 1).padStart(4, "0")}`,
+  description: "The supporting evidence remains available when the table narrows. ".repeat(12),
+  owner: `Owner ${index + 1}`,
+}));
+const virtualResponsiveColumns = defineColumns<VirtualResponsiveRow>((c) => [
+  c.text("name", { header: "Record", width: 240, priority: 0 }),
+  c.text("owner", { header: "Owner", width: 180 }),
+  c.text("description", { header: "Description", width: 400 }),
+]);
+
+function ResponsiveVirtualRegister() {
+  const [width, setWidth] = useState(390);
+  const table = useDataTable({
+    data: virtualResponsiveRows,
+    columns: virtualResponsiveColumns,
+    getRowId: (row) => row.id,
+    label: "Responsive virtual records",
+    virtualize: true,
+  });
+  return (
+    <Stack>
+      <Inline>
+        <Button onClick={() => setWidth(280)}>Preview width</Button>
+        <Button onClick={() => setWidth(900)}>Page width</Button>
+        <Button onClick={() => table.setSorting([{ id: "name", desc: true }])}>
+          Reverse records
+        </Button>
+      </Inline>
+      <div data-testid="virtual-container" style={{ width, maxWidth: "100%" }}>
+        <DataTable table={table} responsive maxHeight={320} />
+      </div>
+    </Stack>
+  );
+}
+
+/** Thousands of narrow rows remain virtual; disclosed fields contribute their measured height. */
+export const ResponsiveVirtualRows: Story = {
+  render: () => <ResponsiveVirtualRegister />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Responsive virtual records" });
+    const frame = table.parentElement!;
+    const container = canvas.getByTestId("virtual-container");
+    const mountedRows = () => table.querySelectorAll("tr[data-row-id]");
+    const fits = () => {
+      expect(frame.scrollWidth).toBeLessThanOrEqual(container.clientWidth + 1);
+      expect(mountedRows().length).toBeLessThan(60);
+    };
+    await waitFor(fits);
+    await waitFor(() => expect(frame.scrollHeight).toBeGreaterThan(50000));
+    const originalHeight = frame.scrollHeight;
+    const more = await canvas.findByRole("button", { name: "More fields for Record 0001" });
+    await userEvent.click(more);
+    const detail = canvasElement.ownerDocument.getElementById(more.getAttribute("aria-controls")!)!;
+    await expect(within(detail).getByText("Owner 1", { exact: true })).toBeVisible();
+    await waitFor(() => {
+      expect(detail.getBoundingClientRect().height).toBeGreaterThan(120);
+      expect(frame.scrollHeight).toBeGreaterThanOrEqual(
+        originalHeight + detail.getBoundingClientRect().height - 2,
+      );
+    });
+    await waitFor(fits);
+    await userEvent.click(canvas.getByRole("button", { name: "Preview width" }));
+    await waitFor(fits);
+    // The record leaves the rendered window, then returns with its disclosure state intact.
+    frame.scrollTop = 20000;
+    fireEvent.scroll(frame);
+    await waitFor(() => expect(table.querySelector('tr[data-row-id="0"]')).toBeNull());
+    await waitFor(fits);
+    frame.scrollTop = 0;
+    fireEvent.scroll(frame);
+    const returned = await canvas.findByRole("button", { name: "More fields for Record 0001" });
+    await expect(returned).toHaveAttribute("aria-expanded", "true");
+    const returnedDetail = canvasElement.ownerDocument.getElementById(
+      returned.getAttribute("aria-controls")!,
+    )!;
+    const following = returnedDetail.nextElementSibling!;
+    await expect(following.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      returnedDetail.getBoundingClientRect().bottom - 1,
+    );
+    // A wide layout must discard a cached narrow disclosure height even while it is offscreen.
+    frame.scrollTop = 20000;
+    fireEvent.scroll(frame);
+    await waitFor(() => expect(table.querySelector('tr[data-row-id="0"]')).toBeNull());
+    await userEvent.click(canvas.getByRole("button", { name: "Page width" }));
+    await waitFor(() =>
+      expect(canvas.queryAllByRole("button", { name: /^More fields for/ })).toHaveLength(0),
+    );
+    await waitFor(() =>
+      expect(Math.abs(frame.scrollHeight - originalHeight)).toBeLessThanOrEqual(2),
+    );
+    frame.scrollTop = 0;
+    fireEvent.scroll(frame);
+    await waitFor(() => expect(mountedRows()[0]).toHaveAttribute("data-row-id", "0"));
+    await userEvent.click(canvas.getByRole("button", { name: "Preview width" }));
+    const restored = await canvas.findByRole("button", { name: "More fields for Record 0001" });
+    await expect(restored).toHaveAttribute("aria-expanded", "true");
+    await userEvent.click(restored);
+    await waitFor(() => expect(restored).toHaveAttribute("aria-expanded", "false"));
+    await userEvent.click(canvas.getByRole("button", { name: "Reverse records" }));
+    await waitFor(() => expect(mountedRows()[0]).toHaveAttribute("data-row-id", "1999"));
+    await waitFor(fits);
   },
 };

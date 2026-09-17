@@ -4,6 +4,8 @@ import { Button, PageHeader, Shell, Stack, TextLink } from "@ledger/design-syste
 import { Plus } from "lucide-react";
 import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
+import { RecordPreviewActions, RecordPreviewPanel } from "@/components/prototype/record-preview";
+import { productCreateLabel } from "@/lib/product-records";
 import type { DataRecord } from "@/lib/records";
 import {
   EntityEditor,
@@ -11,20 +13,23 @@ import {
   ModelTable,
   QueryState,
 } from "@/components/prototype/record-tools";
-export const Route = createFileRoute("/vendors")({ component: Suppliers });
+export const Route = createFileRoute("/vendors")({
+  component: Suppliers,
+  head: () => ({ meta: [{ title: "Suppliers — Program Assurance" }] }),
+});
 function Suppliers() {
   const workspace = useWorkspace(),
     query = useRows("parties", { party_type: "organization" }),
     components = useRows("defined_components");
   const [editing, setEditing] = useState<DataRecord | "new" | null>(null),
     [preview, setPreview] = useState<DataRecord | null>(null);
+  const [displayed, setDisplayed] = useState<DataRecord[]>([]);
   return (
     <Stack space="space.200">
       <PageHeader>
-        <PageHeader.Title>Supplier registry</PageHeader.Title>
-        <PageHeader.Description>
-          Organization records and the component definitions they supply.
-        </PageHeader.Description>
+        <PageHeader.Heading>
+          <PageHeader.Title>Supplier registry</PageHeader.Title>
+        </PageHeader.Heading>
       </PageHeader>
       {editing && (
         <EntityEditor
@@ -37,6 +42,9 @@ function Suppliers() {
       <QueryState query={query}>
         <QueryState query={components}>
           <ModelTable
+            model="parties"
+            selectedId={preview?.id}
+            onDisplayedRowsChange={setDisplayed}
             fill
             rows={(query.data ?? []) as DataRecord[]}
             columns={[
@@ -50,7 +58,7 @@ function Suppliers() {
                     .length,
               },
             ]}
-            onOpen={setPreview}
+            onPreview={setPreview}
             searchLabel="Search organizations"
             view="supplier-registry"
             empty={{
@@ -61,7 +69,7 @@ function Suppliers() {
               action:
                 workspace.role !== "viewer" ? (
                   <Button variant="primary" iconBefore={<Plus />} onClick={() => setEditing("new")}>
-                    Add organization
+                    {productCreateLabel("parties", { party_type: "organization" })}
                   </Button>
                 ) : undefined,
             }}
@@ -73,7 +81,7 @@ function Suppliers() {
                   iconBefore={<Plus />}
                   onClick={() => setEditing("new")}
                 >
-                  Add organization
+                  {productCreateLabel("parties", { party_type: "organization" })}
                 </Button>
               )
             }
@@ -81,15 +89,32 @@ function Suppliers() {
         </QueryState>
       </QueryState>
       {preview && (
-        <Shell.Panel title={String(preview["name"])} onClose={() => setPreview(null)}>
+        <RecordPreviewPanel
+          title={String(preview["name"])}
+          label="Supplier preview"
+          defaultWidth={560}
+          onClose={() => setPreview(null)}
+          recordActions={
+            <Button size="small" variant="primary" onClick={() => setEditing(preview)}>
+              Edit organization
+            </Button>
+          }
+          navigation={
+            <RecordPreviewActions
+              table="parties"
+              record={preview}
+              rows={displayed}
+              onSelect={setPreview}
+            />
+          }
+        >
           <Stack space="space.200">
             <ModelFacts record={preview} fields={["name", "email"]} />
-            <Button onClick={() => setEditing(preview)}>Edit organization</Button>
             <TextLink render={<Link to="/library/components" />}>
               Review supplied component definitions
             </TextLink>
           </Stack>
-        </Shell.Panel>
+        </RecordPreviewPanel>
       )}
     </Stack>
   );

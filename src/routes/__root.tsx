@@ -5,11 +5,28 @@ import {
   Link,
   Outlet,
   Scripts,
+  useRouter,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { ModeProvider, Toaster, modeScript, shellScript } from "@ledger/design-system";
-import type { ReactNode } from "react";
+import {
+  Button,
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  ModeProvider,
+  PageHeader,
+  Toaster,
+  modeScript,
+  shellScript,
+} from "@ledger/design-system";
+import { RefreshCw } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { AppLayout } from "@/components/app/shell";
 import { Screen, WorkspaceProvider } from "@/components/app/workspace";
+import { MissingRecord } from "@/components/prototype/work-common";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
@@ -26,19 +43,60 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   component: Root,
   notFoundComponent: () => (
     <Screen>
-      <h1 className="font-heading-large">Record not found</h1>
-      <p>The requested page does not exist.</p>
-      <Link to="/">Open workspace</Link>
+      <MissingRecord kind="Page" description="The requested page does not exist." />
     </Screen>
   ),
-  errorComponent: ({ error }) => (
-    <Screen>
-      <h1 className="font-heading-large">Workspace unavailable</h1>
-      <p role="alert">{error.message}</p>
-      <Link to="/">Open workspace</Link>
-    </Screen>
-  ),
+  errorComponent: WorkspaceError,
 });
+
+function WorkspaceError({ error, reset }: ErrorComponentProps) {
+  const router = useRouter();
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+  async function retry() {
+    if (retrying) return;
+    setRetrying(true);
+    try {
+      await router.invalidate();
+      reset();
+    } catch (cause) {
+      setRetryError(cause instanceof Error ? cause.message : "The page could not be reloaded.");
+    } finally {
+      setRetrying(false);
+    }
+  }
+  return (
+    <Screen>
+      <PageHeader>
+        <PageHeader.Heading>
+          <PageHeader.Title>Workspace unavailable</PageHeader.Title>
+        </PageHeader.Heading>
+      </PageHeader>
+      <Empty>
+        <EmptyMedia variant="icon" aria-hidden>
+          <RefreshCw />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>This page could not be loaded</EmptyTitle>
+          <EmptyDescription role="alert">
+            {retryError || error.message || "Retry loading the page or return to your workspace."}
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button
+            variant="primary"
+            isLoading={retrying}
+            disabled={retrying}
+            onClick={() => void retry()}
+          >
+            Retry loading
+          </Button>
+          <Button render={<Link to="/" />}>Open workspace</Button>
+        </EmptyContent>
+      </Empty>
+    </Screen>
+  );
+}
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>

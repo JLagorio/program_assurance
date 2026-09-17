@@ -1,3 +1,5 @@
+import { productCreateLabel } from "@/lib/product-records";
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import {
@@ -107,6 +109,7 @@ export function CreateEvidenceDialog({
   onClose: () => void;
   onCreated?: ((result: CreateEvidenceResult) => void | Promise<void>) | undefined;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const id = useId();
   const [requestId] = useState(() => crypto.randomUUID());
@@ -150,29 +153,34 @@ export function CreateEvidenceDialog({
       .find((collection) => collection.name === "evidence_artifacts")
       ?.columns.find((column) => column.name === "artifact_kind")?.choices ?? [];
   useBlocker({
-    shouldBlockFn: () =>
+    shouldBlockFn: async () =>
       !bypassBlock.current &&
-      (inFlight.current || (dirty && !window.confirm("Discard this unsaved evidence?"))),
+      (inFlight.current ||
+        (dirty && !(await confirm(discardChanges("Discard this unsaved evidence?"))))),
     enableBeforeUnload: () => !bypassBlock.current && (dirty || inFlight.current),
   });
   function changed() {
     setDirty(true);
     setError("");
   }
-  function close() {
+  async function close() {
     if (inFlight.current) return;
-    if (!dirty || window.confirm("Discard this unsaved evidence?")) {
+    if (!dirty || (await confirm(discardChanges("Discard this unsaved evidence?")))) {
       bypassBlock.current = true;
       onClose();
     }
   }
-  function chooseProgram(value: string | null) {
+  async function chooseProgram(value: string | null) {
     if (value === chosenProgram) return;
     if (
       scope &&
-      !window.confirm(
-        "Changing the program clears the scope selection. The other evidence details will be kept.",
-      )
+      !(await confirm({
+        title: "Change program?",
+        confirmLabel: "Change program",
+        variant: "primary",
+        description:
+          "Changing the program clears the scope selection. The other evidence details will be kept.",
+      }))
     )
       return;
     setChosenProgram(value);
@@ -246,7 +254,7 @@ export function CreateEvidenceDialog({
     >
       <DialogContent style={{ maxWidth: 660 }} showCloseButton={!busy}>
         <DialogHeader>
-          <DialogTitle>New evidence</DialogTitle>
+          <DialogTitle>{productCreateLabel("evidence_artifacts")}</DialogTitle>
           <DialogDescription>
             Describe the artifact and its first draft version. You can upload a file after saving.
           </DialogDescription>
@@ -461,11 +469,12 @@ export function CreateEvidenceDialog({
                 busy || !writable || !ready || !!loadError || invalidContext || !kinds.length
               }
             >
-              Create evidence
+              {productCreateLabel("evidence_artifacts")}
             </Button>
           ) : null}
         </DialogFooter>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

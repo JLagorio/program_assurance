@@ -87,7 +87,7 @@ function GateRail({
           orientation="horizontal"
           align="start"
           size="large"
-          className="[&>li]:min-w-[14rem]"
+          className="*:w-layout-rail *:shrink-0 *:basis-auto"
         >
           {gates.map((gate) => {
             const date = lifecycleGateDate(gate);

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { chromium, expect } from "playwright/test";
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { expectPreviewHeader, minimizePreview } from "./tests/preview-header.mjs";
 
 const origin = process.env.APP_TEST_URL || "http://127.0.0.1:8080";
 assert.ok(["127.0.0.1", "localhost"].includes(new URL(origin).hostname));
@@ -55,11 +56,11 @@ try {
   await page.getByLabel("Email", { exact: true }).fill(workspace.email);
   await page.getByLabel("Password", { exact: true }).fill(workspace.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("button", { name: "Add system", exact: true }).click();
-  const rootDialog = page.getByRole("dialog", { name: "Add system", exact: true });
+  await page.getByRole("button", { name: "Create system", exact: true }).click();
+  const rootDialog = page.getByRole("dialog", { name: "Create system", exact: true });
   await expect(rootDialog.getByRole("checkbox", { name: "Authorization boundary" })).toBeChecked();
   await expect(rootDialog.getByRole("checkbox", { name: "Authorization boundary" })).toBeDisabled();
-  await authorSystem("Add system", "SYS-TREE", "Validation boundary", "Information system");
+  await authorSystem("Create system", "SYS-TREE", "Validation boundary", "Information system");
   const root = await data(
     client.from("systems").select().eq("program_id", program.id).eq("code", "SYS-TREE").single(),
   );
@@ -68,9 +69,10 @@ try {
   assert.equal(root.boundary_system_id, root.id);
   await page
     .locator('[data-shell-area="panel"]')
-    .getByRole("button", { name: "Add child system", exact: true })
+    .getByRole("button", { name: "More system actions", exact: true })
     .click();
-  await authorSystem("Add child system", "NODE-TREE", "Recorded storage component", "Hardware");
+  await page.getByRole("menuitem", { name: "Create system", exact: true }).click();
+  await authorSystem("Create system", "NODE-TREE", "Recorded storage component", "Hardware");
   const child = await data(
     client.from("systems").select().eq("program_id", program.id).eq("code", "NODE-TREE").single(),
   );
@@ -108,9 +110,72 @@ try {
   assert.equal(edited.name, "Edited storage component");
   assert.equal(edited.revision, child.revision + 1);
   assert.equal(edited.parent_system_id, child.parent_system_id);
+  const preview = page.locator('[data-shell-area="panel"]');
+  await expect(preview.getByRole("link", { name: "Open record", exact: true })).toHaveCount(0);
+  for (const width of [1600, 390, 340]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await expectPreviewHeader(page, {
+      title: edited.name,
+      recordActions: ["Edit system", "More system actions"],
+    });
+    if (width === 1600) {
+      await expect
+        .poll(
+          async () => {
+            const mainTable = await table().boundingBox();
+            const panelBounds = await preview.boundingBox();
+            return Boolean(
+              mainTable && panelBounds && mainTable.x + mainTable.width <= panelBounds.x + 1,
+            );
+          },
+          { message: "System tree fits beside the preview" },
+        )
+        .toBe(true);
+    }
+    await page.screenshot({ path: `/tmp/system-preview-${width}.png`, animations: "disabled" });
+    if (width === 1600) {
+      await minimizePreview(page);
+      await expectPreviewHeader(page, {
+        title: edited.name,
+        recordActions: ["Edit system", "More system actions"],
+      });
+      await page.screenshot({ path: "/tmp/system-preview-panel-240.png", animations: "disabled" });
+      await page.keyboard.press("End");
+    }
+  }
+  await preview.getByRole("button", { name: "Close details", exact: true }).click();
+  await expect(preview).toHaveCount(0);
+  await expect(table()).toBeVisible();
+  await expect
+    .poll(
+      async () => {
+        const bounds = await table().boundingBox();
+        return Boolean(bounds && bounds.x >= -1 && bounds.x + bounds.width <= 341);
+      },
+      { message: "System tree fits its narrow container" },
+    )
+    .toBe(true);
+  const mobileRow = table().locator(`tr[data-row-id="${child.id}"]`);
+  await expect(mobileRow.getByRole("link", { name: edited.name, exact: true })).toBeVisible();
+  await expect(mobileRow.getByRole("button", { name: "Preview row", exact: true })).toBeVisible();
+  const moreFields = mobileRow.getByRole("button", {
+    name: `More fields for ${child.code}`,
+    exact: true,
+  });
+  await moreFields.click();
+  const fieldDetails = page.locator(`[id="${await moreFields.getAttribute("aria-controls")}"]`);
+  await expect(fieldDetails.getByText(child.code, { exact: true })).toBeVisible();
+  await expect(fieldDetails.getByText("Hardware", { exact: true })).toBeVisible();
+  await expect(fieldDetails.getByText("Confidentiality", { exact: true })).toBeVisible();
+  await page.screenshot({ path: "/tmp/system-tree-340.png", animations: "disabled" });
+  await page.setViewportSize({ width: 1600, height: 1100 });
   await page.goto(`${origin}/programs/${program.id}/systems/${child.id}`);
   await page.getByRole("heading", { name: edited.name, exact: true }).waitFor();
-  await page.getByRole("link", { name: "Open authorization boundary", exact: true }).waitFor();
+  await page
+    .locator('[data-shell-area="aside"]')
+    .getByRole("link", { name: root.name, exact: true })
+    .first()
+    .waitFor();
   assert.equal(await page.getByRole("tab", { name: "Security plans", exact: true }).count(), 0);
   await page.goto(
     `${origin}/programs/${program.id}?tab=Requirements&requirementId=${requirement.id}&requirementTab=Allocation`,
@@ -224,7 +289,7 @@ try {
   );
   await page.goto(`${origin}/programs/${program.id}?tab=System`);
   await table().waitFor();
-  assert.equal(await page.getByRole("button", { name: "Add system", exact: true }).count(), 0);
+  assert.equal(await page.getByRole("button", { name: "Create system", exact: true }).count(), 0);
   assert.equal(await table().getByRole("button", { name: "Row actions", exact: true }).count(), 0);
   const viewerWrite = await client
     .from("requirement_allocations")

@@ -1,3 +1,4 @@
+import { RecordPreviewProvider } from "@/components/prototype/record-preview";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
@@ -142,14 +143,21 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
       <Shell.TopNav>
         <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
           <Shell.AppLogo
-            name="Equinox"
+            name="Program Assurance"
             secondaryName={workspace.name}
-            render={<Link to="/" aria-label="Equinox home" />}
+            render={<Link to="/" aria-label="Program Assurance home" />}
           />
         </Shell.TopNav.Start>
         <Shell.TopNav.Middle>
-          <Button variant="secondary" iconBefore={<Search />} onClick={() => setSearchOpen(true)}>
-            Search programs, risks, and findings
+          <Button
+            variant="secondary"
+            iconBefore={<Search />}
+            aria-label="Search programs, risks, and findings"
+            className="min-w-0 max-w-full"
+            onClick={() => setSearchOpen(true)}
+          >
+            <span className="sm:hidden">Search</span>
+            <span className="hidden truncate sm:inline">Search programs, risks, and findings</span>
           </Button>
         </Shell.TopNav.Middle>
         <Shell.TopNav.End>
@@ -224,7 +232,9 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
         </Shell.SideNav.Footer>
         <Shell.SideNav.Splitter label="Resize side navigation" />
       </Shell.SideNav>
-      <Shell.Main>{children}</Shell.Main>
+      <RecordPreviewProvider>
+        <Shell.Main>{children}</Shell.Main>
+      </RecordPreviewProvider>
       <CommandPalette
         open={searchOpen}
         onClose={() => setSearchOpen(false)}

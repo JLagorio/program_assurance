@@ -4,6 +4,7 @@ import {
   Badge,
   Count,
   DataTable,
+  Toolbar,
   defineColumns,
   Id,
   Inline,
@@ -24,6 +25,13 @@ import {
   TextLink,
   useDataTable,
 } from "@ledger/design-system";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "@/components/prototype/record-preview";
 import { useRows, type Row } from "@/lib/models";
 import {
   ControlInspector,
@@ -46,6 +54,7 @@ function CatalogPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const [tab, setTab] = useState("Controls");
   const [control, setControl] = useState<Row<"controls"> | null>(null);
+  const [displayedControls, setDisplayedControls] = useState<Row<"controls">[]>([]);
   const revisions = useRows("catalog_revisions");
   const allControls = useRows("controls");
   const selections = useRows("selected_controls");
@@ -97,10 +106,6 @@ function CatalogPage() {
       <PageHeader>
         <div className="min-w-0">
           <PageHeader.Title>Catalog</PageHeader.Title>
-          <p className="pt-050 font-body-small text-subtle">
-            Published control text, assessment objectives, correlation identifiers, and their
-            sources.
-          </p>
         </div>
       </PageHeader>
       <Tabs
@@ -111,7 +116,7 @@ function CatalogPage() {
         }}
         className="contents"
       >
-        <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+        <TabsList variant="line" activateOnFocus aria-label="Catalog views">
           {["Controls", "CCIs", "Sources"].map((name) => (
             <TabsTrigger key={name} value={name}>
               {name}
@@ -134,6 +139,8 @@ function CatalogPage() {
             >
               <LibraryControlTable
                 controls={shown}
+                selectedId={control?.id}
+                onDisplayedRowsChange={setDisplayedControls}
                 onSelect={setControl}
                 showRelease={false}
                 selectedBy={selectedBy}
@@ -168,7 +175,12 @@ function CatalogPage() {
         </TabsContent>
       </Tabs>
       {control && (
-        <ControlInspector key={control.id} control={control} onClose={() => setControl(null)} />
+        <ControlInspector
+          control={control}
+          onClose={() => setControl(null)}
+          records={displayedControls}
+          onSelect={setControl}
+        />
       )}
     </Stack>
   );
@@ -181,6 +193,7 @@ function CciTable() {
   const controls = useRows("controls");
   const types = useRows("cci_item_types");
   const [selected, setSelected] = useState<Row<"cci_items"> | null>(null);
+  const navigate = useNavigate();
   const rows = useMemo(() => {
     const controlsById = new Map(controls.data?.map((row) => [row.id, row]));
     const itemByReference = new Map(references.data?.map((row) => [row.id, row.cci_item_id]));
@@ -204,7 +217,18 @@ function CciTable() {
   const columns = useMemo(
     () =>
       defineColumns<(typeof rows)[number]>((c) => [
-        c.id("code", { header: "CCI", width: 132, hideable: false }),
+        c.id("code", {
+          header: "CCI",
+          width: 132,
+          hideable: false,
+          preview: setSelected,
+          active: (row) => row.id === selected?.id,
+          cell: (row) => (
+            <RecordLink table="cci_items" record={row}>
+              {row.code}
+            </RecordLink>
+          ),
+        }),
         c.text("definition", { header: "Definition", hideable: false }),
         c.text("controls", { header: "Mapped controls", width: 180 }),
         c.text("types", { header: "Type", width: 132 }),
@@ -213,9 +237,9 @@ function CciTable() {
           width: 130,
           tone: (row) => (row.status === "deprecated" ? "warning" : "neutral"),
         }),
-        c.text("published_on", { header: "Published", width: 125 }),
+        c.date("published_on", { header: "Published", width: 125 }),
       ]),
-    [],
+    [selected?.id],
   );
   const table = useDataTable({
     data: rows,
@@ -227,32 +251,52 @@ function CciTable() {
     reorderable: true,
     virtualize: true,
   });
+  const displayed = useDisplayedRecords(table);
   return (
     <LibraryLoading queries={[items, references, links, controls, types]}>
       <DataTable
+        responsive
         table={table}
         fill
-        onRowClick={setSelected}
+        onRowClick={(row) => void navigate(recordDestination("cci_items", row))}
         empty={{
           illustration: "shield",
           title: "No CCIs yet",
           description: "Import a CCI release to fill the catalog.",
         }}
         toolbar={
-          <Inline space="space.100" alignBlock="center" shouldWrap>
-            <DataTable.Search table={table} placeholder="Find a CCI" />
-            <DataTable.Filter table={table} column="types" />
-            <DataTable.Filter table={table} column="status" />
-            <span className="font-body-small text-subtle">{rows.length} records</span>
-            <Inline className="ml-auto" space="space.100">
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-            </Inline>
-          </Inline>
+          <Toolbar
+            search={String(table.state.globalFilter ?? "")}
+            onSearch={(value) => table.setGlobalFilter(value)}
+            placeholder="Find a CCI"
+            filters={
+              <>
+                <DataTable.Filter table={table} column="types" />
+                <DataTable.Filter table={table} column="status" />
+                <span className="font-body-small text-subtle">{rows.length} records</span>
+              </>
+            }
+          >
+            <DataTable.Columns table={table} />
+            <DataTable.Settings table={table} />
+          </Toolbar>
         }
       />
       {selected && (
-        <Shell.Panel title={selected.code} onClose={() => setSelected(null)}>
+        <RecordPreviewPanel
+          title={selected.code}
+          label="CCI preview"
+          defaultWidth={640}
+          onClose={() => setSelected(null)}
+          navigation={
+            <RecordPreviewActions
+              table="cci_items"
+              record={selected}
+              rows={displayed}
+              onSelect={setSelected}
+            />
+          }
+        >
           <Stack space="space.200">
             <Inspector.Group title="Definition">
               <p className="font-body-small">{selected.definition}</p>
@@ -280,7 +324,7 @@ function CciTable() {
               </Stack>
             </Inspector.Group>
           </Stack>
-        </Shell.Panel>
+        </RecordPreviewPanel>
       )}
     </LibraryLoading>
   );

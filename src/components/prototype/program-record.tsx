@@ -1,6 +1,12 @@
+import { EmptyMessage, MissingRecord, type QueryStatus } from "./work-common";
 import { Fragment, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  Absent,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   Badge,
   Breadcrumb,
   BreadcrumbItem,
@@ -14,6 +20,7 @@ import {
   Inspector,
   KeyValue,
   PageHeader,
+  Section,
   Shell,
   Stack,
   Tabs,
@@ -66,6 +73,7 @@ function ProgramRecordFrame({
   trail,
   actions,
   properties,
+  showProperties = true,
 }: {
   programId: string;
   table: ProgramTableName;
@@ -82,6 +90,7 @@ function ProgramRecordFrame({
   actions?: ReactNode;
   /** The rail's Properties group, composed by the record. */
   properties?: ReactNode;
+  showProperties?: boolean;
 }) {
   const program = useRow("programs", programId);
   const workspace = useWorkspace();
@@ -98,7 +107,7 @@ function ProgramRecordFrame({
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink render={<Link to="/programs/$programId" params={{ programId }} />}>
-                  {program.data?.code ?? "Program"}
+                  {program.data?.name ?? "Program"}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -108,23 +117,34 @@ function ProgramRecordFrame({
               </BreadcrumbItem>
             </BreadcrumbList>
           </PageHeader.Lead>
-          <div>
+          <PageHeader.Heading>
             <PageHeader.Title>{title}</PageHeader.Title>
-          </div>
+          </PageHeader.Heading>
           <PageHeader.Actions>
-            {actions}
-            {!readOnly &&
-              !editing &&
-              workspace.role !== "viewer" &&
-              row["state"] !== "published" && (
-                <Button
-                  variant="secondary"
-                  iconBefore={<Pencil />}
-                  onClick={() => setEditing((value) => !value)}
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button>Actions</Button>} />
+              <DropdownMenuContent align="end">
+                {actions}
+                <DropdownMenuItem
+                  render={
+                    <Link
+                      to="/records/$collection/$recordId"
+                      params={{ collection: table, recordId: row.id }}
+                    />
+                  }
                 >
-                  {editing ? "Close editor" : "Edit record"}
-                </Button>
-              )}
+                  Inspect record
+                </DropdownMenuItem>
+                {!readOnly &&
+                  !editing &&
+                  workspace.role !== "viewer" &&
+                  row["state"] !== "published" && (
+                    <DropdownMenuItem onClick={() => setEditing((value) => !value)}>
+                      {editing ? "Close editor" : "Edit record"}
+                    </DropdownMenuItem>
+                  )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </PageHeader.Actions>
         </PageHeader>
         {children}
@@ -135,20 +155,26 @@ function ProgramRecordFrame({
             <ProgramEditor table={table} existing={row} onClose={() => setEditing(false)} />
           ))}
       </Stack>
-      <Shell.Aside label="Record properties">
-        <Inspector.Group title="Properties">
-          {properties ??
-            facts.map((field) => (
-              <KeyValue key={field} label={labelFor(field)} wrap>
-                {["status", "state", "authorization_status", "lifecycle_status"].includes(field) ? (
-                  <StatusValue value={row[field]} />
-                ) : (
-                  displayValue(row[field])
-                )}
-              </KeyValue>
-            ))}
-        </Inspector.Group>
-      </Shell.Aside>
+      {showProperties && (
+        <Shell.Aside label="Record details">
+          <Inspector.Group title="Details">
+            {properties ??
+              facts.map((field) => (
+                <KeyValue key={field} label={labelFor(field)} wrap>
+                  {["status", "state", "authorization_status", "lifecycle_status"].includes(
+                    field,
+                  ) ? (
+                    <StatusValue value={row[field]} />
+                  ) : row[field] == null || row[field] === "" ? (
+                    <Absent />
+                  ) : (
+                    displayValue(row[field])
+                  )}
+                </KeyValue>
+              ))}
+          </Inspector.Group>
+        </Shell.Aside>
+      )}
     </>
   );
 }
@@ -193,10 +219,16 @@ export function ProgramSystemRecord({
     controlId?: string;
     source?: "component" | "profile" | "requirement";
   } | null>(null);
-  if (query.isPending || query.error)
-    return <ProgramQueryState loading={query.isPending} error={query.error} />;
+  if (query.data === undefined && (query.isPending || query.error))
+    return <ProgramQueryState queries={[query]} />;
   if (!query.data || query.data.program_id !== programId)
-    return <p role="alert">System not found in this program.</p>;
+    return (
+      <MissingRecord
+        backTo="/programs"
+        kind="System"
+        description="This record is unavailable in this program."
+      />
+    );
   const system = query.data as SystemElement;
   const row = assurance.rows.find((element) => element.id === system.id);
   const boundary = system.is_authorization_boundary;
@@ -217,6 +249,7 @@ export function ProgramSystemRecord({
       table="systems"
       row={system as DataRecord}
       title={system.name}
+      showProperties={current === "Overview"}
       trail={ancestors.map((ancestor) => (
         <Fragment key={ancestor.id}>
           <BreadcrumbItem>
@@ -237,26 +270,28 @@ export function ProgramSystemRecord({
       actions={
         <>
           {workspace.role !== "viewer" && row && (
-            <Button
-              variant="secondary"
-              iconBefore={<Library />}
-              onClick={() => setAddingLibrary({})}
-            >
+            <DropdownMenuItem onClick={() => setAddingLibrary({})}>
               Add from library
-            </Button>
+            </DropdownMenuItem>
           )}
           {canCreate && (
-            <Button variant="secondary" iconBefore={<Plus />} onClick={() => setAddingChild(true)}>
-              Add child
-            </Button>
+            <DropdownMenuItem onClick={() => setAddingChild(true)}>Create system</DropdownMenuItem>
           )}
         </>
       }
-      properties={<SystemProperties programId={programId} system={system} row={row} />}
+      properties={
+        <SystemProperties
+          programId={programId}
+          system={system}
+          row={row}
+          queries={assurance.queries}
+        />
+      }
       renderEditor={(onClose) => (
         <SystemElementDialog programId={programId} existing={system} onClose={onClose} />
       )}
     >
+      <ProgramQueryState queries={[query]} />
       <Tabs value={current} onValueChange={(value) => select(systemTab(value) ?? "Overview")}>
         <TabsList variant="line" aria-label="Element sections">
           {tabs.map((value) => (
@@ -268,12 +303,7 @@ export function ProgramSystemRecord({
         <TabsContent value={current}>
           <Stack space="space.250" className="pt-200">
             {current === "Overview" && (
-              <>
-                {system.description && (
-                  <p className="whitespace-pre-wrap text-subtle">{system.description}</p>
-                )}
-                <ProgramSystemsTree programId={programId} rootElementId={system.id} />
-              </>
+              <ProgramSystemsTree programId={programId} rootElementId={system.id} />
             )}
             {current === "Controls" && (
               <SystemControls
@@ -298,13 +328,13 @@ export function ProgramSystemRecord({
                   onAddFromLibrary={() => setAddingLibrary({})}
                 />
               ) : (
-                <ProgramQueryState loading={assurance.pending} error={assurance.error} />
+                <ProgramQueryState queries={assurance.queries} />
               ))}
             {current === "Evidence" &&
               (row ? (
                 <SystemEvidence programId={programId} element={row} rows={assurance.rows} />
               ) : (
-                <ProgramQueryState loading={assurance.pending} error={assurance.error} />
+                <ProgramQueryState queries={assurance.queries} />
               ))}
             {current === "Inventory" && (
               <ProgramCollection
@@ -370,19 +400,24 @@ function SystemProperties({
   programId,
   system,
   row,
+  queries,
 }: {
   programId: string;
   system: SystemElement;
   row: SystemAssuranceRow | undefined;
+  queries: QueryStatus[];
 }) {
   const width = 112;
   const products = useProductLookup();
   const variant = system.product_revision_id ? products.variant(system) : null;
   const productElement = system.product_element_id ? products.element(system) : null;
   return (
-    <>
+    <ProgramQueryState queries={[...queries, ...products.queries]}>
       <KeyValue label="Code" labelWidth={width} wrap>
         <Id>{system.code}</Id>
+      </KeyValue>
+      <KeyValue label="Description" labelWidth={width} wrap>
+        <span className="whitespace-pre-wrap">{system.description || <Absent />}</span>
       </KeyValue>
       {system.product_revision_id && system.is_authorization_boundary && (
         <KeyValue label="Product" labelWidth={width} wrap>
@@ -399,7 +434,7 @@ function SystemProperties({
               {variant.label}
             </TextLink>
           ) : (
-            <span className="text-subtle">{products.pending ? "Loading…" : "Unavailable"}</span>
+            <Absent />
           )}
         </KeyValue>
       )}
@@ -418,7 +453,7 @@ function SystemProperties({
               {productElement.label}
             </TextLink>
           ) : (
-            <span className="text-subtle">{products.pending ? "Loading…" : "Unavailable"}</span>
+            <Absent />
           )}
         </KeyValue>
       )}
@@ -438,7 +473,7 @@ function SystemProperties({
               </span>
             </Inline>
           ) : (
-            <span className="text-subtle">Loading…</span>
+            <Absent />
           )}
         </KeyValue>
       ))}
@@ -446,7 +481,7 @@ function SystemProperties({
         {system.system_owner_party_id ? (
           <RelationName table="parties" id={system.system_owner_party_id} />
         ) : (
-          "Unassigned"
+          <Absent />
         )}
       </KeyValue>
       {!system.is_authorization_boundary && (
@@ -499,7 +534,7 @@ function SystemProperties({
           </Inline>
         </KeyValue>
       )}
-    </>
+    </ProgramQueryState>
   );
 }
 export function ProgramComponentRecord({
@@ -513,19 +548,18 @@ export function ProgramComponentRecord({
   const element = useRow("system_component_element_links", componentId);
   const system = useRow("systems", component.data?.system_id);
   if (
-    component.isPending ||
-    (component.data && system.isPending) ||
-    component.error ||
-    system.error
+    (component.data === undefined || (component.data && system.data === undefined)) &&
+    (component.isPending || system.isPending || component.error || system.error)
   )
+    return <ProgramQueryState queries={[component, system]} />;
+  if (!component.data || system.data?.program_id !== programId)
     return (
-      <ProgramQueryState
-        loading={component.isPending || system.isPending}
-        error={component.error ?? system.error}
+      <MissingRecord
+        backTo="/programs"
+        kind="Component"
+        description="This record is unavailable in this program."
       />
     );
-  if (!component.data || system.data?.program_id !== programId)
-    return <p role="alert">Component not found in this program.</p>;
   return (
     <ProgramRecordFrame
       programId={programId}
@@ -533,11 +567,9 @@ export function ProgramComponentRecord({
       row={component.data as DataRecord}
       title={component.data.name}
       readOnly
-      facts={["code", "component_type", "version", "status"]}
+      facts={["code", "description", "component_type", "version", "status"]}
     >
-      <p className="whitespace-pre-wrap text-subtle">
-        {component.data.description ?? "No component description recorded."}
-      </p>
+      <ProgramQueryState queries={[component, system, element]} />
       {element.data?.system_element_id && (
         <TextLink
           render={
@@ -598,9 +630,19 @@ export function ProgramControlRecord({
       (plan.isPending || system.isPending || selected.isPending || control.isPending));
   const error =
     implementation.error ?? plan.error ?? system.error ?? selected.error ?? control.error;
-  if (pending || error) return <ProgramQueryState loading={!!pending} error={error} />;
+  if (
+    (pending || error) &&
+    [implementation, plan, system, selected, control].some((query) => query.data === undefined)
+  )
+    return <ProgramQueryState queries={[implementation, plan, system, selected, control]} />;
   if (!implementation.data || system.data?.program_id !== programId)
-    return <p role="alert">Control implementation not found in this program.</p>;
+    return (
+      <MissingRecord
+        backTo="/programs"
+        kind="Control implementation"
+        description="This record is unavailable in this program."
+      />
+    );
   const row = implementation.data;
   return (
     <ProgramRecordFrame
@@ -608,14 +650,25 @@ export function ProgramControlRecord({
       table="implemented_requirements"
       readOnly={plan.data?.state === "published"}
       row={row as DataRecord}
-      title={
-        control.data ? `${control.data.code} · ${control.data.title}` : "Control implementation"
+      title={control.data?.title ?? "Control implementation"}
+      properties={
+        <>
+          <KeyValue label="Code">
+            {control.data?.code ? <Id>{control.data.code}</Id> : <Absent />}
+          </KeyValue>
+          <KeyValue label="Status">
+            <StatusValue value={row["implementation_status"]} />
+          </KeyValue>
+          <KeyValue label="Not applicable rationale" wrap>
+            {row["not_applicable_rationale"] || <Absent />}
+          </KeyValue>
+          <KeyValue label="Updated">{String(row["updated_at"] ?? "") || <Absent />}</KeyValue>
+        </>
       }
-      facts={["implementation_status", "not_applicable_rationale", "updated_at"]}
     >
-      <p className="whitespace-pre-wrap text-subtle">
-        {row.description ?? "No implementation narrative recorded."}
-      </p>
+      <Section title="Implementation">
+        <p className="whitespace-pre-wrap">{row.description ?? <Absent />}</p>
+      </Section>
       {control.data && (
         <Button variant="secondary" onClick={() => setShowSource(true)}>
           Read control and assessment objectives

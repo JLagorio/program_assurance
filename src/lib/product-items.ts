@@ -334,6 +334,7 @@ export function useProductLookup() {
   }, [products.data, revisions.data, configurations.data, elements.data]);
   return {
     ...lookup,
+    queries,
     pending: queries.some((query) => query.isPending),
     ready: queries.every((query) => query.data !== undefined),
   };

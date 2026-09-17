@@ -6,6 +6,7 @@ import {
 } from "@/components/prototype/program-workspace";
 import { requirementTab, type RequirementTab } from "@/components/prototype/requirement-record";
 export const Route = createFileRoute("/programs/$programId")({
+  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
   validateSearch: (
     search: Record<string, unknown>,
   ): {

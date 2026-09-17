@@ -243,6 +243,7 @@ export function SystemRequirements({
         />
       )}
       <DataTable
+        responsive
         table={table}
         state={error ? "error" : pending ? "loading" : "ready"}
         error={error?.message}
@@ -393,6 +394,7 @@ function AllocateToElement({
       }}
     >
       <DataTable
+        responsive
         table={table}
         state={requirements.isPending || revisions.isPending ? "loading" : "ready"}
         empty={{

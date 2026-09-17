@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
-import { homedir } from "node:os";
+import { localDockerEnv } from "./local-docker-env.mjs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
@@ -594,14 +594,8 @@ where not exists (select 1 from public.${sqlIdentifier(table)} existing where ex
 }
 
 async function importLocal(sql) {
-  const dockerEnv = {
-    ...process.env,
-    DOCKER_HOST: `unix://${join(homedir(), ".colima", profile, "docker.sock")}`,
-  };
-  delete dockerEnv.DOCKER_CONTEXT;
-  delete dockerEnv.DOCKER_TLS_VERIFY;
-  delete dockerEnv.DOCKER_CERT_PATH;
-  // Fixed Colima socket + fixed local database container; no remote URL/key input.
+  const dockerEnv = localDockerEnv();
+  // Fixed local socket and database container; no remote URL/key input.
   await new Promise((resolveImport, reject) => {
     const child = spawn(
       "docker",

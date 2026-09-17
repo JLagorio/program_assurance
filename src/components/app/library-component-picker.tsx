@@ -77,6 +77,7 @@ export function LibraryComponentPicker({
       }}
     >
       <DataTable
+        responsive
         table={table}
         state={pending ? "loading" : "ready"}
         onRowClick={(row) => setChosenId(row.id)}

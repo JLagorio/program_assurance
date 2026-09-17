@@ -233,7 +233,7 @@ export function ProfileTailoringEditor({
         </CollapsibleContent>
       </Collapsible>
       <Tabs value={tab} onValueChange={(value) => setTab(String(value))}>
-        <TabsList variant="line">
+        <TabsList variant="line" aria-label="Profile tailoring views">
           <TabsTrigger value="Controls">Controls · {preview.counts.selected}</TabsTrigger>
           <TabsTrigger value="Parameters">Parameters · {preview.counts.parameters}</TabsTrigger>
         </TabsList>
@@ -268,6 +268,7 @@ export function ProfileTailoringEditor({
             />
             <Section title="Effective control set" count={preview.counts.selected}>
               <DataTable
+                responsive
                 table={table}
                 onRowClick={(row) => open(row.id)}
                 empty={{

@@ -57,6 +57,38 @@ describe("database form values", () => {
       "Status is required",
     );
   });
+  it("leaves a system's derived boundary to the tree trigger without weakening required fields", () => {
+    const columns = [
+      column("name", "text", { required: true }),
+      column("parent_system_id", "uuid"),
+      column("boundary_system_id", "uuid", { required: true }),
+    ];
+    const systems = { ...collection(columns), name: "systems" };
+    expect(recordPayload(systems, { name: "Boundary", boundary_system_id: "" })).toEqual({
+      name: "Boundary",
+    });
+    const parent = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
+    expect(
+      recordPayload(systems, {
+        name: "Nested system",
+        parent_system_id: parent,
+        boundary_system_id: "",
+      }),
+    ).toEqual({ name: "Nested system", parent_system_id: parent });
+    expect(
+      recordPayload(
+        systems,
+        { name: "Renamed system", boundary_system_id: "forged" },
+        { id: parent, revision: 1 },
+      ),
+    ).toEqual({ name: "Renamed system" });
+    expect(() => recordPayload(systems, { name: "", boundary_system_id: "" })).toThrow(
+      "Name is required",
+    );
+    expect(() =>
+      recordPayload(collection(columns), { name: "Other record", boundary_system_id: "" }),
+    ).toThrow("Boundary system ID is required");
+  });
   it("never lets forms supply identities, audit actors, or revision counters", () => {
     const schema = collection([
       column("id", "uuid"),

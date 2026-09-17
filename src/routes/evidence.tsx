@@ -4,7 +4,7 @@ import { EvidenceBrowser } from "@/components/prototype/evidence-browser";
 
 export const Route = createFileRoute("/evidence")({
   component: EvidencePage,
-  head: () => ({ meta: [{ title: "Evidence — Equinox" }] }),
+  head: () => ({ meta: [{ title: "Evidence — Program Assurance" }] }),
 });
 function EvidencePage() {
   return (

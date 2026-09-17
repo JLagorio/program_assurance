@@ -1,0 +1,20 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import * as Stories from "./PreviewNavigation.stories";
+
+<Meta of={Stories} />
+
+# PreviewNavigation
+
+Use in `Shell.Panel.actions` for a record preview beside a register. The panel title is the record's name. These controls move through the table's displayed results and open the full record in a new tab.
+
+<Canvas of={Stories.Collection} />
+
+The application owns selection, filtered and sorted row order, and real record destinations. Supply a one-based `position`, `total`, and callbacks for adjacent records. `openLink` is an anchor or router link with its real destination, `target="_blank"`, and `rel="noopener noreferrer"`. It must lead to that record, not its collection.
+
+If filtering removes the selected record, keep the preview open with `position={0}`. Both navigation buttons become disabled and the status explains that the record is outside the current results. The full-record link stays available.
+
+<Canvas of={Stories.OutsideResults} />
+
+The controls have consistent accessible names: “Previous record”, “Next record” and “Open full record in new tab”. The screen reader status announces “n of m records”. Focus stays on the navigation control as the preview content changes.
+
+<ArgTypes of={Stories.Collection} />

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   Badge,
@@ -17,6 +17,12 @@ import {
   useDataTable,
   type Preset,
 } from "@ledger/design-system";
+import {
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "./record-preview";
 import { Plus } from "lucide-react";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRows } from "@/lib/models";
@@ -30,6 +36,13 @@ type Line = LibraryUseRow & {
   changeFlag: string;
   appliedByName: string | null;
 };
+
+const libraryDestination = (row: LibraryUseRow) =>
+  row.definitionId
+    ? recordDestination("component_definitions", { id: row.definitionId })
+    : row.revisionId
+      ? recordDestination("profile_resolutions", { id: row.revisionId })
+      : recordDestination("systems", { id: row.elementId });
 
 const presets: Preset[] = [
   { id: "all", label: "Everything applied" },
@@ -62,6 +75,7 @@ export function SystemLibrary({
   onAddFromLibrary?: (() => void) | undefined;
 }) {
   const workspace = useWorkspace();
+  const navigate = useNavigate();
   const components = useRows("system_components", { system_id: element.boundary_system_id });
   const definedComponents = useRows("defined_components");
   const revisions = useRows("component_definition_revisions");
@@ -109,13 +123,21 @@ export function SystemLibrary({
   const columns = useMemo(
     () =>
       defineColumns<Line>((c) => [
-        c.text("name", {
+        c.id("name", {
           header: "Item",
           minWidth: 240,
+          preview: (row) => setSelectedId(row.id),
+          active: (row) => row.id === selectedId,
           hideable: false,
           cell: (row) => (
             <span className="flex min-w-0 flex-col">
-              <span className="truncate font-medium">{row.name}</span>
+              <TextLink
+                render={
+                  <Link {...libraryDestination(row)} onClick={(event) => event.stopPropagation()} />
+                }
+              >
+                {row.name}
+              </TextLink>
               {row.detail && <span className="font-body-xsmall text-subtle">{row.detail}</span>}
             </span>
           ),
@@ -158,7 +180,7 @@ export function SystemLibrary({
         c.text("updateFlag", { header: "Update", width: 140 }),
         c.text("changeFlag", { header: "Change", width: 140 }),
       ]),
-    [includeInside, element.id],
+    [includeInside, element.id, selectedId],
   );
   const table = useDataTable({
     columns,
@@ -172,6 +194,7 @@ export function SystemLibrary({
       columnVisibility: { rationale: false, updateFlag: false, changeFlag: false },
     },
   });
+  const displayed = useDisplayedRecords(table);
   const selected = data.find((row) => row.id === selectedId) ?? null;
   const selectedContributions = selected?.systemComponentId
     ? (contributions.data ?? []).filter(
@@ -197,10 +220,11 @@ export function SystemLibrary({
   return (
     <>
       <DataTable
+        responsive
         table={table}
         state={error ? "error" : pending ? "loading" : "ready"}
         error={error?.message}
-        onRowClick={(row) => setSelectedId(row.id)}
+        onRowClick={(row) => void navigate(libraryDestination(row))}
         empty={{
           illustration: "records",
           title: "Nothing from the library yet",
@@ -213,33 +237,45 @@ export function SystemLibrary({
             search={String(table.state.globalFilter ?? "")}
             onSearch={(value) => table.setGlobalFilter(value)}
             placeholder="Find a library item"
+            views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
             actions={addAction}
+            filters={
+              <label className="flex items-center gap-100 font-body-small">
+                <Checkbox
+                  checked={includeInside}
+                  onCheckedChange={(checked) => setIncludeInside(checked === true)}
+                />
+                Include everything inside
+              </label>
+            }
           >
-            <DataTable.Presets table={table} presets={presets} variant="menu" />
-            <label className="flex items-center gap-100 font-body-small">
-              <Checkbox
-                checked={includeInside}
-                onCheckedChange={(checked) => setIncludeInside(checked === true)}
-              />
-              Include everything inside
-            </label>
             <DataTable.Columns table={table} />
             <DataTable.Settings table={table} />
           </Toolbar>
         }
       />
       {selected && (
-        <Shell.Panel
+        <RecordPreviewPanel
           title={selected.name}
           label="Library use"
           defaultWidth={560}
           onClose={() => setSelectedId(null)}
-          actions={
-            selected.updateAvailable && selected.assignmentId ? (
+          recordActions={
+            selected.updateAvailable &&
+            selected.assignmentId && (
               <Button size="small" variant="primary" onClick={() => setReviewing(selected)}>
                 Review version {selected.updateAvailable.version}
               </Button>
-            ) : undefined
+            )
+          }
+          navigation={
+            <RecordPreviewActions
+              table="component_definitions"
+              record={selected}
+              destination={libraryDestination(selected)}
+              rows={displayed}
+              onSelect={(row) => setSelectedId(row.id)}
+            />
           }
         >
           <Stack space="space.200">
@@ -339,7 +375,7 @@ export function SystemLibrary({
               )}
             </Stack>
           </Stack>
-        </Shell.Panel>
+        </RecordPreviewPanel>
       )}
       {reviewing &&
         reviewing.assignmentId &&

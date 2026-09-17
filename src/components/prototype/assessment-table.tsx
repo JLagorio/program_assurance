@@ -1,11 +1,14 @@
 import { useMemo, useRef, type ReactNode } from "react";
 import {
   DataTable,
-  Inline,
+  Toolbar,
   defineColumns,
   useDataTable,
   type EmptyIllustrationKind,
 } from "@ledger/design-system";
+import { useNavigate } from "@tanstack/react-router";
+import type { TableName } from "@/lib/models";
+import { RecordLink, recordDestination, useDisplayedRecords } from "./record-preview";
 import { labelFor } from "@/lib/records";
 import { statusTone } from "./work-format";
 
@@ -45,9 +48,13 @@ const kindOf = <T,>(column: AssessmentColumn<T>): AssessmentColumn<T>["kind"] =>
 
 export function AssessmentTable<T extends { id: string }>({
   rows,
+  model,
+  selectedId,
+  onDisplayedRowsChange,
   columns,
   label,
-  onSelect,
+  onPreview,
+  onEdit,
   empty,
   filters = [],
   actions,
@@ -57,9 +64,14 @@ export function AssessmentTable<T extends { id: string }>({
   fill,
 }: {
   rows: T[];
+  model?: TableName | undefined;
+  selectedId?: string | undefined;
+  onDisplayedRowsChange?: ((rows: T[]) => void) | undefined;
   columns: AssessmentColumn<T>[];
   label: string;
-  onSelect?: ((row: T) => void) | undefined;
+  onPreview?: ((row: T) => void) | undefined;
+  /** Editing is an explicit row action, never a preview eye. */
+  onEdit?: ((row: T) => void) | undefined;
   /** A string is the empty state's title. */
   empty?: string | AssessmentEmpty | undefined;
   /** Column keys to expose as filter chips. */
@@ -75,6 +87,7 @@ export function AssessmentTable<T extends { id: string }>({
   /** The register is the page's one block: it takes the rest of the window. */
   fill?: boolean | undefined;
 }) {
+  const navigate = useNavigate();
   // The table reads labels for status fields so the chips and the badges agree; the cells and
   // the row click still see the record as it came.
   const statusKeys = useMemo(
@@ -92,18 +105,35 @@ export function AssessmentTable<T extends { id: string }>({
           const value = row[key];
           if (typeof value === "string") (next as Record<string, unknown>)[key] = labelFor(value);
         }
+        for (const column of columns)
+          if (column.key && kindOf(column) === "date" && next[column.key] == null)
+            delete (next as Record<string, unknown>)[column.key];
         return next as T;
       }),
-    [rows, statusKeys],
+    [rows, statusKeys, columns],
   );
   const tableColumns = useMemo(
     () =>
-      defineColumns<T>((c) =>
-        columns.map((column, index) => {
+      defineColumns<T>((c) => [
+        ...columns.map((column, index) => {
           const raw = (row: T) => byIdRef.current.get(row.id) ?? row;
           const cell = (row: T) => column.value(raw(row));
           const size = column.width === undefined ? {} : { width: column.width };
           const first = index === 0 ? { hideable: false as const } : {};
+          if (index === 0 && model)
+            return c.id(column.key ?? "id", {
+              header: column.label,
+              minWidth: 220,
+              ...size,
+              hideable: false,
+              preview: onPreview ? (row) => onPreview(raw(row)) : undefined,
+              active: (row) => row.id === selectedId,
+              cell: (row) => (
+                <RecordLink table={model} record={raw(row)}>
+                  {cell(row)}
+                </RecordLink>
+              ),
+            });
           if (!column.key)
             return c.custom(`column_${index}`, { header: column.label, cell, ...size });
           const key = column.key;
@@ -122,8 +152,18 @@ export function AssessmentTable<T extends { id: string }>({
             return c.number(key, { header: column.label, cell, ...size, ...first });
           return c.text(key, { header: column.label, cell, ...size, ...first });
         }),
-      ),
-    [columns],
+        ...(onEdit
+          ? [
+              c.actions((row) => [
+                {
+                  label: "Edit record",
+                  onSelect: () => onEdit(byIdRef.current.get(row.id) ?? row),
+                },
+              ]),
+            ]
+          : []),
+      ]),
+    [columns, model, onPreview, onEdit, selectedId],
   );
   const table = useDataTable({
     columns: tableColumns,
@@ -136,12 +176,18 @@ export function AssessmentTable<T extends { id: string }>({
     ...(view ? { view } : {}),
     ...(initialFilters ? { initialState: { columnFilters: initialFilters } } : {}),
   });
+  useDisplayedRecords(table, onDisplayedRowsChange, byId);
   const message: AssessmentEmpty = typeof empty === "string" ? { title: empty } : (empty ?? {});
   return (
     <DataTable
+      responsive
       table={table}
       fill={fill}
-      onRowClick={onSelect ? (row) => onSelect(byId.get(row.id) ?? row) : undefined}
+      onRowClick={
+        model
+          ? (row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))
+          : undefined
+      }
       empty={{
         illustration: message.illustration ?? "records",
         title: message.title ?? `No ${label.toLowerCase()} yet`,
@@ -149,17 +195,18 @@ export function AssessmentTable<T extends { id: string }>({
         action: message.action,
       }}
       toolbar={
-        <Inline space="space.100" alignBlock="center" shouldWrap>
-          <DataTable.Search table={table} placeholder={search ?? `Find ${label.toLowerCase()}`} />
-          {filters.map((key) => (
+        <Toolbar
+          search={String(table.state.globalFilter ?? "")}
+          onSearch={(value) => table.setGlobalFilter(value)}
+          placeholder={search ?? `Find ${label.toLowerCase()}`}
+          filters={filters.map((key) => (
             <DataTable.Filter key={key} table={table} column={key} />
           ))}
-          <Inline className="ml-auto" space="space.100" alignBlock="center">
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-            {actions}
-          </Inline>
-        </Inline>
+          actions={actions}
+        >
+          <DataTable.Columns table={table} />
+          <DataTable.Settings table={table} />
+        </Toolbar>
       }
     />
   );

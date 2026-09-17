@@ -17,6 +17,8 @@ import { Plus } from "lucide-react";
 import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
 import { type DataRecord } from "@/lib/records";
+import { productCreateLabel } from "@/lib/product-records";
+import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
 import { ProgramCollection } from "./program-shared";
 import { RelationName } from "./record-tools";
@@ -26,7 +28,6 @@ import {
   DetailFacts,
   ModelForm,
   QueryState,
-  RecordActions,
   SchemaLink,
   StatusBadge,
   type FormTarget,
@@ -60,6 +61,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [form, setForm] = useState<FormTarget | null>(null);
   const [selection, setSelection] = useState<FormTarget | null>(null);
+  const [displayed, setDisplayed] = useState<Record<string, DataRecord[]>>({});
   const campaignRows = campaigns.data ?? [];
   const campaignTitle = (id: string | null | undefined) =>
     campaignRows.find((campaign) => campaign.id === id)?.title ?? "Unavailable campaign";
@@ -120,7 +122,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
           })
         }
       >
-        Add {nouns[kind]}
+        {productCreateLabel(tables[kind])}
       </Button>
     ) : undefined;
   return (
@@ -130,7 +132,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
         queries={[campaigns, plans, events, objectives, programs, parties, systems, scopes]}
       >
         <Tabs value={tab} onValueChange={(value) => setTab(value as AssessmentKind)}>
-          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+          <TabsList variant="line" activateOnFocus aria-label="Assessment collections">
             {kinds.map((name) => (
               <TabsTrigger value={name} key={name}>
                 {name}
@@ -150,6 +152,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
           </TabsList>
           <TabsContent value="Campaigns" className="pt-200">
             <AssessmentTable
+              model="assessment_campaigns"
               fill
               label="Campaigns"
               view="assessment-campaigns"
@@ -205,8 +208,21 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                 },
                 {
                   label: "Events",
-                  value: (row) =>
-                    (events.data ?? []).filter((event) => event.campaign_id === row.id).length,
+                  value: (row) => (
+                    <Button
+                      variant="link"
+                      size="small"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setCampaignId(row.id);
+                        setTab("Events");
+                      }}
+                    >
+                      Show{" "}
+                      {(events.data ?? []).filter((event) => event.campaign_id === row.id).length}{" "}
+                      events
+                    </Button>
+                  ),
                   width: 90,
                 },
                 {
@@ -221,14 +237,20 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                   width: 145,
                 },
               ]}
-              onSelect={(row) => {
-                setCampaignId(row.id);
-                setTab("Events");
-              }}
             />
           </TabsContent>
           <TabsContent value="Events" className="pt-200">
             <AssessmentTable
+              model="assessment_events"
+              selectedId={
+                selection?.table === "assessment_events" ? selection.existing?.id : undefined
+              }
+              onDisplayedRowsChange={(rows) =>
+                setDisplayed((previous) => ({
+                  ...previous,
+                  assessment_events: rows as DataRecord[],
+                }))
+              }
               key={campaignId ?? "all"}
               fill
               label="Events"
@@ -266,7 +288,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                   width: 120,
                 },
               ]}
-              onSelect={(row) => {
+              onPreview={(row) => {
                 if (!form)
                   setSelection({ table: "assessment_events", existing: row as DataRecord });
               }}
@@ -274,6 +296,16 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
           </TabsContent>
           <TabsContent value="Objectives" className="pt-200">
             <AssessmentTable
+              model="assessment_objectives"
+              selectedId={
+                selection?.table === "assessment_objectives" ? selection.existing?.id : undefined
+              }
+              onDisplayedRowsChange={(rows) =>
+                setDisplayed((previous) => ({
+                  ...previous,
+                  assessment_objectives: rows as DataRecord[],
+                }))
+              }
               key={campaignId ?? "all"}
               fill
               label="Objectives"
@@ -315,7 +347,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                   width: 170,
                 },
               ]}
-              onSelect={(row) => {
+              onPreview={(row) => {
                 if (!form)
                   setSelection({ table: "assessment_objectives", existing: row as DataRecord });
               }}
@@ -327,7 +359,6 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                 name="scopes"
                 fill
                 title="Assessment scopes"
-                description="A categorized subset of a system, used to scope implementation and assessment. Categorization recorded on a scope shows on its element as the element's provenance."
                 where={(record) => systemIds.has(String(record["system_id"]))}
                 initialValues={{ system_id: firstBoundary?.id ?? null }}
                 columns={[
@@ -378,7 +409,27 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
         </Tabs>
       </QueryState>
       {selected && selection && !form && (
-        <Shell.Panel title={String(selected["title"])} onClose={() => setSelection(null)}>
+        <RecordPreviewPanel
+          title={String(selected["title"])}
+          label="Assessment preview"
+          defaultWidth={640}
+          onClose={() => setSelection(null)}
+          recordActions={
+            workspace.role !== "viewer" && (
+              <Button size="small" variant="primary" onClick={() => edit(selection)}>
+                Edit record
+              </Button>
+            )
+          }
+          navigation={
+            <RecordPreviewActions
+              table={selection.table}
+              record={selected}
+              rows={displayed[selection.table] ?? []}
+              onSelect={(row) => setSelection({ table: selection.table, existing: row })}
+            />
+          }
+        >
           <Stack space="space.250">
             <Section title="Details">
               <p className="whitespace-pre-wrap pb-200">
@@ -417,13 +468,8 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                 }
               />
             </Section>
-            <RecordActions
-              table={selection.table}
-              id={selected.id}
-              onEdit={() => edit(selection)}
-            />
           </Stack>
-        </Shell.Panel>
+        </RecordPreviewPanel>
       )}
     </Stack>
   );

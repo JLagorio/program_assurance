@@ -115,7 +115,7 @@ try {
   await page.getByLabel("Email", { exact: true }).fill(workspace.email);
   await page.getByLabel("Password", { exact: true }).fill(workspace.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("heading", { name: "Engineering requirements", exact: true }).waitFor();
+  await page.getByRole("treegrid", { name: "Engineering requirements", exact: true }).waitFor();
   const table = page.getByRole("treegrid", { name: "Engineering requirements", exact: true });
   const search = page.getByRole("searchbox", { name: "Find a requirement", exact: true });
   await table.getByRole("link", { name: unversioned.code, exact: true }).waitFor();
@@ -125,16 +125,16 @@ try {
     .getByRole("row")
     .filter({ has: page.getByRole("link", { name: parent.code, exact: true }) });
   await parentRow.getByRole("button", { name: "Preview row", exact: true }).click();
-  await page.getByText(parent.current.title, { exact: true }).waitFor();
+  await page.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   assert.equal(new URL(page.url()).searchParams.get("requirementId"), parent.id);
   assert.equal(await search.inputValue(), "REQ-0");
-  await page.getByRole("button", { name: "Next requirement", exact: true }).click();
-  await page.getByText(child.current.title, { exact: true }).waitFor();
-  await page.getByRole("button", { name: "Previous requirement", exact: true }).click();
-  await page.getByText(parent.current.title, { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Next record", exact: true }).click();
+  await page.getByRole("heading", { name: child.current.title, exact: true }).waitFor();
+  await page.getByRole("button", { name: "Previous record", exact: true }).click();
+  await page.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   await page.screenshot({ path: "/tmp/requirement-preview-restored.png", animations: "disabled" });
   await page.getByRole("tab", { name: "Evidence", exact: true }).last().click();
-  await page.getByRole("button", { name: "Add evidence", exact: true }).click();
+  await page.getByRole("button", { name: "Add evidence", exact: true }).first().click();
   await picker().waitFor();
   const bounds = await picker().boundingBox();
   assert.ok(bounds.width >= 1400 && bounds.height >= 950, "Evidence chooser occupies the viewport");
@@ -158,8 +158,8 @@ try {
   await page.keyboard.press("Escape");
   assert.equal(await picker().count(), 1, "Escape dismisses the inner preview first");
   await chooseEvidence(artifact.title);
-  await picker().getByRole("button", { name: "New evidence / Upload", exact: true }).click();
-  const create = page.getByRole("dialog", { name: "New evidence", exact: true });
+  await picker().getByRole("button", { name: "Create evidence artifact", exact: true }).click();
+  const create = page.getByRole("dialog", { name: "Create evidence artifact", exact: true });
   await create.waitFor();
   assert.equal(
     await page.getByRole("dialog").count(),
@@ -168,7 +168,7 @@ try {
   );
   await create.getByRole("button", { name: "Cancel", exact: true }).click();
   await picker().getByText("1 selected", { exact: true }).waitFor();
-  await picker().getByRole("button", { name: "New evidence / Upload", exact: true }).click();
+  await picker().getByRole("button", { name: "Create evidence artifact", exact: true }).click();
   await create
     .getByRole("textbox", { name: "Artifact title", exact: true })
     .fill("New linked evidence");
@@ -177,8 +177,8 @@ try {
   await create
     .getByLabel("External reference", { exact: true })
     .fill("https://example.test/new-evidence");
-  await create.getByRole("button", { name: "Create evidence", exact: true }).click();
-  const prepare = page.getByRole("dialog", { name: "New linked evidence", exact: true });
+  await create.getByRole("button", { name: "Create evidence artifact", exact: true }).click();
+  const prepare = page.getByRole("dialog", { name: "Prepare evidence", exact: true });
   await prepare.getByRole("button", { name: "Publish version", exact: true }).click();
   await prepare.getByText(/Version published\. Return to the browser/).waitFor();
   assert.equal(
@@ -211,30 +211,30 @@ try {
   assert.ok(saved.some((row) => row.evidence_version_id === version.id));
   assert.ok(saved.every((row) => row.claim === null && row.applicability_rationale === null));
   await page.goto(`${origin}/programs/${program.id}/requirements/${parent.id}?tab=Evidence`);
-  await page.getByRole("heading", { name: parent.code, exact: true }).waitFor();
+  await page.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   await page.getByRole("cell", { name: "New linked evidence", exact: true }).waitFor();
-  await page.getByRole("tab", { name: "Statement", exact: true }).click();
+  await page.getByRole("tab", { name: "Overview", exact: true }).click();
   await page.getByText(parent.current.statement, { exact: true }).waitFor();
   await page.goto(`${origin}/programs/${program.id}?tab=Requirements&requirementId=${parent.id}`);
-  await page.getByText(parent.current.title, { exact: true }).waitFor();
+  await page.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   assert.equal(
     await page.getByRole("combobox", { name: "Requirement revision", exact: true }).count(),
     0,
   );
   await page.getByRole("tab", { name: "Evidence", exact: true }).last().click();
   await page.reload();
-  await page.getByRole("heading", { name: parent.code, exact: true }).waitFor();
+  await page.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   await page.getByRole("cell", { name: "New linked evidence", exact: true }).waitFor();
   const fullPagePromise = context.waitForEvent("page");
-  await page.getByRole("link", { name: "Open full requirement in new tab", exact: true }).click();
+  await page.getByRole("link", { name: "Open full record in new tab", exact: true }).click();
   const fullPage = await fullPagePromise;
   fullPage.on("pageerror", (error) => errors.push(error.message));
-  await fullPage.getByRole("heading", { name: parent.code, exact: true }).waitFor();
+  await fullPage.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   assert.equal(new URL(fullPage.url()).searchParams.get("revisionId"), null);
   assert.equal(new URL(fullPage.url()).searchParams.get("tab"), "Evidence");
   await fullPage.getByRole("cell", { name: "New linked evidence", exact: true }).waitFor();
   await fullPage.reload();
-  await fullPage.getByRole("heading", { name: parent.code, exact: true }).waitFor();
+  await fullPage.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   assert.equal(
     await fullPage.getByRole("combobox", { name: "Requirement revision", exact: true }).count(),
     0,

@@ -12,16 +12,16 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 
 ## Variants
 
-| Need                                                       | Use              | Opens on                            | Closes on                              |
-| ---------------------------------------------------------- | ---------------- | ----------------------------------- | -------------------------------------- |
-| A short label                                              | **Tooltip**      | Hover or focus, after 300ms         | Leaving, Escape                        |
-| A peek at a record: a few facts, no actions                | **HoverCard**    | Hover or focus, after 600ms         | Leaving, Escape                        |
-| A small task at its button: a filter, a reason, a picker   | **Popover**      | Click                               | Escape, outside click, Done            |
-| A list of actions                                          | **DropdownMenu** | Click, Enter, Space, the down arrow | Choosing, Escape, outside click        |
-| A focused task over the page                               | **Dialog**       | The caller's state                  | Escape, the blanket, Cancel, the verb  |
-| A record's detail beside its list; a picker; a form behind | **Sheet**        | The caller's state                  | Escape, the blanket, the footer's verb |
-| The bottom sheet, for a narrow screen and a quick task     | **Drawer**       | The caller's state                  | A drag down, Escape, the blanket       |
-| A decision that needs a word before it happens             | **AlertDialog**  | The caller's state                  | Cancel, Escape, the verb               |
+| Need                                                             | Use              | Opens on                            | Closes on                              |
+| ---------------------------------------------------------------- | ---------------- | ----------------------------------- | -------------------------------------- |
+| A short label                                                    | **Tooltip**      | Hover or focus, after 300ms         | Leaving, Escape                        |
+| A peek at a record: a few facts, no actions                      | **HoverCard**    | Hover or focus, after 600ms         | Leaving, Escape                        |
+| A small task at its button: a filter, a reason, a picker         | **Popover**      | Click                               | Escape, outside click, Done            |
+| A list of actions                                                | **DropdownMenu** | Click, Enter, Space, the down arrow | Choosing, Escape, outside click        |
+| A focused task over the page                                     | **Dialog**       | The caller's state                  | Escape, the blanket, Cancel, the verb  |
+| A modal selection, review or explicitly scoped parent-draft task | **Sheet**        | The caller's state                  | Escape, the blanket, the footer's verb |
+| The bottom sheet, for a narrow screen and a quick task           | **Drawer**       | The caller's state                  | A drag down, Escape, the blanket       |
+| A decision that needs a word before it happens                   | **AlertDialog**  | The caller's state                  | Cancel, Escape, the verb               |
 
 <Canvas of={Stories.Anchored} />
 
@@ -37,12 +37,12 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 
 - **Focus moves in** when a blanketed overlay opens (Drawer focuses its popup by default; initialFocus can target an action or field) and **returns** to what opened it when it closes. The page behind is hidden from assistive technology and does not scroll.
 - **Escape closes** every overlay. An outside click closes the anchored ones and the blanket closes a Dialog, a Sheet and a Drawer; an AlertDialog ignores it.
-- **Pending holds.** A Dialog or an AlertDialog saving takes `pending`: Escape, the blanket and the close do nothing until the save returns.
+- **Pending holds.** The caller blocks `onOpenChange` while saving and disables repeated actions: Escape, the blanket and Close do nothing until the save returns.
 - **A tooltip never holds a control**, a hover card never holds an action, a popover never holds a task the reader must finish.
 
 ## Style
 
-- **One blanket at a time.** An AlertDialog may open over a Sheet or a Dialog, for the decision the task ends in; that is the only stack. A Dialog over a Dialog, a Sheet over a Sheet, is a sign the first should have been a page.
+- **One blanket at a time.** An AlertDialog may open over a Sheet or a Dialog, for the decision the task ends in; that is the only stack. Independent stacked record workflows should navigate or replace the current frame. A selection workflow owns its internal preview.
 - **A sheet's next record is its next frame**, not a second sheet: the same surface, the chevron before the title, `onBack`, the stack in the URL so the browser's back agrees.
 - **Anchored overlays stack on anything.** A Tooltip in a Dialog, a DropdownMenu in a Sheet, a Popover in a Drawer are fine; a Popover in a Popover is not.
 
@@ -51,8 +51,8 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 ## Props
 
 - **Trigger composition follows each component's API**: Popover uses `PopoverTrigger render={<Button />}`; DropdownMenu uses `DropdownMenuTrigger render` and `DropdownMenuContent`; Tooltip uses `TooltipTrigger render` and `TooltipContent`. HoverCard uses `HoverCardTrigger`, an anchor by default, with `render` for a custom link. Custom trigger components must forward their props and ref.
-- **The blanketed four are opened by state**: `open` and `onClose`. An act sets it; the caller clears it. Nothing opens a Dialog for the reader who did not ask.
-- **Where the task lives decides the overlay.** At the button: Popover. Over the page: Dialog. Beside the list: Sheet. Under the thumb: Drawer.
+- **The blanketed four are opened by state**: `open` and `onOpenChange`. An act sets it; the caller clears it. Nothing opens a Dialog for the reader who did not ask.
+- **Where the task lives decides the overlay.** At the button: Popover. An independent focused form: Dialog. Beside a usable list: Shell.Panel. A specifically modal selection or review task: Sheet. Under the thumb: Drawer.
 
 ## Content
 

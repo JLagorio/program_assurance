@@ -17,6 +17,7 @@ const SERVER_ONLY = {
 const PRODUCT = [
   "src/routes/**/*.{ts,tsx}",
   "src/components/app/**/*.{ts,tsx}",
+  "src/components/prototype/**/*.{ts,tsx}",
   "src/lib/**/*.{ts,tsx}",
   "src/router.tsx",
 ];
@@ -30,6 +31,8 @@ export default tseslint.config(
       ".output",
       ".vinxi",
       "storybook-static",
+      "artifacts",
+      ".playwright-mcp",
       // gitignored output; not source
       ".wrangler",
       ".tanstack",
@@ -94,10 +97,13 @@ export default tseslint.config(
     },
   },
   {
-    // The product assembles the kit on its tokens: the package preset plus the three assembly rules.
+    // Product layout defaults are stricter than the kit's generic component variants.
     files: PRODUCT,
     extends: ledger.configs.recommended,
-    rules: {},
+    rules: {
+      "ledger/product-responsive-table": "error",
+      "ledger/product-line-tabs": "error",
+    },
   },
   {
     // The product shell composes the package's Shell parts and keeps the name; it is the one intentional shadow.

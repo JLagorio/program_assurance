@@ -5,6 +5,7 @@ import {
   type SystemTab,
 } from "@/components/prototype/program-record";
 export const Route = createFileRoute("/programs/$programId_/systems/$scopeId")({
+  head: () => ({ meta: [{ title: "System — Program Assurance" }] }),
   validateSearch: (search: Record<string, unknown>): { tab?: SystemTab | undefined } => ({
     tab: systemTab(search["tab"]),
   }),

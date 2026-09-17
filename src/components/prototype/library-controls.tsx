@@ -3,6 +3,7 @@ import {
   Absent,
   Badge,
   DataTable,
+  Toolbar,
   defineColumns,
   Id,
   Inline,
@@ -16,6 +17,14 @@ import {
   TabsTrigger,
   useDataTable,
 } from "@ledger/design-system";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "./record-preview";
 import { useRows, type Row } from "@/lib/models";
 import { LibraryLoading } from "./library-shared";
 
@@ -29,8 +38,12 @@ export function LibraryControlTable({
   filters,
   showRelease = true,
   selectedBy,
+  selectedId,
+  onDisplayedRowsChange,
 }: {
   controls: Row<"controls">[];
+  selectedId?: string | undefined;
+  onDisplayedRowsChange?: ((rows: Row<"controls">[]) => void) | undefined;
   onSelect: (control: Row<"controls">) => void;
   label?: string;
   /** Extra toolbar controls after the search: an edition picker, say. */
@@ -40,6 +53,7 @@ export function LibraryControlTable({
   /** The published profiles selecting each control, by control id; adds a Selected by column. */
   selectedBy?: Map<string, ControlSelector[]> | undefined;
 }) {
+  const navigate = useNavigate();
   const groups = useRows("catalog_groups");
   const revisions = useRows("catalog_revisions");
   const data = useMemo(
@@ -61,8 +75,22 @@ export function LibraryControlTable({
   const columns = useMemo(
     () =>
       defineColumns<(typeof data)[number]>((c) => [
-        c.id("code", { header: "Control", width: 130, hideable: false }),
-        c.text("title", { header: "Title", hideable: false }),
+        c.id("code", {
+          header: "Control",
+          width: 130,
+          hideable: false,
+          preview: onSelect,
+          active: (row) => row.id === selectedId,
+        }),
+        c.text("title", {
+          header: "Title",
+          hideable: false,
+          cell: (row) => (
+            <RecordLink table="controls" record={row}>
+              {row.title}
+            </RecordLink>
+          ),
+        }),
         c.text("family", { header: "Family", width: 100 }),
         ...(showRelease ? [c.text("release", { header: "Release", width: 100 })] : []),
         c.status("status", {
@@ -81,7 +109,7 @@ export function LibraryControlTable({
             ]
           : []),
       ]),
-    [showRelease, selectedBy],
+    [showRelease, selectedBy, onSelect, selectedId],
   );
   const table = useDataTable({
     data,
@@ -93,30 +121,37 @@ export function LibraryControlTable({
     reorderable: true,
     virtualize: true,
   });
+  useDisplayedRecords(table, onDisplayedRowsChange);
   return (
     <LibraryLoading queries={[groups, revisions]}>
       <DataTable
+        responsive
         table={table}
         fill
-        onRowClick={onSelect}
+        onRowClick={(row) => void navigate(recordDestination("controls", row))}
         empty={{
           illustration: "shield",
           title: "No controls yet",
           description: "Import a catalog release to fill the library.",
         }}
         toolbar={
-          <Inline space="space.100" alignBlock="center" shouldWrap>
-            <DataTable.Search table={table} placeholder="Find a control" />
-            {filters}
-            <DataTable.Filter table={table} column="family" />
-            {showRelease && <DataTable.Filter table={table} column="release" />}
-            <DataTable.Filter table={table} column="status" />
-            {selectedBy && <DataTable.Filter table={table} column="selectedBy" />}
-            <Inline className="ml-auto" space="space.100">
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-            </Inline>
-          </Inline>
+          <Toolbar
+            search={String(table.state.globalFilter ?? "")}
+            onSearch={(value) => table.setGlobalFilter(value)}
+            placeholder="Find a control"
+            filters={
+              <>
+                {filters}
+                <DataTable.Filter table={table} column="family" />
+                {showRelease && <DataTable.Filter table={table} column="release" />}
+                <DataTable.Filter table={table} column="status" />
+                {selectedBy && <DataTable.Filter table={table} column="selectedBy" />}
+              </>
+            }
+          >
+            <DataTable.Columns table={table} />
+            <DataTable.Settings table={table} />
+          </Toolbar>
         }
       />
     </LibraryLoading>
@@ -158,8 +193,12 @@ export function ControlInspector({
   control,
   onClose,
   selectionId,
+  records,
+  onSelect,
 }: {
   control: Row<"controls">;
+  records?: Row<"controls">[] | undefined;
+  onSelect?: ((row: Row<"controls">) => void) | undefined;
   onClose: () => void;
   selectionId?: string;
 }) {
@@ -204,9 +243,25 @@ export function ControlInspector({
     })
     .filter((profile): profile is Row<"profile_revisions"> => !!profile);
   return (
-    <Shell.Panel title={control.code} onClose={onClose}>
+    <RecordPreviewPanel
+      title={control.title}
+      label="Control preview"
+      defaultWidth={640}
+      onClose={onClose}
+      navigation={
+        <RecordPreviewActions
+          table="controls"
+          record={control}
+          rows={records ?? [control]}
+          onSelect={onSelect ?? (() => {})}
+        />
+      }
+    >
       <Stack space="space.200">
-        <Inspector.Group title={control.title}>
+        <Inspector.Group title="Details">
+          <KeyValue label="Control">
+            <Id>{control.code}</Id>
+          </KeyValue>
           <KeyValue label="Source identifier">
             <Id>{control.source_id}</Id>
           </KeyValue>
@@ -249,7 +304,7 @@ export function ControlInspector({
           </Inspector.Group>
         )}
         <Tabs value={tab} onValueChange={(value) => setTab(String(value))}>
-          <TabsList variant="line" className="flex-wrap">
+          <TabsList variant="line" aria-label="Control sections">
             {["Statements", "Objectives", "Parameters", "Links"].map((name) => (
               <TabsTrigger key={name} value={name}>
                 {name}
@@ -315,7 +370,7 @@ export function ControlInspector({
           </TabsContent>
         </Tabs>
       </Stack>
-    </Shell.Panel>
+    </RecordPreviewPanel>
   );
 }
 

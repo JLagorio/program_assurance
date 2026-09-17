@@ -55,6 +55,8 @@ export type RowAction = {
  */
 export type DataTableColumnMeta = {
   kind: ColumnKind;
+  /** Lower numbers remain visible longer in a responsive table. */
+  priority?: number | undefined;
   align: "start" | "end";
   /** Wrap instead of truncating; the row grows. */
   wrap?: boolean | undefined;

@@ -1,7 +1,25 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
+import { RecordLink, recordDestination } from "./record-preview";
+import { EmptyMessage, MissingRecord } from "./work-common";
+import { displayDate } from "./work-format";
 import { canAuthorLibrary, downloadLibraryRecords } from "./library-utils";
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useBlocker } from "@tanstack/react-router";
 import {
+  Id,
+  Absent,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  Section,
+  Toolbar,
   Badge,
   Button,
   Checkbox,
@@ -80,7 +98,15 @@ export function ProductLibraryIndex() {
     () =>
       defineColumns<(typeof rows)[number]>((c) => [
         c.id("code", { header: "ID", width: 150 }),
-        c.text("name", { header: "Product", hideable: false }),
+        c.text("name", {
+          header: "Product",
+          hideable: false,
+          cell: (row) => (
+            <RecordLink table="products" record={row}>
+              {row.name}
+            </RecordLink>
+          ),
+        }),
         c.number("configurations", { header: "Configurations", width: 130 }),
         c.number("elements", { header: "Elements", width: 100 }),
         c.text("version", { header: "Version", width: 110 }),
@@ -102,41 +128,13 @@ export function ProductLibraryIndex() {
   return (
     <Stack space="space.200" className="animate-rise">
       <PageHeader>
-        <div className="min-w-0">
+        <PageHeader.Heading>
           <PageHeader.Title>Products</PageHeader.Title>
-          <p className="pt-050 font-body-small text-subtle">
-            The systems that get assessed: each product's elements and configurations, versioned. A
-            program creates a variant from one configuration.
-          </p>
-        </div>
-        <PageHeader.Actions>
-          <Inline space="space.100">
-            <Button
-              variant="secondary"
-              disabled={!products.data || !revisions.data || !configurations.data || !elements.data}
-              onClick={() =>
-                downloadLibraryRecords("product-library.json", {
-                  products: products.data,
-                  revisions: revisions.data,
-                  configurations: configurations.data,
-                  elements: elements.data,
-                })
-              }
-            >
-              Export
-            </Button>
-            {canAuthorLibrary(workspace.role) && (
-              <Button variant="primary" onClick={() => setCreating(true)}>
-                New product
-              </Button>
-            )}
-          </Inline>
-        </PageHeader.Actions>
+        </PageHeader.Heading>
       </PageHeader>
       {creating && (
         <LibraryEditor
           table="products"
-          title="New product"
           onClose={() => setCreating(false)}
           onSaved={(record) => {
             void navigate({
@@ -148,26 +146,65 @@ export function ProductLibraryIndex() {
       )}
       <LibraryLoading queries={[products, revisions, configurations, elements, systems]}>
         <DataTable
+          responsive
           table={table}
           fill
           onRowClick={(row) => {
             void navigate({ to: "/library/products/$productKey", params: { productKey: row.id } });
           }}
           empty={{
+            action: canAuthorLibrary(workspace.role) ? (
+              <Button variant="primary" onClick={() => setCreating(true)}>
+                Create product
+              </Button>
+            ) : undefined,
             illustration: "tree",
             title: "No products",
             description:
               "Create a product, then define its elements and configurations in a version.",
           }}
           toolbar={
-            <Inline space="space.100" alignBlock="center" shouldWrap>
-              <DataTable.Search table={table} placeholder="Search products" />
-              <DataTable.Filter table={table} column="status" />
-              <DataTable.Filter table={table} column="stateLabel" />
-              <Inline className="ml-auto">
-                <DataTable.Columns table={table} />
-              </Inline>
-            </Inline>
+            <Toolbar
+              search={String(table.state.globalFilter ?? "")}
+              onSearch={(value) => table.setGlobalFilter(value)}
+              placeholder="Find products"
+              filters={
+                <>
+                  <DataTable.Filter table={table} column="status" />
+                  <DataTable.Filter table={table} column="stateLabel" />
+                </>
+              }
+              actions={
+                <>
+                  <Inline space="space.100">
+                    <Button
+                      variant="secondary"
+                      disabled={
+                        !products.data || !revisions.data || !configurations.data || !elements.data
+                      }
+                      onClick={() =>
+                        downloadLibraryRecords("product-library.json", {
+                          products: products.data,
+                          revisions: revisions.data,
+                          configurations: configurations.data,
+                          elements: elements.data,
+                        })
+                      }
+                    >
+                      Export
+                    </Button>
+                    {canAuthorLibrary(workspace.role) && (
+                      <Button variant="primary" onClick={() => setCreating(true)}>
+                        Create product
+                      </Button>
+                    )}
+                  </Inline>
+                </>
+              }
+            >
+              <DataTable.Columns table={table} />
+              <DataTable.Settings table={table} />
+            </Toolbar>
           }
         />
       </LibraryLoading>
@@ -215,27 +252,43 @@ export function ProductLibraryRecord({
       setError(cause instanceof Error ? cause.message : "Could not create a version.");
     }
   }
+  if (!product.data)
+    return (
+      <LibraryLoading queries={[product, revisions, configurations]}>
+        <MissingRecord backTo="/library/products" kind="Product" />
+      </LibraryLoading>
+    );
   return (
     <LibraryLoading queries={[product, revisions, configurations]}>
       <Stack space="space.200" className="animate-rise">
         <PageHeader>
-          <div className="min-w-0">
-            <TextLink render={<Link to="/library/products" />}>Products</TextLink>
-            <PageHeader.Title>{product.data?.name ?? "Product not found"}</PageHeader.Title>
-            {product.data?.description && (
-              <p className="pt-050 font-body-small text-subtle">{product.data.description}</p>
-            )}
-          </div>
+          <PageHeader.Lead render={<Breadcrumb />}>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/library/products" />}>Products</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{product.data?.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </PageHeader.Lead>
+          <PageHeader.Heading>
+            <PageHeader.Title>{product.data?.name}</PageHeader.Title>
+          </PageHeader.Heading>
           {editable && product.data && (
             <PageHeader.Actions>
-              <Inline space="space.100">
-                <Button variant="secondary" onClick={() => setEditProduct(true)}>
-                  Edit details
-                </Button>
-                <Button variant="primary" disabled={busy} onClick={() => void newVersion()}>
-                  New version
-                </Button>
-              </Inline>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button>Actions</Button>} />
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setEditProduct(true)}>
+                    Edit product
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled={busy} onClick={() => void newVersion()}>
+                    Create product version
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </PageHeader.Actions>
           )}
         </PageHeader>
@@ -247,7 +300,6 @@ export function ProductLibraryRecord({
         {editProduct && product.data && (
           <LibraryEditor
             table="products"
-            title="Edit product"
             existing={product.data}
             onClose={() => setEditProduct(false)}
           />
@@ -276,9 +328,10 @@ export function ProductLibraryRecord({
             editable={editable}
           />
         ) : (
-          <p className="text-subtle">
-            No versions yet. Create the first version, then add its elements and configurations.
-          </p>
+          <EmptyMessage
+            title="No versions yet"
+            description="Create the first version, then add its elements and configurations."
+          />
         )}
       </Stack>
     </LibraryLoading>
@@ -300,6 +353,7 @@ function ProductRevision({
   onVersion: (id: string) => void;
   editable: boolean;
 }) {
+  const navigate = useNavigate();
   const elements = useRows("product_elements", { product_revision_id: revision.id });
   const memberships = useRows("product_configuration_elements", {
     product_revision_id: revision.id,
@@ -311,7 +365,7 @@ function ProductRevision({
   const programs = useRows("programs");
   const publish = useModelSave("product_revisions");
   const exportDocument = useProductComponentDefinition();
-  const [tab, setTab] = useState("Structure");
+  const [tab, setTab] = useState("Overview");
   const [error, setError] = useState("");
   const canEdit = editable && revision.state === "draft";
   const active = configurations.filter((row) => row.state === "active");
@@ -335,6 +389,74 @@ function ProductRevision({
       row.product_revision_id &&
       revisionIds.has(row.product_revision_id),
   );
+  const variantRows = useMemo(() => {
+    const ids = new Set(versions.map((item) => item.id));
+    return (systems.data ?? [])
+      .filter(
+        (item) =>
+          item.is_authorization_boundary &&
+          item.product_revision_id &&
+          ids.has(item.product_revision_id),
+      )
+      .map((variant) => {
+        const program = programs.data?.find((item) => item.id === variant.program_id);
+        const configuration = configurations.find(
+          (item) => item.id === variant.product_configuration_id,
+        );
+        const version = versions.find((item) => item.id === variant.product_revision_id);
+        const inside = (systems.data ?? []).filter(
+          (item) => item.boundary_system_id === variant.id && !item.is_authorization_boundary,
+        );
+        const inherited = inside.filter((item) => item.product_element_id).length;
+        return {
+          ...variant,
+          programName: program?.name ?? null,
+          configurationName: configuration?.name ?? null,
+          productVersion: version?.version_number ?? null,
+          inherited,
+          added: inside.length - inherited,
+        };
+      });
+  }, [systems.data, programs.data, configurations, versions]);
+  const variantColumns = useMemo(
+    () =>
+      defineColumns<(typeof variantRows)[number]>((c) => [
+        c.id("code", { header: "ID", width: 150 }),
+        c.text("name", {
+          header: "Variant",
+          hideable: false,
+          cell: (row) => (
+            <RecordLink table="systems" record={row}>
+              {row.name}
+            </RecordLink>
+          ),
+        }),
+        c.text("programName", {
+          header: "Program",
+          cell: (row) => (
+            <TextLink
+              render={<Link to="/programs/$programId" params={{ programId: row.program_id }} />}
+            >
+              {row.programName || <Absent />}
+            </TextLink>
+          ),
+        }),
+        c.text("configurationName", { header: "Configuration" }),
+        c.number("productVersion", { header: "Version", width: 110 }),
+        c.number("inherited", { header: "Inherited elements", width: 150 }),
+        c.number("added", { header: "Added elements", width: 150 }),
+      ]),
+    [],
+  );
+  const variantsTable = useDataTable({
+    data: variantRows,
+    columns: variantColumns,
+    getRowId: (row) => row.id,
+    label: "Product variants",
+    view: "product-variants",
+    resizable: true,
+    reorderable: true,
+  });
   async function publishRevision() {
     setError("");
     try {
@@ -397,8 +519,8 @@ function ProductRevision({
         </p>
       )}
       <Tabs value={tab} onValueChange={(value) => setTab(String(value))} className="contents">
-        <TabsList variant="line" className="w-full justify-start flex-wrap">
-          {["Structure", "Configurations", "Variants", "Versions"].map((name) => (
+        <TabsList variant="line" aria-label="Product sections">
+          {["Overview", "Structure", "Configurations", "Variants", "Versions"].map((name) => (
             <TabsTrigger key={name} value={name}>
               {name}
               {name === "Structure" && elements.data && (
@@ -410,6 +532,11 @@ function ProductRevision({
           ))}
         </TabsList>
         <TabsContent value={tab} className="contents">
+          {tab === "Overview" && (
+            <Section title="Description">
+              <p>{product.description || <Absent />}</p>
+            </Section>
+          )}
           {tab === "Structure" && (
             <ProductStructure
               product={product}
@@ -431,77 +558,36 @@ function ProductRevision({
           )}
           {tab === "Variants" && (
             <LibraryLoading queries={[systems, programs]}>
-              <Stack space="space.200">
-                <Table>
-                  <thead>
-                    <tr>
-                      <Table.Header>Program</Table.Header>
-                      <Table.Header>Variant</Table.Header>
-                      <Table.Header>Configuration</Table.Header>
-                      <Table.Header>Version</Table.Header>
-                      <Table.Header>Elements</Table.Header>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {variants.map((variant) => {
-                      const program = programs.data?.find((row) => row.id === variant.program_id);
-                      const configuration = configurations.find(
-                        (row) => row.id === variant.product_configuration_id,
-                      );
-                      const version = versions.find(
-                        (row) => row.id === variant.product_revision_id,
-                      );
-                      const inside = (systems.data ?? []).filter(
-                        (row) =>
-                          row.boundary_system_id === variant.id && !row.is_authorization_boundary,
-                      );
-                      const inherited = inside.filter((row) => row.product_element_id).length;
-                      return (
-                        <Table.Row key={variant.id}>
-                          <Table.Cell>
-                            {program ? (
-                              <TextLink
-                                render={
-                                  <Link
-                                    to="/programs/$programId"
-                                    params={{ programId: program.id }}
-                                  />
-                                }
-                              >
-                                {program.name}
-                              </TextLink>
-                            ) : (
-                              "Not recorded"
-                            )}
-                          </Table.Cell>
-                          <Table.Cell>
-                            <TextLink
-                              render={
-                                <Link
-                                  to="/programs/$programId/systems/$scopeId"
-                                  params={{ programId: variant.program_id, scopeId: variant.id }}
-                                />
-                              }
-                            >
-                              {variant.name}
-                            </TextLink>
-                          </Table.Cell>
-                          <Table.Cell>{configuration?.name ?? "Not recorded"}</Table.Cell>
-                          <Table.Cell>{version ? `v${version.version_number}` : "—"}</Table.Cell>
-                          <Table.Cell>
-                            {inherited} inherited · {inside.length - inherited} added
-                          </Table.Cell>
-                        </Table.Row>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-                {!variants.length && (
-                  <p className="text-subtle">
-                    No variants yet. A program creates one from a configuration of this product.
-                  </p>
-                )}
-              </Stack>
+              <Section title="Variants">
+                <DataTable
+                  responsive
+                  table={variantsTable}
+                  fill
+                  onRowClick={(row) => void navigate(recordDestination("systems", row))}
+                  empty={{
+                    illustration: "tree",
+                    title: "No variants yet",
+                    description:
+                      "A program creates a variant from a configuration of this product.",
+                  }}
+                  toolbar={
+                    <Toolbar
+                      search={String(variantsTable.state.globalFilter ?? "")}
+                      onSearch={(value) => variantsTable.setGlobalFilter(value)}
+                      placeholder="Find variants"
+                      filters={
+                        <>
+                          <DataTable.Filter table={variantsTable} column="programName" />
+                          <DataTable.Filter table={variantsTable} column="configurationName" />
+                        </>
+                      }
+                    >
+                      <DataTable.Columns table={variantsTable} />
+                      <DataTable.Settings table={variantsTable} />
+                    </Toolbar>
+                  }
+                />
+              </Section>
             </LibraryLoading>
           )}
           {tab === "Versions" && (
@@ -519,7 +605,9 @@ function ProductRevision({
                   <Table.Row key={version.id}>
                     <Table.Cell>{version.version_number}</Table.Cell>
                     <Table.Cell>{version.state}</Table.Cell>
-                    <Table.Cell>{version.published_at ?? "Not published"}</Table.Cell>
+                    <Table.Cell>
+                      {version.published_at ? displayDate(version.published_at) : "Not published"}
+                    </Table.Cell>
                     <Table.Cell>
                       <Button variant="subtle" size="small" onClick={() => onVersion(version.id)}>
                         Open version
@@ -532,35 +620,44 @@ function ProductRevision({
           )}
         </TabsContent>
       </Tabs>
-      <Shell.Aside label="Product properties">
-        <Inspector.Group title="Version">
-          <KeyValue label="Version">{revision.version_number}</KeyValue>
-          <KeyValue label="State">{revision.state}</KeyValue>
-          <KeyValue label="Published">{revision.published_at ?? "Not published"}</KeyValue>
-          {revision.effective_from && (
-            <KeyValue label="Effective from">{revision.effective_from}</KeyValue>
-          )}
-          {revision.remarks && (
-            <KeyValue label="Remarks" wrap>
-              {revision.remarks}
+      {tab === "Overview" && (
+        <Shell.Aside label="Product details">
+          <Inspector.Group title="Details">
+            <KeyValue label="Code">
+              <Id>{product.code}</Id>
             </KeyValue>
-          )}
-        </Inspector.Group>
-        <Inspector.Group title="Contents">
-          <KeyValue label="Elements">{elements.data?.length ?? "Loading…"}</KeyValue>
-          <KeyValue label="From the library">{specs.filter((row) => row.library).length}</KeyValue>
-          <KeyValue label="Configurations">{active.length}</KeyValue>
-          <KeyValue label="Variants">{systems.data ? variants.length : "Loading…"}</KeyValue>
-        </Inspector.Group>
-        {revision.state === "published" && (
-          <Inspector.Group title="OSCAL">
-            <p className="font-body-small text-subtle">
-              Export writes a component-definition: one component per element and one capability per
-              configuration.
-            </p>
+            <KeyValue label="Version">{revision.version_number}</KeyValue>
+            <KeyValue label="State">{revision.state}</KeyValue>
+            <KeyValue label="Published">
+              {revision.published_at ? displayDate(revision.published_at) : "Not published"}
+            </KeyValue>
+            {revision.effective_from && (
+              <KeyValue label="Effective from">{displayDate(revision.effective_from)}</KeyValue>
+            )}
+            {revision.remarks && (
+              <KeyValue label="Remarks" wrap>
+                {revision.remarks}
+              </KeyValue>
+            )}
           </Inspector.Group>
-        )}
-      </Shell.Aside>
+          <Inspector.Group title="Contents">
+            <KeyValue label="Elements">{elements.data?.length ?? "Loading…"}</KeyValue>
+            <KeyValue label="From the library">
+              {specs.filter((row) => row.library).length}
+            </KeyValue>
+            <KeyValue label="Configurations">{active.length}</KeyValue>
+            <KeyValue label="Variants">{systems.data ? variants.length : "Loading…"}</KeyValue>
+          </Inspector.Group>
+          {revision.state === "published" && (
+            <Inspector.Group title="OSCAL">
+              <p className="font-body-small text-subtle">
+                Export writes a component-definition: one component per element and one capability
+                per configuration.
+              </p>
+            </Inspector.Group>
+          )}
+        </Shell.Aside>
+      )}
     </Stack>
   );
 }
@@ -582,6 +679,7 @@ function ConfigurationsTab({
   variants: Row<"systems">[];
   editable: boolean;
 }) {
+  const navigate = useNavigate();
   const save = useModelSave("product_configurations");
   const includeAll = useIncludeAllElements();
   const [creating, setCreating] = useState(false);
@@ -611,7 +709,15 @@ function ConfigurationsTab({
     () =>
       defineColumns<(typeof rows)[number]>((c) => [
         c.id("code", { header: "Code", width: 110 }),
-        c.text("name", { header: "Configuration", hideable: false }),
+        c.text("name", {
+          header: "Configuration",
+          hideable: false,
+          cell: (row) => (
+            <RecordLink table="product_configurations" record={row}>
+              {row.name}
+            </RecordLink>
+          ),
+        }),
         c.text("description", { header: "Description", wrap: true }),
         c.number("elements", { header: "Elements", width: 100 }),
         c.number("variants", { header: "Variants", width: 100 }),
@@ -619,7 +725,7 @@ function ConfigurationsTab({
         ...(editable
           ? [
               c.actions((row) => [
-                { label: "Edit", onSelect: () => setEditing(row) },
+                { label: "Edit configuration", onSelect: () => setEditing(row) },
                 ...(canEditVersion && row.missing.length
                   ? [
                       {
@@ -674,6 +780,8 @@ function ConfigurationsTab({
         </p>
       )}
       <DataTable
+        responsive
+        onRowClick={(row) => void navigate(recordDestination("product_configurations", row))}
         table={table}
         empty={{
           illustration: "records",
@@ -682,23 +790,27 @@ function ConfigurationsTab({
             "A configuration is one way this product is built; a program starts from one.",
           action: editable ? (
             <Button variant="primary" size="small" onClick={() => setCreating(true)}>
-              New configuration
+              Create configuration
             </Button>
           ) : null,
         }}
         toolbar={
-          <Inline space="space.100" alignBlock="center" shouldWrap>
-            <DataTable.Search table={table} placeholder="Search configurations" />
-            <DataTable.Filter table={table} column="stateLabel" />
-            <Inline className="ml-auto" space="space.100">
-              <DataTable.Columns table={table} />
-              {editable && (
+          <Toolbar
+            search={String(table.state.globalFilter ?? "")}
+            onSearch={(value) => table.setGlobalFilter(value)}
+            placeholder="Find configurations"
+            filters={<DataTable.Filter table={table} column="stateLabel" />}
+            actions={
+              editable && (
                 <Button variant="primary" size="small" onClick={() => setCreating(true)}>
-                  New configuration
+                  Create configuration
                 </Button>
-              )}
-            </Inline>
-          </Inline>
+              )
+            }
+          >
+            <DataTable.Columns table={table} />
+            <DataTable.Settings table={table} />
+          </Toolbar>
         }
       />
       {creating && (
@@ -712,7 +824,6 @@ function ConfigurationsTab({
       {editing && (
         <LibraryEditor
           table="product_configurations"
-          title="Edit configuration"
           existing={editing}
           onClose={() => setEditing(null)}
         />
@@ -733,6 +844,12 @@ function NewConfigurationDialog({
   elementIds: string[];
   onClose: () => void;
 }) {
+  const { confirm, confirmation } = useConfirmation();
+  const inFlight = useRef(false);
+  const bypassClose = useRef(false);
+  const completedId = useRef<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [createdId, setCreatedId] = useState<string | null>(null);
   const save = useModelSave("product_configurations");
   const includeAll = useIncludeAllElements();
   const [code, setCode] = useState("");
@@ -740,75 +857,118 @@ function NewConfigurationDialog({
   const [description, setDescription] = useState("");
   const [includeEverything, setIncludeEverything] = useState(true);
   const [error, setError] = useState("");
-  const busy = save.isPending || includeAll.isPending;
+  const busy = saving || save.isPending || includeAll.isPending;
+  const dirty = !!(code || name || description || !includeEverything);
+  useBlocker({
+    shouldBlockFn: async () =>
+      !bypassClose.current &&
+      (inFlight.current ||
+        (dirty &&
+          !(await confirm(discardChanges("Your configuration changes have not been saved."))))),
+    enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
+  });
+  async function close() {
+    if (busy || inFlight.current) return;
+    if (
+      (code || name || description || !includeEverything) &&
+      !(await confirm(discardChanges("Your unsaved configuration details will be discarded.")))
+    )
+      return;
+    bypassClose.current = true;
+    onClose();
+  }
   async function submit() {
+    if (busy || inFlight.current) return;
     if (!code.trim() || !name.trim()) {
       setError("Enter a code and a name.");
       return;
     }
     setError("");
+    inFlight.current = true;
+    setSaving(true);
     try {
-      const created = await save.mutateAsync({
-        values: {
-          product_id: product.id,
-          code: code.trim(),
-          name: name.trim(),
-          description: description.trim() || null,
-        },
-      });
+      const created = createdId
+        ? { id: createdId }
+        : await save.mutateAsync({
+            values: {
+              product_id: product.id,
+              code: code.trim(),
+              name: name.trim(),
+              description: description.trim() || null,
+            },
+          });
+      completedId.current = created.id;
+      setCreatedId(created.id);
       if (includeEverything && elementIds.length)
         await includeAll.mutateAsync({
           revisionId: revision.id,
           configurationId: created.id,
           elementIds,
         });
+      bypassClose.current = true;
       onClose();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not save the configuration.");
+      const message = cause instanceof Error ? cause.message : "Could not save the configuration.";
+      setError(
+        completedId.current
+          ? `${message} The configuration is saved. Retry to finish linking its elements.`
+          : message,
+      );
+    } finally {
+      inFlight.current = false;
+      setSaving(false);
     }
   }
   return (
     <Dialog
       open
       onOpenChange={(open) => {
-        if (!open && !busy) onClose();
+        if (!open) void close();
       }}
     >
       <DialogContent style={{ maxWidth: 560 }} showCloseButton={!busy}>
         <DialogHeader>
-          <DialogTitle>New configuration</DialogTitle>
+          <DialogTitle>Create configuration</DialogTitle>
           <DialogDescription>
             One way {product.name} is built. Which elements are in it is recorded per version.
           </DialogDescription>
         </DialogHeader>
-        <Stack space="space.150">
-          <TextField label="Code" value={code} onChange={setCode} required autoFocus />
-          <TextField label="Name" value={name} onChange={setName} required />
-          <TextField label="Description" value={description} onChange={setDescription} multiline />
-          {elementIds.length ? (
-            <label className="flex items-center gap-075 font-body-small">
-              <Checkbox
-                checked={includeEverything}
-                onCheckedChange={(checked) => setIncludeEverything(checked === true)}
-              />
-              Include every element in this version ({elementIds.length})
-            </label>
-          ) : null}
-          {error && (
-            <p role="alert" className="font-body-small text-danger">
-              {error}
-            </p>
-          )}
-        </Stack>
+        <fieldset disabled={busy || !!createdId}>
+          <Stack space="space.150">
+            <TextField label="Code" value={code} onChange={setCode} required autoFocus />
+            <TextField label="Name" value={name} onChange={setName} required />
+            <TextField
+              label="Description"
+              value={description}
+              onChange={setDescription}
+              multiline
+            />
+            {elementIds.length ? (
+              <label className="flex items-center gap-075 font-body-small">
+                <Checkbox
+                  checked={includeEverything}
+                  onCheckedChange={(checked) => setIncludeEverything(checked === true)}
+                />
+                Include every element in this version ({elementIds.length})
+              </label>
+            ) : null}
+            {error && (
+              <p role="alert" className="font-body-small text-danger">
+                {error}
+              </p>
+            )}
+          </Stack>
+        </fieldset>
         <DialogFooter>
-          <Button variant="subtle" disabled={busy} onClick={onClose}>
+          <Button variant="subtle" disabled={busy} onClick={() => void close()}>
             Cancel
           </Button>
           <Button variant="primary" isLoading={busy} disabled={busy} onClick={() => void submit()}>
-            Save configuration
+            Create configuration
           </Button>
         </DialogFooter>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

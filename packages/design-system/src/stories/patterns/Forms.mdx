@@ -77,12 +77,15 @@ Compose each [Field](?path=/docs/components-field--docs) from a FieldLabel, cont
 
 ## Style
 
-| Form                                 | Where                                                                                                 |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Creating a record with several parts | A page with headed sections, or a wizard in [Stepper](?path=/docs/components-stepper--docs) steps.    |
-| Editing a few fields of a record     | A [Sheet](?path=/docs/components-sheet--docs) from the record, the first field focused.               |
-| One or two fields                    | A [Dialog](?path=/docs/components-dialog--docs) or a [Popover](?path=/docs/components-popover--docs). |
-| One value on a record                | An [Editable](?path=/docs/patterns-editable--docs), read in place and edited on click.              |
+| Form                                   | Where                                                                                                           |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| A focused create or edit task          | Dialog, with first-field focus and a DialogFooter outside the scrolling body.                                   |
+| A multi-step setup                     | A page wizard when the workflow needs several stages.                                                           |
+| One contextual filter or reason        | Popover at its trigger.                                                                                         |
+| One value on a record                  | Editable, read in place and edited on activation.                                                               |
+| A selection or parent-owned draft task | A specifically documented Sheet or RecordBrowser workflow; not a second default for ordinary create/edit forms. |
+
+Use Cancel as a subtle button before the operation's primary. Preserve dirty drafts and pending saves when closing or navigating. In Program Assurance, the product contract names the closed exception list; field count alone never switches a create/edit task between Dialog and Sheet.
 
 ## Related
 

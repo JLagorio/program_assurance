@@ -60,20 +60,30 @@ async function login(p) {
   await p.getByLabel("Email", { exact: true }).fill(email);
   await p.getByLabel("Password", { exact: true }).fill(password);
   await p.getByRole("button", { name: "Sign in", exact: true }).click();
-  await p.getByRole("heading", { name: "Build your assurance record" }).waitFor();
+  await p.getByRole("heading", { name: "Schema inspector" }).waitFor();
+}
+const nouns = {
+  programs: "program",
+  systems: "system",
+  evidence_artifacts: "evidence artifact",
+  evidence_versions: "evidence version",
+};
+async function action(p, name) {
+  await p.getByRole("button", { name: "Actions", exact: true }).click();
+  await p.getByRole("menuitem", { name, exact: true }).click();
 }
 async function form(collection, search = "") {
   await page.goto(`${origin}/records/${collection}/new${search}`);
-  await page.getByRole("button", { name: "Save record", exact: true }).waitFor();
+  await page.getByRole("button", { name: `Create ${nouns[collection]}`, exact: true }).waitFor();
 }
 async function choice(label, text) {
   await page.getByLabel(label, { exact: true }).click();
   await page.getByRole("option", { name: text, exact: true }).click();
 }
 async function save(collection) {
-  await page.getByRole("button", { name: "Save record", exact: true }).click();
+  await page.getByRole("button", { name: `Create ${nouns[collection]}`, exact: true }).click();
   await page.waitForURL(new RegExp(`/records/${collection}/[0-9a-f-]{36}$`));
-  await page.getByRole("button", { name: "Edit record", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Actions", exact: true }).waitFor();
   assert.equal(await page.getByRole("alert").count(), 0);
   return page.url().split("/").at(-1);
 }
@@ -101,11 +111,11 @@ try {
   const programId = await save("programs");
   await page.goto(`${origin}/programs/${programId}`);
   await page.getByRole("heading", { name: "Browser validation program", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Edit program", exact: true }).click();
+  await action(page, "Edit program");
   await page
     .getByLabel("Description", { exact: true })
     .fill("Saved through the original prototype using the Supabase model.");
-  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await page.getByRole("button", { name: "Save program", exact: true }).click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   const prototypeSave = await client
     .from("programs")
@@ -177,21 +187,21 @@ try {
   assert.deepEqual(Buffer.concat(downloaded), fileBytes);
   await page.screenshot({ path: "/tmp/program-assurance-evidence.png", fullPage: true });
   await page.goto(`${origin}/records/programs/${programId}`);
-  await page.getByRole("button", { name: "Edit record", exact: true }).click();
+  await action(page, "Edit program");
   await page.getByLabel("Name *", { exact: true }).fill("Unsaved stale draft");
   const freshContext = await browser.newContext({ viewport: { width: 1440, height: 1050 } });
   const fresh = await freshContext.newPage();
   await login(fresh);
   await fresh.goto(`${origin}/records/programs/${programId}`);
   await fresh.getByRole("heading", { name: "Browser validation program", exact: true }).waitFor();
-  await fresh.getByRole("button", { name: "Edit record", exact: true }).click();
+  await action(fresh, "Edit program");
   await fresh.getByLabel("Name *", { exact: true }).fill("Browser validation persisted");
-  await fresh.getByRole("button", { name: "Save record", exact: true }).click();
+  await fresh.getByRole("button", { name: "Save program", exact: true }).click();
   await fresh.getByRole("heading", { name: "Browser validation persisted", exact: true }).waitFor();
   await freshContext.close();
   await page.bringToFront();
   await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
-  await page.getByRole("button", { name: "Save record", exact: true }).click();
+  await page.getByRole("button", { name: "Save program", exact: true }).click();
   await page
     .getByRole("alert")
     .filter({ hasText: "This record changed in another session" })
@@ -200,12 +210,18 @@ try {
     await page.getByLabel("Name *", { exact: true }).inputValue(),
     "Unsaved stale draft",
   );
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page
+    .getByRole("alertdialog", { name: "Discard changes?" })
+    .getByRole("button", { name: "Discard changes", exact: true })
+    .click();
   await page.goto(`${origin}/records/programs/${programId}`);
   await page.getByRole("heading", { name: "Browser validation persisted", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Delete record", exact: true }).click();
-  await page.getByRole("button", { name: "Confirm deletion", exact: true }).click();
+  await action(page, "Delete program");
+  await page
+    .getByRole("alertdialog", { name: "Delete program?" })
+    .getByRole("button", { name: "Delete program", exact: true })
+    .click();
   await page.getByRole("alert").filter({ hasText: "Related records still reference" }).waitFor();
   await page.goto(`${origin}/records/controls`);
   await page
@@ -248,6 +264,7 @@ try {
   );
 } catch (error) {
   console.error("Browser check failed:", error.message);
+  console.error("Visible form errors:", await page.getByRole("alert").allTextContents());
   console.error((await page.locator("body").innerText()).slice(0, 5000));
   await page.screenshot({ path: "/tmp/program-assurance-browser-failure.png", fullPage: true });
   throw error;

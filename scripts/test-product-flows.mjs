@@ -60,21 +60,29 @@ try {
   await page.screenshot({ path: "/tmp/product-risk-dialog.png" });
   await save("Create risk");
   assert.equal((await records("risks"))[0].title, "Supply dependency review");
-  await page.getByRole("button", { name: "Edit risk", exact: true }).click();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit risk", exact: true }).click();
   await page.getByRole("dialog").getByLabel("Title *", { exact: true }).fill("Unsaved change");
-  page.once("dialog", (dialog) => dialog.dismiss());
   await page.keyboard.press("Escape");
+  await page
+    .getByRole("alertdialog", { name: "Discard changes?", exact: true })
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
+  await page.getByRole("alertdialog").waitFor({ state: "hidden" });
   assert.equal(await page.getByRole("dialog").count(), 1, "Declining discard retains the dialog");
   assert.equal(
     await page.getByRole("dialog").getByLabel("Title *", { exact: true }).inputValue(),
     "Unsaved change",
   );
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("dialog").getByRole("button", { name: "Cancel", exact: true }).click();
+  await page
+    .getByRole("alertdialog", { name: "Discard changes?", exact: true })
+    .getByRole("button", { name: "Discard changes", exact: true })
+    .click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   assert.equal((await records("risks"))[0].title, "Supply dependency review");
 
-  await open("/work", "Add task", "Create task");
+  await open("/work", "Create task", "Create task");
   await page
     .getByRole("dialog")
     .getByRole("textbox", { name: "Task title", exact: true })
@@ -91,7 +99,7 @@ try {
   assert.equal((await records("tasks"))[0].title, "Review the system boundary");
   assert.equal((await records("task_assignments"))[0].party_id, assignee.id);
 
-  await open("/profiles", "New profile", "New profile");
+  await open("/profiles", "Create profile", "Create profile");
   await page
     .getByRole("dialog")
     .getByLabel("Title *", { exact: true })
@@ -100,23 +108,20 @@ try {
   await save("Create profile");
   assert.equal((await records("profiles"))[0].code, "FLOW-PROFILE");
 
-  await open(`/programs/${program.id}?tab=System`, "Add system", "Create system");
+  await open(`/programs/${program.id}?tab=System`, "Create system", "Create system");
   assert.equal(
     await page.getByRole("dialog").getByLabel("Find Program", { exact: true }).count(),
     0,
     "Parent program stays fixed by context",
   );
-  await page
-    .getByRole("dialog")
-    .getByLabel("Name *", { exact: true })
-    .fill("Boundary check system");
-  await page.getByRole("dialog").getByLabel("Code *", { exact: true }).fill("FLOW-SYSTEM");
-  await choose("System type *", "Information system");
+  await page.getByRole("dialog").getByLabel("Name", { exact: true }).fill("Boundary check system");
+  await page.getByRole("dialog").getByLabel("Code", { exact: true }).fill("FLOW-SYSTEM");
+  await choose("System type", "Information system");
   await save("Create system");
   const systems = await records("systems");
   assert.equal(systems[0].program_id, program.id);
 
-  await open("/evidence", "New evidence", "New evidence");
+  await open("/evidence", "Create evidence artifact", "Create evidence artifact");
   await page
     .getByRole("dialog")
     .getByRole("textbox", { name: "Artifact title", exact: true })
@@ -128,7 +133,7 @@ try {
     .getByRole("dialog")
     .getByLabel("External reference", { exact: true })
     .fill("https://example.test/review-notes");
-  await save("Create evidence");
+  await save("Create evidence artifact");
   assert.equal((await records("evidence_artifacts"))[0].title, "Boundary review notes");
   const version = (await records("evidence_versions"))[0];
   assert.equal(version.version_number, 1);

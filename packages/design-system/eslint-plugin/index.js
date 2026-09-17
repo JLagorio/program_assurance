@@ -3,11 +3,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { compositionRules } from "./composition-rules.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const generated = JSON.parse(
-  fs.readFileSync(path.join(here, "../src/generated/utilities.json"), "utf8"),
-);
+const utilitiesPath = ["../src/generated/utilities.json", "../dist/generated/utilities.json"]
+  .map((relative) => path.join(here, relative))
+  .find((candidate) => fs.existsSync(candidate));
+if (!utilitiesPath)
+  throw new Error("Ledger ESLint token metadata is missing; rebuild the package.");
+const generated = JSON.parse(fs.readFileSync(utilitiesPath, "utf8"));
 const tokenClasses = new Set(generated.classes);
 const spaceKeys = generated.spaceKeys.join("|");
 const deprecated = generated.deprecated;
@@ -317,27 +321,11 @@ const deprecatedNames = {
 
 /* ---------- how a product assembles the kit ---------- */
 
-/** Every component the kit exports, read from the package's own layers so the list never drifts. */
-function kitNames() {
-  const names = new Set();
-  const walk = (dir) => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const p = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(p);
-      else if (/\.tsx?$/.test(p))
-        for (const m of fs
-          .readFileSync(p, "utf8")
-          .matchAll(/^export (?:function|const) ([A-Z]\w*)/gm))
-          names.add(m[1]);
-    }
-  };
-  for (const layer of ["primitives", "components", "patterns", "shapes", "shell", "mode"]) {
-    const dir = path.join(here, "../src", layer);
-    if (fs.existsSync(dir)) walk(dir);
-  }
-  return names;
-}
-const KIT = kitNames();
+// Generated from the public barrel during the package build. Tests reject stale inventory.
+// Unlike a source scan, this also works in installed packages without src or TypeScript.
+const KIT = new Set(
+  JSON.parse(fs.readFileSync(path.join(here, "components.json"), "utf8")).components,
+);
 /** Names a product used before the vocabulary; a local component under one of these is a copy of the kit part named. */
 const LEGACY = {
   Dash: "Absent",
@@ -411,6 +399,7 @@ function stringLiterals(node, out = []) {
 }
 
 const rules = {
+  ...compositionRules,
   "button-icon-slot": rule(
     "An icon in a Button goes in iconBefore or iconAfter, and an IconButton takes icon; the button sizes it.",
     (context) => ({
@@ -815,6 +804,9 @@ plugin.configs.recommended = [
       "ledger/no-colgroup": "error",
       "ledger/button-icon-slot": "error",
       "ledger/use-primitives": "warn",
+      "ledger/no-native-confirm": "error",
+      "ledger/text-link-navigation": "error",
+      "ledger/dialog-footer-order": "error",
     },
   },
 ];

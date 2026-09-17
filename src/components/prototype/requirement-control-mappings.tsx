@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -178,10 +179,6 @@ export function RequirementControlMappings({
           </Button>
         )}
       </Inline>
-      <p className="font-body-small text-subtle">
-        Map a requirement to a control in its system’s tailored profile. Select a statement only
-        when that additional precision is useful.
-      </p>
       {error ? (
         <p role="alert" className="text-danger">
           {error.message}
@@ -205,7 +202,7 @@ export function RequirementControlMappings({
                 <thead>
                   <Table.Row>
                     <Table.Header>Control</Table.Header>
-                    <Table.Header>Coverage</Table.Header>
+                    <Table.Header width={256}>Coverage</Table.Header>
                     <Table.Header>System</Table.Header>
                     <Table.Header>Relationship</Table.Header>
                     <Table.Header>Rationale</Table.Header>
@@ -237,7 +234,7 @@ export function RequirementControlMappings({
                         <Table.Cell className="whitespace-normal">
                           {control ? `${control.code} · ${control.title}` : "Control unavailable"}
                         </Table.Cell>
-                        <Table.Cell className="min-w-64 whitespace-normal">
+                        <Table.Cell className="whitespace-normal">
                           <Stack space="space.050">
                             <span className="font-body-small font-medium">
                               {!link.control_part_id
@@ -357,6 +354,7 @@ function MappingDialog({
   initial?: ExistingMapping | undefined;
   onClose: () => void;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const save = useModelSave("requirement_control_links");
   const cache = useQueryClient();
@@ -411,17 +409,19 @@ function MappingDialog({
       link.control_part_id === (partId || null) &&
       link.relationship_type === relationship,
   );
-  const close = () => {
+  const close = async () => {
     if (inFlight.current) return;
-    if (!dirty || window.confirm("Discard this unsaved control mapping?")) {
+    if (!dirty || (await confirm(discardChanges("Discard this unsaved control mapping?")))) {
       bypassClose.current = true;
       onClose();
     }
   };
   useBlocker({
-    shouldBlockFn: () =>
+    shouldBlockFn: async () =>
       inFlight.current ||
-      (dirty && !bypassClose.current && !window.confirm("Discard this unsaved control mapping?")),
+      (dirty &&
+        !bypassClose.current &&
+        !(await confirm(discardChanges("Discard this unsaved control mapping?")))),
     enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
   });
   async function submit(event: FormEvent) {
@@ -726,24 +726,16 @@ function MappingDialog({
             </fieldset>
           </Box>
           <DialogFooter>
-            <Button type="button" variant="secondary" disabled={busy} onClick={close}>
+            <Button type="button" variant="subtle" disabled={busy} onClick={close}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={
-                busy ||
-                !canWrite ||
-                duplicate ||
-                (!preserveTarget && (!chosenSystem || !chosenControl || (!!partId && !chosenPart)))
-              }
-            >
+            <Button type="submit" variant="primary" disabled={busy || !canWrite}>
               {busy ? "Saving…" : "Save mapping"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

@@ -1,6 +1,22 @@
+import { RecordLink, recordDestination } from "./record-preview";
+import { EmptyMessage, MissingRecord } from "./work-common";
+import { displayDate } from "./work-format";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  Absent,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  Section,
+  Toolbar,
   Badge,
   Button,
   DataTable,
@@ -60,7 +76,15 @@ export function RequirementLibraryIndex() {
     () =>
       defineColumns<(typeof rows)[number]>((c) => [
         c.id("code", { header: "ID", width: 150 }),
-        c.text("title", { header: "Requirement definition", hideable: false }),
+        c.text("title", {
+          header: "Requirement definition",
+          hideable: false,
+          cell: (row) => (
+            <RecordLink table="requirement_definitions" record={row}>
+              {row.title}
+            </RecordLink>
+          ),
+        }),
         c.text("statement", { header: "Statement", minWidth: 280, wrap: true }),
         c.text("type", { header: "Type", width: 130 }),
         c.text("version", { header: "Version", width: 100 }),
@@ -81,25 +105,13 @@ export function RequirementLibraryIndex() {
   return (
     <Stack space="space.200" className="animate-rise">
       <PageHeader>
-        <div className="min-w-0">
+        <PageHeader.Heading>
           <PageHeader.Title>Requirements</PageHeader.Title>
-          <p className="pt-050 font-body-small text-subtle">
-            Reusable requirement definitions, versioned; a program adopts an exact published version
-            and allocates it to its elements.
-          </p>
-        </div>
-        <PageHeader.Actions>
-          {canAuthorLibrary(workspace.role) && (
-            <Button variant="primary" onClick={() => setCreating(true)}>
-              New requirement definition
-            </Button>
-          )}
-        </PageHeader.Actions>
+        </PageHeader.Heading>
       </PageHeader>
       {creating && (
         <LibraryEditor
           table="requirement_definitions"
-          title="New requirement definition"
           onClose={() => setCreating(false)}
           onSaved={(record) => {
             void navigate({
@@ -111,6 +123,7 @@ export function RequirementLibraryIndex() {
       )}
       <LibraryLoading queries={[definitions, revisions, adoptions]}>
         <DataTable
+          responsive
           table={table}
           fill
           onRowClick={(row) => {
@@ -120,20 +133,40 @@ export function RequirementLibraryIndex() {
             });
           }}
           empty={{
+            action: canAuthorLibrary(workspace.role) ? (
+              <Button variant="primary" onClick={() => setCreating(true)}>
+                Create requirement
+              </Button>
+            ) : undefined,
             illustration: "shield",
             title: "No reusable requirements",
             description:
               "Create a requirement definition, then author and publish its first version.",
           }}
           toolbar={
-            <Inline space="space.100" alignBlock="center" shouldWrap>
-              <DataTable.Search table={table} placeholder="Search requirement definitions" />
-              <DataTable.Filter table={table} column="type" />
-              <DataTable.Filter table={table} column="status" />
-              <Inline className="ml-auto">
-                <DataTable.Columns table={table} />
-              </Inline>
-            </Inline>
+            <Toolbar
+              search={String(table.state.globalFilter ?? "")}
+              onSearch={(value) => table.setGlobalFilter(value)}
+              placeholder="Find requirements"
+              filters={
+                <>
+                  <DataTable.Filter table={table} column="type" />
+                  <DataTable.Filter table={table} column="status" />
+                </>
+              }
+              actions={
+                <>
+                  {canAuthorLibrary(workspace.role) && (
+                    <Button variant="primary" onClick={() => setCreating(true)}>
+                      Create requirement definition
+                    </Button>
+                  )}
+                </>
+              }
+            >
+              <DataTable.Columns table={table} />
+              <DataTable.Settings table={table} />
+            </Toolbar>
           }
         />
       </LibraryLoading>
@@ -148,15 +181,17 @@ export function RequirementLibraryRecord({
   id: string;
   initialVersion?: string;
 }) {
+  const navigate = useNavigate();
   const definition = useRow("requirement_definitions", id);
   const revisions = useRows("requirement_definition_revisions", { requirement_definition_id: id });
   const adoptions = useRows("engineering_requirements");
+  const requirementContents = useRows("requirement_revisions");
   const programs = useRows("programs");
   const createRevision = useModelSave("requirement_definition_revisions");
   const publish = useModelSave("requirement_definition_revisions");
   const workspace = useWorkspace();
   const [selectedVersion, setSelectedVersion] = useState(initialVersion ?? "");
-  const [edit, setEdit] = useState<{ table: string; row?: DataRecord; title: string } | null>(null);
+  const [edit, setEdit] = useState<{ table: string; row?: DataRecord } | null>(null);
   const [error, setError] = useState("");
   const versions = [...(revisions.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const current =
@@ -169,6 +204,64 @@ export function RequirementLibraryRecord({
     (row) =>
       row.definition_revision_id && versions.some((v) => v.id === row.definition_revision_id),
   );
+  const adoptionRows = useMemo(() => {
+    const definitions = revisions.data ?? [];
+    return (adoptions.data ?? [])
+      .filter(
+        (item) =>
+          item.definition_revision_id &&
+          definitions.some((version) => version.id === item.definition_revision_id),
+      )
+      .map((item) => {
+        const program = programs.data?.find((row) => row.id === item.program_id);
+        const version = definitions.find((row) => row.id === item.definition_revision_id);
+        const content = requirementContents.data
+          ?.filter((row) => row.engineering_requirement_id === item.id)
+          .sort((a, b) => b.version_number - a.version_number)[0];
+        return {
+          ...item,
+          title: content?.title ?? "Requirement",
+          programName: program?.name ?? null,
+          definitionVersion: version?.version_number ?? null,
+        };
+      });
+  }, [revisions.data, adoptions.data, programs.data, requirementContents.data]);
+  const adoptionColumns = useMemo(
+    () =>
+      defineColumns<(typeof adoptionRows)[number]>((c) => [
+        c.id("code", { header: "ID", width: 150 }),
+        c.text("title", {
+          header: "Requirement",
+          hideable: false,
+          cell: (row) => (
+            <RecordLink table="engineering_requirements" record={row}>
+              {row.title}
+            </RecordLink>
+          ),
+        }),
+        c.text("programName", {
+          header: "Program",
+          cell: (row) => (
+            <TextLink
+              render={<Link to="/programs/$programId" params={{ programId: row.program_id }} />}
+            >
+              {row.programName || <Absent />}
+            </TextLink>
+          ),
+        }),
+        c.number("definitionVersion", { header: "Definition version", width: 150 }),
+      ]),
+    [],
+  );
+  const adoptionTable = useDataTable({
+    data: adoptionRows,
+    columns: adoptionColumns,
+    getRowId: (row) => row.id,
+    label: "Requirement adoptions",
+    view: "requirement-definition-adoptions",
+    resizable: true,
+    reorderable: true,
+  });
   async function newVersion() {
     setError("");
     const base = current;
@@ -200,43 +293,55 @@ export function RequirementLibraryRecord({
       setError(cause instanceof Error ? cause.message : "Could not publish this version.");
     }
   }
+  if (!definition.data)
+    return (
+      <LibraryLoading queries={[definition, revisions, adoptions, programs, requirementContents]}>
+        <MissingRecord backTo="/library/requirements" kind="Requirement definition" />
+      </LibraryLoading>
+    );
   return (
-    <LibraryLoading queries={[definition, revisions, adoptions, programs]}>
+    <LibraryLoading queries={[definition, revisions, adoptions, programs, requirementContents]}>
       <Stack space="space.200" className="animate-rise">
         <PageHeader>
-          <div className="min-w-0">
-            <TextLink render={<Link to="/library/requirements" />}>Requirements</TextLink>
-            <PageHeader.Title>{definition.data?.title ?? "Requirement not found"}</PageHeader.Title>
-            {definition.data && (
-              <p className="pt-050 font-body-small text-subtle">
-                <Id>{definition.data.code}</Id>
-                {definition.data.description ? ` · ${definition.data.description}` : ""}
-              </p>
-            )}
-          </div>
+          <PageHeader.Lead render={<Breadcrumb />}>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/library/requirements" />}>
+                  Requirements
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{definition.data?.title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </PageHeader.Lead>
+          <PageHeader.Heading>
+            <PageHeader.Title>{definition.data?.title}</PageHeader.Title>
+          </PageHeader.Heading>
           {editable && definition.data && (
             <PageHeader.Actions>
-              <Inline space="space.100">
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    setEdit({
-                      table: "requirement_definitions",
-                      row: definition.data as unknown as DataRecord,
-                      title: "Edit requirement definition",
-                    })
-                  }
-                >
-                  Edit details
-                </Button>
-                <Button
-                  variant="primary"
-                  disabled={createRevision.isPending}
-                  onClick={() => void newVersion()}
-                >
-                  New version
-                </Button>
-              </Inline>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button>Actions</Button>} />
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      setEdit({
+                        table: "requirement_definitions",
+                        row: definition.data as unknown as DataRecord,
+                      })
+                    }
+                  >
+                    Edit requirement
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={createRevision.isPending}
+                    onClick={() => void newVersion()}
+                  >
+                    Create requirement version
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </PageHeader.Actions>
           )}
         </PageHeader>
@@ -248,7 +353,6 @@ export function RequirementLibraryRecord({
         {edit && (
           <LibraryEditor
             table={edit.table}
-            title={edit.title}
             {...(edit.row ? { existing: edit.row } : {})}
             initialValues={{ requirement_definition_id: id }}
             onClose={() => setEdit(null)}
@@ -281,11 +385,10 @@ export function RequirementLibraryRecord({
                       setEdit({
                         table: "requirement_definition_revisions",
                         row: current as unknown as DataRecord,
-                        title: "Edit version",
                       })
                     }
                   >
-                    Edit version
+                    Edit requirement version
                   </Button>
                   <Button
                     variant="secondary"
@@ -309,74 +412,50 @@ export function RequirementLibraryRecord({
                 {current.rationale}
               </KeyValue>
             )}
-            <Stack space="space.100">
-              <h2 className="font-heading-small">Adopted by</h2>
-              <Table>
-                <thead>
-                  <tr>
-                    <Table.Header>Program</Table.Header>
-                    <Table.Header>Requirement</Table.Header>
-                    <Table.Header>Version</Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {adopting.map((row) => {
-                    const program = programs.data?.find((item) => item.id === row.program_id);
-                    const version = versions.find((item) => item.id === row.definition_revision_id);
-                    return (
-                      <Table.Row key={row.id}>
-                        <Table.Cell>
-                          {program ? (
-                            <TextLink
-                              render={
-                                <Link
-                                  to="/programs/$programId"
-                                  params={{ programId: program.id }}
-                                />
-                              }
-                            >
-                              {program.name}
-                            </TextLink>
-                          ) : (
-                            "Not recorded"
-                          )}
-                        </Table.Cell>
-                        <Table.Cell>
-                          {program ? (
-                            <TextLink
-                              render={
-                                <Link
-                                  to="/programs/$programId/requirements/$requirementId"
-                                  params={{ programId: program.id, requirementId: row.id }}
-                                />
-                              }
-                            >
-                              {row.code}
-                            </TextLink>
-                          ) : (
-                            row.code
-                          )}
-                        </Table.Cell>
-                        <Table.Cell>{version?.version_number ?? "—"}</Table.Cell>
-                      </Table.Row>
-                    );
-                  })}
-                </tbody>
-              </Table>
-              {!adopting.length && (
-                <p className="text-subtle">No program has adopted this requirement yet.</p>
-              )}
-            </Stack>
+            <Section title="Adopted by">
+              <DataTable
+                responsive
+                table={adoptionTable}
+                onRowClick={(row) =>
+                  void navigate(recordDestination("engineering_requirements", row))
+                }
+                empty={{
+                  illustration: "records",
+                  title: "No adoptions yet",
+                  description:
+                    "Add a requirement from this definition in a program to record its adoption.",
+                }}
+                toolbar={
+                  <Toolbar
+                    search={String(adoptionTable.state.globalFilter ?? "")}
+                    onSearch={(value) => adoptionTable.setGlobalFilter(value)}
+                    placeholder="Find adopted requirements"
+                    filters={<DataTable.Filter table={adoptionTable} column="programName" />}
+                  >
+                    <DataTable.Columns table={adoptionTable} />
+                    <DataTable.Settings table={adoptionTable} />
+                  </Toolbar>
+                }
+              />
+            </Section>
           </Stack>
         ) : (
-          <p className="text-subtle">No versions have been authored.</p>
+          <EmptyMessage title="No versions have been authored" />
         )}
       </Stack>
       <Shell.Aside label="Requirement definition properties">
-        <Inspector.Group title="Version">
-          <KeyValue label="Version">{current?.version_number ?? "—"}</KeyValue>
-          <KeyValue label="State">{current?.state ?? "—"}</KeyValue>
-          <KeyValue label="Published">{current?.published_at ?? "Not published"}</KeyValue>
+        <Inspector.Group title="Details">
+          <KeyValue label="Code">
+            <Id>{definition.data.code}</Id>
+          </KeyValue>
+          <KeyValue label="Description" wrap>
+            {definition.data.description || <Absent />}
+          </KeyValue>
+          <KeyValue label="Version">{current?.version_number ?? <Absent />}</KeyValue>
+          <KeyValue label="State">{current?.state ?? <Absent />}</KeyValue>
+          <KeyValue label="Published">
+            {current?.published_at ? displayDate(current.published_at) : "Not published"}
+          </KeyValue>
           <KeyValue label="Adopted by">{adopting.length} requirements</KeyValue>
         </Inspector.Group>
       </Shell.Aside>

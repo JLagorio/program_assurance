@@ -1,10 +1,20 @@
+import { EmptyMessage, MissingRecord, RecordActions } from "./work-common";
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  Absent,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Inspector,
   Button,
   Grid,
   PageHeader,
   Section,
+  Shell,
   Stack,
   Tabs,
   TabsList,
@@ -30,13 +40,12 @@ export function Findings() {
   return (
     <Stack space="space.200">
       <PageHeader>
-        <PageHeader.Title>Findings & assets</PageHeader.Title>
-        <PageHeader.Description>
-          Trace assessor determinations, operational issues, and the system inventory they concern.
-        </PageHeader.Description>
+        <PageHeader.Heading>
+          <PageHeader.Title>Findings & assets</PageHeader.Title>
+        </PageHeader.Heading>
       </PageHeader>
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList variant="line" aria-label="Findings and asset collections">
           <TabsTrigger value="issues">Operational issues</TabsTrigger>
           <TabsTrigger value="observations">Observations</TabsTrigger>
           <TabsTrigger value="findings">Assessment findings</TabsTrigger>
@@ -61,9 +70,6 @@ export function Findings() {
             },
             { key: "determined_at", label: "Determined" },
           ]}
-          onOpen={(row) =>
-            void navigate({ to: "/findings/$findingId", params: { findingId: row.id } })
-          }
         />
       )}
       {tab === "issues" && (
@@ -80,7 +86,6 @@ export function Findings() {
             { key: "severity" },
             { key: "status" },
           ]}
-          onOpen={(row) => void navigate({ to: "/issues/$issueId", params: { issueId: row.id } })}
         />
       )}
       {tab === "assets" && (
@@ -97,9 +102,6 @@ export function Findings() {
             },
             { key: "description" },
           ]}
-          onOpen={(row) =>
-            void navigate({ to: "/findings/assets/$assetId", params: { assetId: row.id } })
-          }
         />
       )}
     </Stack>
@@ -121,22 +123,34 @@ export function FindingRecord({ id }: { id: string }) {
     results.data?.state !== "draft";
   return (
     <Stack space="space.250">
-      <TextLink render={<Link to="/findings" />}>Findings & assets</TextLink>
       <QueryState query={query}>
         {row ? (
           <>
             <PageHeader>
-              <div>
+              <PageHeader.Lead render={<Breadcrumb />}>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/findings" />}>
+                      Findings & assets
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{row.title}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </PageHeader.Lead>
+              <PageHeader.Heading>
                 <PageHeader.Title>{row.title}</PageHeader.Title>
-                <PageHeader.Description>
-                  <StateBadge value={row.determination} />
-                </PageHeader.Description>
-              </div>
+              </PageHeader.Heading>
               <PageHeader.Actions>
-                {!readOnly && (
-                  <Button onClick={() => setEditing(row as DataRecord)}>Edit determination</Button>
-                )}
-                <InspectLink table="assessment_findings" id={id} />
+                <RecordActions
+                  table="assessment_findings"
+                  id={id}
+                  onEdit={() => setEditing(row as DataRecord)}
+                  editLabel="Edit determination"
+                  readOnly={readOnly}
+                />
               </PageHeader.Actions>
             </PageHeader>
             {editing && (
@@ -146,67 +160,71 @@ export function FindingRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <Grid
-              gap="space.400"
-              templateColumns={{ base: "minmax(0,1fr)", lg: "minmax(0,1fr) 320px" }}
-            >
+            <>
               <Section title="Assessment determination">
-                <ModelFacts
-                  record={row as DataRecord}
-                  fields={[
-                    "description",
-                    "determination",
-                    "determined_at",
-                    {
-                      key: "assessor_party_id",
-                      label: "Assessor",
-                      render: (record) => (
-                        <RelationName
-                          table="parties"
-                          id={record["assessor_party_id"] as string | null}
-                        />
-                      ),
-                    },
-                  ]}
-                />
+                <p>{row.description || <Absent />}</p>
               </Section>
-              <Section title="Assessment context">
-                <QueryState query={results}>
-                  {results.data ? (
-                    <ModelFacts
-                      record={results.data as DataRecord}
-                      fields={["version_number", "state"]}
-                    />
-                  ) : (
-                    <p>
-                      The assessment results revision is unavailable. This finding is read-only.
-                    </p>
-                  )}
-                </QueryState>
-                <ModelFacts
-                  record={row as DataRecord}
-                  fields={[
-                    {
-                      key: "target_control_part_id",
-                      label: "Control statement or objective",
-                      render: (record) => (
-                        <RelationName
-                          table="control_parts"
-                          id={record["target_control_part_id"] as string}
-                        />
-                      ),
-                    },
-                    {
-                      key: "result_set_id",
-                      label: "Result set",
-                      render: (record) => (
-                        <RelationName table="result_sets" id={record["result_set_id"] as string} />
-                      ),
-                    },
-                  ]}
-                />
-              </Section>
-            </Grid>
+              <Shell.Aside label="Finding details">
+                <Inspector.Group title="Details">
+                  <ModelFacts
+                    record={row as DataRecord}
+                    fields={[
+                      "determination",
+                      "determined_at",
+                      {
+                        key: "assessor_party_id",
+                        label: "Assessor",
+                        render: (record) => (
+                          <RelationName
+                            table="parties"
+                            id={record["assessor_party_id"] as string | null}
+                          />
+                        ),
+                      },
+                    ]}
+                  />
+                  <QueryState query={results}>
+                    {results.data ? (
+                      <ModelFacts
+                        record={results.data as DataRecord}
+                        fields={["version_number", "state"]}
+                      />
+                    ) : (
+                      <EmptyMessage
+                        compact
+                        title="Assessment results unavailable"
+                        description="This finding is read-only until its results revision is available."
+                      />
+                    )}
+                  </QueryState>
+                  <ModelFacts
+                    record={row as DataRecord}
+                    fields={[
+                      {
+                        key: "target_control_part_id",
+                        label: "Control statement or objective",
+                        render: (record) => (
+                          <RelationName
+                            table="control_parts"
+                            id={record["target_control_part_id"] as string}
+                          />
+                        ),
+                      },
+                      {
+                        key: "result_set_id",
+                        label: "Result set",
+                        render: (record) => (
+                          <RelationName
+                            table="result_sets"
+                            id={record["result_set_id"] as string}
+                          />
+                        ),
+                      },
+                    ]}
+                  />
+                </Inspector.Group>
+              </Shell.Aside>
+            </>
             <EntitySection
               table="finding_observations"
               filters={{ finding_id: id }}
@@ -261,7 +279,7 @@ export function FindingRecord({ id }: { id: string }) {
             />
           </>
         ) : (
-          <p>Finding not found.</p>
+          <MissingRecord backTo="/findings" kind="Finding" />
         )}
       </QueryState>
     </Stack>
@@ -274,22 +292,33 @@ export function IssueRecord({ id }: { id: string }) {
   const row = query.data;
   return (
     <Stack space="space.250">
-      <TextLink render={<Link to="/findings" />}>Findings & assets</TextLink>
       <QueryState query={query}>
         {row ? (
           <>
             <PageHeader>
-              <div>
+              <PageHeader.Lead render={<Breadcrumb />}>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/findings" />}>
+                      Findings & assets
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{row.title}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </PageHeader.Lead>
+              <PageHeader.Heading>
                 <PageHeader.Title>{row.title}</PageHeader.Title>
-                <PageHeader.Description>
-                  <StateBadge value={row.status} />
-                </PageHeader.Description>
-              </div>
+              </PageHeader.Heading>
               <PageHeader.Actions>
-                {workspace.role !== "viewer" && (
-                  <Button onClick={() => setEditing(row as DataRecord)}>Edit issue</Button>
-                )}
-                <InspectLink table="operational_issues" id={id} />
+                <RecordActions
+                  table="operational_issues"
+                  id={id}
+                  onEdit={() => setEditing(row as DataRecord)}
+                  editLabel="Edit issue"
+                />
               </PageHeader.Actions>
             </PageHeader>
             {editing && (
@@ -299,23 +328,32 @@ export function IssueRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <ModelFacts
-              record={row as DataRecord}
-              fields={[
-                "description",
-                "severity",
-                "opened_at",
-                "closed_at",
-                "closure_rationale",
-                {
-                  key: "owner_party_id",
-                  label: "Owner",
-                  render: (record) => (
-                    <RelationName table="parties" id={record["owner_party_id"] as string | null} />
-                  ),
-                },
-              ]}
-            />
+            <Section title="Description">
+              <p>{row.description || <Absent />}</p>
+            </Section>
+            <Shell.Aside label="Record details">
+              <Inspector.Group title="Details">
+                <ModelFacts
+                  record={row as DataRecord}
+                  fields={[
+                    "severity",
+                    "opened_at",
+                    "closed_at",
+                    "closure_rationale",
+                    {
+                      key: "owner_party_id",
+                      label: "Owner",
+                      render: (record) => (
+                        <RelationName
+                          table="parties"
+                          id={record["owner_party_id"] as string | null}
+                        />
+                      ),
+                    },
+                  ]}
+                />
+              </Inspector.Group>
+            </Shell.Aside>
             <EntitySection
               table="issue_observations"
               filters={{ issue_id: id }}
@@ -357,7 +395,7 @@ export function IssueRecord({ id }: { id: string }) {
             />
           </>
         ) : (
-          <p>Issue not found.</p>
+          <MissingRecord backTo="/findings" kind="Operational issue" />
         )}
       </QueryState>
     </Stack>
@@ -370,17 +408,33 @@ export function AssetRecord({ id }: { id: string }) {
   const row = query.data;
   return (
     <Stack space="space.250">
-      <TextLink render={<Link to="/findings" />}>Findings & assets</TextLink>
       <QueryState query={query}>
         {row ? (
           <>
             <PageHeader>
-              <PageHeader.Title>{row.name}</PageHeader.Title>
+              <PageHeader.Lead render={<Breadcrumb />}>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/findings" />}>
+                      Findings & assets
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{row.name}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </PageHeader.Lead>
+              <PageHeader.Heading>
+                <PageHeader.Title>{row.name}</PageHeader.Title>
+              </PageHeader.Heading>
               <PageHeader.Actions>
-                {workspace.role !== "viewer" && (
-                  <Button onClick={() => setEditing(row as DataRecord)}>Edit asset</Button>
-                )}
-                <InspectLink table="inventory_items" id={id} />
+                <RecordActions
+                  table="inventory_items"
+                  id={id}
+                  onEdit={() => setEditing(row as DataRecord)}
+                  editLabel="Edit asset"
+                />
               </PageHeader.Actions>
             </PageHeader>
             {editing && (
@@ -390,23 +444,29 @@ export function AssetRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <ModelFacts
-              record={row as DataRecord}
-              fields={[
-                "asset_id",
-                "description",
-                {
-                  key: "system_id",
-                  label: "System",
-                  render: (record) => (
-                    <RelationName table="systems" id={record["system_id"] as string} />
-                  ),
-                },
-                "manufacturer",
-                "model",
-                "serial_number",
-              ]}
-            />
+            <Section title="Description">
+              <p>{row.description || <Absent />}</p>
+            </Section>
+            <Shell.Aside label="Record details">
+              <Inspector.Group title="Details">
+                <ModelFacts
+                  record={row as DataRecord}
+                  fields={[
+                    "asset_id",
+                    {
+                      key: "system_id",
+                      label: "System",
+                      render: (record) => (
+                        <RelationName table="systems" id={record["system_id"] as string} />
+                      ),
+                    },
+                    "manufacturer",
+                    "model",
+                    "serial_number",
+                  ]}
+                />
+              </Inspector.Group>
+            </Shell.Aside>
             <EntitySection
               table="inventory_components"
               filters={{ inventory_item_id: id }}
@@ -426,7 +486,7 @@ export function AssetRecord({ id }: { id: string }) {
             />
           </>
         ) : (
-          <p>Asset not found.</p>
+          <MissingRecord backTo="/findings" kind="Asset" />
         )}
       </QueryState>
     </Stack>

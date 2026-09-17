@@ -76,6 +76,7 @@ export function ProductConfigurationPicker({
       }}
     >
       <DataTable
+        responsive
         table={table}
         state={pending ? "loading" : "ready"}
         onRowClick={(row) => setChosenId(row.id)}

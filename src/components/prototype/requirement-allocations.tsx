@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useMemo, useRef, useState } from "react";
 import { Link, useBlocker } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -89,10 +90,6 @@ export function RequirementAllocations({
         <p role="alert">Requirement not found in this program.</p>
       ) : (
         <>
-          <p className="font-body-small text-subtle">
-            Allocate this requirement directly to the systems or nested elements responsible for it.
-            Allocating a parent does not allocate its children.
-          </p>
           {!elements.length && (
             <p role="status" className="font-body-small text-subtle">
               Add a system to this program before allocating the requirement.
@@ -205,6 +202,7 @@ export function AllocateRequirementDialog({
   canWrite: boolean;
   onClose: () => void;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const save = useModelSave("requirement_allocations");
   const cache = useQueryClient();
@@ -259,30 +257,34 @@ export function AllocateRequirementDialog({
     state: { rowSelection: selection },
     onRowSelectionChange: setSelection,
   });
-  const close = () => {
+  const close = async () => {
     if (inFlight.current) return;
     if (
       !dirty ||
-      window.confirm(
-        submission
-          ? "Close this allocation attempt? Any allocations already saved will remain recorded."
-          : "Discard your unsaved allocation choices?",
-      )
+      (await confirm(
+        discardChanges(
+          submission
+            ? "Close this allocation attempt? Any allocations already saved will remain recorded."
+            : "Discard your unsaved allocation choices?",
+        ),
+      ))
     ) {
       bypassClose.current = true;
       onClose();
     }
   };
   useBlocker({
-    shouldBlockFn: () =>
+    shouldBlockFn: async () =>
       inFlight.current ||
       (dirty &&
         !bypassClose.current &&
-        !window.confirm(
-          submission
-            ? "Leave this allocation attempt? Any saved allocations remain recorded."
-            : "Discard your unsaved allocation choices?",
-        )),
+        !(await confirm(
+          discardChanges(
+            submission
+              ? "Leave this allocation attempt? Any saved allocations remain recorded."
+              : "Discard your unsaved allocation choices?",
+          ),
+        ))),
     enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
   });
   async function submit() {
@@ -366,66 +368,73 @@ export function AllocateRequirementDialog({
             {requirementCode} · Select each responsible system or nested element.
           </DialogDescription>
         </DialogHeader>
-        <Box padding="space.200" className="min-h-0 flex-1 overflow-y-auto">
-          <Stack space="space.200">
-            <p className="font-body-small text-subtle">
-              Each checked row receives its own allocation. Selecting a parent leaves its children
-              unselected.
-            </p>
-            <fieldset disabled={busy || !!submission || !canWrite} className="min-w-0">
-              <Stack space="space.200">
-                <DataTable
-                  table={table}
-                  toolbar={
-                    <Toolbar
-                      search={String(table.state.globalFilter ?? "")}
-                      onSearch={(value) => table.setGlobalFilter(value)}
-                      placeholder="Find a system to allocate"
-                    />
-                  }
-                />
-                <Field>
-                  <FieldLabel htmlFor="allocation-rationale">Rationale (optional)</FieldLabel>
-                  <Textarea
-                    id="allocation-rationale"
-                    value={rationale}
-                    onChange={(event) => setRationale(event.target.value)}
-                    rows={3}
-                  />
-                </Field>
-              </Stack>
-            </fieldset>
-            {error && (
-              <p role="alert" className="text-danger">
-                {error}
-              </p>
-            )}
-            {submission && !busy && error && (
+        <form
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit();
+          }}
+        >
+          <Box padding="space.200" className="min-h-0 flex-1 overflow-y-auto">
+            <Stack space="space.200">
               <p className="font-body-small text-subtle">
-                {savedCount} of {submission.targets.length} allocations confirmed. Retry checks the
-                same records before saving; submitted choices are retained.
+                Each checked row receives its own allocation. Selecting a parent leaves its children
+                unselected.
               </p>
-            )}
-          </Stack>
-        </Box>
-        <DialogFooter>
-          <span className="mr-auto font-body-small">{selectedIds.length} selected</span>
-          <Button variant="secondary" disabled={busy} onClick={close}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            disabled={busy || !canWrite || !selectedIds.length}
-            onClick={() => void submit()}
-          >
-            {busy
-              ? "Allocating…"
-              : submission
-                ? "Retry allocation"
-                : `Allocate to ${selectedIds.length} system${selectedIds.length === 1 ? "" : "s"}`}
-          </Button>
-        </DialogFooter>
+              <fieldset disabled={busy || !!submission || !canWrite} className="min-w-0">
+                <Stack space="space.200">
+                  <DataTable
+                    responsive
+                    table={table}
+                    toolbar={
+                      <Toolbar
+                        search={String(table.state.globalFilter ?? "")}
+                        onSearch={(value) => table.setGlobalFilter(value)}
+                        placeholder="Find a system to allocate"
+                      />
+                    }
+                  />
+                  <Field>
+                    <FieldLabel htmlFor="allocation-rationale">Rationale (optional)</FieldLabel>
+                    <Textarea
+                      id="allocation-rationale"
+                      value={rationale}
+                      onChange={(event) => setRationale(event.target.value)}
+                      rows={3}
+                    />
+                  </Field>
+                </Stack>
+              </fieldset>
+              {error && (
+                <p role="alert" className="text-danger">
+                  {error}
+                </p>
+              )}
+              {submission && !busy && error && (
+                <p className="font-body-small text-subtle">
+                  {savedCount} of {submission.targets.length} allocations confirmed. Retry checks
+                  the same records before saving; submitted choices are retained.
+                </p>
+              )}
+            </Stack>
+          </Box>
+          <DialogFooter>
+            <span className="mr-auto font-body-small">{selectedIds.length} selected</span>
+            <Button type="button" variant="subtle" disabled={busy} onClick={close}>
+              Cancel
+            </Button>
+            <Button variant="primary" disabled={busy || !canWrite} type="submit">
+              {busy
+                ? "Allocating…"
+                : submission
+                  ? "Retry allocation"
+                  : `Allocate to ${selectedIds.length} system${selectedIds.length === 1 ? "" : "s"}`}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

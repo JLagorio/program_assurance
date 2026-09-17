@@ -1,13 +1,17 @@
 import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Badge,
   Absent,
   Button,
   DataTable,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  IconButton,
   Id,
   Inline,
-  Shell,
   TextLink,
   Toolbar,
   defineColumns,
@@ -23,12 +27,13 @@ import {
   Layers,
   Library,
   Network,
-  Pencil,
+  MoreHorizontal,
   Plus,
   Server,
   Shield,
   Workflow,
 } from "lucide-react";
+import { RecordPreviewActions, RecordPreviewPanel, useDisplayedRecords } from "./record-preview";
 import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
 import { labelFor } from "@/lib/records";
@@ -62,7 +67,7 @@ export function systemIcon(type: string) {
 
 /**
  * One program system tree is shared by the System tab and the element record's Overview. Two
- * click results: the row or the eye opens the preview; the name opens the record.
+ * The eye opens the preview; the name and row open the full record.
  */
 export function ProgramSystemsTree({
   programId,
@@ -76,6 +81,7 @@ export function ProgramSystemsTree({
   readOnly?: boolean;
 }) {
   const workspace = useWorkspace();
+  const navigate = useNavigate();
   const { rows: assuranceRows, elements, error, pending } = useSystemAssurance(programId);
   const components = useRows("system_components");
   const libraryElementIds = useMemo(
@@ -110,10 +116,13 @@ export function ProgramSystemsTree({
   const columns = useMemo(
     () =>
       defineColumns<TreeRow>((c) => [
-        c.text("name", {
+        c.id("name", {
           header: "Element",
-          minWidth: 260,
+          width: 220,
           hideable: false,
+          priority: 0,
+          preview: (row) => setPreviewId(row.id),
+          active: (row) => row.id === previewId,
           cell: (row) => {
             const Icon = systemIcon(row.system_type);
             return (
@@ -121,7 +130,7 @@ export function ProgramSystemsTree({
                 className="flex min-w-0 items-center gap-075"
                 title={`${row.code} · ${row.name}`}
               >
-                <Icon aria-hidden className="size-200 shrink-0 text-icon-subtle" />
+                <Icon aria-hidden className="size-200 shrink-0 icon-subtle" />
                 <TextLink
                   render={
                     <Link
@@ -136,48 +145,25 @@ export function ProgramSystemsTree({
                 </TextLink>
                 {row.is_authorization_boundary && (
                   <span title="Authorization boundary" aria-label="Authorization boundary">
-                    <Shield aria-hidden className="size-150 shrink-0 text-icon-subtle" />
+                    <Shield aria-hidden className="size-150 shrink-0 icon-subtle" />
                   </span>
-                )}
-                {row.is_authorization_boundary && row.product_revision_id && (
-                  <Badge size="xsmall" variant="secondary" tone="information">
-                    Variant
-                  </Badge>
-                )}
-                {row.product_element_id && (
-                  <Badge size="xsmall" variant="secondary" tone="information">
-                    Product
-                  </Badge>
-                )}
-                {libraryElementIds.has(row.id) && (
-                  <Badge size="xsmall" variant="secondary" tone="information">
-                    Library
-                  </Badge>
                 )}
               </span>
             );
           },
         }),
-        c.id("code", {
+        c.text("code", {
           header: "Code",
           width: 125,
-          preview: (row) => setPreviewId(row.id),
-          active: (row) => row.id === previewId,
+          priority: 1,
           cell: (row) => <Id>{row.code}</Id>,
         }),
-        c.text("typeLabel", { header: "Type", width: 130 }),
+        c.text("typeLabel", { header: "Type", width: 130, priority: 3 }),
         ...impactDimensions.map((dimension) =>
           c.custom(dimension, {
-            header: (
-              <abbr title={labelFor(dimension)} className="no-underline">
-                {dimension === "confidentiality"
-                  ? "Conf."
-                  : dimension === "integrity"
-                    ? "Integ."
-                    : "Avail."}
-              </abbr>
-            ),
+            header: labelFor(dimension),
             width: 90,
+            priority: 4,
             sort: (row) => ["low", "moderate", "high"].indexOf(row.impacts[dimension].value ?? ""),
             text: (row) => impactDescription(row, dimension),
             cell: (row) => (
@@ -193,6 +179,7 @@ export function ProgramSystemsTree({
         c.custom("baseline", {
           header: "Baseline",
           width: 220,
+          priority: 2,
           sort: (row) => row.baselineTitle ?? "",
           text: (row) => `${row.baselineTitle ?? "Not set"} · ${baselineSource(row)}`,
           cell: (row) => (
@@ -210,20 +197,56 @@ export function ProgramSystemsTree({
             </span>
           ),
         }),
-        c.number("controlCount", { header: "Controls", width: 100 }),
+        c.number("controlCount", { header: "Controls", width: 100, priority: 5 }),
         c.number("requirementCount", {
           header: "Requirements",
           width: 124,
+          priority: 5,
           cell: (row) => (row.requirementCount ? String(row.requirementCount) : <Absent />),
+        }),
+        c.custom("source", {
+          header: "Source",
+          width: 150,
+          priority: 6,
+          text: (row) =>
+            [
+              row.is_authorization_boundary && row.product_revision_id ? "Variant" : "",
+              row.product_element_id ? "Product" : "",
+              libraryElementIds.has(row.id) ? "Library" : "",
+            ]
+              .filter(Boolean)
+              .join(", "),
+          cell: (row) => (
+            <Inline space="space.050" shouldWrap>
+              {row.is_authorization_boundary && row.product_revision_id && (
+                <Badge size="xsmall" variant="secondary" tone="information">
+                  Variant
+                </Badge>
+              )}
+              {row.product_element_id && (
+                <Badge size="xsmall" variant="secondary" tone="information">
+                  Product
+                </Badge>
+              )}
+              {libraryElementIds.has(row.id) && (
+                <Badge size="xsmall" variant="secondary" tone="information">
+                  Library
+                </Badge>
+              )}
+              {!(row.is_authorization_boundary && row.product_revision_id) &&
+                !row.product_element_id &&
+                !libraryElementIds.has(row.id) && <Absent />}
+            </Inline>
+          ),
         }),
         ...(canCreate || canEdit
           ? [
               c.actions((row) => [
                 ...(canCreate
-                  ? [{ label: "Add child", onSelect: () => setEditing({ parent: row }) }]
+                  ? [{ label: "Create system", onSelect: () => setEditing({ parent: row }) }]
                   : []),
                 ...(canEdit
-                  ? [{ label: "Edit", onSelect: () => setEditing({ existing: row }) }]
+                  ? [{ label: "Edit system", onSelect: () => setEditing({ existing: row }) }]
                   : []),
               ]),
             ]
@@ -265,18 +288,25 @@ export function ProgramSystemsTree({
           iconBefore={<Plus />}
           onClick={() => setEditing(root ? { parent: root } : {})}
         >
-          {root ? "Add child" : "Add system"}
+          Create system
         </Button>
       </Inline>
     ) : null;
+  const displayed = useDisplayedRecords(table);
   return (
     <>
       <DataTable
+        responsive
         table={table}
         fill={fill}
         state={error ? "error" : pending ? "loading" : "ready"}
         error={error?.message}
-        onRowClick={(row) => setPreviewId(row.id)}
+        onRowClick={(row) =>
+          void navigate({
+            to: "/programs/$programId/systems/$scopeId",
+            params: { programId, scopeId: row.id },
+          })
+        }
         empty={{
           illustration: "tree",
           title: "No systems yet",
@@ -296,44 +326,57 @@ export function ProgramSystemsTree({
         }
       />
       {preview && !pending && !error && (
-        <Shell.Panel
-          title={preview.code}
+        <RecordPreviewPanel
+          title={preview.name}
           label="Element preview"
           defaultWidth={620}
           onClose={() => setPreviewId(null)}
-          actions={
-            <Inline space="space.050">
-              {canCreate && (
+          recordActions={
+            <>
+              {(canCreate || canEdit) && (
                 <Button
                   size="small"
-                  variant="subtle"
-                  iconBefore={<Plus />}
-                  onClick={() => setEditing({ parent: preview })}
+                  variant="primary"
+                  onClick={() => setEditing(canEdit ? { existing: preview } : { parent: preview })}
                 >
-                  Add child
+                  {canEdit ? "Edit system" : "Create system"}
                 </Button>
               )}
               {canEdit && (
-                <Button
-                  size="small"
-                  variant="subtle"
-                  iconBefore={<Pencil />}
-                  onClick={() => setEditing({ existing: preview })}
-                >
-                  Edit
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <IconButton
+                        icon={<MoreHorizontal />}
+                        label="More system actions"
+                        size="small"
+                        variant="subtle"
+                      />
+                    }
+                  />
+                  <DropdownMenuContent align="end">
+                    {canCreate && (
+                      <DropdownMenuItem onClick={() => setEditing({ parent: preview })}>
+                        <Plus />
+                        Create system
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => setLibraryTargetId(preview.id)}>
+                      <Library />
+                      Add from library
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
-              {canEdit && (
-                <Button
-                  size="small"
-                  variant="subtle"
-                  iconBefore={<Library />}
-                  onClick={() => setLibraryTargetId(preview.id)}
-                >
-                  Add from library
-                </Button>
-              )}
-            </Inline>
+            </>
+          }
+          navigation={
+            <RecordPreviewActions
+              table="systems"
+              record={{ ...preview, program_id: programId }}
+              rows={displayed}
+              onSelect={(row) => setPreviewId(row.id)}
+            />
           }
         >
           <SystemAssuranceDetails
@@ -342,7 +385,7 @@ export function ProgramSystemsTree({
             rows={assuranceRows}
             onDrill={setPreviewId}
           />
-        </Shell.Panel>
+        </RecordPreviewPanel>
       )}
       {addingProduct && (
         <AddProductSystem

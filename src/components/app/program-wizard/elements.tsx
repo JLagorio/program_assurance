@@ -1,3 +1,4 @@
+import { useConfirmation } from "@/components/app/confirmation";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Boxes, MoreHorizontal, Plus } from "lucide-react";
@@ -88,6 +89,7 @@ export function ElementsStep({
   productPending: boolean;
   newSystem: () => SystemWizardDraft;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const [editing, setEditing] = useState<Editing>(null);
   const [adding, setAdding] = useState<Adding>(null);
   const [pickingProduct, setPickingProduct] = useState(false);
@@ -163,7 +165,7 @@ export function ElementsStep({
     setExpanded((previous) => new Set(previous).add(parentKey ?? parentSystem.key));
     setEditing({ systemKey: parentSystem.key, elementKey: key });
   }
-  function removeElement(parentSystem: SystemWizardDraft, key: string) {
+  async function removeElement(parentSystem: SystemWizardDraft, key: string) {
     const removed = new Set([key]);
     let previousSize = 0;
     while (previousSize !== removed.size) {
@@ -173,8 +175,15 @@ export function ElementsStep({
       });
     }
     if (
-      removed.size > 1 &&
-      !window.confirm(`Remove this element and the ${removed.size - 1} inside it from the draft?`)
+      !(await confirm({
+        title: removed.size > 1 ? "Remove elements?" : "Remove element?",
+        confirmLabel: removed.size > 1 ? "Remove elements" : "Remove element",
+        variant: "danger",
+        description:
+          removed.size > 1
+            ? `Remove this element and the ${removed.size - 1} inside it from the draft?`
+            : "Remove this element from the draft?",
+      }))
     )
       return;
     patchSystem(parentSystem.key, {
@@ -182,8 +191,15 @@ export function ElementsStep({
     });
     if (editing?.elementKey && removed.has(editing.elementKey)) setEditing(null);
   }
-  function removeSystem(item: SystemWizardDraft) {
-    if (!window.confirm(`Remove ${item.name || "this system"} and its setup from the draft?`))
+  async function removeSystem(item: SystemWizardDraft) {
+    if (
+      !(await confirm({
+        title: "Remove system?",
+        confirmLabel: "Remove system",
+        variant: "danger",
+        description: `Remove ${item.name || "this system"} and its setup from the draft?`,
+      }))
+    )
       return;
     onChange({ ...draft, systems: draft.systems.filter((other) => other.key !== item.key) });
     if (editing?.systemKey === item.key) setEditing(null);
@@ -647,6 +663,7 @@ export function ElementsStep({
             </Button>
           </SheetFooter>
         </SheetContent>
+        {confirmation}
       </Sheet>
       {adding && addingSystem ? (
         <LibraryComponentPicker

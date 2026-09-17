@@ -6,25 +6,33 @@ import * as Stories from "./PreviewSheet.stories";
 
 # PreviewSheet
 
-A modal record detail surface built from shadcn's Base UI Sheet. It composes record identity and Sheet parts and supports work in place: editable properties, evidence review and related-record navigation.
+A modal record task surface built from shadcn's Base UI Sheet. It supports focused work such as evidence-version review. Collection browsing normally uses Shell.Panel with PreviewNavigation. The outer header holds global navigation and Close. The body begins with an inner PageHeader for the record's name and commands; metadata follows below it.
+
+<Canvas of={Stories.CollectionTask} />
+
+The following specimen demonstrates generic metadata options and frame replacement for consumers with a different product contract.
 
 <Canvas of={Stories.PreviewSheetStory} />
 
 ## Anatomy
 
-| Slot                     | Purpose                                                                  |
-| ------------------------ | ------------------------------------------------------------------------ |
-| id, title, status        | Record identity and current state. The title names the dialog.           |
-| subtitle, facts          | Optional supporting context; absent content renders no placeholder rows. |
-| onBack                   | Return to the previous record within the caller's navigation stack.      |
-| children                 | Scrollable work area.                                                    |
-| openTo, links            | Real links to the record or related destinations.                        |
-| actions                  | Actions performed in the current sheet.                                  |
-| initialFocus, finalFocus | Native Base UI focus targets for the consuming workflow.                 |
+| Slot                        | Purpose                                                                                                    |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| title                       | The inner PageHeader's h2; its SheetTitle also names the modal.                                            |
+| actions                     | Record commands in PageHeader.Actions beside the title; use small controls.                                |
+| id, status, subtitle, facts | Optional body metadata below the record header; absent content leaves no placeholder rows.                 |
+| onBack                      | Return to the previous frame from the outer header.                                                        |
+| navigation                  | Global controls in the outer header, normally PreviewNavigation with previous/next and a full-record link. |
+| openTo                      | Fallback full-record link in the outer header when navigation is absent.                                   |
+| links                       | Related destination links in the footer; no repeated full-record link.                                     |
+| children                    | Scrollable work area after the record header and metadata.                                                 |
+| initialFocus, finalFocus    | Native Base UI focus targets for the consuming workflow.                                                   |
 
 ## Variants and states
 
-Choose this surface when the current task benefits from containing focus; use Shell.Panel for selected work alongside a queue. Both support actions. The sheet defaults to 720px and fits narrower screens; footer actions wrap.
+Choose this surface when the current task benefits from containing focus; use Shell.Panel for selected work alongside a queue. Both support record actions in the inner record header. The sheet defaults to 720px and fits narrower screens. Keep commands concise: one small primary action and an overflow menu for additional commands.
+
+The outer header never repeats the visible record name or holds record commands. It contains Back when provided, collection navigation or the fallback full-record link, and Close. Supplying `navigation` suppresses `openTo`; include the full-record destination in that navigation. The footer, when present, contains related links only.
 
 The caller controls `open` and owns dismissal, in-progress work and the related-record stack. Back changes the frame; Close dismisses the sheet. Keep browser history aligned when that stack is represented in the URL.
 
@@ -34,7 +42,7 @@ The caller controls `open` and owns dismissal, in-progress work and the related-
 
 Base UI provides the dialog semantics, modal focus containment, Escape dismissal and focus return. By default, PreviewSheet focuses its title so users encounter the identity before the record's structured content. Use `initialFocus` for an appropriate field in a task-oriented form, and `finalFocus` when completing work removes the opener. A short supplied subtitle becomes the description; an absent subtitle creates no empty description.
 
-The visible Close remains available. Keep pending/unsaved-work handling in the caller, including dismissal guards where the actual workflow needs them. Footer navigation uses named anchors; mutations use buttons.
+The visible Close remains available in the outer header. Keep pending/unsaved-work handling in the caller, including dismissal guards where the actual workflow needs them. Navigation uses named anchors; record commands use buttons in the inner header.
 
 Sources: [shadcn Base Sheet](https://ui.shadcn.com/docs/components/base/sheet), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/sheet.tsx), [Base UI Dialog](https://base-ui.com/react/components/dialog), [WAI-ARIA dialog guidance](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).
 
@@ -44,4 +52,4 @@ Sources: [shadcn Base Sheet](https://ui.shadcn.com/docs/components/base/sheet), 
 
 ## Related
 
-[Shell.Panel](?path=/docs/layout-pages--docs), [Shell.Panel](?path=/docs/layout-pages--docs), [Sheet](?path=/docs/components-sheet--docs), [Pages](?path=/docs/layout-pages--docs).
+[Shell.Panel](?path=/docs/layout-shell--docs), [PreviewNavigation](?path=/docs/patterns-previewnavigation--docs), [Sheet](?path=/docs/components-sheet--docs), [Pages](?path=/docs/layout-pages--docs).

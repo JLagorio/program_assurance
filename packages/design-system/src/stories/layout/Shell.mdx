@@ -21,7 +21,7 @@ Every default name (Banner, Top navigation, Side navigation, Main content, Page 
 
 SideNav retains its existing collapse, persistence, keyboard and resize behavior. Main uses document scrolling; Panel scrolls inside the available viewport. A register that is the page fills the rest of the window with DataTable `fill`: Main publishes its bottom inset as `--shell-inset-bottom`, and the layout otherwise owns placement, so content patterns do not add sticky rails or nested page frames.
 
-`Shell.Panel.actions` places route-owned controls immediately before Close. Collection previews use it for previous/next navigation through the table's displayed rows and a native link that opens the full record in a new tab. The route owns row order, destinations and endpoint availability; Shell only supplies their position.
+`Shell.Panel.actions` places route-owned controls immediately before Close in the built-in header. Collection previews compose `Panel.Header`, `Panel.Actions` and `Panel.Close` for a navigation-only outer bar: previous/next through the displayed rows, a native full-record link and, for nested frames, Back. Put the visible record name and domain commands in a `PageHeader` at the beginning of `Panel.Body`, using an h2 and `PageHeader.Actions`. Give the panel an accessible `label` when its outer bar has no `Panel.Title`. The route owns row order, destinations and endpoint availability; Shell only supplies placement. The Record header narrow story exercises both headers at the minimum panel width.
 
 See [page composition](?path=/docs/layout-pages--docs) for route and tab examples.
 
@@ -60,3 +60,7 @@ The parts with props of their own. The others (SideNav.Header, Body and Footer, 
 <ArgTypes of={Shell.Panel} />
 <ArgTypes of={Shell.Panel.Close} />
 <ArgTypes of={Shell.Panel.Splitter} />
+
+### Narrow panel headers
+
+Panel header slots respond to the panel container, including a manually resized desktop panel. Below 400px, a title with actions occupies a full row and navigation/Close share the row beneath; title-only headers keep Close beside the title. Below 320px, a PageHeader inside the panel also puts its action slot below its heading. The normal desktop header remains one row. See the 240px, 320px and 640px Panel header stories, composed-slot forwarding and Panel record header examples.

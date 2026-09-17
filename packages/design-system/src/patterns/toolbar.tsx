@@ -10,7 +10,9 @@ export type ToolbarProps = {
   search?: string | undefined;
   onSearch?: ((value: string) => void) | undefined;
   placeholder?: string | undefined;
-  /** Permanent view controls, such as saved views, grouping, columns and settings. */
+  /** Permanent saved-view controls immediately after search, before collapsible filters. */
+  views?: ReactNode;
+  /** Permanent display controls, such as grouping, columns and settings, at the end. */
   children?: ReactNode;
   /** Filters alone move into More when the available width cannot fit the row. */
   filters?: ReactNode;
@@ -24,6 +26,7 @@ export function Toolbar({
   search,
   onSearch,
   placeholder,
+  views,
   children,
   filters,
   actions,
@@ -33,6 +36,7 @@ export function Toolbar({
   const root = useRef<HTMLDivElement>(null);
   const filterRow = useRef<HTMLDivElement>(null);
   const permanent = useRef<HTMLDivElement>(null);
+  const viewRow = useRef<HTMLDivElement>(null);
   const filtersWidth = useRef(0);
   const [constrained, setConstrained] = useState(false);
   const [stacked, setStacked] = useState(false);
@@ -55,19 +59,26 @@ export function Toolbar({
       const gap = parseFloat(getComputedStyle(element).columnGap) || 8;
       if (filterRow.current) filtersWidth.current = intrinsicWidth(filterRow.current);
       const fixedWidth = intrinsicWidth(permanent.current);
+      const viewsWidth = intrinsicWidth(viewRow.current);
       const searchWidth = onSearch ? 160 + gap : 0;
-      const remaining = element.clientWidth - fixedWidth - (fixedWidth ? gap : 0);
+      const remaining =
+        element.clientWidth -
+        fixedWidth -
+        (fixedWidth ? gap : 0) -
+        viewsWidth -
+        (viewsWidth ? gap : 0);
       setConstrained(!!filters && remaining < filtersWidth.current + searchWidth);
       // At phone widths, give search its own line rather than hiding permanent controls.
-      setStacked(!!onSearch && remaining < searchWidth + (filters ? 80 : 0));
+      setStacked(remaining < searchWidth + (filters ? 80 : 0));
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     if (filterRow.current) observer.observe(filterRow.current);
     if (permanent.current) observer.observe(permanent.current);
+    if (viewRow.current) observer.observe(viewRow.current);
     return () => observer.disconnect();
-  }, [compact, onSearch, filters, children, actions]);
+  }, [compact, onSearch, views, filters, children, actions]);
   return (
     <div
       ref={root}
@@ -91,6 +102,11 @@ export function Toolbar({
             <Search />
           </InputGroupAddon>
         </InputGroup>
+      ) : null}
+      {views ? (
+        <div ref={viewRow} data-slot="toolbar-views" className="flex shrink-0 items-center gap-100">
+          {views}
+        </div>
       ) : null}
       {filters ? (
         compact ? (

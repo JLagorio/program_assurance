@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useRef, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { Button, Editable, Inline, KeyValue, Section, Stack } from "@ledger/design-system";
@@ -42,6 +43,7 @@ export function RequirementForm({
   readOnly: boolean;
   onStateChange: (state: RequirementEditState) => void;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   // Pin the exact source snapshot; a refetch must never silently advance an in-progress edit's CAS.
   const [baseline] = useState(source);
   const [values, setValues] = useState(() => valuesFor(baseline));
@@ -96,10 +98,10 @@ export function RequirementForm({
     report();
   };
   useBlocker({
-    shouldBlockFn: () => {
+    shouldBlockFn: async () => {
       if (inFlight.current) return true;
       if (!Object.keys(draft.current).length && !activeRequest.current) return false;
-      if (!window.confirm("Discard your unsaved requirement change?")) return true;
+      if (!(await confirm(discardChanges("Discard your unsaved requirement change?")))) return true;
       discard();
       return false;
     },
@@ -299,6 +301,7 @@ export function RequirementForm({
           </Stack>
         </Section>
       )}
+      {confirmation}
     </Stack>
   );
 }

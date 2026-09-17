@@ -14,12 +14,7 @@ Compose `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent`. Match each Trigger'
 
 ```tsx
 <Tabs defaultValue="controls">
-  <TabsList
-    variant="line"
-    activateOnFocus
-    aria-label="Record views"
-    className="w-full justify-start"
-  >
+  <TabsList variant="line" activateOnFocus aria-label="Record views">
     <TabsTrigger value="controls">
       Controls <Count value={340} max={9999} />
     </TabsTrigger>
@@ -34,11 +29,15 @@ Routes compose Tabs, TabsList and TabsContent directly; route state controls the
 
 ## Variants
 
-`TabsList` supports shadcn's `default` filled strip and `line` underline. The exported `tabsListVariants` recipe supplies the same styles. Ledger retains its color, spacing and focus tokens; line tabs remain 32px tall on a border, with a 2px brand underline made with CSS. A narrow line strip scrolls horizontally.
+`TabsList` supports shadcn's `default` filled strip and `line` underline. Ledger retains its color, spacing and focus tokens; line tabs remain 32px tall on a border, with a 2px brand underline made with CSS. Horizontal line tabs fill the available width and align to the start. Their border continues across the container even when only a few tabs exist.
 
-The default strip fits its content. Existing record pages explicitly use `variant="line"`, `className="w-full justify-start"` and `activateOnFocus` to retain their layout and behavior.
+Horizontal line tabs use the kit's `ScrollArea` and horizontal `ScrollBar`. They stay on one row at every container width, including narrow preview panels. Touch, trackpad, scrollbar dragging and arrow-key focus can reach the overflowed tabs. Do not add `flex-wrap`, an overflow utility or another scroller to `TabsList`. Size the `Tabs` container when a bounded example is needed; the List handles its own width and scrolling.
+
+The default filled strip fits its content. Record pages and previews explicitly use `variant="line"`; `activateOnFocus` remains an independent choice. Vertical lists retain their vertical layout and do not receive a horizontal scroller. The exported `tabsListVariants` recipe supplies list styling; the `TabsList` component also supplies the horizontal scrolling composition.
 
 <Canvas of={Stories.Variants} />
+
+<Canvas of={Stories.ResponsiveWidths} />
 
 Set `orientation="vertical"` on Tabs for a vertical strip and Up/Down navigation. Direction follows LedgerProvider; `dir="ltr"` or `dir="rtl"` overrides both layout and keyboard direction.
 
@@ -58,7 +57,7 @@ Inactive panels unmount by default. `keepMounted` retains their state; hidden pa
 
 ## Props
 
-The four parts expose their corresponding Base UI props, native refs, `render`, events, and state-based `className`/`style`. Public types are `TabsProps`, `TabsListProps`, `TabsTriggerProps` and `TabsContentProps`.
+The four parts expose their corresponding Base UI props, native refs, `render`, events, and state-based `className`/`style`. `TabsList` props and its ref still target the element with `role="tablist"`, inside the horizontal line scroller. The scroller adds no separate Tab stop; keyboard users enter the tablist and arrows or Home/End reveal the focused tab. Public types are `TabsProps`, `TabsListProps`, `TabsTriggerProps` and `TabsContentProps`.
 
 Root accepts `value`/`onValueChange` or `defaultValue`, including numeric values; `null` means no selection. `onValueChange(value, details)` can cancel user activation with `details.cancel()`. Uncontrolled selection falls back when a selected tab disappears or becomes disabled; those automatic notifications are not cancellable. For predictable server rendering, give an explicit enabled initial value.
 
@@ -66,15 +65,16 @@ Root accepts `value`/`onValueChange` or `defaultValue`, including numeric values
 
 ### Migration and API
 
-| Previous API                                | Current API                                                                                   |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `Tabs.List`, `Tabs.Tab`, `Tabs.Panel`       | `TabsList`, `TabsTrigger`, `TabsContent`                                                      |
-| Root `activation="automatic"`               | List `activateOnFocus` (omit for manual activation)                                           |
-| List `label`                                | `aria-label`                                                                                  |
-| Trigger `count` / `trailing`                | Compose `Count`, `Badge` or other children; use `max={9999}` to preserve the former count cap |
-| `asChild`                                   | `render`; add `nativeButton={false}` for a link trigger                                       |
-| `TabListProps`, `TabProps`, `TabPanelProps` | `TabsListProps`, `TabsTriggerProps`, `TabsContentProps`                                       |
-| Line styling by default                     | List `variant="line"`; the new default is a filled strip                                      |
+| Previous API                                                       | Current API                                                                                   |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `Tabs.List`, `Tabs.Tab`, `Tabs.Panel`                              | `TabsList`, `TabsTrigger`, `TabsContent`                                                      |
+| Root `activation="automatic"`                                      | List `activateOnFocus` (omit for manual activation)                                           |
+| List `label`                                                       | `aria-label`                                                                                  |
+| Trigger `count` / `trailing`                                       | Compose `Count`, `Badge` or other children; use `max={9999}` to preserve the former count cap |
+| `asChild`                                                          | `render`; add `nativeButton={false}` for a link trigger                                       |
+| `TabListProps`, `TabProps`, `TabPanelProps`                        | `TabsListProps`, `TabsTriggerProps`, `TabsContentProps`                                       |
+| Line styling by default                                            | List `variant="line"`; the new default is a filled strip                                      |
+| Line List `w-full justify-start`, `overflow-x-auto` or `flex-wrap` | Remove these overrides; horizontal line tabs fill and scroll through ScrollArea               |
 
 ## Related
 

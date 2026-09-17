@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useMemo, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "@tanstack/react-router";
 import {
@@ -69,6 +70,7 @@ function emptyDraft(): ProgramWizardDraft {
 }
 
 export function ProgramWizard() {
+  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const navigate = useNavigate();
   const resources = useWizardResources();
@@ -84,10 +86,10 @@ export function ProgramWizard() {
   const bypassBlock = useRef(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
   useBlocker({
-    shouldBlockFn: () => {
+    shouldBlockFn: async () => {
       if (bypassBlock.current) return false;
-      if (inFlight.current) return true;
-      return dirty && !window.confirm("Discard this unsaved program setup?");
+      if (inFlight.current || confirming) return true;
+      return dirty && !(await confirm(discardChanges("Discard this unsaved program setup?")));
     },
     enableBeforeUnload: () => !bypassBlock.current && (dirty || inFlight.current),
   });
@@ -452,7 +454,7 @@ export function ProgramWizard() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel ref={cancelRef} disabled={busy}>
+            <AlertDialogCancel ref={cancelRef} variant="subtle" disabled={busy}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -466,6 +468,7 @@ export function ProgramWizard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {confirmation}
     </Stack>
   );
 }

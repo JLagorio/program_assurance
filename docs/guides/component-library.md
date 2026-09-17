@@ -115,7 +115,7 @@ Family pages in Storybook own each component's current API, defaults, integratio
 ## What the lint enforces
 
 The package ships an ESLint plugin with two presets: `package` for its own code, `recommended` for
-every product. A product's own config adds nothing about the kit.
+every product. A product's own config adds nothing about the kit. The [product pattern contract](product-patterns.md) selects application workflows and named exceptions.
 
 | Rule                            | Reports                                                                 | Instead                                               |
 | ------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -132,6 +132,9 @@ every product. A product's own config adds nothing about the kit.
 | `ledger/cell-plain`             | A Table.Cell carrying a neutral colour, weight or type token            | Nothing; only a status colour may differ.             |
 | `ledger/id-not-blue`            | An Id with `text-brand` outside a link or button                        | Wrap it in a link, or drop the class.                 |
 | `ledger/no-kit-shadow`          | A local component named like a kit part                                 | Import the kit part.                                  |
+| `ledger/no-native-confirm` | Browser confirm calls in product code | Shared application AlertDialog confirmation. |
+| `ledger/text-link-navigation` | TextLink rendering a known non-link/action element | A real anchor/router link, or Button for actions. |
+| `ledger/dialog-footer-order` | Cancel after the primary in DialogFooter | Cancel first, then the primary. |
 | `ledger/button-icon-slot`       | An element with `size-icon-*` inside a Button or IconButton             | `iconBefore`, `iconAfter` or `icon`, passed bare.     |
 
 ## Pattern direction
@@ -142,7 +145,7 @@ Use list or board views for queues, labelled properties for ownership and status
 
 The root route mounts `AppLayout` once around its outlet. Routes compose `PageHeader`, primitives, controls and `TabsContent` in Main. `Shell.Aside` contributes supporting properties and `Shell.Panel` contributes selected-record or task content to stable destinations outside Main. React portals preserve route context, and route unmount removes the contribution; these slots render after client mount. Keep at most one contribution per region in the active route tree.
 
-Control and Requirement content lives in `src/features/controls/` and `src/features/requirements/`. Full-record routes and collection previews consume the same feature content, editors and action rules; each caller supplies its header and properties placement. Routes own `PageHeader`, `Shell.Aside` and `Shell.Panel`. Keep domain workflow out of the design-system package. Record names are full-record links; the eye opens the preview. Selected record, control scope and work tab live in route search parameters so Back, Forward and refresh reproduce the view. Tabs use separate `keepMounted` panels to retain drafts while changing tabs; changing records or leaving the view ends the local editing session.
+Control and requirement content lives in `src/components/prototype/`; `record-preview.tsx` owns shared application preview navigation and destinations. Full-record routes and collection previews consume the same feature content, editors and action rules; each caller supplies its header and properties placement. Routes own `PageHeader`, `Shell.Aside` and `Shell.Panel`. Keep domain workflow out of the design-system package. Record names are full-record links; the eye opens the preview. Selected record, control scope and work tab live in route search parameters so Back, Forward and refresh reproduce the view. Tabs use separate `keepMounted` panels to retain drafts while changing tabs; changing records or leaving the view ends the local editing session.
 
 Aside follows Main below 1200px and sits beside it above that. A Panel is inline from 1280px, the full height of the window, with the banner and the top nav stopping at its edge; below that it replaces the visible work area under the top nav while Main remains mounted. With both regions present, Aside follows Main until 1760px. Main uses document scrolling; Panel scrolls within the available viewport. Resizing, Escape, visible close and focus return belong to Panel. Use Base UI Sheet when the task needs modal focus containment.
 
@@ -160,7 +163,7 @@ The [Pages guide](../../packages/design-system/src/stories/patterns/Pages.mdx) r
 - Hover previews provide brief context. A selected-record surface supports the actions that make sense without leaving the queue, with a clear route to the full record.
 - Choose an inline panel or an overlay based on available space and whether the underlying queue must remain usable. Both can contain actions.
 - Shell.Panel supplies placement, heading, close and content spacing. A dismissible surface needs a visible close and a surviving focus target. Use Base UI Sheet when the rest of the page should be blocked.
-- Toolbar's `filters` alone collapse into More when space is constrained. Keep saved views, grouping, columns and settings in `children`, and buttons in `actions`; these remain visible. Search can occupy its own row at phone widths.
+- Toolbar's `filters` alone collapse into More when space is constrained. Keep saved views in `views`, grouping, columns and settings in `children`, and buttons in `actions`; these remain visible. Search can occupy its own row at phone widths.
 - Long requirements, success criteria and assessment objectives wrap. Edit criteria directly in the cell with `Editable.Text multiline` and use a searchable chooser with confirmation for assessment relationships.
 - A screen is shaped by the reader's question. When a column, fact or block exists because the
   store has the field, it goes.

@@ -84,6 +84,7 @@
 /* In place of Main on a compact screen the panel sits under the top nav; beside the page it is the
    full height of the window, and the banner and the top nav stop at its edge. */
 @utility shell-panel {
+  container: shell-panel / inline-size;
   scroll-padding-block-start: var(--ds-space-800);
   position: sticky;
   top: var(--shell-top);
@@ -93,6 +94,58 @@
     top: 0;
     height: 100dvh;
     border-inline-start-width: 1px;
+  }
+}
+/* A resized desktop panel can be much narrower than the viewport. Keep navigation together and
+   give a long record name the full row, rather than squeezing it beside four icon buttons. */
+[data-slot="shell-panel-header"] {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  & > [data-slot="shell-panel-title"] {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  & > [data-slot="shell-panel-actions"] {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  & > [data-slot="shell-panel-close"] {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+@container shell-panel (width < 400px) {
+  [data-slot="shell-panel-header"]:has(> [data-slot="shell-panel-title"]):has(
+      > [data-slot="shell-panel-actions"]
+    ) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: var(--ds-space-050);
+    & > [data-slot="shell-panel-title"] {
+      grid-column: 1 / -1;
+    }
+    & > [data-slot="shell-panel-actions"] {
+      grid-column: 1;
+      grid-row: 2;
+      justify-self: end;
+    }
+    & > [data-slot="shell-panel-close"] {
+      grid-column: 2;
+      grid-row: 2;
+    }
+  }
+}
+/* A record can put its identity and primary/menu actions in the panel body beneath navigation.
+   At the resize minimum, those native PageHeader slots also need their own rows. */
+@container shell-panel (width < 320px) {
+  [data-slot="page-header"] {
+    grid-template-columns: minmax(0, 1fr);
+    & > [data-slot="page-header-heading"],
+    & > [data-slot="page-header-title"],
+    & > [data-slot="page-header-actions"] {
+      grid-column: 1 / -1;
+    }
+    & > [data-slot="page-header-actions"] {
+      justify-self: end;
+    }
   }
 }
 [data-shell-slot="aside"] {

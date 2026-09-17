@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useId, useState } from "react";
 import {
   Box,
@@ -50,6 +51,7 @@ export function ParameterPicker({
   data: ReferenceData;
   preview: ProgramTailoringPreview;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -59,11 +61,11 @@ export function ParameterPicker({
       .includes(search.toLowerCase()),
   );
   const parameter = preview.parameters.find((item) => item.parameter.id === selected);
-  function canLeave() {
-    return !dirty || window.confirm("Discard the unrecorded parameter override?");
+  async function canLeave() {
+    return !dirty || (await confirm(discardChanges("Discard the unrecorded parameter override?")));
   }
-  function close() {
-    if (canLeave()) {
+  async function close() {
+    if (await canLeave()) {
       setDirty(false);
       onClose();
     }
@@ -73,12 +75,8 @@ export function ParameterPicker({
       open={open}
       onOpenChange={(next, details) => {
         if (!next) {
-          if (!canLeave()) {
-            details.cancel();
-            return;
-          }
-          setDirty(false);
-          onClose();
+          details.cancel();
+          void close();
         }
       }}
     >
@@ -117,8 +115,8 @@ export function ParameterPicker({
                         : `${item.origin} · ${item.values.join("; ")}`
                     }
                     isActive={item.parameter.id === selected}
-                    onSelect={() => {
-                      if (canLeave()) {
+                    onSelect={async () => {
+                      if (await canLeave()) {
                         setDirty(false);
                         setSelected(item.parameter.id);
                       }
@@ -155,6 +153,7 @@ export function ParameterPicker({
           </Button>
         </SheetFooter>
       </SheetContent>
+      {confirmation}
     </Sheet>
   );
 }

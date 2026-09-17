@@ -1,5 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { Badge, Inline, KeyValue, Section, Stack, TextLink } from "@ledger/design-system";
+import {
+  Absent,
+  Badge,
+  Button,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  Section,
+  Stack,
+  TextLink,
+} from "@ledger/design-system";
 import { labelFor } from "@/lib/records";
 import {
   baselineSource,
@@ -80,10 +91,7 @@ export function ancestorElements(row: SystemAssuranceRow, rows: SystemAssuranceR
   return path;
 }
 
-/**
- * The element's first screen: the record's sections in the record's order, one line each.
- * No tabs of its own; the record has those. `onDrill` swaps the surface to a child in place.
- */
+/** The preview's properties; its containing header owns identity and record actions. */
 export function SystemAssuranceDetails({
   row,
   rows,
@@ -96,67 +104,152 @@ export function SystemAssuranceDetails({
   const path = ancestorElements(row, rows);
   const contained = containedElements(row, rows);
   const boundary = rows.find((element) => element.id === row.boundary_system_id);
+  const parentIsBoundary = path.length === 1 && path[0]?.id === boundary?.id;
   const params = { programId: row.program_id, scopeId: row.id };
+  const sameImpactSource = impactDimensions.every(
+    (dimension) => row.impacts[dimension].source === row.impacts.confidentiality.source,
+  );
+  const description = row.description?.trim();
+  const hasDescription =
+    description && description.toLocaleLowerCase() !== row.name.trim().toLocaleLowerCase();
   return (
-    <Stack space="space.250">
-      <Stack space="space.050">
-        <h2 className="font-heading-small">{row.name}</h2>
-        {path.length > 0 && (
-          <p className="font-body-small text-subtle">
-            {path.map((element) => element.name).join(" / ")}
-          </p>
-        )}
-      </Stack>
-      <Stack space="space.050">
-        <KeyValue label="Type" labelWidth={124}>
+    <Stack space="space.200">
+      <Inspector.Group title="Details">
+        <KeyValue labelWidth={124} label="Code">
+          <Id>{row.code}</Id>
+        </KeyValue>
+        <KeyValue labelWidth={124} label="Type">
           {labelFor(row.system_type)}
         </KeyValue>
-        <KeyValue label="Owner" labelWidth={124}>
+        <KeyValue labelWidth={124} label="Owner">
           {row.system_owner_party_id ? (
             <RelationName table="parties" id={row.system_owner_party_id} />
           ) : (
-            "Unassigned"
+            <Absent />
           )}
         </KeyValue>
+        {path.length > 0 && (
+          <KeyValue
+            labelWidth={124}
+            label={parentIsBoundary ? "Parent / boundary" : "Part of"}
+            wrap
+          >
+            <Inline space="space.050" shouldWrap>
+              {path.map((element, index) => (
+                <Inline key={element.id} space="space.050">
+                  {index > 0 && <span aria-hidden>/</span>}
+                  <TextLink
+                    render={
+                      <Link
+                        to="/programs/$programId/systems/$scopeId"
+                        params={{ programId: element.program_id, scopeId: element.id }}
+                      />
+                    }
+                  >
+                    {element.name}
+                  </TextLink>
+                </Inline>
+              ))}
+            </Inline>
+          </KeyValue>
+        )}
+        {!parentIsBoundary && (
+          <KeyValue labelWidth={124} label="Boundary">
+            {row.is_authorization_boundary ? (
+              "This system"
+            ) : boundary ? (
+              <TextLink
+                render={
+                  <Link
+                    to="/programs/$programId/systems/$scopeId"
+                    params={{ programId: boundary.program_id, scopeId: boundary.id }}
+                  />
+                }
+              >
+                {boundary.name}
+              </TextLink>
+            ) : (
+              <Absent />
+            )}
+          </KeyValue>
+        )}
         {impactDimensions.map((dimension) => {
           const impact = row.impacts[dimension];
-          const highestBelow = row.childImpacts[dimension];
           return (
-            <KeyValue key={dimension} label={labelFor(dimension)} labelWidth={124} wrap>
+            <KeyValue labelWidth={124} key={dimension} label={labelFor(dimension)} wrap>
               <Inline space="space.075" alignBlock="center" shouldWrap>
                 <ImpactBadge value={impact.value} mixed={impact.source === "mixed"} />
-                <span className="font-body-small text-subtle">
-                  {impactProvenance(row, dimension)}
-                </span>
+                {!sameImpactSource && impact.source !== "unrecorded" && (
+                  <span className="font-body-small text-subtle">
+                    {impactProvenance(row, dimension)}
+                  </span>
+                )}
                 {impact.conflict && impact.source === "system" && (
                   <span className="font-body-small text-subtle">
                     Scope: {impact.scopeValues.map(labelFor).join(", ")}
-                  </span>
-                )}
-                {contained.length > 0 && highestBelow && (
-                  <span className="font-body-small text-subtle">
-                    Highest inside: {labelFor(highestBelow)}
                   </span>
                 )}
               </Inline>
             </KeyValue>
           );
         })}
-        <KeyValue label="Boundary" labelWidth={124}>
-          {row.is_authorization_boundary
-            ? "This element is the authorization boundary"
-            : (boundary?.name ?? "Boundary unavailable")}
+        {sameImpactSource && row.impacts.confidentiality.source !== "unrecorded" && (
+          <KeyValue labelWidth={124} label="Impact source">
+            {impactProvenance(row, "confidentiality")}
+          </KeyValue>
+        )}
+        {contained.length > 0 &&
+          impactDimensions.some((dimension) => row.childImpacts[dimension]) && (
+            <KeyValue labelWidth={124} label="Highest inside" wrap>
+              {impactDimensions
+                .filter((dimension) => row.childImpacts[dimension])
+                .map(
+                  (dimension) =>
+                    `${labelFor(dimension)}: ${labelFor(row.childImpacts[dimension]!)}`,
+                )
+                .join(" · ")}
+            </KeyValue>
+          )}
+        {hasDescription && (
+          <KeyValue labelWidth={124} label="Description" wrap>
+            {description}
+          </KeyValue>
+        )}
+        {row.categorization_rationale && (
+          <KeyValue labelWidth={124} label="Rationale" wrap>
+            {row.categorization_rationale}
+          </KeyValue>
+        )}
+        <KeyValue labelWidth={124} label="Baseline" wrap>
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            {row.effectiveBaseline?.profile_resolution_id ? (
+              <TextLink
+                render={
+                  <Link
+                    to="/programs/$programId/systems/$scopeId"
+                    params={params}
+                    search={{ tab: "Controls" }}
+                  />
+                }
+              >
+                {row.baselineTitle ?? "Baseline"}
+              </TextLink>
+            ) : (
+              <Absent />
+            )}
+            {row.baselineDraft && (
+              <Badge tone="warning" variant="secondary" size="xsmall">
+                Draft
+              </Badge>
+            )}
+          </Inline>
         </KeyValue>
-      </Stack>
-      {row.description && <p className="whitespace-pre-wrap font-body-small">{row.description}</p>}
-      {row.categorization_rationale && (
-        <p className="whitespace-pre-wrap font-body-small text-subtle">
-          {row.categorization_rationale}
-        </p>
-      )}
-      <Section
-        title="Baseline"
-        action={
+        {row.effectiveBaseline?.profile_resolution_id && (
+          <KeyValue labelWidth={124} label="Baseline source">
+            {baselineSource(row)}
+          </KeyValue>
+        )}
+        <KeyValue labelWidth={124} label="Controls">
           <TextLink
             render={
               <Link
@@ -166,43 +259,20 @@ export function SystemAssuranceDetails({
               />
             }
           >
-            Open controls
+            {row.controlCount === null ? "View controls" : `${row.controlCount} controls`}
           </TextLink>
-        }
-      >
-        <Stack space="space.075">
-          <Inline space="space.100" alignBlock="center" shouldWrap>
-            <span className="font-body-small font-medium">
-              {row.baselineTitle ??
-                (row.effectiveBaseline?.source_label ? "Baseline" : "No baseline")}
-            </span>
-            <span className="font-body-small text-subtle">{baselineSource(row)}</span>
-            {row.controlCount !== null && (
-              <Badge variant="secondary" size="xsmall">
-                {row.controlCount} controls
-              </Badge>
-            )}
-            {row.baselineDraft && (
-              <Badge tone="warning" variant="secondary" size="xsmall">
-                Draft tailored profile
-              </Badge>
-            )}
-          </Inline>
-          {row.additionalChildControlCount > 0 && (
-            <p className="font-body-small text-subtle">
-              {row.additionalChildControlCount} more controls are selected by elements inside.
-            </p>
-          )}
-          {row.unresolvedDescendantCount > 0 && (
-            <p className="font-body-small text-subtle">
-              {row.unresolvedDescendantCount} elements inside have no baseline.
-            </p>
-          )}
-        </Stack>
-      </Section>
-      <Section
-        title="Requirements"
-        action={
+        </KeyValue>
+        {row.additionalChildControlCount > 0 && (
+          <KeyValue labelWidth={124} label="Additional inside">
+            {row.additionalChildControlCount} controls
+          </KeyValue>
+        )}
+        {row.unresolvedDescendantCount > 0 && (
+          <KeyValue labelWidth={124} label="Missing baseline">
+            {row.unresolvedDescendantCount} systems inside
+          </KeyValue>
+        )}
+        <KeyValue labelWidth={124} label="Requirements">
           <TextLink
             render={
               <Link
@@ -212,54 +282,46 @@ export function SystemAssuranceDetails({
               />
             }
           >
-            Open requirements
+            {row.requirementCount} allocated
           </TextLink>
-        }
-      >
-        <p className="font-body-small">
-          {row.requirementCount} allocated here
-          {contained.length > 0 && ` · ${row.subtreeRequirementCount} including everything inside`}
-        </p>
-      </Section>
-      <Section title="Contains" count={contained.length}>
-        {contained.length ? (
-          <ul className="flex flex-col gap-050">
-            {contained.map((child) => (
-              <li key={child.id} className="font-body-small">
-                {onDrill ? (
-                  <button
-                    type="button"
-                    onClick={() => onDrill(child.id)}
-                    className="text-left font-medium hover:underline focus-visible:outline-focused"
-                  >
-                    {child.name}
-                  </button>
-                ) : (
-                  <TextLink
-                    render={
-                      <Link
-                        to="/programs/$programId/systems/$scopeId"
-                        params={{ programId: child.program_id, scopeId: child.id }}
-                      />
-                    }
-                  >
-                    {child.name}
-                  </TextLink>
-                )}
-                <span className="text-subtle">
-                  {" "}
-                  · {child.code} · {labelFor(child.system_type)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="font-body-small text-subtle">Nothing inside this element.</p>
+        </KeyValue>
+        {row.subtreeRequirementCount !== row.requirementCount && (
+          <KeyValue labelWidth={124} label="Including children">
+            {row.subtreeRequirementCount} requirements
+          </KeyValue>
         )}
-      </Section>
-      <TextLink render={<Link to="/programs/$programId/systems/$scopeId" params={params} />}>
-        Open record
-      </TextLink>
+      </Inspector.Group>
+      {contained.length > 0 && (
+        <Section title="Contains" count={contained.length}>
+          <Stack space="space.050">
+            {contained.map((child) =>
+              onDrill ? (
+                <Button
+                  key={child.id}
+                  variant="subtle"
+                  size="small"
+                  className="justify-start"
+                  onClick={() => onDrill(child.id)}
+                >
+                  {child.name}
+                </Button>
+              ) : (
+                <TextLink
+                  key={child.id}
+                  render={
+                    <Link
+                      to="/programs/$programId/systems/$scopeId"
+                      params={{ programId: child.program_id, scopeId: child.id }}
+                    />
+                  }
+                >
+                  {child.name}
+                </TextLink>
+              ),
+            )}
+          </Stack>
+        </Section>
+      )}
     </Stack>
   );
 }

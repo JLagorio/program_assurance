@@ -1,8 +1,15 @@
 import { statusTone } from "./work-format";
 import type { ReactNode } from "react";
 import {
+  Absent,
+  Alert,
+  AlertDescription,
   Badge,
   Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -11,11 +18,13 @@ import {
   EmptyMedia,
   EmptyTitle,
   Inline,
+  KeyValue,
+  PageHeader,
   Section,
   Stack,
   TextLink,
-  type EmptyIllustrationKind,
 } from "@ledger/design-system";
+import { ChevronDown } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { useWorkspace } from "@/components/app/workspace";
@@ -28,74 +37,121 @@ export function StatusBadge({ value }: { value: string | null | undefined }) {
       {labelFor(value)}
     </Badge>
   ) : (
-    <span className="text-subtlest">Not recorded</span>
+    <Absent />
   );
 }
-/** The app's empty region: the kit's picture (or an icon for a small region), the message, the way forward. */
-export function EmptyState({
-  title,
-  description,
-  illustration,
-  icon,
-  action,
-  size = "default",
-}: {
-  title: string;
-  description?: string;
-  /** Which kit picture; `records` by default, `false` for none. */
-  illustration?: EmptyIllustrationKind | false;
-  /** A Lucide icon in the neutral circle instead of a picture, for a card body or a rail. */
-  icon?: ReactNode;
-  /** The next step: the create verb, a link back. */
-  action?: ReactNode;
-  size?: "default" | "compact";
-}) {
-  const media = icon ? (
-    <EmptyMedia variant="icon" aria-hidden>
-      {icon}
-    </EmptyMedia>
-  ) : illustration === false || size === "compact" ? null : (
-    <EmptyMedia aria-hidden>
-      <EmptyIllustration kind={illustration ?? "records"} />
-    </EmptyMedia>
-  );
-  return (
-    <Empty size={size}>
-      {media}
-      <EmptyHeader>
-        <EmptyTitle>{title}</EmptyTitle>
-        {description && <EmptyDescription>{description}</EmptyDescription>}
-      </EmptyHeader>
-      {action && <EmptyContent>{action}</EmptyContent>}
-    </Empty>
-  );
-}
-type QueryStatus = {
+export type QueryStatus = {
   isPending: boolean;
   isError: boolean;
   error: unknown;
   refetch: () => Promise<unknown>;
+  data?: unknown;
 };
-export function QueryState({ queries, children }: { queries: QueryStatus[]; children: ReactNode }) {
+export function QueryState({
+  queries,
+  children,
+}: {
+  queries: QueryStatus[];
+  children?: ReactNode;
+}) {
   const failed = queries.find((query) => query.isError);
-  if (failed)
-    return (
-      <Stack space="space.150">
-        <p role="alert" className="text-danger">
-          {failed.error instanceof Error ? failed.error.message : "Records could not be loaded."}
+  const pending = queries.some((query) => query.isPending && query.data === undefined);
+  const available = queries.every(
+    (query) => query.data !== undefined || (!query.isPending && !query.isError),
+  );
+  return (
+    <>
+      {failed && (
+        <Stack space="space.150">
+          <Alert tone="danger">
+            <AlertDescription>
+              {failed.data !== undefined &&
+                "Could not refresh records. Showing the last loaded records. "}
+              {failed.error instanceof Error
+                ? failed.error.message
+                : "Records could not be loaded."}
+            </AlertDescription>
+          </Alert>
+          <Button onClick={() => void Promise.all(queries.map((query) => query.refetch()))}>
+            Retry loading
+          </Button>
+        </Stack>
+      )}
+      {pending && (
+        <p role="status" className="py-200 text-subtle">
+          Loading records…
         </p>
-        <Button onClick={() => void Promise.all(queries.map((query) => query.refetch()))}>
-          Retry loading
-        </Button>
-      </Stack>
-    );
-  if (queries.some((query) => query.isPending))
-    return (
-      <p role="status" className="py-200 text-subtle">
-        Loading records…
-      </p>
-    );
-  return children;
+      )}
+      {available && children}
+    </>
+  );
+}
+
+export function EmptyMessage({
+  title,
+  description,
+  compact = false,
+}: {
+  title: string;
+  description?: string;
+  compact?: boolean;
+}) {
+  return (
+    <Empty size={compact ? "compact" : "default"} frame="none">
+      <EmptyHeader>
+        <EmptyTitle>{title}</EmptyTitle>
+        {description && <EmptyDescription>{description}</EmptyDescription>}
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
+const missingRecordDestinations = {
+  "/": "Open workspace",
+  "/work": "Open my work",
+  "/programs": "Open programs",
+  "/campaigns": "Open test campaigns",
+  "/findings": "Open findings and assets",
+  "/register": "Open POA&M and risk register",
+  "/packages": "Open authorization packages",
+  "/profiles": "Open profiles",
+  "/library/components": "Open components",
+  "/library/products": "Open products",
+  "/library/requirements": "Open requirements",
+} as const;
+
+export function MissingRecord({
+  kind,
+  description = "This record is unavailable in the current workspace.",
+  backTo = "/",
+}: {
+  kind: string;
+  description?: string;
+  backTo?: keyof typeof missingRecordDestinations;
+}) {
+  return (
+    <Stack space="space.200">
+      <PageHeader>
+        <PageHeader.Heading>
+          <PageHeader.Title>{kind}</PageHeader.Title>
+        </PageHeader.Heading>
+      </PageHeader>
+      <Empty>
+        <EmptyMedia aria-hidden>
+          <EmptyIllustration kind="search" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>{kind} not found</EmptyTitle>
+          <EmptyDescription>{description}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button variant="primary" render={<Link to={backTo} />}>
+            {missingRecordDestinations[backTo]}
+          </Button>
+        </EmptyContent>
+      </Empty>
+    </Stack>
+  );
 }
 export type FormTarget = {
   table: TableName;
@@ -144,34 +200,47 @@ export function SchemaLink({
 }
 export function DetailFacts({ facts }: { facts: [string, ReactNode][] }) {
   return (
-    <dl className="grid grid-cols-[minmax(100px,1fr)_minmax(0,2fr)] gap-x-200 gap-y-150 font-body-small">
+    <Stack space="space.150">
       {facts.map(([name, value]) => (
-        <div className="contents" key={name}>
-          <dt className="text-subtle">{name}</dt>
-          <dd className="min-w-0 break-words">{value ?? "Not recorded"}</dd>
-        </div>
+        <KeyValue key={name} label={name} wrap className="break-words">
+          {value ?? <Absent />}
+        </KeyValue>
       ))}
-    </dl>
+    </Stack>
   );
 }
 export function RecordActions({
   onEdit,
   table,
   id,
+  editLabel = "Edit record",
+  readOnly = false,
 }: {
   onEdit: () => void;
   table: string;
   id: string;
+  editLabel?: string;
+  readOnly?: boolean;
 }) {
   const workspace = useWorkspace();
   return (
-    <Inline space="space.150" alignBlock="center">
-      {workspace.role !== "viewer" && (
-        <Button size="small" onClick={onEdit}>
-          Edit
-        </Button>
-      )}
-      <SchemaLink table={table} id={id} />
-    </Inline>
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
+      <DropdownMenuContent align="end">
+        {!readOnly && workspace.role !== "viewer" && (
+          <DropdownMenuItem onClick={onEdit}>{editLabel}</DropdownMenuItem>
+        )}
+        <DropdownMenuItem
+          render={
+            <Link
+              to="/records/$collection/$recordId"
+              params={{ collection: table, recordId: id }}
+            />
+          }
+        >
+          Inspect record
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

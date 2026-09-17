@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -7,6 +8,9 @@ import {
   Box,
   Button,
   Checkbox,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
   DataTable,
   Dialog,
   DialogContent,
@@ -18,6 +22,7 @@ import {
   FieldLabel,
   Inline,
   Input,
+  KeyValue,
   Select,
   SelectContent,
   SelectItem,
@@ -32,12 +37,14 @@ import {
   type Preset,
   type Tone,
 } from "@ledger/design-system";
+import { ChevronDown } from "lucide-react";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "@/lib/database";
 import { useRow, useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import { resolutionChain } from "@/lib/profile-chain";
 import { ControlInspector } from "./library-controls";
+import { useDisplayedRecords } from "./record-preview";
 
 export type ProfileChoice = {
   id: string;
@@ -346,8 +353,8 @@ export function SystemControls({
   const columns = useMemo(
     () =>
       defineColumns<ControlRow>((c) => [
-        c.id("code", { header: "Control", width: 120, hideable: false }),
-        c.text("title", { header: "Title", minWidth: 260, hideable: false }),
+        c.id("code", { header: "Control", width: 120, priority: 1, hideable: false }),
+        c.text("title", { header: "Title", minWidth: 180, priority: 0, hideable: false }),
         c.status("source", {
           header: "Source",
           width: 140,
@@ -416,6 +423,7 @@ export function SystemControls({
     pageSize: 50,
     initialState: { columnVisibility: { rationale: false } },
   });
+  const displayed = useDisplayedRecords(table);
   const queries = [
     system,
     effective,
@@ -455,35 +463,8 @@ export function SystemControls({
   ) : null;
   return (
     <Stack space="space.200">
-      <Stack space="space.050">
-        <Inline alignBlock="center" space="space.100" shouldWrap>
-          <span className="font-body-medium font-medium">
-            {currentTitle ?? (ready ? "No baseline" : "Loading baseline…")}
-          </span>
-          {currentProfile && <span className="font-body-small text-subtle">{sourceText}</span>}
-          {currentProfile && (
-            <Badge variant="secondary" size="xsmall">
-              {selectedControls.length} controls
-            </Badge>
-          )}
-          {overlayBase && (
-            <Badge tone="information" variant="secondary" size="xsmall">
-              Layered on {overlayBase.title}
-            </Badge>
-          )}
-          {currentResolution?.state === "draft" && (
-            <Badge tone="warning" variant="secondary" size="xsmall">
-              Draft tailored profile
-            </Badge>
-          )}
-        </Inline>
-        {system.data?.baseline_rationale && (
-          <p className="whitespace-pre-wrap font-body-small text-subtle">
-            {system.data.baseline_rationale}
-          </p>
-        )}
-      </Stack>
       <DataTable
+        responsive
         table={table}
         state={error ? "error" : !ready ? "loading" : "ready"}
         error={error?.message}
@@ -508,11 +489,49 @@ export function SystemControls({
           </Toolbar>
         }
       />
+      {currentProfile && (
+        <Collapsible>
+          <CollapsibleTrigger
+            render={<Button variant="subtle" size="small" iconAfter={<ChevronDown />} />}
+          >
+            Baseline details
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <Stack space="space.100" className="pt-150">
+              <KeyValue label="Profile" wrap>
+                {currentTitle}
+              </KeyValue>
+              <KeyValue label="Source" wrap>
+                {sourceText}
+              </KeyValue>
+              <KeyValue label="Selected controls">{selectedControls.length}</KeyValue>
+              <KeyValue label="State">
+                {labelFor(currentResolution?.state ?? currentProfile.state)}
+              </KeyValue>
+              {overlayBase && (
+                <KeyValue label="Layered on" wrap>
+                  {overlayBase.title}
+                </KeyValue>
+              )}
+              {system.data?.baseline_rationale && (
+                <KeyValue label="Tailoring rationale" wrap>
+                  <span className="whitespace-pre-wrap">{system.data.baseline_rationale}</span>
+                </KeyValue>
+              )}
+            </Stack>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
       {inspected && (
         <ControlInspector
           key={inspected.id}
           control={inspected.control}
           {...(inspected.selectionId ? { selectionId: inspected.selectionId } : {})}
+          records={displayed.map((row) => row.control)}
+          onSelect={(control) => {
+            const next = displayed.find((row) => row.control.id === control.id);
+            if (next) setInspected(next);
+          }}
           onClose={() => setInspected(null)}
         />
       )}
@@ -574,6 +593,7 @@ function BaselineDialog({
   canWrite: boolean;
   onClose: () => void;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const cache = useQueryClient();
   const fieldId = useId();
@@ -606,17 +626,19 @@ function BaselineDialog({
         (filter === "selected" && picked.has(control.id)) ||
         (filter === "changed" && picked.has(control.id) !== base.has(control.id))),
   );
-  const close = () => {
+  const close = async () => {
     if (inFlight.current) return;
-    if (!dirty || window.confirm("Discard this unsaved baseline selection?")) {
+    if (!dirty || (await confirm(discardChanges("Discard this unsaved baseline selection?")))) {
       bypass.current = true;
       onClose();
     }
   };
   useBlocker({
-    shouldBlockFn: () =>
+    shouldBlockFn: async () =>
       inFlight.current ||
-      (dirty && !bypass.current && !window.confirm("Discard this unsaved baseline selection?")),
+      (dirty &&
+        !bypass.current &&
+        !(await confirm(discardChanges("Discard this unsaved baseline selection?")))),
     enableBeforeUnload: () => !bypass.current && (dirty || inFlight.current),
   });
   async function submit(event: FormEvent) {
@@ -811,8 +833,8 @@ function BaselineDialog({
                             </SelectContent>
                           </Select>
                         </Inline>
-                        <Box className="max-h-[20rem] overflow-auto rounded-medium border border-default">
-                          <Table>
+                        <Box className="rounded-medium border border-default">
+                          <Table maxHeight={320}>
                             <thead>
                               <Table.Row>
                                 <Table.Header style={{ width: 64 }}>Select</Table.Header>
@@ -898,15 +920,13 @@ function BaselineDialog({
             <Button variant="subtle" disabled={busy} onClick={close}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={busy || !canWrite || (mode === "adopt" && (!chosen || !picked.size))}
-            >
+            <Button type="submit" variant="primary" disabled={busy || !canWrite}>
               {busy ? "Saving…" : mode === "inherit" ? "Use inherited baseline" : "Save baseline"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

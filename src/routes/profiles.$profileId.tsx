@@ -1,8 +1,21 @@
+import { EmptyMessage, MissingRecord } from "@/components/prototype/work-common";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import {
+  Absent,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  Toolbar,
   Badge,
   Button,
   Collapsible,
@@ -58,18 +71,34 @@ function ProfilePage() {
   const current = versions.find((revision) => revision.id === chosen) ?? versions[0];
   const editable =
     profile.data?.tenant_id === workspace.tenantId && canAuthorLibrary(workspace.role);
+  if (!profile.data)
+    return (
+      <LibraryLoading queries={[profile, revisions]}>
+        <MissingRecord backTo="/profiles" kind="Profile" />
+      </LibraryLoading>
+    );
   return (
     <LibraryLoading queries={[profile, revisions]}>
       <Stack space="space.200" className="animate-rise">
         <PageHeader>
-          <div className="min-w-0">
-            <TextLink render={<Link to="/profiles" />}>Profiles</TextLink>
-            <PageHeader.Title>{profile.data?.title ?? "Profile not found"}</PageHeader.Title>
-          </div>
+          <PageHeader.Lead render={<Breadcrumb />}>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/profiles" />}>Profiles</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{profile.data?.title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </PageHeader.Lead>
+          <PageHeader.Heading>
+            <PageHeader.Title>{profile.data?.title}</PageHeader.Title>
+          </PageHeader.Heading>
           {editable && (
             <PageHeader.Actions>
               <Button variant="primary" onClick={() => setCreating(true)}>
-                New revision
+                Create profile revision
               </Button>
             </PageHeader.Actions>
           )}
@@ -77,7 +106,6 @@ function ProfilePage() {
         {creating && (
           <LibraryEditor
             table="profile_revisions"
-            title="New profile revision"
             initialValues={{ profile_id: profileId }}
             onClose={() => setCreating(false)}
             onSaved={(record) => setChosen(record.id)}
@@ -99,10 +127,10 @@ function ProfilePage() {
         {current ? (
           <ProfileRevision key={current.id} revision={current} editable={!!editable} />
         ) : (
-          <p className="text-subtle">
-            This profile has no revisions. Create a revision to record its source and selection
-            rules.
-          </p>
+          <EmptyMessage
+            title="No profile revisions"
+            description="Create a revision to record its source and selection rules."
+          />
         )}
       </Stack>
     </LibraryLoading>
@@ -116,8 +144,9 @@ function ProfileRevision({
   revision: Row<"profile_revisions">;
   editable: boolean;
 }) {
-  const [tab, setTab] = useState("Derivation");
+  const [tab, setTab] = useState("Overview");
   const [resolutionId, setResolutionId] = useState("");
+  const [displayedControls, setDisplayedControls] = useState<Row<"controls">[]>([]);
   const [control, setControl] = useState<Row<"controls"> | null>(null);
   const [editing, setEditing] = useState<"profile_imports" | "profile_rules" | null>(null);
   const imports = useRows("profile_imports", { profile_revision_id: revision.id });
@@ -196,7 +225,8 @@ function ProfileRevision({
         }}
         className="contents"
       >
-        <TabsList variant="line" className="w-full justify-start">
+        <TabsList variant="line" aria-label="Profile sections">
+          <TabsTrigger value="Overview">Overview</TabsTrigger>
           {["Derivation", "Controls", "Tailoring"].map((name) => (
             <TabsTrigger key={name} value={name}>
               {name}
@@ -224,12 +254,16 @@ function ProfileRevision({
             {editing && (
               <LibraryEditor
                 table={editing}
-                title={
-                  editing === "profile_imports" ? "Record profile import" : "Record tailoring rule"
-                }
                 initialValues={{ profile_revision_id: revision.id }}
                 onClose={() => setEditing(null)}
               />
+            )}
+            {tab === "Overview" && (
+              <Section title="Profile revision">
+                <p>
+                  Review this revision’s source, resolved controls, and tailoring in the tabs above.
+                </p>
+              </Section>
             )}
             {tab === "Derivation" && (
               <Stack space="space.200">
@@ -237,7 +271,7 @@ function ProfileRevision({
                   <h2 className="font-heading-small">Source imports</h2>
                   {editable && revision.state === "draft" && (
                     <Button variant="secondary" onClick={() => setEditing("profile_imports")}>
-                      Add import
+                      Create profile import
                     </Button>
                   )}
                 </Inline>
@@ -251,51 +285,51 @@ function ProfileRevision({
                     </tr>
                   </thead>
                   <tbody>
-                    {imports.data?.map((item) => {
-                      const catalog = catalogOf(item);
-                      const imported = importedRevision(item);
-                      return (
-                        <Table.Row key={item.id}>
-                          <Table.Cell>{item.ordinal}</Table.Cell>
-                          <Table.Cell className="whitespace-normal">
-                            {catalog ? (
-                              <TextLink
-                                render={<Link to="/catalog" search={{ edition: catalog.id }} />}
-                              >
-                                Catalog ·{" "}
-                                {catalogs.data?.find((row) => row.id === catalog.catalog_id)
-                                  ?.title ?? catalog.title}
-                              </TextLink>
-                            ) : imported ? (
-                              <TextLink
-                                render={
-                                  <Link
-                                    to="/profiles/$profileId"
-                                    params={{ profileId: imported.profile_id }}
-                                  />
-                                }
-                              >
-                                Base profile ·{" "}
-                                {profiles.data?.find((row) => row.id === imported.profile_id)
-                                  ?.title ?? imported.title}{" "}
-                                · {imported.version}
-                              </TextLink>
-                            ) : (
-                              "Not recorded"
-                            )}
-                          </Table.Cell>
-                          <Table.Cell>{importSelection(item)}</Table.Cell>
-                          <Table.Cell>
-                            <Id>{item.href}</Id>
-                          </Table.Cell>
-                        </Table.Row>
-                      );
-                    })}
+                    {[...(imports.data ?? [])]
+                      .sort((a, b) => a.ordinal - b.ordinal)
+                      .map((item) => {
+                        const catalog = catalogOf(item);
+                        const imported = importedRevision(item);
+                        return (
+                          <Table.Row key={item.id}>
+                            <Table.Cell>{item.ordinal}</Table.Cell>
+                            <Table.Cell className="whitespace-normal">
+                              {catalog ? (
+                                <TextLink
+                                  render={<Link to="/catalog" search={{ edition: catalog.id }} />}
+                                >
+                                  Catalog ·{" "}
+                                  {catalogs.data?.find((row) => row.id === catalog.catalog_id)
+                                    ?.title ?? catalog.title}
+                                </TextLink>
+                              ) : imported ? (
+                                <TextLink
+                                  render={
+                                    <Link
+                                      to="/profiles/$profileId"
+                                      params={{ profileId: imported.profile_id }}
+                                    />
+                                  }
+                                >
+                                  Base profile ·{" "}
+                                  {profiles.data?.find((row) => row.id === imported.profile_id)
+                                    ?.title ?? imported.title}{" "}
+                                  · {imported.version}
+                                </TextLink>
+                              ) : (
+                                "Not recorded"
+                              )}
+                            </Table.Cell>
+                            <Table.Cell>{importSelection(item)}</Table.Cell>
+                            <Table.Cell>
+                              <Id>{item.href}</Id>
+                            </Table.Cell>
+                          </Table.Row>
+                        );
+                      })}
                   </tbody>
                 </Table>
-                {!imports.data?.length && (
-                  <p className="text-subtle">No source imports recorded.</p>
-                )}
+                {!imports.data?.length && <EmptyMessage title="No source imports recorded" />}
                 <h2 className="font-heading-small">Recorded resolutions</h2>
                 {available.length ? (
                   available.map((item) => (
@@ -314,10 +348,10 @@ function ProfileRevision({
                     </Inspector.Group>
                   ))
                 ) : (
-                  <p className="text-subtle">
-                    No resolution has been recorded. A control count is available after a resolution
-                    has been imported.
-                  </p>
+                  <EmptyMessage
+                    title="No resolution recorded"
+                    description="Import a resolution to see its control count."
+                  />
                 )}
               </Stack>
             )}
@@ -337,13 +371,15 @@ function ProfileRevision({
                       />
                     </div>
                     <LibraryControlTable
+                      selectedId={control?.id}
+                      onDisplayedRowsChange={setDisplayedControls}
                       controls={selectedControls}
                       onSelect={setControl}
                       label="Profile controls"
                     />
                   </>
                 ) : (
-                  <p className="text-subtle">This revision has no recorded resolved selection.</p>
+                  <EmptyMessage title="This revision has no recorded resolved selection" />
                 )}
               </Stack>
             )}
@@ -353,9 +389,10 @@ function ProfileRevision({
                   {inspection ? (
                     <ProfileChain chain={inspection.chain} catalog={inspectedCatalog} />
                   ) : (
-                    <p className="text-subtle">
-                      Derivation is shown for a published, resolved revision.
-                    </p>
+                    <EmptyMessage
+                      title="No derivation available"
+                      description="Derivation appears for a published, resolved revision."
+                    />
                   )}
                 </Section>
                 {decisions ? (
@@ -395,7 +432,7 @@ function ProfileRevision({
                     />
                     {editable && revision.state === "draft" && (
                       <Button variant="secondary" onClick={() => setEditing("profile_rules")}>
-                        Add rule
+                        Create tailoring rule
                       </Button>
                     )}
                   </Inline>
@@ -417,7 +454,7 @@ function ProfileRevision({
                           </Stack>
                         ))
                       ) : (
-                        <p className="text-subtle">No tailoring rules recorded.</p>
+                        <EmptyMessage title="No tailoring rules recorded" />
                       )}
                     </Stack>
                   </CollapsibleContent>
@@ -427,45 +464,48 @@ function ProfileRevision({
           </LibraryLoading>
         </TabsContent>
       </Tabs>
-      <Shell.Aside label="Profile properties">
-        <Inspector.Group title="Profile revision">
-          <KeyValue label="Version">{revision.version}</KeyValue>
-          <KeyValue label="State">{revision.state}</KeyValue>
-          <KeyValue label="Kind" wrap>
-            {inspection
-              ? inspection.kind === "overlay"
-                ? `${kind} from ${profileDisplayTitle(inspection.base?.profile, reference.data) ?? "a base profile"}`
-                : kind
-              : "Not resolved"}
-          </KeyValue>
-          <KeyValue label="Catalog" wrap>
-            {inspectedCatalog ? (
-              <TextLink render={<Link to="/catalog" search={{ edition: inspectedCatalog.id }} />}>
-                {inspectedCatalog.title} · {inspectedCatalog.version}
-              </TextLink>
-            ) : (
-              "Not resolved"
-            )}
-          </KeyValue>
-          <KeyValue label="Controls">
-            {resolution
-              ? selections.error
-                ? "Unavailable"
-                : selectionsReady
-                  ? selections.data!.length
-                  : "Loading…"
-              : "Not resolved"}
-          </KeyValue>
-          <KeyValue label="Imports">{imports.data?.length ?? "Loading…"}</KeyValue>
-          <KeyValue label="OSCAL document revision" wrap>
-            <Id>{revision.document_revision_id}</Id>
-          </KeyValue>
-        </Inspector.Group>
-      </Shell.Aside>
+      {tab === "Overview" && (
+        <Shell.Aside label="Profile details">
+          <Inspector.Group title="Details">
+            <KeyValue label="Version">{revision.version}</KeyValue>
+            <KeyValue label="State">{revision.state}</KeyValue>
+            <KeyValue label="Kind" wrap>
+              {inspection
+                ? inspection.kind === "overlay"
+                  ? `${kind} from ${profileDisplayTitle(inspection.base?.profile, reference.data) ?? "a base profile"}`
+                  : kind
+                : "Not resolved"}
+            </KeyValue>
+            <KeyValue label="Catalog" wrap>
+              {inspectedCatalog ? (
+                <TextLink render={<Link to="/catalog" search={{ edition: inspectedCatalog.id }} />}>
+                  {inspectedCatalog.title} · {inspectedCatalog.version}
+                </TextLink>
+              ) : (
+                "Not resolved"
+              )}
+            </KeyValue>
+            <KeyValue label="Controls">
+              {resolution
+                ? selections.error
+                  ? "Unavailable"
+                  : selectionsReady
+                    ? selections.data!.length
+                    : "Loading…"
+                : "Not resolved"}
+            </KeyValue>
+            <KeyValue label="Imports">{imports.data?.length ?? "Loading…"}</KeyValue>
+            <KeyValue label="OSCAL document revision" wrap>
+              <Id>{revision.document_revision_id}</Id>
+            </KeyValue>
+          </Inspector.Group>
+        </Shell.Aside>
+      )}
       {control && (
         <ControlInspector
-          key={control.id}
           control={control}
+          records={displayedControls}
+          onSelect={setControl}
           {...(selections.data?.find((selection) => selection.control_id === control.id)?.id
             ? {
                 selectionId: selections.data.find(

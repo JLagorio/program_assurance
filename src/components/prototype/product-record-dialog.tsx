@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from "react";
 import {
-  Box,
   Button,
   Dialog,
   DialogContent,
@@ -64,6 +63,7 @@ export function ProductRecordForm({
       key={`${workspace.userId}/${workspace.tenantId}/${table}/${existing?.id ?? "new"}`}
       collection={collection}
       presentation="product"
+      formLayout="dialog"
       existing={existing}
       initialValues={initialValues}
       {...(onStateChange ? { onStateChange } : {})}
@@ -78,19 +78,25 @@ export function ProductRecordForm({
 
 /** Every create/edit opens in one modal; the form owns confirmation and write-in-flight guards. */
 export function ProductRecordDialog({
-  title,
+  description,
   ...props
-}: ProductRecordFormProps & { title?: string | undefined }) {
+}: ProductRecordFormProps & { description?: string | undefined }) {
   const workspace = useWorkspace();
   const collection = workspace.collections.find((item) => item.name === props.table);
   const stateRef = useRef<ProductEditorState | null>(null);
   const [busy, setBusy] = useState(false);
+  const [noun, setNoun] = useState(() =>
+    productRecordNoun(props.table, props.existing ?? props.initialValues),
+  );
   const onStateChange = useCallback((state: ProductEditorState) => {
     stateRef.current = state;
     setBusy(state.busy);
+    setNoun(state.noun);
   }, []);
-  const heading =
-    title ?? `${props.existing ? "Edit" : "Create"} ${productRecordNoun(props.table)}`;
+  const heading = `${props.existing ? "Edit" : "Create"} ${noun}`;
+  const context =
+    description ??
+    (props.existing && collection ? recordTitle(props.existing, collection) : undefined);
   return (
     <Dialog
       open
@@ -105,13 +111,9 @@ export function ProductRecordDialog({
       <DialogContent style={{ maxWidth: 760 }} showCloseButton={!busy}>
         <DialogHeader>
           <DialogTitle>{heading}</DialogTitle>
-          {props.existing && collection ? (
-            <DialogDescription>{recordTitle(props.existing, collection)}</DialogDescription>
-          ) : null}
+          {context ? <DialogDescription>{context}</DialogDescription> : null}
         </DialogHeader>
-        <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
-          <ProductRecordForm {...props} onStateChange={onStateChange} />
-        </Box>
+        <ProductRecordForm {...props} onStateChange={onStateChange} />
       </DialogContent>
     </Dialog>
   );

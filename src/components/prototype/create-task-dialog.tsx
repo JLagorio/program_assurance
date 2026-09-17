@@ -1,3 +1,4 @@
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import {
@@ -110,6 +111,7 @@ export function CreateTaskDialog({
   onClose: () => void;
   onCreated?: ((result: CreateTaskResult) => void | Promise<void>) | undefined;
 }) {
+  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const id = useId();
   const [requestId] = useState(() => crypto.randomUUID());
@@ -163,29 +165,34 @@ export function CreateTaskDialog({
       .find((collection) => collection.name === "tasks")
       ?.columns.find((column) => column.name === "priority")?.choices ?? [];
   useBlocker({
-    shouldBlockFn: () =>
+    shouldBlockFn: async () =>
       !bypassBlock.current &&
-      (inFlight.current || (dirty && !window.confirm("Discard this unsaved task?"))),
+      (inFlight.current ||
+        (dirty && !(await confirm(discardChanges("Discard this unsaved task?"))))),
     enableBeforeUnload: () => !bypassBlock.current && (dirty || inFlight.current),
   });
   function changed() {
     setDirty(true);
     setError("");
   }
-  function close() {
+  async function close() {
     if (inFlight.current) return;
-    if (!dirty || window.confirm("Discard this unsaved task?")) {
+    if (!dirty || (await confirm(discardChanges("Discard this unsaved task?")))) {
       bypassBlock.current = true;
       onClose();
     }
   }
-  function chooseProgram(value: string | null) {
+  async function chooseProgram(value: string | null) {
     if (value === chosenProgram) return;
     if (
       chosenWorkstream &&
-      !window.confirm(
-        "Changing the program clears the workstream selection. The task details and assignee will be kept.",
-      )
+      !(await confirm({
+        title: "Change program?",
+        confirmLabel: "Change program",
+        variant: "primary",
+        description:
+          "Changing the program clears the workstream selection. The task details and assignee will be kept.",
+      }))
     )
       return;
     setChosenProgram(value ?? "");
@@ -455,6 +462,7 @@ export function CreateTaskDialog({
           ) : null}
         </DialogFooter>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

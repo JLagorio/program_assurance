@@ -1,9 +1,14 @@
 import { campaignTabs, type CampaignTab } from "./assessment-tabs";
 import { displayDate } from "./work-format";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Button,
   Count,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  IconButton,
   Inline,
   Section,
   Shell,
@@ -12,14 +17,21 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyMedia,
+  EmptyIllustration,
 } from "@ledger/design-system";
+import { MoreHorizontal } from "lucide-react";
 import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { useWorkspace } from "@/components/app/workspace";
+import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
+import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
 import {
   DetailFacts,
-  EmptyState,
   ModelForm,
   QueryState,
   RecordActions,
@@ -30,10 +42,12 @@ import {
 
 export function AssessmentCampaign({
   campaign,
+  overview,
   tab,
   onTab,
 }: {
   campaign: Row<"assessment_campaigns">;
+  overview?: ReactNode;
   tab: CampaignTab;
   onTab: (tab: CampaignTab) => void;
 }) {
@@ -49,6 +63,7 @@ export function AssessmentCampaign({
   const parties = useRows("parties");
   const [form, setForm] = useState<FormTarget | null>(null);
   const [selection, setSelection] = useState<FormTarget | null>(null);
+  const [displayed, setDisplayed] = useState<Record<string, DataRecord[]>>({});
   const planRows = [...(plans.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const objectiveRows = (objectives.data ?? []).filter((row) =>
     planRows.some((plan) => plan.id === row.plan_revision_id),
@@ -106,7 +121,7 @@ export function AssessmentCampaign({
         disabled={!!form || plans.isPending || plans.isError || (needsPlan && !plan)}
         onClick={() => edit(contextual)}
       >
-        {label}
+        {productCreateLabel(target.table)}
       </Button>
     ) : undefined;
   }
@@ -115,7 +130,7 @@ export function AssessmentCampaign({
     <Stack space="space.200">
       {form && <ModelForm target={form} onClose={() => setForm(null)} />}
       <Tabs value={tab} onValueChange={(value) => onTab(value as CampaignTab)}>
-        <TabsList className="w-full justify-start" variant="line" activateOnFocus>
+        <TabsList variant="line" activateOnFocus aria-label="Campaign sections">
           {campaignTabs.map((name) => (
             <TabsTrigger value={name} key={name}>
               {name}
@@ -131,6 +146,7 @@ export function AssessmentCampaign({
             </TabsTrigger>
           ))}
         </TabsList>
+        <TabsContent value="Overview">{overview}</TabsContent>
         <TabsContent value="Execution">
           <Stack space="space.300" className="pt-200">
             <Section title="Campaign">
@@ -157,11 +173,28 @@ export function AssessmentCampaign({
             >
               <QueryState queries={[plans]}>
                 <AssessmentTable
+                  model="assessment_plan_revisions"
+                  selectedId={
+                    selection?.table === "assessment_plan_revisions"
+                      ? selection.existing?.id
+                      : undefined
+                  }
+                  onDisplayedRowsChange={(rows) =>
+                    setDisplayed((previous) => ({
+                      ...previous,
+                      assessment_plan_revisions: rows as DataRecord[],
+                    }))
+                  }
                   label="Assessment plans"
                   rows={planRows}
                   columns={[
-                    { label: "Plan", value: (row) => row.title },
-                    { label: "Version", value: (row) => row.version_number, width: 85 },
+                    { key: "title", label: "Plan", value: (row) => row.title },
+                    {
+                      key: "version_number",
+                      label: "Version",
+                      value: (row) => row.version_number,
+                      width: 85,
+                    },
                     {
                       label: "State",
                       value: (row) => <StatusBadge value={row.state} />,
@@ -177,7 +210,7 @@ export function AssessmentCampaign({
                       width: 145,
                     },
                   ]}
-                  onSelect={(row) =>
+                  onPreview={(row) =>
                     inspect({ table: "assessment_plan_revisions", existing: row as DataRecord })
                   }
                 />
@@ -192,19 +225,39 @@ export function AssessmentCampaign({
             >
               <QueryState queries={[events]}>
                 <AssessmentTable
+                  model="assessment_events"
+                  selectedId={
+                    selection?.table === "assessment_events" ? selection.existing?.id : undefined
+                  }
+                  onDisplayedRowsChange={(rows) =>
+                    setDisplayed((previous) => ({
+                      ...previous,
+                      assessment_events: rows as DataRecord[],
+                    }))
+                  }
                   label="Events"
                   rows={events.data ?? []}
                   columns={[
-                    { label: "Event", value: (row) => row.title },
+                    { key: "title", label: "Event", value: (row) => row.title },
                     {
                       label: "State",
                       value: (row) => <StatusBadge value={row.status} />,
                       width: 130,
                     },
-                    { label: "Starts", value: (row) => displayDate(row.starts_at), width: 140 },
-                    { label: "Ends", value: (row) => displayDate(row.ends_at), width: 140 },
+                    {
+                      key: "starts_at",
+                      label: "Starts",
+                      value: (row) => displayDate(row.starts_at),
+                      width: 140,
+                    },
+                    {
+                      key: "ends_at",
+                      label: "Ends",
+                      value: (row) => displayDate(row.ends_at),
+                      width: 140,
+                    },
                   ]}
-                  onSelect={(row) =>
+                  onPreview={(row) =>
                     inspect({ table: "assessment_events", existing: row as DataRecord })
                   }
                 />
@@ -216,11 +269,24 @@ export function AssessmentCampaign({
             >
               <QueryState queries={[plans, objectives]}>
                 <AssessmentTable
+                  model="assessment_objectives"
+                  selectedId={
+                    selection?.table === "assessment_objectives"
+                      ? selection.existing?.id
+                      : undefined
+                  }
+                  onDisplayedRowsChange={(rows) =>
+                    setDisplayed((previous) => ({
+                      ...previous,
+                      assessment_objectives: rows as DataRecord[],
+                    }))
+                  }
                   label="Objectives"
                   rows={objectiveRows}
                   columns={[
-                    { label: "Objective", value: (row) => row.title },
+                    { key: "title", label: "Objective", value: (row) => row.title },
                     {
+                      key: "acceptance_criterion",
                       label: "Acceptance criterion",
                       value: (row) => row.acceptance_criterion ?? "Not recorded",
                     },
@@ -231,7 +297,7 @@ export function AssessmentCampaign({
                       width: 180,
                     },
                   ]}
-                  onSelect={(row) =>
+                  onPreview={(row) =>
                     inspect({ table: "assessment_objectives", existing: row as DataRecord })
                   }
                 />
@@ -243,10 +309,22 @@ export function AssessmentCampaign({
             >
               <QueryState queries={[plans, activities]}>
                 <AssessmentTable
+                  model="assessment_activities"
+                  selectedId={
+                    selection?.table === "assessment_activities"
+                      ? selection.existing?.id
+                      : undefined
+                  }
+                  onDisplayedRowsChange={(rows) =>
+                    setDisplayed((previous) => ({
+                      ...previous,
+                      assessment_activities: rows as DataRecord[],
+                    }))
+                  }
                   label="Activities"
                   rows={activityRows}
                   columns={[
-                    { label: "Activity", value: (row) => row.title },
+                    { key: "title", label: "Activity", value: (row) => row.title },
                     { label: "Method", value: (row) => labelFor(row.method), width: 140 },
                     {
                       label: "Plan",
@@ -255,7 +333,7 @@ export function AssessmentCampaign({
                       width: 180,
                     },
                   ]}
-                  onSelect={(row) =>
+                  onPreview={(row) =>
                     inspect({ table: "assessment_activities", existing: row as DataRecord })
                   }
                 />
@@ -267,10 +345,22 @@ export function AssessmentCampaign({
             >
               <QueryState queries={[plans, scheduled, parties]}>
                 <AssessmentTable
+                  model="scheduled_assessment_tasks"
+                  selectedId={
+                    selection?.table === "scheduled_assessment_tasks"
+                      ? selection.existing?.id
+                      : undefined
+                  }
+                  onDisplayedRowsChange={(rows) =>
+                    setDisplayed((previous) => ({
+                      ...previous,
+                      scheduled_assessment_tasks: rows as DataRecord[],
+                    }))
+                  }
                   label="Scheduled assessment tasks"
                   rows={scheduledRows}
                   columns={[
-                    { label: "Task", value: (row) => row.title },
+                    { key: "title", label: "Task", value: (row) => row.title },
                     {
                       label: "State",
                       value: (row) => <StatusBadge value={row.status} />,
@@ -285,9 +375,14 @@ export function AssessmentCampaign({
                           : "Not recorded",
                       width: 180,
                     },
-                    { label: "Due", value: (row) => displayDate(row.due_at), width: 140 },
+                    {
+                      key: "due_at",
+                      label: "Due",
+                      value: (row) => displayDate(row.due_at),
+                      width: 140,
+                    },
                   ]}
-                  onSelect={(row) =>
+                  onPreview={(row) =>
                     inspect({ table: "scheduled_assessment_tasks", existing: row as DataRecord })
                   }
                 />
@@ -306,11 +401,22 @@ export function AssessmentCampaign({
             >
               <QueryState queries={[procedures, revisions, runs, events, plans]}>
                 <AssessmentTable
+                  model="procedures"
+                  selectedId={
+                    selection?.table === "procedures" ? selection.existing?.id : undefined
+                  }
+                  onDisplayedRowsChange={(rows) =>
+                    setDisplayed((previous) => ({ ...previous, procedures: rows as DataRecord[] }))
+                  }
                   label="Procedures"
                   rows={procedureRows}
                   columns={[
-                    { label: "Procedure", value: (row) => row.title },
-                    { label: "Description", value: (row) => row.description ?? "Not recorded" },
+                    { key: "title", label: "Procedure", value: (row) => row.title },
+                    {
+                      key: "description",
+                      label: "Description",
+                      value: (row) => row.description ?? "Not recorded",
+                    },
                     {
                       label: "Versions",
                       value: (row) =>
@@ -318,7 +424,7 @@ export function AssessmentCampaign({
                       width: 95,
                     },
                   ]}
-                  onSelect={(row) => inspect({ table: "procedures", existing: row as DataRecord })}
+                  onPreview={(row) => inspect({ table: "procedures", existing: row as DataRecord })}
                 />
               </QueryState>
             </Section>
@@ -328,11 +434,26 @@ export function AssessmentCampaign({
             >
               <QueryState queries={[procedures, revisions, runs, events, plans]}>
                 <AssessmentTable
+                  model="procedure_revisions"
+                  selectedId={
+                    selection?.table === "procedure_revisions" ? selection.existing?.id : undefined
+                  }
+                  onDisplayedRowsChange={(rows) =>
+                    setDisplayed((previous) => ({
+                      ...previous,
+                      procedure_revisions: rows as DataRecord[],
+                    }))
+                  }
                   label="Procedure revisions"
                   rows={revisionRows}
                   columns={[
-                    { label: "Revision", value: (row) => row.title },
-                    { label: "Version", value: (row) => row.version_number, width: 90 },
+                    { key: "title", label: "Revision", value: (row) => row.title },
+                    {
+                      key: "version_number",
+                      label: "Version",
+                      value: (row) => row.version_number,
+                      width: 90,
+                    },
                     { label: "Method", value: (row) => labelFor(row.method), width: 140 },
                     {
                       label: "State",
@@ -340,7 +461,7 @@ export function AssessmentCampaign({
                       width: 130,
                     },
                   ]}
-                  onSelect={(row) =>
+                  onPreview={(row) =>
                     inspect({ table: "procedure_revisions", existing: row as DataRecord })
                   }
                 />
@@ -353,10 +474,15 @@ export function AssessmentCampaign({
             <div className="pt-200">
               <QueryState queries={[runs, events, plans, revisions, parties]}>
                 <AssessmentTable
+                  model="test_runs"
+                  selectedId={selection?.table === "test_runs" ? selection.existing?.id : undefined}
+                  onDisplayedRowsChange={(rows) =>
+                    setDisplayed((previous) => ({ ...previous, test_runs: rows as DataRecord[] }))
+                  }
                   label="Test runs"
                   rows={runRows}
                   columns={[
-                    { label: "Run", value: (row) => row.title },
+                    { key: "title", label: "Run", value: (row) => row.title },
                     {
                       label: "Procedure revision",
                       value: (row) =>
@@ -379,12 +505,13 @@ export function AssessmentCampaign({
                       width: 170,
                     },
                     {
+                      key: "completed_at",
                       label: "Completed",
                       value: (row) => displayDate(row.completed_at),
                       width: 140,
                     },
                   ]}
-                  onSelect={(row) => inspect({ table: "test_runs", existing: row as DataRecord })}
+                  onPreview={(row) => inspect({ table: "test_runs", existing: row as DataRecord })}
                 />
               </QueryState>
             </div>
@@ -397,121 +524,171 @@ export function AssessmentCampaign({
         </TabsContent>
       </Tabs>
       {selection && selected && !form && (
-        <Shell.Panel
-          title={String(selected["title"] ?? labelFor(selection.table))}
-          onClose={() => setSelection(null)}
-        >
-          <CampaignInspector target={selection} onEdit={edit} />
-        </Shell.Panel>
+        <CampaignInspector
+          target={selection}
+          onEdit={edit}
+          renderFrame={({ content, actions }) => (
+            <RecordPreviewPanel
+              title={String(selected["title"] ?? labelFor(selection.table))}
+              label="Assessment preview"
+              defaultWidth={640}
+              onClose={() => setSelection(null)}
+              recordActions={actions}
+              navigation={
+                <RecordPreviewActions
+                  table={selection.table}
+                  record={selected}
+                  rows={displayed[selection.table] ?? []}
+                  onSelect={(row) => setSelection({ table: selection.table, existing: row })}
+                />
+              }
+            >
+              {content}
+            </RecordPreviewPanel>
+          )}
+        />
       )}
     </Stack>
   );
 }
 
+type InspectorFrame = (frame: { content: ReactNode; actions: ReactNode }) => ReactNode;
+
 function CampaignInspector({
   target,
   onEdit,
+  renderFrame,
 }: {
   target: FormTarget;
   onEdit: (target: FormTarget) => void;
+  renderFrame: InspectorFrame;
 }) {
   const workspace = useWorkspace();
   const record = target.existing!;
   if (target.table === "procedure_revisions")
-    return <ProcedureInspector revision={record as Row<"procedure_revisions">} onEdit={onEdit} />;
-  if (target.table === "test_runs") return <RunInspector id={record.id} onEdit={onEdit} />;
+    return (
+      <ProcedureInspector
+        revision={record as Row<"procedure_revisions">}
+        onEdit={onEdit}
+        renderFrame={renderFrame}
+      />
+    );
+  if (target.table === "test_runs")
+    return <RunInspector id={record.id} onEdit={onEdit} renderFrame={renderFrame} />;
   const writable = workspace.role !== "viewer";
   const draft = record["state"] !== "published";
-  return (
-    <Stack space="space.250">
-      <p className="whitespace-pre-wrap">
-        {String(record["description"] ?? "No description recorded.")}
-      </p>
-      <DetailFacts
-        facts={Object.entries(record)
-          .filter(([key]) =>
-            [
-              "state",
-              "status",
-              "version_number",
-              "starts_at",
-              "ends_at",
-              "due_at",
-              "acceptance_criterion",
-              "location",
-              "method",
-            ].includes(key),
-          )
-          .map(([key, value]) => [
-            labelFor(key),
-            value === null ? null : ["status", "state"].includes(key) ? (
-              <StatusBadge value={String(value)} />
-            ) : key.endsWith("_at") ? (
-              displayDate(String(value))
-            ) : (
-              String(value)
-            ),
-          ])}
-      />
-      <SchemaLink table={target.table} id={record.id} />
-      {writable && draft && (
-        <Button size="small" onClick={() => onEdit(target)}>
-          Edit {labelFor(target.table).toLowerCase()}
-        </Button>
-      )}
-      {target.table === "assessment_plan_revisions" && writable && draft && (
-        <Section title="Plan contents">
-          <Inline space="space.100" shouldWrap>
-            {(
+  const relatedAction =
+    target.table === "procedures"
+      ? {
+          label: "Create procedure revision",
+          onClick: () =>
+            onEdit({ table: "procedure_revisions", initialValues: { procedure_id: record.id } }),
+        }
+      : target.table === "assessment_events"
+        ? {
+            label: "Record test run",
+            onClick: () =>
+              onEdit({
+                table: "test_runs",
+                initialValues: {
+                  assessment_event_id: record.id,
+                  plan_revision_id: record["plan_revision_id"] ?? null,
+                },
+              }),
+          }
+        : null;
+  return renderFrame({
+    actions: writable && (
+      <>
+        {draft ? (
+          <Button size="small" variant="primary" onClick={() => onEdit(target)}>
+            Edit {productRecordNoun(target.table)}
+          </Button>
+        ) : relatedAction ? (
+          <Button size="small" variant="primary" onClick={relatedAction.onClick}>
+            {relatedAction.label}
+          </Button>
+        ) : null}
+        {draft && relatedAction && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <IconButton
+                  icon={<MoreHorizontal />}
+                  label="More actions"
+                  size="small"
+                  variant="subtle"
+                />
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={relatedAction.onClick}>
+                {relatedAction.label}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </>
+    ),
+    content: (
+      <Stack space="space.250">
+        <p className="whitespace-pre-wrap">
+          {String(record["description"] ?? "No description recorded.")}
+        </p>
+        <DetailFacts
+          facts={Object.entries(record)
+            .filter(([key]) =>
               [
-                "assessment_objectives",
-                "assessment_activities",
-                "scheduled_assessment_tasks",
-                "assessment_subjects",
-              ] as const
-            ).map((table) => (
-              <Button
-                size="small"
-                key={table}
-                onClick={() => onEdit({ table, initialValues: { plan_revision_id: record.id } })}
-              >
-                Add {labelFor(table).toLowerCase()}
-              </Button>
-            ))}
-          </Inline>
-        </Section>
-      )}
-      {target.table === "procedures" && writable && (
-        <Button
-          size="small"
-          onClick={() =>
-            onEdit({ table: "procedure_revisions", initialValues: { procedure_id: record.id } })
-          }
-        >
-          Add revision
-        </Button>
-      )}
-      {target.table === "assessment_events" && writable && (
-        <Button
-          size="small"
-          onClick={() =>
-            onEdit({
-              table: "test_runs",
-              initialValues: {
-                assessment_event_id: record.id,
-                plan_revision_id: record["plan_revision_id"] ?? null,
-              },
-            })
-          }
-        >
-          Record test run
-        </Button>
-      )}
-      {target.table === "assessment_activities" && (
-        <ActivitySteps activity={record as Row<"assessment_activities">} onEdit={onEdit} />
-      )}
-    </Stack>
-  );
+                "state",
+                "status",
+                "version_number",
+                "starts_at",
+                "ends_at",
+                "due_at",
+                "acceptance_criterion",
+                "location",
+                "method",
+              ].includes(key),
+            )
+            .map(([key, value]) => [
+              labelFor(key),
+              value === null ? null : ["status", "state"].includes(key) ? (
+                <StatusBadge value={String(value)} />
+              ) : key.endsWith("_at") ? (
+                displayDate(String(value))
+              ) : (
+                String(value)
+              ),
+            ])}
+        />
+        {target.table === "assessment_plan_revisions" && writable && draft && (
+          <Section title="Plan contents">
+            <Inline space="space.100" shouldWrap>
+              {(
+                [
+                  "assessment_objectives",
+                  "assessment_activities",
+                  "scheduled_assessment_tasks",
+                  "assessment_subjects",
+                ] as const
+              ).map((table) => (
+                <Button
+                  size="small"
+                  key={table}
+                  onClick={() => onEdit({ table, initialValues: { plan_revision_id: record.id } })}
+                >
+                  {productCreateLabel(table)}
+                </Button>
+              ))}
+            </Inline>
+          </Section>
+        )}
+        {target.table === "assessment_activities" && (
+          <ActivitySteps activity={record as Row<"assessment_activities">} onEdit={onEdit} />
+        )}
+      </Stack>
+    ),
+  });
 }
 
 function ActivitySteps({
@@ -542,23 +719,33 @@ function ActivitySteps({
               })
             }
           >
-            Add step
+            Create activity step
           </Button>
         ) : undefined
       }
     >
       <QueryState queries={[steps, plan]}>
         <AssessmentTable<Row<"activity_steps">>
+          model="activity_steps"
           label="Activity steps"
           rows={[...(steps.data ?? [])].sort((a, b) => a.sequence_number - b.sequence_number)}
           columns={[
-            { label: "Step", value: (row) => row.sequence_number, width: 70 },
-            { label: "Instruction", value: (row) => row.instruction },
-            { label: "Expected", value: (row) => row.expected_result ?? "Not recorded" },
+            {
+              key: "sequence_number",
+              label: "Step",
+              value: (row) => row.sequence_number,
+              width: 70,
+            },
+            { key: "instruction", label: "Instruction", value: (row) => row.instruction },
+            {
+              key: "expected_result",
+              label: "Expected",
+              value: (row) => row.expected_result ?? "Not recorded",
+            },
           ]}
           {...(editable
             ? {
-                onSelect: (row) => onEdit({ table: "activity_steps", existing: row as DataRecord }),
+                onEdit: (row) => onEdit({ table: "activity_steps", existing: row as DataRecord }),
               }
             : {})}
         />
@@ -570,74 +757,96 @@ function ActivitySteps({
 function ProcedureInspector({
   revision,
   onEdit,
+  renderFrame,
 }: {
   revision: Row<"procedure_revisions">;
   onEdit: (target: FormTarget) => void;
+  renderFrame: InspectorFrame;
 }) {
   const workspace = useWorkspace();
   const steps = useRows("procedure_steps", { procedure_revision_id: revision.id });
   const editable = workspace.role !== "viewer" && revision.state === "draft";
-  return (
-    <Stack space="space.250">
-      <DetailFacts
-        facts={[
-          ["State", <StatusBadge value={revision.state} />],
-          ["Version", revision.version_number],
-          ["Method", labelFor(revision.method)],
-          ["Preconditions", revision.preconditions],
-          ["Acceptance criterion", revision.acceptance_criterion],
-        ]}
-      />
-      <SchemaLink table="procedure_revisions" id={revision.id} />
-      {editable && (
-        <Button
-          size="small"
-          onClick={() => onEdit({ table: "procedure_revisions", existing: revision as DataRecord })}
-        >
-          Edit revision
-        </Button>
-      )}
-      <Section
-        title="Steps"
-        action={
-          editable ? (
-            <Button
-              size="small"
-              onClick={() =>
-                onEdit({
-                  table: "procedure_steps",
-                  initialValues: { procedure_revision_id: revision.id },
-                })
-              }
-            >
-              Add step
-            </Button>
-          ) : undefined
-        }
+  return renderFrame({
+    actions: editable && (
+      <Button
+        size="small"
+        variant="primary"
+        onClick={() => onEdit({ table: "procedure_revisions", existing: revision as DataRecord })}
       >
-        <QueryState queries={[steps]}>
-          <AssessmentTable<Row<"procedure_steps">>
-            label="Procedure steps"
-            rows={[...(steps.data ?? [])].sort((a, b) => a.sequence_number - b.sequence_number)}
-            columns={[
-              { label: "Step", value: (row) => row.sequence_number, width: 65 },
-              { label: "Instruction", value: (row) => row.instruction },
-              { label: "Expected result", value: (row) => row.expected_result ?? "Not recorded" },
-            ]}
-            {...(editable
-              ? {
-                  onSelect: (row) =>
-                    onEdit({ table: "procedure_steps", existing: row as DataRecord }),
+        Edit revision
+      </Button>
+    ),
+    content: (
+      <Stack space="space.250">
+        <DetailFacts
+          facts={[
+            ["State", <StatusBadge value={revision.state} />],
+            ["Version", revision.version_number],
+            ["Method", labelFor(revision.method)],
+            ["Preconditions", revision.preconditions],
+            ["Acceptance criterion", revision.acceptance_criterion],
+          ]}
+        />
+        <Section
+          title="Steps"
+          action={
+            editable ? (
+              <Button
+                size="small"
+                onClick={() =>
+                  onEdit({
+                    table: "procedure_steps",
+                    initialValues: { procedure_revision_id: revision.id },
+                  })
                 }
-              : {})}
-          />
-        </QueryState>
-      </Section>
-    </Stack>
-  );
+              >
+                Create procedure step
+              </Button>
+            ) : undefined
+          }
+        >
+          <QueryState queries={[steps]}>
+            <AssessmentTable<Row<"procedure_steps">>
+              model="procedure_steps"
+              label="Procedure steps"
+              rows={[...(steps.data ?? [])].sort((a, b) => a.sequence_number - b.sequence_number)}
+              columns={[
+                {
+                  key: "sequence_number",
+                  label: "Step",
+                  value: (row) => row.sequence_number,
+                  width: 65,
+                },
+                { key: "instruction", label: "Instruction", value: (row) => row.instruction },
+                {
+                  key: "expected_result",
+                  label: "Expected result",
+                  value: (row) => row.expected_result ?? "Not recorded",
+                },
+              ]}
+              {...(editable
+                ? {
+                    onEdit: (row) =>
+                      onEdit({ table: "procedure_steps", existing: row as DataRecord }),
+                  }
+                : {})}
+            />
+          </QueryState>
+        </Section>
+      </Stack>
+    ),
+  });
 }
 
-function RunInspector({ id, onEdit }: { id: string; onEdit: (target: FormTarget) => void }) {
+function RunInspector({
+  id,
+  onEdit,
+  renderFrame,
+}: {
+  id: string;
+  onEdit: (target: FormTarget) => void;
+  renderFrame: InspectorFrame;
+}) {
   const workspace = useWorkspace();
   const query = useRow("test_runs", id);
   const run = query.data;
@@ -664,122 +873,156 @@ function RunInspector({ id, onEdit }: { id: string; onEdit: (target: FormTarget)
       setError(cause instanceof Error ? cause.message : "The run could not be completed.");
     }
   }
-  return (
-    <QueryState queries={[query]}>
-      {run ? (
-        <Stack space="space.250">
-          <DetailFacts
-            facts={[
-              ["State", <StatusBadge value={run.status} />],
-              [
-                "Procedure revision",
-                <SchemaLink table="procedure_revisions" id={run.procedure_revision_id}>
-                  Pinned procedure
-                </SchemaLink>,
-              ],
-              [
-                "Configuration baseline",
-                <SchemaLink table="configuration_baselines" id={run.configuration_baseline_id}>
-                  Pinned baseline
-                </SchemaLink>,
-              ],
-              ["Started", displayDate(run.started_at)],
-              ["Completed", displayDate(run.completed_at)],
-              ["Conclusion", run.conclusion],
-            ]}
+  return renderFrame({
+    actions: editable && (
+      <>
+        <Button
+          size="small"
+          variant="primary"
+          disabled={save.isPending}
+          onClick={() => void complete()}
+        >
+          {save.isPending ? "Saving…" : "Complete run"}
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <IconButton
+                icon={<MoreHorizontal />}
+                label="More actions"
+                size="small"
+                variant="subtle"
+                disabled={save.isPending}
+              />
+            }
           />
-          <SchemaLink table="test_runs" id={run.id} />
-          {error && (
-            <p role="alert" className="text-danger">
-              {error}
-            </p>
-          )}
-          {editable && (
-            <Inline space="space.100" shouldWrap>
-              <Button
-                size="small"
-                disabled={save.isPending}
-                onClick={() => onEdit({ table: "test_runs", existing: run as DataRecord })}
-              >
-                Edit run
-              </Button>
-              <Button
-                size="small"
-                variant="primary"
-                disabled={save.isPending}
-                onClick={() => void complete()}
-              >
-                {save.isPending ? "Saving…" : "Complete run"}
-              </Button>
-            </Inline>
-          )}
-          <Section title="Step results">
-            <QueryState queries={[steps, results]}>
-              <AssessmentTable<Row<"procedure_steps">>
-                label="Step results"
-                rows={[...(steps.data ?? [])].sort((a, b) => a.sequence_number - b.sequence_number)}
-                columns={[
-                  { label: "Step", value: (row) => row.sequence_number, width: 60 },
-                  { label: "Instruction", value: (row) => row.instruction },
-                  {
-                    label: "Determination",
-                    value: (row) => {
-                      const result = results.data?.find(
-                        (item) => item.procedure_step_id === row.id,
-                      );
-                      return result ? <StatusBadge value={result.determination} /> : "Not recorded";
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              disabled={save.isPending}
+              onClick={() => onEdit({ table: "test_runs", existing: run as DataRecord })}
+            >
+              Edit run
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </>
+    ),
+    content: (
+      <QueryState queries={[query]}>
+        {run ? (
+          <Stack space="space.250">
+            <DetailFacts
+              facts={[
+                ["State", <StatusBadge value={run.status} />],
+                [
+                  "Procedure revision",
+                  <SchemaLink table="procedure_revisions" id={run.procedure_revision_id}>
+                    Pinned procedure
+                  </SchemaLink>,
+                ],
+                [
+                  "Configuration baseline",
+                  <SchemaLink table="configuration_baselines" id={run.configuration_baseline_id}>
+                    Pinned baseline
+                  </SchemaLink>,
+                ],
+                ["Started", displayDate(run.started_at)],
+                ["Completed", displayDate(run.completed_at)],
+                ["Conclusion", run.conclusion],
+              ]}
+            />
+            {error && (
+              <p role="alert" className="text-danger">
+                {error}
+              </p>
+            )}
+            <Section title="Step results">
+              <QueryState queries={[steps, results]}>
+                <AssessmentTable<Row<"procedure_steps">>
+                  model="procedure_steps"
+                  label="Step results"
+                  rows={[...(steps.data ?? [])].sort(
+                    (a, b) => a.sequence_number - b.sequence_number,
+                  )}
+                  columns={[
+                    {
+                      key: "sequence_number",
+                      label: "Step",
+                      value: (row) => row.sequence_number,
+                      width: 60,
                     },
-                    width: 145,
-                  },
-                  {
-                    label: "Observed",
-                    value: (row) =>
-                      results.data?.find((item) => item.procedure_step_id === row.id)
-                        ?.observed_behavior ?? "Not recorded",
-                  },
-                ]}
-                {...(editable
-                  ? {
-                      onSelect: (row) => {
-                        const existing = results.data?.find(
+                    { key: "instruction", label: "Instruction", value: (row) => row.instruction },
+                    {
+                      label: "Determination",
+                      value: (row) => {
+                        const result = results.data?.find(
                           (item) => item.procedure_step_id === row.id,
                         );
-                        onEdit(
-                          existing
-                            ? { table: "step_results", existing: existing as DataRecord }
-                            : {
-                                table: "step_results",
-                                initialValues: {
-                                  test_run_id: run.id,
-                                  procedure_revision_id: run.procedure_revision_id,
-                                  procedure_step_id: row.id,
-                                  ...(run.assessor_party_id
-                                    ? { assessor_party_id: run.assessor_party_id }
-                                    : {}),
-                                },
-                              },
+                        return result ? (
+                          <StatusBadge value={result.determination} />
+                        ) : (
+                          "Not recorded"
                         );
                       },
-                    }
-                  : {})}
+                      width: 145,
+                    },
+                    {
+                      label: "Observed",
+                      value: (row) =>
+                        results.data?.find((item) => item.procedure_step_id === row.id)
+                          ?.observed_behavior ?? "Not recorded",
+                    },
+                  ]}
+                  {...(editable
+                    ? {
+                        onEdit: (row) => {
+                          const existing = results.data?.find(
+                            (item) => item.procedure_step_id === row.id,
+                          );
+                          onEdit(
+                            existing
+                              ? { table: "step_results", existing: existing as DataRecord }
+                              : {
+                                  table: "step_results",
+                                  initialValues: {
+                                    test_run_id: run.id,
+                                    procedure_revision_id: run.procedure_revision_id,
+                                    procedure_step_id: row.id,
+                                    ...(run.assessor_party_id
+                                      ? { assessor_party_id: run.assessor_party_id }
+                                      : {}),
+                                  },
+                                },
+                          );
+                        },
+                      }
+                    : {})}
+                />
+              </QueryState>
+            </Section>
+            <Section title="Observations">
+              <RunObservations
+                run={run}
+                results={results.data ?? []}
+                steps={steps.data ?? []}
+                resultsReady={!results.isPending && !results.isError}
+                onEdit={onEdit}
               />
-            </QueryState>
-          </Section>
-          <Section title="Observations">
-            <RunObservations
-              run={run}
-              results={results.data ?? []}
-              steps={steps.data ?? []}
-              resultsReady={!results.isPending && !results.isError}
-              onEdit={onEdit}
-            />
-          </Section>
-        </Stack>
-      ) : (
-        <EmptyState title="Run not found" illustration="search" />
-      )}
-    </QueryState>
-  );
+            </Section>
+          </Stack>
+        ) : (
+          <Empty>
+            <EmptyMedia aria-hidden>
+              <EmptyIllustration kind="search" />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>Run not found</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
+        )}
+      </QueryState>
+    ),
+  });
 }
 
 function RunObservations({
@@ -805,6 +1048,7 @@ function RunObservations({
       {resultsReady ? (
         <QueryState queries={[observations]}>
           <AssessmentTable
+            model="observations"
             label="Observations"
             rows={rows}
             columns={[
@@ -817,7 +1061,12 @@ function RunObservations({
                 ),
               },
               { label: "Method", value: (row) => labelFor(row.method), width: 110 },
-              { label: "Observed", value: (row) => displayDate(row.observed_at), width: 135 },
+              {
+                key: "observed_at",
+                label: "Observed",
+                value: (row) => displayDate(row.observed_at),
+                width: 135,
+              },
             ]}
           />
         </QueryState>
@@ -905,9 +1154,9 @@ function RegressionComparison({ runs }: { runs: Row<"test_runs">[] }) {
                 </SchemaLink>
               ),
             },
-            { label: "Previous run", value: (row) => row.previous.title },
+            { key: "previous", label: "Previous run", value: (row) => row.previous.title },
             { label: "Previous determination", value: (row) => <StatusBadge value={row.before} /> },
-            { label: "Latest run", value: (row) => row.current.title },
+            { key: "current", label: "Latest run", value: (row) => row.current.title },
             { label: "Latest determination", value: (row) => <StatusBadge value={row.after} /> },
           ]}
         />

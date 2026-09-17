@@ -25,6 +25,73 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const views = ["Overview", "Controls", "Evidence", "History"];
+const scrollViewport = (list: HTMLElement) =>
+  list.closest<HTMLElement>('[data-slot="scroll-area-viewport"]')!;
+
+/** The same line strip fills a page, phone, or preview and keeps every tab on one row. */
+export const ResponsiveWidths: Story = {
+  render: () => (
+    <Stack space="space.400">
+      {[720, 390, 280].map((width) => (
+        <Tabs key={width} defaultValue="Overview" style={{ width, maxWidth: "100%" }}>
+          <TabsList variant="line" aria-label={`${width}px record views`} activateOnFocus>
+            {["Overview", "Requirements", "Controls", "Evidence", "Activity"].map((view) => (
+              <TabsTrigger key={view} value={view}>
+                {view}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {["Overview", "Requirements", "Controls", "Evidence", "Activity"].map((view) => (
+            <TabsContent key={view} value={view}>
+              {view} content
+            </TabsContent>
+          ))}
+        </Tabs>
+      ))}
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const width of [720, 390, 280]) {
+      const list = canvas.getByRole("tablist", { name: `${width}px record views` });
+      const viewport = scrollViewport(list);
+      const root = list.closest<HTMLElement>('[data-slot="tabs"]')!;
+      await expect(viewport.clientWidth).toBe(root.clientWidth);
+      await expect(getComputedStyle(list).borderBottomWidth).toBe("1px");
+      await expect(list.getBoundingClientRect().width).toBeGreaterThanOrEqual(viewport.clientWidth);
+      const tabs = within(list).getAllByRole("tab");
+      const top = tabs[0]!.getBoundingClientRect().top;
+      for (const tab of tabs) {
+        await expect(tab.getBoundingClientRect().top).toBe(top);
+        await expect(tab.getBoundingClientRect().height).toBe(32);
+      }
+      if (width === 720) {
+        await expect(viewport.scrollWidth).toBe(viewport.clientWidth);
+      } else {
+        await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+        const scrollbar = root.querySelector<HTMLElement>(
+          '[data-slot="scroll-area-scrollbar"][data-orientation="horizontal"]',
+        );
+        await waitFor(() => expect(scrollbar).toBeVisible());
+        await expect(scrollbar!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+          list.getBoundingClientRect().bottom,
+        );
+      }
+      tabs[0]!.focus();
+      await userEvent.keyboard("{End}");
+      const last = tabs.at(-1)!;
+      await waitFor(() => expect(last).toHaveFocus());
+      await expect(last).toHaveAttribute("aria-selected", "true");
+      await waitFor(() =>
+        expect(last.getBoundingClientRect().right).toBeLessThanOrEqual(
+          viewport.getBoundingClientRect().right + 1,
+        ),
+      );
+      await userEvent.keyboard("{Home}");
+      await waitFor(() => expect(viewport.scrollLeft).toBe(0));
+    }
+  },
+};
 
 /** Shadcn's default and line variants, manual and automatic activation, and overflow. */
 export const Variants: Story = {
@@ -48,12 +115,7 @@ export const Variants: Story = {
       </Specimens>
       <Specimens title="Line · automatic activation · scrolls when narrow">
         <Tabs defaultValue="Controls" className="w-full max-w-[320px]">
-          <TabsList
-            variant="line"
-            activateOnFocus
-            aria-label="Record views"
-            className="w-full justify-start"
-          >
+          <TabsList variant="line" activateOnFocus aria-label="Record views">
             {views.map((view) => (
               <TabsTrigger key={view} value={view}>
                 {view}
@@ -103,7 +165,9 @@ export const Variants: Story = {
     await userEvent.keyboard(" ");
     await expect(overview).toHaveAttribute("aria-selected", "true");
     const line = canvas.getByRole("tablist", { name: "Record views" });
-    await expect(line.scrollWidth).toBeGreaterThan(line.clientWidth);
+    const viewport = scrollViewport(line);
+    await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+    await expect(viewport).toHaveAttribute("tabindex", "-1");
     const lineTabs = within(line);
     const selected = lineTabs.getByRole("tab", { name: "Controls 340" });
     await expect(selected.tagName).toBe("BUTTON");
@@ -128,18 +192,18 @@ export const Variants: Story = {
     await waitFor(() =>
       expect(
         lineTabs.getByRole("tab", { name: "Overview" }).getBoundingClientRect().left,
-      ).toBeGreaterThanOrEqual(line.getBoundingClientRect().left),
+      ).toBeGreaterThanOrEqual(viewport.getBoundingClientRect().left),
     );
     await userEvent.keyboard("{End}");
     const history = lineTabs.getByRole("tab", { name: "History" });
     await waitFor(() => expect(history).toHaveAttribute("aria-selected", "true"));
     await waitFor(() =>
       expect(history.getBoundingClientRect().right).toBeLessThanOrEqual(
-        line.getBoundingClientRect().right + 1,
+        viewport.getBoundingClientRect().right + 1,
       ),
     );
     await userEvent.keyboard("{Home}");
-    await waitFor(() => expect(line.scrollLeft).toBe(0));
+    await waitFor(() => expect(viewport.scrollLeft).toBe(0));
   },
 };
 
@@ -229,12 +293,7 @@ export const Orientation: Story = {
       <Stack space="space.400">
         <Specimens title="Horizontal · inherited RTL">
           <Tabs defaultValue="Overview" className="w-full max-w-[280px]">
-            <TabsList
-              variant="line"
-              activateOnFocus
-              aria-label="RTL views"
-              className="w-full justify-start"
-            >
+            <TabsList variant="line" activateOnFocus aria-label="RTL views">
               {views.map((view) => (
                 <TabsTrigger key={view} value={view}>
                   {view}
@@ -284,13 +343,14 @@ export const Orientation: Story = {
     const rtlLast = rtl.getByRole("tab", { name: "History" });
     await waitFor(() => expect(rtlLast).toHaveAttribute("aria-selected", "true"));
     const rtlList = canvas.getByRole("tablist", { name: "RTL views" });
+    const rtlViewport = scrollViewport(rtlList);
     await waitFor(() =>
       expect(rtlLast.getBoundingClientRect().left).toBeGreaterThanOrEqual(
-        rtlList.getBoundingClientRect().left - 1,
+        rtlViewport.getBoundingClientRect().left - 1,
       ),
     );
     await userEvent.keyboard("{Home}");
-    await waitFor(() => expect(rtlList.scrollLeft).toBe(0));
+    await waitFor(() => expect(rtlViewport.scrollLeft).toBe(0));
     const verticalList = canvas.getByRole("tablist", { name: "Vertical views" });
     await expect(verticalList).toHaveAttribute("aria-orientation", "vertical");
     await expect(getComputedStyle(verticalList).flexDirection).toBe("column");

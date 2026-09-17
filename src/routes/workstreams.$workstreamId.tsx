@@ -1,8 +1,10 @@
+import { MissingRecord } from "@/components/prototype/work-common";
 import { Box } from "@ledger/design-system";
 import { displayDate } from "@/components/prototype/work-format";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  Absent,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -15,6 +17,11 @@ import {
   Section,
   Shell,
   Stack,
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyMedia,
+  EmptyIllustration,
 } from "@ledger/design-system";
 import { useRow } from "@/lib/models";
 import type { DataRecord } from "@/lib/records";
@@ -22,7 +29,6 @@ import { useWorkspace } from "@/components/app/workspace";
 import { WorkTable } from "@/components/prototype/work-table";
 import {
   DetailFacts,
-  EmptyState,
   ModelForm,
   QueryState,
   SchemaLink,
@@ -31,7 +37,7 @@ import {
 
 export const Route = createFileRoute("/workstreams/$workstreamId")({
   component: WorkstreamRoute,
-  head: () => ({ meta: [{ title: "Workstream — Equinox" }] }),
+  head: () => ({ meta: [{ title: "Workstream — Program Assurance" }] }),
 });
 function WorkstreamRoute() {
   const { workstreamId } = Route.useParams();
@@ -77,13 +83,16 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </PageHeader.Lead>
-              <Box className="min-w-0">
+              <PageHeader.Heading>
                 <PageHeader.Title>{row.title}</PageHeader.Title>
-              </Box>
+              </PageHeader.Heading>
               <PageHeader.Actions>
-                <StatusBadge value={row.status} />
                 {workspace.role !== "viewer" && (
-                  <Button disabled={!!editing} onClick={() => setEditing(row as DataRecord)}>
+                  <Button
+                    variant="primary"
+                    disabled={!!editing}
+                    onClick={() => setEditing(row as DataRecord)}
+                  >
                     Edit workstream
                   </Button>
                 )}
@@ -93,7 +102,7 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
             <Stack space="space.300" className="min-w-0 pt-200">
               <Section title="Objective">
                 <p className="max-w-layout-measure whitespace-pre-wrap pt-150 text-subtle">
-                  {row.description || "No objective recorded."}
+                  {row.description || <Absent />}
                 </p>
               </Section>
               <Section title="Tasks">
@@ -113,8 +122,8 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
                         : null,
                     ],
                     ["Status", <StatusBadge value={row.status} />],
-                    ["Starts", displayDate(row.starts_on)],
-                    ["Ends", displayDate(row.ends_on)],
+                    ["Starts", row.starts_on ? displayDate(row.starts_on) : null],
+                    ["Ends", row.ends_on ? displayDate(row.ends_on) : null],
                   ]}
                 />
                 <Box className="pt-200">
@@ -124,7 +133,7 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
             </Shell.Aside>
           </>
         ) : (
-          <EmptyState title="Workstream not found" illustration="search" />
+          <MissingRecord backTo="/programs" kind="Workstream" />
         )}
       </QueryState>
     </Stack>
