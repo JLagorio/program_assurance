@@ -26,7 +26,7 @@ import { useRow, useRows, useModelSave, type Row } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
 import { ControlInspector } from "./library-controls";
 import { LibraryEditor, LibraryLoading, LibrarySelect } from "./library-shared";
-import type { DataRecord } from "@/lib/records";
+import { labelFor, type DataRecord } from "@/lib/records";
 
 export function ComponentLibraryIndex() {
   const navigate = useNavigate();
@@ -44,6 +44,7 @@ export function ComponentLibraryIndex() {
           .sort((a, b) => b.version_number - a.version_number)[0];
         return {
           ...definition,
+          categoryLabel: labelFor(definition.category),
           version: revision ? String(revision.version_number) : "No revisions",
           status: revision?.state ?? "No revisions",
           types:
@@ -69,6 +70,7 @@ export function ComponentLibraryIndex() {
         c.id("code", { header: "ID", width: 150 }),
         c.text("name", { header: "Component definition", hideable: false }),
         c.text("types", { header: "Type", width: 170 }),
+        c.text("categoryLabel", { header: "Category", width: 180 }),
         c.text("version", { header: "Version", width: 110 }),
         c.number("controls", { header: "Controls", width: 100 }),
         c.status("status", { header: "State", width: 130, tone: () => "neutral" }),
@@ -149,6 +151,7 @@ export function ComponentLibraryIndex() {
           toolbar={
             <Inline space="space.100" alignBlock="center" shouldWrap>
               <DataTable.Search table={table} placeholder="Search components" />
+              <DataTable.Filter table={table} column="categoryLabel" />
               <DataTable.Filter table={table} column="types" />
               <DataTable.Filter table={table} column="status" />
               <Inline className="ml-auto">
@@ -321,6 +324,11 @@ function ComponentRevision({
         c.text("title", { header: "Title" }),
         c.text("component", { header: "Component", width: 180 }),
         c.text("description", { header: "Implementation" }),
+        c.text("coverage", {
+          header: "Coverage",
+          width: 110,
+          cell: (row) => labelFor(row.coverage),
+        }),
         c.status("implementation_status", {
           header: "Implementation state",
           width: 170,
@@ -588,6 +596,20 @@ function ComponentRevision({
           {revision.remarks && (
             <KeyValue label="Remarks" wrap>
               {revision.remarks}
+            </KeyValue>
+          )}
+          {revision.effective_from && (
+            <KeyValue label="Effective from">{revision.effective_from}</KeyValue>
+          )}
+          {revision.review_due && <KeyValue label="Review due">{revision.review_due}</KeyValue>}
+          {revision.conditions && (
+            <KeyValue label="Conditions" wrap>
+              {revision.conditions}
+            </KeyValue>
+          )}
+          {revision.consumer_responsibilities && (
+            <KeyValue label="Consumer responsibilities" wrap>
+              {revision.consumer_responsibilities}
             </KeyValue>
           )}
         </Inspector.Group>

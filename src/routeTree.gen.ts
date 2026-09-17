@@ -39,6 +39,10 @@ import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstream
 import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
 import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
 import { Route as LibraryComponentsComponentKeyRouteImport } from './routes/library.components.$componentKey'
+import { Route as LibraryProductsIndexRouteImport } from './routes/library.products.index'
+import { Route as LibraryProductsProductKeyRouteImport } from './routes/library.products.$productKey'
+import { Route as LibraryRequirementsIndexRouteImport } from './routes/library.requirements.index'
+import { Route as LibraryRequirementsDefinitionKeyRouteImport } from './routes/library.requirements.$definitionKey'
 import { Route as ProgramsProgramIdAuthorizationRouteImport } from './routes/programs.$programId_.authorization'
 import { Route as ProgramsProgramIdBaselineRouteImport } from './routes/programs.$programId_.baseline'
 import { Route as ProgramsProgramIdCompositionRouteImport } from './routes/programs.$programId_.composition'
@@ -209,6 +213,29 @@ const LibraryComponentsComponentKeyRoute =
     path: '/library/components/$componentKey',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LibraryProductsIndexRoute = LibraryProductsIndexRouteImport.update({
+  id: '/library/products/',
+  path: '/library/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryProductsProductKeyRoute =
+  LibraryProductsProductKeyRouteImport.update({
+    id: '/library/products/$productKey',
+    path: '/library/products/$productKey',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LibraryRequirementsIndexRoute =
+  LibraryRequirementsIndexRouteImport.update({
+    id: '/library/requirements/',
+    path: '/library/requirements/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LibraryRequirementsDefinitionKeyRoute =
+  LibraryRequirementsDefinitionKeyRouteImport.update({
+    id: '/library/requirements/$definitionKey',
+    path: '/library/requirements/$definitionKey',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ProgramsProgramIdAuthorizationRoute =
   ProgramsProgramIdAuthorizationRouteImport.update({
     id: '/$programId_/authorization',
@@ -342,6 +369,8 @@ export interface FileRoutesByFullPath {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
+  '/library/requirements/$definitionKey': typeof LibraryRequirementsDefinitionKeyRoute
   '/programs/$programId/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
@@ -357,6 +386,8 @@ export interface FileRoutesByFullPath {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
+  '/library/products/': typeof LibraryProductsIndexRoute
+  '/library/requirements/': typeof LibraryRequirementsIndexRoute
   '/programs/$programId/components/$componentId': typeof ProgramsProgramIdComponentsComponentIdRoute
   '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
   '/programs/$programId/requirements/$requirementId': typeof ProgramsProgramIdRequirementsRequirementIdRoute
@@ -392,6 +423,8 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
+  '/library/requirements/$definitionKey': typeof LibraryRequirementsDefinitionKeyRoute
   '/programs/$programId/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
@@ -407,6 +440,8 @@ export interface FileRoutesByTo {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components': typeof LibraryComponentsIndexRoute
+  '/library/products': typeof LibraryProductsIndexRoute
+  '/library/requirements': typeof LibraryRequirementsIndexRoute
   '/programs/$programId/components/$componentId': typeof ProgramsProgramIdComponentsComponentIdRoute
   '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
   '/programs/$programId/requirements/$requirementId': typeof ProgramsProgramIdRequirementsRequirementIdRoute
@@ -443,6 +478,8 @@ export interface FileRoutesById {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
+  '/library/requirements/$definitionKey': typeof LibraryRequirementsDefinitionKeyRoute
   '/programs/$programId_/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId_/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId_/composition': typeof ProgramsProgramIdCompositionRoute
@@ -458,6 +495,8 @@ export interface FileRoutesById {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
+  '/library/products/': typeof LibraryProductsIndexRoute
+  '/library/requirements/': typeof LibraryRequirementsIndexRoute
   '/programs/$programId_/components/$componentId': typeof ProgramsProgramIdComponentsComponentIdRoute
   '/programs/$programId_/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
   '/programs/$programId_/requirements/$requirementId': typeof ProgramsProgramIdRequirementsRequirementIdRoute
@@ -495,6 +534,8 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/library/products/$productKey'
+    | '/library/requirements/$definitionKey'
     | '/programs/$programId/authorization'
     | '/programs/$programId/baseline'
     | '/programs/$programId/composition'
@@ -510,6 +551,8 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
+    | '/library/products/'
+    | '/library/requirements/'
     | '/programs/$programId/components/$componentId'
     | '/programs/$programId/controls/$controlId'
     | '/programs/$programId/requirements/$requirementId'
@@ -545,6 +588,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/library/products/$productKey'
+    | '/library/requirements/$definitionKey'
     | '/programs/$programId/authorization'
     | '/programs/$programId/baseline'
     | '/programs/$programId/composition'
@@ -560,6 +605,8 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components'
+    | '/library/products'
+    | '/library/requirements'
     | '/programs/$programId/components/$componentId'
     | '/programs/$programId/controls/$controlId'
     | '/programs/$programId/requirements/$requirementId'
@@ -595,6 +642,8 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/library/products/$productKey'
+    | '/library/requirements/$definitionKey'
     | '/programs/$programId_/authorization'
     | '/programs/$programId_/baseline'
     | '/programs/$programId_/composition'
@@ -610,6 +659,8 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
+    | '/library/products/'
+    | '/library/requirements/'
     | '/programs/$programId_/components/$componentId'
     | '/programs/$programId_/controls/$controlId'
     | '/programs/$programId_/requirements/$requirementId'
@@ -642,9 +693,13 @@ export interface RootRouteChildren {
   RegisterIndexRoute: typeof RegisterIndexRoute
   FindingsAssetsAssetIdRoute: typeof FindingsAssetsAssetIdRoute
   LibraryComponentsComponentKeyRoute: typeof LibraryComponentsComponentKeyRoute
+  LibraryProductsProductKeyRoute: typeof LibraryProductsProductKeyRoute
+  LibraryRequirementsDefinitionKeyRoute: typeof LibraryRequirementsDefinitionKeyRoute
   RegisterPoamPoamIdRoute: typeof RegisterPoamPoamIdRoute
   RegisterRisksRiskIdRoute: typeof RegisterRisksRiskIdRoute
   LibraryComponentsIndexRoute: typeof LibraryComponentsIndexRoute
+  LibraryProductsIndexRoute: typeof LibraryProductsIndexRoute
+  LibraryRequirementsIndexRoute: typeof LibraryRequirementsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -857,6 +912,34 @@ declare module '@tanstack/react-router' {
       path: '/library/components/$componentKey'
       fullPath: '/library/components/$componentKey'
       preLoaderRoute: typeof LibraryComponentsComponentKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/products/': {
+      id: '/library/products/'
+      path: '/library/products'
+      fullPath: '/library/products/'
+      preLoaderRoute: typeof LibraryProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/products/$productKey': {
+      id: '/library/products/$productKey'
+      path: '/library/products/$productKey'
+      fullPath: '/library/products/$productKey'
+      preLoaderRoute: typeof LibraryProductsProductKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/requirements/': {
+      id: '/library/requirements/'
+      path: '/library/requirements'
+      fullPath: '/library/requirements/'
+      preLoaderRoute: typeof LibraryRequirementsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/requirements/$definitionKey': {
+      id: '/library/requirements/$definitionKey'
+      path: '/library/requirements/$definitionKey'
+      fullPath: '/library/requirements/$definitionKey'
+      preLoaderRoute: typeof LibraryRequirementsDefinitionKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programs/$programId_/authorization': {
@@ -1094,9 +1177,13 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterIndexRoute: RegisterIndexRoute,
   FindingsAssetsAssetIdRoute: FindingsAssetsAssetIdRoute,
   LibraryComponentsComponentKeyRoute: LibraryComponentsComponentKeyRoute,
+  LibraryProductsProductKeyRoute: LibraryProductsProductKeyRoute,
+  LibraryRequirementsDefinitionKeyRoute: LibraryRequirementsDefinitionKeyRoute,
   RegisterPoamPoamIdRoute: RegisterPoamPoamIdRoute,
   RegisterRisksRiskIdRoute: RegisterRisksRiskIdRoute,
   LibraryComponentsIndexRoute: LibraryComponentsIndexRoute,
+  LibraryProductsIndexRoute: LibraryProductsIndexRoute,
+  LibraryRequirementsIndexRoute: LibraryRequirementsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

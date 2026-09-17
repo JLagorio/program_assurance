@@ -196,7 +196,7 @@ ${check(`not exists(select 1 from public.composition_nodes where tenant_id=${q("
 -- legacy INSERTs, rather than only approximating its table writes.
 do $test$
 declare resolution_id uuid; catalog_id uuid; result jsonb; boundary_id uuid;
-  parent_key uuid:=gen_random_uuid(); child_key uuid:=gen_random_uuid();
+  parent_key uuid:=gen_random_uuid(); child_key uuid:=gen_random_uuid(); profile_key uuid:=gen_random_uuid();
 begin
   select r.id,i.catalog_revision_id into resolution_id,catalog_id
     from public.profile_resolutions r join public.profile_revisions p on p.id=r.profile_revision_id
@@ -207,14 +207,14 @@ begin
   result:=public.create_program_wizard(${q("tenant")},jsonb_build_object(
     'requestId',gen_random_uuid(),'code','CANONICAL-WIZARD','name','Rollback canonical wizard',
     'description','','roles','[]'::jsonb,'catalogRevisionId',catalog_id,
-    'availableProfileResolutionIds',jsonb_build_array(resolution_id),
+    'profiles',jsonb_build_array(jsonb_build_object('key',profile_key,'baseResolutionId',resolution_id,'tailoring','[]'::jsonb,'parameters','[]'::jsonb)),
     'systems',jsonb_build_array(jsonb_build_object(
       'key',gen_random_uuid(),'code','WIZARD-BOUNDARY','name','Rollback wizard boundary',
       'type','information_system','description','','ownerPartyId',null,
       'confidentiality','low','integrity','low','availability','low',
       'categorizationRationale','Explicit rollback test categorization.',
-      'profileResolutionId',resolution_id,'tailoring','[]'::jsonb,'parameters','[]'::jsonb,
-      'subsystems',jsonb_build_array(
+      'profileKey',profile_key,
+      'elements',jsonb_build_array(
         jsonb_build_object('key',child_key,'parentKey',parent_key,'code','WIZARD-CHILD','name','Rollback wizard child','type','hardware','description',''),
         jsonb_build_object('key',parent_key,'parentKey',null,'code','WIZARD-PARENT','name','Rollback wizard parent','type','subsystem','description','')
       )

@@ -57,6 +57,21 @@ type Models = Omit<Tables, "composition_nodes" | "composition_nodes_archive_2026
     Insert: never;
     Update: never;
   };
+  profile_resolution_catalogs: {
+    Row: {
+      id: string;
+      tenant_id: string | null;
+      profile_resolution_id: string;
+      profile_revision_id: string;
+      catalog_revision_id: string;
+      base_profile_resolution_id: string | null;
+      root_profile_resolution_id: string;
+      depth: number;
+      layered: boolean;
+    };
+    Insert: never;
+    Update: never;
+  };
 };
 export type TableName = keyof Models;
 export type Row<T extends TableName> = Models[T]["Row"];

@@ -36,6 +36,7 @@
     "test:poc": "vitest run --config vitest.poc.config.ts",
     "test:browser": "node scripts/test-browser.mjs",
     "test:program-wizard": "node scripts/test-program-wizard-backend.mjs && node scripts/test-program-wizard.mjs",
+    "test:products": "node scripts/test-products-backend.mjs && node scripts/test-products.mjs",
     "models:generate": "node scripts/generate-models.mjs",
     "test:system-assurance": "node scripts/test-canonical-systems-backend.mjs && node scripts/test-canonical-systems-concurrency.mjs && node scripts/test-system-tree.mjs && node scripts/test-system-assurance-view.mjs && node scripts/test-system-baselines-backend.mjs && node scripts/test-system-baselines.mjs && node scripts/test-requirement-control-targets.mjs && node scripts/test-requirement-control-mappings.mjs && node scripts/test-ssp-support-backend.mjs && node scripts/test-ssp-assembly.mjs"
   },

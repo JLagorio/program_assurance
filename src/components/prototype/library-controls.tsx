@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
+  Absent,
   Badge,
   DataTable,
   defineColumns,
@@ -18,14 +19,26 @@ import {
 import { useRows, type Row } from "@/lib/models";
 import { LibraryLoading } from "./library-shared";
 
+/** A profile that selects a control, for the Selected by column. */
+export type ControlSelector = { key: string; label: string; meta?: ReactNode | undefined };
+
 export function LibraryControlTable({
   controls,
   onSelect,
   label = "Catalog controls",
+  filters,
+  showRelease = true,
+  selectedBy,
 }: {
   controls: Row<"controls">[];
   onSelect: (control: Row<"controls">) => void;
   label?: string;
+  /** Extra toolbar controls after the search: an edition picker, say. */
+  filters?: ReactNode;
+  /** Hide the Release column when every row is from one edition. */
+  showRelease?: boolean;
+  /** The published profiles selecting each control, by control id; adds a Selected by column. */
+  selectedBy?: Map<string, ControlSelector[]> | undefined;
 }) {
   const groups = useRows("catalog_groups");
   const revisions = useRows("catalog_revisions");
@@ -40,9 +53,10 @@ export function LibraryControlTable({
           release:
             revisions.data?.find((revision) => revision.id === control.catalog_revision_id)
               ?.version ?? "Not recorded",
+          selectedBy: selectedBy?.get(control.id) ?? [],
         }))
         .sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true })),
-    [controls, groups.data, revisions.data],
+    [controls, groups.data, revisions.data, selectedBy],
   );
   const columns = useMemo(
     () =>
@@ -50,21 +64,31 @@ export function LibraryControlTable({
         c.id("code", { header: "Control", width: 130, hideable: false }),
         c.text("title", { header: "Title", hideable: false }),
         c.text("family", { header: "Family", width: 100 }),
-        c.text("release", { header: "Release", width: 100 }),
+        ...(showRelease ? [c.text("release", { header: "Release", width: 100 })] : []),
         c.status("status", {
           header: "Status",
           width: 130,
           tone: (row) => (row.status === "withdrawn" ? "warning" : "neutral"),
         }),
+        ...(selectedBy
+          ? [
+              c.list("selectedBy", {
+                header: "Selected by",
+                width: 240,
+                items: (row) => row.selectedBy,
+                empty: () => <Absent />,
+              }),
+            ]
+          : []),
       ]),
-    [],
+    [showRelease, selectedBy],
   );
   const table = useDataTable({
     data,
     columns,
     getRowId: (row) => row.id,
     label,
-    view: "live-library-controls",
+    view: "live-library-controls-v2",
     resizable: true,
     reorderable: true,
     virtualize: true,
@@ -83,9 +107,11 @@ export function LibraryControlTable({
         toolbar={
           <Inline space="space.100" alignBlock="center" shouldWrap>
             <DataTable.Search table={table} placeholder="Find a control" />
+            {filters}
             <DataTable.Filter table={table} column="family" />
-            <DataTable.Filter table={table} column="release" />
+            {showRelease && <DataTable.Filter table={table} column="release" />}
             <DataTable.Filter table={table} column="status" />
+            {selectedBy && <DataTable.Filter table={table} column="selectedBy" />}
             <Inline className="ml-auto" space="space.100">
               <DataTable.Columns table={table} />
               <DataTable.Settings table={table} />
@@ -195,7 +221,7 @@ export function ControlInspector({
                   ...new Set(
                     selectedProfiles.map(
                       (profile) =>
-                        `${profiles.data?.find((item) => item.id === profile.profile_id)?.code ?? profile.title} (${profile.version})`,
+                        `${profiles.data?.find((item) => item.id === profile.profile_id)?.title ?? profile.title} (${profile.version})`,
                     ),
                   ),
                 ].join("; ") || "No recorded selections"}

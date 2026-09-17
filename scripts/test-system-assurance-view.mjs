@@ -28,16 +28,32 @@ const insert = (table, values) =>
   );
 const table = () => page.getByRole("treegrid", { name: "Program systems", exact: true });
 const row = (system) => table().locator(`tr[data-row-id="${system.id}"]`);
+/** The cell under a named column, found by the header's sort button so reordering never hides a regression. */
+async function columnIndex(header) {
+  const heads = table().locator("thead th");
+  const count = await heads.count();
+  for (let index = 0; index < count; index += 1)
+    if ((await heads.nth(index).getByRole("button", { name: header, exact: true }).count()) === 1)
+      return index;
+  return -1;
+}
+async function cell(system, header) {
+  const index = await columnIndex(header);
+  assert.ok(index >= 0, `The systems table has a ${header} column`);
+  return row(system).locator("td").nth(index);
+}
 const impact = (system, dimension) =>
-  row(system).getByRole("button", {
-    name: `View ${dimension} impact for ${system.code}`,
-    exact: true,
-  });
+  cell(
+    system,
+    dimension === "confidentiality" ? "Conf." : dimension === "integrity" ? "Integ." : "Avail.",
+  );
 const panel = () => page.locator('[data-shell-area="panel"]');
+const tabs = () => page.getByRole("tablist", { name: "Element sections", exact: true });
 async function choose(dialog, label, value) {
   await dialog.getByRole("combobox", { name: label, exact: true }).click();
   await page.getByRole("option", { name: value, exact: true }).click();
 }
+/** A published reference profile; `title` is its stable record's short name, the one the product shows. */
 async function publishedProfile(level) {
   const profile = await data(
     client
@@ -62,7 +78,8 @@ async function publishedProfile(level) {
     .eq("profile_resolution_id", resolution.id);
   assert.ifError(count.error);
   assert.ok(count.count > 0);
-  return { profile, resolution, count: count.count };
+  const record = await data(client.from("profiles").select().eq("id", profile.profile_id).single());
+  return { profile, resolution, count: count.count, title: record.title };
 }
 async function frameSize() {
   return table().evaluate((grid) => {
@@ -174,31 +191,87 @@ try {
     version_number: 1,
   });
 
+  const requirement = await insert("engineering_requirements", {
+    program_id: program.id,
+    code: "REQ-SCOPED",
+  });
+  const revision = await insert("requirement_revisions", {
+    engineering_requirement_id: requirement.id,
+    version_number: 1,
+    title: "Scoped data integrity",
+    statement: "The processing system shall verify the integrity of recorded data.",
+    acceptance_criteria: "Integrity checks pass on every recorded data set.",
+    requirement_type: "security",
+  });
+  await insert("requirement_allocations", {
+    requirement_revision_id: revision.id,
+    system_id: scoped.id,
+    rationale: "The processing system records the data set.",
+  });
+  const leafRequirement = await insert("engineering_requirements", {
+    program_id: program.id,
+    code: "REQ-LEAF",
+  });
+  const leafRevision = await insert("requirement_revisions", {
+    engineering_requirement_id: leafRequirement.id,
+    version_number: 1,
+    title: "Component logging",
+    statement: "The processing component shall log integrity failures.",
+    acceptance_criteria: "A failed check produces a log entry.",
+    requirement_type: "functional",
+  });
+  await insert("requirement_allocations", {
+    requirement_revision_id: leafRevision.id,
+    system_id: leaf.id,
+  });
+
   await page.goto(`${origin}/programs/${program.id}?tab=System`);
   await page.getByLabel("Email", { exact: true }).fill(workspace.email);
   await page.getByLabel("Password", { exact: true }).fill(workspace.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(table().locator("tr[data-row-id]")).toHaveCount(38);
-  await expect(page.getByRole("heading", { name: "Assessment scopes", exact: true })).toHaveCount(
-    0,
-  );
-  await expect(page.getByRole("heading", { name: "Program systems", exact: true })).toHaveCount(0);
-  await expect(
-    page.getByText("Systems, subsystems, and components share one hierarchy.", { exact: false }),
-  ).toHaveCount(0);
   await expect(page.getByRole("combobox", { name: "Rows per page", exact: true })).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: /Program systems.*pagination/i })).toHaveCount(
     0,
   );
+  // Nine columns; scopes are not one of them and no cell is a button into the preview.
+  for (const header of [
+    "Element",
+    "Code",
+    "Type",
+    "Conf.",
+    "Integ.",
+    "Avail.",
+    "Baseline",
+    "Controls",
+    "Requirements",
+  ])
+    await expect(
+      table().locator("thead").getByRole("button", { name: header, exact: true }),
+    ).toHaveCount(1);
+  await expect(
+    table().locator("thead").getByRole("button", { name: "Scopes", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    table().getByRole("button", { name: /^View (scopes|controls|.* impact) for/ }),
+  ).toHaveCount(0);
   await expect(row(scoped)).toHaveAttribute("aria-level", "3");
-  await expect(impact(scoped, "confidentiality")).toContainText("High");
-  await expect(impact(scoped, "confidentiality")).toContainText("Scope");
-  await expect(impact(scoped, "integrity")).toContainText("Low");
-  await expect(impact(scoped, "integrity")).not.toContainText("High");
-  await expect(impact(root, "confidentiality")).toContainText("High");
+  await expect(await impact(scoped, "confidentiality")).toHaveText("High");
+  await expect(await impact(scoped, "integrity")).toContainText("Low");
+  await expect(await impact(scoped, "integrity")).not.toContainText("High");
+  await expect(await impact(root, "confidentiality")).toContainText("High");
   // A scoped descendant provides a summary; it does not categorize either ancestor or leaf.
   for (const system of [parent, leaf])
-    await expect(impact(system, "confidentiality")).not.toContainText(/Low|Moderate|High/);
+    await expect(await impact(system, "confidentiality")).not.toContainText(/Low|Moderate|High/);
+  // The baseline names the profile and says where it comes from; the counts are exact.
+  await expect(await cell(root, "Baseline")).toContainText(low.title);
+  await expect(await cell(root, "Baseline")).toContainText("From the boundary SSP");
+  await expect(await cell(scoped, "Baseline")).toContainText(low.title);
+  await expect(await cell(scoped, "Baseline")).toContainText(`Inherited from ${root.code}`);
+  await expect(await cell(root, "Controls")).toHaveText(String(low.count));
+  await expect(await cell(scoped, "Requirements")).toHaveText("1");
+  await expect(await cell(leaf, "Requirements")).toHaveText("1");
+  await expect(await cell(parent, "Requirements")).not.toContainText(/\d/);
 
   const initialFrame = await frameSize();
   assert.ok(initialFrame?.height > 300, "Systems table occupies the remaining page height");
@@ -213,69 +286,18 @@ try {
     .toBeGreaterThan(initialFrame.height + 200);
   await page.setViewportSize({ width: 1700, height: 1050 });
 
-  await row(scoped)
-    .getByRole("button", { name: `View scopes for ${scoped.code}`, exact: true })
-    .click();
-  await expect(panel().getByRole("tab", { name: "Scopes", exact: true })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
-  const scopeButton = panel().getByRole("button").filter({ hasText: assessment.name });
-  await expect(scopeButton).toHaveCount(1);
-  await scopeButton.click();
-  const scopeDialog = page.getByRole("dialog", { name: assessment.name, exact: true });
-  await expect(scopeDialog).toContainText(assessment.categorization_rationale);
-  await page.keyboard.press("Escape");
-  await expect(scopeDialog).toHaveCount(0);
-
-  // Opening a descendant through an ancestor must not retarget the scope when edited.
-  await row(parent)
-    .getByRole("button", { name: `View scopes for ${parent.code}`, exact: true })
-    .click();
-  await panel().getByRole("button").filter({ hasText: assessment.name }).click();
-  await scopeDialog.getByRole("button", { name: "Edit record", exact: true }).click();
-  const editScope = page.getByRole("dialog", { name: "Edit scope", exact: true });
-  const scopeDescription = "Scope details reviewed from the containing subsystem.";
-  await editScope.getByLabel("Description", { exact: true }).fill(scopeDescription);
-  await editScope.getByRole("button", { name: "Save changes", exact: true }).click();
-  await expect(editScope).toHaveCount(0);
-  const editedScope = await data(client.from("scopes").select().eq("id", assessment.id).single());
-  assert.equal(editedScope.description, scopeDescription);
-  assert.equal(editedScope.system_id, root.id, "Scope editing retains its original boundary");
-  assert.equal(
-    editedScope.composition_node_id,
-    scoped.id,
-    "Editing from an ancestor preview retains the scope's exact descendant target",
-  );
-
-  await row(scoped)
-    .getByRole("button", { name: `View scopes for ${scoped.code}`, exact: true })
-    .click();
-  await panel().getByRole("button", { name: "Add scope", exact: true }).click();
-  const createScope = page.getByRole("dialog", { name: "Create scope", exact: true });
-  await createScope.getByLabel(/^Code\b/).fill("SCOPE-ADDED");
-  await createScope.getByLabel(/^Name\b/).fill("Added directly from system");
-  await createScope.getByRole("button", { name: "Create scope", exact: true }).click();
-  await expect(createScope).toHaveCount(0);
-  const added = await data(
-    client.from("scopes").select().eq("system_id", root.id).eq("code", "SCOPE-ADDED").single(),
-  );
-  assert.equal(
-    added.composition_node_id,
-    scoped.id,
-    "Scope authoring retains the exact subsystem target",
-  );
-
-  await row(scoped)
-    .getByRole("button", { name: `View controls for ${scoped.code}`, exact: true })
-    .click();
-  await expect(panel().getByRole("tab", { name: "Controls", exact: true })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
-  await expect(panel()).toContainText(low.profile.title);
+  // One click result for the row: the preview, always on its first section.
+  await (await cell(scoped, "Type")).click();
+  await expect(panel()).toBeVisible();
+  await expect(panel().getByRole("tab")).toHaveCount(0);
+  await expect(panel().getByRole("heading", { name: scoped.name, exact: true })).toBeVisible();
+  await expect(panel()).toContainText(`${root.name} / ${parent.name}`);
+  await expect(panel()).toContainText("From an assessment scope");
+  await expect(panel()).toContainText(low.title);
   await expect(panel()).toContainText(`${low.count} controls`);
-  await expect(panel()).toContainText("Inherited");
+  await expect(panel()).toContainText(`Inherited from ${root.code}`);
+  await expect(panel()).toContainText("1 allocated here");
+  await expect(panel()).toContainText("2 including everything inside");
   const resolved = await data(
     client.from("system_effective_baselines").select().eq("system_id", scoped.id).single(),
   );
@@ -286,9 +308,16 @@ try {
   );
   assert.equal(resolved.source_system_id, root.id);
   assert.equal(resolved.inherited, true);
+  // Contains drills in place: the same panel, the child.
+  await panel().getByRole("button", { name: leaf.name, exact: true }).click();
+  await expect(panel().getByRole("heading", { name: leaf.name, exact: true })).toBeVisible();
+  await expect(panel()).toContainText("Nothing inside this element.");
+  await expect(panel()).toContainText("1 allocated here");
 
-  await impact(scoped, "confidentiality").click();
-  await panel().getByRole("button", { name: "Edit system", exact: true }).click();
+  // The eye opens the same preview; Edit lives in its header.
+  await row(scoped).getByRole("button", { name: "Preview row", exact: true }).click();
+  await expect(panel().getByRole("heading", { name: scoped.name, exact: true })).toBeVisible();
+  await panel().getByRole("button", { name: "Edit", exact: true }).click();
   const edit = page.getByRole("dialog", { name: "Edit system", exact: true });
   await choose(edit, "Confidentiality impact", "Moderate");
   await choose(edit, "Integrity impact", "Not categorized");
@@ -314,13 +343,76 @@ try {
   assert.equal(saved.boundary_system_id, root.id);
   await page.reload();
   await expect(table().locator("tr[data-row-id]")).toHaveCount(38);
-  await expect(impact(scoped, "confidentiality")).toContainText("Moderate");
-  await expect(impact(scoped, "integrity")).toContainText("High");
-  await expect(impact(scoped, "integrity")).toContainText("Scope");
-  await expect(impact(scoped, "availability")).toContainText("Low");
+  await expect(await impact(scoped, "confidentiality")).toContainText("Moderate");
+  await expect(await impact(scoped, "integrity")).toContainText("High");
+  await expect(await impact(scoped, "availability")).toContainText("Low");
+
+  // The record: one anatomy at every level, the tab in the URL, retired tab names land.
+  await page.goto(`${origin}/programs/${program.id}/systems/${scoped.id}?tab=Controls`);
+  await expect(tabs().getByRole("tab")).toHaveText([
+    "Overview",
+    "Controls",
+    "Requirements",
+    "Library",
+    "Evidence",
+    "Inventory",
+  ]);
+  await expect(tabs().getByRole("tab", { name: "Controls", exact: true })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  const main = page.getByRole("main");
+  await expect(main).toContainText(low.title);
+  await expect(main).toContainText(`Inherited from ${root.code}`);
+  await expect(main).toContainText(`${low.count} controls`);
+  const controls = page.getByRole("table", { name: "Controls", exact: true });
+  await expect(controls.locator("tr[data-row-id]")).toHaveCount(Math.min(50, low.count));
+  const rail = page.getByRole("complementary", { name: "Record properties", exact: true });
+  await expect(rail).toContainText("Moderate");
+  await expect(rail.getByRole("link", { name: root.name, exact: true })).toHaveCount(1);
+  await expect(rail.getByRole("link", { name: parent.name, exact: true })).toHaveCount(1);
+  await expect(
+    page.getByRole("navigation", { name: /breadcrumb/i }).getByRole("link", { name: parent.name }),
+  ).toHaveCount(1);
+  await tabs().getByRole("tab", { name: "Requirements", exact: true }).click();
+  await expect(page).toHaveURL(/tab=Requirements/);
+  const requirements = page.getByRole("table", { name: "Allocated requirements", exact: true });
+  await expect(requirements.locator("tr[data-row-id]")).toHaveCount(1);
+  await expect(requirements).toContainText(requirement.code);
+  await page.getByRole("checkbox", { name: "Include everything inside", exact: true }).click();
+  await expect(requirements.locator("tr[data-row-id]")).toHaveCount(2);
+  await expect(requirements).toContainText(leafRequirement.code);
+  await page.goto(`${origin}/programs/${program.id}/systems/${scoped.id}?tab=Baseline`);
+  await expect(tabs().getByRole("tab", { name: "Controls", exact: true })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await page.goto(`${origin}/programs/${program.id}/systems/${root.id}`);
+  await expect(tabs().getByRole("tab")).toHaveText([
+    "Overview",
+    "Controls",
+    "Requirements",
+    "Library",
+    "Evidence",
+    "Inventory",
+    "SSP",
+  ]);
+  await expect(table().locator("tr[data-row-id]")).toHaveCount(38);
+
+  // The old composition URL is the System tab.
+  await page.goto(`${origin}/programs/${program.id}/composition`);
+  await expect(page).toHaveURL(new RegExp(`/programs/${program.id}\\?tab=System$`));
+  await expect(table().locator("tr[data-row-id]")).toHaveCount(38);
+
+  // Scopes live under Assessments now.
+  await page.goto(`${origin}/programs/${program.id}?tab=Assessments`);
+  await page.getByRole("tab", { name: /^Scopes/ }).click();
+  const scopesTable = page.getByRole("table", { name: "Assessment scopes", exact: true });
+  await expect(scopesTable).toContainText(assessment.name);
+  await expect(scopesTable).toContainText(scoped.name);
   assert.deepEqual(errors, []);
   console.log(
-    "PASS unified 38-row system table, dynamic height, exact scopes, ancestor scope editing, truthful CIA sources, baseline inheritance, scope creation and persistent CIA editing",
+    "PASS one element anatomy: nine-column tree, row and eye previews, drill in place, truthful CIA sources, baseline inheritance, requirement counts, the record's tab set in the URL, the composition redirect and scopes under Assessments",
   );
 } catch (failure) {
   await page

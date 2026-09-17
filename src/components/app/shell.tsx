@@ -26,6 +26,7 @@ import {
 import {
   Archive,
   Bell,
+  Boxes,
   Bug,
   CircleHelp,
   ClipboardList,
@@ -35,6 +36,7 @@ import {
   Gauge,
   Gavel,
   Library,
+  ListChecks,
   MoreHorizontal,
   Package,
   Search,
@@ -76,6 +78,8 @@ const groups = [
       { label: "Catalog", to: "/catalog", icon: FileCheck2 },
       { label: "Profiles", to: "/profiles", icon: ShieldCheck },
       { label: "Components", to: "/library/components", icon: Library },
+      { label: "Products", to: "/library/products", icon: Boxes },
+      { label: "Requirements", to: "/library/requirements", icon: ListChecks },
     ],
   },
   {

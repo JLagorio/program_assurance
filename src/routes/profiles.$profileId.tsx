@@ -1,15 +1,24 @@
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
 import {
   Badge,
   Button,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
   Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
   Id,
   Inline,
   Inspector,
   KeyValue,
   PageHeader,
+  Section,
   Shell,
   Stack,
   Table,
@@ -20,6 +29,7 @@ import {
   TextLink,
 } from "@ledger/design-system";
 import { useRow, useRows, type Row } from "@/lib/models";
+import { inspectBase, overlayDecisions, profileDisplayTitle } from "@/lib/program-wizard-reference";
 import { useWorkspace } from "@/components/app/workspace";
 import { LibraryControlTable, ControlInspector } from "@/components/prototype/library-controls";
 import {
@@ -27,6 +37,9 @@ import {
   LibraryLoading,
   LibrarySelect,
 } from "@/components/prototype/library-shared";
+import { ProfileChain } from "@/components/app/profile-tailoring/chain";
+import { ProfileTailoringEditor } from "@/components/app/profile-tailoring/editor";
+import { useReferenceData } from "@/components/app/profile-tailoring/use-reference-data";
 
 export const Route = createFileRoute("/profiles/$profileId")({
   head: () => ({ meta: [{ title: "Profile — Program Assurance" }] }),
@@ -110,8 +123,12 @@ function ProfileRevision({
   const imports = useRows("profile_imports", { profile_revision_id: revision.id });
   const rules = useRows("profile_rules", { profile_revision_id: revision.id });
   const resolutions = useRows("profile_resolutions", { profile_revision_id: revision.id });
+  const allRevisions = useRows("profile_revisions");
   const controls = useRows("controls");
   const catalogRevisions = useRows("catalog_revisions");
+  const catalogs = useRows("catalogs");
+  const profiles = useRows("profiles");
+  const reference = useReferenceData();
   const available = [...(resolutions.data ?? [])].sort((a, b) =>
     b.resolved_at.localeCompare(a.resolved_at),
   );
@@ -126,6 +143,49 @@ function ProfileRevision({
     selectedIds.has(candidate.id),
   );
   const selectionsReady = !!selections.data;
+  const inspection = useMemo(
+    () => (resolution && reference.ready ? inspectBase(resolution.id, reference.data) : null),
+    [resolution, reference.ready, reference.data],
+  );
+  const decisions = useMemo(
+    () => (resolution && reference.ready ? overlayDecisions(resolution.id, reference.data) : null),
+    [resolution, reference.ready, reference.data],
+  );
+  /** The resolved catalog edition under its stable name, for the chain and the rail. */
+  const inspectedCatalog = useMemo(() => {
+    const catalog = inspection?.catalog;
+    if (!catalog) return null;
+    return {
+      id: catalog.id,
+      title:
+        reference.data.catalogs.find((row) => row.id === catalog.catalog_id)?.title ??
+        catalog.title,
+      version: catalog.version,
+    };
+  }, [inspection, reference.data.catalogs]);
+  const catalogOf = (item: Row<"profile_imports">) =>
+    catalogRevisions.data?.find((catalog) => catalog.id === item.catalog_revision_id);
+  const importedRevision = (item: Row<"profile_imports">) =>
+    allRevisions.data?.find((row) => row.id === item.imported_profile_revision_id);
+  const importSelection = (item: Row<"profile_imports">) => {
+    if (item.include_all) return "Include all";
+    const own = (rules.data ?? []).filter((rule) => rule.profile_import_id === item.id);
+    const count = (kind: string) =>
+      own
+        .filter((rule) => rule.kind === kind)
+        .reduce((sum, rule) => {
+          const ids = (rule.definition as { "with-ids"?: unknown } | null)?.["with-ids"];
+          return sum + (Array.isArray(ids) ? ids.length : 0);
+        }, 0);
+    const included = count("include");
+    const excluded = count("exclude");
+    return (
+      [included ? `${included} included` : null, excluded ? `${excluded} excluded` : null]
+        .filter(Boolean)
+        .join(" · ") || "No selection rules"
+    );
+  };
+  const kind = inspection?.kind === "overlay" ? "Tailored" : "Reference";
   return (
     <Stack space="space.200">
       <Tabs
@@ -152,9 +212,13 @@ function ProfileRevision({
               imports,
               rules,
               resolutions,
+              allRevisions,
               controls,
               catalogRevisions,
+              catalogs,
+              profiles,
               ...(resolution ? [selections] : []),
+              ...(tab === "Tailoring" ? reference.queries : []),
             ]}
           >
             {editing && (
@@ -182,26 +246,51 @@ function ProfileRevision({
                     <tr>
                       <Table.Header>Order</Table.Header>
                       <Table.Header>Source</Table.Header>
+                      <Table.Header>Selection</Table.Header>
                       <Table.Header>Reference</Table.Header>
                     </tr>
                   </thead>
                   <tbody>
-                    {imports.data?.map((item) => (
-                      <Table.Row key={item.id}>
-                        <Table.Cell>{item.ordinal}</Table.Cell>
-                        <Table.Cell>
-                          {catalogRevisions.data?.find(
-                            (catalog) => catalog.id === item.catalog_revision_id,
-                          )?.title ??
-                            (item.imported_profile_revision_id
-                              ? "Profile revision"
-                              : "Not recorded")}
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Id>{item.href}</Id>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
+                    {imports.data?.map((item) => {
+                      const catalog = catalogOf(item);
+                      const imported = importedRevision(item);
+                      return (
+                        <Table.Row key={item.id}>
+                          <Table.Cell>{item.ordinal}</Table.Cell>
+                          <Table.Cell className="whitespace-normal">
+                            {catalog ? (
+                              <TextLink
+                                render={<Link to="/catalog" search={{ edition: catalog.id }} />}
+                              >
+                                Catalog ·{" "}
+                                {catalogs.data?.find((row) => row.id === catalog.catalog_id)
+                                  ?.title ?? catalog.title}
+                              </TextLink>
+                            ) : imported ? (
+                              <TextLink
+                                render={
+                                  <Link
+                                    to="/profiles/$profileId"
+                                    params={{ profileId: imported.profile_id }}
+                                  />
+                                }
+                              >
+                                Base profile ·{" "}
+                                {profiles.data?.find((row) => row.id === imported.profile_id)
+                                  ?.title ?? imported.title}{" "}
+                                · {imported.version}
+                              </TextLink>
+                            ) : (
+                              "Not recorded"
+                            )}
+                          </Table.Cell>
+                          <Table.Cell>{importSelection(item)}</Table.Cell>
+                          <Table.Cell>
+                            <Id>{item.href}</Id>
+                          </Table.Cell>
+                        </Table.Row>
+                      );
+                    })}
                   </tbody>
                 </Table>
                 {!imports.data?.length && (
@@ -259,33 +348,80 @@ function ProfileRevision({
               </Stack>
             )}
             {tab === "Tailoring" && (
-              <Stack space="space.200">
-                <Inline alignBlock="center" spread="space-between">
-                  <h2 className="font-heading-small">Import, merge, and modify rules</h2>
-                  {editable && revision.state === "draft" && (
-                    <Button variant="secondary" onClick={() => setEditing("profile_rules")}>
-                      Add rule
-                    </Button>
+              <Stack space="space.250">
+                <Section title="Derived from">
+                  {inspection ? (
+                    <ProfileChain chain={inspection.chain} catalog={inspectedCatalog} />
+                  ) : (
+                    <p className="text-subtle">
+                      Derivation is shown for a published, resolved revision.
+                    </p>
                   )}
-                </Inline>
-                {rules.data?.length ? (
-                  rules.data.map((rule) => (
-                    <Stack key={rule.id} space="space.100" className="border-b pb-200">
-                      <Inline space="space.100">
-                        <Badge variant="secondary" tone="neutral">
-                          {rule.kind}
-                        </Badge>
-                        <Id>{rule.source_pointer}</Id>
-                      </Inline>
-                      {rule.rationale && <p className="font-body-small">{rule.rationale}</p>}
-                      <pre className="font-body-small overflow-auto whitespace-pre-wrap">
-                        {JSON.stringify(rule.definition, null, 2)}
-                      </pre>
-                    </Stack>
-                  ))
+                </Section>
+                {decisions ? (
+                  <ProfileTailoringEditor
+                    readOnly
+                    catalogRevisionId={decisions.catalogRevisionId}
+                    baseResolutionId={decisions.baseResolutionId}
+                    decisions={decisions.tailoring}
+                    parameters={decisions.parameters}
+                    title={profileDisplayTitle(revision, reference.data) ?? revision.title}
+                    data={reference.data}
+                  />
                 ) : (
-                  <p className="text-subtle">No tailoring rules recorded.</p>
+                  <Empty size="compact">
+                    <EmptyHeader>
+                      <EmptyTitle>
+                        {inspection?.kind === "reference"
+                          ? "A reference profile: nothing is tailored from another profile"
+                          : "No tailoring to show"}
+                      </EmptyTitle>
+                      <EmptyDescription>
+                        {inspection?.kind === "reference"
+                          ? "This profile selects its controls straight from the catalog. Its selection rules are below."
+                          : "A tailoring diff appears for a published, resolved revision layered on a base profile."}
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 )}
+                <Collapsible>
+                  <Inline alignBlock="center" spread="space-between">
+                    <CollapsibleTrigger
+                      render={
+                        <Button variant="subtle" size="small" iconAfter={<ChevronDown />}>
+                          OSCAL rules · {rules.data?.length ?? 0}
+                        </Button>
+                      }
+                    />
+                    {editable && revision.state === "draft" && (
+                      <Button variant="secondary" onClick={() => setEditing("profile_rules")}>
+                        Add rule
+                      </Button>
+                    )}
+                  </Inline>
+                  <CollapsibleContent>
+                    <Stack space="space.200" className="pt-150">
+                      {rules.data?.length ? (
+                        rules.data.map((rule) => (
+                          <Stack key={rule.id} space="space.100" className="border-b pb-200">
+                            <Inline space="space.100">
+                              <Badge variant="secondary" tone="neutral">
+                                {rule.kind}
+                              </Badge>
+                              <Id>{rule.source_pointer}</Id>
+                            </Inline>
+                            {rule.rationale && <p className="font-body-small">{rule.rationale}</p>}
+                            <pre className="font-body-small overflow-auto whitespace-pre-wrap">
+                              {JSON.stringify(rule.definition, null, 2)}
+                            </pre>
+                          </Stack>
+                        ))
+                      ) : (
+                        <p className="text-subtle">No tailoring rules recorded.</p>
+                      )}
+                    </Stack>
+                  </CollapsibleContent>
+                </Collapsible>
               </Stack>
             )}
           </LibraryLoading>
@@ -295,6 +431,22 @@ function ProfileRevision({
         <Inspector.Group title="Profile revision">
           <KeyValue label="Version">{revision.version}</KeyValue>
           <KeyValue label="State">{revision.state}</KeyValue>
+          <KeyValue label="Kind" wrap>
+            {inspection
+              ? inspection.kind === "overlay"
+                ? `${kind} from ${profileDisplayTitle(inspection.base?.profile, reference.data) ?? "a base profile"}`
+                : kind
+              : "Not resolved"}
+          </KeyValue>
+          <KeyValue label="Catalog" wrap>
+            {inspectedCatalog ? (
+              <TextLink render={<Link to="/catalog" search={{ edition: inspectedCatalog.id }} />}>
+                {inspectedCatalog.title} · {inspectedCatalog.version}
+              </TextLink>
+            ) : (
+              "Not resolved"
+            )}
+          </KeyValue>
           <KeyValue label="Controls">
             {resolution
               ? selections.error

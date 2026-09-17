@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  Badge,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -8,6 +9,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Button,
+  Id,
   Inline,
   Inspector,
   KeyValue,
@@ -20,15 +22,29 @@ import {
   TabsTrigger,
   TextLink,
 } from "@ledger/design-system";
-import { Pencil } from "lucide-react";
+import { Library, Pencil, Plus } from "lucide-react";
 import { useRow, useRows } from "@/lib/models";
+import { useProductLookup } from "@/lib/product-items";
 import type { SystemElement } from "@/lib/system-tree";
 import { displayValue, labelFor, type DataRecord } from "@/lib/records";
+import type { SystemAssuranceRow } from "@/lib/system-assurance";
 import { useWorkspace } from "@/components/app/workspace";
 import { ControlInspector } from "@/components/prototype/library-controls";
 import { ProgramSystemsTree } from "./program-systems-tree";
 import { SystemElementDialog } from "./system-element-dialog";
-import { SystemBaseline } from "./system-baseline";
+import { SystemControls } from "./system-baseline";
+import { SystemRequirements } from "./system-requirements";
+import { SystemLibrary } from "./system-library";
+import { SystemEvidence } from "./system-evidence";
+import { AddFromLibrary } from "./add-from-library";
+import {
+  ImpactBadge,
+  ancestorElements,
+  impactDimensions,
+  impactProvenance,
+} from "./system-assurance-details";
+import { useSystemAssurance } from "./use-system-assurance";
+import { RelationName } from "./record-tools";
 import { SspAssembly } from "./ssp-assembly";
 import {
   ProgramCollection,
@@ -44,18 +60,28 @@ function ProgramRecordFrame({
   row,
   title,
   children,
-  facts,
+  facts = [],
   readOnly = false,
   renderEditor,
+  trail,
+  actions,
+  properties,
 }: {
   programId: string;
   table: ProgramTableName;
   row: DataRecord;
   title: string;
   children: ReactNode;
-  facts: string[];
+  /** Rail facts drawn generically from the row; `properties` replaces them. */
+  facts?: string[];
   readOnly?: boolean;
   renderEditor?: ((onClose: () => void) => ReactNode) | undefined;
+  /** Crumbs between the program and this record: the containing elements. */
+  trail?: ReactNode;
+  /** Header actions beside Edit. */
+  actions?: ReactNode;
+  /** The rail's Properties group, composed by the record. */
+  properties?: ReactNode;
 }) {
   const program = useRow("programs", programId);
   const workspace = useWorkspace();
@@ -76,6 +102,7 @@ function ProgramRecordFrame({
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
+              {trail}
               <BreadcrumbItem>
                 <BreadcrumbPage>{title}</BreadcrumbPage>
               </BreadcrumbItem>
@@ -85,6 +112,7 @@ function ProgramRecordFrame({
             <PageHeader.Title>{title}</PageHeader.Title>
           </div>
           <PageHeader.Actions>
+            {actions}
             {!readOnly &&
               !editing &&
               workspace.role !== "viewer" &&
@@ -109,163 +137,184 @@ function ProgramRecordFrame({
       </Stack>
       <Shell.Aside label="Record properties">
         <Inspector.Group title="Properties">
-          {facts.map((field) => (
-            <KeyValue key={field} label={labelFor(field)} wrap>
-              {["status", "state", "authorization_status", "lifecycle_status"].includes(field) ? (
-                <StatusValue value={row[field]} />
-              ) : (
-                displayValue(row[field])
-              )}
-            </KeyValue>
-          ))}
+          {properties ??
+            facts.map((field) => (
+              <KeyValue key={field} label={labelFor(field)} wrap>
+                {["status", "state", "authorization_status", "lifecycle_status"].includes(field) ? (
+                  <StatusValue value={row[field]} />
+                ) : (
+                  displayValue(row[field])
+                )}
+              </KeyValue>
+            ))}
         </Inspector.Group>
       </Shell.Aside>
     </>
   );
 }
+export const SYSTEM_TABS = [
+  "Overview",
+  "Controls",
+  "Requirements",
+  "Library",
+  "Evidence",
+  "Inventory",
+  "SSP",
+] as const;
+export type SystemTab = (typeof SYSTEM_TABS)[number];
+/** The tab in the URL; the retired tab names land where their content went. */
+export function systemTab(value: unknown): SystemTab | undefined {
+  const retired: Record<string, SystemTab> = {
+    Composition: "Overview",
+    Baseline: "Controls",
+    Components: "Library",
+    "Security plans": "SSP",
+  };
+  return SYSTEM_TABS.find((tab) => tab === value) ?? retired[String(value)];
+}
+/** One anatomy at every level of the tree; the SSP is the only boundary-only tab. */
 export function ProgramSystemRecord({
   programId,
   systemId,
+  tab,
+  onTabChange,
 }: {
   programId: string;
   systemId: string;
+  tab?: SystemTab | undefined;
+  onTabChange?: ((tab: SystemTab) => void) | undefined;
 }) {
+  const workspace = useWorkspace();
   const query = useRow("systems", systemId);
-  const componentLinks = useRows("system_component_element_links", { system_id: systemId });
-  const navigate = useNavigate();
-  const [tab, setTab] = useState("Overview");
+  const assurance = useSystemAssurance(programId);
+  const [localTab, setLocalTab] = useState<SystemTab>("Overview");
+  const [addingChild, setAddingChild] = useState(false);
+  const [addingLibrary, setAddingLibrary] = useState<{
+    controlId?: string;
+    source?: "component" | "profile" | "requirement";
+  } | null>(null);
   if (query.isPending || query.error)
     return <ProgramQueryState loading={query.isPending} error={query.error} />;
   if (!query.data || query.data.program_id !== programId)
     return <p role="alert">System not found in this program.</p>;
   const system = query.data as SystemElement;
-  const filters = { system_id: system.id };
+  const row = assurance.rows.find((element) => element.id === system.id);
+  const boundary = system.is_authorization_boundary;
+  const requested = tab ?? localTab;
+  const current: SystemTab = requested === "SSP" && !boundary ? "Overview" : requested;
+  const select = (next: SystemTab) => {
+    setLocalTab(next);
+    onTabChange?.(next);
+  };
+  const tabs = SYSTEM_TABS.filter((name) => name !== "SSP" || boundary);
+  const canCreate =
+    workspace.role !== "viewer" &&
+    !!workspace.collections.find((item) => item.name === "systems")?.can_insert;
+  const ancestors = row ? ancestorElements(row, assurance.rows) : [];
   return (
     <ProgramRecordFrame
       programId={programId}
       table="systems"
       row={system as DataRecord}
       title={system.name}
+      trail={ancestors.map((ancestor) => (
+        <Fragment key={ancestor.id}>
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              render={
+                <Link
+                  to="/programs/$programId/systems/$scopeId"
+                  params={{ programId, scopeId: ancestor.id }}
+                />
+              }
+            >
+              {ancestor.name}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+        </Fragment>
+      ))}
+      actions={
+        <>
+          {workspace.role !== "viewer" && row && (
+            <Button
+              variant="secondary"
+              iconBefore={<Library />}
+              onClick={() => setAddingLibrary({})}
+            >
+              Add from library
+            </Button>
+          )}
+          {canCreate && (
+            <Button variant="secondary" iconBefore={<Plus />} onClick={() => setAddingChild(true)}>
+              Add child
+            </Button>
+          )}
+        </>
+      }
+      properties={<SystemProperties programId={programId} system={system} row={row} />}
       renderEditor={(onClose) => (
         <SystemElementDialog programId={programId} existing={system} onClose={onClose} />
       )}
-      facts={
-        system.is_authorization_boundary
-          ? [
-              "code",
-              "system_type",
-              "lifecycle_status",
-              "authorization_status",
-              "confidentiality_impact",
-              "integrity_impact",
-              "availability_impact",
-            ]
-          : ["code", "system_type"]
-      }
     >
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList variant="line">
-          {(system.is_authorization_boundary
-            ? [
-                "Overview",
-                "Composition",
-                "Components",
-                "Inventory",
-                "Scopes",
-                "Baseline",
-                "Security plans",
-                "SSP",
-              ]
-            : ["Overview", "Composition", "Baseline"]
-          ).map((value) => (
+      <Tabs value={current} onValueChange={(value) => select(systemTab(value) ?? "Overview")}>
+        <TabsList variant="line" aria-label="Element sections">
+          {tabs.map((value) => (
             <TabsTrigger key={value} value={value}>
               {value}
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value={tab}>
+        <TabsContent value={current}>
           <Stack space="space.250" className="pt-200">
-            {tab === "Overview" && (
+            {current === "Overview" && (
               <>
-                <p className="whitespace-pre-wrap text-subtle">
-                  {system.description ?? "No system description recorded."}
-                </p>
-                {system.is_authorization_boundary && (
-                  <Inline space="space.200">
-                    <StatusValue value={system.lifecycle_status} />
-                    <StatusValue value={system.authorization_status} />
-                  </Inline>
+                {system.description && (
+                  <p className="whitespace-pre-wrap text-subtle">{system.description}</p>
                 )}
-                {system.parent_system_id && (
-                  <TextLink
-                    render={
-                      <Link
-                        to="/programs/$programId/systems/$scopeId"
-                        params={{ programId, scopeId: system.parent_system_id }}
-                      />
-                    }
-                  >
-                    Open parent system
-                  </TextLink>
-                )}
-                {!system.is_authorization_boundary && (
-                  <TextLink
-                    render={
-                      <Link
-                        to="/programs/$programId/systems/$scopeId"
-                        params={{ programId, scopeId: system.boundary_system_id }}
-                      />
-                    }
-                  >
-                    Open authorization boundary
-                  </TextLink>
-                )}
-                <p className="font-body-small text-subtle">
-                  {system.is_authorization_boundary
-                    ? "Record composition and categorization before selecting an SSP baseline. Authorization is tracked separately from implementation and assessment."
-                    : "This system element contributes within its recorded authorization boundary. Its allocated requirements remain explicit."}
-                </p>
+                <ProgramSystemsTree programId={programId} rootElementId={system.id} />
               </>
             )}
-            {tab === "Composition" && (
-              <ProgramSystemsTree programId={programId} rootElementId={system.id} />
-            )}
-            {tab === "Components" && (
-              <ProgramCollection
-                name="system_components"
-                title="Recorded component references"
-                description="Existing implementation references point to elements in the system tree."
-                filters={filters}
-                columns={[
-                  { key: "code", title: "Component" },
-                  { key: "name", title: "Name" },
-                  { key: "component_type", title: "Type" },
-                  { key: "status", title: "Status" },
-                ]}
-                canCreate={false}
-                readOnly
-                onSelect={(row) => {
-                  const elementId = componentLinks.data?.find(
-                    (link) => link.id === row.id,
-                  )?.system_element_id;
-                  if (elementId)
-                    void navigate({
-                      to: "/programs/$programId/systems/$scopeId",
-                      params: { programId, scopeId: elementId },
-                    });
-                  else
-                    void navigate({
-                      to: "/programs/$programId/components/$componentId",
-                      params: { programId, componentId: row.id },
-                    });
-                }}
+            {current === "Controls" && (
+              <SystemControls
+                systemId={system.id}
+                onAddFromLibrary={(controlId) => setAddingLibrary({ controlId })}
               />
             )}
-            {tab === "Inventory" && (
+            {current === "Requirements" && (
+              <SystemRequirements
+                programId={programId}
+                systemId={system.id}
+                rows={assurance.rows}
+                onAddFromLibrary={() => setAddingLibrary({ source: "requirement" })}
+              />
+            )}
+            {current === "Library" &&
+              (row ? (
+                <SystemLibrary
+                  programId={programId}
+                  element={row}
+                  rows={assurance.rows}
+                  onAddFromLibrary={() => setAddingLibrary({})}
+                />
+              ) : (
+                <ProgramQueryState loading={assurance.pending} error={assurance.error} />
+              ))}
+            {current === "Evidence" &&
+              (row ? (
+                <SystemEvidence programId={programId} element={row} rows={assurance.rows} />
+              ) : (
+                <ProgramQueryState loading={assurance.pending} error={assurance.error} />
+              ))}
+            {current === "Inventory" && (
               <ProgramCollection
                 name="inventory_items"
                 title="Deployed inventory"
-                filters={filters}
+                filters={boundary ? { system_id: system.id } : { composition_node_id: system.id }}
+                initialValues={{
+                  system_id: system.boundary_system_id,
+                  composition_node_id: boundary ? null : system.id,
+                }}
                 columns={[
                   { key: "asset_id", title: "Asset" },
                   { key: "name", title: "Name" },
@@ -276,59 +325,181 @@ export function ProgramSystemRecord({
                 createLabel="Add inventory item"
               />
             )}
-            {tab === "Scopes" && (
-              <ProgramCollection
-                name="scopes"
-                title="Assessment scopes"
-                filters={filters}
-                columns={[
-                  { key: "code", title: "Scope" },
-                  { key: "name", title: "Name" },
-                  { key: "confidentiality_impact", title: "Confidentiality" },
-                  { key: "integrity_impact", title: "Integrity" },
-                  { key: "availability_impact", title: "Availability" },
-                ]}
-                createLabel="Add scope"
-              />
-            )}
-            {tab === "Baseline" && (
+            {current === "SSP" && boundary && (
               <>
-                <SystemBaseline systemId={system.id} />
-                {system.is_authorization_boundary && (
-                  <ProgramCollection
-                    name="configuration_baselines"
-                    title="Configuration baselines"
-                    filters={filters}
-                    columns={[
-                      { key: "name", title: "Baseline" },
-                      { key: "version_number", title: "Version" },
-                      { key: "state", title: "State" },
-                    ]}
-                    createLabel="Add baseline"
-                  />
-                )}
+                <SspAssembly programId={programId} systemId={system.id} />
+                <ProgramCollection
+                  name="ssp_revisions"
+                  title="Security plan revisions"
+                  filters={{ system_id: system.id }}
+                  columns={[
+                    { key: "version_number", title: "Version" },
+                    { key: "state", title: "State" },
+                    { key: "description", title: "Description" },
+                  ]}
+                  createLabel="Add SSP revision"
+                />
               </>
-            )}
-            {tab === "Security plans" && (
-              <ProgramCollection
-                name="ssp_revisions"
-                title="Security plan revisions"
-                filters={filters}
-                columns={[
-                  { key: "version_number", title: "Version" },
-                  { key: "state", title: "State" },
-                  { key: "description", title: "Description" },
-                ]}
-                createLabel="Add SSP revision"
-              />
-            )}
-            {tab === "SSP" && system.is_authorization_boundary && (
-              <SspAssembly programId={programId} systemId={system.id} />
             )}
           </Stack>
         </TabsContent>
       </Tabs>
+      {addingChild && (
+        <SystemElementDialog
+          programId={programId}
+          parent={system}
+          onClose={() => setAddingChild(false)}
+        />
+      )}
+      {addingLibrary && row && (
+        <AddFromLibrary
+          programId={programId}
+          element={row}
+          rows={assurance.rows}
+          controlId={addingLibrary.controlId}
+          initialSource={addingLibrary.source}
+          onClose={() => setAddingLibrary(null)}
+        />
+      )}
     </ProgramRecordFrame>
+  );
+}
+
+/** The rail: facts as badges and links, never enum values. */
+function SystemProperties({
+  programId,
+  system,
+  row,
+}: {
+  programId: string;
+  system: SystemElement;
+  row: SystemAssuranceRow | undefined;
+}) {
+  const width = 112;
+  const products = useProductLookup();
+  const variant = system.product_revision_id ? products.variant(system) : null;
+  const productElement = system.product_element_id ? products.element(system) : null;
+  return (
+    <>
+      <KeyValue label="Code" labelWidth={width} wrap>
+        <Id>{system.code}</Id>
+      </KeyValue>
+      {system.product_revision_id && system.is_authorization_boundary && (
+        <KeyValue label="Product" labelWidth={width} wrap>
+          {variant ? (
+            <TextLink
+              render={
+                <Link
+                  to="/library/products/$productKey"
+                  params={{ productKey: variant.product.id }}
+                  search={{ version: variant.revision.id }}
+                />
+              }
+            >
+              {variant.label}
+            </TextLink>
+          ) : (
+            <span className="text-subtle">{products.pending ? "Loading…" : "Unavailable"}</span>
+          )}
+        </KeyValue>
+      )}
+      {system.product_element_id && (
+        <KeyValue label="Product element" labelWidth={width} wrap>
+          {productElement ? (
+            <TextLink
+              render={
+                <Link
+                  to="/library/products/$productKey"
+                  params={{ productKey: productElement.product.id }}
+                  search={{ version: productElement.revision.id }}
+                />
+              }
+            >
+              {productElement.label}
+            </TextLink>
+          ) : (
+            <span className="text-subtle">{products.pending ? "Loading…" : "Unavailable"}</span>
+          )}
+        </KeyValue>
+      )}
+      <KeyValue label="Type" labelWidth={width} wrap>
+        {labelFor(system.system_type)}
+      </KeyValue>
+      {impactDimensions.map((dimension) => (
+        <KeyValue key={dimension} label={labelFor(dimension)} labelWidth={width} wrap>
+          {row ? (
+            <Inline space="space.075" alignBlock="center" shouldWrap>
+              <ImpactBadge
+                value={row.impacts[dimension].value}
+                mixed={row.impacts[dimension].source === "mixed"}
+              />
+              <span className="font-body-xsmall text-subtle">
+                {impactProvenance(row, dimension)}
+              </span>
+            </Inline>
+          ) : (
+            <span className="text-subtle">Loading…</span>
+          )}
+        </KeyValue>
+      ))}
+      <KeyValue label="Owner" labelWidth={width} wrap>
+        {system.system_owner_party_id ? (
+          <RelationName table="parties" id={system.system_owner_party_id} />
+        ) : (
+          "Unassigned"
+        )}
+      </KeyValue>
+      {!system.is_authorization_boundary && (
+        <KeyValue label="Boundary" labelWidth={width} wrap>
+          <TextLink
+            render={
+              <Link
+                to="/programs/$programId/systems/$scopeId"
+                params={{ programId, scopeId: system.boundary_system_id }}
+              />
+            }
+          >
+            <RelationName table="systems" id={system.boundary_system_id} />
+          </TextLink>
+        </KeyValue>
+      )}
+      {system.parent_system_id && (
+        <KeyValue label="Parent" labelWidth={width} wrap>
+          <TextLink
+            render={
+              <Link
+                to="/programs/$programId/systems/$scopeId"
+                params={{ programId, scopeId: system.parent_system_id }}
+              />
+            }
+          >
+            <RelationName table="systems" id={system.parent_system_id} />
+          </TextLink>
+        </KeyValue>
+      )}
+      {system.is_authorization_boundary && (
+        <>
+          <KeyValue label="Lifecycle" labelWidth={width} wrap>
+            <StatusValue value={system.lifecycle_status} />
+          </KeyValue>
+          <KeyValue label="Authorization" labelWidth={width} wrap>
+            <StatusValue value={system.authorization_status} />
+          </KeyValue>
+        </>
+      )}
+      {row?.baselineTitle && (
+        <KeyValue label="Baseline" labelWidth={width} wrap>
+          <Inline space="space.075" alignBlock="center" shouldWrap>
+            <span>{row.baselineTitle}</span>
+            {row.baselineDraft && (
+              <Badge tone="warning" variant="secondary" size="xsmall">
+                Draft
+              </Badge>
+            )}
+          </Inline>
+        </KeyValue>
+      )}
+    </>
   );
 }
 export function ProgramComponentRecord({

@@ -10,6 +10,19 @@ import { gunzipSync } from "node:zlib";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const referenceRoot = join(projectRoot, "supabase/reference");
+/** The short names the product shows. Each revision keeps the OSCAL document's own title. */
+const displayTitles = new Map([
+  ["nist-sp800-53r5-oscal-catalog", "NIST SP 800-53 Rev 5"],
+  ["nist-sp800-53b-low-profile", "NIST SP 800-53 Rev 5 Low baseline"],
+  ["nist-sp800-53b-moderate-profile", "NIST SP 800-53 Rev 5 Moderate baseline"],
+  ["nist-sp800-53b-high-profile", "NIST SP 800-53 Rev 5 High baseline"],
+  ["nist-sp800-53b-privacy-profile", "NIST SP 800-53 Rev 5 Privacy baseline"],
+]);
+function displayTitle(sourceCode) {
+  const title = displayTitles.get(sourceCode);
+  requireValue(title, `No display title is defined for reference source ${sourceCode}`);
+  return title;
+}
 const profile = "program-assurance";
 const sha256 = (input) => createHash("sha256").update(input).digest("hex");
 const stableId = (key) => {
@@ -137,7 +150,7 @@ export async function buildReferenceRows() {
   const catalogId = add("catalogs", "nist-sp800-53-rev5", {
     source_id: sourceIds.get(catalog.source.id),
     code: "NIST-SP-800-53-REV5",
-    title: catalog.source.title,
+    title: displayTitle(catalog.source.id),
   });
   const catalogRevisionId = add("catalog_revisions", catalog.revisionId, {
     catalog_id: catalogId,
@@ -303,7 +316,7 @@ export async function buildReferenceRows() {
     const profileId = add("profiles", sourceCode, {
       source_id: sourceIds.get(sourceCode),
       code: `NIST-SP-800-53B-${baseline.toUpperCase()}`,
-      title: body.metadata.title,
+      title: displayTitle(sourceCode),
     });
     const profileRevisionId = add("profile_revisions", document.revisionId, {
       profile_id: profileId,

@@ -1,15 +1,12 @@
 import type { Row } from "./models";
 import type { Json } from "./database.types";
+import { resolutionChain, type ChainHop } from "./profile-chain";
 
-/** Deliberately bounded OSCAL subset: one pinned catalog, exact IDs, as-is merge, values only. */
-export const WIZARD_RESOLVER = {
-  name: "program-assurance-explicit-profile",
+/** The layered resolver the database authors with: a base profile imported with include-all. */
+export const LAYERED_RESOLVER = {
+  name: "program-assurance-layered-profile",
   version: "1",
 } as const;
-export const OSCAL_PROFILE_REFERENCES = [
-  "https://pages.nist.gov/OSCAL/learn/tutorials/control/basic-profile/",
-  "https://pages.nist.gov/OSCAL-Reference/models/v1.2.0/profile/json-definitions/",
-] as const;
 
 export type WizardControl = Pick<
   Row<"controls">,
@@ -42,10 +39,17 @@ export type WizardReferenceData = {
     Row<"catalog_revisions">,
     "id" | "catalog_id" | "document_revision_id" | "title" | "version" | "state"
   >[];
+  catalogGroups: readonly Pick<
+    Row<"catalog_groups">,
+    "id" | "catalog_revision_id" | "source_id" | "title" | "parent_group_id"
+  >[];
   profileRevisions: readonly Pick<
     Row<"profile_revisions">,
     "id" | "profile_id" | "document_revision_id" | "title" | "version" | "state"
   >[];
+  /** The stable records: their `title` is the short name the product shows for every revision. */
+  catalogs: readonly Pick<Row<"catalogs">, "id" | "code" | "title">[];
+  profiles: readonly Pick<Row<"profiles">, "id" | "code" | "title">[];
   resolutions: readonly Pick<
     Row<"profile_resolutions">,
     | "id"
@@ -55,6 +59,7 @@ export type WizardReferenceData = {
     | "output_sha256"
     | "resolver_name"
     | "resolver_version"
+    | "base_profile_resolution_id"
   >[];
   resolutionInputs: readonly Pick<
     Row<"profile_resolution_inputs">,
@@ -114,20 +119,41 @@ export type WizardReferenceData = {
 };
 export type ProgramTailoringInput = {
   catalogRevisionId: string;
-  profileResolutionId: string;
+  baseResolutionId: string;
   tailoring: readonly { controlId: string; action: "include" | "exclude"; rationale: string }[];
   parameters: readonly { parameterId: string; values: readonly string[]; rationale: string }[];
 };
-export type WizardCatalogOption = { id: string; title: string; version: string };
+export type WizardCatalogOption = {
+  id: string;
+  catalogId: string;
+  /** The catalog's short name, for example NIST SP 800-53 Rev 5. */
+  title: string;
+  /** The OSCAL document's own title for this edition. */
+  documentTitle: string;
+  version: string;
+  controlCount: number;
+};
 export type WizardProfileOption = {
   id: string;
   profileRevisionId: string;
+  profileId: string | null;
   catalogRevisionId: string | null;
+  /** The profile's short name, for example NIST SP 800-53 Rev 5 Low baseline. */
   title: string;
+  /** The OSCAL document's own title for this revision. */
+  documentTitle: string;
   version: string;
   controlCount: number;
+  catalogControlCount: number;
   supported: boolean;
   errors: string[];
+  kind: "reference" | "overlay";
+  baseResolutionId: string | null;
+  baseTitle: string | null;
+  outCount: number;
+  inCount: number;
+  /** This profile first, then what it layers on, down to the reference profile. */
+  chain: ChainHop[];
 };
 export type WizardParameterPreview = {
   parameter: WizardParameter;
@@ -146,6 +172,15 @@ export type WizardSelectionProvenance = {
   rationale: string | null;
   sourcePointer: string;
 };
+export type WizardFamilyPreview = {
+  groupId: string | null;
+  sourceId: string;
+  title: string;
+  base: number;
+  out: number;
+  in: number;
+  effective: number;
+};
 export type ProgramTailoringPreview = {
   valid: boolean;
   errors: string[];
@@ -163,42 +198,7 @@ export type ProgramTailoringPreview = {
     unsetParameters: number;
   };
   parameters: WizardParameterPreview[];
-  provenance: WizardSelectionProvenance[];
-  inputDocumentRevisionIds: string[];
-};
-
-export type WizardDocumentPin = {
-  documentRevisionId: string;
-  sha256: string;
-  /** URI identifying the immutable revision; callers must not supply an unpinned moving URL. */
-  href: string;
-  resourceUuid: string;
-};
-export type WizardProfileAuthoring = {
-  uuid: string;
-  title: string;
-  version: string;
-  lastModified: string;
-  oscalVersion: string;
-  catalog: WizardDocumentPin;
-  baseProfile: WizardDocumentPin;
-};
-export type AuthoredWizardProfile = {
-  document: Json;
-  rules: {
-    kind: "include" | "exclude" | "merge" | "set-parameter";
-    ordinal: number;
-    sourcePointer: string;
-    definition: Json;
-    rationale: string | null;
-  }[];
-  parameterSettings: {
-    parameterId: string;
-    sourceId: string;
-    values: string[];
-    rationale: string | null;
-    sourcePointer: string;
-  }[];
+  families: WizardFamilyPreview[];
   provenance: WizardSelectionProvenance[];
   inputDocumentRevisionIds: string[];
 };
@@ -211,117 +211,49 @@ const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
   a.size === b.size && [...a].every((id) => b.has(id));
 const orderedValues = <T extends { ordinal: number; value: string }>(rows: readonly T[]) =>
   [...rows].sort((a, b) => a.ordinal - b.ordinal).map((row) => row.value);
+const withIds = (definition: Record<string, Json | undefined> | null): string[] | null => {
+  const ids = definition?.["with-ids"];
+  return definition &&
+    Array.isArray(ids) &&
+    ids.length &&
+    ids.every((id) => typeof id === "string") &&
+    Object.keys(definition).every((key) => ["with-ids", "with-child-controls"].includes(key)) &&
+    (definition["with-child-controls"] === undefined || definition["with-child-controls"] === "no")
+    ? (ids as string[])
+    : null;
+};
 
-function inspectBase(resolutionId: string, data: WizardReferenceData) {
-  const errors: string[] = [];
-  const resolution = data.resolutions.find((row) => row.id === resolutionId);
-  const profile = data.profileRevisions.find((row) => row.id === resolution?.profile_revision_id);
-  if (!resolution || !profile) errors.push("Choose an available profile resolution.");
-  if (resolution && resolution.state !== "published")
-    errors.push("The base resolution must be published.");
-  if (profile && profile.state !== "published")
-    errors.push("The base profile revision must be published.");
-  const imports = data.profileImports.filter((row) => row.profile_revision_id === profile?.id);
-  const imported = imports[0];
-  const catalog = data.catalogRevisions.find((row) => row.id === imported?.catalog_revision_id);
-  if (
-    imports.length !== 1 ||
-    !imported?.catalog_revision_id ||
-    imported.imported_profile_revision_id
-  )
-    errors.push(
-      "This wizard supports profiles with one direct, pinned catalog import. Profile imports and multiple catalogs require a full OSCAL resolver.",
-    );
-  if (!catalog || catalog.state !== "published")
-    errors.push("The imported catalog revision must be available and published.");
-  const inputs = data.resolutionInputs.filter((row) => row.profile_resolution_id === resolutionId);
-  for (const id of [profile?.document_revision_id, catalog?.document_revision_id])
-    if (id && !inputs.some((row) => row.document_revision_id === id))
-      errors.push(
-        "The base resolution does not pin both its profile and catalog document revisions.",
-      );
-  const controls = data.controls.filter((row) => row.catalog_revision_id === catalog?.id);
-  const bySource = new Map(controls.map((row) => [row.source_id, row]));
-  const rules = data.profileRules.filter((row) => row.profile_revision_id === profile?.id);
-  const merges = rules.filter((row) => row.kind === "merge");
-  if (
-    merges.length !== 1 ||
-    !merges.every((rule) => {
-      const definition = object(rule.definition);
-      return definition && definition["as-is"] === true && Object.keys(definition).length === 1;
-    })
-  )
-    errors.push(
-      "Only an explicit as-is merge is supported; flat or custom rearrangement requires a full OSCAL resolver.",
-    );
-  const included = new Set<string>(imported?.include_all ? controls.map((row) => row.id) : []);
-  const excluded = new Set<string>();
-  if (imported?.include_all && rules.some((row) => row.kind === "include"))
-    errors.push("A profile import cannot combine include-all and include-controls.");
-  for (const rule of rules) {
-    const definition = object(rule.definition);
-    if (rule.kind === "include" || rule.kind === "exclude") {
-      const ids = definition?.["with-ids"];
-      if (
-        !definition ||
-        !Array.isArray(ids) ||
-        !ids.length ||
-        !ids.every((id) => typeof id === "string") ||
-        Object.keys(definition).some((key) => !["with-ids", "with-child-controls"].includes(key)) ||
-        (definition["with-child-controls"] !== undefined &&
-          definition["with-child-controls"] !== "no") ||
-        rule.profile_import_id !== imported?.id
-      ) {
-        errors.push(
-          `Unsupported selection rule at ${rule.source_pointer}. Only explicit IDs without child expansion are supported.`,
-        );
-        continue;
-      }
-      for (const sourceId of ids) {
-        const control = bySource.get(String(sourceId));
-        if (!control)
-          errors.push(`The base rule references unavailable control ${String(sourceId)}.`);
-        else (rule.kind === "include" ? included : excluded).add(control.id);
-      }
-    } else if (rule.kind === "set-parameter") {
-      if (
-        !definition ||
-        typeof definition["param-id"] !== "string" ||
-        !Array.isArray(definition["values"]) ||
-        !definition["values"].length ||
-        !definition["values"].every((value) => typeof value === "string" && value.trim()) ||
-        Object.keys(definition).some((key) => !["param-id", "values"].includes(key))
-      )
-        errors.push(
-          `Unsupported parameter modification at ${rule.source_pointer}. This wizard supports value assignments only.`,
-        );
-    } else if (rule.kind !== "merge")
-      errors.push(
-        `Unsupported ${rule.kind} rule at ${rule.source_pointer}. Control amendments require a full OSCAL resolver.`,
-      );
-  }
-  for (const id of excluded) {
-    if (!included.has(id))
-      errors.push("An excluded base control was not explicitly included by its import.");
-    included.delete(id);
-  }
-  const selected = data.selectedControls.filter(
-    (row) => row.profile_resolution_id === resolutionId,
-  );
-  const selectedIds = new Set(selected.map((row) => row.control_id));
-  if (selectedIds.size !== selected.length)
-    errors.push("The base resolution repeats a selected control.");
-  if (!selectedIds.size) errors.push("The base profile has no recorded selected controls.");
-  if (!sameSet(included, selectedIds))
-    errors.push(
-      "The recorded base selection does not match its supported OSCAL rules. Reload complete reference records or use a full resolver.",
-    );
+export type BaseInspection = {
+  kind: "reference" | "overlay";
+  resolution: WizardReferenceData["resolutions"][number] | undefined;
+  profile: WizardReferenceData["profileRevisions"][number] | undefined;
+  catalog: WizardReferenceData["catalogRevisions"][number] | undefined;
+  inputs: WizardReferenceData["resolutionInputs"][number][];
+  selected: WizardReferenceData["selectedControls"][number][];
+  /** Effective parameter settings: the chain's, nearest layer winning. */
+  settings: WizardReferenceData["profileParameterSettings"][number][];
+  /** The resolution this one layers on, when it is an overlay. */
+  base: BaseInspection | null;
+  chain: ChainHop[];
+  excludedIds: string[];
+  includedIds: string[];
+  errors: string[];
+};
+
+function inspectSettings(
+  profileId: string | undefined,
+  catalogId: string | undefined,
+  selectedIds: ReadonlySet<string>,
+  rules: WizardReferenceData["profileRules"][number][],
+  data: WizardReferenceData,
+  errors: string[],
+) {
   const settings = data.profileParameterSettings.filter(
-    (row) => row.profile_revision_id === profile?.id,
+    (row) => row.profile_revision_id === profileId,
   );
   for (const setting of settings) {
     const parameter = data.parameters.find(
-      (row) => row.id === setting.parameter_id && row.catalog_revision_id === catalog?.id,
+      (row) => row.id === setting.parameter_id && row.catalog_revision_id === catalogId,
     );
     const values = orderedValues(
       data.profileParameterValues.filter((row) => row.setting_id === setting.id),
@@ -351,17 +283,242 @@ function inspectBase(resolutionId: string, data: WizardReferenceData) {
   for (const rule of rules.filter((row) => row.kind === "set-parameter"))
     if (!settings.some((row) => row.parameter_source_id === object(rule.definition)?.["param-id"]))
       errors.push(`The parameter setting at ${rule.source_pointer} is missing normalized values.`);
-  return { resolution, profile, catalog, inputs, selected, settings, errors: [...new Set(errors)] };
+  return settings;
+}
+
+/** Validate a base resolution: a reference profile on its catalog, or an overlay layered on one. */
+export function inspectBase(
+  resolutionId: string,
+  data: WizardReferenceData,
+  depth = 0,
+): BaseInspection {
+  const errors: string[] = [];
+  const resolution = data.resolutions.find((row) => row.id === resolutionId);
+  const profile = data.profileRevisions.find((row) => row.id === resolution?.profile_revision_id);
+  if (!resolution || !profile) errors.push("Choose an available profile resolution.");
+  if (resolution && resolution.state !== "published")
+    errors.push("The base resolution must be published.");
+  if (profile && profile.state !== "published")
+    errors.push("The base profile revision must be published.");
+  const chain = resolutionChain(resolutionId, {
+    resolutions: data.resolutions,
+    profiles: data.profileRevisions,
+    profileRecords: data.profiles,
+    imports: data.profileImports,
+    catalogs: data.catalogRevisions,
+  });
+  errors.push(...chain.errors);
+  const imports = data.profileImports
+    .filter((row) => row.profile_revision_id === profile?.id)
+    .sort((a, b) => a.ordinal - b.ordinal);
+  const rules = data.profileRules.filter((row) => row.profile_revision_id === profile?.id);
+  const merges = rules.filter((row) => row.kind === "merge");
+  if (
+    merges.length !== 1 ||
+    !merges.every((rule) => {
+      const definition = object(rule.definition);
+      return definition && definition["as-is"] === true && Object.keys(definition).length === 1;
+    })
+  )
+    errors.push(
+      "Only an explicit as-is merge is supported; flat or custom rearrangement requires a full OSCAL resolver.",
+    );
+  const inputs = data.resolutionInputs.filter((row) => row.profile_resolution_id === resolutionId);
+  const selected = data.selectedControls.filter(
+    (row) => row.profile_resolution_id === resolutionId,
+  );
+  const selectedIds = new Set(selected.map((row) => row.control_id));
+  if (selectedIds.size !== selected.length)
+    errors.push("The base resolution repeats a selected control.");
+  if (!selectedIds.size) errors.push("The base profile has no recorded selected controls.");
+  const result: BaseInspection = {
+    kind: chain.kind,
+    resolution,
+    profile,
+    catalog: undefined,
+    inputs,
+    selected,
+    settings: [],
+    base: null,
+    chain: chain.hops,
+    excludedIds: [],
+    includedIds: [],
+    errors,
+  };
+
+  if (chain.kind === "overlay" && resolution?.base_profile_resolution_id) {
+    if (depth > 3) {
+      errors.push("Profile layering deeper than three levels is not supported.");
+      return { ...result, errors: [...new Set(errors)] };
+    }
+    const base = inspectBase(resolution.base_profile_resolution_id, data, depth + 1);
+    result.base = base;
+    result.catalog = base.catalog;
+    for (const message of base.errors) errors.push(`Base profile: ${message}`);
+    const controls = data.controls.filter((row) => row.catalog_revision_id === base.catalog?.id);
+    const bySource = new Map(controls.map((row) => [row.source_id, row]));
+    const baseIds = new Set(base.selected.map((row) => row.control_id));
+    const expected = new Set(baseIds);
+    for (const rule of rules) {
+      const definition = object(rule.definition);
+      if (rule.kind === "exclude" || rule.kind === "include") {
+        const ids = withIds(definition);
+        const importRow = imports.find((row) => row.id === rule.profile_import_id);
+        const expectedOrdinal = rule.kind === "exclude" ? 0 : 1;
+        if (!ids || importRow?.ordinal !== expectedOrdinal) {
+          errors.push(
+            `Unsupported selection rule at ${rule.source_pointer}. An overlay excludes from its base and includes from the catalog by explicit IDs.`,
+          );
+          continue;
+        }
+        for (const sourceId of ids) {
+          const control = bySource.get(sourceId);
+          if (!control) errors.push(`The overlay references unavailable control ${sourceId}.`);
+          else if (rule.kind === "exclude") {
+            if (!baseIds.has(control.id))
+              errors.push(`${control.code} is excluded but the base profile does not select it.`);
+            expected.delete(control.id);
+            result.excludedIds.push(control.id);
+          } else {
+            if (baseIds.has(control.id))
+              errors.push(`${control.code} is included but the base profile already selects it.`);
+            expected.add(control.id);
+            result.includedIds.push(control.id);
+          }
+        }
+      } else if (rule.kind === "set-parameter") {
+        if (
+          !definition ||
+          typeof definition["param-id"] !== "string" ||
+          !Array.isArray(definition["values"]) ||
+          !definition["values"].length ||
+          !definition["values"].every((value) => typeof value === "string" && value.trim()) ||
+          Object.keys(definition).some((key) => !["param-id", "values"].includes(key))
+        )
+          errors.push(
+            `Unsupported parameter modification at ${rule.source_pointer}. Value assignments only.`,
+          );
+      } else if (rule.kind !== "merge")
+        errors.push(
+          `Unsupported ${rule.kind} rule at ${rule.source_pointer}. Control amendments require a full OSCAL resolver.`,
+        );
+    }
+    if (!sameSet(expected, selectedIds))
+      errors.push(
+        "The recorded overlay selection does not match its base, exclusions and inclusions. Reload complete reference records or use a full resolver.",
+      );
+    for (const id of [
+      profile?.document_revision_id,
+      base.profile?.document_revision_id,
+      base.catalog?.document_revision_id,
+    ])
+      if (id && !inputs.some((row) => row.document_revision_id === id))
+        errors.push("The overlay resolution does not pin its own, base and catalog documents.");
+    const own = inspectSettings(profile?.id, base.catalog?.id, selectedIds, rules, data, errors);
+    const overridden = new Set(own.map((row) => row.parameter_id));
+    result.settings = [...base.settings.filter((row) => !overridden.has(row.parameter_id)), ...own];
+    return { ...result, errors: [...new Set(errors)] };
+  }
+
+  const imported = imports[0];
+  const catalog = data.catalogRevisions.find((row) => row.id === imported?.catalog_revision_id);
+  result.catalog = catalog;
+  if (
+    imports.length !== 1 ||
+    !imported?.catalog_revision_id ||
+    imported.imported_profile_revision_id
+  )
+    errors.push(
+      "A reference profile imports one pinned catalog directly. Profile imports and multiple catalogs require a full OSCAL resolver.",
+    );
+  if (!catalog || catalog.state !== "published")
+    errors.push("The imported catalog revision must be available and published.");
+  for (const id of [profile?.document_revision_id, catalog?.document_revision_id])
+    if (id && !inputs.some((row) => row.document_revision_id === id))
+      errors.push(
+        "The base resolution does not pin both its profile and catalog document revisions.",
+      );
+  const controls = data.controls.filter((row) => row.catalog_revision_id === catalog?.id);
+  const bySource = new Map(controls.map((row) => [row.source_id, row]));
+  const included = new Set<string>(imported?.include_all ? controls.map((row) => row.id) : []);
+  const excluded = new Set<string>();
+  if (imported?.include_all && rules.some((row) => row.kind === "include"))
+    errors.push("A profile import cannot combine include-all and include-controls.");
+  for (const rule of rules) {
+    const definition = object(rule.definition);
+    if (rule.kind === "include" || rule.kind === "exclude") {
+      const ids = withIds(definition);
+      if (!ids || rule.profile_import_id !== imported?.id) {
+        errors.push(
+          `Unsupported selection rule at ${rule.source_pointer}. Only explicit IDs without child expansion are supported.`,
+        );
+        continue;
+      }
+      for (const sourceId of ids) {
+        const control = bySource.get(sourceId);
+        if (!control) errors.push(`The base rule references unavailable control ${sourceId}.`);
+        else (rule.kind === "include" ? included : excluded).add(control.id);
+      }
+    } else if (rule.kind === "set-parameter") {
+      if (
+        !definition ||
+        typeof definition["param-id"] !== "string" ||
+        !Array.isArray(definition["values"]) ||
+        !definition["values"].length ||
+        !definition["values"].every((value) => typeof value === "string" && value.trim()) ||
+        Object.keys(definition).some((key) => !["param-id", "values"].includes(key))
+      )
+        errors.push(
+          `Unsupported parameter modification at ${rule.source_pointer}. This wizard supports value assignments only.`,
+        );
+    } else if (rule.kind !== "merge")
+      errors.push(
+        `Unsupported ${rule.kind} rule at ${rule.source_pointer}. Control amendments require a full OSCAL resolver.`,
+      );
+  }
+  for (const id of excluded) {
+    if (!included.has(id))
+      errors.push("An excluded base control was not explicitly included by its import.");
+    included.delete(id);
+  }
+  if (!sameSet(included, selectedIds))
+    errors.push(
+      "The recorded base selection does not match its supported OSCAL rules. Reload complete reference records or use a full resolver.",
+    );
+  result.settings = inspectSettings(profile?.id, catalog?.id, selectedIds, rules, data, errors);
+  return { ...result, errors: [...new Set(errors)] };
+}
+
+/** The short name shown for a profile revision: its profile record's title, else the document's own. */
+export function profileDisplayTitle(
+  revision: { profile_id: string; title: string } | undefined | null,
+  data: Pick<WizardReferenceData, "profiles">,
+): string | null {
+  if (!revision) return null;
+  return data.profiles.find((row) => row.id === revision.profile_id)?.title ?? revision.title;
 }
 
 export function catalogProfileOptions(data: WizardReferenceData): {
   catalogs: WizardCatalogOption[];
   profiles: WizardProfileOption[];
 } {
+  const controlCounts = new Map<string, number>();
+  for (const control of data.controls)
+    controlCounts.set(
+      control.catalog_revision_id,
+      (controlCounts.get(control.catalog_revision_id) ?? 0) + 1,
+    );
   return {
     catalogs: data.catalogRevisions
       .filter((row) => row.state === "published")
-      .map((row) => ({ id: row.id, title: row.title, version: row.version })),
+      .map((row) => ({
+        id: row.id,
+        catalogId: row.catalog_id,
+        title: data.catalogs.find((catalog) => catalog.id === row.catalog_id)?.title ?? row.title,
+        documentTitle: row.title,
+        version: row.version,
+        controlCount: controlCounts.get(row.id) ?? 0,
+      })),
     profiles: data.resolutions
       .filter((row) => row.state === "published")
       .map((resolution) => {
@@ -369,14 +526,88 @@ export function catalogProfileOptions(data: WizardReferenceData): {
         return {
           id: resolution.id,
           profileRevisionId: resolution.profile_revision_id,
+          profileId: base.profile?.profile_id ?? null,
           catalogRevisionId: base.catalog?.id ?? null,
-          title: base.profile?.title ?? "Unavailable profile revision",
+          title: profileDisplayTitle(base.profile, data) ?? "Unavailable profile revision",
+          documentTitle: base.profile?.title ?? "",
           version: base.profile?.version ?? "",
           controlCount: base.selected.length,
+          catalogControlCount: base.catalog ? (controlCounts.get(base.catalog.id) ?? 0) : 0,
           supported: base.errors.length === 0,
           errors: base.errors,
+          kind: base.kind,
+          baseResolutionId: base.base?.resolution?.id ?? null,
+          baseTitle: profileDisplayTitle(base.base?.profile, data),
+          outCount: base.excludedIds.length,
+          inCount: base.includedIds.length,
+          chain: base.chain,
         };
       }),
+  };
+}
+
+/** The tailoring an overlay records, in the draft's shape, for reading it back. */
+export function overlayDecisions(
+  resolutionId: string,
+  data: WizardReferenceData,
+): {
+  baseResolutionId: string;
+  catalogRevisionId: string;
+  tailoring: { controlId: string; action: "include" | "exclude"; rationale: string }[];
+  parameters: { parameterId: string; values: string[]; rationale: string }[];
+} | null {
+  const base = inspectBase(resolutionId, data);
+  if (base.kind !== "overlay" || !base.base?.resolution || !base.catalog) return null;
+  const rules = data.profileRules.filter((row) => row.profile_revision_id === base.profile?.id);
+  const bySource = new Map(
+    data.controls
+      .filter((row) => row.catalog_revision_id === base.catalog?.id)
+      .map((row) => [row.source_id, row]),
+  );
+  const tailoring = rules
+    .filter((rule) => rule.kind === "exclude" || rule.kind === "include")
+    .flatMap((rule) =>
+      (withIds(object(rule.definition)) ?? []).flatMap((sourceId) => {
+        const control = bySource.get(sourceId);
+        return control
+          ? [
+              {
+                controlId: control.id,
+                action: rule.kind as "include" | "exclude",
+                rationale: rule.rationale ?? "",
+              },
+            ]
+          : [];
+      }),
+    );
+  const own = data.profileParameterSettings.filter(
+    (row) => row.profile_revision_id === base.profile?.id,
+  );
+  const parameters = own.flatMap((setting) =>
+    setting.parameter_id
+      ? [
+          {
+            parameterId: setting.parameter_id,
+            values: orderedValues(
+              data.profileParameterValues.filter((row) => row.setting_id === setting.id),
+            ),
+            rationale:
+              setting.rationale ??
+              rules.find(
+                (rule) =>
+                  rule.kind === "set-parameter" &&
+                  object(rule.definition)?.["param-id"] === setting.parameter_source_id,
+              )?.rationale ??
+              "",
+          },
+        ]
+      : [],
+  );
+  return {
+    baseResolutionId: base.base.resolution.id,
+    catalogRevisionId: base.catalog.id,
+    tailoring,
+    parameters,
   };
 }
 
@@ -384,7 +615,7 @@ export function previewProgramTailoring(
   input: ProgramTailoringInput,
   data: WizardReferenceData,
 ): ProgramTailoringPreview {
-  const base = inspectBase(input.profileResolutionId, data);
+  const base = inspectBase(input.baseResolutionId, data);
   const errors = [...base.errors],
     warnings: string[] = [];
   if (base.catalog?.id !== input.catalogRevisionId)
@@ -438,7 +669,7 @@ export function previewProgramTailoring(
   const selectedControls = catalogControls
     .filter((row) => selected.has(row.id))
     .sort(compareControls);
-  if (!selectedControls.length) errors.push("Select at least one control for the system.");
+  if (!selectedControls.length) errors.push("Select at least one control for the profile.");
   for (const control of selectedControls) {
     if (control.status === "withdrawn")
       warnings.push(
@@ -543,17 +774,66 @@ export function previewProgramTailoring(
       };
     });
   const baseRows = new Map(base.selected.map((row) => [row.control_id, row]));
-  const orderedIncluded = catalogControls
-    .filter((row) => baseIds.has(row.id) || added.has(row.id))
-    .sort(compareControls);
+  const orderedAdded = catalogControls.filter((row) => added.has(row.id)).sort(compareControls);
   const provenance = selectedControls.map((control): WizardSelectionProvenance => ({
     controlId: control.id,
     sourceId: control.source_id,
     origin: added.has(control.id) ? "include" : "base",
     baseSelectedControlId: baseRows.get(control.id)?.id ?? null,
     rationale: decisions.get(control.id)?.rationale.trim() ?? null,
-    sourcePointer: `/profile/imports/0/include-controls/0/with-ids/${orderedIncluded.findIndex((row) => row.id === control.id)}`,
+    sourcePointer: added.has(control.id)
+      ? `/profile/imports/1/include-controls/${orderedAdded.findIndex((row) => row.id === control.id)}/with-ids/0`
+      : "/profile/imports/0/include-all",
   }));
+  // By family: the catalog's top-level groups, in catalog order.
+  const groups = data.catalogGroups.filter(
+    (row) => row.catalog_revision_id === input.catalogRevisionId,
+  );
+  const groupById = new Map(groups.map((row) => [row.id, row]));
+  const rootOf = (groupId: string | null): string | null => {
+    let cursor = groupId;
+    const seen = new Set<string>();
+    while (cursor && !seen.has(cursor)) {
+      seen.add(cursor);
+      const group = groupById.get(cursor);
+      if (!group?.parent_group_id) return cursor;
+      cursor = group.parent_group_id;
+    }
+    return cursor;
+  };
+  const familyMap = new Map<string | null, WizardFamilyPreview>();
+  const family = (control: WizardControl) => {
+    const root = rootOf(control.group_id);
+    let entry = familyMap.get(root);
+    if (!entry) {
+      const group = root ? groupById.get(root) : undefined;
+      entry = {
+        groupId: root,
+        sourceId: group?.source_id ?? "—",
+        title: group?.title ?? "Ungrouped",
+        base: 0,
+        out: 0,
+        in: 0,
+        effective: 0,
+      };
+      familyMap.set(root, entry);
+    }
+    return entry;
+  };
+  for (const control of catalogControls) {
+    const inBase = baseIds.has(control.id);
+    const isOut = excluded.has(control.id);
+    const isIn = added.has(control.id);
+    if (!inBase && !isIn) continue;
+    const entry = family(control);
+    if (inBase) entry.base += 1;
+    if (isOut) entry.out += 1;
+    if (isIn) entry.in += 1;
+    if (selected.has(control.id)) entry.effective += 1;
+  }
+  const families = [...familyMap.values()].sort((a, b) =>
+    a.sourceId.localeCompare(b.sourceId, "en", { numeric: true }),
+  );
   return {
     valid: errors.length === 0,
     errors: [...new Set(errors)],
@@ -571,168 +851,12 @@ export function previewProgramTailoring(
       unsetParameters: parameters.filter((row) => !row.values.length).length,
     },
     parameters,
+    families,
     provenance,
     inputDocumentRevisionIds: [
       ...new Set(
         base.inputs.sort((a, b) => a.ordinal - b.ordinal).map((row) => row.document_revision_id),
       ),
     ],
-  };
-}
-
-/** Author a profile document, not a purported fully resolved OSCAL catalog. */
-export function authorProgramProfile(
-  input: ProgramTailoringInput,
-  data: WizardReferenceData,
-  authoring: WizardProfileAuthoring,
-): AuthoredWizardProfile {
-  const preview = previewProgramTailoring(input, data);
-  if (!preview.valid) throw new Error(preview.errors.join(" "));
-  const base = inspectBase(input.profileResolutionId, data);
-  if (
-    authoring.catalog.documentRevisionId !== base.catalog?.document_revision_id ||
-    authoring.baseProfile.documentRevisionId !== base.profile?.document_revision_id
-  )
-    throw new Error(
-      "The authoring document pins do not match the selected catalog and base profile revisions.",
-    );
-  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (
-    !uuid.test(authoring.uuid) ||
-    !authoring.title.trim() ||
-    !authoring.version.trim() ||
-    !/^\d+\.\d+\.\d+$/.test(authoring.oscalVersion) ||
-    !Number.isFinite(Date.parse(authoring.lastModified)) ||
-    !/T.*(?:Z|[+-]\d\d:\d\d)$/.test(authoring.lastModified)
-  )
-    throw new Error(
-      "Profile metadata requires a UUID, title, version, OSCAL version, and timestamp with timezone.",
-    );
-  for (const pin of [authoring.catalog, authoring.baseProfile]) {
-    if (
-      !uuid.test(pin.resourceUuid) ||
-      !/^[a-f0-9]{64}$/.test(pin.sha256) ||
-      !/^[a-z][a-z0-9+.-]*:/i.test(pin.href)
-    )
-      throw new Error(
-        "Each source document needs a UUID resource, immutable URI, and SHA-256 pin.",
-      );
-  }
-  if (authoring.catalog.resourceUuid === authoring.baseProfile.resourceUuid)
-    throw new Error("Source resource UUIDs must be distinct.");
-  const includedIds = new Set([...preview.baseControlIds, ...preview.addedControlIds]);
-  const included = data.controls
-    .filter((row) => row.catalog_revision_id === input.catalogRevisionId && includedIds.has(row.id))
-    .sort(compareControls);
-  const include = { "with-child-controls": "no", "with-ids": included.map((row) => row.source_id) };
-  const excluded = input.tailoring.filter((row) => row.action === "exclude");
-  const excludedRules = excluded.map((decision) => ({
-    "with-child-controls": "no",
-    "with-ids": [data.controls.find((row) => row.id === decision.controlId)!.source_id],
-  }));
-  const parameterSettings = preview.parameters
-    .filter((row) => row.values.length && row.origin !== "catalog")
-    .map((row, index) => ({
-      parameterId: row.parameter.id,
-      sourceId: row.parameter.source_id,
-      values: row.values,
-      rationale: row.rationale,
-      sourcePointer: `/profile/modify/set-parameters/${index}`,
-    }));
-  const setParameters = parameterSettings.map((row) => ({
-    "param-id": row.sourceId,
-    values: row.values,
-  }));
-  const merge = { "as-is": true };
-  const rules: AuthoredWizardProfile["rules"] = [
-    {
-      kind: "include",
-      ordinal: 0,
-      sourcePointer: "/profile/imports/0/include-controls/0",
-      definition: include,
-      rationale: null,
-    },
-    ...excludedRules.map((definition, ordinal) => ({
-      kind: "exclude" as const,
-      ordinal,
-      sourcePointer: `/profile/imports/0/exclude-controls/${ordinal}`,
-      definition,
-      rationale: excluded[ordinal]!.rationale.trim(),
-    })),
-    {
-      kind: "merge",
-      ordinal: 0,
-      sourcePointer: "/profile/merge",
-      definition: merge,
-      rationale: null,
-    },
-    ...setParameters.map((definition, ordinal) => ({
-      kind: "set-parameter" as const,
-      ordinal,
-      sourcePointer: `/profile/modify/set-parameters/${ordinal}`,
-      definition,
-      rationale: parameterSettings[ordinal]!.rationale,
-    })),
-  ];
-  const ns = "urn:program-assurance:profile-authoring";
-  const document: Json = {
-    profile: {
-      uuid: authoring.uuid,
-      metadata: {
-        title: authoring.title.trim(),
-        "last-modified": authoring.lastModified,
-        version: authoring.version.trim(),
-        "oscal-version": authoring.oscalVersion,
-        links: [{ href: `#${authoring.baseProfile.resourceUuid}`, rel: "derived-from" }],
-        props: [
-          { name: "base-resolution-id", ns, value: input.profileResolutionId },
-          ...input.tailoring.map((decision) => ({
-            name: `control-${decision.action}-rationale`,
-            ns,
-            class: data.controls.find((row) => row.id === decision.controlId)!.source_id,
-            value: decision.rationale.trim(),
-          })),
-          ...parameterSettings
-            .filter((setting) => setting.rationale)
-            .map((setting) => ({
-              name: "parameter-rationale",
-              ns,
-              class: setting.sourceId,
-              value: setting.rationale!,
-            })),
-        ],
-      },
-      imports: [
-        {
-          href: `#${authoring.catalog.resourceUuid}`,
-          "include-controls": [include],
-          ...(excludedRules.length ? { "exclude-controls": excludedRules } : {}),
-        },
-      ],
-      merge,
-      ...(setParameters.length ? { modify: { "set-parameters": setParameters } } : {}),
-      "back-matter": {
-        resources: [authoring.catalog, authoring.baseProfile].map((pin, index) => ({
-          uuid: pin.resourceUuid,
-          title: index === 0 ? base.catalog!.title : base.profile!.title,
-          props: [{ name: "document-revision-id", ns, value: pin.documentRevisionId }],
-          rlinks: [
-            {
-              href: pin.href,
-              "media-type":
-                index === 0 ? "application/oscal.catalog+json" : "application/oscal.profile+json",
-              hashes: [{ algorithm: "SHA-256", value: pin.sha256 }],
-            },
-          ],
-        })),
-      },
-    },
-  };
-  return {
-    document,
-    rules,
-    parameterSettings,
-    provenance: preview.provenance,
-    inputDocumentRevisionIds: preview.inputDocumentRevisionIds,
   };
 }

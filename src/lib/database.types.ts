@@ -2001,6 +2001,7 @@ export type Database = {
           implementation_statement_id: string | null;
           implementation_status: string;
           implemented_requirement_id: string;
+          library_implementation_id: string | null;
           responsible_party_id: string | null;
           revision: number;
           ssp_revision_id: string;
@@ -2017,6 +2018,7 @@ export type Database = {
           implementation_statement_id?: string | null;
           implementation_status?: string;
           implemented_requirement_id: string;
+          library_implementation_id?: string | null;
           responsible_party_id?: string | null;
           revision?: number;
           ssp_revision_id: string;
@@ -2033,6 +2035,7 @@ export type Database = {
           implementation_statement_id?: string | null;
           implementation_status?: string;
           implemented_requirement_id?: string;
+          library_implementation_id?: string | null;
           responsible_party_id?: string | null;
           revision?: number;
           ssp_revision_id?: string;
@@ -2042,6 +2045,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "component_contribution_library";
+            columns: ["tenant_id", "library_implementation_id"];
+            isOneToOne: false;
+            referencedRelation: "defined_component_implementations";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "component_contributions_tenant_id_fkey";
             columns: ["tenant_id"];
@@ -2089,13 +2099,17 @@ export type Database = {
       component_definition_revisions: {
         Row: {
           component_definition_id: string;
+          conditions: string | null;
+          consumer_responsibilities: string | null;
           created_at: string;
           created_by: string | null;
+          effective_from: string | null;
           id: string;
           oscal_document_revision_id: string | null;
           oscal_uuid: string | null;
           published_at: string | null;
           remarks: string | null;
+          review_due: string | null;
           revision: number;
           state: string;
           tenant_id: string;
@@ -2105,13 +2119,17 @@ export type Database = {
         };
         Insert: {
           component_definition_id: string;
+          conditions?: string | null;
+          consumer_responsibilities?: string | null;
           created_at?: string;
           created_by?: string | null;
+          effective_from?: string | null;
           id?: string;
           oscal_document_revision_id?: string | null;
           oscal_uuid?: string | null;
           published_at?: string | null;
           remarks?: string | null;
+          review_due?: string | null;
           revision?: number;
           state?: string;
           tenant_id: string;
@@ -2121,13 +2139,17 @@ export type Database = {
         };
         Update: {
           component_definition_id?: string;
+          conditions?: string | null;
+          consumer_responsibilities?: string | null;
           created_at?: string;
           created_by?: string | null;
+          effective_from?: string | null;
           id?: string;
           oscal_document_revision_id?: string | null;
           oscal_uuid?: string | null;
           published_at?: string | null;
           remarks?: string | null;
+          review_due?: string | null;
           revision?: number;
           state?: string;
           tenant_id?: string;
@@ -2161,6 +2183,7 @@ export type Database = {
       };
       component_definitions: {
         Row: {
+          category: string;
           code: string;
           created_at: string;
           created_by: string | null;
@@ -2173,6 +2196,7 @@ export type Database = {
           updated_by: string | null;
         };
         Insert: {
+          category?: string;
           code: string;
           created_at?: string;
           created_by?: string | null;
@@ -2185,6 +2209,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          category?: string;
           code?: string;
           created_at?: string;
           created_by?: string | null;
@@ -2928,17 +2953,92 @@ export type Database = {
           },
         ];
       };
+      defined_component_evidence: {
+        Row: {
+          claim: string | null;
+          component_definition_revision_id: string;
+          created_at: string;
+          created_by: string | null;
+          evidence_version_id: string;
+          id: string;
+          implementation_id: string;
+          revision: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          claim?: string | null;
+          component_definition_revision_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          evidence_version_id: string;
+          id?: string;
+          implementation_id: string;
+          revision?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          claim?: string | null;
+          component_definition_revision_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          evidence_version_id?: string;
+          id?: string;
+          implementation_id?: string;
+          revision?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "defined_component_evidence_tenant_id_component_definition__fkey";
+            columns: ["tenant_id", "component_definition_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "component_definition_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "defined_component_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_versions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "defined_component_evidence_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "defined_component_evidence_tenant_id_implementation_id_fkey";
+            columns: ["tenant_id", "implementation_id"];
+            isOneToOne: false;
+            referencedRelation: "defined_component_implementations";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       defined_component_implementations: {
         Row: {
           component_definition_revision_id: string;
-          control_id: string;
+          consumer_responsibility: string | null;
+          control_id: string | null;
           control_part_id: string | null;
+          coverage: string;
+          coverage_rationale: string | null;
           created_at: string;
           created_by: string | null;
           defined_component_id: string;
           description: string;
           id: string;
           implementation_status: string;
+          requirement_definition_revision_id: string | null;
           revision: number;
           tenant_id: string;
           updated_at: string;
@@ -2946,14 +3046,18 @@ export type Database = {
         };
         Insert: {
           component_definition_revision_id: string;
-          control_id: string;
+          consumer_responsibility?: string | null;
+          control_id?: string | null;
           control_part_id?: string | null;
+          coverage?: string;
+          coverage_rationale?: string | null;
           created_at?: string;
           created_by?: string | null;
           defined_component_id: string;
           description: string;
           id?: string;
           implementation_status: string;
+          requirement_definition_revision_id?: string | null;
           revision?: number;
           tenant_id: string;
           updated_at?: string;
@@ -2961,14 +3065,18 @@ export type Database = {
         };
         Update: {
           component_definition_revision_id?: string;
-          control_id?: string;
+          consumer_responsibility?: string | null;
+          control_id?: string | null;
           control_part_id?: string | null;
+          coverage?: string;
+          coverage_rationale?: string | null;
           created_at?: string;
           created_by?: string | null;
           defined_component_id?: string;
           description?: string;
           id?: string;
           implementation_status?: string;
+          requirement_definition_revision_id?: string | null;
           revision?: number;
           tenant_id?: string;
           updated_at?: string;
@@ -2981,6 +3089,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "defined_components";
             referencedColumns: ["tenant_id", "component_definition_revision_id", "id"];
+          },
+          {
+            foreignKeyName: "defined_component_implementation_requirement";
+            columns: ["tenant_id", "requirement_definition_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_definition_revisions";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "defined_component_implementations_control_id_fkey";
@@ -3234,6 +3349,7 @@ export type Database = {
           code: string;
           created_at: string;
           created_by: string | null;
+          definition_revision_id: string | null;
           id: string;
           program_id: string;
           revision: number;
@@ -3245,6 +3361,7 @@ export type Database = {
           code: string;
           created_at?: string;
           created_by?: string | null;
+          definition_revision_id?: string | null;
           id?: string;
           program_id: string;
           revision?: number;
@@ -3256,6 +3373,7 @@ export type Database = {
           code?: string;
           created_at?: string;
           created_by?: string | null;
+          definition_revision_id?: string | null;
           id?: string;
           program_id?: string;
           revision?: number;
@@ -3264,6 +3382,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "engineering_requirement_definition";
+            columns: ["tenant_id", "definition_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_definition_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "engineering_requirements_tenant_id_fkey";
             columns: ["tenant_id"];
@@ -3478,6 +3603,140 @@ export type Database = {
             columns: ["tenant_id", "reviewer_party_id"];
             isOneToOne: false;
             referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      evidence_uses: {
+        Row: {
+          assignment_id: string | null;
+          claim: string | null;
+          component_contribution_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision: string;
+          evidence_version_id: string;
+          id: string;
+          program_id: string;
+          rationale: string | null;
+          requirement_revision_id: string | null;
+          revision: number;
+          system_id: string | null;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          assignment_id?: string | null;
+          claim?: string | null;
+          component_contribution_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision?: string;
+          evidence_version_id: string;
+          id?: string;
+          program_id: string;
+          rationale?: string | null;
+          requirement_revision_id?: string | null;
+          revision?: number;
+          system_id?: string | null;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          assignment_id?: string | null;
+          claim?: string | null;
+          component_contribution_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision?: string;
+          evidence_version_id?: string;
+          id?: string;
+          program_id?: string;
+          rationale?: string | null;
+          requirement_revision_id?: string | null;
+          revision?: number;
+          system_id?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "evidence_uses_tenant_id_assignment_id_fkey";
+            columns: ["tenant_id", "assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "library_assignments";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_component_contribution_id_fkey";
+            columns: ["tenant_id", "component_contribution_id"];
+            isOneToOne: false;
+            referencedRelation: "component_contributions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_versions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_requirement_revision_id_fkey";
+            columns: ["tenant_id", "requirement_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "composition_nodes";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "system_id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "systems";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
@@ -4786,6 +5045,323 @@ export type Database = {
             columns: ["tenant_id", "poam_item_id"];
             isOneToOne: false;
             referencedRelation: "poam_items";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      library_apply_requests: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          program_id: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          program_id: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          payload_sha256?: string;
+          program_id?: string;
+          result?: Json;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "library_apply_requests_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "library_apply_requests_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      library_assignment_targets: {
+        Row: {
+          assignment_id: string;
+          component_contribution_id: string | null;
+          control_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          implementation_id: string | null;
+          note: string | null;
+          requirement_revision_id: string | null;
+          revision: number;
+          state: string;
+          system_component_id: string | null;
+          system_id: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          assignment_id: string;
+          component_contribution_id?: string | null;
+          control_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          implementation_id?: string | null;
+          note?: string | null;
+          requirement_revision_id?: string | null;
+          revision?: number;
+          state: string;
+          system_component_id?: string | null;
+          system_id: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          assignment_id?: string;
+          component_contribution_id?: string | null;
+          control_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          implementation_id?: string | null;
+          note?: string | null;
+          requirement_revision_id?: string | null;
+          revision?: number;
+          state?: string;
+          system_component_id?: string | null;
+          system_id?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "library_assignment_targets_control_id_fkey";
+            columns: ["control_id"];
+            isOneToOne: false;
+            referencedRelation: "controls";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_assignment_id_fkey";
+            columns: ["tenant_id", "assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "library_assignments";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_component_contributio_fkey";
+            columns: ["tenant_id", "component_contribution_id"];
+            isOneToOne: false;
+            referencedRelation: "component_contributions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_implementation_id_fkey";
+            columns: ["tenant_id", "implementation_id"];
+            isOneToOne: false;
+            referencedRelation: "defined_component_implementations";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_requirement_revision__fkey";
+            columns: ["tenant_id", "requirement_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_system_component_id_fkey";
+            columns: ["tenant_id", "system_component_id"];
+            isOneToOne: false;
+            referencedRelation: "system_component_element_links";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_system_component_id_fkey";
+            columns: ["tenant_id", "system_component_id"];
+            isOneToOne: false;
+            referencedRelation: "system_components";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "composition_nodes";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "system_id"];
+          },
+          {
+            foreignKeyName: "library_assignment_targets_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "systems";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      library_assignments: {
+        Row: {
+          accepted_at: string;
+          accepted_by: string | null;
+          control_ids: string[] | null;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          include_descendants: boolean;
+          program_id: string;
+          rationale: string | null;
+          request_id: string | null;
+          requirement_definition_revision_id: string | null;
+          revision: number;
+          source_revision_id: string | null;
+          state: string;
+          superseded_by_id: string | null;
+          system_id: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          accepted_at?: string;
+          accepted_by?: string | null;
+          control_ids?: string[] | null;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          include_descendants?: boolean;
+          program_id: string;
+          rationale?: string | null;
+          request_id?: string | null;
+          requirement_definition_revision_id?: string | null;
+          revision?: number;
+          source_revision_id?: string | null;
+          state?: string;
+          superseded_by_id?: string | null;
+          system_id: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          accepted_at?: string;
+          accepted_by?: string | null;
+          control_ids?: string[] | null;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          include_descendants?: boolean;
+          program_id?: string;
+          rationale?: string | null;
+          request_id?: string | null;
+          requirement_definition_revision_id?: string | null;
+          revision?: number;
+          source_revision_id?: string | null;
+          state?: string;
+          superseded_by_id?: string | null;
+          system_id?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "library_assignments_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "library_assignments_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignments_tenant_id_requirement_definition_revis_fkey";
+            columns: ["tenant_id", "requirement_definition_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_definition_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignments_tenant_id_source_revision_id_fkey";
+            columns: ["tenant_id", "source_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "component_definition_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignments_tenant_id_superseded_by_id_fkey";
+            columns: ["tenant_id", "superseded_by_id"];
+            isOneToOne: false;
+            referencedRelation: "library_assignments";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignments_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "composition_nodes";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignments_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignments_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "system_id"];
+          },
+          {
+            foreignKeyName: "library_assignments_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "systems";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
@@ -6984,6 +7560,330 @@ export type Database = {
           },
         ];
       };
+      product_configuration_elements: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          product_configuration_id: string;
+          product_element_id: string;
+          product_revision_id: string;
+          revision: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          product_configuration_id: string;
+          product_element_id: string;
+          product_revision_id: string;
+          revision?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          product_configuration_id?: string;
+          product_element_id?: string;
+          product_revision_id?: string;
+          revision?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_configuration_elemen_tenant_id_product_revision_i_fkey1";
+            columns: ["tenant_id", "product_revision_id", "product_element_id"];
+            isOneToOne: false;
+            referencedRelation: "product_elements";
+            referencedColumns: ["tenant_id", "product_revision_id", "id"];
+          },
+          {
+            foreignKeyName: "product_configuration_element_tenant_id_product_configurat_fkey";
+            columns: ["tenant_id", "product_configuration_id"];
+            isOneToOne: false;
+            referencedRelation: "product_configurations";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "product_configuration_element_tenant_id_product_revision_i_fkey";
+            columns: ["tenant_id", "product_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "product_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "product_configuration_elements_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      product_configurations: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          name: string;
+          product_id: string;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          name: string;
+          product_id: string;
+          revision?: number;
+          state?: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          product_id?: string;
+          revision?: number;
+          state?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_configurations_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_configurations_tenant_id_product_id_fkey";
+            columns: ["tenant_id", "product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      product_elements: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          defined_component_id: string | null;
+          description: string | null;
+          element_type: string;
+          id: string;
+          name: string;
+          parent_element_id: string | null;
+          position: number;
+          product_revision_id: string;
+          revision: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          defined_component_id?: string | null;
+          description?: string | null;
+          element_type: string;
+          id?: string;
+          name: string;
+          parent_element_id?: string | null;
+          position?: number;
+          product_revision_id: string;
+          revision?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          defined_component_id?: string | null;
+          description?: string | null;
+          element_type?: string;
+          id?: string;
+          name?: string;
+          parent_element_id?: string | null;
+          position?: number;
+          product_revision_id?: string;
+          revision?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_elements_tenant_id_defined_component_id_fkey";
+            columns: ["tenant_id", "defined_component_id"];
+            isOneToOne: false;
+            referencedRelation: "defined_components";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "product_elements_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_elements_tenant_id_product_revision_id_fkey";
+            columns: ["tenant_id", "product_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "product_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "product_elements_tenant_id_product_revision_id_parent_elem_fkey";
+            columns: ["tenant_id", "product_revision_id", "parent_element_id"];
+            isOneToOne: false;
+            referencedRelation: "product_elements";
+            referencedColumns: ["tenant_id", "product_revision_id", "id"];
+          },
+        ];
+      };
+      product_revisions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          effective_from: string | null;
+          id: string;
+          product_id: string;
+          published_at: string | null;
+          remarks: string | null;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          version_number: number;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          effective_from?: string | null;
+          id?: string;
+          product_id: string;
+          published_at?: string | null;
+          remarks?: string | null;
+          revision?: number;
+          state?: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number: number;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          effective_from?: string | null;
+          id?: string;
+          product_id?: string;
+          published_at?: string | null;
+          remarks?: string | null;
+          revision?: number;
+          state?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_revisions_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_revisions_tenant_id_product_id_fkey";
+            columns: ["tenant_id", "product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      products: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          name: string;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          name: string;
+          revision?: number;
+          state?: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          revision?: number;
+          state?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "products_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profile_imports: {
         Row: {
           catalog_revision_id: string | null;
@@ -7258,6 +8158,7 @@ export type Database = {
       };
       profile_resolutions: {
         Row: {
+          base_profile_resolution_id: string | null;
           created_at: string;
           created_by: string | null;
           id: string;
@@ -7274,6 +8175,7 @@ export type Database = {
           updated_by: string | null;
         };
         Insert: {
+          base_profile_resolution_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -7290,6 +8192,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          base_profile_resolution_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -7306,6 +8209,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "profile_resolutions_base_profile_resolution_id_fkey";
+            columns: ["base_profile_resolution_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_resolutions";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "profile_resolutions_profile_revision_id_fkey";
             columns: ["profile_revision_id"];
@@ -8292,6 +9202,122 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "requirement_revisions";
             referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      requirement_definition_revisions: {
+        Row: {
+          acceptance_criteria: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          published_at: string | null;
+          rationale: string | null;
+          requirement_definition_id: string;
+          requirement_type: string;
+          revision: number;
+          state: string;
+          statement: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          version_number: number;
+        };
+        Insert: {
+          acceptance_criteria: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          published_at?: string | null;
+          rationale?: string | null;
+          requirement_definition_id: string;
+          requirement_type: string;
+          revision?: number;
+          state?: string;
+          statement: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number: number;
+        };
+        Update: {
+          acceptance_criteria?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          published_at?: string | null;
+          rationale?: string | null;
+          requirement_definition_id?: string;
+          requirement_type?: string;
+          revision?: number;
+          state?: string;
+          statement?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "requirement_definition_revisi_tenant_id_requirement_defini_fkey";
+            columns: ["tenant_id", "requirement_definition_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_definitions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_definition_revisions_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      requirement_definitions: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          revision: number;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          revision?: number;
+          tenant_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          revision?: number;
+          tenant_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "requirement_definitions_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -10034,6 +11060,10 @@ export type Database = {
       };
       system_components: {
         Row: {
+          applied_at: string | null;
+          applied_by: string | null;
+          applied_rationale: string | null;
+          assignment_id: string | null;
           code: string;
           component_type: string;
           created_at: string;
@@ -10052,6 +11082,10 @@ export type Database = {
           version: string | null;
         };
         Insert: {
+          applied_at?: string | null;
+          applied_by?: string | null;
+          applied_rationale?: string | null;
+          assignment_id?: string | null;
           code: string;
           component_type: string;
           created_at?: string;
@@ -10070,6 +11104,10 @@ export type Database = {
           version?: string | null;
         };
         Update: {
+          applied_at?: string | null;
+          applied_by?: string | null;
+          applied_rationale?: string | null;
+          assignment_id?: string | null;
           code?: string;
           component_type?: string;
           created_at?: string;
@@ -10088,6 +11126,13 @@ export type Database = {
           version?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "system_component_assignment";
+            columns: ["tenant_id", "assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "library_assignments";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "system_components_element_context";
             columns: ["tenant_id", "system_id", "system_element_id"];
@@ -10179,6 +11224,9 @@ export type Database = {
           lifecycle_status: string | null;
           name: string;
           parent_system_id: string | null;
+          product_configuration_id: string | null;
+          product_element_id: string | null;
+          product_revision_id: string | null;
           program_id: string;
           revision: number;
           system_owner_party_id: string | null;
@@ -10205,6 +11253,9 @@ export type Database = {
           lifecycle_status?: string | null;
           name: string;
           parent_system_id?: string | null;
+          product_configuration_id?: string | null;
+          product_element_id?: string | null;
+          product_revision_id?: string | null;
           program_id: string;
           revision?: number;
           system_owner_party_id?: string | null;
@@ -10231,6 +11282,9 @@ export type Database = {
           lifecycle_status?: string | null;
           name?: string;
           parent_system_id?: string | null;
+          product_configuration_id?: string | null;
+          product_element_id?: string | null;
+          product_revision_id?: string | null;
           program_id?: string;
           revision?: number;
           system_owner_party_id?: string | null;
@@ -10260,6 +11314,27 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "systems";
             referencedColumns: ["tenant_id", "program_id", "id"];
+          },
+          {
+            foreignKeyName: "systems_product_configuration";
+            columns: ["tenant_id", "product_configuration_id"];
+            isOneToOne: false;
+            referencedRelation: "product_configurations";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "systems_product_element";
+            columns: ["tenant_id", "product_revision_id", "product_element_id"];
+            isOneToOne: false;
+            referencedRelation: "product_elements";
+            referencedColumns: ["tenant_id", "product_revision_id", "id"];
+          },
+          {
+            foreignKeyName: "systems_product_revision";
+            columns: ["tenant_id", "product_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "product_revisions";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "systems_tenant_id_fkey";
@@ -11358,6 +12433,28 @@ export type Database = {
           },
         ];
       };
+      profile_resolution_catalogs: {
+        Row: {
+          base_profile_resolution_id: string | null;
+          catalog_revision_id: string | null;
+          depth: number | null;
+          id: string | null;
+          layered: boolean | null;
+          profile_resolution_id: string | null;
+          profile_revision_id: string | null;
+          root_profile_resolution_id: string | null;
+          tenant_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profile_resolutions_base_profile_resolution_id_fkey";
+            columns: ["base_profile_resolution_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_resolutions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       system_component_element_links: {
         Row: {
           id: string | null;
@@ -11428,6 +12525,24 @@ export type Database = {
       };
     };
     Functions: {
+      add_program_system: {
+        Args: {
+          p_program_id: string;
+          p_request_id: string;
+          p_system: Json;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
+      adopt_requirement_definition: {
+        Args: {
+          p_program_id: string;
+          p_request_id: string;
+          p_selection: Json;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       adopt_system_baseline: {
         Args: {
           p_expected_revision: number;
@@ -11439,6 +12554,31 @@ export type Database = {
         Returns: Json;
       };
       app_schema: { Args: never; Returns: Json };
+      apply_library_component: {
+        Args: {
+          p_assignment_id: string;
+          p_code: string;
+          p_control_filter: string[];
+          p_defined: Database["public"]["Tables"]["defined_components"]["Row"];
+          p_excluded: Json;
+          p_name: string;
+          p_program_id: string;
+          p_rationale: string;
+          p_revision: Database["public"]["Tables"]["component_definition_revisions"]["Row"];
+          p_target: Database["public"]["Tables"]["systems"]["Row"];
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
+      apply_library_source: {
+        Args: {
+          p_program_id: string;
+          p_request_id: string;
+          p_selection: Json;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       apply_tenant_security: {
         Args: { table_name: string };
         Returns: undefined;
@@ -11463,6 +12603,19 @@ export type Database = {
         };
         Returns: undefined;
       };
+      author_tailored_profile: {
+        Args: {
+          p_base_resolution_id: string;
+          p_catalog_id: string;
+          p_code: string;
+          p_decisions: Json;
+          p_parameters: Json;
+          p_remarks: string;
+          p_tenant_id: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
       can_access_evidence_object: {
         Args: { object_name: string; writing?: boolean };
         Returns: boolean;
@@ -11471,8 +12624,22 @@ export type Database = {
       can_own_tenant: { Args: { target_tenant: string }; Returns: boolean };
       can_read_tenant: { Args: { target_tenant: string }; Returns: boolean };
       can_write_tenant: { Args: { target_tenant: string }; Returns: boolean };
+      copy_product_revision: {
+        Args: { p_source_revision_id: string; p_tenant_id: string };
+        Returns: string;
+      };
       create_evidence_with_version: {
         Args: { p_evidence: Json; p_request_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
+      create_program_system: {
+        Args: {
+          p_profile_resolution_id: string;
+          p_program_id: string;
+          p_request_id: string;
+          p_system: Json;
+          p_tenant_id: string;
+        };
         Returns: Json;
       };
       create_program_wizard: {
@@ -11481,6 +12648,16 @@ export type Database = {
       };
       create_task_with_assignment: {
         Args: { p_request_id: string; p_task: Json; p_tenant_id: string };
+        Returns: Json;
+      };
+      decide_evidence_use: {
+        Args: {
+          p_decision: string;
+          p_expected_revision: number;
+          p_rationale: string;
+          p_tenant_id: string;
+          p_use_id: string;
+        };
         Returns: Json;
       };
       edit_requirement: {
@@ -11493,6 +12670,10 @@ export type Database = {
           p_tenant_id: string;
         };
         Returns: Json;
+      };
+      element_type_for_component: {
+        Args: { component_type: string };
+        Returns: string;
       };
       ensure_personal_tenant: { Args: never; Returns: string };
       is_requirement_control_statement: {
@@ -11508,7 +12689,34 @@ export type Database = {
         };
         Returns: Json;
       };
+      product_component_definition: {
+        Args: { p_revision_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
+      product_export_control_implementations: {
+        Args: {
+          p_defined: Database["public"]["Tables"]["defined_components"]["Row"];
+          p_definition_label: string;
+          p_element_id: string;
+          p_element_name: string;
+        };
+        Returns: Json;
+      };
+      product_export_prop: {
+        Args: { p_name: string; p_value: string };
+        Returns: Json;
+      };
+      product_export_uuid: { Args: { seed: string }; Returns: string };
       reference_owner: { Args: { table_name: string }; Returns: string[] };
+      resolve_base_controls: {
+        Args: {
+          p_catalog_id: string;
+          p_depth?: number;
+          p_resolution_id: string;
+          p_tenant_id: string;
+        };
+        Returns: string[];
+      };
       revise_requirement: {
         Args: {
           p_expected_revision: number;
@@ -11523,6 +12731,31 @@ export type Database = {
       save_workspace_snapshot: {
         Args: { expected_revision: number; snapshot: Json };
         Returns: number;
+      };
+      seed_library_contribution: {
+        Args: {
+          p_assignment_id: string;
+          p_excluded: boolean;
+          p_impl: Database["public"]["Tables"]["defined_component_implementations"]["Row"];
+          p_note: string;
+          p_program_id: string;
+          p_ssp_id: string;
+          p_ssp_resolution_id: string;
+          p_system_component_id: string;
+          p_system_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
+      update_library_assignment: {
+        Args: {
+          p_assignment_id: string;
+          p_new_revision_id: string;
+          p_rationale: string;
+          p_request_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
       };
       wizard_base_controls: {
         Args: {

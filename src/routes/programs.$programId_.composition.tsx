@@ -1,9 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ProgramWorkspace } from "@/components/prototype/program-workspace";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+/** The composition view is the program's System tab; the old URL lands there. */
 export const Route = createFileRoute("/programs/$programId_/composition")({
-  component: ProgramView,
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: "/programs/$programId",
+      params: { programId: params.programId },
+      search: { tab: "System" },
+    });
+  },
+  component: () => null,
 });
-function ProgramView() {
-  const { programId } = Route.useParams();
-  return <ProgramWorkspace programId={programId} tab="System" view="System composition" />;
-}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Badge,
   Count,
@@ -10,6 +10,11 @@ import {
   Inspector,
   KeyValue,
   PageHeader,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Shell,
   Stack,
   Tabs,
@@ -20,18 +25,73 @@ import {
   useDataTable,
 } from "@ledger/design-system";
 import { useRows, type Row } from "@/lib/models";
-import { ControlInspector, LibraryControlTable } from "@/components/prototype/library-controls";
+import {
+  ControlInspector,
+  LibraryControlTable,
+  type ControlSelector,
+} from "@/components/prototype/library-controls";
 import { LibraryLoading } from "@/components/prototype/library-shared";
 
 export const Route = createFileRoute("/catalog")({
+  validateSearch: (search: Record<string, unknown>): { edition?: string } =>
+    typeof search["edition"] === "string" && /^[0-9a-f-]{36}$/i.test(search["edition"])
+      ? { edition: search["edition"] }
+      : {},
   head: () => ({ meta: [{ title: "Catalog — Program Assurance" }] }),
   component: CatalogPage,
 });
 
 function CatalogPage() {
+  const { edition } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const [tab, setTab] = useState("Controls");
   const [control, setControl] = useState<Row<"controls"> | null>(null);
-  const controls = useRows("controls");
+  const revisions = useRows("catalog_revisions");
+  const allControls = useRows("controls");
+  const selections = useRows("selected_controls");
+  const resolutions = useRows("profile_resolutions");
+  const profileRevisions = useRows("profile_revisions");
+  const profiles = useRows("profiles");
+  const catalogs = useRows("catalogs");
+  const catalogTitle = (row: Row<"catalog_revisions">) =>
+    catalogs.data?.find((catalog) => catalog.id === row.catalog_id)?.title ?? row.title;
+  const editions = useMemo(
+    () =>
+      [...(revisions.data ?? [])]
+        .filter((row) => row.state === "published")
+        .sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true })),
+    [revisions.data],
+  );
+  const current = editions.find((row) => row.id === edition) ?? editions[0];
+  const shown = useMemo(
+    () => (allControls.data ?? []).filter((row) => row.catalog_revision_id === current?.id),
+    [allControls.data, current?.id],
+  );
+  const selectedBy = useMemo(() => {
+    const byRevision = new Map((profileRevisions.data ?? []).map((row) => [row.id, row]));
+    const byProfile = new Map((profiles.data ?? []).map((row) => [row.id, row]));
+    const revisionOf = new Map(
+      (resolutions.data ?? [])
+        .filter((row) => row.state === "published")
+        .map((row) => [row.id, byRevision.get(row.profile_revision_id)]),
+    );
+    const result = new Map<string, ControlSelector[]>();
+    for (const selection of selections.data ?? []) {
+      const revision = revisionOf.get(selection.profile_resolution_id);
+      if (!revision || revision.state !== "published") continue;
+      const items = result.get(selection.control_id) ?? [];
+      if (items.some((item) => item.key === revision.id)) continue;
+      items.push({
+        key: revision.id,
+        label: `${byProfile.get(revision.profile_id)?.title ?? revision.title} · ${revision.version}`,
+        meta: byProfile.get(revision.profile_id)?.code ?? null,
+      });
+      result.set(selection.control_id, items);
+    }
+    for (const items of result.values()) items.sort((a, b) => a.label.localeCompare(b.label));
+    return result;
+  }, [selections.data, resolutions.data, profileRevisions.data, profiles.data]);
+  const controls = allControls;
   return (
     <Stack className="animate-rise" space="space.200">
       <PageHeader>
@@ -55,16 +115,52 @@ function CatalogPage() {
           {["Controls", "CCIs", "Sources"].map((name) => (
             <TabsTrigger key={name} value={name}>
               {name}
-              {name === "Controls" && controls.data && (
-                <Count value={controls.data.length} max={99999} />
-              )}
+              {name === "Controls" && controls.data && <Count value={shown.length} max={99999} />}
             </TabsTrigger>
           ))}
         </TabsList>
         <TabsContent value={tab} className="contents">
           {tab === "Controls" && (
-            <LibraryLoading queries={[controls]}>
-              <LibraryControlTable controls={controls.data ?? []} onSelect={setControl} />
+            <LibraryLoading
+              queries={[
+                controls,
+                revisions,
+                catalogs,
+                selections,
+                resolutions,
+                profileRevisions,
+                profiles,
+              ]}
+            >
+              <LibraryControlTable
+                controls={shown}
+                onSelect={setControl}
+                showRelease={false}
+                selectedBy={selectedBy}
+                filters={
+                  <Select
+                    value={current?.id ?? ""}
+                    onValueChange={(value) => {
+                      if (value) void navigate({ search: { edition: value } });
+                    }}
+                  >
+                    <SelectTrigger aria-label="Catalog edition" size="sm">
+                      <SelectValue placeholder="Catalog edition">
+                        {current
+                          ? `${catalogTitle(current)} · ${current.version}`
+                          : "Catalog edition"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {editions.map((row) => (
+                        <SelectItem key={row.id} value={row.id}>
+                          {catalogTitle(row)} · {row.version}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                }
+              />
             </LibraryLoading>
           )}
           {tab === "CCIs" && <CciTable />}

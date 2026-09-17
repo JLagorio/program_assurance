@@ -32,6 +32,20 @@ export type SystemAssuranceRow = SystemElement & {
   additionalChildControlCount: number;
   unresolvedDescendantCount: number;
   scopeSelections: SystemScopeSelection[];
+  /** Distinct requirement revisions allocated to this element exactly. */
+  requirementCount: number;
+  /** Distinct requirement revisions allocated to this element or anything inside it, within its boundary. */
+  subtreeRequirementCount: number;
+  /**
+   * The effective profile's short name (the stable `profiles.title`), when its resolution and
+   * revision are known. Falls back to the revision's own title only when no stable record is
+   * loaded.
+   */
+  baselineTitle: string | null;
+  /** The effective profile revision's own document title: provenance only, never the name. */
+  baselineDocumentTitle: string | null;
+  /** The effective resolution is a draft tailored profile authored for a system. */
+  baselineDraft: boolean;
 };
 export type SystemAssuranceInput = {
   systems: SystemElement[];
@@ -39,7 +53,34 @@ export type SystemAssuranceInput = {
   baselines: Row<"system_effective_baselines">[];
   selections: Row<"selected_controls">[];
   scopeBaselines: Row<"scope_baselines">[];
+  /** Requirement allocations; an element's count reads `system_id` exactly, never a cascade. */
+  allocations?: Row<"requirement_allocations">[] | undefined;
+  /** Resolutions and profile revisions name the effective baseline. */
+  resolutions?: Row<"profile_resolutions">[] | undefined;
+  profiles?: Row<"profile_revisions">[] | undefined;
+  /** The stable profile records, whose `title` is the short name shown for every revision. */
+  profileRecords?: Row<"profiles">[] | undefined;
 };
+
+/** What the Baseline column and the preview say about where the effective set comes from. */
+export function baselineSource(row: SystemAssuranceRow): string {
+  if (!row.effectiveBaseline?.profile_resolution_id) return "Not set";
+  if (row.inheritedFrom) return `Inherited from ${row.inheritedFrom.code}`;
+  switch (row.effectiveBaseline.source_label) {
+    case "Explicit system adoption":
+      return "Applied here";
+    case "Inherited system adoption":
+      return "Inherited";
+    case "Authorization boundary SSP":
+      return "From the boundary SSP";
+    case "Authorization boundary scope adoption":
+      return "From a boundary scope";
+    case "Conflicting authorization boundary scope adoptions":
+      return "Conflicting scope adoptions";
+    default:
+      return row.effectiveBaseline.source_label ?? "Not set";
+  }
+}
 
 const dimensions = ["confidentiality", "integrity", "availability"] as const;
 const impactOrder: Impact[] = ["low", "moderate", "high"];
@@ -107,6 +148,17 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
     current.push(adoption);
     adoptionsByScope.set(adoption.scope_id, current);
   }
+  const revisionsBySystem = new Map<string, Set<string>>();
+  for (const allocation of input.allocations ?? []) {
+    const element = allocation.system_id ? byId.get(allocation.system_id) : undefined;
+    if (!element || element.tenant_id !== allocation.tenant_id) continue;
+    const current = revisionsBySystem.get(element.id) ?? new Set<string>();
+    current.add(allocation.requirement_revision_id);
+    revisionsBySystem.set(element.id, current);
+  }
+  const resolutionById = new Map((input.resolutions ?? []).map((row) => [row.id, row]));
+  const profileById = new Map((input.profiles ?? []).map((row) => [row.id, row]));
+  const profileRecordById = new Map((input.profileRecords ?? []).map((row) => [row.id, row]));
   const rows: SystemAssuranceRow[] = input.systems.map((system) => {
     const candidate = baselineBySystem.get(system.id);
     const effectiveBaseline =
@@ -115,6 +167,9 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
         ? candidate
         : undefined;
     const resolutionId = effectiveBaseline?.profile_resolution_id;
+    const resolution = resolutionId ? resolutionById.get(resolutionId) : undefined;
+    const profile = resolution ? profileById.get(resolution.profile_revision_id) : undefined;
+    const ownRevisions = revisionsBySystem.get(system.id) ?? new Set<string>();
     const directScopes = [...(scopesByElement.get(system.id) ?? [])].sort((a, b) =>
       a.code.localeCompare(b.code, undefined, { numeric: true }),
     );
@@ -142,6 +197,13 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
       subtreeControlCount: resolutionId ? controlIds.length : null,
       additionalChildControlCount: 0,
       unresolvedDescendantCount: 0,
+      requirementCount: ownRevisions.size,
+      subtreeRequirementCount: ownRevisions.size,
+      baselineTitle: profile
+        ? (profileRecordById.get(profile.profile_id)?.title ?? profile.title)
+        : null,
+      baselineDocumentTitle: profile?.title ?? null,
+      baselineDraft: resolution?.state === "draft",
       scopeSelections: directScopes.map((scope) => {
         const adoptions = (adoptionsByScope.get(scope.id) ?? []).filter(
           (adoption) => adoption.tenant_id === scope.tenant_id,
@@ -214,6 +276,10 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
     row.unresolvedDescendantCount = descendants.filter(
       (child) => child.controlCount === null,
     ).length;
+    row.subtreeRequirementCount = new Set([
+      ...(revisionsBySystem.get(row.id) ?? []),
+      ...descendants.flatMap((child) => [...(revisionsBySystem.get(child.id) ?? [])]),
+    ]).size;
   }
   return rows;
 }

@@ -9,47 +9,32 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  Badge,
   Box,
   Button,
   Grid,
   Inline,
-  Inspector,
-  KeyValue,
   PageHeader,
-  Section,
   Stack,
   Stepper,
-  Table,
   toast,
 } from "@ledger/design-system";
 import { useWorkspace } from "./workspace";
 import {
   programWizardSchema,
   useCreateProgramWizard,
+  type ProgramProfileDraft,
   type ProgramWizardDraft,
   type SystemWizardDraft,
 } from "@/lib/program-wizard";
-import {
-  catalogProfileOptions,
-  previewProgramTailoring,
-  type ProgramTailoringPreview,
-  type WizardProfileOption,
-} from "@/lib/program-wizard-reference";
-import type { Row } from "@/lib/models";
-import { useWizardResources, type WizardResources } from "./program-wizard/resources";
+import { catalogProfileOptions, previewProgramTailoring } from "@/lib/program-wizard-reference";
+import { useWizardResources } from "./program-wizard/resources";
 import { ProgramStep } from "./program-wizard/program";
 import { CatalogStep } from "./program-wizard/catalog";
-import { SystemsStep } from "./program-wizard/systems";
-import { TailoringStep } from "./program-wizard/tailoring";
+import { ElementsStep } from "./program-wizard/elements";
+import { ReviewStep } from "./program-wizard/review";
+import { productItemFor } from "@/lib/product-items";
 
-const steps = [
-  "Program",
-  "Catalog & profiles",
-  "Systems",
-  "Categorize & tailor",
-  "Review & create",
-] as const;
+const steps = ["Program", "Catalog & profiles", "Systems & components", "Review & create"] as const;
 function newSystem(): SystemWizardDraft {
   return {
     key: crypto.randomUUID(),
@@ -62,10 +47,9 @@ function newSystem(): SystemWizardDraft {
     integrity: null,
     availability: null,
     categorizationRationale: "",
-    profileResolutionId: "",
-    subsystems: [],
-    tailoring: [],
-    parameters: [],
+    profileKey: "",
+    product: null,
+    elements: [],
   };
 }
 function emptyDraft(): ProgramWizardDraft {
@@ -79,7 +63,7 @@ function emptyDraft(): ProgramWizardDraft {
     endsOn: null,
     roles: [],
     catalogRevisionId: "",
-    availableProfileResolutionIds: [],
+    profiles: [],
     systems: [newSystem()],
   };
 }
@@ -91,6 +75,7 @@ export function ProgramWizard() {
   const create = useCreateProgramWizard();
   const [draft, setDraft] = useState(emptyDraft);
   const [index, setIndex] = useState(0);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
@@ -116,49 +101,44 @@ export function ProgramWizard() {
   const previews = useMemo(
     () =>
       new Map(
-        draft.systems.map((system) => [
-          system.key,
+        draft.profiles.map((profile: ProgramProfileDraft) => [
+          profile.key,
           previewProgramTailoring(
             {
               catalogRevisionId: draft.catalogRevisionId,
-              profileResolutionId: system.profileResolutionId,
-              tailoring: system.tailoring,
-              parameters: system.parameters,
+              baseResolutionId: profile.baseResolutionId,
+              tailoring: profile.tailoring,
+              parameters: profile.parameters,
             },
             resources.data,
           ),
         ]),
       ),
-    [draft, resources.data],
+    [draft.profiles, draft.catalogRevisionId, resources.data],
   );
   const issues = useMemo(() => {
-    const result: string[][] = [[], [], [], [], []];
+    const result: string[][] = [[], [], [], []];
+    const profileTitle = (profile: ProgramProfileDraft | undefined) =>
+      options.profiles.find((option) => option.id === profile?.baseResolutionId)?.title ??
+      "Program profile";
     const parsed = programWizardSchema.safeParse(draft);
     if (!parsed.success)
       for (const issue of parsed.error.issues) {
-        const [root, systemIndex, field] = issue.path;
+        const [root, itemIndex, field, elementIndex] = issue.path;
         const step =
-          root === "catalogRevisionId" || root === "availableProfileResolutionIds"
-            ? 1
-            : root === "systems"
-              ? field &&
-                [
-                  "confidentiality",
-                  "integrity",
-                  "availability",
-                  "categorizationRationale",
-                  "profileResolutionId",
-                  "tailoring",
-                  "parameters",
-                ].includes(String(field))
-                ? 3
-                : 2
-              : 0;
-        const system =
-          root === "systems" && typeof systemIndex === "number" ? draft.systems[systemIndex] : null;
-        result[step]!.push(
-          `${system ? `${system.name || `System ${Number(systemIndex) + 1}`}: ` : ""}${issue.message}`,
-        );
+          root === "catalogRevisionId" || root === "profiles" ? 1 : root === "systems" ? 2 : 0;
+        let prefix = "";
+        if (root === "profiles" && typeof itemIndex === "number")
+          prefix = `${profileTitle(draft.profiles[itemIndex])}: `;
+        if (root === "systems" && typeof itemIndex === "number") {
+          const system = draft.systems[itemIndex];
+          prefix = `${system?.name || `System ${itemIndex + 1}`}: `;
+          if (field === "elements" && typeof elementIndex === "number") {
+            const element = system?.elements[elementIndex];
+            prefix += `${element?.name || `Element ${elementIndex + 1}`}: `;
+          }
+        }
+        result[step]!.push(`${prefix}${issue.message}`);
       }
     if (resources.ready) {
       if (
@@ -166,38 +146,70 @@ export function ProgramWizard() {
         !options.catalogs.some((catalog) => catalog.id === draft.catalogRevisionId)
       )
         result[1]!.push("Choose an available published catalog.");
-      if (
-        draft.availableProfileResolutionIds.some(
-          (id) =>
-            !options.profiles.some(
-              (profile) =>
-                profile.id === id &&
-                profile.catalogRevisionId === draft.catalogRevisionId &&
-                profile.supported,
-            ),
-        )
-      )
-        result[1]!.push(
-          "One of the chosen profiles is unavailable or incompatible with this catalog.",
-        );
-      draft.systems.forEach((system) => {
-        if (system.profileResolutionId)
-          for (const message of previews.get(system.key)!.errors)
-            result[3]!.push(`${system.name || "System"}: ${message}`);
-      });
+      for (const profile of draft.profiles) {
+        const option = options.profiles.find((item) => item.id === profile.baseResolutionId);
+        if (!option || !option.supported || option.catalogRevisionId !== draft.catalogRevisionId)
+          result[1]!.push(
+            `${profileTitle(profile)}: this profile is unavailable or incompatible with the chosen catalog.`,
+          );
+        for (const message of previews.get(profile.key)?.errors ?? [])
+          result[1]!.push(`${profileTitle(profile)}: ${message}`);
+      }
+      for (const system of draft.systems) {
+        const product = productItemFor(system, resources.productItems);
+        if (system.product && !product)
+          result[2]!.push(
+            `${system.name || "System"}: comes from a product version that is no longer published; remove and re-add it.`,
+          );
+        for (const element of system.elements) {
+          if (
+            element.library &&
+            !resources.libraryItems.some(
+              (item) =>
+                item.id === element.library!.definedComponentId &&
+                item.revisionId === element.library!.revisionId,
+            ) &&
+            !(
+              element.productElementId &&
+              product?.elements.some(
+                (row) =>
+                  row.id === element.productElementId &&
+                  row.library?.revisionId === element.library!.revisionId,
+              )
+            )
+          )
+            result[2]!.push(
+              `${system.name || "System"}: ${element.name || "an element"} pins a library version that is no longer the published one; remove and re-add it.`,
+            );
+          if (
+            element.productElementId &&
+            product &&
+            !product.elements.some((row) => row.id === element.productElementId)
+          )
+            result[2]!.push(
+              `${system.name || "System"}: ${element.name || "an element"} is not an element of ${product.productName} · ${product.configurationName}; remove and re-add the system.`,
+            );
+        }
+      }
     }
     return result.map((messages) => [...new Set(messages)]);
-  }, [draft, options, previews, resources.ready]);
+  }, [draft, options, previews, resources.ready, resources.libraryItems, resources.productItems]);
   const blocked = issues[index]?.[0];
   const earlierBlocked = issues.slice(0, index).flat()[0];
   const allErrors = issues.flat();
   const total = new Set(
-    [...previews.values()].flatMap((preview) =>
-      preview.selectedControls.map((control) => control.id),
+    draft.systems.flatMap(
+      (system) =>
+        previews.get(system.profileKey)?.selectedControls.map((control) => control.id) ?? [],
     ),
   ).size;
+  const elementCount = draft.systems.reduce((count, system) => count + system.elements.length, 0);
+  const libraryCount = draft.systems.reduce(
+    (count, system) => count + system.elements.filter((element) => element.library).length,
+    0,
+  );
+  const productCount = draft.systems.filter((system) => system.product).length;
   const step = steps[index]!;
-  const wide = index >= 3;
   const writable = workspace.role !== "viewer";
   async function submit() {
     if (inFlight.current || allErrors.length || !resources.ready || resources.error || !writable)
@@ -213,7 +225,7 @@ export function ProgramWizard() {
       toast.add({
         title: `${draft.name.trim()} created`,
         type: "success",
-        description: `${draft.systems.length} systems and their authored control profiles were saved.`,
+        description: `${draft.systems.length} systems${productCount ? ` (${productCount} from products)` : ""}, ${elementCount} elements and ${draft.profiles.length} program profiles were saved.`,
       });
       await navigate({
         to: "/programs/$programId",
@@ -241,15 +253,6 @@ export function ProgramWizard() {
             {draft.name.trim() ? `New program · ${draft.name.trim()}` : "New program"}
           </PageHeader.Title>
         </div>
-        <PageHeader.Actions>
-          <Button
-            variant="subtle"
-            disabled={busy}
-            onClick={() => void navigate({ to: "/programs" })}
-          >
-            Cancel
-          </Button>
-        </PageHeader.Actions>
       </PageHeader>
       {!writable ? (
         <p role="alert" className="text-subtle">
@@ -271,15 +274,11 @@ export function ProgramWizard() {
       ) : null}
       {!resources.ready ? (
         <p role="status" className="text-subtle">
-          Loading published catalogs, profiles, and workspace parties…
+          Loading published catalogs, profiles, the component library, products, and workspace
+          parties…
         </p>
       ) : (
-        <Grid
-          gap="space.300"
-          templateColumns={
-            wide ? { lg: "200px minmax(0,1fr)" } : { lg: "200px minmax(0,1fr) 272px" }
-          }
-        >
+        <Grid gap="space.300" templateColumns={{ lg: "200px minmax(0,1fr)" }}>
           <aside className="lg:sticky-rail">
             <Stepper orientation="vertical">
               {steps.map((label, stepIndex) => (
@@ -288,12 +287,19 @@ export function ProgramWizard() {
                   label={label}
                   state={stepIndex < index ? "done" : stepIndex === index ? "current" : "upcoming"}
                   meta={
-                    stepIndex === 2
-                      ? `${draft.systems.length} system${draft.systems.length === 1 ? "" : "s"}`
-                      : `Step ${stepIndex + 1} of ${steps.length}`
+                    stepIndex === 1
+                      ? `${draft.profiles.length} profile${draft.profiles.length === 1 ? "" : "s"}`
+                      : stepIndex === 2
+                        ? `${draft.systems.length} system${draft.systems.length === 1 ? "" : "s"} · ${elementCount} element${elementCount === 1 ? "" : "s"}`
+                        : `Step ${stepIndex + 1} of ${steps.length}`
                   }
                   {...(!busy && (stepIndex < index || (stepIndex === index + 1 && !blocked))
-                    ? { onSelect: () => setIndex(stepIndex) }
+                    ? {
+                        onSelect: () => {
+                          setEditingKey(null);
+                          setIndex(stepIndex);
+                        },
+                      }
                     : {})}
                 />
               ))}
@@ -314,33 +320,39 @@ export function ProgramWizard() {
                     catalogs={options.catalogs}
                     profiles={options.profiles}
                     data={resources.data}
+                    previews={previews}
+                    editingKey={editingKey}
+                    onEditingKeyChange={setEditingKey}
                   />
                 ) : null}
                 {index === 2 ? (
-                  <SystemsStep
+                  <ElementsStep
                     draft={draft}
                     onChange={change}
                     parties={resources.parties}
+                    profiles={options.profiles}
+                    previews={previews}
+                    libraryItems={resources.libraryItems}
+                    libraryPending={resources.pending}
+                    productItems={resources.productItems}
+                    productPending={resources.pending}
                     newSystem={newSystem}
                   />
                 ) : null}
                 {index === 3 ? (
-                  <TailoringStep
-                    draft={draft}
-                    onChange={change}
-                    data={resources.data}
-                    profiles={options.profiles}
-                    previews={previews}
-                  />
-                ) : null}
-                {index === 4 ? (
                   <ReviewStep
                     draft={draft}
                     data={resources.data}
                     parties={resources.parties}
                     profiles={options.profiles}
                     previews={previews}
+                    libraryItems={resources.libraryItems}
+                    productItems={resources.productItems}
                     total={total}
+                    onEdit={(step) => {
+                      setEditingKey(null);
+                      setIndex(step);
+                    }}
                   />
                 ) : null}
               </Stack>
@@ -354,7 +366,7 @@ export function ProgramWizard() {
                 </p>
               </Box>
             ) : null}
-            {index === 4 && allErrors.length ? (
+            {index === 3 && allErrors.length ? (
               <Box role="alert" className="font-body-small text-danger">
                 <p>Complete these items before creating the program:</p>
                 <Box as="ul" className="list-disc ps-200">
@@ -368,27 +380,41 @@ export function ProgramWizard() {
               className="border-t border-default pt-200"
               space="space.200"
               alignBlock="center"
-              spread="space-between"
+              alignInline={editingKey || index > 0 ? undefined : "end"}
+              spread={editingKey || index > 0 ? "space-between" : undefined}
             >
-              <Button
-                variant="subtle"
-                disabled={busy}
-                onClick={() =>
-                  index === 0 ? void navigate({ to: "/programs" }) : setIndex(index - 1)
-                }
-              >
-                {index === 0 ? "Cancel" : "Back"}
-              </Button>
+              {editingKey || index > 0 ? (
+                <Button
+                  variant="subtle"
+                  disabled={busy}
+                  onClick={() => {
+                    if (editingKey) setEditingKey(null);
+                    else setIndex(index - 1);
+                  }}
+                >
+                  {editingKey ? "Back to profiles" : "Back"}
+                </Button>
+              ) : null}
               <Inline space="space.150" alignBlock="center">
                 {blocked || earlierBlocked ? (
                   <span className="font-body-small text-subtle">{blocked ?? earlierBlocked}</span>
                 ) : null}
+                <Button
+                  variant="subtle"
+                  disabled={busy}
+                  onClick={() => void navigate({ to: "/programs" })}
+                >
+                  Cancel
+                </Button>
                 {index < steps.length - 1 ? (
                   <Button
                     variant="primary"
                     disabled={!!blocked || !!earlierBlocked || busy || !writable}
                     title={blocked ?? earlierBlocked}
-                    onClick={() => setIndex(index + 1)}
+                    onClick={() => {
+                      setEditingKey(null);
+                      setIndex(index + 1);
+                    }}
                   >
                     Continue
                   </Button>
@@ -404,33 +430,6 @@ export function ProgramWizard() {
               </Inline>
             </Inline>
           </Stack>
-          {wide ? null : (
-            <aside className="lg:sticky-rail">
-              <Inspector.Group title="Program">
-                <KeyValue label="Name" wrap>
-                  {draft.name || "Not entered"}
-                </KeyValue>
-                <KeyValue label="Code">{draft.code || "Not entered"}</KeyValue>
-                <KeyValue label="Catalog" wrap>
-                  {options.catalogs.find((catalog) => catalog.id === draft.catalogRevisionId)
-                    ?.title ?? "Not selected"}
-                </KeyValue>
-                <KeyValue label="Base profiles">
-                  {draft.availableProfileResolutionIds.length}
-                </KeyValue>
-                <KeyValue label="Systems">{draft.systems.length}</KeyValue>
-                <KeyValue label="Subsystems">
-                  {draft.systems.reduce((count, system) => count + system.subsystems.length, 0)}
-                </KeyValue>
-              </Inspector.Group>
-              <Inspector.Group title="On create">
-                <p className="font-body-small text-subtle">
-                  The program, systems, composition, categorization, and tailored profiles are saved
-                  together. Review the exact selection before confirming.
-                </p>
-              </Inspector.Group>
-            </aside>
-          )}
         </Grid>
       )}
       <AlertDialog
@@ -447,10 +446,9 @@ export function ProgramWizard() {
           <AlertDialogHeader>
             <AlertDialogTitle>Create {draft.name.trim()}?</AlertDialogTitle>
             <AlertDialogDescription>
-              {draft.systems.length} systems,{" "}
-              {draft.systems.reduce((count, system) => count + system.subsystems.length, 0)}{" "}
-              subsystems, and {total} distinct selected controls will be saved with the program. The
-              full setup is saved as one transaction.
+              {draft.systems.length} systems ({productCount} from products), {elementCount} elements
+              ({libraryCount} from the library), {draft.profiles.length} program profiles and{" "}
+              {total} distinct selected controls will be saved with the program, as one transaction.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -468,240 +466,6 @@ export function ProgramWizard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Stack>
-  );
-}
-
-function ReviewStep({
-  draft,
-  data,
-  parties,
-  profiles,
-  previews,
-  total,
-}: {
-  draft: ProgramWizardDraft;
-  data: WizardResources;
-  parties: Row<"parties">[];
-  profiles: WizardProfileOption[];
-  previews: Map<string, ProgramTailoringPreview>;
-  total: number;
-}) {
-  const partyName = (id: string | null) =>
-    parties.find((party) => party.id === id)?.name ?? "Not assigned";
-  const catalog = data.catalogRevisions.find((item) => item.id === draft.catalogRevisionId);
-  const decisions = draft.systems.flatMap((system) =>
-    system.tailoring.map((decision) => ({ system, decision })),
-  );
-  const overrides = draft.systems.flatMap((system) =>
-    system.parameters.map((override) => ({ system, override })),
-  );
-  return (
-    <Stack space="space.200">
-      <Section title="Program">
-        <Grid
-          templateColumns={{ base: "repeat(2,minmax(0,1fr))", lg: "repeat(3,minmax(0,1fr))" }}
-          columnGap="space.300"
-          rowGap="space.050"
-        >
-          <KeyValue label="Name" wrap>
-            {draft.name}
-          </KeyValue>
-          <KeyValue label="Code">{draft.code}</KeyValue>
-          <KeyValue label="Sponsor" wrap>
-            {partyName(draft.sponsorPartyId)}
-          </KeyValue>
-          <KeyValue label="Catalog" wrap>
-            {catalog?.title} · {catalog?.version}
-          </KeyValue>
-          <KeyValue label="Starts on">{draft.startsOn ?? "Not set"}</KeyValue>
-          <KeyValue label="Ends on">{draft.endsOn ?? "Not set"}</KeyValue>
-          {draft.roles.map((assignment) => (
-            <KeyValue
-              key={`${assignment.role}-${assignment.partyId}`}
-              label={assignment.role.replaceAll("_", " ")}
-              wrap
-            >
-              {partyName(assignment.partyId)}
-            </KeyValue>
-          ))}
-        </Grid>
-        {draft.description ? (
-          <p className="pt-150 font-body-small whitespace-pre-wrap">{draft.description}</p>
-        ) : null}
-      </Section>
-      <Section title="Systems" count={`${draft.systems.length} · ${total} distinct controls`}>
-        <Table>
-          <thead>
-            <Table.Row>
-              <Table.Header>System</Table.Header>
-              <Table.Header>C · I · A</Table.Header>
-              <Table.Header>Base profile</Table.Header>
-              <Table.Header className="text-right">Controls</Table.Header>
-              <Table.Header className="text-right">Subsystems</Table.Header>
-            </Table.Row>
-          </thead>
-          <tbody>
-            {draft.systems.map((system) => {
-              const profile = profiles.find((item) => item.id === system.profileResolutionId);
-              return (
-                <Table.Row key={system.key}>
-                  <Table.Cell>
-                    <span className="font-body font-semibold">{system.name}</span>
-                    <p className="font-body-small text-subtle">{system.code}</p>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Inline space="space.050">
-                      {[system.confidentiality, system.integrity, system.availability].map(
-                        (impact, index) => (
-                          <Badge
-                            key={index}
-                            size="xsmall"
-                            variant="secondary"
-                            tone={
-                              impact === "high"
-                                ? "danger"
-                                : impact === "moderate"
-                                  ? "warning"
-                                  : "neutral"
-                            }
-                          >
-                            {impact ?? "Unset"}
-                          </Badge>
-                        ),
-                      )}
-                    </Inline>
-                  </Table.Cell>
-                  <Table.Cell className="whitespace-normal">
-                    {profile?.title} · {profile?.version}
-                  </Table.Cell>
-                  <Table.Cell className="text-right tabular-nums">
-                    {previews.get(system.key)?.counts.selected}
-                  </Table.Cell>
-                  <Table.Cell className="text-right tabular-nums">
-                    {system.subsystems.length}
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
-          </tbody>
-        </Table>
-      </Section>
-      {draft.systems.map((system) => (
-        <Section key={system.key} title={`${system.code} · Categorization and composition`}>
-          <Stack space="space.100">
-            <KeyValue label="System owner">{partyName(system.ownerPartyId)}</KeyValue>
-            <KeyValue label="System type">{system.type?.replaceAll("_", " ")}</KeyValue>
-            {system.description ? (
-              <p className="font-body-small whitespace-pre-wrap">{system.description}</p>
-            ) : null}
-            <p className="font-body-small whitespace-pre-wrap">{system.categorizationRationale}</p>
-            {system.subsystems.length ? (
-              <Table>
-                <thead>
-                  <Table.Row>
-                    <Table.Header>Subsystem</Table.Header>
-                    <Table.Header>Parent</Table.Header>
-                    <Table.Header>Type</Table.Header>
-                    <Table.Header>Function</Table.Header>
-                  </Table.Row>
-                </thead>
-                <tbody>
-                  {system.subsystems.map((node) => (
-                    <Table.Row key={node.key}>
-                      <Table.Cell>
-                        {node.code} · {node.name}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {system.subsystems.find((parent) => parent.key === node.parentKey)?.name ??
-                          system.name}
-                      </Table.Cell>
-                      <Table.Cell>{node.type}</Table.Cell>
-                      <Table.Cell className="whitespace-normal">
-                        {node.description || "Not entered"}
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            ) : (
-              <p className="font-body-small text-subtle">No subsystems.</p>
-            )}
-          </Stack>
-        </Section>
-      ))}
-      <Section title="Control decisions" count={decisions.length || null}>
-        {decisions.length ? (
-          <Table>
-            <thead>
-              <Table.Row>
-                <Table.Header>System</Table.Header>
-                <Table.Header>Control</Table.Header>
-                <Table.Header>Decision</Table.Header>
-                <Table.Header>Rationale</Table.Header>
-              </Table.Row>
-            </thead>
-            <tbody>
-              {decisions.map(({ system, decision }) => (
-                <Table.Row key={`${system.key}-${decision.controlId}`}>
-                  <Table.Cell>{system.code}</Table.Cell>
-                  <Table.Cell>
-                    {data.controls.find((control) => control.id === decision.controlId)?.code}
-                  </Table.Cell>
-                  <Table.Cell>{decision.action}</Table.Cell>
-                  <Table.Cell className="whitespace-normal">{decision.rationale}</Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          <p className="font-body-small text-subtle">
-            No manual changes to the selected base profiles.
-          </p>
-        )}
-      </Section>
-      <Section title="Parameter overrides" count={overrides.length || null}>
-        {overrides.length ? (
-          <Table>
-            <thead>
-              <Table.Row>
-                <Table.Header>System</Table.Header>
-                <Table.Header>Parameter</Table.Header>
-                <Table.Header>Values</Table.Header>
-                <Table.Header>Rationale</Table.Header>
-              </Table.Row>
-            </thead>
-            <tbody>
-              {overrides.map(({ system, override }) => (
-                <Table.Row key={`${system.key}-${override.parameterId}`}>
-                  <Table.Cell>{system.code}</Table.Cell>
-                  <Table.Cell>
-                    {
-                      data.parameters.find((parameter) => parameter.id === override.parameterId)
-                        ?.source_id
-                    }
-                  </Table.Cell>
-                  <Table.Cell className="whitespace-normal">
-                    {override.values.join("; ")}
-                  </Table.Cell>
-                  <Table.Cell className="whitespace-normal">{override.rationale}</Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          <p className="font-body-small text-subtle">
-            No overrides. Existing catalog and profile values are inherited.
-          </p>
-        )}
-      </Section>
-      <Section title="On create">
-        <p className="font-body-small text-subtle">
-          Each system receives its composition tree, categorized scope, authored OSCAL profile and
-          resolved control selection, plus a draft system security plan. Unset parameter values
-          remain unset. This setup does not record an approval or authorization decision.
-        </p>
-      </Section>
     </Stack>
   );
 }

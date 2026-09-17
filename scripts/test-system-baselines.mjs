@@ -30,10 +30,11 @@ async function select(label, name) {
   await page.getByRole("combobox", { name: label, exact: true }).click();
   await page.getByRole("option", { name, exact: true }).click();
 }
+/** The baseline lives on the record's Controls tab. */
 async function baselineUrl(programId, systemId) {
   await page.goto(`${origin}/programs/${programId}/systems/${systemId}`);
-  await page.getByRole("tab", { name: "Baseline", exact: true }).click();
-  await page.getByRole("heading", { name: "Control baseline", exact: true }).waitFor();
+  await page.getByRole("tab", { name: "Controls", exact: true }).click();
+  await page.getByRole("button", { name: "Change baseline", exact: true }).waitFor();
 }
 try {
   const profile = await data(
@@ -45,6 +46,8 @@ try {
       .limit(1)
       .single(),
   );
+  // The stable profile record carries the short name the product shows for every revision.
+  const record = await data(client.from("profiles").select().eq("id", profile.profile_id).single());
   const resolution = await data(
     client
       .from("profile_resolutions")
@@ -72,9 +75,9 @@ try {
   await page.getByLabel("Email", { exact: true }).fill(workspace.email);
   await page.getByLabel("Password", { exact: true }).fill(workspace.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("tab", { name: "Baseline", exact: true }).click();
+  await page.getByRole("tab", { name: "Controls", exact: true }).click();
   await page.getByRole("button", { name: "Change baseline", exact: true }).click();
-  await select("Published profile", `${profile.title} · ${profile.version}`);
+  await select("Base profile", `${record.title} · ${profile.version}`);
   await page.getByRole("button", { name: "Save baseline", exact: true }).click();
   await page.getByRole("dialog", { name: "Change control baseline" }).waitFor({ state: "hidden" });
   assert.equal(
@@ -83,7 +86,10 @@ try {
     resolution.id,
   );
   await baselineUrl(program.id, child.id);
-  await page.getByText("Inherited", { exact: true }).waitFor();
+  await page
+    .getByText(/^Inherited from /)
+    .first()
+    .waitFor();
   await page.getByRole("button", { name: "Change baseline", exact: true }).click();
   const checkbox = page.getByRole("checkbox").first();
   const code = (await checkbox.getAttribute("aria-label")).replace("Include ", "");
@@ -109,13 +115,14 @@ try {
     ).length,
     0,
   );
-  await page.getByText("Draft tailored profile", { exact: true }).waitFor();
+  // Since program setup v2 the tailored profile is published at creation and layered on its base.
+  await page.getByText(`Layered on ${record.title}`, { exact: true }).waitFor();
   await page.screenshot({ path: "/tmp/system-baseline-tailoring.png", fullPage: true });
   await page.getByRole("button", { name: "Change baseline", exact: true }).click();
   assert.ok(
-    (
-      await page.getByRole("combobox", { name: "Published profile", exact: true }).innerText()
-    ).includes(profile.title),
+    (await page.getByRole("combobox", { name: "Base profile", exact: true }).innerText()).includes(
+      record.title,
+    ),
   );
   assert.equal(
     await page.getByRole("checkbox", { name: `Include ${code}`, exact: true }).isChecked(),
@@ -158,7 +165,10 @@ try {
       .adopted_profile_resolution_id,
     null,
   );
-  await page.getByText("Inherited", { exact: true }).waitFor();
+  await page
+    .getByText(/^Inherited from /)
+    .first()
+    .waitFor();
   const before = (
     await data(client.from("system_baseline_requests").select().eq("tenant_id", tenantId))
   ).length;

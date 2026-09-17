@@ -258,7 +258,7 @@ function HeaderCell<TData extends RowData>({
   );
 }
 
-/** Guided trees keep the disclosure, connectors and value in the same indented cell. */
+/** Each ancestor contributes one vertical guide through its descendant rows. */
 function TreeIndent<TData extends RowData>({
   row,
   children,
@@ -283,23 +283,9 @@ function TreeIndent<TData extends RowData>({
         style={{ insetInlineStart: 10 }}
       >
         {Array.from({ length: depth }, (_, level) => (
-          <span key={level} className="relative w-200 shrink-0 border-s border-default">
-            {level === depth - 1 ? (
-              <span
-                className="absolute start-0 top-1/2 border-t border-default"
-                style={{ width: INDENT + (hasChildren ? 0 : 10) }}
-              />
-            ) : null}
-          </span>
+          <span key={level} className="w-200 shrink-0 border-s border-default" />
         ))}
       </span>
-      {hasChildren && expanded ? (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute top-1/2 bottom-0 border-s border-default"
-          style={{ insetInlineStart: depth * INDENT + 10 }}
-        />
-      ) : null}
       {hasChildren ? (
         <button
           type="button"

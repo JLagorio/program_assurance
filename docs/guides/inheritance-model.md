@@ -1,6 +1,6 @@
 # Reusable implementations and inheritance
 
-Design proposal · September 9, 2026 · Application behavior is not changed by this proposal.
+Design proposal · September 9, 2026 · Landed in part on September 15, 2026: see `docs/guides/system-view-simplification.md` for what exists (`library_assignments`, `library_assignment_targets`, `evidence_uses`, `requirement_definitions`, categories, coverage, the apply, adopt, decide and update commands) and what is still proposed (organization membership, provider dependencies, multi-program matrices, the coverage percentage).
 
 ## Recommendation
 

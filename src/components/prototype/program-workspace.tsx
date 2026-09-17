@@ -11,6 +11,10 @@ import {
   BreadcrumbSeparator,
   Button,
   Count,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -31,7 +35,8 @@ import {
   TextLink,
 } from "@ledger/design-system";
 import { ArrowUpRight, ChevronDown, Pencil } from "lucide-react";
-import { useRows, useRow, type Row } from "@/lib/models";
+import { useRows, useRow } from "@/lib/models";
+import { useProductLookup } from "@/lib/product-items";
 import { displayValue, labelFor, type DataRecord } from "@/lib/records";
 import { useWorkspace } from "@/components/app/workspace";
 import { AssessmentBrowser } from "@/components/prototype/assessment-browser";
@@ -40,6 +45,7 @@ import { WorkTable } from "@/components/prototype/work-table";
 import { ObservationsRegister } from "./observations-register";
 import { RequirementsTable } from "./requirements-table";
 import { ProgramSystemsTree } from "./program-systems-tree";
+import { ProgramLibrary } from "./program-library";
 import { ProgramTimeline } from "./program-timeline";
 import { ProgramSspAssembly } from "./ssp-assembly";
 import type { SystemElement } from "@/lib/system-tree";
@@ -106,6 +112,20 @@ export function ProgramWorkspace({
   const assessments = useRows("assessment_campaigns", { program_id: programId });
   const gates = useRows("lifecycle_gates", { program_id: programId });
   const parties = useRows("parties");
+  const references = useRows("program_reference_choices", { program_id: programId });
+  const products = useProductLookup();
+  const variants = useMemo(
+    () =>
+      (systems.data ?? [])
+        .filter((system) => system.is_authorization_boundary && system.product_revision_id)
+        .map((system) => ({ system, lineage: products.variant(system) })),
+    [systems.data, products],
+  );
+  const catalogs = useRows("catalogs");
+  const catalogRevisions = useRows("catalog_revisions");
+  const profiles = useRows("profiles");
+  const profileResolutions = useRows("profile_resolutions");
+  const profileRevisions = useRows("profile_revisions");
   const [editing, setEditing] = useState(false);
   const boundaries = useMemo(
     () =>
@@ -186,7 +206,6 @@ export function ProgramWorkspace({
               <DropdownMenuContent align="end">
                 {(
                   [
-                    ["System composition", "/programs/$programId/composition"],
                     ["Configuration baseline", "/programs/$programId/baseline"],
                     ["Traceability matrix", "/programs/$programId/sctm"],
                     ["Inheritance resolution", "/programs/$programId/inheritance"],
@@ -342,43 +361,7 @@ export function ProgramWorkspace({
                     </>
                   )}
                   {tab === "System" && <ProgramSystemsTree programId={programId} fill />}
-                  {tab === "Library" &&
-                    (systems.isSuccess ? (
-                      <ProgramCollection
-                        name="system_components"
-                        fill
-                        empty={{ title: "No components yet" }}
-                        title="Recorded component references"
-                        description="Existing component records retain their implementation links. Open the system tree to add or edit systems and components."
-                        where={(row) => systemIds.has(String(row["system_id"]))}
-                        columns={[
-                          { key: "code", title: "Component" },
-                          { key: "name", title: "Name" },
-                          { key: "component_type", title: "Type" },
-                          { key: "status", title: "Status" },
-                          { key: "version", title: "Version" },
-                        ]}
-                        canCreate={false}
-                        readOnly
-                        onSelect={(row) => {
-                          const elementId = componentLinks.data?.find(
-                            (link) => link.id === row.id,
-                          )?.system_element_id;
-                          if (elementId)
-                            void navigate({
-                              to: "/programs/$programId/systems/$scopeId",
-                              params: { programId, scopeId: elementId },
-                            });
-                          else
-                            void navigate({
-                              to: "/programs/$programId/components/$componentId",
-                              params: { programId, componentId: row.id },
-                            });
-                        }}
-                      />
-                    ) : (
-                      <ProgramQueryState loading={systems.isPending} error={systems.error} />
-                    ))}
+                  {tab === "Library" && <ProgramLibrary programId={programId} fill />}
                   {tab === "Requirements" && (
                     <RequirementsTable
                       programId={programId}
@@ -538,10 +521,106 @@ export function ProgramWorkspace({
             <KeyValue label="Ends">{program.ends_on ?? "Not scheduled"}</KeyValue>
             <KeyValue label="Updated">{new Date(program.updated_at).toLocaleString()}</KeyValue>
           </Inspector.Group>
-          <Inspector.Group title="Assurance context">
-            <p className="font-body-small text-subtle">
-              Categorization, baselines, and authorization are recorded for each system boundary.
-            </p>
+          <Inspector.Group title="References">
+            {references.data?.length || variants.length ? (
+              <>
+                {references.data?.length ? (
+                  <KeyValue label="Catalog" wrap>
+                    {(() => {
+                      const catalog = catalogRevisions.data?.find(
+                        (row) => row.id === references.data?.[0]?.catalog_revision_id,
+                      );
+                      const stable = catalogs.data?.find((row) => row.id === catalog?.catalog_id);
+                      if (!catalog) return "Unavailable";
+                      if (!stable && catalogs.isPending) return "Loading…";
+                      return (
+                        <TextLink render={<Link to="/catalog" search={{ edition: catalog.id }} />}>
+                          {stable?.title ?? catalog.title} · {catalog.version}
+                        </TextLink>
+                      );
+                    })()}
+                  </KeyValue>
+                ) : null}
+                {variants.length ? (
+                  <KeyValue label="Products" wrap>
+                    <Stack space="space.050">
+                      {variants.map(({ system, lineage }) =>
+                        lineage ? (
+                          <TextLink
+                            key={system.id}
+                            render={
+                              <Link
+                                to="/library/products/$productKey"
+                                params={{ productKey: lineage.product.id }}
+                                search={{ version: lineage.revision.id }}
+                              />
+                            }
+                          >
+                            {lineage.label}
+                          </TextLink>
+                        ) : (
+                          <span key={system.id} className="text-subtle">
+                            {products.pending ? "Loading…" : "Unavailable product"}
+                          </span>
+                        ),
+                      )}
+                    </Stack>
+                  </KeyValue>
+                ) : null}
+                <KeyValue label="Program profiles" wrap>
+                  <Stack space="space.050">
+                    {(references.data ?? []).map((choice) => {
+                      const resolution = profileResolutions.data?.find(
+                        (row) => row.id === choice.profile_resolution_id,
+                      );
+                      const revision = profileRevisions.data?.find(
+                        (row) => row.id === resolution?.profile_revision_id,
+                      );
+                      const layered = !!resolution?.base_profile_resolution_id;
+                      const record = profiles.data?.find((row) => row.id === revision?.profile_id);
+                      if (revision && !record && profiles.isPending)
+                        return (
+                          <span key={choice.id} className="text-subtle">
+                            Loading…
+                          </span>
+                        );
+                      return revision ? (
+                        <Inline key={choice.id} space="space.075" alignBlock="center" shouldWrap>
+                          <TextLink
+                            render={
+                              <Link
+                                to="/profiles/$profileId"
+                                params={{ profileId: revision.profile_id }}
+                              />
+                            }
+                          >
+                            {record?.title ?? revision.title} · {revision.version}
+                          </TextLink>
+                          {layered && (
+                            <Badge size="xsmall" variant="secondary" tone="information">
+                              Tailored
+                            </Badge>
+                          )}
+                        </Inline>
+                      ) : (
+                        <span key={choice.id} className="text-subtle">
+                          Unavailable profile
+                        </span>
+                      );
+                    })}
+                  </Stack>
+                </KeyValue>
+              </>
+            ) : (
+              <Empty size="compact">
+                <EmptyHeader>
+                  <EmptyTitle>No references recorded</EmptyTitle>
+                  <EmptyDescription>
+                    A program made outside the setup flow records no catalog or profile choice.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
           </Inspector.Group>
         </Shell.Aside>
       )}

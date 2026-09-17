@@ -32,7 +32,7 @@ erDiagram
     controls ||--o{ selected_controls : source_control
 ```
 
-`oscal_document_revisions` retains the source UUID, OSCAL version, document version, original URI, content hash, original JSON, and metadata. Document imports can preserve an unresolved URI or pin a specific referenced revision. Catalog and profile identities, source authorities, resources, groups, parameter choices/constraints/values, tailoring rules, and selection provenance are supporting tables.
+`oscal_document_revisions` retains the source UUID, OSCAL version, document version, original URI, content hash, original JSON, and metadata. Document imports can preserve an unresolved URI or pin a specific referenced revision. Catalog and profile identities, source authorities, resources, groups, parameter choices/constraints/values, tailoring rules, and selection provenance are supporting tables. The stable `catalogs` and `profiles` records carry the short name the product shows (NIST SP 800-53 Rev 5, NIST SP 800-53 Rev 5 Low baseline); each `catalog_revisions` and `profile_revisions` row keeps the OSCAL document's own title for provenance and export, and a program overlay is named after its base's short name.
 
 A control part may belong to a control, a catalog group, or the catalog itself; the optional control relationship above preserves that distinction. Nested parts preserve their source identifiers and hierarchy. Profile imports select either a catalog revision or another profile revision. A resolution pins its input document revisions and resulting controls. The installed importer resolves the bundled NIST profiles' explicit selections and unchanged catalog ordering.
 

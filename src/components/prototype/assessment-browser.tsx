@@ -18,6 +18,10 @@ import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
 import { type DataRecord } from "@/lib/records";
 import { AssessmentTable } from "./assessment-table";
+import { ProgramCollection } from "./program-shared";
+import { RelationName } from "./record-tools";
+import { ImpactBadge } from "./system-assurance-details";
+import type { Impact } from "@/lib/system-assurance";
 import {
   DetailFacts,
   ModelForm,
@@ -28,19 +32,20 @@ import {
   type FormTarget,
 } from "./work-common";
 
-type AssessmentKind = "Campaigns" | "Events" | "Objectives";
-const tables: Record<AssessmentKind, FormTarget["table"]> = {
+type AssessmentKind = "Campaigns" | "Events" | "Objectives" | "Scopes";
+type AssessmentRecordKind = Exclude<AssessmentKind, "Scopes">;
+const tables: Record<AssessmentRecordKind, FormTarget["table"]> = {
   Campaigns: "assessment_campaigns",
   Events: "assessment_events",
   Objectives: "assessment_objectives",
 };
-const nouns: Record<AssessmentKind, string> = {
+const nouns: Record<AssessmentRecordKind, string> = {
   Campaigns: "campaign",
   Events: "event",
   Objectives: "objective",
 };
 
-/** Campaigns, their events and their objectives: three registers under one tab strip, each on the kit's table with its own search, chips and create action. Choosing a campaign opens its events with the Campaign chip already set. */
+/** Campaigns, their events, their objectives and, within a program, its assessment scopes: registers under one tab strip, each on the kit's table with its own search, chips and create action. Choosing a campaign opens its events with the Campaign chip already set. */
 export function AssessmentBrowser({ programId }: { programId?: string }) {
   const workspace = useWorkspace();
   const campaigns = useRows("assessment_campaigns", programId ? { program_id: programId } : {});
@@ -49,6 +54,8 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
   const objectives = useRows("assessment_objectives");
   const programs = useRows("programs");
   const parties = useRows("parties");
+  const systems = useRows("systems", programId ? { program_id: programId } : {});
+  const scopes = useRows("scopes");
   const [tab, setTab] = useState<AssessmentKind>("Campaigns");
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [form, setForm] = useState<FormTarget | null>(null);
@@ -79,6 +86,12 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
         plan: plan?.title ?? "Unavailable plan",
       };
     });
+  const systemIds = new Set((systems.data ?? []).map((system) => system.id));
+  const scopeRows = (scopes.data ?? []).filter((scope) => systemIds.has(scope.system_id));
+  const firstBoundary = (systems.data ?? []).find((system) => system.is_authorization_boundary);
+  const kinds: AssessmentKind[] = programId
+    ? ["Campaigns", "Events", "Objectives", "Scopes"]
+    : ["Campaigns", "Events", "Objectives"];
   const chosen = campaignId ? campaignTitle(campaignId) : null;
   const campaignFilter = chosen ? [{ id: "campaign", value: [chosen] }] : undefined;
   const selected = selection?.existing;
@@ -86,7 +99,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
     setSelection(null);
     setForm(target);
   }
-  const add = (kind: AssessmentKind, size: "small" | "medium") =>
+  const add = (kind: AssessmentRecordKind, size: "small" | "medium") =>
     workspace.role !== "viewer" ? (
       <Button
         size={size}
@@ -113,10 +126,12 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
   return (
     <Stack space="space.200">
       {form && <ModelForm target={form} onClose={() => setForm(null)} />}
-      <QueryState queries={[campaigns, plans, events, objectives, programs, parties]}>
+      <QueryState
+        queries={[campaigns, plans, events, objectives, programs, parties, systems, scopes]}
+      >
         <Tabs value={tab} onValueChange={(value) => setTab(value as AssessmentKind)}>
           <TabsList className="w-full justify-start" variant="line" activateOnFocus>
-            {(["Campaigns", "Events", "Objectives"] as const).map((name) => (
+            {kinds.map((name) => (
               <TabsTrigger value={name} key={name}>
                 {name}
                 <Count
@@ -125,7 +140,9 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                       ? campaignRows.length
                       : name === "Events"
                         ? eventRows.length
-                        : objectiveRows.length
+                        : name === "Objectives"
+                          ? objectiveRows.length
+                          : scopeRows.length
                   }
                 />
               </TabsTrigger>
@@ -304,6 +321,60 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
               }}
             />
           </TabsContent>
+          {programId && (
+            <TabsContent value="Scopes" className="pt-200">
+              <ProgramCollection
+                name="scopes"
+                fill
+                title="Assessment scopes"
+                description="A categorized subset of a system, used to scope implementation and assessment. Categorization recorded on a scope shows on its element as the element's provenance."
+                where={(record) => systemIds.has(String(record["system_id"]))}
+                initialValues={{ system_id: firstBoundary?.id ?? null }}
+                columns={[
+                  { key: "code", title: "Scope" },
+                  { key: "name", title: "Name" },
+                  {
+                    key: "system_id",
+                    title: "System",
+                    render: (record) => (
+                      <RelationName table="systems" id={String(record["system_id"])} />
+                    ),
+                  },
+                  {
+                    key: "composition_node_id",
+                    title: "Element",
+                    render: (record) =>
+                      record["composition_node_id"] ? (
+                        <RelationName table="systems" id={String(record["composition_node_id"])} />
+                      ) : (
+                        <span className="text-subtle">Whole system</span>
+                      ),
+                  },
+                  ...(["confidentiality", "integrity", "availability"] as const).map(
+                    (dimension) => ({
+                      key: `${dimension}_impact`,
+                      title:
+                        dimension === "confidentiality"
+                          ? "Conf."
+                          : dimension === "integrity"
+                            ? "Integ."
+                            : "Avail.",
+                      render: (record: DataRecord) => (
+                        <ImpactBadge
+                          value={(record[`${dimension}_impact`] as Impact | null) ?? null}
+                        />
+                      ),
+                    }),
+                  ),
+                ]}
+                createLabel="Add scope"
+                empty={{
+                  title: "No scopes yet",
+                  description: "Add a scope to categorize a subset of a system for assessment.",
+                }}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </QueryState>
       {selected && selection && !form && (

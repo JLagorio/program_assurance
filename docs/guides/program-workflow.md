@@ -10,16 +10,16 @@ WS-X90 exports include the paired profile and SSP, assessment plan and results, 
 
 WS-X90's SSP uses the current system tree, including renamed, moved, and added elements, their control selections, and saved implementation work. Parent relationships appear in component links and a supporting hierarchy resource. Imported record UUIDs remain stable; historical assessment results keep their recorded subjects.
 
-| Tab          | Purpose                                                                                                            |
-| ------------ | ------------------------------------------------------------------------------------------------------------------ |
-| System       | Define the system composition and assessment scopes.                                                               |
-| Requirements | Author requirements, map their sources and controls, allocate responsibility, and inspect verification coverage.   |
-| Controls     | Work the implementation statement and assessment for a control within a selected system scope.                     |
-| Evidence     | Find artifact references, see which records they support, and add, link, or review them.                           |
-| Assessments  | Plan assessment objectives and procedures, execute runs against named builds, and record observations and results. |
-| Findings     | Review the program's deficiencies, their supporting evidence, ownership, remediation, and retests.                 |
-| POA&M        | Manage remediation commitments, owners, due dates, milestones, and completion within the program.                  |
-| Schedule     | Coordinate the program plan, assessment windows, remediation milestones, tasks, and assignments.                   |
+| Tab          | Purpose                                                                                                                 |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| System       | Define the system composition: one tree of elements, each with its categorization, baseline, controls and requirements. |
+| Requirements | Author requirements, map their sources and controls, allocate responsibility, and inspect verification coverage.        |
+| Controls     | Work the implementation statement and assessment for a control within a selected system scope.                          |
+| Evidence     | Find artifact references, see which records they support, and add, link, or review them.                                |
+| Assessments  | Plan assessment objectives and procedures, execute runs against named builds, and record observations and results.      |
+| Findings     | Review the program's deficiencies, their supporting evidence, ownership, remediation, and retests.                      |
+| POA&M        | Manage remediation commitments, owners, due dates, milestones, and completion within the program.                       |
+| Schedule     | Coordinate the program plan, assessment windows, remediation milestones, tasks, and assignments.                        |
 
 The program tabs open their full registers. **System** is an editable hierarchy. Its toolbar places **Columns**, **Settings**, then an **Add** dropdown containing **Add subsystem** and **Add component**. **Edit** and **Move** are in each row's action menu. System-table counts and element previews link to requirements allocated to that element or controls applicable to it and its parts. These linked lists name the element and provide **Show all requirements/controls**; changing tabs clears the list filter. There is no shared Scope selector. **Manage control set** opens the element's existing Control set editor.
 

@@ -2,7 +2,7 @@ import { useId } from "react";
 import { Field, FieldLabel, Grid, Input, Section, Stack } from "@ledger/design-system";
 import type { Row } from "@/lib/models";
 import type { ProgramWizardDraft } from "@/lib/program-wizard";
-import { PartyField, TextField } from "./fields";
+import { PartyField, TextField } from "../fields";
 
 export function ProgramStep({
   draft,

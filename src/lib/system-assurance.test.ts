@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Row, TableName } from "./models";
-import { buildSystemAssuranceRows, type SystemAssuranceInput } from "./system-assurance";
+import {
+  baselineSource,
+  buildSystemAssuranceRows,
+  type SystemAssuranceInput,
+} from "./system-assurance";
 import type { SystemElement } from "./system-tree";
 
 const record = <T extends TableName>(value: Partial<Row<T>>) => value as Row<T>;
@@ -243,5 +247,52 @@ describe("system assurance projection", () => {
     expect(rows[0]?.subtreeScopeCount).toBe(0);
     expect(rows[0]?.childImpacts.confidentiality).toBeNull();
     expect(input.systems[0]).not.toHaveProperty("impacts");
+  });
+
+  it("counts exact allocations per element, unions them over the subtree, and names the effective profile", () => {
+    const allocation = (id: string, systemId: string | null, revisionId: string) =>
+      record<"requirement_allocations">({
+        id,
+        tenant_id: "tenant",
+        system_id: systemId,
+        requirement_revision_id: revisionId,
+      });
+    const rows = buildSystemAssuranceRows(
+      fixture({
+        baselines: [
+          baseline("root", "resolution", {
+            inherited: false,
+            source_label: "Explicit system adoption",
+          }),
+          baseline("child", "resolution", { source_label: "Inherited system adoption" }),
+          baseline("leaf", "resolution", { source_label: "Inherited system adoption" }),
+        ],
+        selections: selections("resolution", ["ac-1"]),
+        allocations: [
+          allocation("a", "root", "req-1"),
+          allocation("b", "child", "req-2"),
+          allocation("c", "child", "req-2"),
+          allocation("d", "leaf", "req-2"),
+          allocation("e", "leaf", "req-3"),
+          allocation("f", null, "req-4"),
+          allocation("g", "missing", "req-5"),
+        ],
+        resolutions: [
+          record<"profile_resolutions">({
+            id: "resolution",
+            profile_revision_id: "profile",
+            state: "draft",
+          }),
+        ],
+        profiles: [record<"profile_revisions">({ id: "profile", title: "NIST High" })],
+      }),
+    );
+    expect(rows.map((row) => row.requirementCount)).toEqual([1, 1, 2]);
+    expect(rows.map((row) => row.subtreeRequirementCount)).toEqual([3, 2, 2]);
+    expect(rows[0]?.baselineTitle).toBe("NIST High");
+    expect(rows[0]?.baselineDraft).toBe(true);
+    expect(baselineSource(rows[0]!)).toBe("Applied here");
+    expect(baselineSource(rows[1]!)).toBe("Inherited from root");
+    expect(baselineSource({ ...rows[2]!, effectiveBaseline: undefined })).toBe("Not set");
   });
 });

@@ -220,6 +220,7 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
   const offerings = useRows("offered_implementations");
   const resolution = useRow("profile_resolutions", plan.profile_resolution_id);
   const profile = useRow("profile_revisions", resolution.data?.profile_revision_id);
+  const profileRecord = useRow("profiles", profile.data?.profile_id);
   const partIds = useMemo(
     () =>
       [
@@ -255,6 +256,7 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
     effectiveBaselines,
     resolution,
     profile,
+    profileRecord,
   ];
   const loading = queries.some((query) => query.isPending);
   const error = queries.find((query) => query.error)?.error;
@@ -380,9 +382,9 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
   return (
     <Stack space="space.200">
       <p className="text-subtle">
-        Baseline: {profile.data?.title ?? "Loading stored profile…"}. This preview uses the SSP’s
-        exact stored selection. Implementation claims, supporting records and assessment conclusions
-        remain separate.
+        Baseline: {profileRecord.data?.title ?? "Loading stored profile…"}. This preview uses the
+        SSP’s exact stored selection. Implementation claims, supporting records and assessment
+        conclusions remain separate.
       </p>
       {!loading && !error && (
         <Inline space="space.100" shouldWrap>
