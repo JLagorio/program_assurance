@@ -196,7 +196,7 @@ export function AddRequirementDetailsDialog({
     >
       <DialogContent style={{ maxWidth: 760 }} showCloseButton={!busy}>
         <DialogHeader>
-          <DialogTitle>Add requirement details</DialogTitle>
+          <DialogTitle>Create requirement revision</DialogTitle>
           <DialogDescription>{requirement.data?.code}</DialogDescription>
         </DialogHeader>
         <form
@@ -210,6 +210,7 @@ export function AddRequirementDetailsDialog({
                 <Field>
                   <FieldLabel htmlFor={`${fieldId}-title`}>Title</FieldLabel>
                   <Input
+                    autoFocus
                     id={`${fieldId}-title`}
                     value={fields.title}
                     required
@@ -311,7 +312,7 @@ export function AddRequirementDetailsDialog({
               Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={busy || !canWrite}>
-              {busy ? "Saving…" : "Add requirement details"}
+              {busy ? "Saving…" : "Create requirement revision"}
             </Button>
           </DialogFooter>
         </form>

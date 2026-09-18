@@ -242,6 +242,7 @@ Screens import the package's documented APIs.
 - `docs/superpowers/specs/2026-09-02-navigation-system.md`: the shell on Atlassian's grammar, what was
   left out, and the prototype's cutover plan.
 - `docs/next.md`: the living list of what is next and what is waiting on a decision.
+- `packages/design-system/AGENTS.md`: the entry point for a coding agent working on the package; it points here, at the Storybook's Guidance/Agents page and at the checks. `packages/design-system/llms.txt` is the Storybook as one generated file.
 
 ## Forms
 

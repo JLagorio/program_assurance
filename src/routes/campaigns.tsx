@@ -4,7 +4,7 @@ import { AssessmentBrowser } from "@/components/prototype/assessment-browser";
 
 export const Route = createFileRoute("/campaigns")({
   component: CampaignsLayout,
-  head: () => ({ meta: [{ title: "Test campaigns — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Assessment campaigns — Program Assurance" }] }),
 });
 function CampaignsLayout() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -12,9 +12,9 @@ function CampaignsLayout() {
   return (
     <Stack space="space.200" className="min-w-0">
       <PageHeader>
-        <div className="min-w-0">
-          <PageHeader.Title>Test campaigns</PageHeader.Title>
-        </div>
+        <PageHeader.Heading>
+          <PageHeader.Title>Assessment campaigns</PageHeader.Title>
+        </PageHeader.Heading>
       </PageHeader>
       <AssessmentBrowser />
     </Stack>

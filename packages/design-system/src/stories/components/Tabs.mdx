@@ -29,9 +29,9 @@ Routes compose Tabs, TabsList and TabsContent directly; route state controls the
 
 ## Variants
 
-`TabsList` supports shadcn's `default` filled strip and `line` underline. Ledger retains its color, spacing and focus tokens; line tabs remain 32px tall on a border, with a 2px brand underline made with CSS. Horizontal line tabs fill the available width and align to the start. Their border continues across the container even when only a few tabs exist.
+`TabsList` supports shadcn's `default` filled strip and `line` underline. Ledger retains its color, spacing and focus tokens; line tabs remain 32px tall on a border, with a 2px brand underline. One Base UI Indicator follows the selected tab, sliding and resizing over the moderate motion duration (240ms). The filled strip moves its raised selection surface in the same way. Horizontal line tabs fill the available width and align to the start. Their border continues across the container even when only a few tabs exist.
 
-Horizontal line tabs use the kit's `ScrollArea` and horizontal `ScrollBar`. They stay on one row at every container width, including narrow preview panels. Touch, trackpad, scrollbar dragging and arrow-key focus can reach the overflowed tabs. Do not add `flex-wrap`, an overflow utility or another scroller to `TabsList`. Size the `Tabs` container when a bounded example is needed; the List handles its own width and scrolling.
+Horizontal line tabs use the kit's `ScrollArea` and horizontal `ScrollBar` inside a horizontal [Scroller](?path=/docs/components-scroller--docs), whose click arrows mark the overflowed edge for pointer readers and replace the scrollbar while they show; touch readers swipe with the bar. They stay on one row at every container width, including narrow preview panels. Touch, trackpad, scrollbar dragging and arrow-key focus can reach the overflowed tabs. Do not add `flex-wrap`, an overflow utility or another scroller to `TabsList`. Size the `Tabs` container when a bounded example is needed; the List handles its own width and scrolling.
 
 The default filled strip fits its content. Record pages and previews explicitly use `variant="line"`; `activateOnFocus` remains an independent choice. Vertical lists retain their vertical layout and do not receive a horizontal scroller. The exported `tabsListVariants` recipe supplies list styling; the `TabsList` component also supplies the horizontal scrolling composition.
 
@@ -53,7 +53,11 @@ A navigation tab uses `nativeButton={false}` and `render={<Link ... />}` or an a
 
 <Canvas of={Stories.Links} />
 
-Inactive panels unmount by default. `keepMounted` retains their state; hidden panels remain hidden even with a display class, and Base UI makes their controls inert. Reduced motion removes the underline's opacity transition. The stories exercise keyboard behavior and run accessibility checks in both color modes.
+Inactive panels unmount by default. `keepMounted` retains their state; hidden panels remain hidden even with a display class, and Base UI makes their controls inert. The arriving panel fades from 0.65 opacity and rises 4px over the medium duration (150ms). The outgoing panel hides immediately so two views never occupy layout together. A controlled route that reuses one panel with a changing value replays its entrance without remounting children or resetting retained input state.
+
+Reduced motion disables both indicator movement and panel entrance. The Motion story samples rendered frames for filled, line, RTL, vertical and reused-panel examples; the dark test project uses reduced motion. Keyboard, link and retained-state stories run in both color modes.
+
+<Canvas of={Stories.Motion} />
 
 ## Props
 

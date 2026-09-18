@@ -250,11 +250,11 @@ export function ProgramWizard() {
     <Stack className="animate-rise" space="space.250">
       <PageHeader>
         <PageHeader.Lead className="font-body text-subtle">Programs</PageHeader.Lead>
-        <div className="min-w-0">
+        <PageHeader.Heading>
           <PageHeader.Title>
             {draft.name.trim() ? `New program · ${draft.name.trim()}` : "New program"}
           </PageHeader.Title>
-        </div>
+        </PageHeader.Heading>
       </PageHeader>
       {!writable ? (
         <p role="alert" className="text-subtle">

@@ -29,6 +29,8 @@ Use `InputGroupInput` inside InputGroup when the field has addons. Input itself 
 
 `medium` is 32px; `small` is 28px beside toolbar actions. Native `type`, `inputMode`, `readOnly`, `disabled`, `maxLength` and form attributes retain their meanings. The layout sets width. Disabled controls leave the tab order; read-only values remain focusable and copyable.
 
+Focus draws one continuous 2px edge over the field border, without a gap or a second ring. Invalid fields keep that edge in the error color. The field and its text stay in place when focus changes; InputGroup owns the edge when the input has addons.
+
 <Canvas of={Stories.InputMatrix} />
 <Canvas of={Stories.InField} />
 <Canvas of={Stories.Kinds} />

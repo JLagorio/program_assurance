@@ -118,6 +118,7 @@ export function AssessmentCampaign({
     return writable ? (
       <Button
         size="small"
+        variant="primary"
         disabled={!!form || plans.isPending || plans.isError || (needsPlan && !plan)}
         onClick={() => edit(contextual)}
       >
@@ -161,18 +162,16 @@ export function AssessmentCampaign({
                 }
               />
             </Section>
-            <Section
-              title="Assessment plans"
-              action={add("Add plan revision", {
-                table: "assessment_plan_revisions",
-                initialValues: {
-                  campaign_id: campaign.id,
-                  version_number: (planRows[0]?.version_number ?? 0) + 1,
-                },
-              })}
-            >
+            <Section title="Assessment plans">
               <QueryState queries={[plans]}>
                 <AssessmentTable
+                  actions={add("Add plan revision", {
+                    table: "assessment_plan_revisions",
+                    initialValues: {
+                      campaign_id: campaign.id,
+                      version_number: (planRows[0]?.version_number ?? 0) + 1,
+                    },
+                  })}
                   model="assessment_plan_revisions"
                   selectedId={
                     selection?.table === "assessment_plan_revisions"
@@ -216,15 +215,13 @@ export function AssessmentCampaign({
                 />
               </QueryState>
             </Section>
-            <Section
-              title="Events"
-              action={add("Add event", {
-                table: "assessment_events",
-                initialValues: { campaign_id: campaign.id },
-              })}
-            >
+            <Section title="Events">
               <QueryState queries={[events]}>
                 <AssessmentTable
+                  actions={add("Add event", {
+                    table: "assessment_events",
+                    initialValues: { campaign_id: campaign.id },
+                  })}
                   model="assessment_events"
                   selectedId={
                     selection?.table === "assessment_events" ? selection.existing?.id : undefined
@@ -263,12 +260,10 @@ export function AssessmentCampaign({
                 />
               </QueryState>
             </Section>
-            <Section
-              title="Objectives"
-              action={add("Add objective", { table: "assessment_objectives" })}
-            >
+            <Section title="Objectives">
               <QueryState queries={[plans, objectives]}>
                 <AssessmentTable
+                  actions={add("Add objective", { table: "assessment_objectives" })}
                   model="assessment_objectives"
                   selectedId={
                     selection?.table === "assessment_objectives"
@@ -303,12 +298,10 @@ export function AssessmentCampaign({
                 />
               </QueryState>
             </Section>
-            <Section
-              title="Activities"
-              action={add("Add activity", { table: "assessment_activities" })}
-            >
+            <Section title="Activities">
               <QueryState queries={[plans, activities]}>
                 <AssessmentTable
+                  actions={add("Add activity", { table: "assessment_activities" })}
                   model="assessment_activities"
                   selectedId={
                     selection?.table === "assessment_activities"
@@ -339,12 +332,10 @@ export function AssessmentCampaign({
                 />
               </QueryState>
             </Section>
-            <Section
-              title="Scheduled assessment tasks"
-              action={add("Add assessment task", { table: "scheduled_assessment_tasks" })}
-            >
+            <Section title="Scheduled assessment tasks">
               <QueryState queries={[plans, scheduled, parties]}>
                 <AssessmentTable
+                  actions={add("Add assessment task", { table: "scheduled_assessment_tasks" })}
                   model="scheduled_assessment_tasks"
                   selectedId={
                     selection?.table === "scheduled_assessment_tasks"
@@ -392,15 +383,13 @@ export function AssessmentCampaign({
         </TabsContent>
         <TabsContent value="Procedures">
           <Stack space="space.300" className="pt-200">
-            <Section
-              title="Procedures"
-              action={add("Add procedure", {
-                table: "procedures",
-                initialValues: { program_id: campaign.program_id },
-              })}
-            >
+            <Section title="Procedures">
               <QueryState queries={[procedures, revisions, runs, events, plans]}>
                 <AssessmentTable
+                  actions={add("Add procedure", {
+                    table: "procedures",
+                    initialValues: { program_id: campaign.program_id },
+                  })}
                   model="procedures"
                   selectedId={
                     selection?.table === "procedures" ? selection.existing?.id : undefined
@@ -428,12 +417,10 @@ export function AssessmentCampaign({
                 />
               </QueryState>
             </Section>
-            <Section
-              title="Procedure revisions"
-              action={add("Add procedure revision", { table: "procedure_revisions" })}
-            >
+            <Section title="Procedure revisions">
               <QueryState queries={[procedures, revisions, runs, events, plans]}>
                 <AssessmentTable
+                  actions={add("Add procedure revision", { table: "procedure_revisions" })}
                   model="procedure_revisions"
                   selectedId={
                     selection?.table === "procedure_revisions" ? selection.existing?.id : undefined
@@ -470,52 +457,49 @@ export function AssessmentCampaign({
           </Stack>
         </TabsContent>
         <TabsContent value="Runs">
-          <Section title="Recorded runs" action={add("Add test run", { table: "test_runs" })}>
-            <div className="pt-200">
-              <QueryState queries={[runs, events, plans, revisions, parties]}>
-                <AssessmentTable
-                  model="test_runs"
-                  selectedId={selection?.table === "test_runs" ? selection.existing?.id : undefined}
-                  onDisplayedRowsChange={(rows) =>
-                    setDisplayed((previous) => ({ ...previous, test_runs: rows as DataRecord[] }))
-                  }
-                  label="Test runs"
-                  rows={runRows}
-                  columns={[
-                    { key: "title", label: "Run", value: (row) => row.title },
-                    {
-                      label: "Procedure revision",
-                      value: (row) =>
-                        revisions.data?.find(
-                          (revision) => revision.id === row.procedure_revision_id,
-                        )?.title ?? "Unavailable procedure",
-                    },
-                    {
-                      label: "State",
-                      value: (row) => <StatusBadge value={row.status} />,
-                      width: 125,
-                    },
-                    {
-                      label: "Assessor",
-                      value: (row) =>
-                        row.assessor_party_id
-                          ? (parties.data?.find((party) => party.id === row.assessor_party_id)
-                              ?.name ?? "Unavailable person")
-                          : "Not recorded",
-                      width: 170,
-                    },
-                    {
-                      key: "completed_at",
-                      label: "Completed",
-                      value: (row) => displayDate(row.completed_at),
-                      width: 140,
-                    },
-                  ]}
-                  onPreview={(row) => inspect({ table: "test_runs", existing: row as DataRecord })}
-                />
-              </QueryState>
-            </div>
-          </Section>
+          <QueryState queries={[runs, events, plans, revisions, parties]}>
+            <AssessmentTable
+              model="test_runs"
+              fill
+              actions={add("Create test run", { table: "test_runs" })}
+              selectedId={selection?.table === "test_runs" ? selection.existing?.id : undefined}
+              onDisplayedRowsChange={(rows) =>
+                setDisplayed((previous) => ({ ...previous, test_runs: rows as DataRecord[] }))
+              }
+              label="Test runs"
+              rows={runRows}
+              columns={[
+                { key: "title", label: "Run", value: (row) => row.title },
+                {
+                  label: "Procedure revision",
+                  value: (row) =>
+                    revisions.data?.find((revision) => revision.id === row.procedure_revision_id)
+                      ?.title ?? "Unavailable procedure",
+                },
+                {
+                  label: "State",
+                  value: (row) => <StatusBadge value={row.status} />,
+                  width: 125,
+                },
+                {
+                  label: "Assessor",
+                  value: (row) =>
+                    row.assessor_party_id
+                      ? (parties.data?.find((party) => party.id === row.assessor_party_id)?.name ??
+                        "Unavailable person")
+                      : "Not recorded",
+                  width: 170,
+                },
+                {
+                  key: "completed_at",
+                  label: "Completed",
+                  value: (row) => displayDate(row.completed_at),
+                  width: 140,
+                },
+              ]}
+              onPreview={(row) => inspect({ table: "test_runs", existing: row as DataRecord })}
+            />
+          </QueryState>
         </TabsContent>
         <TabsContent value="Regression">
           <QueryState queries={[runs, events, plans]}>
@@ -586,7 +570,7 @@ function CampaignInspector({
         }
       : target.table === "assessment_events"
         ? {
-            label: "Record test run",
+            label: productCreateLabel("test_runs"),
             onClick: () =>
               onEdit({
                 table: "test_runs",
@@ -597,6 +581,15 @@ function CampaignInspector({
               }),
           }
         : null;
+  const planContentTables =
+    target.table === "assessment_plan_revisions"
+      ? ([
+          "assessment_objectives",
+          "assessment_activities",
+          "scheduled_assessment_tasks",
+          "assessment_subjects",
+        ] as const)
+      : [];
   return renderFrame({
     actions: writable && (
       <>
@@ -609,7 +602,7 @@ function CampaignInspector({
             {relatedAction.label}
           </Button>
         ) : null}
-        {draft && relatedAction && (
+        {draft && (relatedAction || planContentTables.length > 0) && (
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -622,9 +615,19 @@ function CampaignInspector({
               }
             />
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={relatedAction.onClick}>
-                {relatedAction.label}
-              </DropdownMenuItem>
+              {relatedAction && (
+                <DropdownMenuItem onClick={relatedAction.onClick}>
+                  {relatedAction.label}
+                </DropdownMenuItem>
+              )}
+              {planContentTables.map((table) => (
+                <DropdownMenuItem
+                  key={table}
+                  onClick={() => onEdit({ table, initialValues: { plan_revision_id: record.id } })}
+                >
+                  {productCreateLabel(table)}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -661,28 +664,6 @@ function CampaignInspector({
               ),
             ])}
         />
-        {target.table === "assessment_plan_revisions" && writable && draft && (
-          <Section title="Plan contents">
-            <Inline space="space.100" shouldWrap>
-              {(
-                [
-                  "assessment_objectives",
-                  "assessment_activities",
-                  "scheduled_assessment_tasks",
-                  "assessment_subjects",
-                ] as const
-              ).map((table) => (
-                <Button
-                  size="small"
-                  key={table}
-                  onClick={() => onEdit({ table, initialValues: { plan_revision_id: record.id } })}
-                >
-                  {productCreateLabel(table)}
-                </Button>
-              ))}
-            </Inline>
-          </Section>
-        )}
         {target.table === "assessment_activities" && (
           <ActivitySteps activity={record as Row<"assessment_activities">} onEdit={onEdit} />
         )}
@@ -703,30 +684,30 @@ function ActivitySteps({
   const plan = useRow("assessment_plan_revisions", activity.plan_revision_id);
   const editable = workspace.role !== "viewer" && plan.data?.state === "draft";
   return (
-    <Section
-      title="Activity steps"
-      action={
-        editable ? (
-          <Button
-            size="small"
-            onClick={() =>
-              onEdit({
-                table: "activity_steps",
-                initialValues: {
-                  activity_id: activity.id,
-                  plan_revision_id: activity.plan_revision_id,
-                },
-              })
-            }
-          >
-            Create activity step
-          </Button>
-        ) : undefined
-      }
-    >
+    <Section title="Activity steps">
       <QueryState queries={[steps, plan]}>
         <AssessmentTable<Row<"activity_steps">>
+          actions={
+            editable ? (
+              <Button
+                size="small"
+                variant="primary"
+                onClick={() =>
+                  onEdit({
+                    table: "activity_steps",
+                    initialValues: {
+                      activity_id: activity.id,
+                      plan_revision_id: activity.plan_revision_id,
+                    },
+                  })
+                }
+              >
+                Create activity step
+              </Button>
+            ) : undefined
+          }
           model="activity_steps"
+          readOnly={!editable}
           label="Activity steps"
           rows={[...(steps.data ?? [])].sort((a, b) => a.sequence_number - b.sequence_number)}
           columns={[
@@ -773,7 +754,7 @@ function ProcedureInspector({
         variant="primary"
         onClick={() => onEdit({ table: "procedure_revisions", existing: revision as DataRecord })}
       >
-        Edit revision
+        Edit procedure revision
       </Button>
     ),
     content: (
@@ -787,27 +768,27 @@ function ProcedureInspector({
             ["Acceptance criterion", revision.acceptance_criterion],
           ]}
         />
-        <Section
-          title="Steps"
-          action={
-            editable ? (
-              <Button
-                size="small"
-                onClick={() =>
-                  onEdit({
-                    table: "procedure_steps",
-                    initialValues: { procedure_revision_id: revision.id },
-                  })
-                }
-              >
-                Create procedure step
-              </Button>
-            ) : undefined
-          }
-        >
+        <Section title="Steps">
           <QueryState queries={[steps]}>
             <AssessmentTable<Row<"procedure_steps">>
+              actions={
+                editable ? (
+                  <Button
+                    size="small"
+                    variant="primary"
+                    onClick={() =>
+                      onEdit({
+                        table: "procedure_steps",
+                        initialValues: { procedure_revision_id: revision.id },
+                      })
+                    }
+                  >
+                    Create procedure step
+                  </Button>
+                ) : undefined
+              }
               model="procedure_steps"
+              readOnly={!editable}
               label="Procedure steps"
               rows={[...(steps.data ?? [])].sort((a, b) => a.sequence_number - b.sequence_number)}
               columns={[
@@ -901,7 +882,7 @@ function RunInspector({
               disabled={save.isPending}
               onClick={() => onEdit({ table: "test_runs", existing: run as DataRecord })}
             >
-              Edit run
+              Edit test run
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -940,6 +921,7 @@ function RunInspector({
               <QueryState queries={[steps, results]}>
                 <AssessmentTable<Row<"procedure_steps">>
                   model="procedure_steps"
+                  readOnly={!editable}
                   label="Step results"
                   rows={[...(steps.data ?? [])].sort(
                     (a, b) => a.sequence_number - b.sequence_number,
@@ -1049,16 +1031,57 @@ function RunObservations({
         <QueryState queries={[observations]}>
           <AssessmentTable
             model="observations"
+            readOnly={workspace.role === "viewer"}
+            onEdit={
+              workspace.role !== "viewer"
+                ? (row) => onEdit({ table: "observations", existing: row as DataRecord })
+                : undefined
+            }
+            actions={
+              workspace.role !== "viewer" && resultsReady && results.length > 0 ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button size="small" variant="primary">
+                        Create observation
+                      </Button>
+                    }
+                  />
+                  <DropdownMenuContent align="end">
+                    {results.map((result) => (
+                      <DropdownMenuItem
+                        key={result.id}
+                        onClick={() =>
+                          onEdit({
+                            table: "observations",
+                            initialValues: {
+                              step_result_id: result.id,
+                              ...(run.assessment_event_id
+                                ? { assessment_event_id: run.assessment_event_id }
+                                : {}),
+                              ...(run.assessor_party_id
+                                ? { observer_party_id: run.assessor_party_id }
+                                : {}),
+                            },
+                          })
+                        }
+                      >
+                        Step{" "}
+                        {steps.find((step) => step.id === result.procedure_step_id)
+                          ?.sequence_number ?? result.procedure_step_id}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : undefined
+            }
             label="Observations"
             rows={rows}
             columns={[
               {
+                key: "title",
                 label: "Observation",
-                value: (row) => (
-                  <SchemaLink table="observations" id={row.id}>
-                    {row.title}
-                  </SchemaLink>
-                ),
+                value: (row) => row.title,
               },
               { label: "Method", value: (row) => labelFor(row.method), width: 110 },
               {
@@ -1072,32 +1095,6 @@ function RunObservations({
         </QueryState>
       ) : (
         <p className="text-subtle">Step results must load before observations can be shown.</p>
-      )}
-      {workspace.role !== "viewer" && resultsReady && results.length > 0 && (
-        <Inline space="space.100" shouldWrap>
-          {results.map((result) => (
-            <Button
-              key={result.id}
-              size="small"
-              onClick={() =>
-                onEdit({
-                  table: "observations",
-                  initialValues: {
-                    step_result_id: result.id,
-                    ...(run.assessment_event_id
-                      ? { assessment_event_id: run.assessment_event_id }
-                      : {}),
-                    ...(run.assessor_party_id ? { observer_party_id: run.assessor_party_id } : {}),
-                  },
-                })
-              }
-            >
-              Record observation for step{" "}
-              {steps.find((step) => step.id === result.procedure_step_id)?.sequence_number ??
-                result.procedure_step_id}
-            </Button>
-          ))}
-        </Inline>
       )}
     </Stack>
   );

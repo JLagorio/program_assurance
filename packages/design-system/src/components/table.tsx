@@ -143,9 +143,10 @@ export type PinnedProps = {
 const rule = "after:pointer-events-none after:absolute after:inset-y-0 after:border-default";
 
 // The header's hairline is the cell's own for the same reason: a collapsed border stays put while
-// the sticky heading moves, so the line would scroll away with the first row.
+// the sticky heading moves, so the line would scroll away with the first row. Paint it above the
+// trailing controls' opaque hover background so that background cannot interrupt the rule.
 const HEADER_RULE =
-  "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:border-b before:border-default";
+  "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:z-10 before:border-b before:border-default";
 const edgeClass = {
   start: {
     rest: `${rule} after:end-0 after:border-e`,
@@ -464,7 +465,7 @@ function IdCell({
             className={cn(
               "absolute inset-y-0 end-0 flex items-center ps-050 opacity-0 transition-opacity duration-fast ease-standard",
               "bg-surface-current group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected",
-              "focus-within:opacity-100 group-hover/row:opacity-100",
+              "focus-within:opacity-100 group-hover/row:opacity-100 [@media(hover:none)]:opacity-100",
               // the row whose preview is open keeps its eye, so the reader can see which row it is
               isActive && "opacity-100",
             )}

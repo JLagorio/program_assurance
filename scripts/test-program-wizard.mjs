@@ -72,6 +72,35 @@ async function rowMenu(name, item) {
   await page.getByRole("button", { name: `Row actions for ${name}`, exact: true }).click();
   await page.getByRole("menuitem", { name: item, exact: true }).click();
 }
+async function checkTailoringPhone(dialog, field, operation, artifact) {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await field.scrollIntoViewIfNeeded();
+  const bounds = await dialog.boundingBox();
+  const fieldBounds = await field.boundingBox();
+  const submit = dialog.getByRole("button", { name: operation, exact: true });
+  const submitBounds = await submit.boundingBox();
+  assert.ok(
+    bounds && bounds.x >= 0 && bounds.x + bounds.width <= 391,
+    "Tailoring dialog fits the phone",
+  );
+  assert.ok(
+    fieldBounds &&
+      fieldBounds.width >= 180 &&
+      fieldBounds.x >= bounds.x &&
+      fieldBounds.x + fieldBounds.width <= bounds.x + bounds.width,
+    "Tailoring fields remain readable within the dialog",
+  );
+  assert.ok(
+    submitBounds && submitBounds.y >= 0 && submitBounds.y + submitBounds.height <= 845,
+    "Tailoring footer stays visible outside the scrolling fields",
+  );
+  assert.ok(
+    await submit.evaluate((button) => button.form !== null),
+    "Tailoring footer owns its form",
+  );
+  await page.screenshot({ path: `/tmp/program-wizard-${artifact}-mobile.png` });
+  await page.setViewportSize({ width: 1700, height: 1100 });
+}
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 try {
@@ -138,10 +167,10 @@ try {
   await page.getByRole("checkbox", { name: lowTitle, exact: true }).check();
   await page.getByRole("link", { name: "Open profile", exact: true }).first().waitFor();
   await page.getByRole("button", { name: "Tailor for this program…", exact: true }).click();
-  await page.getByRole("button", { name: "Tailor controls…", exact: true }).click();
-  for (const [code, action, rationale] of [
-    ["AC-2", "exclusion", "Account management is outside this validation boundary."],
-    ["AC-4", "inclusion", "The message service requires explicit information flow enforcement."],
+  await page.getByRole("button", { name: "Tailor controls", exact: true }).click();
+  for (const [code, rationale] of [
+    ["AC-2", "Account management is outside this validation boundary."],
+    ["AC-4", "The message service requires explicit information flow enforcement."],
   ]) {
     await page.getByLabel("Search catalog controls", { exact: true }).fill(code);
     const control = (await rows("controls", { catalog_revision_id: catalogs[0].id, code }))[0];
@@ -152,13 +181,30 @@ try {
     await page
       .getByRole("textbox", { name: "Control decision rationale", exact: true })
       .fill(rationale);
-    await page.getByRole("button", { name: `Record ${action}`, exact: true }).click();
+    const apply = page
+      .getByRole("dialog", { name: "Tailor controls", exact: true })
+      .getByRole("button", { name: "Tailor controls", exact: true });
+    assert.ok(
+      await apply.evaluate((button) => button.form !== null),
+      "Tailoring footer submits its control form",
+    );
+    await apply.click();
+    await page.getByRole("status").filter({ hasText: "Decision recorded in the draft." }).waitFor();
   }
   await page.screenshot({ path: "/tmp/program-wizard-control-picker.png", fullPage: true });
-  await page.getByRole("dialog").getByRole("button", { name: "Done", exact: true }).click();
+  await checkTailoringPhone(
+    page.getByRole("dialog", { name: "Tailor controls", exact: true }),
+    page.getByRole("textbox", { name: "Control decision rationale", exact: true }),
+    "Tailor controls",
+    "control-picker",
+  );
+  await page
+    .getByRole("dialog", { name: "Tailor controls", exact: true })
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page.getByRole("tab", { name: /^Parameters/ }).click();
-  await page.getByRole("button", { name: "Set parameter values…", exact: true }).click();
+  await page.getByRole("button", { name: "Set parameter values", exact: true }).click();
   await page.getByLabel("Search parameters", { exact: true }).fill("ac-1_prm_1");
   const parameter = (
     await rows("parameters", { catalog_revision_id: catalogs[0].id, source_id: "ac-1_prm_1" })
@@ -173,9 +219,18 @@ try {
   await page
     .getByRole("textbox", { name: "Parameter override rationale", exact: true })
     .fill("This team owns policy distribution for this program.");
-  await page.getByRole("button", { name: "Record parameter override", exact: true }).click();
+  await page.getByRole("button", { name: "Set parameter values", exact: true }).click();
   await page.getByRole("status").filter({ hasText: "Parameter override recorded" }).waitFor();
-  await page.getByRole("dialog").getByRole("button", { name: "Done", exact: true }).click();
+  await checkTailoringPhone(
+    page.getByRole("dialog", { name: "Set parameter values", exact: true }),
+    page.getByRole("textbox", { name: "Parameter override rationale", exact: true }),
+    "Set parameter values",
+    "parameter-picker",
+  );
+  await page
+    .getByRole("dialog", { name: "Set parameter values", exact: true })
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page.getByRole("tab", { name: /^Controls/ }).click();
   const editorText = await page.locator("body").innerText();

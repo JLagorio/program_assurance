@@ -1,14 +1,22 @@
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import {
   Badge,
+  Box,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
   Button,
   Checkbox,
   DataTable,
   Field,
+  Grid,
   FieldLabel,
   Id,
-  Inline,
   Input,
+  Inline,
   PickerSheet,
   Select,
   SelectContent,
@@ -16,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
   Stack,
-  Table,
   Textarea,
   defineColumns,
   toast,
@@ -32,6 +39,11 @@ import {
 import type { SystemAssuranceRow } from "@/lib/system-assurance";
 import { profileChoices, type ProfileChoice } from "./system-baseline";
 import { elementTypeForComponent } from "@/lib/library-items";
+
+import { RecordLink } from "./record-preview";
+import { ProductCollection } from "./product-collection";
+import { QueryState } from "./work-common";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 
 type Source = "component" | "profile" | "requirement";
 const sourceLabels: Record<Source, string> = {
@@ -134,6 +146,17 @@ export function AddFromLibrary({
   );
   const [error, setError] = useState("");
   const requestId = useRef(crypto.randomUUID());
+  const formId = useId();
+  const handingOff = useRef(false);
+  const guard = useDraftGuard({
+    dirty:
+      !!chosenId ||
+      !!rationale ||
+      Object.keys(elementSpecs).length > 0 ||
+      excluded.size > 0 ||
+      replaceAdoption.size > 0,
+    onClose,
+  });
   const plan = [...(plans.data ?? [])]
     .filter((row) => row.state === "draft")
     .sort((a, b) => b.version_number - a.version_number)[0];
@@ -276,16 +299,15 @@ export function AddFromLibrary({
         c.id("code", {
           header: source === "requirement" ? "Requirement" : "Item",
           width: 150,
-          active: (row) => row.id === chosenId,
           cell: (row) => <Id>{row.code}</Id>,
         }),
-        c.text("name", { header: "Name", minWidth: 200, hideable: false }),
+        c.text("name", { header: "Name", minWidth: 200, priority: 0, hideable: false }),
         c.text("detail", { header: "Detail", minWidth: 200, wrap: true }),
         c.text("category", { header: "Category", width: 160 }),
         c.text("version", { header: "Version", width: 90 }),
         ...(source === "component" ? [c.number("claims", { header: "Controls", width: 96 })] : []),
       ]),
-    [source, chosenId],
+    [source],
   );
   const table = useDataTable({
     columns,
@@ -293,6 +315,14 @@ export function AddFromLibrary({
     getRowId: (row) => row.id,
     label: "Library items",
     view: `add-from-library-${source}`,
+    selectable: true,
+    enableMultiRowSelection: false,
+    state: { rowSelection: chosenId ? { [chosenId]: true as const } : {} },
+    onRowSelectionChange: (next) => {
+      const previous = chosenId ? { [chosenId]: true as const } : {};
+      const value = typeof next === "function" ? next(previous) : next;
+      setChosenId(Object.keys(value).find((id) => value[id]) ?? null);
+    },
   });
   const targets = useMemo(
     () => (scope === "inside" ? [element, ...inside(element, rows)] : [element]),
@@ -341,9 +371,18 @@ export function AddFromLibrary({
           : "not_in_baseline";
   const cellKey = (targetId: string, claimControlId: string) => `${targetId}:${claimControlId}`;
   const willWrite = targets.filter((target) => !alreadyApplied(target)).length;
-  const busy = apply.isPending || adoptBaseline.isPending || adoptRequirement.isPending;
+  const busy = guard.busy;
   async function submit() {
-    if (!chosen) return;
+    if (!chosen || busy) return;
+    if (needsRationale || elementSpecsMissing) {
+      setError(
+        needsRationale
+          ? "Explain why this library item applies here."
+          : "Enter a code and name for every new element.",
+      );
+      return;
+    }
+    if (!guard.start()) return;
     setError("");
     try {
       if (source === "component") {
@@ -430,9 +469,11 @@ export function AddFromLibrary({
           description: `${plural(result.allocations, "element")} allocated.`,
         });
       }
-      onClose();
+      guard.complete();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The library item could not be applied.");
+    } finally {
+      guard.finish();
     }
   }
   const needsRationale = source !== "requirement" && !rationale.trim();
@@ -446,78 +487,339 @@ export function AddFromLibrary({
     source === "component" &&
     asElement &&
     targets.some((target) => !elementSpec(target).code.trim() || !elementSpec(target).name.trim());
+  const claimRows = claims.flatMap(({ implementation, control }) =>
+    targets.map((target) => ({
+      id: cellKey(target.id, implementation.control_id!),
+      target,
+      implementation,
+      control,
+      name: control ? `${control.code} · ${control.title}` : "Control",
+      targetName: `${target.code} · ${target.name}`,
+      coverage: labelFor(implementation.coverage),
+      state: cellState(target, implementation.control_id!),
+    })),
+  );
+  const claimColumns = defineColumns<(typeof claimRows)[number]>((c) => [
+    c.id("name", {
+      header: "Control",
+      priority: 0,
+      minWidth: 200,
+      cell: (row) =>
+        row.control ? (
+          <RecordLink table="controls" record={row.control}>
+            {row.name}
+          </RecordLink>
+        ) : (
+          row.name
+        ),
+    }),
+    c.text("targetName", { header: "Target", minWidth: 160, wrap: true }),
+    c.text("coverage", { header: "Coverage", width: 110 }),
+    c.text("state", {
+      header: "Result",
+      minWidth: 180,
+      cell: (row) =>
+        row.state === "seed" ? (
+          <label>
+            <Checkbox
+              aria-label={`Seed ${row.control?.code ?? "control"} on ${row.target.code}`}
+              checked={!excluded.has(row.id)}
+              onCheckedChange={(checked) =>
+                setExcluded((previous) => {
+                  const next = new Set(previous);
+                  if (checked) next.delete(row.id);
+                  else next.add(row.id);
+                  return next;
+                })
+              }
+            />
+            {excluded.has(row.id) ? "Excluded" : "Will seed"}
+          </label>
+        ) : row.state === "already_applied" ? (
+          "Already applied"
+        ) : row.state === "no_ssp" ? (
+          "No draft SSP"
+        ) : (
+          "Not in baseline"
+        ),
+    }),
+  ]);
+  const claimTable = useDataTable({
+    columns: claimColumns,
+    data: claimRows,
+    getRowId: (row) => row.id,
+    label: "What will be written",
+  });
+  if (frame === "confirm")
+    return (
+      <Dialog
+        open
+        onOpenChange={(open, details) => {
+          if (!open) {
+            details.cancel();
+            void guard.close();
+          }
+        }}
+      >
+        <DialogContent style={{ maxWidth: 880 }} showCloseButton={!busy}>
+          <DialogHeader>
+            <DialogTitle>Add from library</DialogTitle>
+            <DialogDescription>
+              {chosen?.name} · {targets.length} elements · version {chosen?.version}
+            </DialogDescription>
+          </DialogHeader>
+          <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
+            <form
+              id={formId}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void submit();
+              }}
+            >
+              <fieldset disabled={busy} className="min-w-0 border-0 p-0">
+                <Stack space="space.250">
+                  <Field>
+                    <FieldLabel htmlFor="add-from-library-scope">Apply to</FieldLabel>
+                    <Select
+                      value={scope}
+                      onValueChange={(value) => setScope(value === "inside" ? "inside" : "element")}
+                    >
+                      <SelectTrigger autoFocus id="add-from-library-scope">
+                        <SelectValue>
+                          {scope === "element"
+                            ? "This element"
+                            : "This element and everything inside"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="element">This element</SelectItem>
+                        <SelectItem value="inside" disabled={inside(element, rows).length === 0}>
+                          This element and everything inside
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  {source === "component" && (
+                    <Stack space="space.150">
+                      <label className="flex items-center gap-075 font-body-small">
+                        <Checkbox
+                          checked={asElement}
+                          onCheckedChange={(checked) => setAsElement(checked === true)}
+                        />
+                        Create as a child element under each target, carrying the component
+                      </label>
+                      {asElement && (
+                        <Stack space="space.200">
+                          {targets.map((target) => {
+                            const spec = elementSpec(target);
+                            return (
+                              <Stack key={target.id} space="space.100">
+                                <p>
+                                  {target.code} · {labelFor(elementType)}
+                                </p>
+                                <Grid
+                                  gap="space.150"
+                                  templateColumns={{
+                                    base: "minmax(0,1fr)",
+                                    sm: "repeat(2,minmax(0,1fr))",
+                                  }}
+                                >
+                                  <Field>
+                                    <FieldLabel htmlFor={`${formId}-${target.id}-code`}>
+                                      Element code under {target.code}
+                                    </FieldLabel>
+                                    <Input
+                                      id={`${formId}-${target.id}-code`}
+                                      value={spec.code}
+                                      onChange={(event) =>
+                                        setElementSpecs((previous) => ({
+                                          ...previous,
+                                          [target.id]: { ...spec, code: event.target.value },
+                                        }))
+                                      }
+                                    />
+                                  </Field>
+                                  <Field>
+                                    <FieldLabel htmlFor={`${formId}-${target.id}-name`}>
+                                      Element name under {target.code}
+                                    </FieldLabel>
+                                    <Input
+                                      id={`${formId}-${target.id}-name`}
+                                      value={spec.name}
+                                      onChange={(event) =>
+                                        setElementSpecs((previous) => ({
+                                          ...previous,
+                                          [target.id]: { ...spec, name: event.target.value },
+                                        }))
+                                      }
+                                    />
+                                  </Field>
+                                </Grid>
+                              </Stack>
+                            );
+                          })}
+                        </Stack>
+                      )}
+                      <p className="font-body-small text-subtle">
+                        {plan
+                          ? `Narratives are seeded into SSP revision ${plan.version_number} of the boundary for controls in its selection. Untick a cell to leave that control to the element.`
+                          : "The boundary has no draft SSP revision, so component instances are recorded but no narrative can be seeded."}
+                      </p>
+                      <div>
+                        <ProductCollection
+                          table={claimTable}
+                          searchLabel="Find control applications"
+                          empty={{
+                            illustration: "shield",
+                            title: "No control claims",
+                            description:
+                              "The component can still be added without seeding a control narrative.",
+                          }}
+                        />
+                      </div>
+                    </Stack>
+                  )}
+                  {source === "profile" && (
+                    <Stack space="space.100">
+                      <p className="font-body-small text-subtle">
+                        {element.name} adopts the profile as its baseline. Elements inside inherit
+                        it unless they carry their own adoption; tick those to replace it.
+                      </p>
+                      {targets.slice(1).map((target) => {
+                        const own =
+                          target.effectiveBaseline?.source_label === "Explicit system adoption";
+                        return (
+                          <Inline key={target.id} space="space.100" alignBlock="center">
+                            <span className="font-body-small">
+                              {target.code} · {target.name}
+                            </span>
+                            {own ? (
+                              <label className="flex items-center gap-075 font-body-small">
+                                <Checkbox
+                                  checked={replaceAdoption.has(target.id)}
+                                  onCheckedChange={(checked) =>
+                                    setReplaceAdoption((previous) => {
+                                      const next = new Set(previous);
+                                      if (checked) next.add(target.id);
+                                      else next.delete(target.id);
+                                      return next;
+                                    })
+                                  }
+                                />
+                                Replace its own adoption ({target.baselineTitle ?? "baseline"})
+                              </label>
+                            ) : (
+                              <span className="font-body-small text-subtle">Inherits</span>
+                            )}
+                          </Inline>
+                        );
+                      })}
+                    </Stack>
+                  )}
+                  {source === "requirement" && (
+                    <p className="font-body-small text-subtle">
+                      One program requirement is created from this definition, or reused when the
+                      program already adopted this revision, and allocated to {targets.length}{" "}
+                      element
+                      {targets.length === 1 ? "" : "s"}.
+                    </p>
+                  )}
+                  <Field>
+                    <FieldLabel htmlFor="add-from-library-rationale">
+                      {source === "requirement" ? "Rationale (optional)" : "Rationale"}
+                    </FieldLabel>
+                    <Textarea
+                      id="add-from-library-rationale"
+                      value={rationale}
+                      onChange={(event) => setRationale(event.target.value)}
+                      placeholder="Why this library item applies here"
+                    />
+                  </Field>
+                  {error && (
+                    <p role="alert" className="font-body-small text-danger">
+                      {error}
+                    </p>
+                  )}
+                </Stack>
+              </fieldset>
+            </form>
+          </Box>
+          <DialogFooter>
+            <Button variant="subtle" disabled={busy} onClick={() => void guard.close()}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId}
+              disabled={busy || (source === "component" && willWrite === 0)}
+              isLoading={busy}
+            >
+              Add from library
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+        {guard.confirmation}
+      </Dialog>
+    );
   return (
     <PickerSheet
+      finalFocus={() => !handingOff.current}
       open
-      onClose={onClose}
-      {...(frame === "confirm" ? { onBack: () => setFrame("choose") } : {})}
-      title={frame === "choose" ? "Add from library" : `Apply ${chosen?.name ?? ""}`}
-      subtitle={
-        frame === "choose"
-          ? `${element.code} · ${element.name}${controlId ? " · one control" : ""}`
-          : `${targets.length} element${targets.length === 1 ? "" : "s"} · version ${chosen?.version ?? ""}`
-      }
+      onClose={() => void guard.close()}
+      title="Add from library"
+      subtitle={`${element.code} · ${element.name}`}
       width={880}
-      {...(frame === "choose"
-        ? {
-            search: { value: search, onChange: setSearch, placeholder: "Search the library" },
-            filters: controlId ? undefined : (
-              <Select
-                value={source}
-                onValueChange={(value) => {
-                  setSource((value as Source) ?? "component");
-                  setChosenId(null);
-                }}
-              >
-                <SelectTrigger aria-label="Source" size="sm">
-                  <SelectValue>{sourceLabels[source]}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(sourceLabels) as Source[]).map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {sourceLabels[key]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ),
-          }
-        : {})}
-      selected={chosen ? 1 : 0}
-      total={frame === "choose" ? shown.length : undefined}
-      action={
-        frame === "choose"
-          ? { label: "Continue", onClick: () => setFrame("confirm"), disabled: !chosen }
-          : {
-              label: busy
-                ? "Applying…"
-                : source === "requirement"
-                  ? `Adopt and allocate to ${targets.length}`
-                  : `Apply to ${source === "component" ? willWrite : targets.length}`,
-              onClick: () => void submit(),
-              disabled:
-                busy ||
-                needsRationale ||
-                elementSpecsMissing ||
-                (source === "component" && willWrite === 0),
-            }
+      search={{ value: search, onChange: setSearch, placeholder: "Search the library" }}
+      filters={
+        controlId ? undefined : (
+          <Select
+            value={source}
+            onValueChange={(value) => {
+              setSource((value as Source) ?? "component");
+              setChosenId(null);
+            }}
+          >
+            <SelectTrigger aria-label="Source" size="sm">
+              <SelectValue>{sourceLabels[source]}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(sourceLabels) as Source[]).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {sourceLabels[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
       }
+      selected={chosen ? 1 : 0}
+      total={shown.length}
+      action={{
+        label: "Continue",
+        onClick: () => {
+          handingOff.current = true;
+          setFrame("confirm");
+        },
+        disabled: !chosen,
+      }}
     >
-      {frame === "choose" ? (
+      <QueryState
+        queries={[
+          definitions,
+          revisions,
+          definedComponents,
+          implementations,
+          requirementDefinitions,
+          requirementRevisions,
+          profiles,
+          resolutions,
+        ]}
+      >
         <DataTable
           responsive
           table={table}
-          state={
-            [
-              definitions,
-              revisions,
-              definedComponents,
-              implementations,
-              requirementDefinitions,
-            ].some((query) => query.isPending)
-              ? "loading"
-              : "ready"
-          }
           onRowClick={(row) => setChosenId(row.id)}
           empty={{
             illustration: "records",
@@ -532,231 +834,8 @@ export function AddFromLibrary({
                   : "Publish a requirement definition in the library first.",
           }}
         />
-      ) : (
-        <Stack space="space.250" className="p-200">
-          <Field>
-            <FieldLabel htmlFor="add-from-library-scope">Apply to</FieldLabel>
-            <Select
-              value={scope}
-              onValueChange={(value) => setScope(value === "inside" ? "inside" : "element")}
-            >
-              <SelectTrigger id="add-from-library-scope">
-                <SelectValue>
-                  {scope === "element" ? "This element" : "This element and everything inside"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="element">This element</SelectItem>
-                <SelectItem value="inside" disabled={inside(element, rows).length === 0}>
-                  This element and everything inside
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
-          {source === "component" && (
-            <Stack space="space.150">
-              <label className="flex items-center gap-075 font-body-small">
-                <Checkbox
-                  checked={asElement}
-                  onCheckedChange={(checked) => setAsElement(checked === true)}
-                />
-                Create as a child element under each target, carrying the component
-              </label>
-              {asElement && (
-                <Table aria-label="Elements to create">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header width={140}>Under</Table.Header>
-                      <Table.Header width={200}>Element code</Table.Header>
-                      <Table.Header>Element name</Table.Header>
-                      <Table.Header width={120}>Type</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {targets.map((target) => {
-                      const spec = elementSpec(target);
-                      return (
-                        <Table.Row key={target.id}>
-                          <Table.Cell>{target.code}</Table.Cell>
-                          <Table.Cell>
-                            <Input
-                              aria-label={`Element code under ${target.code}`}
-                              value={spec.code}
-                              onChange={(event) =>
-                                setElementSpecs((previous) => ({
-                                  ...previous,
-                                  [target.id]: { ...spec, code: event.target.value },
-                                }))
-                              }
-                            />
-                          </Table.Cell>
-                          <Table.Cell>
-                            <Input
-                              aria-label={`Element name under ${target.code}`}
-                              value={spec.name}
-                              onChange={(event) =>
-                                setElementSpecs((previous) => ({
-                                  ...previous,
-                                  [target.id]: { ...spec, name: event.target.value },
-                                }))
-                              }
-                            />
-                          </Table.Cell>
-                          <Table.Cell>{labelFor(elementType)}</Table.Cell>
-                        </Table.Row>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              )}
-              <p className="font-body-small text-subtle">
-                {plan
-                  ? `Narratives are seeded into SSP revision ${plan.version_number} of the boundary for controls in its selection. Untick a cell to leave that control to the element.`
-                  : "The boundary has no draft SSP revision, so component instances are recorded but no narrative can be seeded."}
-              </p>
-              <div className="overflow-x-auto">
-                <Table aria-label="What will be written">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header width={220}>Control</Table.Header>
-                      <Table.Header width={110}>Coverage</Table.Header>
-                      {targets.map((target) => (
-                        <Table.Header key={target.id} width={170}>
-                          {target.code}
-                        </Table.Header>
-                      ))}
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {claims.map(({ implementation, control }) => (
-                      <Table.Row key={implementation.id}>
-                        <Table.Cell className="whitespace-normal">
-                          <span className="font-medium">{control?.code ?? "Control"}</span>{" "}
-                          <span className="text-subtle">{control?.title}</span>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Badge
-                            variant="secondary"
-                            size="xsmall"
-                            tone={implementation.coverage === "full" ? "success" : "warning"}
-                          >
-                            {labelFor(implementation.coverage)}
-                          </Badge>
-                        </Table.Cell>
-                        {targets.map((target) => {
-                          const state = cellState(target, implementation.control_id!);
-                          const key = cellKey(target.id, implementation.control_id!);
-                          return (
-                            <Table.Cell key={target.id}>
-                              {state === "seed" ? (
-                                <label className="flex items-center gap-075 font-body-small">
-                                  <Checkbox
-                                    aria-label={`Seed ${control?.code ?? "control"} on ${target.code}`}
-                                    checked={!excluded.has(key)}
-                                    onCheckedChange={(checked) =>
-                                      setExcluded((previous) => {
-                                        const next = new Set(previous);
-                                        if (checked) next.delete(key);
-                                        else next.add(key);
-                                        return next;
-                                      })
-                                    }
-                                  />
-                                  {excluded.has(key) ? "Excluded" : "Will seed"}
-                                </label>
-                              ) : (
-                                <span className="font-body-small text-subtle">
-                                  {state === "already_applied"
-                                    ? "Already applied"
-                                    : state === "no_ssp"
-                                      ? "No draft SSP"
-                                      : "Not in baseline"}
-                                </span>
-                              )}
-                            </Table.Cell>
-                          );
-                        })}
-                      </Table.Row>
-                    ))}
-                    {!claims.length && (
-                      <Table.Row>
-                        <Table.Cell colSpan={2 + targets.length}>
-                          This component has no control claims; the instance is recorded without
-                          narratives.
-                        </Table.Cell>
-                      </Table.Row>
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-            </Stack>
-          )}
-          {source === "profile" && (
-            <Stack space="space.100">
-              <p className="font-body-small text-subtle">
-                {element.name} adopts the profile as its baseline. Elements inside inherit it unless
-                they carry their own adoption; tick those to replace it.
-              </p>
-              {targets.slice(1).map((target) => {
-                const own = target.effectiveBaseline?.source_label === "Explicit system adoption";
-                return (
-                  <Inline key={target.id} space="space.100" alignBlock="center">
-                    <span className="font-body-small">
-                      {target.code} · {target.name}
-                    </span>
-                    {own ? (
-                      <label className="flex items-center gap-075 font-body-small">
-                        <Checkbox
-                          checked={replaceAdoption.has(target.id)}
-                          onCheckedChange={(checked) =>
-                            setReplaceAdoption((previous) => {
-                              const next = new Set(previous);
-                              if (checked) next.add(target.id);
-                              else next.delete(target.id);
-                              return next;
-                            })
-                          }
-                        />
-                        Replace its own adoption ({target.baselineTitle ?? "baseline"})
-                      </label>
-                    ) : (
-                      <span className="font-body-small text-subtle">Inherits</span>
-                    )}
-                  </Inline>
-                );
-              })}
-            </Stack>
-          )}
-          {source === "requirement" && (
-            <p className="font-body-small text-subtle">
-              One program requirement is created from this definition, or reused when the program
-              already adopted this revision, and allocated to {targets.length} element
-              {targets.length === 1 ? "" : "s"}.
-            </p>
-          )}
-          <Field>
-            <FieldLabel htmlFor="add-from-library-rationale">
-              {source === "requirement" ? "Rationale (optional)" : "Rationale"}
-            </FieldLabel>
-            <Textarea
-              id="add-from-library-rationale"
-              value={rationale}
-              onChange={(event) => setRationale(event.target.value)}
-              placeholder="Why this library item applies here"
-            />
-          </Field>
-          {error && (
-            <p role="alert" className="font-body-small text-danger">
-              {error}
-            </p>
-          )}
-          <Inline>
-            <Button variant="subtle" size="small" onClick={() => setFrame("choose")}>
-              Choose a different item
-            </Button>
-          </Inline>
-        </Stack>
-      )}
+      </QueryState>
+      {guard.confirmation}
     </PickerSheet>
   );
 }

@@ -1,0 +1,1 @@
+Read `AGENTS.md` at the repository root. Before creating or changing a screen, read `docs/guides/product-patterns.md`; before changing the design system, read `packages/design-system/AGENTS.md`. Those files are the only copies of the rules; do not restate them here.

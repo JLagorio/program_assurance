@@ -4,9 +4,10 @@ import { ChevronDown, LayoutGrid } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { IconButton, type IconButtonProps } from "../../components/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/tooltip";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
-import { slot, useShell, useSkipLink } from "./context";
+import { slot, useShell, useSideNavRail, useSkipLink } from "./context";
 
 /* ---------- top nav ---------- */
 
@@ -52,11 +53,13 @@ export function TopNavRoot({ id, label, className, children, ...props }: ShellTo
 export function TopNavStart({ toggle, className, children, ...props }: ShellTopNavStartProps) {
   const { isDesktop, sideNav } = useShell();
   const inline = isDesktop && sideNav.expanded;
+  const rail = useSideNavRail();
   return (
     <div
       {...props}
       data-shell-slot="start"
       data-slot="shell-topnav-start"
+      data-collapsed={rail ? "icons" : undefined}
       className={cn(
         "flex shrink-0 items-center gap-100 px-150",
         inline && "lg:shell-topnav-start lg:border-e lg:border-default lg:bg-surface-sunken",
@@ -219,7 +222,8 @@ export function Profile({
 }: ProfileProps) {
   const interactive = Boolean(onClick || render);
   const detail = description ?? role;
-  return useRender({
+  const rail = useSideNavRail();
+  const element = useRender({
     defaultTagName: interactive ? "button" : "div",
     render,
     ref,
@@ -237,17 +241,27 @@ export function Profile({
       children: (
         <>
           {avatar}
-          <span className="flex min-w-0 flex-col">
+          <span data-slot="shell-profile-label" className="flex min-w-0 flex-col">
             <span className="block truncate font-body font-medium text-default">{name}</span>
             {detail ? (
               <span className="block truncate font-body-small text-subtle">{detail}</span>
             ) : null}
           </span>
           {interactive ? (
-            <ChevronDown aria-hidden className="ms-auto size-icon-small shrink-0 icon-subtle" />
+            <ChevronDown
+              aria-hidden
+              data-slot="shell-sidenav-chevron"
+              className="ms-auto size-icon-small shrink-0 icon-subtle"
+            />
           ) : null}
         </>
       ),
     }),
   });
+  return (
+    <Tooltip disabled={!rail || !interactive}>
+      <TooltipTrigger render={element} />
+      <TooltipContent side="inline-end">{name}</TooltipContent>
+    </Tooltip>
+  );
 }

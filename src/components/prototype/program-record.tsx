@@ -1,3 +1,4 @@
+import { productRecordNoun } from "@/lib/product-records";
 import { EmptyMessage, MissingRecord, type QueryStatus } from "./work-common";
 import { Fragment, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -140,7 +141,7 @@ function ProgramRecordFrame({
                   workspace.role !== "viewer" &&
                   row["state"] !== "published" && (
                     <DropdownMenuItem onClick={() => setEditing((value) => !value)}>
-                      {editing ? "Close editor" : "Edit record"}
+                      {`Edit ${productRecordNoun(table, row)}`}
                     </DropdownMenuItem>
                   )}
               </DropdownMenuContent>
@@ -339,6 +340,7 @@ export function ProgramSystemRecord({
             {current === "Inventory" && (
               <ProgramCollection
                 name="inventory_items"
+                fill
                 title="Deployed inventory"
                 filters={boundary ? { system_id: system.id } : { composition_node_id: system.id }}
                 initialValues={{
@@ -352,7 +354,6 @@ export function ProgramSystemRecord({
                   { key: "model", title: "Model" },
                   { key: "serial_number", title: "Serial number" },
                 ]}
-                createLabel="Add inventory item"
               />
             )}
             {current === "SSP" && boundary && (
@@ -360,6 +361,7 @@ export function ProgramSystemRecord({
                 <SspAssembly programId={programId} systemId={system.id} />
                 <ProgramCollection
                   name="ssp_revisions"
+                  section
                   title="Security plan revisions"
                   filters={{ system_id: system.id }}
                   columns={[
@@ -367,7 +369,6 @@ export function ProgramSystemRecord({
                     { key: "state", title: "State" },
                     { key: "description", title: "Description" },
                   ]}
-                  createLabel="Add SSP revision"
                 />
               </>
             )}
@@ -594,6 +595,7 @@ export function ProgramComponentRecord({
       </TextLink>
       <ProgramCollection
         name="component_contributions"
+        section
         title="Control contributions"
         filters={{ system_component_id: componentId }}
         columns={[
@@ -604,7 +606,6 @@ export function ProgramComponentRecord({
             render: (row) => <StatusValue value={row["implementation_status"]} />,
           },
         ]}
-        createLabel="Add contribution"
       />
     </ProgramRecordFrame>
   );
@@ -676,6 +677,7 @@ export function ProgramControlRecord({
       )}
       <ProgramCollection
         name="implementation_statements"
+        section
         title="Statement implementations"
         filters={{ implemented_requirement_id: row.id }}
         initialValues={{ ssp_revision_id: row.ssp_revision_id }}
@@ -685,10 +687,10 @@ export function ProgramControlRecord({
         ]}
         canCreate={plan.data?.state === "draft"}
         readOnly={plan.data?.state === "published"}
-        createLabel="Add statement implementation"
       />
       <ProgramCollection
         name="component_contributions"
+        section
         title="Component contributions"
         filters={{ implemented_requirement_id: row.id }}
         initialValues={{ ssp_revision_id: row.ssp_revision_id }}
@@ -702,10 +704,13 @@ export function ProgramControlRecord({
         ]}
         canCreate={plan.data?.state === "draft"}
         readOnly={plan.data?.state === "published"}
-        createLabel="Add component contribution"
       />
       {showSource && control.data && (
-        <ControlInspector control={control.data} onClose={() => setShowSource(false)} />
+        <ControlInspector
+          task="Control source inspection"
+          control={control.data}
+          onClose={() => setShowSource(false)}
+        />
       )}
     </ProgramRecordFrame>
   );

@@ -171,7 +171,11 @@ try {
     await page.getByRole("combobox", { name: "Version", exact: true }).innerText(),
     /1 · draft/,
   );
-  assert.ok(await page.getByRole("button", { name: "Publish version", exact: true }).isDisabled());
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  assert.ok(
+    await page.getByRole("menuitem", { name: "Publish version", exact: true }).isDisabled(),
+  );
+  await page.keyboard.press("Escape");
   await page.getByRole("tab", { name: /^Configurations/ }).click();
   await newConfiguration("GL", "Ground launch", "Launched from a ground launcher.");
   await newConfiguration("AL", "Air launch", "Carried on an aircraft pylon.");
@@ -235,14 +239,16 @@ try {
   assert.equal((await rows("product_configuration_elements")).length, 6);
   await page.screenshot({ path: "/tmp/products-structure.png", fullPage: true });
 
-  await page.getByRole("button", { name: "Publish version", exact: true }).click();
-  await page.getByRole("button", { name: "Export OSCAL", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Publish version", exact: true }).click();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Export OSCAL", exact: true }).waitFor();
   assert.equal(await page.getByRole("button", { name: "Create element", exact: true }).count(), 0);
   const revision = (await rows("product_revisions", { product_id: productId }))[0];
   assert.equal(revision.state, "published");
   const [download] = await Promise.all([
     page.waitForEvent("download"),
-    page.getByRole("button", { name: "Export OSCAL", exact: true }).click(),
+    page.getByRole("menuitem", { name: "Export OSCAL", exact: true }).click(),
   ]);
   assert.match(download.suggestedFilename(), /MSL-A-v1-component-definition\.json$/);
   await page.screenshot({ path: "/tmp/products-published.png", fullPage: true });
@@ -378,8 +384,8 @@ try {
   // Version history remains an explicit selector; metadata belongs to Overview.
   await page.getByRole("tab", { name: "Versions", exact: true }).click();
   await page.getByRole("button", { name: "Open version", exact: true }).click();
-  assert.match(await page.getByRole("combobox", { name: "Version", exact: true }).innerText(), /1/);
   await page.getByRole("tab", { name: "Overview", exact: true }).click();
+  assert.match(await page.getByRole("combobox", { name: "Version", exact: true }).innerText(), /1/);
   await page.getByRole("complementary", { name: "Product details", exact: true }).waitFor();
   assert.equal(await page.getByRole("heading", { level: 1 }).count(), 1);
   // The aside animates into the grid; visibility alone can capture its narrow first frame.
@@ -413,7 +419,7 @@ try {
     await page.evaluate(
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
     ),
-    "The mobile document stays within the viewport; the table owns horizontal scrolling.",
+    "The mobile document stays within the viewport with responsive table disclosures.",
   );
   await page.screenshot({
     path: "/tmp/products-variants-mobile.png",
@@ -435,16 +441,17 @@ try {
 
   // Post-create: the Air-launch variant on the same program.
   await page.goto(`${origin}/programs/${programId}?tab=System`);
-  await page.getByRole("button", { name: "From a product…", exact: true }).click();
+  await page.getByRole("button", { name: "Create system", exact: true }).first().click();
+  await page.getByRole("menuitem", { name: "Add system from product", exact: true }).click();
   await dialog().getByRole("row").filter({ hasText: "Air launch" }).first().click();
   await page.getByRole("button", { name: "Add Missile A · Air launch", exact: true }).click();
-  await dialog().getByRole("heading", { name: "Add system from a product", exact: true }).waitFor();
+  await dialog().getByRole("heading", { name: "Add system from product", exact: true }).waitFor();
   for (const label of ["Confidentiality", "Integrity", "Availability"]) await choose(label, "Low");
   await page
     .getByRole("textbox", { name: "Categorization rationale", exact: true })
     .fill("A second variant on the same program.");
   await page.screenshot({ path: "/tmp/products-add-system.png", fullPage: true });
-  await dialog().getByRole("button", { name: "Add system", exact: true }).click();
+  await dialog().getByRole("button", { name: "Add system from product", exact: true }).click();
   await page
     .getByRole("treegrid", { name: "Program systems", exact: true })
     .getByRole("row")

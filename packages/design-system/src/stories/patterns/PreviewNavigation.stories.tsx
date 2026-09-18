@@ -42,6 +42,7 @@ export const Collection: Story = {
     );
     await userEvent.click(next);
     await expect(next).toBeDisabled();
+    await expect(previous).toHaveFocus();
     await userEvent.click(previous);
     await expect(canvas.getByRole("status")).toHaveTextContent("2 of 3 records");
   },

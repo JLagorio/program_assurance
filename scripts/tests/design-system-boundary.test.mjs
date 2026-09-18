@@ -176,3 +176,60 @@ test("product table and tab policies apply to all application UI layers", async 
     [],
   );
 });
+
+test("every route declares a screen family and browser assertion", async () => {
+  const inventory = JSON.parse(
+    await readFile(resolve(cwd, "docs/guides/screen-inventory.json"), "utf8"),
+  );
+  const routes = (await readdir(resolve(cwd, "src/routes")))
+    .filter((file) => file.endsWith(".tsx") && file !== "__root.tsx")
+    .sort();
+  assert.deepEqual(
+    inventory.map((screen) => screen.file).sort(),
+    routes,
+    "Declare new routes in the screen inventory so the browser suite exercises them",
+  );
+  const families = new Set([
+    "register",
+    "record",
+    "program-view",
+    "schema-register",
+    "schema-record",
+    "dashboard",
+    "inspector",
+    "wizard",
+    "redirect",
+    "exception",
+  ]);
+  for (const screen of inventory) {
+    assert.ok(families.has(screen.family), screen.file);
+    assert.ok(screen.path && screen.title, screen.file);
+    if (["exception", "redirect", "wizard", "inspector"].includes(screen.family))
+      assert.ok(screen.reason, screen.file);
+    if (screen.family === "redirect") assert.ok(screen.redirectTo, screen.file);
+    if (screen.missingRecord) {
+      assert.ok(screen.missingRecord.kind, screen.file);
+      assert.ok(screen.missingRecord.backTo, screen.file);
+      assert.ok(screen.missingRecord.reason, screen.file);
+    }
+    if (screen.tabList) {
+      assert.ok(Array.isArray(screen.collectionTabs), screen.file);
+      assert.ok(
+        screen.tabExceptions &&
+          typeof screen.tabExceptions === "object" &&
+          !Array.isArray(screen.tabExceptions),
+        screen.file,
+      );
+      const names = [...screen.collectionTabs, ...Object.keys(screen.tabExceptions)];
+      assert.ok(
+        names.length > 0 && names.every((name) => typeof name === "string" && name),
+        screen.file,
+      );
+      assert.equal(new Set(names).size, names.length, `${screen.file}: tab shapes are exclusive`);
+      assert.ok(
+        Object.values(screen.tabExceptions).every((reason) => typeof reason === "string" && reason),
+        `${screen.file}: every non-collection tab explains its shape`,
+      );
+    }
+  }
+});

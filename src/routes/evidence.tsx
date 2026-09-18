@@ -10,9 +10,9 @@ function EvidencePage() {
   return (
     <Stack space="space.200" className="min-w-0">
       <PageHeader>
-        <div className="min-w-0">
+        <PageHeader.Heading>
           <PageHeader.Title>Evidence</PageHeader.Title>
-        </div>
+        </PageHeader.Heading>
       </PageHeader>
       <EvidenceBrowser />
     </Stack>

@@ -1,0 +1,137 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Choosing a part" />
+
+# Choosing a part
+
+The catalog is organised by family. This page is organised by need: find the row that names what the reader has to do, then open the part's own page for its props and states. When two parts look alike, the row says which one and why. A need with no row is a gap to flag, not a reason to build a raw element.
+
+## Show a value
+
+| The reader needs to see                                  | Use                                                                                           | Not                                                  |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| A record's status, one word in a pill                    | **Badge** with a tone. One pill per row, in the status column.                                | Indicator, which is never a pill.                    |
+| Severity or health beside a label                        | **Indicator** (a Dot and a word), or the bare **Dot** in a tight cell.                        | A second Badge in the row.                           |
+| How many: unread, rows behind a filter, findings         | **Count**, after the name of what it counts.                                                  | A Badge holding a number.                            |
+| An identifier: AC-2(3), FND-2231, a hash                 | **Id**. Tabular numerals, inherits everything else.                                           | CodeBlock, or a Badge.                               |
+| A label and value on one baseline, above the fold        | **Fact**, and **Fact.Group** for the four to six facts under a title.                         | KeyValue, which is a rail row.                       |
+| A label and value in a rail, one per line                | **KeyValue**, and **Inspector** for a group of them.                                          | A hand-written definition list.                      |
+| A headline number                                        | **Stat**; **Stat.Tile** in a **Stat.Grid** when framed.                                       | A Heading holding a number.                          |
+| A value that is missing                                  | **Absent**, the muted dash.                                                                   | An empty string, a hyphen typed by hand, or "N/A".   |
+| A section's name in a rail, a record's kind over a title | **Eyebrow**.                                                                                  | A small Heading.                                     |
+| A labelled paragraph                                     | **Prose**.                                                                                    | Text with a bold first line.                         |
+| A person                                                 | **Person**; **Avatar** and **AvatarGroup** for the mark alone.                                |                                                      |
+| A file                                                   | **Attachment**. The application owns upload, retry and removal.                               |                                                      |
+| Source, a log, a command to paste                        | **CodeBlock** with `copy` when the reader will take it.                                       | A `<pre>`.                                           |
+| A keyboard shortcut                                      | **Kbd**, **KbdGroup** for a chord.                                                            |                                                      |
+| Events in order                                          | **Timeline**.                                                                                 | A Table of dates.                                    |
+| Steps through an ordered path                            | **Stepper**.                                                                                  | Tabs.                                                |
+| The conditions an action waits on                        | **Gates**: a list, never a score.                                                             | Progress.                                            |
+| A completion fraction                                    | **Progress**; **ProgressStacked** for parts of a whole.                                       | A Stat with a percentage, unless it is the headline. |
+| Numbers drawn                                            | **Chart** and one of its kinds: Bar, Line, Area, Donut, Scatter, Heatmap, Treemap, Sparkline. | A hand-drawn SVG.                                    |
+
+## Lay it out
+
+| The layout is                                  | Use                                                                    |
+| ---------------------------------------------- | ---------------------------------------------------------------------- |
+| Things stacked top to bottom with one gap      | **Stack** with a `space` token.                                        |
+| Things left to right with one gap, wrapping    | **Inline**.                                                            |
+| Something Stack and Inline cannot say          | **Flex**.                                                              |
+| Columns                                        | **Grid** with token gaps.                                              |
+| A padded or coloured block                     | **Box**. Padding and background are token-typed; there are no margins. |
+| A child escaping its parent's padding          | **Bleed**, the only negative space.                                    |
+| A titled region of a page                      | **Section**, with `count`, `description` and `action` when needed.     |
+| The page's name and its actions                | **PageHeader**: Lead, Heading, Title, Description, Actions.            |
+| The application frame                          | **Shell** and its areas: Banner, TopNav, SideNav, Main, Aside, Panel.  |
+| Two panes the reader resizes                   | **ResizablePanelGroup**.                                               |
+| A scrolling region with a visible bar          | **ScrollArea** and **ScrollBar**.                                      |
+| A hairline between things                      | **Separator**. The parent owns the spacing around it.                  |
+| A raised container for a table, chart or facts | **Card**.                                                              |
+
+Body copy is **Text**; titles are **Heading** with the size from the design and the level from the page.
+
+## Collect input
+
+| The reader enters                   | Use                                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------------------- |
+| Any control's label, hint and error | **Field** and its parts. Field owns layout; the form owns values and validation.            |
+| One line of text                    | **Input**; **InputGroup** when it carries an icon, a unit or a button.                      |
+| Several lines                       | **Textarea**.                                                                               |
+| One of a few known values           | **Select**; **RadioGroup** when all the choices should be visible.                          |
+| One of many values, by typing       | **Combobox**. It filters; Select does not.                                                  |
+| Several values as chips             | **Combobox** with `ComboboxChips`.                                                          |
+| Yes or no                           | **Checkbox** in a form; **Switch** when it takes effect at once.                            |
+| A pressed state on a button         | **Toggle**; **ToggleGroup** for one-of or many-of.                                          |
+| A day                               | **DatePicker**; **Calendar** on its own when the month should stay open.                    |
+| A filter on a register              | **FilterChip** in a **Toolbar**.                                                            |
+| A short draft with mentions         | **Composer**.                                                                               |
+| A whole form                        | The **Forms** pattern: Field, controls, primitives and Buttons. There is no Form component. |
+
+## Pick records
+
+| Choosing                                                     | Use                                                                                   |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| One value from a short, fixed list                           | **Select**.                                                                           |
+| One value from a long list, by typing                        | **Combobox**.                                                                         |
+| One record with an id, a name and a status, by typing        | **RecordPicker**: a Command dialog with record rows. The caller supplies the rows.    |
+| Many records from hundreds, with filters and a running count | **PickerSheet**: a Sheet whose body is a DataTable with selection.                    |
+| Related records the reader must compare before choosing      | **RecordBrowser**: search, compare, preview and select without leaving the record.    |
+| A command, not a record                                      | **CommandPalette** (⌘K) over the page; **Command** parts to build a list of your own. |
+
+## Tables and lists
+
+| The collection is                                            | Use                                                                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| A register with sort, filters, pages, selection or a toolbar | **DataTable**, columns declared by kind, with **Toolbar** above it and `fill` when it takes the window. |
+| A short list with nothing to sort or choose                  | **Table**, the markup alone: a version history, a definition list of sources.                           |
+| A hierarchy the reader opens and closes                      | **Tree**; **DataTable** with nested rows when the rows also sort and filter.                            |
+| Linked records in a rail or on a page                        | **Related**: a card with a Count, a way to add one, a row or card per record.                           |
+| One compact record row with aligned parts                    | **Item**.                                                                                               |
+| A checklist or work queue row                                | **TaskRow**.                                                                                            |
+| The next record without leaving the list                     | **PreviewNavigation** in a **Shell.Panel**; **PreviewSheet** only when the task must hold focus.        |
+| A record's summary on hover                                  | **HoverCard** holding a **Glance**.                                                                     |
+| Search, views, filters and actions above a table             | **Toolbar**: search, `views`, `filters`, children, `actions`.                                           |
+| Page controls                                                | **Pagination**; DataTable draws its own.                                                                |
+
+## Overlays
+
+Eight surfaces float over the page. The Overlays page holds the full table with what opens and closes each; the short form:
+
+| Need                                       | Use                                                         |
+| ------------------------------------------ | ----------------------------------------------------------- |
+| A short label                              | **Tooltip**. IconButton already draws one from its `label`. |
+| A peek at a record, no actions             | **HoverCard**                                               |
+| A small task at its button                 | **Popover**                                                 |
+| A list of actions                          | **DropdownMenu**                                            |
+| A focused task over the page: create, edit | **Dialog**                                                  |
+| A modal selection or review                | **Sheet**                                                   |
+| A quick task on a narrow screen            | **Drawer**                                                  |
+| A decision that needs a word first         | **AlertDialog**                                             |
+
+A value edited where it sits, with no form and no Save, is **Editable**. A larger change is a Dialog.
+
+## Navigate and act
+
+| The reader                            | Use                                                                              |
+| ------------------------------------- | -------------------------------------------------------------------------------- |
+| Goes somewhere, reading as text       | **TextLink** with a router link through `render`.                                |
+| Goes somewhere, looking like a button | A real link styled with `buttonVariants`.                                        |
+| Does something                        | **Button**; **IconButton** with a required `label` when the icon is unambiguous. |
+| Chooses among joined actions          | **ButtonGroup**.                                                                 |
+| Sees where they are                   | **Breadcrumb** in `PageHeader.Lead`.                                             |
+| Switches between views of one page    | **Tabs** with `TabsList variant="line"`.                                         |
+| Opens a region                        | **Collapsible**; **Accordion** when only one opens at a time.                    |
+| Switches colour mode                  | **ModeSwitch**, inside **ModeProvider**.                                         |
+
+## Feedback and states
+
+| The situation                            | Use                                                                                           |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------- |
+| A region with nothing in it              | **Empty** with an illustration, a title, one line and the next step. DataTable draws its own. |
+| Something about this record, inline      | **Alert** with a title, a description and an action.                                          |
+| Something about the whole site           | **Banner**, one at a time, in the shell's Banner area.                                        |
+| Short feedback after an action           | **Toaster**, mounted once.                                                                    |
+| Content with a known shape still loading | **Skeleton**; **PageSkeleton** for a page's first paint.                                      |
+| An action in flight                      | **Spinner**, or Button's loading state.                                                       |
+| A failure                                | An Alert with a retry. Never a blank region.                                                  |
+| Density of a table                       | **Table** `density`; DataTable's Columns menu offers Compact rows.                            |

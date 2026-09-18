@@ -1,3 +1,4 @@
+import { ProgramCollection } from "@/components/prototype/program-shared";
 import { MissingRecord } from "@/components/prototype/work-common";
 import { Box } from "@ledger/design-system";
 import { displayDate } from "@/components/prototype/work-format";
@@ -24,6 +25,7 @@ import {
   Stack,
   Table,
   Empty,
+  EmptyContent,
   EmptyHeader,
   EmptyTitle,
   EmptyMedia,
@@ -56,7 +58,6 @@ function TaskDetail({ taskId }: { taskId: string }) {
   const task = taskQuery.data;
   const program = useRow("programs", task?.program_id);
   const workstream = useRow("workstreams", task?.workstream_id);
-  const assignments = useRows("task_assignments", { task_id: taskId });
   const parties = useRows("parties");
   const comments = useRows("comments", { task_id: taskId });
   const activity = useRows("activity_events", { task_id: taskId });
@@ -80,6 +81,21 @@ function TaskDetail({ taskId }: { taskId: string }) {
       setError(cause instanceof Error ? cause.message : "The task could not be saved.");
     }
   }
+  const commentAction =
+    task && workspace.role !== "viewer" ? (
+      <Button
+        size="small"
+        disabled={!!form}
+        onClick={() =>
+          setForm({
+            table: "comments",
+            initialValues: { task_id: task.id, ...(me ? { author_party_id: me.id } : {}) },
+          })
+        }
+      >
+        Create comment
+      </Button>
+    ) : undefined;
   return (
     <Stack space="space.200" className="min-w-0">
       {form && <ModelForm target={form} onClose={() => setForm(null)} />}
@@ -148,88 +164,33 @@ function TaskDetail({ taskId }: { taskId: string }) {
                   {task.description || <Absent />}
                 </p>
               </Section>
-              <Section
-                title="Assignments"
-                action={
-                  workspace.role !== "viewer" ? (
-                    <Button
-                      size="small"
-                      disabled={!!form}
-                      onClick={() =>
-                        setForm({ table: "task_assignments", initialValues: { task_id: task.id } })
-                      }
-                    >
-                      Assign person
-                    </Button>
-                  ) : undefined
-                }
-              >
-                <QueryState queries={[assignments, parties]}>
-                  {assignments.data?.length ? (
-                    <Table>
-                      <thead>
-                        <tr>
-                          <Table.Header>Person</Table.Header>
-                          <Table.Header>Role</Table.Header>
-                          <Table.Header width={100}>Actions</Table.Header>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {assignments.data.map((assignment) => (
-                          <Table.Row key={assignment.id}>
-                            <Table.Cell>
-                              {parties.data?.find((party) => party.id === assignment.party_id)
-                                ?.name ?? "Unavailable person"}
-                            </Table.Cell>
-                            <Table.Cell>{labelFor(assignment.assignment_role)}</Table.Cell>
-                            <Table.Cell>
-                              {workspace.role !== "viewer" && (
-                                <Button
-                                  size="small"
-                                  variant="subtle"
-                                  disabled={!!form}
-                                  onClick={() =>
-                                    setForm({
-                                      table: "task_assignments",
-                                      existing: assignment as DataRecord,
-                                    })
-                                  }
-                                >
-                                  Edit
-                                </Button>
-                              )}
-                            </Table.Cell>
-                          </Table.Row>
-                        ))}
-                      </tbody>
-                    </Table>
-                  ) : (
-                    <MissingRecord backTo="/work" kind="Task" />
-                  )}
-                </QueryState>
+              <Section title="Assignments">
+                <ProgramCollection
+                  name="task_assignments"
+                  title="Assignments"
+                  filters={{ task_id: task.id }}
+                  columns={[
+                    {
+                      key: "party_id",
+                      title: "Person",
+                      value: (row) =>
+                        parties.data?.find((party) => party.id === row["party_id"])?.name ??
+                        "Unavailable person",
+                    },
+                    {
+                      key: "assignment_role",
+                      title: "Role",
+                      value: (row) => labelFor(String(row["assignment_role"])),
+                    },
+                  ]}
+                  empty={{
+                    title: "No assignments yet",
+                    description: "Assign a person to record their responsibility for this task.",
+                    illustration: "people",
+                  }}
+                />
               </Section>
-              <Section
-                title="Comments"
-                action={
-                  workspace.role !== "viewer" ? (
-                    <Button
-                      size="small"
-                      disabled={!!form}
-                      onClick={() =>
-                        setForm({
-                          table: "comments",
-                          initialValues: {
-                            task_id: task.id,
-                            ...(me ? { author_party_id: me.id } : {}),
-                          },
-                        })
-                      }
-                    >
-                      Add comment
-                    </Button>
-                  ) : undefined
-                }
-              >
+              <Section title="Comments" action={commentAction}>
                 <QueryState queries={[comments, parties]}>
                   {comments.data?.length ? (
                     <Stack space="space.150">
@@ -247,7 +208,18 @@ function TaskDetail({ taskId }: { taskId: string }) {
                         ))}
                     </Stack>
                   ) : (
-                    <MissingRecord backTo="/work" kind="Task" />
+                    <Empty size="compact">
+                      <EmptyMedia>
+                        <EmptyIllustration kind="inbox" />
+                      </EmptyMedia>
+                      <EmptyHeader>
+                        <EmptyTitle>No comments yet</EmptyTitle>
+                        <EmptyDescription>
+                          Add a comment to share an update about this task.
+                        </EmptyDescription>
+                      </EmptyHeader>
+                      {commentAction && <EmptyContent>{commentAction}</EmptyContent>}
+                    </Empty>
                   )}
                 </QueryState>
               </Section>
@@ -267,7 +239,17 @@ function TaskDetail({ taskId }: { taskId: string }) {
                         ))}
                     </Stack>
                   ) : (
-                    <MissingRecord backTo="/work" kind="Task" />
+                    <Empty size="compact">
+                      <EmptyMedia>
+                        <EmptyIllustration kind="inbox" />
+                      </EmptyMedia>
+                      <EmptyHeader>
+                        <EmptyTitle>No activity yet</EmptyTitle>
+                        <EmptyDescription>
+                          Recorded changes to this task will appear here.
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   )}
                 </QueryState>
               </Section>

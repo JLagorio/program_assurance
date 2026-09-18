@@ -1,27 +1,28 @@
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useId, useState } from "react";
-import {
-  Box,
-  Button,
-  Inline,
-  Input,
-  KeyValue,
-  Section,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  Stack,
-  WorkPane,
-} from "@ledger/design-system";
+import { discardChanges, useConfirmation } from "@/components/app/confirmation";
 import type { ParameterOverride, TailoringDecision } from "@/lib/program-wizard";
 import {
   previewProgramTailoring,
   type ProgramTailoringPreview,
   type WizardParameterPreview,
 } from "@/lib/program-wizard-reference";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Inline,
+  Input,
+  KeyValue,
+  Section,
+  Stack,
+  WorkPane,
+} from "@ledger/design-system";
+import { useBlocker } from "@tanstack/react-router";
+import { useId, useState } from "react";
 import { TextField } from "../fields";
 import type { ReferenceData } from "./use-reference-data";
 
@@ -51,6 +52,7 @@ export function ParameterPicker({
   data: ReferenceData;
   preview: ProgramTailoringPreview;
 }) {
+  const formId = useId();
   const { confirm, confirmation } = useConfirmation();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
@@ -70,8 +72,15 @@ export function ParameterPicker({
       onClose();
     }
   }
+  useBlocker({
+    shouldBlockFn: async () =>
+      open &&
+      dirty &&
+      !(await confirm(discardChanges("Your parameter override has not been recorded."))),
+    enableBeforeUnload: () => open && dirty,
+  });
   return (
-    <Sheet
+    <Dialog
       open={open}
       onOpenChange={(next, details) => {
         if (!next) {
@@ -80,22 +89,22 @@ export function ParameterPicker({
         }
       }}
     >
-      <SheetContent side="end" style={{ maxWidth: 1040 }}>
-        <SheetHeader>
-          <SheetTitle>
-            {readOnly ? "Parameters" : "Set parameter values"} · {title}
-          </SheetTitle>
-          <SheetDescription>
+      <DialogContent style={{ maxWidth: 1040 }}>
+        <DialogHeader>
+          <DialogTitle>{readOnly ? "Inspect parameters" : "Set parameter values"}</DialogTitle>
+          <DialogDescription>
+            {title}.{" "}
             {readOnly
               ? "Each parameter of the effective control set with its recorded value and where it comes from."
               : "Override a parameter used by the effective control set. Each override records its values and rationale."}
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
         <Box className="min-h-0 flex-1 overflow-y-auto px-200 py-150">
           <WorkPane
             listWidth={300}
             listLabel={
               <Input
+                autoFocus
                 aria-label="Search parameters"
                 placeholder="Find a parameter"
                 value={search}
@@ -129,6 +138,7 @@ export function ParameterPicker({
               parameter ? (
                 <ParameterEditor
                   key={parameter.parameter.id}
+                  formId={formId}
                   item={parameter}
                   decisions={decisions}
                   parameters={parameters}
@@ -147,18 +157,24 @@ export function ParameterPicker({
             }
           />
         </Box>
-        <SheetFooter>
-          <Button variant="primary" onClick={close}>
-            Done
+        <DialogFooter>
+          <Button variant="subtle" onClick={close}>
+            {readOnly ? "Close" : "Cancel"}
           </Button>
-        </SheetFooter>
-      </SheetContent>
+          {!readOnly && (
+            <Button variant="primary" type="submit" form={formId} disabled={!parameter}>
+              Set parameter values
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
       {confirmation}
-    </Sheet>
+    </Dialog>
   );
 }
 
 function ParameterEditor({
+  formId,
   item,
   decisions,
   parameters,
@@ -169,6 +185,7 @@ function ParameterEditor({
   baseResolutionId,
   onDirty,
 }: {
+  formId: string;
   item: WizardParameterPreview;
   decisions: TailoringDecision[];
   parameters: ParameterOverride[];
@@ -188,6 +205,11 @@ function ParameterEditor({
   const parameter = item.parameter;
   const control = data.controls.find((control) => control.id === parameter.control_id);
   function record() {
+    if (readOnly) return;
+    if (!values.trim() || !rationale.trim()) {
+      setError("Enter at least one value and a rationale for this override.");
+      return;
+    }
     const next = [
       ...parameters.filter((override) => override.parameterId !== parameter.id),
       {
@@ -213,126 +235,130 @@ function ParameterEditor({
     onDirty(false);
   }
   return (
-    <Stack space="space.200">
-      <div>
-        <h3 id={id} className="font-body-large font-semibold">
-          {parameter.source_id}
-        </h3>
-        <p className="font-body-small text-subtle">{parameter.label}</p>
-        {control ? (
-          <p className="font-body-small text-subtle">
-            {control.code} · {control.title}
-          </p>
+    <form
+      id={formId}
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault();
+        record();
+      }}
+    >
+      <Stack space="space.200">
+        <div>
+          <h3 id={id} className="font-body-large font-semibold">
+            {parameter.source_id}
+          </h3>
+          <p className="font-body-small text-subtle">{parameter.label}</p>
+          {control ? (
+            <p className="font-body-small text-subtle">
+              {control.code} · {control.title}
+            </p>
+          ) : null}
+        </div>
+        {parameter.usage ? (
+          <p className="font-body-small whitespace-pre-wrap">{parameter.usage}</p>
         ) : null}
-      </div>
-      {parameter.usage ? (
-        <p className="font-body-small whitespace-pre-wrap">{parameter.usage}</p>
-      ) : null}
-      <KeyValue label="Current source">
-        {item.origin === "unset" ? "No recorded value" : item.origin}
-      </KeyValue>
-      {readOnly ? (
-        <KeyValue label="Values" wrap>
-          {item.values.length ? item.values.join("; ") : "No recorded value"}
+        <KeyValue label="Current source">
+          {item.origin === "unset" ? "No recorded value" : item.origin}
         </KeyValue>
-      ) : null}
-      {readOnly && item.rationale ? (
-        <KeyValue label="Rationale" wrap>
-          {item.rationale}
-        </KeyValue>
-      ) : null}
-      {item.choices.length ? (
-        <Section
-          title={`Source choices${parameter.selection_count ? ` · ${parameter.selection_count.replaceAll("_", " ")}` : ""}`}
-        >
-          <Box as="ul" className="list-disc ps-200 font-body-small">
-            {item.choices.map((choice) => (
-              <li key={choice}>{choice}</li>
-            ))}
-          </Box>
-        </Section>
-      ) : null}
-      {item.constraints.length ? (
-        <Section title="Source constraints">
-          <Stack space="space.100">
-            {item.constraints.map((constraint) => (
-              <p key={constraint} className="font-body-small whitespace-pre-wrap">
-                {constraint}
+        {readOnly ? (
+          <KeyValue label="Values" wrap>
+            {item.values.length ? item.values.join("; ") : "No recorded value"}
+          </KeyValue>
+        ) : null}
+        {readOnly && item.rationale ? (
+          <KeyValue label="Rationale" wrap>
+            {item.rationale}
+          </KeyValue>
+        ) : null}
+        {item.choices.length ? (
+          <Section
+            title={`Source choices${parameter.selection_count ? ` · ${parameter.selection_count.replaceAll("_", " ")}` : ""}`}
+          >
+            <Box as="ul" className="list-disc ps-200 font-body-small">
+              {item.choices.map((choice) => (
+                <li key={choice}>{choice}</li>
+              ))}
+            </Box>
+          </Section>
+        ) : null}
+        {item.constraints.length ? (
+          <Section title="Source constraints">
+            <Stack space="space.100">
+              {item.constraints.map((constraint) => (
+                <p key={constraint} className="font-body-small whitespace-pre-wrap">
+                  {constraint}
+                </p>
+              ))}
+            </Stack>
+          </Section>
+        ) : null}
+        {item.guidelines.length ? (
+          <Section title="Guidance">
+            <Stack space="space.100">
+              {item.guidelines.map((guideline) => (
+                <p key={guideline} className="font-body-small whitespace-pre-wrap">
+                  {guideline}
+                </p>
+              ))}
+            </Stack>
+          </Section>
+        ) : null}
+        {readOnly ? null : (
+          <>
+            <TextField
+              label="Parameter values"
+              value={values}
+              onChange={(value) => {
+                setValues(value);
+                setRecorded(false);
+                onDirty(true);
+              }}
+              required
+              multiline
+              description="One value per line. Literal choices, when declared, must match the source."
+            />
+            <TextField
+              label="Parameter override rationale"
+              value={rationale}
+              onChange={(value) => {
+                setRationale(value);
+                setRecorded(false);
+                onDirty(true);
+              }}
+              required
+              multiline
+            />
+            <Inline space="space.100">
+              {existing ? (
+                <Button
+                  variant="subtle"
+                  onClick={() => {
+                    onChange(
+                      parameters.filter((override) => override.parameterId !== parameter.id),
+                    );
+                    setRecorded(false);
+                    onDirty(false);
+                    setError("");
+                  }}
+                >
+                  Remove override
+                </Button>
+              ) : null}
+            </Inline>
+            {error ? (
+              <p role="alert" className="font-body-small text-danger">
+                {error}
               </p>
-            ))}
-          </Stack>
-        </Section>
-      ) : null}
-      {item.guidelines.length ? (
-        <Section title="Guidance">
-          <Stack space="space.100">
-            {item.guidelines.map((guideline) => (
-              <p key={guideline} className="font-body-small whitespace-pre-wrap">
-                {guideline}
-              </p>
-            ))}
-          </Stack>
-        </Section>
-      ) : null}
-      {readOnly ? null : (
-        <>
-          <TextField
-            label="Parameter values"
-            value={values}
-            onChange={(value) => {
-              setValues(value);
-              setRecorded(false);
-              onDirty(true);
-            }}
-            required
-            multiline
-            description="One value per line. Literal choices, when declared, must match the source."
-          />
-          <TextField
-            label="Parameter override rationale"
-            value={rationale}
-            onChange={(value) => {
-              setRationale(value);
-              setRecorded(false);
-              onDirty(true);
-            }}
-            required
-            multiline
-          />
-          <Inline space="space.100">
-            <Button
-              variant="primary"
-              disabled={!values.trim() || !rationale.trim()}
-              onClick={record}
-            >
-              Record parameter override
-            </Button>
-            {existing ? (
-              <Button
-                variant="subtle"
-                onClick={() => {
-                  onChange(parameters.filter((override) => override.parameterId !== parameter.id));
-                  setRecorded(false);
-                  onDirty(false);
-                  setError("");
-                }}
-              >
-                Remove override
-              </Button>
             ) : null}
-          </Inline>
-          {error ? (
-            <p role="alert" className="font-body-small text-danger">
-              {error}
-            </p>
-          ) : null}
-          {recorded ? (
-            <p role="status" className="font-body-small text-success">
-              Parameter override recorded in the draft.
-            </p>
-          ) : null}
-        </>
-      )}
-    </Stack>
+            {recorded ? (
+              <p role="status" className="font-body-small text-success">
+                Parameter override recorded in the draft.
+              </p>
+            ) : null}
+          </>
+        )}
+      </Stack>
+    </form>
   );
 }

@@ -28,7 +28,7 @@ function Suppliers() {
     <Stack space="space.200">
       <PageHeader>
         <PageHeader.Heading>
-          <PageHeader.Title>Supplier registry</PageHeader.Title>
+          <PageHeader.Title>Suppliers</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
       {editing && (
@@ -110,9 +110,6 @@ function Suppliers() {
         >
           <Stack space="space.200">
             <ModelFacts record={preview} fields={["name", "email"]} />
-            <TextLink render={<Link to="/library/components" />}>
-              Review supplied component definitions
-            </TextLink>
           </Stack>
         </RecordPreviewPanel>
       )}

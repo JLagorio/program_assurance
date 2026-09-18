@@ -1,0 +1,64 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Writing stories" />
+
+# Writing stories
+
+The Storybook is the package's test suite and its documentation at once: every story renders in both colour modes with its play function and an axe pass (`npm run test:a11y`), every exported part must appear in one (`npm run ds:check`), and the family's MDX page draws its examples from the same file. The MCP tool `get-storybook-story-instructions` is the generic Storybook 9 guidance; this page is what this package adds to it.
+
+## Shape of a stories file
+
+```tsx
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, fn, userEvent, within } from "storybook/test";
+
+import { Badge, Button } from "../../components";
+import { Inline, Stack } from "../../primitives";
+import { Matrix, Specimens } from "../_lib/matrix";
+
+const meta = {
+  title: "Components/Badge",
+  component: Badge,
+  parameters: { layout: "padded" },
+  args: { children: "Featured", variant: "default" },
+} satisfies Meta<typeof Badge>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+/** The six reference variants beside the icon positions. */
+export const Matrix: Story = { render: () => <Matrix rows={…} cols={…} render={…} /> };
+```
+
+- Imports come from `@storybook/react-vite` and `storybook/test`, never the `@storybook/test` or `@storybook/react` names.
+- Parts are imported by relative path from `../../components`, `../../primitives`, `../../patterns`, `../../layout`. The package never imports its own root.
+- `title` is `<Category>/<Family>`: Primitives, Components, Layout, Patterns, Tokens, Guidance. One family, one file, one `title`.
+- The JSDoc comment above a story is its description on the docs page. Write it as the sentence the reader needs, not the story's name again.
+
+## What to cover
+
+- Every named part of the family, rendered. `ds:check` fails on an export with no story.
+- Representative states, not every permutation: default, hover and pressed through the tokens, disabled, invalid, loading, empty, error, the sizes that change behaviour. The `_lib/matrix` **Matrix** and **Specimens** helpers lay a family's variants out for comparison; **Pair** in `_lib/pair` puts a Do beside a Don't with one line each on why; every family's page carries one.
+- One playground covers the controls. Keep distinct regression cases as their own stories rather than folding them into the playground.
+- A `play` function on every interactive story: drive it with `userEvent`, assert the visible outcome with role and label queries on `canvas`, and assert `fn` callbacks were called. Wait for a menu to mount before asserting `aria-expanded`.
+- Render once. Josef switches the mode in the toolbar; a story never renders light and dark side by side.
+
+## What fails a story
+
+- A console error. `test/storybook.setup.ts` fails any story that emits one.
+- An axe violation in either mode. Fix semantic and structural violations directly; a contrast or spacing violation is a design decision, so raise it instead.
+- A stale `api/public-api.json`: `npm run ds:api:check` when declarations changed, `ds:api:update` when they changed on purpose.
+- Drift in `eslint-plugin/components.json` or `llms.txt`; the package build regenerates both.
+
+## The MDX page
+
+One `<Family>.mdx` beside the stories, attached with `<Meta of={Stories} />`, so its title is the stories file's. It opens with what the part is for in a sentence or two, then `<Canvas of={Stories.X} />` for the examples worth reading, `<ArgTypes of={Part} />` for each named part, and the usage and accessibility guidance that helps. No required heading set and no "Not applicable" filler. A larger migration gets one focused guide the page links to.
+
+`api/axis-policy.json` holds optional notes on package-specific meanings of `variant`, `size`, `tone` and the other shared axes; a new part or prop does not need an entry.
+
+## What does not belong here
+
+An application composition. A screen from the product is verified in the running app, never mounted in a package story; the package documents neutral contracts and the application's pattern contract decides how they are used there.
+
+## After changing a story
+
+Call `stories-changed`, then `stories-preview` for the stories that matter, then `test-run` for the family. Report the URLs. Add a `CHANGELOG.md` entry that names the story showing the change.

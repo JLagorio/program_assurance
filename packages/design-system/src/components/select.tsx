@@ -15,6 +15,7 @@ import {
   menuSeparator,
   menuSurface,
 } from "./menu";
+import { scrollerArrowVariants } from "./scroller";
 
 export type SelectProps<
   Value = unknown,
@@ -134,6 +135,7 @@ export function SelectContent({
             <SelectScrollUpButton />
             <SelectPrimitive.List
               className="min-h-0 overflow-y-auto overscroll-contain"
+              style={{ scrollPaddingBlock: "var(--ds-space-300)" }}
               aria-label={props["aria-label"]}
               aria-labelledby={props["aria-labelledby"]}
             >
@@ -209,18 +211,20 @@ export function SelectSeparator({ className, ...props }: SelectSeparatorProps) {
   );
 }
 
+/* Base UI's Select arrows keep their engine (item stepping, touch suppression) and wear the
+   Scroller arrow look, so a select and a menu scroll alike. */
+const selectArrow = (edge: "start" | "end") =>
+  scrollerArrowVariants({ orientation: "vertical", edge, surface: "overlay" });
+
 export type SelectScrollUpButtonProps = SelectPrimitive.ScrollUpArrow.Props;
 export function SelectScrollUpButton({ className, ...props }: SelectScrollUpButtonProps) {
   return (
     <SelectPrimitive.ScrollUpArrow
       data-slot="select-scroll-up-button"
-      className={classes(
-        "top-0 z-10 flex w-full cursor-default items-center justify-center bg-surface-overlay py-050",
-        className,
-      )}
+      className={classes(selectArrow("start"), className)}
       {...props}
     >
-      <ChevronUp aria-hidden className="size-icon-small" />
+      <ChevronUp aria-hidden />
     </SelectPrimitive.ScrollUpArrow>
   );
 }
@@ -230,13 +234,10 @@ export function SelectScrollDownButton({ className, ...props }: SelectScrollDown
   return (
     <SelectPrimitive.ScrollDownArrow
       data-slot="select-scroll-down-button"
-      className={classes(
-        "bottom-0 z-10 flex w-full cursor-default items-center justify-center bg-surface-overlay py-050",
-        className,
-      )}
+      className={classes(selectArrow("end"), className)}
       {...props}
     >
-      <ChevronDown aria-hidden className="size-icon-small" />
+      <ChevronDown aria-hidden />
     </SelectPrimitive.ScrollDownArrow>
   );
 }

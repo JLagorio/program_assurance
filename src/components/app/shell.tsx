@@ -59,7 +59,7 @@ const groups = [
     items: [
       { label: "My work", to: "/work", icon: ShieldCheck },
       { label: "Programs", to: "/programs", icon: ClipboardList },
-      { label: "Test campaigns", to: "/campaigns", icon: FlaskConical },
+      { label: "Assessment campaigns", to: "/campaigns", icon: FlaskConical },
       { label: "Portfolio", to: "/", icon: Gauge },
     ],
   },
@@ -68,7 +68,7 @@ const groups = [
     items: [
       { label: "Evidence", to: "/evidence", icon: Archive },
       { label: "Findings & assets", to: "/findings", icon: Bug },
-      { label: "POA&M & risk", to: "/register", icon: ShieldAlert },
+      { label: "POA&M & risk register", to: "/register", icon: ShieldAlert },
       { label: "Packages", to: "/packages", icon: Package },
       { label: "Authorization decisions", to: "/briefing", icon: Gavel },
     ],
@@ -86,7 +86,7 @@ const groups = [
   {
     label: "System",
     items: [
-      { label: "Supply chain", to: "/vendors", icon: Users },
+      { label: "Suppliers", to: "/vendors", icon: Users },
       { label: "Design system", to: "/components", icon: Sparkle },
       { label: "Schema inspector", to: "/schema", icon: Database },
     ],
@@ -138,7 +138,7 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
     })),
   ];
   return (
-    <Shell sideNavShortcut persist>
+    <Shell sideNavShortcut persist collapsedSideNav="icons">
       <RouteNavigation pathname={pathname} />
       <Shell.TopNav>
         <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>

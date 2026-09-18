@@ -1,0 +1,76 @@
+/* One measured indicator follows the active tab, including resized labels and scrolling lists. */
+[data-slot="tabs-list"] {
+  isolation: isolate;
+}
+[data-slot="tabs-indicator"] {
+  position: absolute;
+  pointer-events: none;
+  inset: 0 auto auto 0;
+  width: var(--active-tab-width);
+  height: var(--active-tab-height);
+  transform: translate(var(--active-tab-left), var(--active-tab-top));
+  border-radius: var(--ds-radius-small);
+  background-color: var(--ds-elevation-surface);
+  box-shadow: var(--ds-elevation-shadow-raised);
+  transition:
+    transform var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard),
+    width var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard),
+    height var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard);
+}
+[data-slot="tabs-list"][data-variant="line"] > [data-slot="tabs-indicator"] {
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-color-background-brand-bold);
+  box-shadow: none;
+
+  &[data-orientation="horizontal"] {
+    top: auto;
+    bottom: 0;
+    height: var(--ds-space-025);
+    transform: translateX(var(--active-tab-left));
+  }
+  &[data-orientation="vertical"] {
+    left: auto;
+    inset-inline-end: 0;
+    width: var(--ds-space-025);
+    transform: translateY(var(--active-tab-top));
+  }
+}
+
+/* While the Scroller's arrows are in play they replace the strip's scrollbar and its gutter;
+   touch readers keep the bar. */
+[data-slot="scroller"][data-arrows] > [data-slot="tabs-scroll-area"] {
+  padding-bottom: 0;
+}
+[data-slot="scroller"][data-arrows]
+  > [data-slot="tabs-scroll-area"]
+  [data-slot="scroll-area-scrollbar"] {
+  display: none;
+}
+
+@keyframes ds-tab-panel-enter {
+  from {
+    opacity: 0.65;
+    transform: translateY(var(--ds-space-050));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Only the arriving view occupies layout. The previous panel becomes inert through Base UI and
+   hides immediately; keeping its DOM mounted still preserves caller state. */
+[data-slot="tabs-content"]:not([hidden]):not([data-ending-style]) {
+  animation: ds-tab-panel-enter var(--ds-motion-duration-medium) var(--ds-motion-easing-enter)
+    backwards;
+}
+[data-slot="tabs-content"][data-ending-style] {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="tabs-indicator"] {
+    transition: none;
+  }
+  [data-slot="tabs-content"]:not([hidden]):not([data-ending-style]) {
+    animation: none;
+  }
+}

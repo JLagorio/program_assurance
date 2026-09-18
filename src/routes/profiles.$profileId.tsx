@@ -1,22 +1,25 @@
-import { EmptyMessage, MissingRecord } from "@/components/prototype/work-common";
-import { canAuthorLibrary } from "@/components/prototype/library-utils";
-import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
+import { ProfileChain } from "@/components/app/profile-tailoring/chain";
+import { ProfileTailoringEditor } from "@/components/app/profile-tailoring/editor";
+import { useReferenceData } from "@/components/app/profile-tailoring/use-reference-data";
+import { useWorkspace } from "@/components/app/workspace";
+import { ControlInspector, LibraryControlTable } from "@/components/prototype/library-controls";
 import {
-  Absent,
+  LibraryEditor,
+  LibraryLoading,
+  LibrarySelect,
+} from "@/components/prototype/library-shared";
+import { canAuthorLibrary } from "@/components/prototype/library-utils";
+import { EmptyMessage, MissingRecord } from "@/components/prototype/work-common";
+import { useRow, useRows, type Row } from "@/lib/models";
+import { inspectBase, overlayDecisions, profileDisplayTitle } from "@/lib/program-wizard-reference";
+import {
+  Badge,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  Toolbar,
-  Badge,
   Button,
   Collapsible,
   CollapsibleContent,
@@ -32,6 +35,11 @@ import {
   KeyValue,
   PageHeader,
   Section,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Shell,
   Stack,
   Table,
@@ -41,18 +49,9 @@ import {
   TabsTrigger,
   TextLink,
 } from "@ledger/design-system";
-import { useRow, useRows, type Row } from "@/lib/models";
-import { inspectBase, overlayDecisions, profileDisplayTitle } from "@/lib/program-wizard-reference";
-import { useWorkspace } from "@/components/app/workspace";
-import { LibraryControlTable, ControlInspector } from "@/components/prototype/library-controls";
-import {
-  LibraryEditor,
-  LibraryLoading,
-  LibrarySelect,
-} from "@/components/prototype/library-shared";
-import { ProfileChain } from "@/components/app/profile-tailoring/chain";
-import { ProfileTailoringEditor } from "@/components/app/profile-tailoring/editor";
-import { useReferenceData } from "@/components/app/profile-tailoring/use-reference-data";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/profiles/$profileId")({
   head: () => ({ meta: [{ title: "Profile — Program Assurance" }] }),
@@ -111,21 +110,14 @@ function ProfilePage() {
             onSaved={(record) => setChosen(record.id)}
           />
         )}
-        {!!versions.length && (
-          <div className="w-layout-rail max-w-full">
-            <LibrarySelect
-              label="Profile revision"
-              value={current?.id ?? ""}
-              options={versions.map((revision) => ({
-                value: revision.id,
-                label: `${revision.version} · ${revision.state}`,
-              }))}
-              onChange={setChosen}
-            />
-          </div>
-        )}
         {current ? (
-          <ProfileRevision key={current.id} revision={current} editable={!!editable} />
+          <ProfileRevision
+            key={current.id}
+            revision={current}
+            editable={!!editable}
+            versions={versions}
+            onVersion={setChosen}
+          />
         ) : (
           <EmptyMessage
             title="No profile revisions"
@@ -140,7 +132,11 @@ function ProfilePage() {
 function ProfileRevision({
   revision,
   editable,
+  versions,
+  onVersion,
 }: {
+  versions: Row<"profile_revisions">[];
+  onVersion: (id: string) => void;
   revision: Row<"profile_revisions">;
   editable: boolean;
 }) {
@@ -267,110 +263,123 @@ function ProfileRevision({
             )}
             {tab === "Derivation" && (
               <Stack space="space.200">
-                <Inline alignBlock="center" spread="space-between">
-                  <h2 className="font-heading-small">Source imports</h2>
-                  {editable && revision.state === "draft" && (
-                    <Button variant="secondary" onClick={() => setEditing("profile_imports")}>
-                      Create profile import
-                    </Button>
+                <Section
+                  title="Source imports"
+                  action={
+                    editable &&
+                    revision.state === "draft" && (
+                      <Button variant="secondary" onClick={() => setEditing("profile_imports")}>
+                        Create profile import
+                      </Button>
+                    )
+                  }
+                >
+                  <Table>
+                    <thead>
+                      <tr>
+                        <Table.Header>Order</Table.Header>
+                        <Table.Header>Source</Table.Header>
+                        <Table.Header>Selection</Table.Header>
+                        <Table.Header>Reference</Table.Header>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...(imports.data ?? [])]
+                        .sort((a, b) => a.ordinal - b.ordinal)
+                        .map((item) => {
+                          const catalog = catalogOf(item);
+                          const imported = importedRevision(item);
+                          return (
+                            <Table.Row key={item.id}>
+                              <Table.Cell>{item.ordinal}</Table.Cell>
+                              <Table.Cell className="whitespace-normal">
+                                {catalog ? (
+                                  <TextLink
+                                    render={<Link to="/catalog" search={{ edition: catalog.id }} />}
+                                  >
+                                    Catalog ·{" "}
+                                    {catalogs.data?.find((row) => row.id === catalog.catalog_id)
+                                      ?.title ?? catalog.title}
+                                  </TextLink>
+                                ) : imported ? (
+                                  <TextLink
+                                    render={
+                                      <Link
+                                        to="/profiles/$profileId"
+                                        params={{ profileId: imported.profile_id }}
+                                      />
+                                    }
+                                  >
+                                    Base profile ·{" "}
+                                    {profiles.data?.find((row) => row.id === imported.profile_id)
+                                      ?.title ?? imported.title}{" "}
+                                    · {imported.version}
+                                  </TextLink>
+                                ) : (
+                                  "Not recorded"
+                                )}
+                              </Table.Cell>
+                              <Table.Cell>{importSelection(item)}</Table.Cell>
+                              <Table.Cell>
+                                <Id>{item.href}</Id>
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        })}
+                    </tbody>
+                  </Table>
+                  {!imports.data?.length && <EmptyMessage title="No source imports recorded" />}
+                </Section>
+                <Section title="Recorded resolutions">
+                  {available.length ? (
+                    available.map((item) => (
+                      <Inspector.Group
+                        key={item.id}
+                        title={`${item.resolver_name} · ${item.resolver_version}`}
+                      >
+                        <KeyValue label="State">{item.state}</KeyValue>
+                        <KeyValue label="Resolved at">{item.resolved_at}</KeyValue>
+                        <KeyValue label="Input hash" wrap>
+                          <Id>{item.input_sha256}</Id>
+                        </KeyValue>
+                        <KeyValue label="Output hash" wrap>
+                          <Id>{item.output_sha256}</Id>
+                        </KeyValue>
+                      </Inspector.Group>
+                    ))
+                  ) : (
+                    <EmptyMessage
+                      title="No resolution recorded"
+                      description="Import a resolution to see its control count."
+                    />
                   )}
-                </Inline>
-                <Table>
-                  <thead>
-                    <tr>
-                      <Table.Header>Order</Table.Header>
-                      <Table.Header>Source</Table.Header>
-                      <Table.Header>Selection</Table.Header>
-                      <Table.Header>Reference</Table.Header>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...(imports.data ?? [])]
-                      .sort((a, b) => a.ordinal - b.ordinal)
-                      .map((item) => {
-                        const catalog = catalogOf(item);
-                        const imported = importedRevision(item);
-                        return (
-                          <Table.Row key={item.id}>
-                            <Table.Cell>{item.ordinal}</Table.Cell>
-                            <Table.Cell className="whitespace-normal">
-                              {catalog ? (
-                                <TextLink
-                                  render={<Link to="/catalog" search={{ edition: catalog.id }} />}
-                                >
-                                  Catalog ·{" "}
-                                  {catalogs.data?.find((row) => row.id === catalog.catalog_id)
-                                    ?.title ?? catalog.title}
-                                </TextLink>
-                              ) : imported ? (
-                                <TextLink
-                                  render={
-                                    <Link
-                                      to="/profiles/$profileId"
-                                      params={{ profileId: imported.profile_id }}
-                                    />
-                                  }
-                                >
-                                  Base profile ·{" "}
-                                  {profiles.data?.find((row) => row.id === imported.profile_id)
-                                    ?.title ?? imported.title}{" "}
-                                  · {imported.version}
-                                </TextLink>
-                              ) : (
-                                "Not recorded"
-                              )}
-                            </Table.Cell>
-                            <Table.Cell>{importSelection(item)}</Table.Cell>
-                            <Table.Cell>
-                              <Id>{item.href}</Id>
-                            </Table.Cell>
-                          </Table.Row>
-                        );
-                      })}
-                  </tbody>
-                </Table>
-                {!imports.data?.length && <EmptyMessage title="No source imports recorded" />}
-                <h2 className="font-heading-small">Recorded resolutions</h2>
-                {available.length ? (
-                  available.map((item) => (
-                    <Inspector.Group
-                      key={item.id}
-                      title={`${item.resolver_name} · ${item.resolver_version}`}
-                    >
-                      <KeyValue label="State">{item.state}</KeyValue>
-                      <KeyValue label="Resolved at">{item.resolved_at}</KeyValue>
-                      <KeyValue label="Input hash" wrap>
-                        <Id>{item.input_sha256}</Id>
-                      </KeyValue>
-                      <KeyValue label="Output hash" wrap>
-                        <Id>{item.output_sha256}</Id>
-                      </KeyValue>
-                    </Inspector.Group>
-                  ))
-                ) : (
-                  <EmptyMessage
-                    title="No resolution recorded"
-                    description="Import a resolution to see its control count."
-                  />
-                )}
+                </Section>
               </Stack>
             )}
             {tab === "Controls" && (
               <Stack space="space.200">
                 {resolution ? (
                   <>
-                    <div className="w-layout-rail max-w-full">
-                      <LibrarySelect
-                        label="Resolved selection"
-                        value={resolution.id}
-                        options={available.map((item) => ({
-                          value: item.id,
-                          label: `${item.resolved_at} · ${item.state}`,
-                        }))}
-                        onChange={setResolutionId}
-                      />
-                    </div>
                     <LibraryControlTable
+                      filters={
+                        <Select
+                          value={resolution.id}
+                          onValueChange={(value) => {
+                            if (value) setResolutionId(value);
+                          }}
+                        >
+                          <SelectTrigger size="sm" aria-label="Resolved selection">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {available.map((item) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.resolved_at} · {item.state}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      }
                       selectedId={control?.id}
                       onDisplayedRowsChange={setDisplayedControls}
                       controls={selectedControls}
@@ -467,7 +476,15 @@ function ProfileRevision({
       {tab === "Overview" && (
         <Shell.Aside label="Profile details">
           <Inspector.Group title="Details">
-            <KeyValue label="Version">{revision.version}</KeyValue>
+            <LibrarySelect
+              label="Profile revision"
+              value={revision.id}
+              options={versions.map((version) => ({
+                value: version.id,
+                label: `${version.version} · ${version.state}`,
+              }))}
+              onChange={onVersion}
+            />
             <KeyValue label="State">{revision.state}</KeyValue>
             <KeyValue label="Kind" wrap>
               {inspection

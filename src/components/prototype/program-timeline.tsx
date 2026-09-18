@@ -194,6 +194,8 @@ export function ProgramTimeline({
         <ProgramRecordDialog
           table="lifecycle_gates"
           row={selected}
+          records={[...sequenced, ...scheduled, ...unscheduled]}
+          onSelect={(row) => setSelectedId(row.id)}
           onClose={() => setSelectedId(null)}
         />
       )}

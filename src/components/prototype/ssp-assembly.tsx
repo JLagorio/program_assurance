@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { RecordSummaryPreview } from "./record-summary-preview";
+import { ProductCollection } from "./product-collection";
+import { useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   RecordLink,
@@ -10,6 +12,13 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { EmptyMessage, QueryState } from "./work-common";
 import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyIllustration,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
   Badge,
   Box,
   Button,
@@ -54,13 +63,30 @@ export function ProgramSspAssembly({ programId }: { programId: string }) {
   const [chosen, setChosen] = useState<string>();
   const boundaries = (systems.data ?? []).filter((system) => system.is_authorization_boundary);
   const boundary = boundaries.find((system) => system.id === chosen) ?? boundaries[0];
-  if (systems.isPending || systems.error)
-    return <ProgramQueryState loading={systems.isPending} error={systems.error} />;
+  if (systems.isPending || systems.error) return <ProgramQueryState queries={[systems]} />;
   if (!boundary)
     return (
-      <p className="text-subtle">
-        Add an authorization boundary in the system tree to assemble its control implementations.
-      </p>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia>
+            <EmptyIllustration kind="tree" />
+          </EmptyMedia>
+          <EmptyTitle>No authorization boundary yet</EmptyTitle>
+          <EmptyDescription>
+            Create an authorization boundary in the system tree to assemble its control
+            implementations.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <TextLink
+            render={
+              <Link to="/programs/$programId" params={{ programId }} search={{ tab: "System" }} />
+            }
+          >
+            Open systems
+          </TextLink>
+        </EmptyContent>
+      </Empty>
     );
   return (
     <Stack space="space.250">
@@ -133,12 +159,7 @@ export function SspAssembly({ programId, systemId }: { programId: string; system
   const ordered = [...(plans.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const plan = ordered.find((item) => item.id === chosenId) ?? ordered[0];
   if (system.isPending || plans.isPending || system.error || plans.error)
-    return (
-      <ProgramQueryState
-        loading={system.isPending || plans.isPending}
-        error={system.error ?? plans.error}
-      />
-    );
+    return <ProgramQueryState queries={[plans, system]} />;
   if (
     !system.data ||
     system.data.program_id !== programId ||
@@ -147,44 +168,53 @@ export function SspAssembly({ programId, systemId }: { programId: string; system
     return <p role="alert">Choose an authorization boundary in this program to read its SSP.</p>;
   return (
     <Stack space="space.250">
-      <Inline space="space.200" alignBlock="center" spread="space-between" shouldWrap>
-        <h2 className="font-heading-small">SSP assembly</h2>
-        {plan && (
-          <Select
-            value={plan.id}
-            onValueChange={(value) => {
-              if (value) setChosenId(value);
-            }}
-          >
-            <SelectTrigger aria-label="SSP selection" className="w-layout-rail max-w-full">
-              <SelectValue>
-                SSP {plan.version_number} · {labelFor(plan.state)}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {ordered.map((item) => (
-                <SelectItem key={item.id} value={item.id}>
-                  SSP {item.version_number} · {labelFor(item.state)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Inline>
       {plan ? (
-        <SspAssemblyPlan key={plan.id} programId={programId} plan={plan} />
+        <SspAssemblyPlan
+          key={plan.id}
+          programId={programId}
+          plan={plan}
+          planSelector={
+            <Select
+              value={plan?.id}
+              onValueChange={(value) => {
+                if (value) setChosenId(value);
+              }}
+            >
+              <SelectTrigger aria-label="SSP selection" className="w-layout-rail max-w-full">
+                <SelectValue>
+                  SSP {plan?.version_number} · {plan ? labelFor(plan.state) : "Draft"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {ordered.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    SSP {item.version_number} · {labelFor(item.state)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
       ) : (
-        <Section title="No SSP recorded">
-          <Stack space="space.150">
-            <p className="text-subtle">
-              Create a system security plan with an explicit resolved baseline to begin assembling
-              its control implementations.
-            </p>
-            {workspace.role !== "viewer" && (
-              <Button onClick={() => setCreating(true)}>Create SSP revision</Button>
-            )}
-          </Stack>
-        </Section>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia>
+              <EmptyIllustration kind="document" />
+            </EmptyMedia>
+            <EmptyTitle>No SSP recorded</EmptyTitle>
+            <EmptyDescription>
+              Create a system security plan with an explicit resolved baseline to assemble its
+              control implementations.
+            </EmptyDescription>
+          </EmptyHeader>
+          {workspace.role !== "viewer" && (
+            <EmptyContent>
+              <Button variant="primary" onClick={() => setCreating(true)}>
+                Create SSP revision
+              </Button>
+            </EmptyContent>
+          )}
+        </Empty>
       )}
       {creating && (
         <ProductRecordDialog
@@ -199,7 +229,15 @@ export function SspAssembly({ programId, systemId }: { programId: string; system
   );
 }
 
-function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ssp_revisions"> }) {
+function SspAssemblyPlan({
+  programId,
+  plan,
+  planSelector,
+}: {
+  programId: string;
+  plan: Row<"ssp_revisions">;
+  planSelector: ReactNode;
+}) {
   const workspace = useWorkspace();
   const selections = useRows("selected_controls");
   const effectiveBaselines = useRows("system_effective_baselines");
@@ -374,6 +412,133 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
     resizable: true,
   });
   const displayedRows = useDisplayedRecords(table);
+  const [requirementPreviewId, setRequirementPreviewId] = useState<string>();
+  const requirementRows = useMemo(
+    () =>
+      (selected?.requirements ?? []).map((support) => ({
+        ...support.content,
+        code: support.requirement.code,
+        requirement: support.requirement,
+        descriptions: support.descriptions,
+        rationales: support.rationale,
+      })),
+    [selected],
+  );
+  const requirementColumns = useMemo(
+    () =>
+      defineColumns<(typeof requirementRows)[number]>((c) => [
+        c.id("title", {
+          header: "Requirement",
+          minWidth: 200,
+          priority: 0,
+          preview: (row) => setRequirementPreviewId(row.id),
+          active: (row) => row.id === requirementPreviewId,
+          cell: (row) => (
+            <RecordLink table="engineering_requirements" record={row.requirement}>
+              {row.title}
+            </RecordLink>
+          ),
+        }),
+        c.text("code", {
+          header: "Code",
+          priority: 1,
+          width: 130,
+          cell: (row) => (
+            <RecordLink table="engineering_requirements" record={row.requirement}>
+              {row.code}
+            </RecordLink>
+          ),
+        }),
+        c.text("statement", { header: "Statement", minWidth: 220, wrap: true }),
+        c.custom("relationship", {
+          header: "Relationship",
+          text: (row) => [...row.descriptions, ...row.rationales].join(" · "),
+          cell: (row) => (
+            <Stack space="space.050">
+              <span>{row.descriptions.join(" · ")}</span>
+              {row.rationales.map((rationale) => (
+                <p className="text-subtle" key={rationale}>
+                  {rationale}
+                </p>
+              ))}
+            </Stack>
+          ),
+        }),
+      ]),
+    [requirementPreviewId],
+  );
+  const requirementTable = useDataTable({
+    columns: requirementColumns,
+    data: requirementRows,
+    getRowId: (row) => row.id,
+    label: "SSP supporting requirements",
+    view: "ssp-supporting-requirements",
+  });
+  const displayedRequirements = useDisplayedRecords(requirementTable);
+  const requirementPreview = requirementRows.find((row) => row.id === requirementPreviewId);
+  const evidenceRows = useMemo(
+    () =>
+      (selected?.evidence ?? []).map((support) => ({
+        ...support,
+        title: support.artifact?.title ?? "Evidence unavailable",
+        versionLabel: support.version
+          ? `Version ${support.version.version_number} · ${labelFor(support.version.state)}`
+          : "Version unavailable",
+      })),
+    [selected],
+  );
+  const evidenceColumns = useMemo(
+    () =>
+      defineColumns<(typeof evidenceRows)[number]>((c) => [
+        c.id("title", {
+          header: "Evidence",
+          minWidth: 200,
+          priority: 0,
+          preview: (row) => {
+            if (row.version && row.artifact) setEvidenceId(row.id);
+          },
+          active: (row) => row.id === evidenceId,
+          cell: (row) =>
+            row.version ? (
+              <RecordLink table="evidence_versions" record={row.version}>
+                {row.title}
+              </RecordLink>
+            ) : (
+              row.title
+            ),
+        }),
+        c.text("versionLabel", { header: "Exact version", width: 180 }),
+        c.custom("origins", {
+          header: "Recorded support",
+          text: (row) =>
+            row.origins
+              .map((origin) =>
+                [origin.label, origin.claim, origin.rationale].filter(Boolean).join(" · "),
+              )
+              .join("; "),
+          cell: (row) => (
+            <Stack space="space.075">
+              {row.origins.map((origin) => (
+                <Stack key={`${origin.id}/${origin.label}`} space="space.025">
+                  <p>{origin.label}</p>
+                  {origin.claim && <p className="text-subtle">{origin.claim}</p>}
+                  {origin.rationale && <p className="text-subtle">{origin.rationale}</p>}
+                </Stack>
+              ))}
+            </Stack>
+          ),
+        }),
+      ]),
+    [evidenceId],
+  );
+  const evidenceTable = useDataTable({
+    columns: evidenceColumns,
+    data: evidenceRows,
+    getRowId: (row) => row.id,
+    label: "SSP supporting evidence",
+    view: "ssp-supporting-evidence",
+  });
+  const displayedEvidence = useDisplayedRecords(evidenceTable);
   const version = versions.data?.find((row) => row.id === evidenceId);
   const artifact = artifacts.data?.find((row) => row.id === version?.artifact_id);
   const authored = rows.filter((row) => row.narrative === "Recorded").length;
@@ -419,24 +584,20 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
         </Section>
       )}
       <QueryState queries={queries}>
-        <DataTable
-          responsive
+        <ProductCollection
           table={table}
           onRowClick={(row) => void navigate(recordDestination("selected_controls", row.selection))}
           empty={{
             title: "No controls in this SSP selection",
             description: "The stored baseline contains no selected controls.",
           }}
-          toolbar={
-            <Toolbar
-              search={String(table.state.globalFilter ?? "")}
-              onSearch={table.setGlobalFilter}
-              placeholder="Find selected controls"
-              filters={<DataTable.Filter table={table} column="narrative" />}
-            >
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-            </Toolbar>
+          fill
+          searchLabel="Find selected controls"
+          filters={
+            <>
+              {planSelector}
+              <DataTable.Filter table={table} column="narrative" />
+            </>
           }
         />
       </QueryState>
@@ -467,6 +628,15 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
         <RecordPreviewPanel
           title={selected.title}
           label="SSP control preview"
+          recordActions={
+            editable ? (
+              <Button size="small" variant="primary" onClick={() => openNarrative(selected)}>
+                {selected.implementation
+                  ? "Edit control implementation"
+                  : "Create control implementation"}
+              </Button>
+            ) : undefined
+          }
           defaultWidth={640}
           onClose={() => {
             setSelectedId(undefined);
@@ -490,6 +660,22 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
               {systems.data?.find((row) => row.id === plan.system_id)?.name ?? "Boundary"} · SSP{" "}
               {plan.version_number}
             </KeyValue>
+            {requirementPreview && (
+              <RecordSummaryPreview
+                model="requirement_revisions"
+                readOnly
+                record={requirementPreview}
+                rows={displayedRequirements}
+                onSelect={(row) => setRequirementPreviewId(row.id)}
+                onClose={() => setRequirementPreviewId(undefined)}
+                fields={[
+                  { key: "title" },
+                  { key: "statement" },
+                  { key: "acceptance_criteria" },
+                  { key: "state" },
+                ]}
+              />
+            )}
             {version && artifact && (
               <RecordPreviewPanel
                 title={artifact.title}
@@ -500,14 +686,8 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
                   <RecordPreviewActions
                     table="evidence_versions"
                     record={version}
-                    rows={selected.evidence.flatMap((support) =>
-                      support.version ? [support.version] : [],
-                    )}
-                    onSelect={(next) =>
-                      setEvidenceId(
-                        selected.evidence.find((support) => support.version?.id === next.id)?.id,
-                      )
-                    }
+                    rows={displayedEvidence}
+                    onSelect={(next) => setEvidenceId(next.id)}
                   />
                 }
               >
@@ -518,18 +698,7 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
               </RecordPreviewPanel>
             )}
             <Stack space="space.300">
-              <Section
-                title="Control implementation"
-                action={
-                  editable ? (
-                    <Button onClick={() => openNarrative(selected)}>
-                      {selected.implementation
-                        ? "Edit control implementation"
-                        : "Create control implementation"}
-                    </Button>
-                  ) : undefined
-                }
-              >
+              <Section title="Control implementation">
                 <Stack space="space.150">
                   <StatusValue value={selected.implementation?.implementation_status} />
                   <p className="whitespace-pre-wrap">
@@ -638,98 +807,27 @@ function SspAssemblyPlan({ programId, plan }: { programId: string; plan: Row<"ss
                 </Stack>
               </Section>
               <Section title="Requirements">
-                <Table aria-label="SSP supporting requirements">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header>Requirement</Table.Header>
-                      <Table.Header>Statement</Table.Header>
-                      <Table.Header>Relationship</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {selected.requirements.map((support) => (
-                      <Table.Row key={support.content.id}>
-                        <Table.Cell>
-                          <TextLink
-                            render={
-                              <Link
-                                to="/programs/$programId/requirements/$requirementId"
-                                params={{ programId, requirementId: support.requirement.id }}
-                              />
-                            }
-                          >
-                            {support.requirement.code}
-                          </TextLink>
-                        </Table.Cell>
-                        <Table.Cell>{support.content.statement}</Table.Cell>
-                        <Table.Cell>
-                          {support.descriptions.join(" · ")}
-                          {support.rationale.map((rationale) => (
-                            <p className="text-subtle" key={rationale}>
-                              {rationale}
-                            </p>
-                          ))}
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-                {!selected.requirements.length && (
-                  <EmptyMessage
-                    compact
-                    title="No requirement support"
-                    description="No requirement support or allocated control mapping is recorded."
-                  />
-                )}
+                <ProductCollection
+                  table={requirementTable}
+                  searchLabel="Find supporting requirements"
+                  empty={{
+                    illustration: "shield",
+                    title: "No requirement support",
+                    description: "No requirement support or allocated control mapping is recorded.",
+                  }}
+                />
               </Section>
               <Section title="Evidence">
-                <Table aria-label="SSP supporting evidence">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header>Evidence</Table.Header>
-                      <Table.Header>Exact version</Table.Header>
-                      <Table.Header>Recorded support</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {selected.evidence.map((support) => (
-                      <Table.Row key={support.id}>
-                        <Table.Cell>
-                          {support.artifact && support.version ? (
-                            <Button variant="link" onClick={() => setEvidenceId(support.id)}>
-                              {support.artifact.title}
-                            </Button>
-                          ) : (
-                            "Evidence unavailable"
-                          )}
-                        </Table.Cell>
-                        <Table.Cell>
-                          {support.version
-                            ? `Version ${support.version.version_number} · ${labelFor(support.version.state)}`
-                            : "Version unavailable"}
-                        </Table.Cell>
-                        <Table.Cell>
-                          {support.origins.map((origin) => (
-                            <div key={`${origin.id}/${origin.label}`}>
-                              <p>{origin.label}</p>
-                              {origin.claim && <p className="text-subtle">{origin.claim}</p>}
-                              {origin.rationale && (
-                                <p className="text-subtle">{origin.rationale}</p>
-                              )}
-                            </div>
-                          ))}
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-                {!selected.evidence.length && (
-                  <EmptyMessage
-                    compact
-                    title="No supporting evidence"
-                    description="No evidence is linked through this implementation or its related requirements."
-                  />
-                )}
+                <ProductCollection
+                  table={evidenceTable}
+                  searchLabel="Find supporting evidence"
+                  empty={{
+                    illustration: "document",
+                    title: "No supporting evidence",
+                    description:
+                      "No evidence is linked through this implementation or its related requirements.",
+                  }}
+                />
               </Section>
               {!!selected.inherited.length && (
                 <Section title="Accepted provider contributions">

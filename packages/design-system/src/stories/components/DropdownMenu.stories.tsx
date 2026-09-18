@@ -1,6 +1,6 @@
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { MoreHorizontal, Pencil } from "lucide-react";
+import { Library, MoreHorizontal, Pencil, Plus } from "lucide-react";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import {
@@ -48,6 +48,62 @@ const edit = fn();
 const renderedEdit = fn();
 const disabledAction = fn();
 const changed = fn();
+
+/** Action labels set the menu width, even when its trigger is a single icon. */
+export const ActionLabelWidths: Story = {
+  globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
+  render: () => (
+    <Stack alignInline="start">
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button size="small">Create system</Button>} />
+        <DropdownMenuContent>
+          <DropdownMenuItem>Create system</DropdownMenuItem>
+          <DropdownMenuItem>Add system from product</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={<IconButton label="More system actions" icon={<MoreHorizontal />} />}
+        />
+        <DropdownMenuContent>
+          <DropdownMenuItem>
+            <Plus />
+            Create system
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Library />
+            Add from library
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    for (const label of ["Create system", "More system actions"]) {
+      const trigger = canvas.getByRole("button", { name: label });
+      await userEvent.click(trigger);
+      const menu = await page.findByRole("menu");
+      await waitFor(() => {
+        const bounds = menu.getBoundingClientRect();
+        expect(bounds.width).toBeGreaterThanOrEqual(trigger.getBoundingClientRect().width);
+        expect(bounds.left).toBeGreaterThanOrEqual(0);
+        expect(bounds.right).toBeLessThanOrEqual(innerWidth);
+        expect(menu.scrollWidth).toBeLessThanOrEqual(menu.clientWidth);
+        for (const item of within(menu).getAllByRole("menuitem")) {
+          const range = canvasElement.ownerDocument.createRange();
+          const text = [...item.childNodes].find((node) => node.nodeType === Node.TEXT_NODE)!;
+          range.selectNodeContents(text);
+          expect(range.getClientRects()).toHaveLength(1);
+          expect(getComputedStyle(item).whiteSpace).toBe("nowrap");
+        }
+      });
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(menu).not.toBeVisible());
+    }
+  },
+};
 
 /** Native render composition, grouped actions, shortcuts and disabled keyboard behavior. */
 export const DropdownMenuMatrix: Story = {
@@ -362,6 +418,49 @@ function DialogDemo() {
   );
 }
 
+/** A long menu scrolls inside the available height; hover arrows scroll it and keyboard focus reveals the highlighted item. */
+export const Scrolling: Story = {
+  render: () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button />}>Assign to</DropdownMenuTrigger>
+      <DropdownMenuContent style={{ maxHeight: 200 }}>
+        {Array.from({ length: 24 }, (_, i) => (
+          <DropdownMenuItem key={i}>Assessor {i + 1}</DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ),
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const canvas = within(canvasElement);
+    const body = within(doc.body);
+    const user = userEvent.setup({ document: doc });
+    await user.click(canvas.getByRole("button", { name: "Assign to" }));
+    const menu = await body.findByRole("menu", { name: "Assign to" });
+    const viewport = menu.querySelector<HTMLElement>('[data-slot="scroller-viewport"]')!;
+    await expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight);
+    const arrow = (edge: "start" | "end") =>
+      menu.querySelector<HTMLElement>(`[data-slot="scroller-arrow"][data-edge="${edge}"]`);
+    await waitFor(() => expect(arrow("end")).toBeVisible());
+    await expect(arrow("start")).toBeNull();
+    await user.hover(arrow("end")!);
+    await waitFor(() => expect(viewport.scrollTop).toBeGreaterThan(0));
+    await user.unhover(arrow("end")!);
+    await waitFor(() => expect(arrow("start")).toBeVisible());
+    await user.keyboard("{End}");
+    const last = within(menu).getByRole("menuitem", { name: "Assessor 24" });
+    await waitFor(() => expect(last).toHaveFocus());
+    await waitFor(() =>
+      expect(last.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        viewport.getBoundingClientRect().bottom + 1,
+      ),
+    );
+    await waitFor(() => expect(arrow("end")).toBeNull());
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+  },
+};
+
 /** A menu opens a dialog; a nested menu uses Base UI portals and dismisses one layer at a time. */
 export const Dialogs: Story = {
   render: () => <DialogDemo />,
@@ -380,6 +479,12 @@ export const Dialogs: Story = {
     const dialog = await page.findByRole("dialog", { name: "Edit record" });
     const more = within(dialog).getByRole("button", { name: "More options" });
     await waitFor(() => expect(more).toHaveFocus());
+    // Position the nested menu after its dialog anchor has finished arriving.
+    await waitFor(() =>
+      expect(dialog.getAnimations().every((animation) => animation.playState !== "running")).toBe(
+        true,
+      ),
+    );
     await user.keyboard("{ArrowDown}");
     const menu = await page.findByRole("menu");
     await waitFor(() => expect(menu).toBeVisible());

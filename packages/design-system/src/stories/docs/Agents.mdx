@@ -1,0 +1,43 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Agents" />
+
+# Working with Ledger as an agent
+
+This Storybook is the contract. A coding agent that uses Ledger reads it the same way a person does: the family page says what a part is for, the generated props say what it accepts, and the stories show every state the part supports. Nothing about a part is true because another design system does it that way.
+
+## Where the instructions are
+
+| Question                                   | Read                                                                                                                                                                    |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Which part answers this need?              | Guidance/Choosing a part, then the family's page.                                                                                                                       |
+| What is a part for, and what does it take? | The family's page here: Components, Patterns, Layout, Primitives. Its `ArgTypes` table is generated from the source.                                                    |
+| I know shadcn or Radix; what is different? | Guidance/Coming from shadcn.                                                                                                                                            |
+| How do the parts compose into a screen?    | Guidance/Recipes, and the Layout/Pages stories.                                                                                                                         |
+| Which value or class do I use?             | Guidance/Which token for the short answer by job; the Tokens sheets and the Grammar page for everything. Tokens are the only styling.                                   |
+| How do I install or import it?             | Getting started, and the Importing section of the component library guide in the repo.                                                                                  |
+| What does the lint reject?                 | The Lint rules page.                                                                                                                                                    |
+| How do I add or change a part?             | The package `AGENTS.md`, which points at the "Adding to the kit" checklist in the component library guide; Guidance/Writing stories for the story and page conventions. |
+| Which part does the application use here?  | Not this Storybook. The application's composition contract, `docs/guides/product-patterns.md`, decides that; app compositions stay out of these stories.                |
+
+## Through the MCP server
+
+The Storybook serves an MCP endpoint at `/mcp` while it runs (`npm run storybook`, port 6007). The repository's `.mcp.json` registers it as `storybook-mcp`. Use its tools in this order:
+
+1. `get-storybook-story-instructions` before writing or editing a story. Its output is the source of truth for imports, story shape and test conventions.
+2. `docs-list` once, then `docs-show` for a family before using any of its props. A prop that the documentation does not show does not exist; report the gap rather than guessing.
+3. `stories-preview` after any change that alters how something looks: a component, a story, a stylesheet or a token. A shared file with no story of its own is previewed through its consumers' stories. Report the returned URLs.
+4. `test-run` to run the affected stories, focused while iterating and broad before handoff. Fix failures before reporting completion.
+
+## Without the MCP server
+
+`packages/design-system/llms.txt` is this Storybook's pages, the token sheet and the public export list, generated into one file by `npm run build:llms`. It is committed and the package tests fail when it drifts, so a cold checkout and an agent without MCP access read the same contract. It never replaces the running Storybook for verifying a change.
+
+## What an agent gets wrong most often
+
+- Using a prop from shadcn, Radix or Base UI that Ledger's part does not expose. Look it up first.
+- Writing a class the lint will reject: an arbitrary value, a Tailwind colour, a margin, a `dark:` variant. Use a token utility or a primitive prop.
+- Copying a kit part into product code instead of importing it. `ledger/no-kit-shadow` names the part to import.
+- Editing `src/generated/` by hand. Change `tokens/` and rebuild.
+- Putting an application composition into a package story. The package documents neutral contracts; the application is verified in the running app.
+- Rendering both colour modes in one story. The toolbar switches the mode; a story renders once.

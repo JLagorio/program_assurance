@@ -1,10 +1,20 @@
-import { useMemo } from "react";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "./record-preview";
+import { ProductCollection } from "./product-collection";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   Badge,
   DataTable,
   Inline,
+  KeyValue,
+  Stack,
   Toolbar,
   defineColumns,
   useDataTable,
@@ -46,7 +56,13 @@ export function ProgramLibrary({
   fill?: boolean | undefined;
 }) {
   const navigate = useNavigate();
-  const { rows, pending: assurancePending, error: assuranceError } = useSystemAssurance(programId);
+  const [selectedId, setSelectedId] = useState<string>();
+  const {
+    rows,
+    pending: assurancePending,
+    error: assuranceError,
+    queries: assuranceQueries,
+  } = useSystemAssurance(programId);
   const components = useRows("system_components");
   const definedComponents = useRows("defined_components");
   const revisions = useRows("component_definition_revisions");
@@ -116,7 +132,22 @@ export function ProgramLibrary({
   const columns = useMemo(
     () =>
       defineColumns<Line>((c) => [
-        c.text("name", { header: "Item", minWidth: 240, hideable: false }),
+        c.id("name", {
+          header: "Item",
+          minWidth: 200,
+          priority: 0,
+          hideable: false,
+          preview: (row) => setSelectedId(row.id),
+          active: (row) => row.id === selectedId,
+          cell: (row) => (
+            <RecordLink
+              table={row.definitionId ? "component_definitions" : "profile_resolutions"}
+              record={{ id: row.definitionId ?? row.id.replace("baseline:", "") }}
+            >
+              {row.name}
+            </RecordLink>
+          ),
+        }),
         c.text("kind", { header: "Kind", width: 170 }),
         c.text("category", { header: "Category", width: 170 }),
         c.text("version", {
@@ -146,7 +177,7 @@ export function ProgramLibrary({
         }),
         c.text("updateFlag", { header: "Update", width: 140 }),
       ]),
-    [],
+    [selectedId],
   );
   const table = useDataTable({
     columns,
@@ -158,6 +189,8 @@ export function ProgramLibrary({
     reorderable: true,
     initialState: { columnVisibility: { updateFlag: false } },
   });
+  const displayed = useDisplayedRecords(table);
+  const selected = data.find((row) => row.id === selectedId);
   const queries = [
     components,
     definedComponents,
@@ -169,37 +202,55 @@ export function ProgramLibrary({
   const error = assuranceError ?? queries.find((query) => query.error)?.error;
   const pending = assurancePending || queries.some((query) => query.isPending);
   return (
-    <DataTable
-      responsive
-      table={table}
-      fill={fill}
-      state={error ? "error" : pending ? "loading" : "ready"}
-      error={error?.message}
-      onRowClick={(row) => {
-        if (row.definitionId)
-          void navigate({
-            to: "/library/components/$componentKey",
-            params: { componentKey: row.definitionId },
-            search: { version: row.version },
-          });
-      }}
-      empty={{
-        illustration: "records",
-        title: "Nothing applied from the library yet",
-        description:
-          "Open an element in the System tab and use Add from library. What is applied anywhere in the program is listed here once per version.",
-      }}
-      toolbar={
-        <Toolbar
-          search={String(table.state.globalFilter ?? "")}
-          onSearch={(value) => table.setGlobalFilter(value)}
-          placeholder="Find a library item"
+    <>
+      <ProductCollection
+        table={table}
+        fill={fill}
+        onRowClick={(row) =>
+          void navigate(
+            recordDestination(row.definitionId ? "component_definitions" : "profile_resolutions", {
+              id: row.definitionId ?? row.id.replace("baseline:", ""),
+            }),
+          )
+        }
+        empty={{
+          illustration: "records",
+          title: "Nothing applied from the library yet",
+          description:
+            "Open an element in the System tab and use Add from library. What is applied anywhere in the program is listed here once per version.",
+        }}
+        queries={[...assuranceQueries, ...queries]}
+        searchLabel="Find a library item"
+        views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
+      />
+      {selected && (
+        <RecordPreviewPanel
+          title={selected.name}
+          label="Library item preview"
+          onClose={() => setSelectedId(undefined)}
+          navigation={
+            <RecordPreviewActions
+              table={selected.definitionId ? "component_definitions" : "profile_resolutions"}
+              record={selected}
+              rows={displayed}
+              onSelect={(row) => setSelectedId(row.id)}
+              destination={recordDestination(
+                selected.definitionId ? "component_definitions" : "profile_resolutions",
+                { id: selected.definitionId ?? selected.id.replace("baseline:", "") },
+              )}
+            />
+          }
         >
-          <DataTable.Presets table={table} presets={presets} variant="menu" />
-          <DataTable.Columns table={table} />
-          <DataTable.Settings table={table} />
-        </Toolbar>
-      }
-    />
+          <Stack space="space.150">
+            <KeyValue label="Kind">{selected.kind}</KeyValue>
+            <KeyValue label="Version">{selected.version}</KeyValue>
+            <KeyValue label="Applied to">
+              {selected.elements.map((element) => element.label).join(", ")}
+            </KeyValue>
+            <KeyValue label="Update">{selected.updateFlag}</KeyValue>
+          </Stack>
+        </RecordPreviewPanel>
+      )}
+    </>
   );
 }

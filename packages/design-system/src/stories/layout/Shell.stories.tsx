@@ -1200,7 +1200,7 @@ function PanelHeaderWidthDemo({
                   </PageHeader.Heading>
                   <PageHeader.Actions>
                     <Button size="small" variant="primary">
-                      Edit system
+                      Edit engineering requirement
                     </Button>
                     <IconButton
                       label="More system actions"
@@ -1360,12 +1360,18 @@ async function checkPanelRecordHeaderWidth(canvasElement: HTMLElement, width: nu
   const header = heading.closest('[data-slot="page-header"]') as HTMLElement;
   const navigation = panel.querySelector('[data-slot="shell-panel-header"]') as HTMLElement;
   await expect(within(navigation).queryByRole("heading")).toBeNull();
-  await expect(within(navigation).queryByRole("button", { name: "Edit system" })).toBeNull();
+  await expect(
+    within(navigation).queryByRole("button", { name: "Edit engineering requirement" }),
+  ).toBeNull();
   await expect(navigation.querySelector('[data-slot="preview-navigation"]')).not.toBeNull();
   await expect(within(navigation).getByRole("button", { name: "Close details" })).toBeVisible();
   await expect(navigation.getBoundingClientRect().height).toBe(48);
 
   const actions = header.querySelector('[data-slot="page-header-actions"]') as HTMLElement;
+  for (const button of actions.querySelectorAll("button")) {
+    await expect(getComputedStyle(button).whiteSpace).toBe("nowrap");
+    await expect(button.getBoundingClientRect().height).toBe(28);
+  }
   await waitFor(() => {
     const titleBox = heading.getBoundingClientRect();
     const actionBox = actions.getBoundingClientRect();
@@ -1373,7 +1379,7 @@ async function checkPanelRecordHeaderWidth(canvasElement: HTMLElement, width: nu
     expect(Math.abs(panelBox.width - width)).toBeLessThanOrEqual(1);
     expect(header.scrollWidth).toBeLessThanOrEqual(header.clientWidth);
     expect(actionBox.right).toBeLessThanOrEqual(panelBox.right);
-    if (width < 320) {
+    if (width < 400) {
       expect(titleBox.width).toBeGreaterThanOrEqual(width - 36);
       expect(titleBox.bottom).toBeLessThanOrEqual(actionBox.top);
     } else {

@@ -1,8 +1,12 @@
+import { useState } from "react";
+import { useWorkspace } from "@/components/app/workspace";
+import { ProductRecordDialog } from "@/components/prototype/product-record-dialog";
 import { MissingRecord } from "@/components/prototype/work-common";
 import { campaignTabs, type CampaignTab } from "@/components/prototype/assessment-tabs";
 import { displayDate } from "@/components/prototype/work-format";
 import {
   Absent,
+  Button,
   Inspector,
   Shell,
   KeyValue,
@@ -34,10 +38,12 @@ export const Route = createFileRoute("/campaigns/$campaignId")({
       (tab) => tab.toLowerCase() === String(search["tab"] ?? "").toLowerCase(),
     ),
   }),
-  head: () => ({ meta: [{ title: "Test campaign — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Assessment campaign — Program Assurance" }] }),
 });
 function CampaignDetail() {
   const { campaignId } = Route.useParams();
+  const workspace = useWorkspace();
+  const [editing, setEditing] = useState(false);
   const { tab = "Overview" } = Route.useSearch();
   const navigate = useNavigate();
   const query = useRow("assessment_campaigns", campaignId);
@@ -53,7 +59,7 @@ function CampaignDetail() {
                 <BreadcrumbList>
                   <BreadcrumbItem>
                     <BreadcrumbLink render={<Link to="/campaigns" />}>
-                      Test campaigns
+                      Assessment campaigns
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
@@ -78,7 +84,21 @@ function CampaignDetail() {
               <PageHeader.Heading>
                 <PageHeader.Title>{campaign.title}</PageHeader.Title>
               </PageHeader.Heading>
+              <PageHeader.Actions>
+                {workspace.role !== "viewer" && (
+                  <Button size="small" variant="primary" onClick={() => setEditing(true)}>
+                    Edit assessment campaign
+                  </Button>
+                )}
+              </PageHeader.Actions>
             </PageHeader>
+            {editing && (
+              <ProductRecordDialog
+                table="assessment_campaigns"
+                existing={campaign}
+                onClose={() => setEditing(false)}
+              />
+            )}
             {tab === "Overview" && (
               <Shell.Aside label="Campaign details">
                 <Inspector.Group title="Details">

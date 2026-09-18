@@ -1097,6 +1097,8 @@ export const utilities = [
   "opacity-disabled",
   "opacity-loading",
   "outline-danger",
+  "outline-field-danger",
+  "outline-field-focused",
   "outline-focused",
   "rounded-full",
   "rounded-large",

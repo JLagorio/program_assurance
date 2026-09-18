@@ -1,16 +1,19 @@
 import { displayDate, statusTone } from "./work-format";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Button,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  IconButton,
   DataTable,
-  Toolbar,
   defineColumns,
   Inline,
   PreviewSheet,
   Section,
   Stack,
-  Table,
   useDataTable,
   Empty,
   EmptyHeader,
@@ -21,25 +24,20 @@ import {
 } from "@ledger/design-system";
 import {
   RecordLink,
+  RecordPreviewPanel,
   RecordPreviewActions,
   recordDestination,
   useDisplayedRecords,
 } from "./record-preview";
 import type { ReactNode } from "react";
-import { Plus } from "lucide-react";
+import { ProductCollection } from "./product-collection";
+import { MoreHorizontal, Plus } from "lucide-react";
 import { useRows, type Row } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { useWorkspace } from "@/components/app/workspace";
 import { EvidenceFile } from "@/components/app/evidence-file";
 import { CreateEvidenceDialog } from "./create-evidence-dialog";
-import {
-  DetailFacts,
-  ModelForm,
-  QueryState,
-  SchemaLink,
-  StatusBadge,
-  type FormTarget,
-} from "./work-common";
+import { DetailFacts, ModelForm, QueryState, StatusBadge, type FormTarget } from "./work-common";
 
 type EvidenceRow = Row<"evidence_artifacts"> & {
   program: string;
@@ -107,7 +105,8 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
       defineColumns<EvidenceRow>((c) => [
         c.id("title", {
           header: "Artifact",
-          width: 300,
+          width: 220,
+          priority: 0,
           hideable: false,
           preview: openPreview,
           active: (row) => row.id === selectedId,
@@ -162,83 +161,57 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
           }}
         />
       )}
-      <QueryState queries={[artifacts, versions, reviews, programs, parties]}>
-        <DataTable
-          responsive
-          table={table}
-          fill
-          onRowClick={(row) => void navigate(recordDestination("evidence_artifacts", row))}
-          empty={{
-            illustration: "document",
-            title: "No evidence yet",
-            description:
-              "Add an artifact and its first draft version, then attach its file and supporting relationships.",
-            action:
-              workspace.role !== "viewer" ? (
-                <Button
-                  variant="primary"
-                  iconBefore={<Plus />}
-                  disabled={!!form || creating}
-                  onClick={() => setCreating(true)}
-                >
-                  Create evidence artifact
-                </Button>
-              ) : undefined,
-          }}
-          toolbar={
-            <Toolbar
-              search={String(table.state.globalFilter ?? "")}
-              onSearch={(value) => table.setGlobalFilter(value)}
-              placeholder="Find evidence"
-              views={
-                <>
-                  <DataTable.Presets
-                    table={table}
-                    variant="menu"
-                    presets={[
-                      { id: "all", label: "All evidence" },
-                      {
-                        id: "pending",
-                        label: "Not reviewed",
-                        filters: [{ id: "review", value: ["Not reviewed", "Pending"] }],
-                      },
-                      {
-                        id: "revision",
-                        label: "Needs revision",
-                        filters: [{ id: "review", value: ["Needs revision"] }],
-                      },
-                    ]}
-                  />
-                </>
-              }
-              filters={
-                <>
-                  <DataTable.Filter table={table} column="review" />
-                  <DataTable.Filter table={table} column="kind" />
-                </>
-              }
-              actions={
-                <>
-                  {workspace.role !== "viewer" && (
-                    <Button
-                      size="small"
-                      variant="primary"
-                      iconBefore={<Plus />}
-                      disabled={!!form || creating}
-                      onClick={() => setCreating(true)}
-                    >
-                      Create evidence artifact
-                    </Button>
-                  )}
-                </>
-              }
+      <ProductCollection
+        table={table}
+        queries={[artifacts, versions, reviews, programs, parties]}
+        fill
+        searchLabel="Find evidence"
+        onRowClick={(row) => void navigate(recordDestination("evidence_artifacts", row))}
+        empty={{
+          illustration: "document",
+          title: "No evidence yet",
+          description:
+            "Create an artifact and its first draft version, then attach its file and supporting relationships.",
+        }}
+        views={
+          <DataTable.Presets
+            table={table}
+            variant="menu"
+            presets={[
+              { id: "all", label: "All evidence" },
+              {
+                id: "pending",
+                label: "Not reviewed",
+                filters: [{ id: "review", value: ["Not reviewed", "Pending"] }],
+              },
+              {
+                id: "revision",
+                label: "Needs revision",
+                filters: [{ id: "review", value: ["Needs revision"] }],
+              },
+            ]}
+          />
+        }
+        filters={
+          <>
+            <DataTable.Filter table={table} column="review" />
+            <DataTable.Filter table={table} column="kind" />
+          </>
+        }
+        action={
+          workspace.role !== "viewer" ? (
+            <Button
+              size="small"
+              variant="primary"
+              iconBefore={<Plus />}
+              disabled={!!form || creating}
+              onClick={() => setCreating(true)}
             >
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-            </Toolbar>
-          }
-        />
-      </QueryState>
+              Create evidence artifact
+            </Button>
+          ) : undefined
+        }
+      />
       {selected && !form && !creating && (
         <EvidencePreview
           artifact={selected}
@@ -250,7 +223,8 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
               onSelect={openPreview}
             />
           }
-          initialVersionId={selectedVersionId}
+          versionId={selectedVersionId}
+          onSelectVersion={setSelectedVersionId}
           onClose={() => setSelectedId(null)}
           onEdit={setForm}
         />
@@ -262,42 +236,92 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
 function EvidencePreview({
   artifact,
   navigation,
-  initialVersionId,
+  versionId,
+  onSelectVersion: setVersionId,
   onClose,
   onEdit,
 }: {
   artifact: Row<"evidence_artifacts">;
   navigation: ReactNode;
-  initialVersionId: string | null;
+  versionId: string | null;
+  onSelectVersion: (id: string | null) => void;
   onClose: () => void;
   onEdit: (target: FormTarget) => void;
 }) {
   const workspace = useWorkspace();
   const versions = useRows("evidence_versions", { artifact_id: artifact.id });
   const parties = useRows("parties");
-  const [versionId, setVersionId] = useState<string | null>(initialVersionId);
-  useEffect(() => setVersionId(initialVersionId), [artifact.id, initialVersionId]);
-  const sorted = [...(versions.data ?? [])].sort((a, b) => b.version_number - a.version_number);
-  const current = sorted.find((version) => version.id === versionId) ?? sorted[0];
+  const sorted = useMemo(
+    () => [...(versions.data ?? [])].sort((a, b) => b.version_number - a.version_number),
+    [versions.data],
+  );
+  const current = sorted.find((version) => version.id === versionId);
   const writable = workspace.role !== "viewer";
-  return (
-    <PreviewSheet
-      open
-      onClose={onClose}
-      id={null}
-      navigation={navigation}
-      title={artifact.title}
-      openTo={
-        <Link
-          to="/records/$collection/$recordId"
-          params={{ collection: "evidence_artifacts", recordId: artifact.id }}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Open the full record
-        </Link>
+  const columns = useMemo(
+    () =>
+      defineColumns<Row<"evidence_versions">>((c) => [
+        c.id("version_number", {
+          header: "Version",
+          priority: 0,
+          width: 180,
+          hideable: false,
+          preview: (row) => setVersionId(row.id),
+          active: (row) => row.id === versionId,
+          cell: (row) => (
+            <RecordLink table="evidence_versions" record={row}>
+              Version {row.version_number}
+            </RecordLink>
+          ),
+        }),
+        c.status("state", { header: "State", width: 130, tone: (row) => statusTone(row.state) }),
+        c.date("collected_at", { header: "Collected", width: 150 }),
+        c.text("storage_object_name", {
+          header: "File",
+          width: 180,
+          cell: (row) =>
+            row.storage_object_id
+              ? "Uploaded"
+              : row.storage_object_name
+                ? "Upload unfinished"
+                : row.external_uri
+                  ? "External reference"
+                  : "No file",
+        }),
+      ]),
+    [versionId, setVersionId],
+  );
+  const table = useDataTable({
+    columns,
+    data: sorted,
+    getRowId: (row) => row.id,
+    label: "Evidence versions",
+  });
+  const displayed = useDisplayedRecords(table);
+  const createVersion = writable ? (
+    <Button
+      size="small"
+      variant="primary"
+      disabled={versions.isPending || versions.isError}
+      onClick={() =>
+        onEdit({
+          table: "evidence_versions",
+          initialValues: {
+            artifact_id: artifact.id,
+            version_number: (sorted[0]?.version_number ?? 0) + 1,
+          },
+        })
       }
-      actions={
+    >
+      Create evidence version
+    </Button>
+  ) : undefined;
+  return (
+    <RecordPreviewPanel
+      title={artifact.title}
+      label="Evidence artifact preview"
+      navigation={navigation}
+      onClose={onClose}
+      recordActions={
         writable ? (
           <Button
             size="small"
@@ -306,115 +330,83 @@ function EvidencePreview({
               onEdit({ table: "evidence_artifacts", existing: artifact as DataRecord })
             }
           >
-            Edit artifact
+            Edit evidence artifact
           </Button>
         ) : undefined
       }
     >
       <Stack space="space.250">
-        <Section title="Artifact">
-          <p className="whitespace-pre-wrap pb-200">
-            {artifact.description || "No description recorded."}
-          </p>
-          <DetailFacts
-            facts={[
-              ["Kind", labelFor(artifact.artifact_kind)],
-              [
-                "Owner",
-                artifact.owner_party_id
-                  ? (parties.data?.find((party) => party.id === artifact.owner_party_id)?.name ??
-                    "Unavailable person")
-                  : null,
-              ],
-              ["Source", artifact.source_uri],
-              ["Retain until", displayDate(artifact.retention_until)],
-            ]}
+        <DetailFacts
+          facts={[
+            ["Description", artifact.description],
+            ["Kind", labelFor(artifact.artifact_kind)],
+            ["Owner", parties.data?.find((party) => party.id === artifact.owner_party_id)?.name],
+            ["Source", artifact.source_uri],
+            ["Retain until", displayDate(artifact.retention_until)],
+          ]}
+        />
+        <Section title="Versions">
+          <ProductCollection
+            table={table}
+            queries={[versions]}
+            searchLabel="Find versions"
+            action={createVersion}
+            empty={{
+              illustration: "document",
+              title: "No versions yet",
+              description:
+                "Create a draft version to upload a file or reference an external artifact.",
+            }}
           />
         </Section>
-        <Section
-          title="Versions"
-          action={
-            writable ? (
-              <Button
-                size="small"
-                disabled={versions.isPending || versions.isError}
-                onClick={() =>
-                  onEdit({
-                    table: "evidence_versions",
-                    initialValues: {
-                      artifact_id: artifact.id,
-                      version_number: (sorted[0]?.version_number ?? 0) + 1,
-                    },
-                  })
-                }
+        {current && (
+          <PreviewSheet
+            open
+            onClose={() => setVersionId(null)}
+            id={null}
+            title={`${artifact.title} · Version ${current.version_number}`}
+            navigation={
+              <RecordPreviewActions
+                table="evidence_versions"
+                record={current}
+                rows={displayed}
+                onSelect={(row) => setVersionId(row.id)}
+              />
+            }
+            openTo={
+              <Link
+                to="/records/$collection/$recordId"
+                params={{ collection: "evidence_versions", recordId: current.id }}
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                Create evidence version
-              </Button>
-            ) : undefined
-          }
-        >
-          <QueryState queries={[versions]}>
-            {sorted.length ? (
-              <Table>
-                <thead>
-                  <tr>
-                    <Table.Header>Version</Table.Header>
-                    <Table.Header>State</Table.Header>
-                    <Table.Header>Collected</Table.Header>
-                    <Table.Header>File</Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sorted.map((version) => (
-                    <Table.Row key={version.id} isSelected={current?.id === version.id}>
-                      <Table.Cell>
-                        <Button
-                          size="small"
-                          variant="subtle"
-                          onClick={() => setVersionId(version.id)}
-                        >
-                          Version {version.version_number}
-                        </Button>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <StatusBadge value={version.state} />
-                      </Table.Cell>
-                      <Table.Cell>{displayDate(version.collected_at)}</Table.Cell>
-                      <Table.Cell>
-                        {version.storage_object_id
-                          ? "Uploaded"
-                          : version.storage_object_name
-                            ? "Upload unfinished"
-                            : version.external_uri
-                              ? "External reference"
-                              : "No file"}
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            ) : (
-              <Empty>
-                <EmptyMedia aria-hidden>
-                  <EmptyIllustration kind="document" />
-                </EmptyMedia>
-                <EmptyHeader>
-                  <EmptyTitle>No versions yet</EmptyTitle>
-                  <EmptyDescription>
-                    Create a draft version to upload a file or reference an external artifact.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            )}
-          </QueryState>
-        </Section>
-        {current && <EvidenceVersion key={current.id} version={current} onEdit={onEdit} />}
+                Open the full record
+              </Link>
+            }
+            actions={
+              writable ? <EvidenceVersionActions version={current} onEdit={onEdit} /> : undefined
+            }
+          >
+            <EvidenceVersion key={current.id} version={current} />
+          </PreviewSheet>
+        )}
       </Stack>
-    </PreviewSheet>
+    </RecordPreviewPanel>
   );
 }
 
-function EvidenceVersion({
+const evidenceRelationships = [
+  ["Requirement", "requirement_evidence"],
+  ["Implementation", "implementation_evidence"],
+  ["Observation", "observation_evidence"],
+  ["Assessment finding", "finding_evidence"],
+  ["Test run", "test_run_evidence"],
+  ["Step result", "step_result_evidence"],
+  ["Task", "task_evidence"],
+  ["Operational issue", "issue_evidence"],
+  ["Gate criterion", "gate_evidence"],
+] as const;
+function EvidenceVersionActions({
   version,
   onEdit,
 }: {
@@ -422,32 +414,78 @@ function EvidenceVersion({
   onEdit: (target: FormTarget) => void;
 }) {
   const workspace = useWorkspace();
+  const parties = useRows("parties");
+  const me = parties.data?.find((party) => party.auth_user_id === workspace.userId);
+  return (
+    <Inline space="space.100">
+      <Button
+        size="small"
+        variant="primary"
+        onClick={() =>
+          onEdit({
+            table: "evidence_reviews",
+            initialValues: {
+              evidence_version_id: version.id,
+              ...(me ? { reviewer_party_id: me.id } : {}),
+            },
+          })
+        }
+      >
+        Create evidence review
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <IconButton
+              size="small"
+              variant="subtle"
+              label="Evidence version actions"
+              icon={<MoreHorizontal />}
+            />
+          }
+        />
+        <DropdownMenuContent align="end">
+          {version.state === "draft" && (
+            <DropdownMenuItem
+              onClick={() =>
+                onEdit({ table: "evidence_versions", existing: version as DataRecord })
+              }
+            >
+              Edit evidence version
+            </DropdownMenuItem>
+          )}
+          {evidenceRelationships.map(([label, table]) => (
+            <DropdownMenuItem
+              key={table}
+              onClick={() =>
+                onEdit({
+                  table,
+                  operationLabel: `Link ${label.toLowerCase()}`,
+                  initialValues: { evidence_version_id: version.id },
+                })
+              }
+            >
+              Link {label.toLowerCase()}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </Inline>
+  );
+}
+
+function EvidenceVersion({ version }: { version: Row<"evidence_versions"> }) {
+  const workspace = useWorkspace();
   const collection = workspace.collections.find((item) => item.name === "evidence_versions");
   const reviews = useRows("evidence_reviews", { evidence_version_id: version.id });
   const parties = useRows("parties");
-  const me = parties.data?.find((party) => party.auth_user_id === workspace.userId);
-  const writable = workspace.role !== "viewer";
   const safeExternal =
     version.external_uri && /^https?:\/\//i.test(version.external_uri)
       ? version.external_uri
       : null;
   return (
     <Stack space="space.250">
-      <Section
-        title={`Version ${version.version_number}`}
-        action={
-          writable && version.state === "draft" ? (
-            <Button
-              size="small"
-              onClick={() =>
-                onEdit({ table: "evidence_versions", existing: version as DataRecord })
-              }
-            >
-              Edit version
-            </Button>
-          ) : undefined
-        }
-      >
+      <Section title="Version details">
         <DetailFacts
           facts={[
             ["State", <StatusBadge value={version.state} />],
@@ -469,33 +507,10 @@ function EvidenceVersion({
             ["SHA-256", version.sha256],
           ]}
         />
-        <div className="pt-200">
-          <SchemaLink table="evidence_versions" id={version.id} />
-        </div>
       </Section>
       {collection && <EvidenceFile collection={collection} record={version as DataRecord} />}
-      <EvidenceSupport versionId={version.id} onEdit={onEdit} />
-      <Section
-        title="Reviews"
-        action={
-          writable ? (
-            <Button
-              size="small"
-              onClick={() =>
-                onEdit({
-                  table: "evidence_reviews",
-                  initialValues: {
-                    evidence_version_id: version.id,
-                    ...(me ? { reviewer_party_id: me.id } : {}),
-                  },
-                })
-              }
-            >
-              Record review
-            </Button>
-          ) : undefined
-        }
-      >
+      <EvidenceSupport versionId={version.id} />
+      <Section title="Reviews">
         <QueryState queries={[reviews, parties]}>
           {reviews.data?.length ? (
             <Stack space="space.150">
@@ -538,14 +553,7 @@ function EvidenceVersion({
   );
 }
 
-function EvidenceSupport({
-  versionId,
-  onEdit,
-}: {
-  versionId: string;
-  onEdit: (target: FormTarget) => void;
-}) {
-  const workspace = useWorkspace();
+function EvidenceSupport({ versionId }: { versionId: string }) {
   const filter = { evidence_version_id: versionId };
   const requirements = useRows("requirement_evidence", filter);
   const implementations = useRows("implementation_evidence", filter);
@@ -622,61 +630,47 @@ function EvidenceSupport({
     },
   ];
   const links = groups.flatMap((group) =>
-    (group.query.data ?? []).map((row) => ({ ...group, row: row as DataRecord })),
+    (group.query.data ?? []).map((row) => ({
+      ...group,
+      row: row as DataRecord,
+      id: `${group.table}/${row.id}`,
+    })),
   );
+  const columns = defineColumns<(typeof links)[number]>((c) => [
+    c.id("label", {
+      header: "Supported record",
+      priority: 0,
+      width: 200,
+      hideable: false,
+      cell: (link) => (
+        <RecordLink
+          table={link.target as import("@/lib/models").TableName}
+          record={{ id: String(link.row[link.column]) }}
+        >
+          Open {link.label.toLowerCase()}
+        </RecordLink>
+      ),
+    }),
+    c.text("table", { header: "Relationship", width: 180, cell: (link) => link.label }),
+  ]);
+  const table = useDataTable({
+    data: links,
+    columns,
+    getRowId: (link) => `${link.table}/${link.row.id}`,
+    label: "Evidence support relationships",
+  });
   return (
     <Section title="Supports">
-      <Stack space="space.150">
-        <QueryState queries={groups.map((group) => group.query)}>
-          {links.length ? (
-            <Table>
-              <thead>
-                <tr>
-                  <Table.Header>Relationship</Table.Header>
-                  <Table.Header>Supported record</Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                {links.map((link) => (
-                  <Table.Row key={`${link.table}/${link.row.id}`}>
-                    <Table.Cell>{link.label}</Table.Cell>
-                    <Table.Cell>
-                      <SchemaLink table={link.target} id={String(link.row[link.column])}>
-                        Open {link.label.toLowerCase()}
-                      </SchemaLink>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </tbody>
-            </Table>
-          ) : (
-            <Empty>
-              <EmptyMedia aria-hidden>
-                <EmptyIllustration kind="tree" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>No support relationships</EmptyTitle>
-                <EmptyDescription>
-                  Link the controls, requirements or findings this evidence supports.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          )}
-        </QueryState>
-        {workspace.role !== "viewer" && (
-          <Inline space="space.100" shouldWrap>
-            {groups.map((group) => (
-              <Button
-                size="small"
-                key={group.table}
-                onClick={() => onEdit({ table: group.table, initialValues: filter })}
-              >
-                Link {group.label.toLowerCase()}
-              </Button>
-            ))}
-          </Inline>
-        )}
-      </Stack>
+      <ProductCollection
+        table={table}
+        queries={groups.map((group) => group.query)}
+        searchLabel="Find relationships"
+        empty={{
+          illustration: "tree",
+          title: "No support relationships",
+          description: "Link the controls, requirements or findings this evidence supports.",
+        }}
+      />
     </Section>
   );
 }

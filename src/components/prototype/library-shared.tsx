@@ -1,19 +1,15 @@
-import { useId, type ReactNode } from "react";
+import type { DataRecord, RecordValue } from "@/lib/records";
 import {
-  Button,
   Field,
   FieldLabel,
-  Inline,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Stack,
 } from "@ledger/design-system";
+import { useId } from "react";
 import { ProductRecordDialog } from "./product-record-dialog";
-import type { DataRecord, RecordValue } from "@/lib/records";
-import { QueryState, type QueryStatus } from "./work-common";
 
 export function LibrarySelect({
   label,
@@ -52,15 +48,7 @@ export function LibrarySelect({
   );
 }
 
-export function LibraryLoading({
-  queries,
-  children,
-}: {
-  queries: QueryStatus[];
-  children: ReactNode;
-}) {
-  return <QueryState queries={queries}>{children}</QueryState>;
-}
+export { QueryState as LibraryLoading } from "./work-common";
 
 export function LibraryEditor({
   table,

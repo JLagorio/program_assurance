@@ -85,7 +85,7 @@ export const BrowseAndLink: Story = {
     await expect(dialog.getByRole("button", { name: "Previous preview" })).toBeDisabled();
     await expect(dialog.getByRole("heading", { name: "Verification artifact 1" })).toHaveFocus();
     await userEvent.click(dialog.getByRole("checkbox", { name: "Select EVD-001" }));
-    await expect(dialog.getByText("1 selected", { exact: true })).toBeVisible();
+    await waitFor(() => expect(dialog.getByText("1 selected", { exact: true })).toBeVisible());
     await userEvent.click(dialog.getByRole("button", { name: "Next preview" }));
     await expect(dialog.getByRole("heading", { name: "Verification artifact 2" })).toBeVisible();
     await userEvent.keyboard("{Escape}");
@@ -143,7 +143,7 @@ export const RetainedSelection: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Add evidence" }));
     dialog = within(await screen.findByRole("dialog", { name: "Link evidence" }));
     await expect(dialog.getByRole("checkbox", { name: "Select row EVD-001" })).toBeChecked();
-    await expect(dialog.getByText("1 selected", { exact: true })).toBeVisible();
+    await waitFor(() => expect(dialog.getByText("1 selected", { exact: true })).toBeVisible());
     await userEvent.click(dialog.getByRole("button", { name: "Clear selection" }));
     await expect(dialog.getByText("0 selected", { exact: true })).toBeVisible();
     await userEvent.click(dialog.getByRole("button", { name: "Cancel" }));

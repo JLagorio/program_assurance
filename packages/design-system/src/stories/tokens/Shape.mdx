@@ -10,29 +10,31 @@ Radius is a set of named absolute steps on a 5px base. Bare `rounded` is banned:
 
 ## Radius
 
-| Token | Value | Utility | Use |
-| --- | --- | --- | --- |
-| `radius.xsmall` | 2px | `rounded-xsmall` | Kbd, tiny chips. |
-| `radius.small` | 3px | `rounded-small` | Count, checkbox, Skeleton, inline hit targets. |
-| `radius.medium` | 5px | `rounded-medium` | Button, Input, Chip, Tooltip, menu items. |
-| `radius.large` | 7px | `rounded-large` | Card, Popover, HoverCard. |
-| `radius.xlarge` | 9px | `rounded-xlarge` | Sheets. |
-| `radius.xxlarge` | 12px | `rounded-xxlarge` | Dialog, CommandPalette, spotlight cards. |
-| `radius.full` | pill | `rounded-full` | Badge, Dot, Avatar, Switch, meters. |
+| Token            | Value | Utility           | Use                                            |
+| ---------------- | ----- | ----------------- | ---------------------------------------------- |
+| `radius.xsmall`  | 2px   | `rounded-xsmall`  | Kbd, tiny chips.                               |
+| `radius.small`   | 3px   | `rounded-small`   | Count, checkbox, Skeleton, inline hit targets. |
+| `radius.medium`  | 5px   | `rounded-medium`  | Button, Input, Chip, Tooltip, menu items.      |
+| `radius.large`   | 7px   | `rounded-large`   | Card, Popover, HoverCard.                      |
+| `radius.xlarge`  | 9px   | `rounded-xlarge`  | Sheets.                                        |
+| `radius.xxlarge` | 12px  | `rounded-xxlarge` | Dialog, CommandPalette, spotlight cards.       |
+| `radius.full`    | pill  | `rounded-full`    | Badge, Dot, Avatar, Switch, meters.            |
 
 The rule of thumb: the bigger the surface, the larger the radius. A control is medium, a card is large, a dialog is xxlarge.
 
 ## Border width
 
-| Token | Value | Utility | Use |
-| --- | --- | --- | --- |
-| `border.width` | 1px | `border-w-default` | Every standard border and divider. |
-| `border.width.focused` | 2px | `border-w-focused` | The focus ring, in `color.border.focused`. |
-| `border.width.selected` | 2px | `border-w-selected` | An active tab, a chosen item, in `color.border.selected`. |
+| Token                   | Value | Utility             | Use                                                       |
+| ----------------------- | ----- | ------------------- | --------------------------------------------------------- |
+| `border.width`          | 1px   | `border-w-default`  | Every standard border and divider.                        |
+| `border.width.focused`  | 2px   | `border-w-focused`  | The focus ring, in `color.border.focused`.                |
+| `border.width.selected` | 2px   | `border-w-selected` | An active tab, a chosen item, in `color.border.selected`. |
 
 ## Focus and selection
 
-One focus ring, drawn one way: `outline-focused` is an outline of `border.width.focused` (2px) in `color.border.focused`, offset `space.025` (2px) outside the element's edge, so it clears a border and a fill and never changes the element's size. It shows on `:focus-visible` only, on every part that takes focus, and nothing else draws it: no glow, no shadow, no inner ring. A part with a radius keeps it under the ring; the ring follows.
+`outline-focused` is an outline of `border.width.focused` (2px) in `color.border.focused`, offset `space.025` (2px) outside the element's edge. Buttons, links and other actions use it on `:focus-visible` without changing the element's size.
+
+Fields use `outline-field-focused` instead: the same 2px line sits inside the edge and covers the existing border, producing one continuous stroke without a gap, glow or layout shift. Input, Textarea, Select, DatePicker, InputGroup, Combobox and Calendar dropdowns share this treatment. Invalid fields use `outline-field-danger` so the whole focused edge keeps the error color. A grouped input leaves the edge to its container. Both outline treatments follow the element's radius.
 
 Selection is not a ring. A selected tab or a chosen item takes `border.width.selected` (2px) in `color.border.selected` on one edge: the underline of a tab, the start edge of an item in a rail. A selected row takes a fill, `color.background.selected`, and no border. The two never appear together on one element: a focused, selected tab shows the ring outside and the underline beneath.
 

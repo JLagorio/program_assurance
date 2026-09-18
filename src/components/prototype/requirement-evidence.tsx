@@ -1,3 +1,5 @@
+import { discardChanges, useConfirmation } from "@/components/app/confirmation";
+import { ProductCollection } from "./product-collection";
 import { useMemo, useRef, useState } from "react";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import {
@@ -220,21 +222,12 @@ export function RequirementEvidence({
   return (
     <Stack space="space.150">
       <QueryState queries={queries}>
-        <DataTable
-          responsive
+        <ProductCollection
           table={table}
           onRowClick={(row) => void navigate(recordDestination("evidence_versions", row.version))}
-          toolbar={
-            <Toolbar
-              search={String(table.state.globalFilter ?? "")}
-              onSearch={(value) => table.setGlobalFilter(value)}
-              placeholder="Find linked evidence"
-              actions={addEvidence}
-            >
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-            </Toolbar>
-          }
+          fill
+          searchLabel="Find linked evidence"
+          action={addEvidence}
           empty={{
             illustration: "document",
             title: "No linked evidence",
@@ -448,6 +441,9 @@ function PrepareEvidence({
   const busy = useRef(false);
   const fileInFlight = useRef(false);
   const [fileBusy, setFileBusy] = useState(false);
+  const [fileDirty, setFileDirty] = useState(false);
+  const bypassClose = useRef(false);
+  const { confirm, confirmation } = useConfirmation();
   const [error, setError] = useState("");
   const current = version.data;
   const me = parties.data?.find((party) => party.auth_user_id === workspace.userId);
@@ -458,11 +454,24 @@ function PrepareEvidence({
     !(current.storage_object_name && !current.storage_object_id) &&
     workspace.role !== "viewer";
   useBlocker({
-    shouldBlockFn: () => busy.current || fileInFlight.current,
-    enableBeforeUnload: () => busy.current || fileInFlight.current,
+    shouldBlockFn: async () =>
+      !bypassClose.current &&
+      (busy.current ||
+        fileInFlight.current ||
+        (fileDirty &&
+          !(await confirm(discardChanges("Discard the selected file before uploading it?"))))),
+    enableBeforeUnload: () =>
+      !bypassClose.current && (busy.current || fileInFlight.current || fileDirty),
   });
-  function close() {
-    if (!busy.current && !fileInFlight.current) onClose();
+  async function close() {
+    if (busy.current || fileInFlight.current) return;
+    if (
+      !fileDirty ||
+      (await confirm(discardChanges("Discard the selected file before uploading it?")))
+    ) {
+      bypassClose.current = true;
+      onClose();
+    }
   }
   async function publishVersion() {
     if (busy.current || fileInFlight.current || !current || !canPublish) return;
@@ -507,6 +516,8 @@ function PrepareEvidence({
                 <EvidenceVersionDetails
                   artifact={artifact.data}
                   version={current}
+                  autoFocus
+                  onFileDirtyChange={setFileDirty}
                   onFileBusyChange={(active) => {
                     fileInFlight.current = active;
                     setFileBusy(active);
@@ -548,6 +559,7 @@ function PrepareEvidence({
           ) : null}
         </DialogFooter>
       </DialogContent>
+      {confirmation}
     </Dialog>
   );
 }

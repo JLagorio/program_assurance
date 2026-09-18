@@ -1,0 +1,45 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Scroller, ScrollerArrow, ScrollerViewport } from "../../components";
+import * as Stories from "./Scroller.stories";
+
+<Meta of={Stories} />
+
+# Scroller
+
+A bounded scrolling region with an arrow at each edge that can still scroll. Select, DropdownMenu, Combobox and horizontal line Tabs compose it, so a long list and a wide strip scroll alike.
+
+## Anatomy
+
+`Scroller` is the bounded box: it sets `orientation`, how an arrow scrolls (`scrollOn`) and the `surface` the arrows sit on. `ScrollerViewport` is the element that scrolls; `render` substitutes a list (Combobox does), and `viewport` on the root points at an element the Scroller does not render (Tabs passes its ScrollArea viewport). `ScrollerArrow` renders one edge: `start` or `end`.
+
+An arrow appears only when the viewport overflows, only at an edge that can still scroll, and only where the pointer can hover (`hover: hover` and `pointer: fine`); touch readers swipe and see none. While arrows show they replace the native scrollbar, and the viewport keeps their thickness clear as scroll padding, so a focused or highlighted item scrolls out from under them.
+
+## Vertical
+
+Vertical scrollers scroll on hover unsaid: the arrow is a hover zone, hidden from assistive technology, and keyboard readers already move through the content. Menus use the `overlay` surface.
+
+<Canvas of={Stories.Vertical} />
+
+## Horizontal
+
+Horizontal scrollers step a page on click unsaid: the arrow is a labelled button outside the tab order that reads as one (a pointer cursor, a hover tint and a hairline on its inner edge), and it follows the locale's direction. Pass `scrollOn` to change either default.
+
+<Canvas of={Stories.Horizontal} />
+
+## Composition
+
+Select keeps Base UI's own scroll arrows, which step item by item and know the open method; they wear the Scroller arrow classes so the two cannot drift apart. Tabs sizes its arrows to the strip and gives them the strip's hairline. Do not add a second scroller, an overflow utility or a fade inside a part that already composes one.
+
+## Props
+
+<ArgTypes of={Scroller} />
+
+<ArgTypes of={ScrollerViewport} />
+
+<ArgTypes of={ScrollerArrow} />
+
+## Related
+
+- [ScrollArea](?path=/docs/components-scrollarea--docs)
+- [Select](?path=/docs/components-select--docs)
+- [Tabs](?path=/docs/components-tabs--docs)

@@ -1,0 +1,468 @@
+[
+  {
+    "file": "briefing.tsx",
+    "path": "/briefing",
+    "title": "Authorization decisions",
+    "family": "dashboard",
+    "reason": "Authorization decisions and published packages are distinct collections."
+  },
+  {
+    "file": "campaigns.$campaignId.tsx",
+    "path": "/campaigns/$campaignId",
+    "title": "Assessment campaign",
+    "family": "record",
+    "model": "assessment_campaigns",
+    "tabList": "Campaign sections",
+    "collectionTabs": ["Runs"],
+    "tabExceptions": {
+      "Overview": "Record properties and summary.",
+      "Execution": "Campaign details and five separate collections.",
+      "Procedures": "Procedures and revisions are distinct collections.",
+      "Regression": "Derived comparison rows with an explanation, not a record collection."
+    }
+  },
+  {
+    "file": "campaigns.tsx",
+    "path": "/campaigns",
+    "title": "Assessment campaigns",
+    "family": "register",
+    "model": "assessment_campaigns"
+  },
+  {
+    "file": "catalog.tsx",
+    "path": "/catalog",
+    "title": "Catalog",
+    "family": "register",
+    "model": "controls",
+    "tabList": "Catalog views",
+    "collectionTabs": ["Controls", "CCIs"],
+    "tabExceptions": {
+      "Sources": "Imported source metadata, not a register."
+    }
+  },
+  {
+    "file": "components.tsx",
+    "path": "/components",
+    "title": "Design system",
+    "family": "exception",
+    "reason": "Design system demonstration, outside product register rules."
+  },
+  {
+    "file": "evidence.tsx",
+    "path": "/evidence",
+    "title": "Evidence",
+    "family": "register",
+    "model": "evidence_artifacts"
+  },
+  {
+    "file": "findings.$findingId.tsx",
+    "path": "/findings/$findingId",
+    "title": "Assessment finding",
+    "family": "record",
+    "model": "assessment_findings",
+    "missingRecord": {
+      "kind": "Assessment finding",
+      "backTo": "/findings",
+      "reason": "A loaded finding requires an assessment results revision; linked-record workflows seed this dependency."
+    }
+  },
+  {
+    "file": "findings.assets.$assetId.tsx",
+    "path": "/findings/assets/$assetId",
+    "title": "Asset",
+    "family": "record",
+    "model": "inventory_items",
+    "missingRecord": {
+      "kind": "Asset",
+      "backTo": "/findings",
+      "reason": "A loaded asset requires its system inventory context; this census checks the unavailable-record path."
+    }
+  },
+  {
+    "file": "findings.index.tsx",
+    "path": "/findings/",
+    "title": "Findings & assets",
+    "family": "register",
+    "model": "operational_issues",
+    "tabList": "Findings and asset collections",
+    "collectionTabs": ["Operational issues", "Observations", "Assessment findings", "Assets"],
+    "tabExceptions": {}
+  },
+  {
+    "file": "index.tsx",
+    "path": "/",
+    "title": "Portfolio",
+    "family": "dashboard",
+    "reason": "Portfolio combines metrics and distinct collections, each collection owns its toolbar."
+  },
+  {
+    "file": "issues.$issueId.tsx",
+    "path": "/issues/$issueId",
+    "title": "Operational issue",
+    "family": "record",
+    "model": "operational_issues"
+  },
+  {
+    "file": "library.components.$componentKey.tsx",
+    "path": "/library/components/$componentKey",
+    "title": "Component",
+    "family": "record",
+    "model": "component_definitions",
+    "tabList": "Component sections",
+    "collectionTabs": ["Controls", "Structure", "Programs"],
+    "tabExceptions": {
+      "Overview": "Authored description and Details rail.",
+      "Requirements": "Summaries of requirements reached through program implementations.",
+      "Evidence": "Summaries of evidence reached through program implementations.",
+      "Versions": "The contract preserves the ordered version-selection Table."
+    }
+  },
+  {
+    "file": "library.components.index.tsx",
+    "path": "/library/components/",
+    "title": "Components",
+    "family": "register",
+    "model": "component_definitions"
+  },
+  {
+    "file": "library.products.$productKey.tsx",
+    "path": "/library/products/$productKey",
+    "title": "Product",
+    "family": "record",
+    "model": "products",
+    "tabList": "Product sections",
+    "collectionTabs": ["Structure", "Configurations", "Variants"],
+    "tabExceptions": {
+      "Overview": "Authored product properties and Details rail.",
+      "Versions": "The contract preserves the ordered version-selection Table."
+    }
+  },
+  {
+    "file": "library.products.index.tsx",
+    "path": "/library/products/",
+    "title": "Products",
+    "family": "register",
+    "model": "products"
+  },
+  {
+    "file": "library.requirements.$definitionKey.tsx",
+    "path": "/library/requirements/$definitionKey",
+    "title": "Requirement definition",
+    "family": "record",
+    "model": "requirement_definitions"
+  },
+  {
+    "file": "library.requirements.index.tsx",
+    "path": "/library/requirements/",
+    "title": "Requirements",
+    "family": "register",
+    "model": "requirement_definitions"
+  },
+  {
+    "file": "packages.$pkgId.tsx",
+    "path": "/packages/$pkgId",
+    "title": "Authorization package",
+    "family": "record",
+    "model": "authorization_packages"
+  },
+  {
+    "file": "packages.index.tsx",
+    "path": "/packages/",
+    "title": "Authorization packages",
+    "family": "register",
+    "model": "authorization_packages"
+  },
+  {
+    "file": "poam-documents.$documentId.tsx",
+    "path": "/poam-documents/$documentId",
+    "title": "POA&M document",
+    "family": "record",
+    "model": "poam_documents"
+  },
+  {
+    "file": "profiles.$profileId.tsx",
+    "path": "/profiles/$profileId",
+    "title": "Profile",
+    "family": "record",
+    "model": "profiles",
+    "tabList": "Profile sections",
+    "collectionTabs": ["Controls"],
+    "tabExceptions": {
+      "Overview": "Record properties and Details rail.",
+      "Derivation": "Source imports definition list and recorded resolutions.",
+      "Tailoring": "Derivation and multiple decision, parameter and effective-control collections."
+    }
+  },
+  {
+    "file": "profiles.index.tsx",
+    "path": "/profiles/",
+    "title": "Profiles",
+    "family": "register",
+    "model": "profiles"
+  },
+  {
+    "file": "programs.$programId.tsx",
+    "path": "/programs/$programId",
+    "title": "Program",
+    "family": "record",
+    "model": "programs",
+    "tabList": "Program work",
+    "collectionTabs": [
+      "System",
+      "Library",
+      "Requirements",
+      "Assessment campaigns",
+      "Evidence",
+      "Risk",
+      "Activity"
+    ],
+    "tabExceptions": {
+      "Overview": "Metrics, properties and multiple sections.",
+      "Controls": "Controls are grouped by system.",
+      "Schedule": "Tasks, gates and responsibilities are distinct collections.",
+      "Findings": "Operational issues and observations are distinct collections.",
+      "POA&M": "Plans and remediation items are distinct collections."
+    }
+  },
+  {
+    "file": "programs.$programId_.authorization.tsx",
+    "path": "/programs/$programId/authorization",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.baseline.tsx",
+    "path": "/programs/$programId/baseline",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.components.$componentId.tsx",
+    "path": "/programs/$programId/components/$componentId",
+    "title": "Program component",
+    "family": "record",
+    "model": "system_components",
+    "missingRecord": {
+      "kind": "Component",
+      "backTo": "/programs",
+      "reason": "A program component requires library and system links; product inheritance workflows seed these dependencies."
+    }
+  },
+  {
+    "file": "programs.$programId_.composition.tsx",
+    "path": "/programs/$programId/composition",
+    "title": "System composition",
+    "family": "redirect",
+    "model": "programs",
+    "reason": "Legacy composition address redirects to the program System tab.",
+    "redirectTo": "/programs/$programId?tab=System"
+  },
+  {
+    "file": "programs.$programId_.conmon.tsx",
+    "path": "/programs/$programId/conmon",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.controls.$controlId.tsx",
+    "path": "/programs/$programId/controls/$controlId",
+    "title": "Program control",
+    "family": "record",
+    "model": "implemented_requirements",
+    "missingRecord": {
+      "kind": "Control implementation",
+      "backTo": "/programs",
+      "reason": "A control implementation requires a selected control and security-plan revision; SSP workflows seed these dependencies."
+    }
+  },
+  {
+    "file": "programs.$programId_.dashboard.tsx",
+    "path": "/programs/$programId/dashboard",
+    "title": "Program",
+    "family": "redirect",
+    "reason": "Legacy address redirects to the canonical record.",
+    "redirectTo": "/programs/$programId?tab=Overview",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.export.tsx",
+    "path": "/programs/$programId/export",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.ingestion.tsx",
+    "path": "/programs/$programId/ingestion",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.inheritance.tsx",
+    "path": "/programs/$programId/inheritance",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.requirements.$requirementId.tsx",
+    "path": "/programs/$programId/requirements/$requirementId",
+    "title": "Program requirement",
+    "family": "record",
+    "model": "engineering_requirements",
+    "missingRecord": {
+      "kind": "Requirement",
+      "backTo": "/programs",
+      "reason": "A program requirement requires its authored content revision; requirement workflows seed this dependency."
+    }
+  },
+  {
+    "file": "programs.$programId_.risk.tsx",
+    "path": "/programs/$programId/risk",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.sctm.tsx",
+    "path": "/programs/$programId/sctm",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.systems.$scopeId.tsx",
+    "path": "/programs/$programId/systems/$scopeId",
+    "title": "System",
+    "family": "record",
+    "model": "systems",
+    "tabList": "Element sections",
+    "collectionTabs": ["Overview", "Controls", "Requirements", "Library", "Evidence", "Inventory"],
+    "tabExceptions": {
+      "SSP": "SSP assembly and security-plan revisions are distinct collections on a system boundary."
+    }
+  },
+  {
+    "file": "programs.$programId_.te-phases.tsx",
+    "path": "/programs/$programId/te-phases",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.new.tsx",
+    "path": "/programs/new",
+    "title": "Create program",
+    "family": "wizard",
+    "reason": "Program setup is the page wizard named in the contract."
+  },
+  {
+    "file": "programs.tsx",
+    "path": "/programs",
+    "title": "Programs",
+    "family": "register",
+    "model": "programs"
+  },
+  {
+    "file": "records.$collection.$recordId.tsx",
+    "path": "/records/$collection/$recordId",
+    "title": "Schema record",
+    "family": "schema-record",
+    "model": "parties",
+    "reason": "Addressable new-record page shares this route with inspector records."
+  },
+  {
+    "file": "records.$collection.tsx",
+    "path": "/records/$collection",
+    "title": "Schema records",
+    "family": "schema-register",
+    "model": "parties",
+    "heading": "Parties"
+  },
+  {
+    "file": "register.index.tsx",
+    "path": "/register/",
+    "title": "POA&M & risk register",
+    "family": "register",
+    "model": "poam_items",
+    "tabList": "POA&M and risk collections",
+    "collectionTabs": ["POA&M", "Risks", "Unrolled findings", "Documents"],
+    "tabExceptions": {}
+  },
+  {
+    "file": "register.poam.$poamId.tsx",
+    "path": "/register/poam/$poamId",
+    "title": "POA&M commitment",
+    "family": "record",
+    "model": "poam_items"
+  },
+  {
+    "file": "register.risks.$riskId.tsx",
+    "path": "/register/risks/$riskId",
+    "title": "Risk",
+    "family": "record",
+    "model": "risks",
+    "tabList": "Risk sections",
+    "collectionTabs": ["Assessments", "Work", "Activity"],
+    "tabExceptions": {
+      "Overview": "Latest assessment properties and Details rail.",
+      "Responses": "Requires an assessment revision; combines properties and two collections.",
+      "Evidence": "Requires an assessment revision; this independent fixture checks its prerequisite empty state."
+    }
+  },
+  {
+    "file": "risks.$riskId.tsx",
+    "path": "/risks/$riskId",
+    "title": "Risk",
+    "family": "redirect",
+    "reason": "Legacy address redirects to the canonical record.",
+    "redirectTo": "/register/risks/$riskId",
+    "model": "risks"
+  },
+  {
+    "file": "risks.tsx",
+    "path": "/risks",
+    "title": "Risk register",
+    "family": "register",
+    "model": "risks"
+  },
+  {
+    "file": "schema.tsx",
+    "path": "/schema",
+    "title": "Schema inspector",
+    "family": "inspector",
+    "reason": "Diagnostic schema inventory."
+  },
+  {
+    "file": "tasks.$taskId.tsx",
+    "path": "/tasks/$taskId",
+    "title": "Task",
+    "family": "record",
+    "model": "tasks"
+  },
+  {
+    "file": "vendors.tsx",
+    "path": "/vendors",
+    "title": "Suppliers",
+    "family": "register",
+    "model": "parties"
+  },
+  {
+    "file": "work.tsx",
+    "path": "/work",
+    "title": "My work",
+    "family": "register",
+    "model": "tasks"
+  },
+  {
+    "file": "workstreams.$workstreamId.tsx",
+    "path": "/workstreams/$workstreamId",
+    "title": "Workstream",
+    "family": "record",
+    "model": "workstreams"
+  }
+]

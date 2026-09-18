@@ -1,12 +1,15 @@
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { RecordLink, recordDestination } from "./record-preview";
-import { EmptyMessage, MissingRecord } from "./work-common";
-import { displayDate } from "./work-format";
-import { canAuthorLibrary, downloadLibraryRecords } from "./library-utils";
-import { useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useBlocker } from "@tanstack/react-router";
+import { discardChanges, useConfirmation } from "@/components/app/confirmation";
+import { TextField } from "@/components/app/fields";
+import { useWorkspace } from "@/components/app/workspace";
+import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
+import { elementIdsInOrder, productElementSpecs } from "@/lib/product-items";
 import {
-  Id,
+  useCopyProductRevision,
+  useIncludeAllElements,
+  useProductComponentDefinition,
+} from "@/lib/product-revisions";
+import { labelFor } from "@/lib/records";
+import {
   Absent,
   Breadcrumb,
   BreadcrumbItem,
@@ -14,13 +17,6 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  Section,
-  Toolbar,
-  Badge,
   Button,
   Checkbox,
   Count,
@@ -32,10 +28,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Inline,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Id,
   Inspector,
   KeyValue,
   PageHeader,
+  Section,
   Shell,
   Stack,
   Table,
@@ -46,18 +47,16 @@ import {
   TextLink,
   useDataTable,
 } from "@ledger/design-system";
-import { useRow, useRows, useModelSave, type Row } from "@/lib/models";
-import { useWorkspace } from "@/components/app/workspace";
-import { TextField } from "@/components/app/fields";
-import { elementIdsInOrder, productElementSpecs } from "@/lib/product-items";
-import {
-  useCopyProductRevision,
-  useIncludeAllElements,
-  useProductComponentDefinition,
-} from "@/lib/product-revisions";
-import { labelFor } from "@/lib/records";
+import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
+import { useId, useMemo, useRef, useState } from "react";
 import { LibraryEditor, LibraryLoading, LibrarySelect } from "./library-shared";
+import { canAuthorLibrary, downloadLibraryRecords } from "./library-utils";
+import { ProductCollection } from "./product-collection";
 import { ProductStructure } from "./product-structure";
+import { recordDestination, RecordLink, useDisplayedRecords } from "./record-preview";
+import { RecordSummaryPreview } from "./record-summary-preview";
+import { EmptyMessage, MissingRecord } from "./work-common";
+import { displayDate } from "./work-format";
 
 export function ProductLibraryIndex() {
   const navigate = useNavigate();
@@ -68,6 +67,7 @@ export function ProductLibraryIndex() {
   const elements = useRows("product_elements");
   const systems = useRows("systems");
   const [creating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<Row<"products"> | null>(null);
   const rows = useMemo(
     () =>
       (products.data ?? []).map((product) => {
@@ -97,10 +97,17 @@ export function ProductLibraryIndex() {
   const columns = useMemo(
     () =>
       defineColumns<(typeof rows)[number]>((c) => [
-        c.id("code", { header: "ID", width: 150 }),
+        c.id("code", {
+          header: "ID",
+          width: 150,
+          preview: setSelected,
+          active: (row) => row.id === selected?.id,
+        }),
         c.text("name", {
           header: "Product",
           hideable: false,
+          priority: 0,
+          width: 220,
           cell: (row) => (
             <RecordLink table="products" record={row}>
               {row.name}
@@ -114,7 +121,7 @@ export function ProductLibraryIndex() {
         c.status("status", { header: "State", width: 130, tone: () => "neutral" }),
         c.text("stateLabel", { header: "Product state", width: 130 }),
       ]),
-    [],
+    [selected?.id],
   );
   const table = useDataTable({
     data: rows,
@@ -125,6 +132,7 @@ export function ProductLibraryIndex() {
     resizable: true,
     reorderable: true,
   });
+  const displayed = useDisplayedRecords(table);
   return (
     <Stack space="space.200" className="animate-rise">
       <PageHeader>
@@ -145,8 +153,20 @@ export function ProductLibraryIndex() {
         />
       )}
       <LibraryLoading queries={[products, revisions, configurations, elements, systems]}>
-        <DataTable
-          responsive
+        <ProductCollection
+          commands={[
+            {
+              label: "Export recorded JSON",
+              disabled: !products.data || !revisions.data || !configurations.data || !elements.data,
+              onSelect: () =>
+                downloadLibraryRecords("product-library.json", {
+                  products: products.data,
+                  revisions: revisions.data,
+                  configurations: configurations.data,
+                  elements: elements.data,
+                }),
+            },
+          ]}
           table={table}
           fill
           onRowClick={(row) => {
@@ -154,7 +174,7 @@ export function ProductLibraryIndex() {
           }}
           empty={{
             action: canAuthorLibrary(workspace.role) ? (
-              <Button variant="primary" onClick={() => setCreating(true)}>
+              <Button size="small" variant="primary" onClick={() => setCreating(true)}>
                 Create product
               </Button>
             ) : undefined,
@@ -163,51 +183,45 @@ export function ProductLibraryIndex() {
             description:
               "Create a product, then define its elements and configurations in a version.",
           }}
-          toolbar={
-            <Toolbar
-              search={String(table.state.globalFilter ?? "")}
-              onSearch={(value) => table.setGlobalFilter(value)}
-              placeholder="Find products"
-              filters={
-                <>
-                  <DataTable.Filter table={table} column="status" />
-                  <DataTable.Filter table={table} column="stateLabel" />
-                </>
-              }
-              actions={
-                <>
-                  <Inline space="space.100">
-                    <Button
-                      variant="secondary"
-                      disabled={
-                        !products.data || !revisions.data || !configurations.data || !elements.data
-                      }
-                      onClick={() =>
-                        downloadLibraryRecords("product-library.json", {
-                          products: products.data,
-                          revisions: revisions.data,
-                          configurations: configurations.data,
-                          elements: elements.data,
-                        })
-                      }
-                    >
-                      Export
-                    </Button>
-                    {canAuthorLibrary(workspace.role) && (
-                      <Button variant="primary" onClick={() => setCreating(true)}>
-                        Create product
-                      </Button>
-                    )}
-                  </Inline>
-                </>
-              }
-            >
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-            </Toolbar>
+          searchLabel="Find products"
+          filters={
+            <>
+              <DataTable.Filter table={table} column="status" />
+              <DataTable.Filter table={table} column="stateLabel" />
+            </>
+          }
+          action={
+            <>
+              <>
+                {canAuthorLibrary(workspace.role) && (
+                  <Button size="small" variant="primary" onClick={() => setCreating(true)}>
+                    Create product
+                  </Button>
+                )}
+              </>
+            </>
           }
         />
       </LibraryLoading>
+      {selected && (
+        <RecordSummaryPreview
+          model="products"
+          fields={[
+            { key: "code", label: "Code" },
+            { key: "description", label: "Description" },
+            { key: "stateLabel", label: "Product state" },
+            { key: "version", label: "Latest version" },
+            { key: "status", label: "Version state" },
+            { key: "configurations", label: "Configurations" },
+            { key: "elements", label: "Elements" },
+            { key: "variants", label: "Variants" },
+          ]}
+          record={selected}
+          rows={displayed}
+          onSelect={setSelected}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </Stack>
   );
 }
@@ -222,6 +236,8 @@ export function ProductLibraryRecord({
   const product = useRow("products", id);
   const revisions = useRows("product_revisions", { product_id: id });
   const configurations = useRows("product_configurations", { product_id: id });
+  const exportDocument = useProductComponentDefinition();
+  const publish = useModelSave("product_revisions");
   const createRevision = useModelSave("product_revisions");
   const copyRevision = useCopyProductRevision();
   const workspace = useWorkspace();
@@ -234,6 +250,11 @@ export function ProductLibraryRecord({
       (revision) =>
         revision.id === selectedVersion || String(revision.version_number) === selectedVersion,
     ) ?? versions[0];
+  const publishContent = useRows(
+    "product_elements",
+    current ? { product_revision_id: current.id } : {},
+    { enabled: !!current },
+  );
   const editable = canAuthorLibrary(workspace.role);
   const busy = createRevision.isPending || copyRevision.isPending;
   async function newVersion() {
@@ -250,6 +271,31 @@ export function ProductLibraryRecord({
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not create a version.");
+    }
+  }
+  async function exportOscal() {
+    setError("");
+    try {
+      const document = await exportDocument.mutateAsync({ revisionId: current!.id });
+      downloadLibraryRecords(
+        `${product.data!.code}-v${current!.version_number}-component-definition.json`,
+        document,
+      );
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not export this version.");
+    }
+  }
+  async function publishVersion() {
+    if (!current || publish.isPending) return;
+    setError("");
+    try {
+      await publish.mutateAsync({
+        id: current.id,
+        revision: current.revision,
+        values: { state: "published" },
+      });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not publish this version.");
     }
   }
   if (!product.data)
@@ -287,6 +333,28 @@ export function ProductLibraryRecord({
                   <DropdownMenuItem disabled={busy} onClick={() => void newVersion()}>
                     Create product version
                   </DropdownMenuItem>
+                  {current?.state === "draft" && (
+                    <DropdownMenuItem
+                      disabled={
+                        publish.isPending ||
+                        !publishContent.data?.length ||
+                        !configurations.data?.some(
+                          (configuration) => configuration.state === "active",
+                        )
+                      }
+                      onClick={() => void publishVersion()}
+                    >
+                      Publish version
+                    </DropdownMenuItem>
+                  )}
+                  {current?.state === "published" && (
+                    <DropdownMenuItem
+                      disabled={exportDocument.isPending}
+                      onClick={() => void exportOscal()}
+                    >
+                      Export OSCAL
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </PageHeader.Actions>
@@ -303,19 +371,6 @@ export function ProductLibraryRecord({
             existing={product.data}
             onClose={() => setEditProduct(false)}
           />
-        )}
-        {current && (
-          <div className="w-layout-rail max-w-full">
-            <LibrarySelect
-              label="Version"
-              value={current.id}
-              options={versions.map((revision) => ({
-                value: revision.id,
-                label: `${revision.version_number} · ${revision.state}`,
-              }))}
-              onChange={setSelectedVersion}
-            />
-          </div>
         )}
         {current && product.data ? (
           <ProductRevision
@@ -363,8 +418,7 @@ function ProductRevision({
   const definitions = useRows("component_definitions");
   const systems = useRows("systems");
   const programs = useRows("programs");
-  const publish = useModelSave("product_revisions");
-  const exportDocument = useProductComponentDefinition();
+  const [variantPreview, setVariantPreview] = useState<Row<"systems"> | null>(null);
   const [tab, setTab] = useState("Overview");
   const [error, setError] = useState("");
   const canEdit = editable && revision.state === "draft";
@@ -421,10 +475,17 @@ function ProductRevision({
   const variantColumns = useMemo(
     () =>
       defineColumns<(typeof variantRows)[number]>((c) => [
-        c.id("code", { header: "ID", width: 150 }),
+        c.id("code", {
+          header: "ID",
+          width: 150,
+          preview: setVariantPreview,
+          active: (row) => row.id === variantPreview?.id,
+        }),
         c.text("name", {
           header: "Variant",
           hideable: false,
+          priority: 0,
+          minWidth: 220,
           cell: (row) => (
             <RecordLink table="systems" record={row}>
               {row.name}
@@ -446,7 +507,7 @@ function ProductRevision({
         c.number("inherited", { header: "Inherited elements", width: 150 }),
         c.number("added", { header: "Added elements", width: 150 }),
       ]),
-    [],
+    [variantPreview?.id],
   );
   const variantsTable = useDataTable({
     data: variantRows,
@@ -457,62 +518,10 @@ function ProductRevision({
     resizable: true,
     reorderable: true,
   });
-  async function publishRevision() {
-    setError("");
-    try {
-      await publish.mutateAsync({
-        id: revision.id,
-        revision: revision.revision,
-        values: { state: "published" },
-      });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not publish this version.");
-    }
-  }
-  async function exportOscal() {
-    setError("");
-    try {
-      const document = await exportDocument.mutateAsync({ revisionId: revision.id });
-      downloadLibraryRecords(
-        `${product.code}-v${revision.version_number}-component-definition.json`,
-        document,
-      );
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not export this version.");
-    }
-  }
+
+  const displayedVariants = useDisplayedRecords(variantsTable);
   return (
     <Stack space="space.200">
-      <Inline space="space.150" alignBlock="center">
-        <Badge variant="secondary" tone="neutral">
-          {revision.state}
-        </Badge>
-        {canEdit && (
-          <Button
-            variant="secondary"
-            disabled={publish.isPending || !elements.data?.length || !active.length}
-            title={
-              !elements.data?.length
-                ? "Add at least one element first"
-                : !active.length
-                  ? "Add at least one configuration first"
-                  : undefined
-            }
-            onClick={() => void publishRevision()}
-          >
-            Publish version
-          </Button>
-        )}
-        {revision.state === "published" && (
-          <Button
-            variant="secondary"
-            disabled={exportDocument.isPending}
-            onClick={() => void exportOscal()}
-          >
-            Export OSCAL
-          </Button>
-        )}
-      </Inline>
       {error && (
         <p role="alert" className="text-danger">
           {error}
@@ -532,6 +541,24 @@ function ProductRevision({
           ))}
         </TabsList>
         <TabsContent value={tab} className="contents">
+          {variantPreview && (
+            <RecordSummaryPreview
+              model="systems"
+              fields={[
+                { key: "code", label: "Code" },
+                { key: "description", label: "Description" },
+                { key: "programName", label: "Program" },
+                { key: "configurationName", label: "Configuration" },
+                { key: "productVersion", label: "Product version" },
+                { key: "inherited", label: "Inherited elements" },
+                { key: "added", label: "Added elements" },
+              ]}
+              record={variantPreview}
+              rows={displayedVariants}
+              onSelect={setVariantPreview}
+              onClose={() => setVariantPreview(null)}
+            />
+          )}
           {tab === "Overview" && (
             <Section title="Description">
               <p>{product.description || <Absent />}</p>
@@ -558,36 +585,23 @@ function ProductRevision({
           )}
           {tab === "Variants" && (
             <LibraryLoading queries={[systems, programs]}>
-              <Section title="Variants">
-                <DataTable
-                  responsive
-                  table={variantsTable}
-                  fill
-                  onRowClick={(row) => void navigate(recordDestination("systems", row))}
-                  empty={{
-                    illustration: "tree",
-                    title: "No variants yet",
-                    description:
-                      "A program creates a variant from a configuration of this product.",
-                  }}
-                  toolbar={
-                    <Toolbar
-                      search={String(variantsTable.state.globalFilter ?? "")}
-                      onSearch={(value) => variantsTable.setGlobalFilter(value)}
-                      placeholder="Find variants"
-                      filters={
-                        <>
-                          <DataTable.Filter table={variantsTable} column="programName" />
-                          <DataTable.Filter table={variantsTable} column="configurationName" />
-                        </>
-                      }
-                    >
-                      <DataTable.Columns table={variantsTable} />
-                      <DataTable.Settings table={variantsTable} />
-                    </Toolbar>
-                  }
-                />
-              </Section>
+              <ProductCollection
+                table={variantsTable}
+                fill
+                onRowClick={(row) => void navigate(recordDestination("systems", row))}
+                empty={{
+                  illustration: "tree",
+                  title: "No variants yet",
+                  description: "A program creates a variant from a configuration of this product.",
+                }}
+                searchLabel="Find variants"
+                filters={
+                  <>
+                    <DataTable.Filter table={variantsTable} column="programName" />
+                    <DataTable.Filter table={variantsTable} column="configurationName" />
+                  </>
+                }
+              />
             </LibraryLoading>
           )}
           {tab === "Versions" && (
@@ -626,7 +640,15 @@ function ProductRevision({
             <KeyValue label="Code">
               <Id>{product.code}</Id>
             </KeyValue>
-            <KeyValue label="Version">{revision.version_number}</KeyValue>
+            <LibrarySelect
+              label="Version"
+              value={revision.id}
+              options={versions.map((version) => ({
+                value: version.id,
+                label: `${version.version_number} · ${version.state}`,
+              }))}
+              onChange={onVersion}
+            />
             <KeyValue label="State">{revision.state}</KeyValue>
             <KeyValue label="Published">
               {revision.published_at ? displayDate(revision.published_at) : "Not published"}
@@ -682,6 +704,8 @@ function ConfigurationsTab({
   const navigate = useNavigate();
   const save = useModelSave("product_configurations");
   const includeAll = useIncludeAllElements();
+  const [configurationPreview, setConfigurationPreview] =
+    useState<Row<"product_configurations"> | null>(null);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Row<"product_configurations"> | null>(null);
   const [error, setError] = useState("");
@@ -708,10 +732,17 @@ function ConfigurationsTab({
   const columns = useMemo(
     () =>
       defineColumns<(typeof rows)[number]>((c) => [
-        c.id("code", { header: "Code", width: 110 }),
+        c.id("code", {
+          header: "Code",
+          width: 110,
+          preview: setConfigurationPreview,
+          active: (row) => row.id === configurationPreview?.id,
+        }),
         c.text("name", {
           header: "Configuration",
           hideable: false,
+          priority: 0,
+          minWidth: 220,
           cell: (row) => (
             <RecordLink table="product_configurations" record={row}>
               {row.name}
@@ -762,7 +793,7 @@ function ConfigurationsTab({
             ]
           : []),
       ]),
-    [editable, canEditVersion, elementIds, includeAll, revision.id, save],
+    [editable, canEditVersion, elementIds, includeAll, revision.id, save, configurationPreview?.id],
   );
   const table = useDataTable({
     data: rows,
@@ -772,6 +803,7 @@ function ConfigurationsTab({
     view: "live-product-configurations-v1",
     resizable: true,
   });
+  const displayedConfigurations = useDisplayedRecords(table);
   return (
     <Stack space="space.200">
       {error && (
@@ -779,8 +811,7 @@ function ConfigurationsTab({
           {error}
         </p>
       )}
-      <DataTable
-        responsive
+      <ProductCollection
         onRowClick={(row) => void navigate(recordDestination("product_configurations", row))}
         table={table}
         empty={{
@@ -794,25 +825,35 @@ function ConfigurationsTab({
             </Button>
           ) : null,
         }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder="Find configurations"
-            filters={<DataTable.Filter table={table} column="stateLabel" />}
-            actions={
-              editable && (
-                <Button variant="primary" size="small" onClick={() => setCreating(true)}>
-                  Create configuration
-                </Button>
-              )
-            }
-          >
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
+        fill
+        searchLabel="Find configurations"
+        filters={<DataTable.Filter table={table} column="stateLabel" />}
+        action={
+          editable && (
+            <Button variant="primary" size="small" onClick={() => setCreating(true)}>
+              Create configuration
+            </Button>
+          )
         }
       />
+      {configurationPreview && (
+        <RecordSummaryPreview
+          model="product_configurations"
+          readOnly={!editable}
+          onEdit={() => setEditing(configurationPreview)}
+          fields={[
+            { key: "code", label: "Code" },
+            { key: "description", label: "Description" },
+            { key: "stateLabel", label: "State" },
+            { key: "elements", label: "Elements" },
+            { key: "variants", label: "Variants" },
+          ]}
+          record={configurationPreview}
+          rows={displayedConfigurations}
+          onSelect={setConfigurationPreview}
+          onClose={() => setConfigurationPreview(null)}
+        />
+      )}
       {creating && (
         <NewConfigurationDialog
           product={product}
@@ -847,6 +888,7 @@ function NewConfigurationDialog({
   const { confirm, confirmation } = useConfirmation();
   const inFlight = useRef(false);
   const bypassClose = useRef(false);
+  const formId = useId();
   const completedId = useRef<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
@@ -922,8 +964,11 @@ function NewConfigurationDialog({
   return (
     <Dialog
       open
-      onOpenChange={(open) => {
-        if (!open) void close();
+      onOpenChange={(open, details) => {
+        if (!open) {
+          details.cancel();
+          void close();
+        }
       }}
     >
       <DialogContent style={{ maxWidth: 560 }} showCloseButton={!busy}>
@@ -933,37 +978,51 @@ function NewConfigurationDialog({
             One way {product.name} is built. Which elements are in it is recorded per version.
           </DialogDescription>
         </DialogHeader>
-        <fieldset disabled={busy || !!createdId}>
-          <Stack space="space.150">
-            <TextField label="Code" value={code} onChange={setCode} required autoFocus />
-            <TextField label="Name" value={name} onChange={setName} required />
-            <TextField
-              label="Description"
-              value={description}
-              onChange={setDescription}
-              multiline
-            />
-            {elementIds.length ? (
-              <label className="flex items-center gap-075 font-body-small">
-                <Checkbox
-                  checked={includeEverything}
-                  onCheckedChange={(checked) => setIncludeEverything(checked === true)}
-                />
-                Include every element in this version ({elementIds.length})
-              </label>
-            ) : null}
-            {error && (
-              <p role="alert" className="font-body-small text-danger">
-                {error}
-              </p>
-            )}
-          </Stack>
-        </fieldset>
+        <form
+          id={formId}
+          noValidate
+          className="contents"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit();
+          }}
+        >
+          <fieldset
+            disabled={busy || !!createdId}
+            aria-busy={busy}
+            className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-none px-200 py-150"
+          >
+            <Stack space="space.150">
+              <TextField label="Code" value={code} onChange={setCode} required autoFocus />
+              <TextField label="Name" value={name} onChange={setName} required />
+              <TextField
+                label="Description"
+                value={description}
+                onChange={setDescription}
+                multiline
+              />
+              {elementIds.length ? (
+                <label className="flex items-center gap-075 font-body-small">
+                  <Checkbox
+                    checked={includeEverything}
+                    onCheckedChange={(checked) => setIncludeEverything(checked === true)}
+                  />
+                  Include every element in this version ({elementIds.length})
+                </label>
+              ) : null}
+              {error && (
+                <p role="alert" className="font-body-small text-danger">
+                  {error}
+                </p>
+              )}
+            </Stack>
+          </fieldset>
+        </form>
         <DialogFooter>
           <Button variant="subtle" disabled={busy} onClick={() => void close()}>
             Cancel
           </Button>
-          <Button variant="primary" isLoading={busy} disabled={busy} onClick={() => void submit()}>
+          <Button variant="primary" isLoading={busy} disabled={busy} type="submit" form={formId}>
             Create configuration
           </Button>
         </DialogFooter>

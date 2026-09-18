@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProgramWorkspace } from "@/components/prototype/program-workspace";
 export const Route = createFileRoute("/programs/$programId_/conmon")({
-  head: () => ({ meta: [{ title: "Continuous monitoring — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
   component: ProgramView,
 });
 function ProgramView() {

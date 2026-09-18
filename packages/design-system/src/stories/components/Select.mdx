@@ -52,7 +52,7 @@ Content includes Portal, Positioner, Popup, List and both scroll arrows. It defa
 
 Following shadcn, `alignItemWithTrigger` defaults to true: when space and input modality allow it, the selected item overlaps and aligns with the trigger value. Side/alignment offsets apply in fallback positioning or when `alignItemWithTrigger={false}`. Existing consumers explicitly retain below-trigger placement with that setting. Content's `dir` overrides inherited positioning direction as well as text direction.
 
-The inner List owns bounded scrolling so hover arrows work in both alignment modes with Base UI 1.7. ScrollUpButton and ScrollDownButton wrap Base UI's hover scroll arrows, including their native props and refs. They appear when scrolling is available and are omitted for touch input. Content includes them automatically; the example composes them directly for custom list geometry.
+The inner List owns bounded scrolling so hover arrows work in both alignment modes with Base UI 1.7. ScrollUpButton and ScrollDownButton wrap Base UI's hover scroll arrows, including their native props and refs, and wear the [Scroller](?path=/docs/components-scroller--docs) arrow look across the popup's inner box. They appear when scrolling is available and are omitted for touch input. Content includes them automatically; the example composes them directly for custom list geometry, beside the standard Content in RTL.
 
 <Canvas of={Stories.Scrolling} />
 

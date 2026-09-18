@@ -1,0 +1,145 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Which token" />
+
+# Which token
+
+The Token grammar page explains the naming; the token sheets list every value. This page is the short answer to "which one": the tokens a screen reaches for most, by job, with the utility class beside each. Primitive props (`<Stack space="space.200">`, `<Box padding="space.150" background="elevation.surface.sunken">`) take the token name; classes take the utility.
+
+## Text
+
+| Job                                         | Token                                                                 | Utility                             |
+| ------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------- |
+| Body text                                   | `color.text`                                                          | `text-default`                      |
+| Secondary: meta lines, labels, descriptions | `color.text.subtle`                                                   | `text-subtle`                       |
+| Tertiary: placeholders, timestamps, Absent  | `color.text.subtlest`                                                 | `text-subtlest`                     |
+| Disabled                                    | `color.text.disabled`                                                 | `text-disabled`                     |
+| On a bold background                        | `color.text.inverse`                                                  | `text-inverse`                      |
+| Selected item                               | `color.text.selected`                                                 | `text-selected`                     |
+| A link, the brand                           | `color.text.brand`                                                    | `text-brand`                        |
+| Danger, warning, success, information       | `color.text.danger` and the rest; `.bolder` for text on a subtle tone | `text-danger`, `text-danger-bolder` |
+| A categorical accent (charts, avatars)      | `color.text.accent.blue` … `purple`                                   | `text-accent-blue`                  |
+
+Icons have their own ramp, `color.icon.*`, at the same roles.
+
+## Surfaces
+
+| Job                                       | Token                                                   | Utility                             |
+| ----------------------------------------- | ------------------------------------------------------- | ----------------------------------- |
+| The page                                  | `elevation.surface`                                     | `bg-surface`                        |
+| A recessed region: a sunken table, a well | `elevation.surface.sunken`                              | `bg-surface-sunken`                 |
+| A card                                    | `elevation.surface.raised`, `elevation.shadow.raised`   | `bg-surface-raised shadow-raised`   |
+| A menu, popover, dialog                   | `elevation.surface.overlay`, `elevation.shadow.overlay` | `bg-surface-overlay shadow-overlay` |
+| A scroll edge                             | `elevation.shadow.overflow`                             | `shadow-overflow`                   |
+
+Each surface has `.hovered` and `.pressed` siblings; use those, never opacity on the base.
+
+## Backgrounds by meaning
+
+| Job                                   | Token family                           | Utilities                                                                                   |
+| ------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| A neutral control or chip             | `color.background.neutral`             | `bg-neutral`, `-hovered`, `-pressed`, `-subtle`, `-bold`                                    |
+| The primary action                    | `color.background.brand.bold`          | `bg-brand-bold`, `-hovered`, `-pressed`                                                     |
+| A tinted brand region                 | `color.background.brand.subtlest`      | `bg-brand-subtlest`                                                                         |
+| A selected row or item                | `color.background.selected`            | `bg-selected`, `-hovered`, `-bold`                                                          |
+| An input                              | `color.background.input`               | `bg-input`, `-hovered`, `-pressed`                                                          |
+| Danger, warning, success, information | `color.background.danger` and the rest | `bg-danger` (the tone), `-subtler`, `-subtle`, `-bold`, each with `-hovered` and `-pressed` |
+| Something on a dark surface           | `color.background.inverse.subtle`      | `bg-inverse-subtle`                                                                         |
+| A blanket under a modal               | `color.blanket`                        |                                                                                             |
+| A skeleton                            | `color.skeleton`                       |                                                                                             |
+
+Text on a subtle tone is the `.bolder` text token of the same tone; text on a bold tone is `color.text.inverse`.
+
+## Borders
+
+| Job                              | Token                                                | Utility                                 |
+| -------------------------------- | ---------------------------------------------------- | --------------------------------------- |
+| Every divider and default border | `color.border`                                       | `border-default`                        |
+| A stronger border                | `color.border.bold`                                  | `border-bold`                           |
+| An input                         | `color.border.input`                                 | `border-input`                          |
+| Focus ring                       | `color.border.focused`, 2px                          | `border-focused`                        |
+| Selected                         | `color.border.selected`, 2px                         | `border-selected`                       |
+| Disabled                         | `color.border.disabled`                              | `border-disabled`                       |
+| A tone                           | `color.border.danger`, `.subtle` for a tinted region | `border-danger`, `border-danger-subtle` |
+
+Widths: `border.width` 1px for everything, `border.width.selected` and `border.width.focused` 2px.
+
+## Space
+
+| Token        | Value | For                                                    |
+| ------------ | ----- | ------------------------------------------------------ |
+| `space.025`  | 2px   | A hairline.                                            |
+| `space.050`  | 4px   | Tight: icon to text, dot to text.                      |
+| `space.075`  | 6px   | Compact: the gap inside a control cluster.             |
+| `space.100`  | 8px   | Standard small: control clusters, chip rows.           |
+| `space.150`  | 12px  | Standard medium: cell padding, a card header's inset.  |
+| `space.200`  | 16px  | Standard large: card padding, form grids, most Stacks. |
+| `space.250`  | 20px  | Comfortable.                                           |
+| `space.300`  | 24px  | Relaxed: between a header and its actions.             |
+| `space.400`  | 32px  | Spacious: page gutters.                                |
+| `space.600`  | 48px  | Between sections.                                      |
+| `space.800`  | 64px  | Between page sections.                                 |
+| `space.1000` | 80px  | A hero.                                                |
+
+Utilities take the same key on any spacing or sizing property: `p-200`, `gap-100`, `w-400`. Margins exist only as `space.negative.*` through **Bleed**; product code never writes a margin.
+
+## Type
+
+| Token                  | Size  | For                                                                               |
+| ---------------------- | ----- | --------------------------------------------------------------------------------- |
+| `font.body`            | 13/18 | Controls, cells, tabs, inputs, menu items. The UI size.                           |
+| `font.body.large`      | 15/22 | Reading text, dialog body.                                                        |
+| `font.body.small`      | 12/16 | Table headers, field labels, badges, KeyValue; labels add `font.weight.medium`.   |
+| `font.body.xsmall`     | 11/14 | Eyebrow, counts, metadata.                                                        |
+| `font.heading.medium`  | 22/28 | Page and record titles. The only semibold.                                        |
+| `font.heading.small`   | 20/26 | Section headings.                                                                 |
+| `font.heading.xsmall`  | 15/22 | Dialog and card titles.                                                           |
+| `font.heading.xxsmall` | 11/14 | Eyebrows, group headings, menu section labels (the component adds the uppercase). |
+| `font.heading.large`   | 28/34 | A stat value, a dashboard number. Not a page title.                               |
+| `font.code`            | 12/18 | Code blocks only.                                                                 |
+
+Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`).
+
+## Sizes
+
+| Token                      | Value | For                                                                   |
+| -------------------------- | ----- | --------------------------------------------------------------------- |
+| `dimension.control.xsmall` | 24px  | Button xs.                                                            |
+| `dimension.control.small`  | 28px  | Button sm, chips, menu items, sidebar items, everything in a Toolbar. |
+| `dimension.control.medium` | 32px  | The default: Button md, inputs, selects, combobox triggers.           |
+| `dimension.control.large`  | 36px  | Hero forms only.                                                      |
+| `dimension.row`            | 40px  | A table row; `.compact` 36px; `.header` 32px; `.menu` 28px.           |
+| `dimension.icon.small`     | 14px  | An icon inside a small or medium control.                             |
+| `dimension.icon.medium`    | 16px  | A standalone icon, an icon button's glyph.                            |
+| `dimension.layout.rail`    | 272px | The rail beside a record: Inspector, Aside.                           |
+| `dimension.layout.panel`   | 320px | The preview panel before the reader resizes it.                       |
+| `dimension.layout.sidenav` | 228px | The side nav, expanded.                                               |
+| `dimension.layout.topnav`  | 48px  | The top nav, and the banner above it.                                 |
+
+## Radius
+
+| Token            | Value | For                                 |
+| ---------------- | ----- | ----------------------------------- |
+| `radius.xsmall`  | 2px   | Checkbox, tiny chips.               |
+| `radius.small`   | 3px   | Badges, count chips, Kbd, skeleton. |
+| `radius.medium`  | 5px   | Buttons, inputs, chips, menu items. |
+| `radius.large`   | 7px   | Cards, popovers.                    |
+| `radius.xlarge`  | 9px   | Dialogs, sheets.                    |
+| `radius.xxlarge` | 12px  | Large surfaces, spotlight cards.    |
+| `radius.full`    | pill  | Dots, avatars, pills, meters.       |
+
+## Motion
+
+| Token                                       | Value | For                                                                        |
+| ------------------------------------------- | ----- | -------------------------------------------------------------------------- |
+| `motion.duration.micro`                     | 70ms  | A toggle's thumb, a checkbox's tick, a chevron turning.                    |
+| `motion.duration.fast`                      | 110ms | Hover and press colour, a tooltip's fade, a menu leaving.                  |
+| `motion.duration.medium`                    | 150ms | A menu arriving, a section expanding, a dialog leaving.                    |
+| `motion.duration.moderate`                  | 240ms | A dialog or sheet arriving, the panel sliding in, a toast, content rising. |
+| `motion.duration.slow`                      | 400ms | Chart marks arriving, a drill-down redrawing.                              |
+| `motion.duration.slower`                    | 700ms | The blanket dimming the page.                                              |
+| `motion.easing.standard`, `.enter`, `.exit` |       | `ease-standard`, `ease-enter`, `ease-exit`. Honour reduced motion.         |
+
+## What has no token on purpose
+
+Structural utilities carry no design value and are allowed as written: `flex`, `grid`, `relative`, `absolute`, `sticky`, `truncate`, `whitespace-nowrap`, `sr-only`, `overflow-auto`, `pointer-events-none` and their kin. Everything with a colour, a length, a weight or a duration goes through a token. A value you cannot find here or on the sheets is a token to propose, not a number to type.

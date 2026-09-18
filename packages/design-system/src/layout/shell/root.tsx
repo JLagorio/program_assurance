@@ -34,6 +34,8 @@ import { clampWidth } from "./splitter";
 export type ShellProps = ComponentProps<"div"> & {
   /** Collapsed on first render on a desktop. Keep it current from SideNav's onCollapse and onExpand. */
   defaultSideNavCollapsed?: boolean | undefined;
+  /** Desktop collapse behavior: hide the navigation, or keep destination icons and the profile avatar in a compact rail. */
+  collapsedSideNav?: "hidden" | "icons" | undefined;
   /** Ctrl+[ toggles the side nav. Off by default; ignored while a dialog is open. */
   sideNavShortcut?: boolean | undefined;
   /** Remember the collapsed state and the dragged widths in this browser: `true` for the default key, or a key of your own. Put `shellScript` in the document head so the first paint honours it. */
@@ -43,6 +45,7 @@ export type ShellProps = ComponentProps<"div"> & {
 export function ShellRoot({
   children,
   defaultSideNavCollapsed = false,
+  collapsedSideNav = "hidden",
   sideNavShortcut = false,
   persist,
   className,
@@ -56,6 +59,7 @@ export function ShellRoot({
   const [open, setOpen] = useState(false);
   const [peeking, setPeeking] = useState(false);
   const [sideNavWidth, setSideNavWidth] = useState<number | null>(null);
+  const [sideNavMotion, setSideNavMotion] = useState(false);
   const [panelWidth, setPanelWidth] = useState<number | null>(null);
   const [hasBanner, setBanner] = useState(false);
   const [skipLinks, setSkipLinks] = useState<SkipLink[]>([]);
@@ -104,6 +108,7 @@ export function ShellRoot({
   useEffect(() => {
     setOpen(false);
     setPeeking(false);
+    setSideNavMotion(false);
   }, [isDesktop]);
 
   const closeSideNav = useCallback(
@@ -122,6 +127,7 @@ export function ShellRoot({
     listeners.current.onExpand?.({ trigger: "toggle-button" });
   }, []);
   const expandSideNav = useCallback((trigger: SideNavTrigger = "hook") => {
+    setSideNavMotion(true);
     setOpen(false);
     setPeeking(false);
     setExpanded((was) => {
@@ -129,11 +135,33 @@ export function ShellRoot({
       return true;
     });
   }, []);
-  const collapseSideNav = useCallback((trigger: SideNavTrigger = "hook") => {
-    setExpanded((was) => {
-      if (was) listeners.current.onCollapse?.({ trigger });
-      return false;
-    });
+  const collapseSideNav = useCallback(
+    (trigger: SideNavTrigger = "hook") => {
+      setSideNavMotion(true);
+      const focused = document.activeElement;
+      // A shortcut or resizer can collapse navigation while focus is in content about to hide.
+      // Keep focus on visible rail links; return hidden group/header/resize controls to the toggle.
+      if (
+        focused?.closest('[data-shell-area="sidenav"]') &&
+        (collapsedSideNav === "hidden" ||
+          focused.closest(
+            '[data-slot="shell-sidenav-level"], [data-slot="shell-sidenav-header"], [data-slot="shell-splitter"]',
+          ))
+      ) {
+        toggle.current?.focus();
+      }
+      setExpanded((was) => {
+        if (was) listeners.current.onCollapse?.({ trigger });
+        return false;
+      });
+    },
+    [collapsedSideNav],
+  );
+  // A drag follows the pointer immediately. Only explicit expand/collapse changes animate;
+  // restoring a saved width or crossing a breakpoint must not animate the initial layout.
+  const resizeSideNav = useCallback((width: number | null) => {
+    setSideNavMotion(false);
+    setSideNavWidth(width);
   }, []);
   const toggleSideNav = useCallback(
     (trigger: SideNavTrigger = "hook") => {
@@ -150,11 +178,11 @@ export function ShellRoot({
   }, []);
   const peekSideNav = useCallback(() => {
     holdPeek();
-    if (isDesktop && !expanded) {
+    if (isDesktop && !expanded && collapsedSideNav === "hidden") {
       setOpen(true);
       setPeeking(true);
     }
-  }, [holdPeek, isDesktop, expanded]);
+  }, [holdPeek, isDesktop, expanded, collapsedSideNav]);
   const endPeek = useCallback(
     (immediate = false) => {
       holdPeek();
@@ -210,6 +238,7 @@ export function ShellRoot({
     () => ({
       isDesktop,
       shortcut: sideNavShortcut,
+      collapsedSideNav,
       sideNav: { expanded, open, peeking, width: sideNavWidth },
       panel: { width: panelWidth },
       expandSideNav,
@@ -220,7 +249,7 @@ export function ShellRoot({
       peekSideNav,
       endPeek,
       holdPeek,
-      setSideNavWidth,
+      setSideNavWidth: resizeSideNav,
       setPanelWidth,
       setBanner,
       registerSkipLink,
@@ -231,6 +260,7 @@ export function ShellRoot({
     [
       isDesktop,
       sideNavShortcut,
+      collapsedSideNav,
       expanded,
       open,
       peeking,
@@ -244,6 +274,7 @@ export function ShellRoot({
       peekSideNav,
       endPeek,
       holdPeek,
+      resizeSideNav,
       registerSkipLink,
       skipLinks,
     ],
@@ -262,6 +293,8 @@ export function ShellRoot({
         <div
           {...props}
           data-slot="shell"
+          data-collapsed-sidenav={collapsedSideNav}
+          data-sidenav-motion={sideNavMotion ? "" : undefined}
           className={cn("shell-root bg-surface text-default", className)}
           style={{ ...vars, ...style }}
           onFocusCapture={(event) => {

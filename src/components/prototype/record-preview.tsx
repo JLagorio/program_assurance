@@ -32,7 +32,7 @@ export type RecordPreviewPanelProps = Omit<ShellPanelProps, "title" | "actions">
   /** The record name, rendered once in the body record header. */
   title: ReactNode;
   /** Global record navigation only: previous, next and open full record. */
-  navigation?: ReactNode;
+  navigation: ReactNode;
   /** Record commands in the body header: one primary and an overflow menu. */
   recordActions?: ReactNode;
 };

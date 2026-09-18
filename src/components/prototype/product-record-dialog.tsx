@@ -16,6 +16,8 @@ import { recordTitle, type DataRecord } from "@/lib/records";
 export type ProductEditorState = RecordEditorState;
 export type ProductRecordFormProps = {
   table: string;
+  /** Preserve the operation label for linking existing records. */
+  operationLabel?: string | undefined;
   existing?: DataRecord | undefined;
   initialValues?: Record<string, unknown> | undefined;
   onSaved?: ((record: DataRecord) => void | Promise<void>) | undefined;
@@ -27,6 +29,7 @@ export type ProductRecordFormProps = {
 /** Form content only, for a dialog that already owns its focus and dismissal lifecycle. */
 export function ProductRecordForm({
   table,
+  operationLabel,
   existing,
   initialValues,
   onSaved,
@@ -64,6 +67,7 @@ export function ProductRecordForm({
       collection={collection}
       presentation="product"
       formLayout="dialog"
+      operationLabel={operationLabel}
       existing={existing}
       initialValues={initialValues}
       {...(onStateChange ? { onStateChange } : {})}
@@ -93,7 +97,7 @@ export function ProductRecordDialog({
     setBusy(state.busy);
     setNoun(state.noun);
   }, []);
-  const heading = `${props.existing ? "Edit" : "Create"} ${noun}`;
+  const heading = props.operationLabel ?? `${props.existing ? "Edit" : "Create"} ${noun}`;
   const context =
     description ??
     (props.existing && collection ? recordTitle(props.existing, collection) : undefined);

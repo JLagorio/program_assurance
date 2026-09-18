@@ -148,7 +148,7 @@ export function FindingRecord({ id }: { id: string }) {
                   table="assessment_findings"
                   id={id}
                   onEdit={() => setEditing(row as DataRecord)}
-                  editLabel="Edit determination"
+                  editLabel="Edit assessment finding"
                   readOnly={readOnly}
                 />
               </PageHeader.Actions>
@@ -226,6 +226,7 @@ export function FindingRecord({ id }: { id: string }) {
               </Shell.Aside>
             </>
             <EntitySection
+              showHeading
               table="finding_observations"
               filters={{ finding_id: id }}
               initialValues={{ assessment_results_revision_id: row.assessment_results_revision_id }}
@@ -241,6 +242,7 @@ export function FindingRecord({ id }: { id: string }) {
               ]}
             />
             <EntitySection
+              showHeading
               table="finding_evidence"
               filters={{ finding_id: id }}
               title="Evidence citations"
@@ -260,6 +262,7 @@ export function FindingRecord({ id }: { id: string }) {
               ]}
             />
             <EntitySection
+              showHeading
               table="finding_risks"
               filters={{ finding_id: id }}
               initialValues={{ assessment_results_revision_id: row.assessment_results_revision_id }}
@@ -279,7 +282,7 @@ export function FindingRecord({ id }: { id: string }) {
             />
           </>
         ) : (
-          <MissingRecord backTo="/findings" kind="Finding" />
+          <MissingRecord backTo="/findings" kind="Assessment finding" />
         )}
       </QueryState>
     </Stack>
@@ -317,7 +320,7 @@ export function IssueRecord({ id }: { id: string }) {
                   table="operational_issues"
                   id={id}
                   onEdit={() => setEditing(row as DataRecord)}
-                  editLabel="Edit issue"
+                  editLabel="Edit operational issue"
                 />
               </PageHeader.Actions>
             </PageHeader>
@@ -355,6 +358,7 @@ export function IssueRecord({ id }: { id: string }) {
               </Inspector.Group>
             </Shell.Aside>
             <EntitySection
+              showHeading
               table="issue_observations"
               filters={{ issue_id: id }}
               title="Issue observations"
@@ -368,6 +372,7 @@ export function IssueRecord({ id }: { id: string }) {
               ]}
             />
             <EntitySection
+              showHeading
               table="issue_poams"
               filters={{ issue_id: id }}
               title="Remediation commitments"
@@ -381,6 +386,7 @@ export function IssueRecord({ id }: { id: string }) {
               ]}
             />
             <EntitySection
+              showHeading
               table="task_issues"
               filters={{ issue_id: id }}
               title="Assigned work"
@@ -433,7 +439,7 @@ export function AssetRecord({ id }: { id: string }) {
                   table="inventory_items"
                   id={id}
                   onEdit={() => setEditing(row as DataRecord)}
-                  editLabel="Edit asset"
+                  editLabel="Edit inventory item"
                 />
               </PageHeader.Actions>
             </PageHeader>
@@ -468,6 +474,7 @@ export function AssetRecord({ id }: { id: string }) {
               </Inspector.Group>
             </Shell.Aside>
             <EntitySection
+              showHeading
               table="inventory_components"
               filters={{ inventory_item_id: id }}
               initialValues={{ system_id: row.system_id }}

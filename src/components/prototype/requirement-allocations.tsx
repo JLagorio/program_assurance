@@ -1,3 +1,7 @@
+import { ProductCollection } from "./product-collection";
+import { RecordLink, useDisplayedRecords } from "./record-preview";
+import { RecordSummaryPreview } from "./record-summary-preview";
+import { QueryState, MissingRecord } from "./work-common";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useMemo, useRef, useState } from "react";
 import { Link, useBlocker } from "@tanstack/react-router";
@@ -62,112 +66,106 @@ export function RequirementAllocations({
     identity.data?.tenant_id === workspace.tenantId &&
     !!workspace.collections.find((item) => item.name === "requirement_allocations")?.can_insert &&
     valid;
-  const elements = (systems.data ?? []) as SystemElement[];
-  const rows = (allocations.data ?? []) as Allocation[];
+  const elements = useMemo(() => (systems.data ?? []) as SystemElement[], [systems.data]);
+  const rows = useMemo(
+    () =>
+      ((allocations.data ?? []) as Allocation[]).map((allocation) => {
+        const systemId = allocation.system_id ?? allocation.composition_node_id;
+        const system = elements.find((element) => element.id === systemId);
+        return {
+          ...allocation,
+          name: system
+            ? `${system.code} · ${system.name}`
+            : systemId
+              ? "System unavailable"
+              : allocation.provider_capability_id
+                ? "Provider capability"
+                : "Security process",
+          targetType: system
+            ? labelFor(system.system_type)
+            : systemId
+              ? "System"
+              : allocation.provider_capability_id
+                ? "Provider capability"
+                : "Security process",
+        };
+      }),
+    [allocations.data, elements],
+  );
+  const [previewId, setPreviewId] = useState<string>();
+  const columns = useMemo(
+    () =>
+      defineColumns<(typeof rows)[number]>((c) => [
+        c.id("name", {
+          header: "Allocated to",
+          minWidth: 200,
+          priority: 0,
+          preview: (row) => setPreviewId(row.id),
+          active: (row) => row.id === previewId,
+          cell: (row) => (
+            <RecordLink table="requirement_allocations" record={row}>
+              {row.name}
+            </RecordLink>
+          ),
+        }),
+        c.text("targetType", { header: "Target type", width: 160 }),
+        c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
+      ]),
+    [previewId],
+  );
+  const table = useDataTable({
+    columns,
+    data: rows,
+    getRowId: (row) => row.id,
+    label: "Requirement allocations",
+    view: "requirement-allocations",
+    resizable: true,
+    reorderable: true,
+  });
+  const displayed = useDisplayedRecords(table);
+  const preview = rows.find((row) => row.id === previewId);
+  const action = canWrite ? (
+    <Button
+      size="small"
+      variant="primary"
+      iconBefore={<Plus />}
+      disabled={!ready || !elements.length}
+      onClick={() => setAdding(true)}
+    >
+      Allocate requirement
+    </Button>
+  ) : undefined;
   return (
     <Stack space="space.200">
-      <Inline alignBlock="center" spread="space-between" space="space.150">
-        <h2 className="font-heading-small">Requirement allocations</h2>
-        {canWrite && (
-          <Button
-            size="small"
-            variant="primary"
-            iconBefore={<Plus />}
-            disabled={!ready || !elements.length}
-            onClick={() => setAdding(true)}
-          >
-            Allocate requirement
-          </Button>
+      <QueryState queries={[identity, content]}>
+        {valid ? (
+          <ProductCollection
+            fill
+            table={table}
+            queries={queries}
+            searchLabel="Find an allocation"
+            action={action}
+            empty={{
+              illustration: "tree",
+              title: "No allocations yet",
+              description: elements.length
+                ? "Allocate this requirement to a system to record its responsibility."
+                : "Create a system in this program before allocating the requirement.",
+            }}
+          />
+        ) : (
+          <MissingRecord kind="Requirement" backTo="/programs" />
         )}
-      </Inline>
-      {error ? (
-        <p role="alert" className="text-danger">
-          {error.message}
-        </p>
-      ) : !ready ? (
-        <p role="status">Loading requirement allocations…</p>
-      ) : !valid ? (
-        <p role="alert">Requirement not found in this program.</p>
-      ) : (
-        <>
-          {!elements.length && (
-            <p role="status" className="font-body-small text-subtle">
-              Add a system to this program before allocating the requirement.
-            </p>
-          )}
-          {rows.length ? (
-            <div className="overflow-x-auto">
-              <Table aria-label="Requirement allocations">
-                <thead>
-                  <Table.Row>
-                    <Table.Header>Allocated to</Table.Header>
-                    <Table.Header>Target type</Table.Header>
-                    <Table.Header>Rationale</Table.Header>
-                  </Table.Row>
-                </thead>
-                <tbody>
-                  {rows.map((allocation) => {
-                    const systemId = allocation.system_id ?? allocation.composition_node_id;
-                    const system = elements.find((element) => element.id === systemId);
-                    return (
-                      <Table.Row key={allocation.id}>
-                        <Table.Cell className="whitespace-normal">
-                          {system ? (
-                            <Stack space="space.025">
-                              <TextLink
-                                render={
-                                  <Link
-                                    to="/programs/$programId/systems/$scopeId"
-                                    params={{ programId, scopeId: system.id }}
-                                  />
-                                }
-                              >
-                                {system.code} · {system.name}
-                              </TextLink>
-                              {system.parent_system_id && (
-                                <span className="font-body-xsmall text-subtle">
-                                  {systemPath(elements, system.parent_system_id)}
-                                </span>
-                              )}
-                            </Stack>
-                          ) : systemId ? (
-                            "System unavailable"
-                          ) : allocation.provider_capability_id ? (
-                            <RelationName
-                              table="provider_capabilities"
-                              id={allocation.provider_capability_id}
-                            />
-                          ) : allocation.security_process_id ? (
-                            <RelationName
-                              table="security_processes"
-                              id={allocation.security_process_id}
-                            />
-                          ) : (
-                            "Target unavailable"
-                          )}
-                        </Table.Cell>
-                        <Table.Cell>
-                          {system
-                            ? labelFor(system.system_type)
-                            : systemId
-                              ? "System element"
-                              : allocation.provider_capability_id
-                                ? "Provider capability"
-                                : "Security process"}
-                        </Table.Cell>
-                        <Table.Cell className="whitespace-normal">
-                          {allocation.rationale ?? "Not recorded"}
-                        </Table.Cell>
-                      </Table.Row>
-                    );
-                  })}
-                </tbody>
-              </Table>
-            </div>
-          ) : (
-            <p className="text-subtle">No requirement allocations recorded.</p>
-          )}
-        </>
+      </QueryState>
+      {preview && (
+        <RecordSummaryPreview
+          model="requirement_allocations"
+          readOnly
+          record={preview}
+          rows={displayed}
+          onSelect={(row) => setPreviewId(row.id)}
+          onClose={() => setPreviewId(undefined)}
+        />
       )}
       {adding && (
         <AllocateRequirementDialog
@@ -203,6 +201,7 @@ export function AllocateRequirementDialog({
   onClose: () => void;
 }) {
   const { confirm, confirmation } = useConfirmation();
+  const formRegion = useRef<HTMLDivElement>(null);
   const workspace = useWorkspace();
   const save = useModelSave("requirement_allocations");
   const cache = useQueryClient();
@@ -361,7 +360,11 @@ export function AllocateRequirementDialog({
         }
       }}
     >
-      <DialogContent style={{ maxWidth: 1120 }} showCloseButton={!busy}>
+      <DialogContent
+        style={{ maxWidth: 1120 }}
+        showCloseButton={!busy}
+        initialFocus={() => formRegion.current?.querySelector("input") ?? false}
+      >
         <DialogHeader>
           <DialogTitle>Allocate requirement</DialogTitle>
           <DialogDescription>
@@ -376,7 +379,7 @@ export function AllocateRequirementDialog({
             void submit();
           }}
         >
-          <Box padding="space.200" className="min-h-0 flex-1 overflow-y-auto">
+          <Box ref={formRegion} padding="space.200" className="min-h-0 flex-1 overflow-y-auto">
             <Stack space="space.200">
               <p className="font-body-small text-subtle">
                 Each checked row receives its own allocation. Selecting a parent leaves its children
@@ -387,6 +390,12 @@ export function AllocateRequirementDialog({
                   <DataTable
                     responsive
                     table={table}
+                    empty={{
+                      illustration: "search",
+                      title: "No systems available",
+                      description:
+                        "Create a system or change the search to find an allocation target.",
+                    }}
                     toolbar={
                       <Toolbar
                         search={String(table.state.globalFilter ?? "")}
@@ -424,12 +433,8 @@ export function AllocateRequirementDialog({
             <Button type="button" variant="subtle" disabled={busy} onClick={close}>
               Cancel
             </Button>
-            <Button variant="primary" disabled={busy || !canWrite} type="submit">
-              {busy
-                ? "Allocating…"
-                : submission
-                  ? "Retry allocation"
-                  : `Allocate to ${selectedIds.length} system${selectedIds.length === 1 ? "" : "s"}`}
+            <Button variant="primary" disabled={busy || !canWrite} isLoading={busy} type="submit">
+              Allocate requirement
             </Button>
           </DialogFooter>
         </form>

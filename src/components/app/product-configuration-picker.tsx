@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import { DataTable, Id, PickerSheet, defineColumns, useDataTable } from "@ledger/design-system";
 import type { ProductConfigurationItem } from "@/lib/product-items";
+import { DataTable, Id, PickerSheet, defineColumns, useDataTable } from "@ledger/design-system";
+import { useMemo, useRef, useState } from "react";
 
 /** Choose one published product version and one of its configurations to create a variant from. */
 export function ProductConfigurationPicker({
@@ -16,6 +16,7 @@ export function ProductConfigurationPicker({
   onPick: (item: ProductConfigurationItem) => void;
   onClose: () => void;
 }) {
+  const handingOff = useRef(false);
   const [search, setSearch] = useState("");
   const [chosenId, setChosenId] = useState<string | null>(null);
   const shown = useMemo(
@@ -34,10 +35,9 @@ export function ProductConfigurationPicker({
         c.id("productCode", {
           header: "Product",
           width: 140,
-          active: (row) => row.id === chosenId,
           cell: (row) => <Id>{row.productCode}</Id>,
         }),
-        c.text("productName", { header: "Name", minWidth: 180, hideable: false }),
+        c.text("productName", { header: "Name", priority: 0, minWidth: 180, hideable: false }),
         c.text("configurationName", { header: "Configuration", minWidth: 160 }),
         c.number("version", { header: "Version", width: 90 }),
         c.number("elements", {
@@ -48,10 +48,18 @@ export function ProductConfigurationPicker({
         c.number("libraryCount", { header: "Library components", width: 150 }),
         c.text("configurationDescription", { header: "Description", minWidth: 200, wrap: true }),
       ]),
-    [chosenId],
+    [],
   );
   const table = useDataTable({
     columns,
+    selectable: true,
+    enableMultiRowSelection: false,
+    state: { rowSelection: chosenId ? { [chosenId]: true } : {} },
+    onRowSelectionChange: (update) => {
+      const next =
+        typeof update === "function" ? update(chosenId ? { [chosenId]: true } : {}) : update;
+      setChosenId(Object.keys(next).find((id) => next[id]) ?? null);
+    },
     data: shown,
     getRowId: (row) => row.id,
     label: "Product configurations",
@@ -60,6 +68,7 @@ export function ProductConfigurationPicker({
   return (
     <PickerSheet
       open={open}
+      finalFocus={() => !handingOff.current}
       onClose={onClose}
       title="From a product"
       subtitle="A published version and one of its configurations"
@@ -70,7 +79,10 @@ export function ProductConfigurationPicker({
       action={{
         label: chosen ? `Add ${chosen.productName} · ${chosen.configurationName}` : "Add system",
         onClick: () => {
-          if (chosen) onPick(chosen);
+          if (chosen) {
+            handingOff.current = true;
+            onPick(chosen);
+          }
         },
         disabled: !chosen,
       }}

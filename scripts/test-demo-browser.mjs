@@ -239,7 +239,7 @@ try {
   await find("Search risks", risk.title);
   await capture("risks");
 
-  await visit("/campaigns", "Test campaigns");
+  await visit("/campaigns", "Assessment campaigns");
   await find("Find campaigns", campaign.title);
   await capture("campaigns");
 

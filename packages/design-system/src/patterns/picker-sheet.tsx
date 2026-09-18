@@ -8,6 +8,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  type SheetContentProps,
 } from "../components/sheet";
 import { Button } from "../components/button";
 
@@ -21,6 +22,8 @@ import { Button } from "../components/button";
  */
 export type PickerSheetProps = {
   open: boolean;
+  /** Override focus return when choosing opens the next workflow surface. */
+  finalFocus?: SheetContentProps["finalFocus"];
   onClose: () => void;
   /** Back to the choosing frame from the details frame. */
   onBack?: (() => void) | undefined;
@@ -54,6 +57,7 @@ export type PickerSheetProps = {
 
 export function PickerSheet({
   open,
+  finalFocus,
   onClose,
   onBack,
   title,
@@ -85,7 +89,7 @@ export function PickerSheet({
         }
       }}
     >
-      <SheetContent side="end" style={{ maxWidth: width }}>
+      <SheetContent side="end" style={{ maxWidth: width }} finalFocus={finalFocus}>
         <SheetHeader>
           <div className="flex items-start gap-100">
             {onBack && (

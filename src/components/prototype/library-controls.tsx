@@ -1,23 +1,24 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useRows, type Row } from "@/lib/models";
 import {
   Absent,
   Badge,
   DataTable,
-  Toolbar,
-  defineColumns,
   Id,
   Inline,
   Inspector,
   KeyValue,
-  Shell,
   Stack,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
+  defineColumns,
   useDataTable,
 } from "@ledger/design-system";
 import { useNavigate } from "@tanstack/react-router";
+import { useMemo, useState, type ReactNode } from "react";
+import { LibraryLoading } from "./library-shared";
+import { ProductCollection } from "./product-collection";
 import {
   RecordLink,
   RecordPreviewActions,
@@ -25,8 +26,6 @@ import {
   recordDestination,
   useDisplayedRecords,
 } from "./record-preview";
-import { useRows, type Row } from "@/lib/models";
-import { LibraryLoading } from "./library-shared";
 
 /** A profile that selects a control, for the Selected by column. */
 export type ControlSelector = { key: string; label: string; meta?: ReactNode | undefined };
@@ -85,6 +84,8 @@ export function LibraryControlTable({
         c.text("title", {
           header: "Title",
           hideable: false,
+          priority: 0,
+          minWidth: 220,
           cell: (row) => (
             <RecordLink table="controls" record={row}>
               {row.title}
@@ -124,8 +125,7 @@ export function LibraryControlTable({
   useDisplayedRecords(table, onDisplayedRowsChange);
   return (
     <LibraryLoading queries={[groups, revisions]}>
-      <DataTable
-        responsive
+      <ProductCollection
         table={table}
         fill
         onRowClick={(row) => void navigate(recordDestination("controls", row))}
@@ -134,24 +134,15 @@ export function LibraryControlTable({
           title: "No controls yet",
           description: "Import a catalog release to fill the library.",
         }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder="Find a control"
-            filters={
-              <>
-                {filters}
-                <DataTable.Filter table={table} column="family" />
-                {showRelease && <DataTable.Filter table={table} column="release" />}
-                <DataTable.Filter table={table} column="status" />
-                {selectedBy && <DataTable.Filter table={table} column="selectedBy" />}
-              </>
-            }
-          >
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
+        searchLabel="Find a control"
+        filters={
+          <>
+            {filters}
+            <DataTable.Filter table={table} column="family" />
+            {showRelease && <DataTable.Filter table={table} column="release" />}
+            <DataTable.Filter table={table} column="status" />
+            {selectedBy && <DataTable.Filter table={table} column="selectedBy" />}
+          </>
         }
       />
     </LibraryLoading>
@@ -195,13 +186,15 @@ export function ControlInspector({
   selectionId,
   records,
   onSelect,
+  task,
 }: {
   control: Row<"controls">;
-  records?: Row<"controls">[] | undefined;
-  onSelect?: ((row: Row<"controls">) => void) | undefined;
   onClose: () => void;
   selectionId?: string;
-}) {
+} & (
+  | { records: Row<"controls">[]; onSelect: (row: Row<"controls">) => void; task?: never }
+  | { task: string; records?: never; onSelect?: never }
+)) {
   const [tab, setTab] = useState("Statements");
   const parts = useRows("control_parts", { control_id: control.id });
   const parameters = useRows("parameters", { control_id: control.id });
@@ -245,16 +238,18 @@ export function ControlInspector({
   return (
     <RecordPreviewPanel
       title={control.title}
-      label="Control preview"
+      label={task ?? "Control preview"}
       defaultWidth={640}
       onClose={onClose}
       navigation={
-        <RecordPreviewActions
-          table="controls"
-          record={control}
-          rows={records ?? [control]}
-          onSelect={onSelect ?? (() => {})}
-        />
+        records && onSelect ? (
+          <RecordPreviewActions
+            table="controls"
+            record={control}
+            rows={records}
+            onSelect={onSelect}
+          />
+        ) : undefined
       }
     >
       <Stack space="space.200">

@@ -1,48 +1,12 @@
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useId, useMemo, useRef, useState } from "react";
-import { useBlocker } from "@tanstack/react-router";
-import { Library, Plus } from "lucide-react";
-import {
-  Absent,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  Badge,
-  Box,
-  Button,
-  Checkbox,
-  DataTable,
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-  Id,
-  Inline,
-  Inspector,
-  KeyValue,
-  Section,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Stack,
-  Toolbar,
-  defineColumns,
-  useDataTable,
-} from "@ledger/design-system";
-import { useRows, type Row } from "@/lib/models";
+import { discardChanges, useConfirmation } from "@/components/app/confirmation";
+import { ElementIdentityFields } from "@/components/app/element-fields";
+import { LibraryComponentPicker } from "@/components/app/library-component-picker";
 import {
   elementTypeForComponent,
   useLibraryComponentItems,
   type LibraryComponentItem,
 } from "@/lib/library-items";
+import { useRows, type Row } from "@/lib/models";
 import {
   descendantsOf,
   productElementSpecs,
@@ -51,11 +15,42 @@ import {
   type ProductTreeRow,
 } from "@/lib/product-items";
 import { useRemoveProductElement, useSaveProductElement } from "@/lib/product-revisions";
-import { labelFor } from "@/lib/records";
 import type { ElementType } from "@/lib/program-wizard";
-import { ElementIdentityFields } from "@/components/app/element-fields";
-import { LibraryComponentPicker } from "@/components/app/library-component-picker";
+import { labelFor } from "@/lib/records";
+import {
+  Absent,
+  Badge,
+  Button,
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  Id,
+  Inspector,
+  KeyValue,
+  Section,
+  Stack,
+  defineColumns,
+  useDataTable,
+} from "@ledger/design-system";
+import { useBlocker, useNavigate } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
+import { ProductCollection } from "./product-collection";
 import { systemIcon } from "./program-systems-tree";
+import { RecordLink, recordDestination, useDisplayedRecords } from "./record-preview";
+import { RecordSummaryPreview } from "./record-summary-preview";
 
 type ListItem = { key: string; label: string; meta?: string | null };
 type StructureRow = ProductElementSpec & {
@@ -98,7 +93,9 @@ export function ProductStructure({
   const remove = useRemoveProductElement();
   const [sheet, setSheet] = useState<ElementDialogTarget | null>(null);
   const [picking, setPicking] = useState<{ parentId: string | null } | null>(null);
-  const [removing, setRemoving] = useState<ProductElementSpec | null>(null);
+  const { confirm, confirmation } = useConfirmation();
+  const navigate = useNavigate();
+  const [selected, setSelected] = useState<StructureRow | null>(null);
   const [error, setError] = useState("");
   const canEdit = editable && revision.state === "draft";
   const active = configurations.filter((row) => row.state === "active");
@@ -152,12 +149,39 @@ export function ProductStructure({
     };
     return productTree(specs).map(decorate);
   }, [specs, membershipsOf, active, configurations]);
+  const confirmRemove = useCallback(
+    async (removing: ProductElementSpec) => {
+      if (remove.isPending) return;
+      const removingCount = descendantsOf(specs, removing.id).length;
+      if (
+        !(await confirm({
+          title: `Remove ${removing.name}?`,
+          description: removingCount
+            ? `The ${removingCount} elements inside it and every configuration membership are removed with it.`
+            : "Its configuration memberships are removed with it.",
+          confirmLabel: "Remove element",
+          variant: "danger",
+        }))
+      )
+        return;
+      setError("");
+      try {
+        await remove.mutateAsync({
+          elementIds: [removing.id, ...descendantsOf(specs, removing.id)],
+        });
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Could not remove the element.");
+      }
+    },
+    [confirm, remove, specs],
+  );
   const columns = useMemo(
     () =>
       defineColumns<StructureRow>((c) => [
         c.text("name", {
           header: "Element",
-          minWidth: 260,
+          minWidth: 220,
+          priority: 0,
           hideable: false,
           cell: (row) => {
             const Icon = systemIcon(row.elementType);
@@ -167,7 +191,9 @@ export function ProductStructure({
                 title={`${row.code} · ${row.name}`}
               >
                 <Icon aria-hidden className="size-200 shrink-0 icon-subtle" />
-                <span className="min-w-0 truncate">{row.name}</span>
+                <RecordLink table="product_elements" record={row}>
+                  {row.name}
+                </RecordLink>
                 {row.library && (
                   <Badge size="xsmall" variant="secondary" tone="information">
                     Library
@@ -177,7 +203,13 @@ export function ProductStructure({
             );
           },
         }),
-        c.id("code", { header: "Code", width: 125, cell: (row) => <Id>{row.code}</Id> }),
+        c.id("code", {
+          header: "Code",
+          width: 125,
+          preview: setSelected,
+          active: (row) => row.id === selected?.id,
+          cell: (row) => <Id>{row.code}</Id>,
+        }),
         c.text("typeLabel", { header: "Type", width: 130 }),
         c.text("libraryLabel", {
           header: "Library",
@@ -207,12 +239,16 @@ export function ProductStructure({
                   onSelect: () => setSheet({ parentId: row.id, seed: { elementType: "hardware" } }),
                 },
                 { label: "Add from library…", onSelect: () => setPicking({ parentId: row.id }) },
-                { label: "Remove", onSelect: () => setRemoving(row) },
+                {
+                  label: "Remove element",
+                  disabled: remove.isPending,
+                  onSelect: () => void confirmRemove(row),
+                },
               ]),
             ]
           : []),
       ]),
-    [canEdit],
+    [canEdit, selected?.id, remove.isPending, confirmRemove],
   );
   const table = useDataTable({
     columns,
@@ -229,49 +265,17 @@ export function ProductStructure({
       guides: true,
     },
   });
-  const pending =
-    elements.isPending ||
-    memberships.isPending ||
-    definedComponents.isPending ||
-    componentRevisions.isPending ||
-    definitions.isPending;
-  const loadError =
-    elements.error ??
-    memberships.error ??
-    definedComponents.error ??
-    componentRevisions.error ??
-    definitions.error;
+  const displayed = useDisplayedRecords(table);
   const actions = canEdit ? (
-    <Inline space="space.100">
-      <Button
-        size="small"
-        variant="secondary"
-        iconBefore={<Library />}
-        onClick={() => setPicking({ parentId: null })}
-      >
-        Add from library
-      </Button>
-      <Button
-        size="small"
-        variant="primary"
-        iconBefore={<Plus />}
-        onClick={() => setSheet({ parentId: null, seed: { elementType: "subsystem" } })}
-      >
-        Create element
-      </Button>
-    </Inline>
+    <Button
+      size="small"
+      variant="primary"
+      iconBefore={<Plus />}
+      onClick={() => setSheet({ parentId: null, seed: { elementType: "subsystem" } })}
+    >
+      Create element
+    </Button>
   ) : null;
-  const removingCount = removing ? descendantsOf(specs, removing.id).length : 0;
-  async function confirmRemove() {
-    if (!removing) return;
-    setError("");
-    try {
-      await remove.mutateAsync({ elementIds: [removing.id, ...descendantsOf(specs, removing.id)] });
-      setRemoving(null);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not remove the element.");
-    }
-  }
   return (
     <Stack space="space.200">
       {error && (
@@ -279,12 +283,15 @@ export function ProductStructure({
           {error}
         </p>
       )}
-      <DataTable
-        responsive
+      <ProductCollection
+        commands={
+          canEdit
+            ? [{ label: "Add from library", onSelect: () => setPicking({ parentId: null }) }]
+            : []
+        }
         table={table}
-        state={loadError ? "error" : pending ? "loading" : "ready"}
-        error={loadError?.message}
-        onRowClick={(row) => setSheet({ existing: row, parentId: row.parentId })}
+        queries={[elements, memberships, definedComponents, componentRevisions, definitions]}
+        onRowClick={(row) => void navigate(recordDestination("product_elements", row))}
         empty={{
           illustration: "tree",
           title: "No elements in this version",
@@ -293,17 +300,9 @@ export function ProductStructure({
             : "This version has no elements.",
           action: actions,
         }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder="Find an element"
-            actions={actions}
-          >
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
-        }
+        fill
+        searchLabel="Find an element"
+        action={actions}
       />
       {sheet && (
         <ProductElementDialog
@@ -340,40 +339,24 @@ export function ProductStructure({
           }}
         />
       )}
-      <AlertDialog
-        open={!!removing}
-        onOpenChange={(open, details) => {
-          if (!open && remove.isPending) {
-            details.cancel();
-            return;
-          }
-          if (!open) setRemoving(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove {removing?.name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {removingCount
-                ? `The ${removingCount} element${removingCount === 1 ? "" : "s"} inside it and every configuration membership are removed with it.`
-                : "Its configuration memberships are removed with it."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="subtle" disabled={remove.isPending}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="danger"
-              isLoading={remove.isPending}
-              disabled={remove.isPending}
-              onClick={() => void confirmRemove()}
-            >
-              Remove element
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {confirmation}
+      {selected && (
+        <RecordSummaryPreview
+          model="product_elements"
+          readOnly={!canEdit}
+          onEdit={() => setSheet({ existing: selected, parentId: selected.parentId })}
+          record={selected}
+          rows={displayed}
+          onSelect={setSelected}
+          onClose={() => setSelected(null)}
+          fields={[
+            { key: "code" },
+            { key: "description" },
+            { key: "typeLabel", label: "Type" },
+            { key: "libraryLabel", label: "Library" },
+          ]}
+        />
+      )}
     </Stack>
   );
 }
@@ -683,7 +666,7 @@ function ProductElementDialog({
                 type="submit"
                 form={`${id}-form`}
               >
-                {existing ? `Save ${noun}` : `Create ${noun}`}
+                {existing ? `Edit ${noun}` : `Create ${noun}`}
               </Button>
             </>
           )}

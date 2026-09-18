@@ -255,8 +255,8 @@ try {
     code: "REQ-EMPTY",
   });
   await page.goto(`${origin}/programs/${program.id}/requirements/${empty.id}`);
-  await page.getByRole("button", { name: "Add requirement details", exact: true }).click();
-  const details = page.getByRole("dialog", { name: "Add requirement details", exact: true });
+  await page.getByRole("button", { name: "Create requirement revision", exact: true }).click();
+  const details = page.getByRole("dialog", { name: "Create requirement revision", exact: true });
   assert.equal(await details.getByLabel(/^(Version|State|Published)$/i).count(), 0);
   await details
     .getByRole("textbox", { name: "Title", exact: true })
@@ -269,7 +269,7 @@ try {
   await details
     .getByRole("textbox", { name: "Acceptance criteria", exact: true })
     .fill("The authored criterion can be verified.");
-  await details.getByRole("button", { name: "Add requirement details", exact: true }).click();
+  await details.getByRole("button", { name: "Create requirement revision", exact: true }).click();
   await details.waitFor({ state: "hidden" });
   await page.getByRole("button", { name: /^Title: New requirement details/ }).waitFor();
   await noRevisionControls();

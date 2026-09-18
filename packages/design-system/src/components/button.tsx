@@ -217,7 +217,7 @@ export function IconButton({
       {...props}
       className={classes(
         cn(
-          "shrink-0 px-0",
+          "shrink-0 p-0",
           size === "medium" ? "size-control-medium [&>svg]:size-icon-medium" : "size-control-small",
         ),
         className,

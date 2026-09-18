@@ -1,3 +1,4 @@
+import { ProductCollection } from "./product-collection";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useBlocker } from "@tanstack/react-router";
@@ -7,7 +8,6 @@ import {
   Badge,
   Box,
   Button,
-  Checkbox,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -21,7 +21,6 @@ import {
   Field,
   FieldLabel,
   Inline,
-  Input,
   KeyValue,
   Select,
   SelectContent,
@@ -29,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
   Stack,
-  Table,
   Textarea,
   Toolbar,
   defineColumns,
@@ -44,7 +42,7 @@ import { useRow, useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import { resolutionChain } from "@/lib/profile-chain";
 import { ControlInspector } from "./library-controls";
-import { useDisplayedRecords } from "./record-preview";
+import { RecordLink, useDisplayedRecords } from "./record-preview";
 
 export type ProfileChoice = {
   id: string;
@@ -353,8 +351,30 @@ export function SystemControls({
   const columns = useMemo(
     () =>
       defineColumns<ControlRow>((c) => [
-        c.id("code", { header: "Control", width: 120, priority: 1, hideable: false }),
-        c.text("title", { header: "Title", minWidth: 180, priority: 0, hideable: false }),
+        c.id("code", {
+          header: "Control",
+          width: 120,
+          priority: 1,
+          hideable: false,
+          preview: (row) => setInspected(row),
+          active: (row) => row.id === inspected?.id,
+          cell: (row) => (
+            <RecordLink table="controls" record={row}>
+              {row.code}
+            </RecordLink>
+          ),
+        }),
+        c.text("title", {
+          header: "Title",
+          minWidth: 180,
+          priority: 0,
+          hideable: false,
+          cell: (row) => (
+            <RecordLink table="controls" record={row}>
+              {row.title}
+            </RecordLink>
+          ),
+        }),
         c.status("source", {
           header: "Source",
           width: 140,
@@ -410,7 +430,7 @@ export function SystemControls({
             ]
           : []),
       ]),
-    [onAddFromLibrary],
+    [onAddFromLibrary, inspected?.id],
   );
   const table = useDataTable({
     columns,
@@ -454,21 +474,18 @@ export function SystemControls({
   const changeBaseline = canEdit ? (
     <Button
       size="small"
-      variant="secondary"
+      variant="primary"
       disabled={!ready || !system.data}
       onClick={() => setEditing(true)}
     >
-      Change baseline
+      Change control baseline
     </Button>
   ) : null;
   return (
     <Stack space="space.200">
-      <DataTable
-        responsive
+      <ProductCollection
         table={table}
-        state={error ? "error" : !ready ? "loading" : "ready"}
-        error={error?.message}
-        onRowClick={(row) => setInspected(row)}
+
         empty={{
           illustration: "shield",
           title: "No baseline yet",
@@ -476,18 +493,11 @@ export function SystemControls({
             "Adopt a published profile here, or inherit the baseline of a containing element.",
           action: changeBaseline,
         }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder="Find a control"
-            actions={changeBaseline}
-          >
-            <DataTable.Presets table={table} presets={presets} variant="menu" />
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
-        }
+        fill
+        queries={queries}
+        searchLabel="Find a control"
+        views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
+        action={changeBaseline}
       />
       {currentProfile && (
         <Collapsible>
@@ -626,6 +636,40 @@ function BaselineDialog({
         (filter === "selected" && picked.has(control.id)) ||
         (filter === "changed" && picked.has(control.id) !== base.has(control.id))),
   );
+  const pickerColumns = defineColumns<Row<"controls">>((c) => [
+    c.id("code", { header: "Control", width: 130 }),
+    c.text("title", { header: "Title", priority: 0, minWidth: 180, wrap: true }),
+    c.text("id", {
+      header: "Selection",
+      width: 150,
+      cell: (control) =>
+        picked.has(control.id) !== base.has(control.id)
+          ? picked.has(control.id)
+            ? "Added"
+            : "Removed"
+          : base.has(control.id)
+            ? "From profile"
+            : "Available",
+    }),
+  ]);
+  const pickerTable = useDataTable({
+    columns: pickerColumns,
+    data: shown,
+    getRowId: (control) => control.id,
+    label: "Controls to tailor",
+    selectable: !busy && canWrite,
+    state: {
+      globalFilter: search,
+      rowSelection: Object.fromEntries([...picked].map((id) => [id, true as const])),
+    },
+    onGlobalFilterChange: (next) => setSearch(typeof next === "function" ? next(search) : next),
+    onRowSelectionChange: (next) => {
+      const previous = Object.fromEntries([...picked].map((id) => [id, true as const]));
+      const changed = typeof next === "function" ? next(previous) : next;
+      setPicked(new Set(Object.keys(changed).filter((id) => changed[id])));
+      setDirty(true);
+    },
+  });
   const close = async () => {
     if (inFlight.current) return;
     if (!dirty || (await confirm(discardChanges("Discard this unsaved baseline selection?")))) {
@@ -733,7 +777,7 @@ function BaselineDialog({
                       setDirty(true);
                     }}
                   >
-                    <SelectTrigger id={`${fieldId}-mode`}>
+                    <SelectTrigger autoFocus id={`${fieldId}-mode`}>
                       <SelectValue>
                         {mode === "adopt"
                           ? "Adopt a profile and tailor controls"
@@ -805,90 +849,37 @@ function BaselineDialog({
                           Control changes publish an OSCAL profile layered on this base. Its
                           parameter values are inherited for selected controls.
                         </p>
-                        <Inline space="space.150">
-                          <Input
-                            className="flex-1"
-                            aria-label="Find controls to tailor"
-                            placeholder="Find a control by code or title"
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                          />
-                          <Select
-                            value={filter}
-                            onValueChange={(value) => setFilter(value ?? "all")}
-                          >
-                            <SelectTrigger aria-label="Control selection filter">
-                              <SelectValue>
-                                {filter === "all"
-                                  ? "All catalog controls"
-                                  : filter === "selected"
-                                    ? "Selected controls"
-                                    : "Changed controls"}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All catalog controls</SelectItem>
-                              <SelectItem value="selected">Selected controls</SelectItem>
-                              <SelectItem value="changed">Changed controls</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </Inline>
-                        <Box className="rounded-medium border border-default">
-                          <Table maxHeight={320}>
-                            <thead>
-                              <Table.Row>
-                                <Table.Header style={{ width: 64 }}>Select</Table.Header>
-                                <Table.Header style={{ width: 150 }}>Control</Table.Header>
-                                <Table.Header>Title</Table.Header>
-                                <Table.Header style={{ width: 120 }}>Selection</Table.Header>
-                              </Table.Row>
-                            </thead>
-                            <tbody>
-                              {shown.map((control) => (
-                                <Table.Row key={control.id}>
-                                  <Table.Cell>
-                                    <Checkbox
-                                      aria-label={`Include ${control.code}`}
-                                      checked={picked.has(control.id)}
-                                      onCheckedChange={(checked) => {
-                                        setPicked((previous) => {
-                                          const next = new Set(previous);
-                                          if (checked) next.add(control.id);
-                                          else next.delete(control.id);
-                                          return next;
-                                        });
-                                        setDirty(true);
-                                      }}
-                                    />
-                                  </Table.Cell>
-                                  <Table.Cell>{control.code}</Table.Cell>
-                                  <Table.Cell className="whitespace-normal">
-                                    {control.title}
-                                  </Table.Cell>
-                                  <Table.Cell>
-                                    {picked.has(control.id) !== base.has(control.id) ? (
-                                      <Badge
-                                        tone={picked.has(control.id) ? "success" : "warning"}
-                                        variant="secondary"
-                                      >
-                                        {picked.has(control.id) ? "Added" : "Removed"}
-                                      </Badge>
-                                    ) : base.has(control.id) ? (
-                                      "From profile"
-                                    ) : (
-                                      "Available"
-                                    )}
-                                  </Table.Cell>
-                                </Table.Row>
-                              ))}
-                              {!shown.length && (
-                                <Table.Row>
-                                  <Table.Cell colSpan={4}>No matching controls.</Table.Cell>
-                                </Table.Row>
-                              )}
-                            </tbody>
-                          </Table>
-                        </Box>
+                        <ProductCollection
+                          table={pickerTable}
+                          searchLabel="Find controls to tailor"
+                          maxHeight={320}
+                          filters={
+                            <Select
+                              value={filter}
+                              onValueChange={(value) => setFilter(value ?? "all")}
+                            >
+                              <SelectTrigger aria-label="Control selection filter">
+                                <SelectValue>
+                                  {filter === "all"
+                                    ? "All catalog controls"
+                                    : filter === "selected"
+                                      ? "Selected controls"
+                                      : "Changed controls"}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All catalog controls</SelectItem>
+                                <SelectItem value="selected">Selected controls</SelectItem>
+                                <SelectItem value="changed">Changed controls</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          }
+                          empty={{
+                            illustration: "search",
+                            title: "No matching controls",
+                            description: "Change the search or selection filter to find controls.",
+                          }}
+                        />
                       </>
                     )}
                     <Field>
@@ -921,7 +912,11 @@ function BaselineDialog({
               Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={busy || !canWrite}>
-              {busy ? "Saving…" : mode === "inherit" ? "Use inherited baseline" : "Save baseline"}
+              {busy
+                ? "Saving…"
+                : mode === "inherit"
+                  ? "Use inherited baseline"
+                  : "Change control baseline"}
             </Button>
           </DialogFooter>
         </form>

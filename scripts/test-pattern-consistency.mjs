@@ -214,10 +214,10 @@ try {
   await page.getByLabel("Email", { exact: true }).fill(workspace.email);
   await page.getByLabel("Password", { exact: true }).fill(workspace.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Supplier registry" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Suppliers" })).toBeVisible();
 
   for (const width of [1600, 390]) {
-    await checkHeader("/vendors", "Supplier registry", width);
+    await checkHeader("/vendors", "Suppliers", width);
     await checkHeader("/findings", "Findings & assets", width);
   }
   console.log("PASS desktop/mobile title-only headers (390px) and browser titles");
@@ -351,7 +351,7 @@ try {
   await evidenceOpener.focus();
   await expect(evidenceOpener).toBeFocused();
   await page.keyboard.press("Enter");
-  const preview = page.getByRole("dialog", { name: artifact.title, exact: true });
+  const preview = page.locator('[data-shell-area="panel"]');
   await expect(preview).toBeVisible();
   await expect(preview.getByRole("heading", { name: artifact.title, exact: true })).toBeVisible();
   await expect(
@@ -361,7 +361,7 @@ try {
     "3 of 4 records",
   );
   await preview.getByRole("button", { name: "Next record", exact: true }).click();
-  const lastEvidence = page.getByRole("dialog", { name: samples[2].artifact.title, exact: true });
+  const lastEvidence = page.locator('[data-shell-area="panel"]');
   await expect(lastEvidence).toBeVisible();
   await expect(lastEvidence.getByRole("button", { name: "Next record" })).toBeDisabled();
   await page.keyboard.press("Escape");

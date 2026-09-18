@@ -1,3 +1,5 @@
+import { ProductCollection, type ProductCollectionProps } from "./product-collection";
+import { RecordSummaryPreview } from "./record-summary-preview";
 import { useMemo, useState, type ReactNode, useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
@@ -22,7 +24,8 @@ import { useWorkspace } from "@/components/app/workspace";
 import { useRow, useRows, type TableName, type Filters } from "@/lib/models";
 import { displayValue, labelFor, type DataRecord } from "@/lib/records";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
-import { QueryState as SharedQueryState, type QueryStatus } from "./work-common";
+import { QueryState, QueryState as SharedQueryState } from "./work-common";
+export { QueryState } from "./work-common";
 import {
   RecordLink,
   RecordPreviewActions,
@@ -31,9 +34,6 @@ import {
   useDisplayedRecords,
 } from "./record-preview";
 
-export function QueryState({ query, children }: { query: QueryStatus; children: ReactNode }) {
-  return <SharedQueryState queries={[query]}>{children}</SharedQueryState>;
-}
 export function stateTone(value: unknown): Tone {
   return ["critical", "other_than_satisfied", "denied", "revoked"].includes(String(value))
     ? "danger"
@@ -101,6 +101,7 @@ export function ModelTable({
   searchLabel = "Search records",
   filters,
   actions,
+  commands,
   view,
   fill,
 }: {
@@ -117,12 +118,15 @@ export function ModelTable({
   filters?: string[];
   /** The toolbar's trailing actions: the create verb, small. */
   actions?: ReactNode;
+  commands?: ProductCollectionProps<DataRecord>["commands"];
   /** Names the reader's column layout in this browser. */
   view?: string;
   /** The register is the page's one block: it takes the rest of the window. */
   fill?: boolean | undefined;
 }) {
   const navigate = useNavigate();
+  const [preview, setPreview] = useState<DataRecord | null>(null);
+  const openPreview = onPreview ?? setPreview;
   // Status fields read as labels so the chips and the badges agree; renders and the row click see the record as it came.
   const byId = useMemo(() => new Map(rows.map((row) => [row.id, row])), [rows]);
   const byIdRef = useRef(byId);
@@ -149,6 +153,10 @@ export function ModelTable({
     () =>
       defineColumns<DataRecord>((c) =>
         columns.map((column, index) => {
+          const namedColumn = columns.findIndex(
+            ({ key }) => key === "name" || key === "title" || key === "statement",
+          );
+          const primary = index === (namedColumn < 0 ? 0 : namedColumn);
           const raw = (row: DataRecord) => byIdRef.current.get(row.id) ?? row;
           const header = column.label ?? labelFor(column.key.replace(/_id$/, ""));
           const render = column.render;
@@ -162,14 +170,16 @@ export function ModelTable({
             );
           };
           const cell = render ? (row: DataRecord) => render(raw(row)) : plain;
-          if (index === 0)
+          if (primary)
             return c.id(column.key, {
               header,
               hideable: false,
-              minWidth: 200,
+              minWidth: 180,
+              width: 220,
+              priority: 0,
               ...size,
-              preview: onPreview ? (row) => onPreview(raw(row)) : undefined,
-              active: (row) => row.id === selectedId,
+              preview: (row) => openPreview(raw(row)),
+              active: (row) => row.id === (selectedId ?? preview?.id),
               cell: (row) => (
                 <RecordLink table={model} record={raw(row)}>
                   {render?.(raw(row)) ?? displayValue(row[column.key])}
@@ -196,7 +206,7 @@ export function ModelTable({
           return c.text(column.key, { header, ...size, cell });
         }),
       ),
-    [columns, model, onPreview, selectedId],
+    [columns, model, openPreview, selectedId, preview?.id],
   );
   const chips =
     filters ??
@@ -218,36 +228,39 @@ export function ModelTable({
     reorderable: true,
     ...(view ? { view } : {}),
   });
-  useDisplayedRecords(table, onDisplayedRowsChange, byId);
+  const displayed = useDisplayedRecords(table, onDisplayedRowsChange, byId);
   const message: ModelTableEmpty =
     typeof empty === "string" ? { description: empty } : (empty ?? {});
   return (
-    <DataTable
-      responsive
-      table={table}
-      fill={fill}
-      onRowClick={(row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))}
-      empty={{
-        illustration: message.illustration ?? "records",
-        title: message.title ?? "Nothing recorded yet",
-        description: message.description,
-        action: message.action,
-      }}
-      toolbar={
-        <Toolbar
-          search={String(table.state.globalFilter ?? "")}
-          onSearch={(value) => table.setGlobalFilter(value)}
-          placeholder={searchLabel}
-          filters={chips.map((key) => (
-            <DataTable.Filter key={key} table={table} column={key} />
-          ))}
-          actions={actions}
-        >
-          <DataTable.Columns table={table} />
-          <DataTable.Settings table={table} />
-        </Toolbar>
-      }
-    />
+    <>
+      <ProductCollection
+        table={table}
+        fill={fill}
+        onRowClick={(row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))}
+        empty={{
+          illustration: message.illustration ?? "records",
+          title: message.title ?? "Nothing recorded yet",
+          description: message.description,
+          action: message.action ?? actions,
+        }}
+        searchLabel={searchLabel}
+        filters={chips.map((key) => (
+          <DataTable.Filter key={key} table={table} column={key} />
+        ))}
+        action={actions}
+        commands={commands}
+      />
+      {preview && !onPreview && (
+        <RecordSummaryPreview
+          model={model}
+          record={byId.get(preview.id) ?? preview}
+          rows={displayed}
+          onSelect={setPreview}
+          onClose={() => setPreview(null)}
+          fields={columns}
+        />
+      )}
+    </>
   );
 }
 export function EntityEditor({
@@ -312,8 +325,10 @@ export function EntitySection({
   readOnly = false,
   appendOnly = false,
   fill,
+  showHeading = false,
 }: {
   table: TableName;
+  showHeading?: boolean;
   filters?: Filters;
   title: string;
   columns: DisplayColumn[];
@@ -346,9 +361,8 @@ export function EntitySection({
         {productCreateLabel(table, { ...filters, ...initialValues })}
       </Button>
     ) : undefined;
-  return (
-    <Section title={title}>
-      {description && <p className="text-subtle pb-150">{description}</p>}
+  const content = (
+    <>
       <Stack space="space.200">
         {editing && (
           <EntityEditor
@@ -379,7 +393,7 @@ export function EntitySection({
               selected["state"] !== "published" &&
               selected["tenant_id"] !== null && (
                 <Button size="small" variant="primary" onClick={() => setEditing(selected)}>
-                  Edit record
+                  Edit {productRecordNoun(table, selected)}
                 </Button>
               )
             }
@@ -413,14 +427,17 @@ export function EntitySection({
             actions={add("small")}
             empty={{
               title: `No ${title.toLowerCase()} yet`,
-              description: "Nothing has been recorded for this context.",
+              description:
+                description ??
+                `Create ${productRecordNoun(table, initialValues)} to start this collection.`,
               action: add("medium"),
             }}
           />
         </QueryState>
       </Stack>
-    </Section>
+    </>
   );
+  return showHeading ? <Section title={title}>{content}</Section> : content;
 }
 export function InspectLink({ table, id }: { table: TableName; id?: string }) {
   return (

@@ -10,12 +10,12 @@ The system should help a person understand the situation, choose an action, comp
 
 Start with the user's task and the semantic HTML element. Reuse a native control when its behavior answers the task. A new prop needs a distinct consumer need and a documented default, valid combinations, ownership of state, and behavior when absent. Avoid booleans that encode several mutually exclusive modes. Prefer a union when only one mode can apply. Preserve native names for native behavior.
 
-| Question | Required evidence |
-| --- | --- |
-| Who owns the state? | Controlled and uncontrolled behavior, defaults, reset, and async external updates. |
-| What reaches the DOM? | The target for `id`, `name`, `form`, `aria-*`, `data-*`, handlers, and the ref. |
-| What can fail? | Pending, rejected save, retry, cancellation, and stale completion examples. |
-| What can be composed? | Compound slots and valid nesting; no interactive element inside another interactive element. |
+| Question                       | Required evidence                                                                                          |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Who owns the state?            | Controlled and uncontrolled behavior, defaults, reset, and async external updates.                         |
+| What reaches the DOM?          | The target for `id`, `name`, `form`, `aria-*`, `data-*`, handlers, and the ref.                            |
+| What can fail?                 | Pending, rejected save, retry, cancellation, and stale completion examples.                                |
+| What can be composed?          | Compound slots and valid nesting; no interactive element inside another interactive element.               |
 | What does a dependency expose? | Explicit adapter types for toast, table and chart APIs; all other implementation internals remain private. |
 
 ## State and content
@@ -52,15 +52,15 @@ Axe does not certify keyboard quality, reading order, useful labels, focus visib
 
 ## Reference workflows for review
 
-| Workflow | Story or product surface | Review focus |
-| --- | --- | --- |
-| Validate and repair a form | Patterns/Forms stories | All errors, first focus, preserved values, custom control wiring. |
-| Pick and submit a date | Components/DatePicker stories | Closed picker FormData, external form, reset, disabled omission. |
-| Save inline with failure | Patterns/Editable stories | One pending operation, rollback ownership, external updates. |
-| Complete a nested modal task | Components/Dialog stories | Escape, successful close, return to correct opener. |
-| Navigate a hierarchy | Components/Tree stories | One tab stop, hierarchy, typeahead, selected item removal. |
-| Filter records and recover | Risks, controls and findings pages | Empty results, clear filters, visible labels, durable supported actions. |
-| Read a chart | Patterns/Chart stories | Table equivalent, deterministic formatting and color mode. |
+| Workflow                     | Story or product surface           | Review focus                                                             |
+| ---------------------------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| Validate and repair a form   | Patterns/Forms stories             | All errors, first focus, preserved values, custom control wiring.        |
+| Pick and submit a date       | Components/DatePicker stories      | Closed picker FormData, external form, reset, disabled omission.         |
+| Save inline with failure     | Patterns/Editable stories          | One pending operation, rollback ownership, external updates.             |
+| Complete a nested modal task | Components/Dialog stories          | Escape, successful close, return to correct opener.                      |
+| Navigate a hierarchy         | Components/Tree stories            | One tab stop, hierarchy, typeahead, selected item removal.               |
+| Filter records and recover   | Risks, controls and findings pages | Empty results, clear filters, visible labels, durable supported actions. |
+| Read a chart                 | Patterns/Chart stories             | Table equivalent, deterministic formatting and color mode.               |
 
 ## Ownership and lifecycle
 

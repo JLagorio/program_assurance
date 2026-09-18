@@ -12,11 +12,15 @@ export function EvidenceVersionDetails({
   version,
   showFile = true,
   onFileBusyChange,
+  onFileDirtyChange,
+  autoFocus,
 }: {
   artifact: Row<"evidence_artifacts">;
   version: Row<"evidence_versions">;
   showFile?: boolean;
   onFileBusyChange?: ((busy: boolean) => void) | undefined;
+  onFileDirtyChange?: ((dirty: boolean) => void) | undefined;
+  autoFocus?: boolean | undefined;
 }) {
   const workspace = useWorkspace();
   const parties = useRows("parties");
@@ -110,6 +114,8 @@ export function EvidenceVersionDetails({
           collection={collection}
           record={version as DataRecord}
           onBusyChange={onFileBusyChange}
+          onDirtyChange={onFileDirtyChange}
+          autoFocus={autoFocus}
         />
       ) : null}
     </Stack>

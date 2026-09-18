@@ -168,13 +168,13 @@ try {
     .click();
   await page.getByRole("option", { name: "Person", exact: true }).click();
   await expect(editedParty()).toBeVisible();
-  await footer(editedParty(), "Save person");
+  await footer(editedParty(), "Edit person");
   await editedParty().getByRole("button", { name: "Cancel", exact: true }).click();
   await discard();
   await expect(editedParty()).toBeHidden();
   // Two SPA entries let browser Back exercise TanStack's async blocker.
   await page.getByRole("link", { name: "My work", exact: true }).click();
-  await page.getByRole("link", { name: "Supply chain", exact: true }).click();
+  await page.getByRole("link", { name: "Suppliers", exact: true }).click();
   await openOrganization();
   await orgName().fill("Navigation draft");
   await page.evaluate(() => history.back());
@@ -219,7 +219,7 @@ try {
   await page.getByRole("radio").first().check();
   await page.getByRole("checkbox").first().check();
   await page.getByRole("button", { name: "Tailor for this program…", exact: true }).click();
-  await page.getByRole("button", { name: "Tailor controls…", exact: true }).click();
+  await page.getByRole("button", { name: "Tailor controls", exact: true }).click();
   const controls = () => page.getByRole("dialog", { name: /^Tailor controls/ });
   await expect(controls()).toBeVisible();
   await page.evaluate(() => history.back());
@@ -229,7 +229,7 @@ try {
   await page.keyboard.press("Escape");
   await expect(prompt()).toBeHidden();
   await expect(controls()).toBeVisible();
-  await controls().getByRole("button", { name: "Done", exact: true }).click();
+  await controls().getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(controls()).toBeHidden();
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
@@ -300,7 +300,7 @@ try {
   await page.getByRole("menuitem", { name: "Edit configuration", exact: true }).click();
   const editedConfiguration = page.getByRole("dialog", { name: "Edit configuration", exact: true });
   await expect(editedConfiguration).toBeVisible();
-  await captureForm(editedConfiguration, "library-configuration", "Save configuration");
+  await captureForm(editedConfiguration, "library-configuration", "Edit configuration");
   await editedConfiguration.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(editedConfiguration).toBeHidden();
   await expect(prompt()).toBeHidden();

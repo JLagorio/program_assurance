@@ -2,23 +2,29 @@ import { Link } from "@tanstack/react-router";
 import {
   Absent,
   Badge,
-  Button,
   Id,
+  Indicator,
   Inline,
   Inspector,
+  Item,
   KeyValue,
+  Person,
+  Related,
   Section,
   Stack,
   TextLink,
+  type Tone,
 } from "@ledger/design-system";
 import { labelFor } from "@/lib/records";
+import { useRow } from "@/lib/models";
+import { QueryState } from "./work-common";
 import {
   baselineSource,
   type Impact,
   type ImpactDimension,
   type SystemAssuranceRow,
+  type SystemImpact,
 } from "@/lib/system-assurance";
-import { RelationName } from "./record-tools";
 
 export const impactDimensions = ["confidentiality", "integrity", "availability"] as const;
 
@@ -91,6 +97,23 @@ export function ancestorElements(row: SystemAssuranceRow, rows: SystemAssuranceR
   return path;
 }
 
+const impactRank: Record<Impact, number> = { low: 1, moderate: 2, high: 3 };
+
+/** The level's tone: the same scale everywhere a level is shown, never a pill. */
+function impactTone(value: Impact | null, source?: SystemImpact["source"]): Tone {
+  if (value === "high") return "danger";
+  if (value === "moderate") return "warning";
+  if (value === "low") return "success";
+  return source === "mixed" ? "warning" : "neutral";
+}
+
+function OwnerValue({ id }: { id: string | null }) {
+  const query = useRow("parties", id);
+  if (!id) return <Absent />;
+  const name = query.data?.name;
+  return <QueryState queries={[query]}>{name ? <Person name={name} /> : <Absent />}</QueryState>;
+}
+
 /** The preview's properties; its containing header owns identity and record actions. */
 export function SystemAssuranceDetails({
   row,
@@ -106,14 +129,52 @@ export function SystemAssuranceDetails({
   const boundary = rows.find((element) => element.id === row.boundary_system_id);
   const parentIsBoundary = path.length === 1 && path[0]?.id === boundary?.id;
   const params = { programId: row.program_id, scopeId: row.id };
+  const recorded = impactDimensions.filter(
+    (dimension) => row.impacts[dimension].source !== "unrecorded",
+  );
   const sameImpactSource = impactDimensions.every(
     (dimension) => row.impacts[dimension].source === row.impacts.confidentiality.source,
   );
+  const provenance =
+    recorded.length === 0
+      ? null
+      : sameImpactSource
+        ? impactProvenance(row, "confidentiality")
+        : recorded
+            .map(
+              (dimension) =>
+                `${labelFor(dimension)} ${impactProvenance(row, dimension).toLocaleLowerCase()}`,
+            )
+            .join(" · ");
+  const conflicts = impactDimensions.filter(
+    (dimension) => row.impacts[dimension].conflict && row.impacts[dimension].source === "system",
+  );
+  const higherInside =
+    contained.length > 0
+      ? impactDimensions.filter((dimension) => {
+          const inside = row.childImpacts[dimension];
+          const own = row.impacts[dimension].value;
+          return inside && impactRank[inside] > (own ? impactRank[own] : 0);
+        })
+      : [];
   const description = row.description?.trim();
   const hasDescription =
     description && description.toLocaleLowerCase() !== row.name.trim().toLocaleLowerCase();
+  const hasBaseline = Boolean(row.effectiveBaseline?.profile_resolution_id);
+  const baselineFacts = hasBaseline
+    ? [
+        baselineSource(row),
+        row.controlCount === null ? null : `${row.controlCount} controls`,
+        row.additionalChildControlCount > 0
+          ? `${row.additionalChildControlCount} more inside children`
+          : null,
+        row.unresolvedDescendantCount > 0
+          ? `${row.unresolvedDescendantCount} systems inside without a baseline`
+          : null,
+      ].filter((fact): fact is string => Boolean(fact))
+    : [];
   return (
-    <Stack space="space.200">
+    <Stack space="space.300">
       <Inspector.Group title="Details">
         <KeyValue labelWidth={124} label="Code">
           <Id>{row.code}</Id>
@@ -122,11 +183,7 @@ export function SystemAssuranceDetails({
           {labelFor(row.system_type)}
         </KeyValue>
         <KeyValue labelWidth={124} label="Owner">
-          {row.system_owner_party_id ? (
-            <RelationName table="parties" id={row.system_owner_party_id} />
-          ) : (
-            <Absent />
-          )}
+          <OwnerValue id={row.system_owner_party_id} />
         </KeyValue>
         {path.length > 0 && (
           <KeyValue
@@ -173,154 +230,117 @@ export function SystemAssuranceDetails({
             )}
           </KeyValue>
         )}
-        {impactDimensions.map((dimension) => {
-          const impact = row.impacts[dimension];
-          return (
-            <KeyValue labelWidth={124} key={dimension} label={labelFor(dimension)} wrap>
-              <Inline space="space.075" alignBlock="center" shouldWrap>
-                <ImpactBadge value={impact.value} mixed={impact.source === "mixed"} />
-                {!sameImpactSource && impact.source !== "unrecorded" && (
-                  <span className="font-body-small text-subtle">
-                    {impactProvenance(row, dimension)}
-                  </span>
-                )}
-                {impact.conflict && impact.source === "system" && (
-                  <span className="font-body-small text-subtle">
-                    Scope: {impact.scopeValues.map(labelFor).join(", ")}
-                  </span>
-                )}
-              </Inline>
-            </KeyValue>
-          );
-        })}
-        {sameImpactSource && row.impacts.confidentiality.source !== "unrecorded" && (
-          <KeyValue labelWidth={124} label="Impact source">
-            {impactProvenance(row, "confidentiality")}
-          </KeyValue>
-        )}
-        {contained.length > 0 &&
-          impactDimensions.some((dimension) => row.childImpacts[dimension]) && (
-            <KeyValue labelWidth={124} label="Highest inside" wrap>
-              {impactDimensions
-                .filter((dimension) => row.childImpacts[dimension])
-                .map(
-                  (dimension) =>
-                    `${labelFor(dimension)}: ${labelFor(row.childImpacts[dimension]!)}`,
-                )
-                .join(" · ")}
-            </KeyValue>
-          )}
-        {hasDescription && (
-          <KeyValue labelWidth={124} label="Description" wrap>
-            {description}
-          </KeyValue>
-        )}
-        {row.categorization_rationale && (
-          <KeyValue labelWidth={124} label="Rationale" wrap>
-            {row.categorization_rationale}
-          </KeyValue>
-        )}
-        <KeyValue labelWidth={124} label="Baseline" wrap>
-          <Inline space="space.100" alignBlock="center" shouldWrap>
-            {row.effectiveBaseline?.profile_resolution_id ? (
-              <TextLink
-                render={
-                  <Link
-                    to="/programs/$programId/systems/$scopeId"
-                    params={params}
-                    search={{ tab: "Controls" }}
-                  />
-                }
-              >
-                {row.baselineTitle ?? "Baseline"}
-              </TextLink>
-            ) : (
-              <Absent />
-            )}
-            {row.baselineDraft && (
-              <Badge tone="warning" variant="secondary" size="xsmall">
-                Draft
-              </Badge>
-            )}
-          </Inline>
-        </KeyValue>
-        {row.effectiveBaseline?.profile_resolution_id && (
-          <KeyValue labelWidth={124} label="Baseline source">
-            {baselineSource(row)}
-          </KeyValue>
-        )}
-        <KeyValue labelWidth={124} label="Controls">
-          <TextLink
-            render={
-              <Link
-                to="/programs/$programId/systems/$scopeId"
-                params={params}
-                search={{ tab: "Controls" }}
-              />
-            }
-          >
-            {row.controlCount === null ? "View controls" : `${row.controlCount} controls`}
-          </TextLink>
-        </KeyValue>
-        {row.additionalChildControlCount > 0 && (
-          <KeyValue labelWidth={124} label="Additional inside">
-            {row.additionalChildControlCount} controls
-          </KeyValue>
-        )}
-        {row.unresolvedDescendantCount > 0 && (
-          <KeyValue labelWidth={124} label="Missing baseline">
-            {row.unresolvedDescendantCount} systems inside
-          </KeyValue>
-        )}
-        <KeyValue labelWidth={124} label="Requirements">
-          <TextLink
-            render={
-              <Link
-                to="/programs/$programId/systems/$scopeId"
-                params={params}
-                search={{ tab: "Requirements" }}
-              />
-            }
-          >
-            {row.requirementCount} allocated
-          </TextLink>
-        </KeyValue>
-        {row.subtreeRequirementCount !== row.requirementCount && (
-          <KeyValue labelWidth={124} label="Including children">
-            {row.subtreeRequirementCount} requirements
-          </KeyValue>
-        )}
-      </Inspector.Group>
-      {contained.length > 0 && (
-        <Section title="Contains" count={contained.length}>
+        <KeyValue labelWidth={124} label="Impact" wrap>
           <Stack space="space.050">
-            {contained.map((child) =>
-              onDrill ? (
-                <Button
-                  key={child.id}
-                  variant="subtle"
-                  size="small"
-                  className="justify-start"
-                  onClick={() => onDrill(child.id)}
-                >
-                  {child.name}
-                </Button>
-              ) : (
+            <Inline space="space.200" alignBlock="center" shouldWrap>
+              {impactDimensions.map((dimension) => {
+                const impact = row.impacts[dimension];
+                return (
+                  <Indicator
+                    key={dimension}
+                    tone={impactTone(impact.value, impact.source)}
+                    aria-label={impactDescription(row, dimension)}
+                  >
+                    {labelFor(dimension)}{" "}
+                    {impact.value
+                      ? labelFor(impact.value)
+                      : impact.source === "mixed"
+                        ? "mixed"
+                        : "not recorded"}
+                  </Indicator>
+                );
+              })}
+            </Inline>
+            {provenance && <span className="font-body-small text-subtle">{provenance}</span>}
+            {conflicts.length > 0 && (
+              <span className="font-body-small text-subtle">
+                Scope values differ:{" "}
+                {conflicts
+                  .map(
+                    (dimension) =>
+                      `${labelFor(dimension)} ${row.impacts[dimension].scopeValues.map(labelFor).join(", ")}`,
+                  )
+                  .join(" · ")}
+              </span>
+            )}
+            {higherInside.length > 0 && (
+              <span className="font-body-small text-subtle">
+                Highest inside:{" "}
+                {higherInside
+                  .map(
+                    (dimension) =>
+                      `${labelFor(dimension)} ${labelFor(row.childImpacts[dimension]!)}`,
+                  )
+                  .join(" · ")}
+              </span>
+            )}
+          </Stack>
+        </KeyValue>
+        <KeyValue labelWidth={124} label="Baseline" wrap>
+          <Stack space="space.050">
+            <Inline space="space.075" alignBlock="baseline" shouldWrap>
+              {hasBaseline ? (
                 <TextLink
-                  key={child.id}
                   render={
                     <Link
                       to="/programs/$programId/systems/$scopeId"
-                      params={{ programId: child.program_id, scopeId: child.id }}
+                      params={params}
+                      search={{ tab: "Controls" }}
                     />
                   }
                 >
-                  {child.name}
+                  {row.baselineTitle ?? "Baseline"}
                 </TextLink>
-              ),
+              ) : (
+                <Absent />
+              )}
+              {row.baselineDraft && <span className="font-body-small text-subtle">Draft</span>}
+            </Inline>
+            {baselineFacts.length > 0 && (
+              <span className="font-body-small text-subtle">{baselineFacts.join(" · ")}</span>
             )}
           </Stack>
+        </KeyValue>
+        <KeyValue labelWidth={124} label="Requirements" wrap>
+          {row.requirementCount} allocated
+          {row.subtreeRequirementCount !== row.requirementCount
+            ? ` · ${row.subtreeRequirementCount} including children`
+            : ""}
+        </KeyValue>
+      </Inspector.Group>
+      {hasDescription && (
+        <Section title="Description">
+          <p className="whitespace-pre-wrap text-default">{description}</p>
         </Section>
+      )}
+      {row.categorization_rationale && (
+        <Section title="Categorization rationale">
+          <p className="whitespace-pre-wrap text-default">{row.categorization_rationale}</p>
+        </Section>
+      )}
+      {contained.length > 0 && (
+        <Related title="Contains" count={contained.length} layout="list" size="compact">
+          {contained.map((child) => (
+            <Item
+              key={child.id}
+              id={<Id>{child.code}</Id>}
+              idWidth={104}
+              title={child.name}
+              meta={labelFor(child.system_type)}
+              trailing={child.controlCount === null ? undefined : `${child.controlCount} controls`}
+              {...(onDrill
+                ? { onSelect: () => onDrill(child.id) }
+                : {
+                    link: (
+                      <Link
+                        to="/programs/$programId/systems/$scopeId"
+                        params={{ programId: child.program_id, scopeId: child.id }}
+                      />
+                    ),
+                  })}
+            />
+          ))}
+        </Related>
       )}
     </Stack>
   );

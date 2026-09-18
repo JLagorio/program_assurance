@@ -14,6 +14,7 @@ import {
   menuSeparator,
   menuSurface,
 } from "./menu";
+import { Scroller, ScrollerArrow, ScrollerViewport } from "./scroller";
 
 export type DropdownMenuProps<Payload = unknown> = MenuPrimitive.Root.Props<Payload>;
 export function DropdownMenu<Payload = unknown>(props: DropdownMenuProps<Payload>) {
@@ -45,13 +46,14 @@ export function DropdownMenuContent({
   className,
   style,
   dir,
+  children,
   ...props
 }: DropdownMenuContentProps) {
   const inheritedDirection = useDirection();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
   const defaults = {
-    width: "var(--anchor-width)",
-    minWidth: 128,
+    width: "max-content",
+    minWidth: "min(var(--available-width), max(var(--anchor-width), 128px))",
     maxWidth: "var(--available-width)",
     maxHeight: "var(--available-height)",
     transformOrigin: "var(--transform-origin)",
@@ -64,7 +66,6 @@ export function DropdownMenuContent({
           alignOffset={alignOffset}
           side={side}
           sideOffset={sideOffset}
-
           className="isolate z-50 outline-none"
         >
           <MenuPrimitive.Popup
@@ -73,7 +74,7 @@ export function DropdownMenuContent({
             className={classes(
               cn(
                 menuSurface,
-                "overflow-x-hidden overflow-y-auto data-open:animate-enter data-closed:animate-exit data-instant:animate-none motion-reduce:animate-none",
+                "flex flex-col data-open:animate-enter data-closed:animate-exit data-instant:animate-none motion-reduce:animate-none",
               ),
               className,
             )}
@@ -83,7 +84,13 @@ export function DropdownMenuContent({
                 : { ...defaults, ...style }
             }
             {...props}
-          />
+          >
+            <Scroller orientation="vertical" surface="overlay">
+              <ScrollerViewport className="overscroll-contain">{children}</ScrollerViewport>
+              <ScrollerArrow edge="start" />
+              <ScrollerArrow edge="end" />
+            </Scroller>
+          </MenuPrimitive.Popup>
         </MenuPrimitive.Positioner>
       </DropdownMenuPortal>
     </DirectionProvider>
@@ -113,7 +120,7 @@ const itemClasses = cn(
   menuItem,
   menuItemHighlighted,
   menuItemDisabled,
-  "relative text-start data-inset:ps-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-small",
+  "relative whitespace-nowrap text-start data-inset:ps-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-small",
 );
 export type DropdownMenuItemProps = MenuPrimitive.Item.Props & {
   inset?: boolean | undefined;

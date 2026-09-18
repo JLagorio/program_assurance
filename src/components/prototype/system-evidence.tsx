@@ -1,8 +1,17 @@
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "./record-preview";
+import { ProductCollection } from "./product-collection";
 import { useBlocker } from "@tanstack/react-router";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useMemo, useRef, useState } from "react";
 import {
   Absent,
+  KeyValue,
   Badge,
   Button,
   Checkbox,
@@ -33,6 +42,7 @@ import type { SystemAssuranceRow } from "@/lib/system-assurance";
 type Line = {
   id: string;
   title: string;
+  versionId: string;
   version: string;
   review: string;
   supports: string;
@@ -132,6 +142,7 @@ export function SystemEvidence({
       const artifact = version ? artifactById.get(version.artifact_id) : undefined;
       const review = reviewOf(versionId);
       return {
+        versionId,
         title: artifact?.title ?? "Evidence unavailable",
         version: version ? `v${version.version_number} · ${labelFor(version.state)}` : "",
         review: review ? labelFor(review.decision) : "Not reviewed",
@@ -238,22 +249,23 @@ export function SystemEvidence({
     revisions.data,
     requirements.data,
   ]);
+  const [previewId, setPreviewId] = useState<string>();
   const canDecide = workspace.role !== "viewer";
   const columns = useMemo(
     () =>
       defineColumns<Line>((c) => [
-        c.text("title", {
+        c.id("title", {
           header: "Evidence",
-          minWidth: 240,
+          minWidth: 200,
+          priority: 0,
           hideable: false,
-          cell: (row) =>
-            row.uri ? (
-              <TextLink href={row.uri} target="_blank" rel="noreferrer">
-                {row.title}
-              </TextLink>
-            ) : (
-              row.title
-            ),
+          preview: (row) => setPreviewId(row.id),
+          active: (row) => row.id === previewId,
+          cell: (row) => (
+            <RecordLink table="evidence_versions" record={{ id: row.versionId }}>
+              {row.title}
+            </RecordLink>
+          ),
         }),
         c.text("version", { header: "Version", width: 140 }),
         c.text("review", { header: "Review", width: 130 }),
@@ -275,13 +287,13 @@ export function SystemEvidence({
           ? [
               c.actions((row) =>
                 row.use && row.status === "Pending"
-                  ? [{ label: "Decide…", onSelect: () => setDeciding(row) }]
+                  ? [{ label: "Decide evidence use", onSelect: () => setDeciding(row) }]
                   : [],
               ),
             ]
           : []),
       ]),
-    [canDecide],
+    [canDecide, previewId],
   );
   const table = useDataTable({
     columns,
@@ -293,6 +305,8 @@ export function SystemEvidence({
     reorderable: true,
     initialState: { columnVisibility: { rationale: false, elementCode: false } },
   });
+  const displayed = useDisplayedRecords(table);
+  const preview = data.find((row) => row.id === previewId);
   const queries = [
     uses,
     versions,
@@ -313,36 +327,67 @@ export function SystemEvidence({
   const pending = queries.some((query) => query.isPending);
   return (
     <>
-      <DataTable
-        responsive
+      <ProductCollection
         table={table}
-        state={error ? "error" : pending ? "loading" : "ready"}
-        error={error?.message}
         empty={{
           illustration: "records",
           title: "No evidence at this element yet",
           description:
             "Evidence proposed by applied library items appears here for a decision, beside evidence linked to this element's narratives and requirements.",
         }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder="Find evidence"
+        fill
+        queries={queries}
+        searchLabel="Find evidence"
+        views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
+        filters={
+          <Button
+            size="small"
+            variant="subtle"
+            aria-pressed={includeInside}
+            onClick={() => setIncludeInside(!includeInside)}
           >
-            <DataTable.Presets table={table} presets={presets} variant="menu" />
-            <label className="flex items-center gap-100 font-body-small">
-              <Checkbox
-                checked={includeInside}
-                onCheckedChange={(checked) => setIncludeInside(checked === true)}
-              />
-              Include everything inside
-            </label>
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
+            Include everything inside
+          </Button>
         }
       />
+      {preview && (
+        <RecordPreviewPanel
+          title={preview.title}
+          label="Evidence preview"
+          onClose={() => setPreviewId(undefined)}
+          recordActions={
+            canDecide && preview.use && preview.status === "Pending" ? (
+              <Button size="small" variant="primary" onClick={() => setDeciding(preview)}>
+                Decide evidence use
+              </Button>
+            ) : undefined
+          }
+          navigation={
+            <RecordPreviewActions
+              table="evidence_versions"
+              record={preview}
+              rows={displayed}
+              onSelect={(row) => setPreviewId(row.id)}
+              destination={recordDestination("evidence_versions", { id: preview.versionId })}
+            />
+          }
+        >
+          <Stack space="space.150">
+            <KeyValue label="Version">{preview.version}</KeyValue>
+            <KeyValue label="Review">{preview.review}</KeyValue>
+            <KeyValue label="Supports">{preview.supports}</KeyValue>
+            <KeyValue label="Status">{preview.status}</KeyValue>
+            <KeyValue label="Rationale">{preview.rationale ?? <Absent />}</KeyValue>
+            {preview.uri && (
+              <KeyValue label="Source">
+                <TextLink href={preview.uri} target="_blank" rel="noreferrer">
+                  Open evidence source
+                </TextLink>
+              </KeyValue>
+            )}
+          </Stack>
+        </RecordPreviewPanel>
+      )}
       {deciding?.use && <DecideEvidenceUse line={deciding} onClose={() => setDeciding(null)} />}
     </>
   );
@@ -416,7 +461,7 @@ function DecideEvidenceUse({ line, onClose }: { line: Line; onClose: () => void 
     >
       <DialogContent style={{ maxWidth: 560 }} showCloseButton={!decide.isPending}>
         <DialogHeader>
-          <DialogTitle>Decide on library evidence</DialogTitle>
+          <DialogTitle>Decide evidence use</DialogTitle>
           <DialogDescription>
             {line.title} · {line.version} · supports {line.supports}
           </DialogDescription>
@@ -434,6 +479,7 @@ function DecideEvidenceUse({ line, onClose }: { line: Line; onClose: () => void 
               {(["accepted", "not_applicable"] as const).map((value) => (
                 <label key={value} className="flex items-center gap-100 font-body-small">
                   <Checkbox
+                    autoFocus={value === "accepted"}
                     disabled={decide.isPending}
                     checked={decision === value}
                     onCheckedChange={(checked) => checked && setDecision(value)}
@@ -467,11 +513,7 @@ function DecideEvidenceUse({ line, onClose }: { line: Line; onClose: () => void 
               Cancel
             </Button>
             <Button variant="primary" disabled={decide.isPending} type="submit">
-              {decide.isPending
-                ? "Saving…"
-                : decision === "accepted"
-                  ? "Accept evidence"
-                  : "Record decision"}
+              Decide evidence use
             </Button>
           </DialogFooter>
         </form>

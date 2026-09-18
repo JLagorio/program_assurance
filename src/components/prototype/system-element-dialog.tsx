@@ -367,7 +367,7 @@ export function SystemElementDialog({
               Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={busy || !canWrite}>
-              {busy ? "Saving…" : baseline ? "Save system" : "Create system"}
+              {busy ? "Saving…" : baseline ? "Edit system" : "Create system"}
             </Button>
           </DialogFooter>
         </form>

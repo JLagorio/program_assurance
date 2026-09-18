@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProgramWorkspace } from "@/components/prototype/program-workspace";
 export const Route = createFileRoute("/programs/$programId_/authorization")({
-  head: () => ({ meta: [{ title: "Authorization — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
   component: ProgramView,
 });
 function ProgramView() {

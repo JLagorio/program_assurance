@@ -17,38 +17,36 @@ export function ObservationsRegister({
   const observations = useRows("observations", programId ? { program_id: programId } : {});
   const [selected, setSelected] = useState<DataRecord | null>(null);
   const [displayed, setDisplayed] = useState<DataRecord[]>([]);
-  return (
-    <Section title="Observations">
-      <Stack space="space.150">
-        <QueryState query={observations}>
-          <ModelTable
-            model="observations"
-            selectedId={selected?.id}
-            onDisplayedRowsChange={setDisplayed}
-            rows={(observations.data ?? []) as DataRecord[]}
-            fill={fill}
-            searchLabel="Search observations"
-            columns={[
-              { key: "title", label: "Observation" },
-              { key: "method" },
-              { key: "observed_at", label: "Observed" },
-              ...(!programId
-                ? [
-                    {
-                      key: "program_id",
-                      label: "Program",
-                      render: (row: DataRecord) => (
-                        <RelationName table="programs" id={row["program_id"] as string | null} />
-                      ),
-                    },
-                  ]
-                : []),
-            ]}
-            onPreview={setSelected}
-            empty={{ title: "No observations recorded" }}
-          />
-        </QueryState>
-      </Stack>
+  const content = (
+    <>
+      <QueryState query={observations}>
+        <ModelTable
+          model="observations"
+          selectedId={selected?.id}
+          onDisplayedRowsChange={setDisplayed}
+          rows={(observations.data ?? []) as DataRecord[]}
+          fill={fill}
+          searchLabel="Search observations"
+          columns={[
+            { key: "title", label: "Observation" },
+            { key: "method" },
+            { key: "observed_at", label: "Observed" },
+            ...(!programId
+              ? [
+                  {
+                    key: "program_id",
+                    label: "Program",
+                    render: (row: DataRecord) => (
+                      <RelationName table="programs" id={row["program_id"] as string | null} />
+                    ),
+                  },
+                ]
+              : []),
+          ]}
+          onPreview={setSelected}
+          empty={{ title: "No observations recorded" }}
+        />
+      </QueryState>
       {selected ? (
         <RecordPreviewPanel
           title={String(selected["title"])}
@@ -130,6 +128,7 @@ export function ObservationsRegister({
           </Stack>
         </RecordPreviewPanel>
       ) : null}
-    </Section>
+    </>
   );
+  return fill ? content : <Section title="Observations">{content}</Section>;
 }

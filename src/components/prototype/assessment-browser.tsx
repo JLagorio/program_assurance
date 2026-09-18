@@ -17,7 +17,7 @@ import { Plus } from "lucide-react";
 import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
 import { type DataRecord } from "@/lib/records";
-import { productCreateLabel } from "@/lib/product-records";
+import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
 import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
 import { ProgramCollection } from "./program-shared";
@@ -186,7 +186,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                   width: 130,
                 },
                 {
-                  label: "Lead",
+                  label: "Owner",
                   value: (row) =>
                     row.owner_party_id
                       ? (parties.data?.find((party) => party.id === row.owner_party_id)?.name ??
@@ -224,17 +224,6 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                     </Button>
                   ),
                   width: 90,
-                },
-                {
-                  label: "Open",
-                  value: (row) => (
-                    <TextLink
-                      render={<Link to="/campaigns/$campaignId" params={{ campaignId: row.id }} />}
-                    >
-                      Open campaign
-                    </TextLink>
-                  ),
-                  width: 145,
                 },
               ]}
             />
@@ -398,10 +387,9 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                     }),
                   ),
                 ]}
-                createLabel="Add scope"
                 empty={{
                   title: "No scopes yet",
-                  description: "Add a scope to categorize a subset of a system for assessment.",
+                  description: "Create a scope to categorize a subset of a system for assessment.",
                 }}
               />
             </TabsContent>
@@ -417,7 +405,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
           recordActions={
             workspace.role !== "viewer" && (
               <Button size="small" variant="primary" onClick={() => edit(selection)}>
-                Edit record
+                Edit {productRecordNoun(selection.table, selected)}
               </Button>
             )
           }

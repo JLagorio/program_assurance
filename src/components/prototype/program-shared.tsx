@@ -1,3 +1,4 @@
+import { ProductCollection } from "./product-collection";
 import { useQueryClient } from "@tanstack/react-query";
 import { QueryState, type QueryStatus } from "./work-common";
 import {
@@ -18,7 +19,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  Heading,
+  Section,
   Input,
   KeyValue,
   Stack,
@@ -91,35 +92,7 @@ export function StatusValue({ value }: { value: unknown }) {
     </Badge>
   );
 }
-export function ProgramQueryState({
-  loading = false,
-  error,
-  queries,
-  children,
-}: {
-  loading?: boolean;
-  error?: unknown;
-  queries?: QueryStatus[];
-  children?: ReactNode;
-}) {
-  const client = useQueryClient();
-  return (
-    <QueryState
-      queries={
-        queries ?? [
-          {
-            isPending: loading,
-            isError: !!error,
-            error,
-            refetch: () => client.refetchQueries({ type: "active" }),
-          },
-        ]
-      }
-    >
-      {children}
-    </QueryState>
-  );
-}
+export { QueryState as ProgramQueryState } from "./work-common";
 export function ProgramEditor({
   table,
   existing,
@@ -150,8 +123,7 @@ type ProgramDialogTarget = {
   initialValues?: Record<string, RecordValue> | undefined;
   children?: ReactNode;
   startEditing?: boolean;
-  records?: DataRecord[];
-  onSelect?: (row: DataRecord) => void;
+  records: DataRecord[];
   readOnly?: boolean;
 };
 const ProgramDialogNavigation = createContext<{
@@ -163,7 +135,7 @@ const ProgramDialogNavigation = createContext<{
 export function ProgramRecordDialog({
   onClose,
   ...initialTarget
-}: ProgramDialogTarget & { onClose: () => void }) {
+}: ProgramDialogTarget & { onClose: () => void; onSelect: (row: DataRecord) => void }) {
   const [linked, setLinked] = useState<ProgramDialogTarget | null>(null);
   const openRecord = useCallback((target: ProgramDialogTarget) => setLinked(target), []);
   const navigation = useMemo(() => ({ openRecord, target: linked }), [openRecord, linked]);
@@ -193,7 +165,7 @@ function ProgramRecordDialogSurface({
   readOnly = false,
   records,
   onSelect,
-}: ProgramDialogTarget & { onClose: () => void }) {
+}: ProgramDialogTarget & { onClose: () => void; onSelect: (row: DataRecord) => void }) {
   const workspace = useWorkspace();
   const collection = workspace.collections.find((item) => item.name === table);
   const [editing, setEditing] = useState(startEditing);
@@ -240,12 +212,7 @@ function ProgramRecordDialogSurface({
         )
       }
       navigation={
-        <RecordPreviewActions
-          table={table}
-          record={row}
-          rows={records ?? [row]}
-          onSelect={onSelect ?? (() => {})}
-        />
+        <RecordPreviewActions table={table} record={row} rows={records} onSelect={onSelect} />
       }
     >
       <Stack space="space.200">
@@ -328,21 +295,22 @@ export function ProgramCollection({
   where,
   columns,
   initialValues,
-  createLabel,
   canCreate = true,
   readOnly = false,
   extraActions,
   empty,
   prerequisite,
   fill,
+  section = false,
 }: {
   name: ProgramTableName;
   title: string;
+  /** Name a collection only when the caller places several collections together. */
+  section?: boolean;
   filters?: Record<string, string | number | null> | undefined;
   where?: (row: DataRecord) => boolean;
   columns: ProgramColumn[];
   initialValues?: Record<string, RecordValue> | undefined;
-  createLabel?: string;
   canCreate?: boolean;
   readOnly?: boolean;
   extraActions?: ReactNode;
@@ -486,6 +454,7 @@ export function ProgramCollection({
       dialogNavigation.openRecord({
         table: name,
         row: null,
+        records: [],
         initialValues: { ...filters, ...initialValues },
         readOnly,
       });
@@ -493,73 +462,50 @@ export function ProgramCollection({
   };
   const allowCreate =
     !readOnly && canCreate && workspace.role !== "viewer" && Boolean(collection?.can_insert);
-  const createVerb =
-    createLabel && /^(Link|Pin|Set|Adopt|Assign|Connect|Attach)\b/i.test(createLabel)
-      ? createLabel
-      : productCreateLabel(name, { ...filters, ...initialValues });
+  const createActionLabel = productCreateLabel(name, { ...filters, ...initialValues });
   // The table's name in running text: "SSP revisions" keeps its acronym, "Lifecycle gates" loses its capital.
   const noun = labelFor(name)
     .split(" ")
     .map((word) => (word === word.toUpperCase() ? word : word.toLowerCase()))
     .join(" ");
+  const content = (
+    <ProductCollection
+      table={table}
+      queries={[query]}
+      fill={fill}
+      searchLabel={`Find ${noun}`}
+      filters={chips.map((key) => (
+        <DataTable.Filter key={key} table={table} column={key} />
+      ))}
+      action={
+        allowCreate ? (
+          <Button size="small" variant="primary" iconBefore={<Plus />} onClick={openCreate}>
+            {createActionLabel}
+          </Button>
+        ) : (
+          extraActions
+        )
+      }
+      onRowClick={(row) => void navigate(recordDestination(name, byId.get(row.id) ?? row))}
+      empty={{
+        illustration: empty?.illustration ?? collectionIllustration[name] ?? "records",
+        title: empty?.title ?? `No ${noun} yet`,
+        description:
+          empty?.description ??
+          (!canCreate && prerequisite
+            ? prerequisite
+            : `Create the first ${productRecordNoun(name)} for this program.`),
+        action: allowCreate ? (
+          <Button variant="primary" iconBefore={<Plus />} onClick={openCreate}>
+            {createActionLabel}
+          </Button>
+        ) : undefined,
+      }}
+    />
+  );
   return (
-    <Stack space="space.150">
-      <Heading
-        as={dialogNavigation ? "h3" : "h2"}
-        size="small"
-        className="min-w-0 break-words font-semibold text-default"
-      >
-        {title}
-      </Heading>
-      <DataTable
-        responsive
-        table={table}
-        fill={fill}
-        state={query.isError ? "error" : query.isPending ? "loading" : "ready"}
-        error={
-          query.error instanceof Error
-            ? query.error.message
-            : "These program records could not be loaded."
-        }
-        onRowClick={(row) => void navigate(recordDestination(name, byId.get(row.id) ?? row))}
-        empty={{
-          illustration: empty?.illustration ?? collectionIllustration[name] ?? "records",
-          title: empty?.title ?? `No ${noun} yet`,
-          description:
-            empty?.description ??
-            (!canCreate && prerequisite
-              ? prerequisite
-              : "Nothing has been recorded for this program yet."),
-          action: allowCreate ? (
-            <Button variant="primary" iconBefore={<Plus />} onClick={openCreate}>
-              {createVerb}
-            </Button>
-          ) : undefined,
-        }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder={`Find ${noun}`}
-            filters={chips.map((key) => (
-              <DataTable.Filter key={key} table={table} column={key} />
-            ))}
-            actions={
-              <>
-                {extraActions}
-                {allowCreate && (
-                  <Button size="small" variant="primary" iconBefore={<Plus />} onClick={openCreate}>
-                    {createVerb}
-                  </Button>
-                )}
-              </>
-            }
-          >
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
-        }
-      />
+    <>
+      {section ? <Section title={title}>{content}</Section> : content}
       {selected !== undefined && (
         <ProgramRecordDialog
           table={name}
@@ -571,7 +517,7 @@ export function ProgramCollection({
           onClose={() => setSelected(undefined)}
         />
       )}
-    </Stack>
+    </>
   );
 }
 
@@ -582,6 +528,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
       <>
         <ProgramCollection
           name="component_pins"
+          section
           title="Pinned components"
           filters={{ configuration_baseline_id: row.id }}
           initialValues={{ system_id: row["system_id"] ?? null }}
@@ -598,10 +545,10 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           ]}
           canCreate={writable}
           readOnly={!writable}
-          createLabel="Pin component"
         />
         <ProgramCollection
           name="parameter_pins"
+          section
           title="Parameter values"
           filters={{ configuration_baseline_id: row.id }}
           columns={[
@@ -617,7 +564,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           ]}
           canCreate={writable}
           readOnly={!writable}
-          createLabel="Set parameter value"
         />
       </>
     );
@@ -641,7 +587,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           { key: "adopted_at", title: "Adopted" },
           { key: "rationale", title: "Rationale" },
         ]}
-        createLabel="Adopt baseline"
       />
     );
   if (table === "ssp_revisions")
@@ -660,7 +605,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
         ]}
         canCreate={writable}
         readOnly={!writable}
-        createLabel="Add implementation"
       />
     );
   if (table === "provider_capabilities")
@@ -674,7 +618,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           { key: "description", title: "Description" },
           { key: "state", title: "State" },
         ]}
-        createLabel="Add offering"
       />
     );
   if (table === "risks")
@@ -691,7 +634,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           { key: "severity", title: "Severity" },
           { key: "state", title: "State" },
         ]}
-        createLabel="Assess risk"
       />
     );
   if (table === "risk_revisions")
@@ -707,7 +649,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
         ]}
         canCreate={writable}
         readOnly={!writable}
-        createLabel="Record response"
       />
     );
   if (table === "poam_documents")
@@ -721,7 +662,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           { key: "state", title: "State" },
           { key: "published_at", title: "Published" },
         ]}
-        createLabel="Add plan revision"
       />
     );
   if (table === "poam_items")
@@ -737,7 +677,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           { key: "planned_completion_date", title: "Planned completion" },
           { key: "state", title: "State" },
         ]}
-        createLabel="Plan remediation"
       />
     );
   if (table === "poam_item_revisions")
@@ -753,7 +692,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
         ]}
         canCreate={writable}
         readOnly={!writable}
-        createLabel="Add milestone"
       />
     );
   if (table === "authorization_packages")
@@ -767,7 +705,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           { key: "state", title: "State" },
           { key: "published_at", title: "Published" },
         ]}
-        createLabel="Add package revision"
       />
     );
   if (table === "lifecycle_gates")
@@ -781,7 +718,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           { key: "required", title: "Required" },
           { key: "description", title: "Description" },
         ]}
-        createLabel="Add criterion"
       />
     );
   if (table === "ingestion_jobs")
@@ -795,7 +731,6 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           { key: "severity", title: "Severity" },
           { key: "message", title: "Message" },
         ]}
-        createLabel="Record validation issue"
       />
     );
   return null;

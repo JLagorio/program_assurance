@@ -405,8 +405,7 @@ function BodyCell<TData extends RowData>({
   const pin = pinning(cell.column, before, layout);
   const idMeta =
     previewAt === cell.column.id
-      ? cell.column.table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "id")
-          ?.columnDef.meta
+      ? cell.column.table.getAllLeafColumns().find((c) => c.columnDef.meta?.preview)?.columnDef.meta
       : undefined;
   const preview = idMeta?.preview
     ? {
@@ -472,7 +471,11 @@ function BodyCell<TData extends RowData>({
         edge={pin.edge}
         {...(indent ? { indent } : {})}
         {...(preview ? { onPreview: preview.onPreview } : {})}
-        {...(meta.active ? { isActive: meta.active(record) } : {})}
+        {...(preview
+          ? { isActive: preview.isActive }
+          : meta.active
+            ? { isActive: meta.active(record) }
+            : {})}
       />
     );
   }
@@ -543,7 +546,7 @@ function BodyCell<TData extends RowData>({
             className={cn(
               "absolute inset-y-0 end-0 flex items-center ps-050 opacity-0 transition-opacity duration-fast ease-standard",
               "bg-surface-current group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected",
-              "focus-within:opacity-100 group-hover/row:opacity-100",
+              "focus-within:opacity-100 group-hover/row:opacity-100 [@media(hover:none)]:opacity-100",
               preview.isActive && "opacity-100",
             )}
           >
@@ -1022,8 +1025,7 @@ function DataTableRoot<TData extends RowData>({
     JSON.stringify(table.state.columnSizing),
     layout ? [...layout.widths].filter(([id]) => layout.ids.has(id)).join("|") : "",
   ].join(" ");
-  const idMeta = table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "id")
-    ?.columnDef.meta;
+  const idMeta = table.getAllLeafColumns().find((c) => c.columnDef.meta?.preview)?.columnDef.meta;
   const active = idMeta?.active;
   const previewAt = idMeta?.preview ? previewColumn(visibleColumns) : undefined;
   const hintAt = tree ? previewColumn(visibleColumns) : undefined;

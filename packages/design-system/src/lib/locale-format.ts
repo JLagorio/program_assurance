@@ -150,6 +150,10 @@ export const defaultMessages = {
   darkMode: "Dark",
   systemMode: "Match system",
   colorMode: "Colour mode",
+  scrollUp: "Scroll up",
+  scrollDown: "Scroll down",
+  scrollBack: "Scroll back",
+  scrollForward: "Scroll forward",
 } satisfies Record<string, string>;
 
 export type LedgerMessages = { [K in keyof typeof defaultMessages]: string };

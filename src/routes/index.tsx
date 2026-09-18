@@ -22,9 +22,10 @@ import {
 import { Download, Plus } from "lucide-react";
 import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
-import { labelFor } from "@/lib/records";
+import { labelFor, type DataRecord } from "@/lib/records";
 import {
   downloadJson,
+  ModelTable,
   QueryState,
   RelationName,
   StateBadge,
@@ -77,31 +78,9 @@ function Portfolio() {
   return (
     <Stack className="animate-rise" space="space.300">
       <PageHeader>
-        <PageHeader.Lead className="font-body text-subtle">Portfolio</PageHeader.Lead>
-        <div className="min-w-0">
-          <PageHeader.Title>Overview</PageHeader.Title>
-        </div>
-        <PageHeader.Actions>
-          <Button
-            variant="secondary"
-            iconBefore={<Download />}
-            disabled={!programs.data || !risks.data || !findings.data}
-            onClick={() =>
-              downloadJson("portfolio.json", {
-                programs: programs.data,
-                risks: risks.data,
-                findings: findings.data,
-              })
-            }
-          >
-            Export recorded data
-          </Button>
-          {workspace.role !== "viewer" && (
-            <Button variant="primary" iconBefore={<Plus />} render={<Link to="/programs/new" />}>
-              Create program
-            </Button>
-          )}
-        </PageHeader.Actions>
+        <PageHeader.Heading>
+          <PageHeader.Title>Portfolio</PageHeader.Title>
+        </PageHeader.Heading>
       </PageHeader>
       <Grid
         className="border-y border-default"
@@ -134,56 +113,38 @@ function Portfolio() {
           >
             <QueryState query={risks}>
               <QueryState query={riskVersions}>
-                {recentRisks?.length ? (
-                  <Table>
-                    <thead>
-                      <Table.Row>
-                        <Table.Header>Risk</Table.Header>
-                        <Table.Header>Program</Table.Header>
-                        <Table.Header>Owner</Table.Header>
-                        <Table.Header>Latest severity</Table.Header>
-                        <Table.Header>Status</Table.Header>
-                      </Table.Row>
-                    </thead>
-                    <tbody>
-                      {recentRisks.map((row) => (
-                        <Table.Row key={row.id}>
-                          <Table.Cell>
-                            <TextLink
-                              render={<Link to="/risks/$riskId" params={{ riskId: row.id }} />}
-                            >
-                              {row.title}
-                            </TextLink>
-                          </Table.Cell>
-                          <Table.Cell>
-                            <RelationName table="programs" id={row.program_id} />
-                          </Table.Cell>
-                          <Table.Cell>
-                            <RelationName table="parties" id={row.owner_party_id} />
-                          </Table.Cell>
-                          <Table.Cell>
-                            <StateBadge value={latest(row.id)?.severity} />
-                          </Table.Cell>
-                          <Table.Cell>
-                            <StateBadge value={row.status} />
-                          </Table.Cell>
-                        </Table.Row>
-                      ))}
-                    </tbody>
-                  </Table>
-                ) : (
-                  <Empty>
-                    <EmptyMedia aria-hidden>
-                      <EmptyIllustration kind="records" />
-                    </EmptyMedia>
-                    <EmptyHeader>
-                      <EmptyTitle>No risks recorded</EmptyTitle>
-                      <EmptyDescription>
-                        Risk assessments appear here when they are saved.
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                )}
+                <ModelTable
+                  model="risks"
+                  rows={(recentRisks ?? []) as DataRecord[]}
+                  columns={[
+                    { key: "title", label: "Risk" },
+                    {
+                      key: "program_id",
+                      label: "Program",
+                      render: (row) => (
+                        <RelationName table="programs" id={String(row["program_id"])} />
+                      ),
+                    },
+                    {
+                      key: "owner_party_id",
+                      label: "Owner",
+                      render: (row) => (
+                        <RelationName table="parties" id={row["owner_party_id"] as string | null} />
+                      ),
+                    },
+                    {
+                      key: "severity",
+                      label: "Latest severity",
+                      render: (row) => <StateBadge value={latest(row.id)?.severity} />,
+                    },
+                    { key: "status" },
+                  ]}
+                  searchLabel="Search recent risks"
+                  empty={{
+                    title: "No risks recorded",
+                    description: "Risk assessments appear here when they are saved.",
+                  }}
+                />
               </QueryState>
             </QueryState>
           </Section>
@@ -192,40 +153,28 @@ function Portfolio() {
             action={<TextLink render={<Link to="/programs" />}>All programs</TextLink>}
           >
             <QueryState query={programs}>
-              {programs.data?.length ? (
-                <Table>
-                  <thead>
-                    <Table.Row>
-                      <Table.Header>Program</Table.Header>
-                      <Table.Header>Name</Table.Header>
-                      <Table.Header>Status</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {programs.data.map((row) => (
-                      <Table.Row key={row.id}>
-                        <Table.Cell>{row.code}</Table.Cell>
-                        <Table.Cell>
-                          <TextLink
-                            render={
-                              <Link to="/programs/$programId" params={{ programId: row.id }} />
-                            }
-                          >
-                            {row.name}
-                          </TextLink>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <StateBadge value={row.status} />
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : (
-                <p className="text-subtle py-200">
-                  Create your first program to start building its assurance record.
-                </p>
-              )}
+              <ModelTable
+                model="programs"
+                rows={(programs.data ?? []) as DataRecord[]}
+                columns={[{ key: "name", label: "Program" }, { key: "code" }, { key: "status" }]}
+                searchLabel="Search programs"
+                actions={
+                  workspace.role !== "viewer" ? (
+                    <Button
+                      size="small"
+                      variant="primary"
+                      iconBefore={<Plus />}
+                      render={<Link to="/programs/new" />}
+                    >
+                      Create program
+                    </Button>
+                  ) : undefined
+                }
+                empty={{
+                  title: "No programs yet",
+                  description: "Create your first program to start building its assurance record.",
+                }}
+              />
             </QueryState>
           </Section>
         </Stack>

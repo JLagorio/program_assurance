@@ -263,8 +263,10 @@ export const PreviewSheetStory: Story = {
     await expect(page.queryByRole("button", { name: "Facts only" })).toBeNull();
     for (let index = 0; index < 4; index += 1) {
       await userEvent.tab();
-      await expect(page.getByRole("dialog")).toContainElement(
-        canvasElement.ownerDocument.activeElement as HTMLElement,
+      await waitFor(() =>
+        expect(page.getByRole("dialog")).toContainElement(
+          canvasElement.ownerDocument.activeElement as HTMLElement,
+        ),
       );
     }
     await expect(page.queryByRole("button", { name: "Back" })).toBeNull();

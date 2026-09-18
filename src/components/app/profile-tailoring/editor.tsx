@@ -1,5 +1,19 @@
-import { useMemo, useState } from "react";
-import { ChevronDown, Plus, Trash2 } from "lucide-react";
+import { ControlInspector } from "@/components/prototype/library-controls";
+import { ProductCollection } from "@/components/prototype/product-collection";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "@/components/prototype/record-preview";
+import { useRows } from "@/lib/models";
+import type { ParameterOverride, TailoringDecision } from "@/lib/program-wizard";
+import {
+  previewProgramTailoring,
+  type ProgramTailoringPreview,
+  type WizardControl,
+} from "@/lib/program-wizard-reference";
 import {
   Box,
   Button,
@@ -7,30 +21,21 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
   DataTable,
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
   Fact,
-  IconButton,
+  KeyValue,
   Section,
   Stack,
-  Table,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-  Toolbar,
   defineColumns,
   useDataTable,
   type Preset,
 } from "@ledger/design-system";
-import type { ParameterOverride, TailoringDecision } from "@/lib/program-wizard";
-import {
-  previewProgramTailoring,
-  type ProgramTailoringPreview,
-  type WizardControl,
-} from "@/lib/program-wizard-reference";
+import { useNavigate } from "@tanstack/react-router";
+import { ChevronDown, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 import { ControlPicker } from "./control-picker";
 import { ParameterPicker } from "./parameter-picker";
 import type { ReferenceData } from "./use-reference-data";
@@ -88,6 +93,9 @@ export function ProfileTailoringEditor({
       ),
     [given, catalogRevisionId, baseResolutionId, decisions, parameters, data],
   );
+  const navigate = useNavigate();
+  const allControls = useRows("controls");
+  const [previewControl, setPreviewControl] = useState<string | null>(null);
   const [tab, setTab] = useState("Controls");
   const [controlsOpen, setControlsOpen] = useState(false);
   const [parameterOpen, setParameterOpen] = useState(false);
@@ -142,8 +150,24 @@ export function ProfileTailoringEditor({
   const columns = useMemo(
     () =>
       defineColumns<EffectiveRow>((c) => [
-        c.id("code", { header: "Control", width: 120, hideable: false }),
-        c.text("title", { header: "Title", minWidth: 260, hideable: false }),
+        c.id("code", {
+          header: "Control",
+          width: 120,
+          hideable: false,
+          preview: (row) => setPreviewControl(row.id),
+          active: (row) => row.id === previewControl,
+        }),
+        c.text("title", {
+          header: "Title",
+          minWidth: 220,
+          priority: 0,
+          hideable: false,
+          cell: (row) => (
+            <RecordLink table="controls" record={row}>
+              {row.title}
+            </RecordLink>
+          ),
+        }),
         c.text("family", { header: "Family", width: 100 }),
         c.status("source", {
           header: "Source",
@@ -151,7 +175,7 @@ export function ProfileTailoringEditor({
           tone: (row) => (row.source === "Tailored in" ? "success" : "neutral"),
         }),
       ]),
-    [],
+    [previewControl],
   );
   const table = useDataTable({
     columns,
@@ -161,6 +185,12 @@ export function ProfileTailoringEditor({
     view: "profile-tailoring-effective-v1",
     pageSize: 50,
   });
+  const displayed = useDisplayedRecords(table);
+  const displayedControls = displayed.flatMap((row) => {
+    const control = allControls.data?.find((control) => control.id === row.id);
+    return control ? [control] : [];
+  });
+  const inspected = allControls.data?.find((control) => control.id === previewControl);
   const open = (controlId: string | null) => {
     setInspectId(controlId);
     setControlsOpen(true);
@@ -169,13 +199,24 @@ export function ProfileTailoringEditor({
     setDecisions(decisions.filter((item) => item.controlId !== controlId));
   return (
     <Stack space="space.200">
-      <Fact.Group>
-        <Fact label="Base">{preview.counts.base}</Fact>
-        <Fact label="Tailored out">{preview.counts.excluded}</Fact>
-        <Fact label="Tailored in">{preview.counts.added}</Fact>
-        <Fact label="Effective">{preview.counts.selected}</Fact>
-        <Fact label="Parameters overridden">{parameters.length}</Fact>
-      </Fact.Group>
+      <Collapsible>
+        <CollapsibleTrigger
+          render={
+            <Button variant="subtle" size="small" iconAfter={<ChevronDown />}>
+              Details
+            </Button>
+          }
+        />
+        <CollapsibleContent>
+          <Fact.Group>
+            <Fact label="Base">{preview.counts.base}</Fact>
+            <Fact label="Tailored out">{preview.counts.excluded}</Fact>
+            <Fact label="Tailored in">{preview.counts.added}</Fact>
+            <Fact label="Effective">{preview.counts.selected}</Fact>
+            <Fact label="Parameters overridden">{parameters.length}</Fact>
+          </Fact.Group>
+        </CollapsibleContent>
+      </Collapsible>
       {preview.errors.length ? (
         <Box className="rounded-medium border border-danger p-150" role="alert">
           <h3 className="font-body font-semibold text-danger">Resolve tailoring conflicts</h3>
@@ -205,31 +246,7 @@ export function ProfileTailoringEditor({
           }
         />
         <CollapsibleContent>
-          <Table>
-            <thead>
-              <Table.Row>
-                <Table.Header>Family</Table.Header>
-                <Table.Header className="text-right">Base</Table.Header>
-                <Table.Header className="text-right">Out</Table.Header>
-                <Table.Header className="text-right">In</Table.Header>
-                <Table.Header className="text-right">Effective</Table.Header>
-              </Table.Row>
-            </thead>
-            <tbody>
-              {preview.families.map((family) => (
-                <Table.Row key={family.groupId ?? family.sourceId}>
-                  <Table.Cell>
-                    <span className="font-medium">{family.sourceId.toUpperCase()}</span>{" "}
-                    <span className="text-subtle">{family.title}</span>
-                  </Table.Cell>
-                  <Table.Cell className="text-right tabular-nums">{family.base}</Table.Cell>
-                  <Table.Cell className="text-right tabular-nums">{family.out || ""}</Table.Cell>
-                  <Table.Cell className="text-right tabular-nums">{family.in || ""}</Table.Cell>
-                  <Table.Cell className="text-right tabular-nums">{family.effective}</Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
+          <FamilyTable families={preview.families} />
         </CollapsibleContent>
       </Collapsible>
       <Tabs value={tab} onValueChange={(value) => setTab(String(value))}>
@@ -251,7 +268,7 @@ export function ProfileTailoringEditor({
               action={
                 editable ? (
                   <Button size="small" iconBefore={<Plus />} onClick={() => open(null)}>
-                    Tailor controls…
+                    Tailor controls
                   </Button>
                 ) : null
               }
@@ -267,110 +284,41 @@ export function ProfileTailoringEditor({
               emptyDescription="No control is added from the catalog beyond the base profile."
             />
             <Section title="Effective control set" count={preview.counts.selected}>
-              <DataTable
-                responsive
+              <ProductCollection
                 table={table}
-                onRowClick={(row) => open(row.id)}
+                onRowClick={(row) => void navigate(recordDestination("controls", row))}
+                views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
                 empty={{
                   illustration: "shield",
                   title: "No controls in the effective set",
                   description: "Choose a base profile with a recorded selection.",
                 }}
-                toolbar={
-                  <Toolbar
-                    search={String(table.state.globalFilter ?? "")}
-                    onSearch={(value) => table.setGlobalFilter(value)}
-                    placeholder="Find a control"
-                  >
-                    <DataTable.Presets table={table} presets={presets} variant="menu" />
-                    <DataTable.Columns table={table} />
-                    <DataTable.Settings table={table} />
-                  </Toolbar>
-                }
+                fill
+                searchLabel="Find a control"
               />
             </Section>
           </Stack>
         </TabsContent>
         <TabsContent value="Parameters">
-          <Section
-            title="Parameter overrides"
-            count={parameters.length || null}
-            action={
-              editable ? (
-                <Button size="small" iconBefore={<Plus />} onClick={() => setParameterOpen(true)}>
-                  Set parameter values…
-                </Button>
-              ) : (
-                <Button size="small" variant="subtle" onClick={() => setParameterOpen(true)}>
-                  Inspect parameters
-                </Button>
-              )
+          <ParameterTable
+            parameters={parameters}
+            data={data}
+            editable={editable}
+            onOpen={() => setParameterOpen(true)}
+            onRemove={(parameterId) =>
+              setParameters(parameters.filter((item) => item.parameterId !== parameterId))
             }
-          >
-            <p className="pb-150 font-body-small text-subtle">
-              {preview.counts.unsetParameters} of {preview.counts.parameters} parameters have no
-              recorded value. Values can be completed later.
-            </p>
-            {parameters.length ? (
-              <Table>
-                <thead>
-                  <Table.Row>
-                    <Table.Header>Parameter</Table.Header>
-                    <Table.Header>Control</Table.Header>
-                    <Table.Header>Values</Table.Header>
-                    <Table.Header>Rationale</Table.Header>
-                    {editable ? <Table.Header width={56}>Actions</Table.Header> : null}
-                  </Table.Row>
-                </thead>
-                <tbody>
-                  {parameters.map((override) => {
-                    const parameter = data.parameters.find(
-                      (item) => item.id === override.parameterId,
-                    );
-                    const control = controlById.get(parameter?.control_id ?? "");
-                    return (
-                      <Table.Row key={override.parameterId}>
-                        <Table.Cell>{parameter?.source_id ?? "Unavailable parameter"}</Table.Cell>
-                        <Table.Cell>{control?.code ?? "—"}</Table.Cell>
-                        <Table.Cell className="whitespace-normal">
-                          {override.values.join("; ")}
-                        </Table.Cell>
-                        <Table.Cell className="whitespace-normal">{override.rationale}</Table.Cell>
-                        {editable ? (
-                          <Table.Cell>
-                            <IconButton
-                              variant="subtle"
-                              size="small"
-                              icon={<Trash2 />}
-                              label={`Remove override for ${parameter?.source_id ?? "parameter"}`}
-                              onClick={() =>
-                                setParameters(
-                                  parameters.filter(
-                                    (item) => item.parameterId !== override.parameterId,
-                                  ),
-                                )
-                              }
-                            />
-                          </Table.Cell>
-                        ) : null}
-                      </Table.Row>
-                    );
-                  })}
-                </tbody>
-              </Table>
-            ) : (
-              <Empty size="compact">
-                <EmptyHeader>
-                  <EmptyTitle>No parameter overrides</EmptyTitle>
-                  <EmptyDescription>
-                    Catalog defaults and the base profile's values stay in effect.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            )}
-          </Section>
+          />
         </TabsContent>
       </Tabs>
+      {inspected && (
+        <ControlInspector
+          control={inspected}
+          records={displayedControls}
+          onSelect={(control) => setPreviewControl(control.id)}
+          onClose={() => setPreviewControl(null)}
+        />
+      )}
       <ControlPicker
         key={controlsOpen ? `open-${inspectId}` : "closed"}
         open={controlsOpen}
@@ -424,51 +372,244 @@ function DecisionTable({
   emptyDescription: string;
   action?: React.ReactNode;
 }) {
+  const navigate = useNavigate();
+  const items = rows.map(({ decision, control }) => ({
+    id: decision.controlId,
+    code: control?.code ?? "Unavailable control",
+    title: control?.title ?? "Unavailable control",
+    rationale: decision.rationale,
+  }));
+  const [selected, setSelected] = useState<(typeof items)[number] | null>(null);
+  const columns = defineColumns<(typeof items)[number]>((c) => [
+    c.id("code", {
+      header: "Control",
+      width: 120,
+      preview: setSelected,
+      active: (row) => row.id === selected?.id,
+    }),
+    c.text("title", {
+      header: "Title",
+      minWidth: 220,
+      priority: 0,
+      hideable: false,
+      cell: (row) => (
+        <RecordLink table="controls" record={row}>
+          {row.title}
+        </RecordLink>
+      ),
+    }),
+    c.text("rationale", { header: "Rationale", width: 360, wrap: true }),
+    ...(editable
+      ? [
+          c.actions((row) => [
+            { label: "Tailor controls", onSelect: () => onOpen(row.id) },
+            { label: "Remove decision", onSelect: () => onRemove(row.id) },
+          ]),
+        ]
+      : []),
+  ]);
+  const table = useDataTable({
+    data: items,
+    columns,
+    getRowId: (row) => row.id,
+    label: title,
+    view: `profile-decisions-${title}`,
+  });
+  const displayed = useDisplayedRecords(table);
   return (
-    <Section title={title} count={count || null} action={action}>
-      {rows.length ? (
-        <Table>
-          <thead>
-            <Table.Row>
-              <Table.Header width={120}>Control</Table.Header>
-              <Table.Header>Title</Table.Header>
-              <Table.Header>Rationale</Table.Header>
-              {editable ? <Table.Header width={56}>Actions</Table.Header> : null}
-            </Table.Row>
-          </thead>
-          <tbody>
-            {rows.map(({ decision, control }) => (
-              <Table.Row key={decision.controlId}>
-                <Table.Cell>
-                  <Button variant="link" onClick={() => onOpen(decision.controlId)}>
-                    {control?.code ?? "Unavailable control"}
-                  </Button>
-                </Table.Cell>
-                <Table.Cell className="whitespace-normal">{control?.title}</Table.Cell>
-                <Table.Cell className="whitespace-normal">{decision.rationale}</Table.Cell>
-                {editable ? (
-                  <Table.Cell>
-                    <IconButton
-                      variant="subtle"
-                      size="small"
-                      icon={<Trash2 />}
-                      label={`Remove decision for ${control?.code ?? "control"}`}
-                      onClick={() => onRemove(decision.controlId)}
-                    />
-                  </Table.Cell>
-                ) : null}
-              </Table.Row>
-            ))}
-          </tbody>
-        </Table>
-      ) : (
-        <Empty size="compact">
-          <EmptyHeader>
-            <EmptyTitle>{emptyTitle}</EmptyTitle>
-            <EmptyDescription>{emptyDescription}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
+    <Section title={title} count={count || null}>
+      <ProductCollection
+        table={table}
+        searchLabel="Find a tailored control"
+        action={action}
+        onRowClick={(row) => void navigate(recordDestination("controls", row))}
+        empty={{ illustration: "shield", title: emptyTitle, description: emptyDescription }}
+      />
+      {selected && (
+        <RecordPreviewPanel
+          title={selected.title}
+          label="Tailoring decision preview"
+          onClose={() => setSelected(null)}
+          navigation={
+            <RecordPreviewActions
+              table="controls"
+              record={selected}
+              rows={displayed}
+              onSelect={setSelected}
+            />
+          }
+          recordActions={
+            editable ? (
+              <Button size="small" variant="primary" onClick={() => onOpen(selected.id)}>
+                Tailor controls
+              </Button>
+            ) : undefined
+          }
+        >
+          <KeyValue label="Control">{selected.code}</KeyValue>
+          <KeyValue label="Rationale" wrap>
+            {selected.rationale}
+          </KeyValue>
+        </RecordPreviewPanel>
       )}
     </Section>
+  );
+}
+
+function FamilyTable({ families }: { families: ProgramTailoringPreview["families"] }) {
+  const rows = families.map((family) => ({ ...family, id: family.groupId ?? family.sourceId }));
+  const columns = defineColumns<(typeof rows)[number]>((c) => [
+    c.text("title", {
+      header: "Family",
+      priority: 0,
+      minWidth: 220,
+      hideable: false,
+      cell: (row) =>
+        row.groupId ? (
+          <RecordLink table="catalog_groups" record={{ id: row.groupId }}>
+            {row.sourceId.toUpperCase()} · {row.title}
+          </RecordLink>
+        ) : (
+          row.title
+        ),
+    }),
+    c.number("base", { header: "Base", width: 80 }),
+    c.number("out", { header: "Out", width: 80 }),
+    c.number("in", { header: "In", width: 80 }),
+    c.number("effective", { header: "Effective", width: 100 }),
+  ]);
+  const table = useDataTable({
+    data: rows,
+    columns,
+    getRowId: (row) => row.id,
+    label: "Controls by family",
+    view: "profile-family-summary",
+  });
+  return (
+    <ProductCollection
+      table={table}
+      searchLabel="Find a control family"
+      empty={{
+        illustration: "shield",
+        title: "No control families",
+        description: "Choose a base profile to see its control families.",
+      }}
+    />
+  );
+}
+
+function ParameterTable({
+  parameters,
+  data,
+  editable,
+  onOpen,
+  onRemove,
+}: {
+  parameters: ParameterOverride[];
+  data: ReferenceData;
+  editable: boolean;
+  onOpen: () => void;
+  onRemove: (id: string) => void;
+}) {
+  const navigate = useNavigate();
+  const rows = parameters.map((override) => {
+    const parameter = data.parameters.find((item) => item.id === override.parameterId);
+    const control = data.controls.find((item) => item.id === parameter?.control_id);
+    return {
+      id: override.parameterId,
+      name: parameter?.source_id ?? "Unavailable parameter",
+      control: control?.code ?? "Unavailable control",
+      values: override.values.join("; "),
+      rationale: override.rationale,
+    };
+  });
+  const [selected, setSelected] = useState<(typeof rows)[number] | null>(null);
+  const columns = defineColumns<(typeof rows)[number]>((c) => [
+    c.id("id", {
+      header: "ID",
+      width: 120,
+      preview: setSelected,
+      active: (row) => row.id === selected?.id,
+    }),
+    c.text("name", {
+      header: "Parameter",
+      priority: 0,
+      minWidth: 220,
+      hideable: false,
+      cell: (row) => (
+        <RecordLink table="parameters" record={row}>
+          {row.name}
+        </RecordLink>
+      ),
+    }),
+    c.text("control", { header: "Control", width: 120 }),
+    c.text("values", { header: "Values", wrap: true }),
+    c.text("rationale", { header: "Rationale", wrap: true }),
+    ...(editable
+      ? [
+          c.actions((row) => [
+            { label: "Set parameter values", onSelect: onOpen },
+            { label: "Remove override", onSelect: () => onRemove(row.id) },
+          ]),
+        ]
+      : []),
+  ]);
+  const table = useDataTable({
+    data: rows,
+    columns,
+    getRowId: (row) => row.id,
+    label: "Parameter overrides",
+    view: "profile-parameter-overrides",
+  });
+  const displayed = useDisplayedRecords(table);
+  return (
+    <>
+      <ProductCollection
+        table={table}
+        fill
+        searchLabel="Find a parameter override"
+        onRowClick={(row) => void navigate(recordDestination("parameters", row))}
+        action={
+          <Button size="small" variant="primary" onClick={onOpen}>
+            {editable ? "Set parameter values" : "Inspect parameters"}
+          </Button>
+        }
+        empty={{
+          illustration: "records",
+          title: "No parameter overrides",
+          description: "Catalog defaults and the base profile's values stay in effect.",
+        }}
+      />
+      {selected && (
+        <RecordPreviewPanel
+          title={selected.name}
+          label="Parameter override preview"
+          onClose={() => setSelected(null)}
+          navigation={
+            <RecordPreviewActions
+              table="parameters"
+              record={selected}
+              rows={displayed}
+              onSelect={setSelected}
+            />
+          }
+          recordActions={
+            editable ? (
+              <Button size="small" variant="primary" onClick={onOpen}>
+                Set parameter values
+              </Button>
+            ) : undefined
+          }
+        >
+          <KeyValue label="Control">{selected.control}</KeyValue>
+          <KeyValue label="Values" wrap>
+            {selected.values}
+          </KeyValue>
+          <KeyValue label="Rationale" wrap>
+            {selected.rationale}
+          </KeyValue>
+        </RecordPreviewPanel>
+      )}
+    </>
   );
 }

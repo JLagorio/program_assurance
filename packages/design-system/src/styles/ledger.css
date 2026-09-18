@@ -13,6 +13,8 @@
 @import "../generated/tokens.css";
 @import "../generated/utilities.css";
 @import "./motion.css";
+@import "./tabs.css";
+@import "./scroller.css";
 @import "./chart.css";
 @import "./density.css";
 @import "./layout.css";

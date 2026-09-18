@@ -39,6 +39,8 @@ export function EvidenceFile(props: {
   collection: Collection;
   record: DataRecord;
   onBusyChange?: ((busy: boolean) => void) | undefined;
+  onDirtyChange?: ((dirty: boolean) => void) | undefined;
+  autoFocus?: boolean | undefined;
 }) {
   const workspace = useWorkspace();
   return (
@@ -55,11 +57,15 @@ function EvidenceFileEditor({
   record,
   workspace,
   onBusyChange,
+  onDirtyChange,
+  autoFocus,
 }: {
   collection: Collection;
   record: DataRecord;
   workspace: Workspace;
   onBusyChange?: ((busy: boolean) => void) | undefined;
+  onDirtyChange?: ((dirty: boolean) => void) | undefined;
+  autoFocus?: boolean | undefined;
 }) {
   const cache = useQueryClient();
   const operation = useRef<AbortController | null>(null);
@@ -208,6 +214,7 @@ function EvidenceFileEditor({
       await checkIdentity(controller);
       cache.setQueryData(recordKey, saved);
       setFile(null);
+      onDirtyChange?.(false);
     } catch (cause) {
       if (!controller.signal.aborted)
         setError(
@@ -263,10 +270,15 @@ function EvidenceFileEditor({
             <Field>
               <FieldLabel htmlFor="evidence-upload">Attach a file (up to 50 MiB)</FieldLabel>
               <Input
+                autoFocus={autoFocus}
                 id="evidence-upload"
                 type="file"
                 disabled={!!busy}
-                onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                onChange={(event) => {
+                  const selected = event.target.files?.[0] ?? null;
+                  setFile(selected);
+                  onDirtyChange?.(!!selected);
+                }}
               />
             </Field>
             <Inline space="space.150" shouldWrap>

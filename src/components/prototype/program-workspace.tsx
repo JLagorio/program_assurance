@@ -52,12 +52,7 @@ import { ProgramTimeline } from "./program-timeline";
 import { ProgramSspAssembly } from "./ssp-assembly";
 import type { SystemElement } from "@/lib/system-tree";
 import type { RequirementTab } from "./requirement-record";
-import {
-  ProgramCollection,
-  ProgramQueryState,
-  ProgramRecordDialog,
-  StatusValue,
-} from "./program-shared";
+import { ProgramCollection, ProgramQueryState, ProgramEditor, StatusValue } from "./program-shared";
 
 export const programTabs = [
   "Overview",
@@ -65,7 +60,7 @@ export const programTabs = [
   "Library",
   "Requirements",
   "Controls",
-  "Assessments",
+  "Assessment campaigns",
   "Schedule",
   "Findings",
   "Evidence",
@@ -83,7 +78,8 @@ export function programTab(value: unknown): ProgramTab {
     team: "Schedule",
     poams: "POA&M",
     requirements: "Requirements",
-    assessment: "Assessments",
+    assessment: "Assessment campaigns",
+    assessments: "Assessment campaigns",
     risk: "Risk",
   };
   return programTabs.find((tab) => tab.toLowerCase() === text) ?? alias[text] ?? "Overview";
@@ -150,7 +146,7 @@ export function ProgramWorkspace({
   const counts: Partial<Record<ProgramTab, number>> = {
     ...(systems.isSuccess && { System: systems.data.length }),
     ...(requirements.isSuccess && { Requirements: requirements.data.length }),
-    ...(assessments.isSuccess && { Assessments: assessments.data.length }),
+    ...(assessments.isSuccess && { "Assessment campaigns": assessments.data.length }),
     ...(evidence.isSuccess && { Evidence: evidence.data.length }),
     ...(risks.isSuccess && { Risk: risks.data.length }),
   };
@@ -172,7 +168,7 @@ export function ProgramWorkspace({
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbPage>
-                  <Id>{program.code}</Id>
+                  {program.code} · {program.name}
                 </BreadcrumbPage>
               </BreadcrumbItem>
               {view && (
@@ -186,7 +182,7 @@ export function ProgramWorkspace({
             </BreadcrumbList>
           </PageHeader.Lead>
           <PageHeader.Heading>
-            <PageHeader.Title>{view ?? program.name}</PageHeader.Title>
+            <PageHeader.Title>{program.name}</PageHeader.Title>
           </PageHeader.Heading>
           <PageHeader.Actions>
             <DropdownMenu>
@@ -346,7 +342,9 @@ export function ProgramWorkspace({
                           </Button>
                         }
                       >
-                        <WorkTable programId={programId} />
+                        <Section title="Tasks">
+                          <WorkTable programId={programId} />
+                        </Section>
                       </Section>
                     </>
                   )}
@@ -395,12 +393,15 @@ export function ProgramWorkspace({
                       />
                     </ProgramQueryState>
                   )}
-                  {tab === "Assessments" && <AssessmentBrowser programId={programId} />}
+                  {tab === "Assessment campaigns" && <AssessmentBrowser programId={programId} />}
                   {tab === "Schedule" && (
                     <>
-                      <WorkTable programId={programId} />
+                      <Section title="Tasks">
+                        <WorkTable programId={programId} />
+                      </Section>
                       <ProgramCollection
                         name="lifecycle_gates"
+                        section
                         title="Lifecycle gates"
                         filters={{ program_id: programId }}
                         columns={[
@@ -409,10 +410,10 @@ export function ProgramWorkspace({
                           { key: "status", title: "Status" },
                           { key: "due_on", title: "Due" },
                         ]}
-                        createLabel="Add gate"
                       />
                       <ProgramCollection
                         name="program_role_assignments"
+                        section
                         empty={{ title: "No responsibilities assigned yet" }}
                         title="Program responsibilities"
                         filters={{ program_id: programId }}
@@ -432,7 +433,6 @@ export function ProgramWorkspace({
                           { key: "starts_on", title: "Starts" },
                           { key: "ends_on", title: "Ends" },
                         ]}
-                        createLabel="Assign responsibility"
                       />
                     </>
                   )}
@@ -440,16 +440,16 @@ export function ProgramWorkspace({
                     <>
                       <ProgramCollection
                         name="operational_issues"
-                        empty={{ title: "No findings yet" }}
-                        title="Findings and operational issues"
+                        section
+                        empty={{ title: "No operational issues yet" }}
+                        title="Operational issues"
                         filters={{ program_id: programId }}
                         columns={[
-                          { key: "title", title: "Finding" },
+                          { key: "title", title: "Operational issue" },
                           { key: "status", title: "Status" },
                           { key: "severity", title: "Severity" },
                           { key: "opened_at", title: "Opened" },
                         ]}
-                        createLabel="Record finding"
                       />
                       <ObservationsRegister programId={programId} />
                     </>
@@ -467,7 +467,6 @@ export function ProgramWorkspace({
                         { key: "status", title: "Status" },
                         { key: "updated_at", title: "Updated" },
                       ]}
-                      createLabel="Record risk"
                     />
                   )}
                   {tab === "Activity" && (
@@ -491,7 +490,7 @@ export function ProgramWorkspace({
           </TabsContent>
         </Tabs>
       </Stack>
-      {tab === "Overview" && !view && (
+      {(tab === "Overview" || !!view) && (
         <Shell.Aside label="Program properties">
           <Inspector.Group title="Details">
             <KeyValue label="Status">
@@ -626,10 +625,9 @@ export function ProgramWorkspace({
         </Shell.Aside>
       )}
       {editing && (
-        <ProgramRecordDialog
-          startEditing
+        <ProgramEditor
           table="programs"
-          row={program as DataRecord}
+          existing={program as DataRecord}
           onClose={() => setEditing(false)}
         />
       )}
@@ -648,11 +646,7 @@ function ProgramControls({
   systemIds: Set<string>;
   systemsReady: boolean;
 }) {
-  return systemsReady ? (
-    <ProgramSspAssembly programId={programId} />
-  ) : (
-    <ProgramQueryState loading error={null} />
-  );
+  return systemsReady ? <ProgramSspAssembly programId={programId} /> : null;
 }
 function ProgramPoams({ programId }: { programId: string }) {
   const navigate = useNavigate();
@@ -662,6 +656,7 @@ function ProgramPoams({ programId }: { programId: string }) {
     <Stack space="space.300">
       <ProgramCollection
         name="poam_documents"
+        section
         empty={{ title: "No plans of action yet" }}
         title="Plans of action and milestones"
         filters={{ program_id: programId }}
@@ -669,12 +664,12 @@ function ProgramPoams({ programId }: { programId: string }) {
           { key: "title", title: "Plan" },
           { key: "updated_at", title: "Updated" },
         ]}
-        createLabel="Add POA&M plan"
       />
       <ProgramQueryState queries={[documents]} />
       {documents.isSuccess && (
         <ProgramCollection
           name="poam_items"
+          section
           empty={{ title: "No remediation items yet" }}
           title="Remediation items"
           where={(row) => ids.has(String(row["poam_document_id"]))}
@@ -684,7 +679,6 @@ function ProgramPoams({ programId }: { programId: string }) {
             { key: "status", title: "Status" },
             { key: "updated_at", title: "Updated" },
           ]}
-          createLabel="Add remediation item"
           canCreate={ids.size > 0}
           prerequisite="Remediation items belong to a plan of action. Add a POA&M plan first."
         />
@@ -703,7 +697,7 @@ function ProgramFocusedView({
   systemIds: Set<string>;
   systemsReady: boolean;
 }) {
-  if (!systemsReady) return <ProgramQueryState loading error={null} />;
+  if (!systemsReady) return null;
   const systemDefault = systemIds.size === 1 ? { system_id: [...systemIds][0]! } : undefined;
   if (view === "System composition") return <ProgramSystemsTree programId={programId} fill />;
   if (view === "Configuration baseline")
@@ -721,7 +715,6 @@ function ProgramFocusedView({
           { key: "published_at", title: "Published" },
         ]}
         canCreate={systemIds.size > 0}
-        createLabel="Add configuration baseline"
         prerequisite="A configuration baseline belongs to a system. Add a system first."
       />
     );
@@ -739,15 +732,22 @@ function ProgramFocusedView({
           { key: "updated_at", title: "Updated" },
         ]}
         canCreate={systemIds.size > 0}
-        createLabel="Create authorization package"
         prerequisite="An authorization package covers a system. Add a system first."
       />
     );
   if (view === "Traceability matrix")
     return (
       <>
-        <ProgramRequirements programId={programId} />
-        <ProgramControls programId={programId} systemIds={systemIds} systemsReady={systemsReady} />
+        <Section title="Requirements">
+          <ProgramRequirements programId={programId} />
+        </Section>
+        <Section title="Controls">
+          <ProgramControls
+            programId={programId}
+            systemIds={systemIds}
+            systemsReady={systemsReady}
+          />
+        </Section>
       </>
     );
   if (view === "Inheritance resolution")
@@ -766,15 +766,17 @@ function ProgramFocusedView({
           { key: "name", title: "Name" },
           { key: "description", title: "Description" },
         ]}
-        createLabel="Add provider capability"
       />
     );
   if (view === "Continuous monitoring")
     return (
       <>
-        <WorkTable programId={programId} />
+        <Section title="Tasks">
+          <WorkTable programId={programId} />
+        </Section>
         <ProgramCollection
           name="assessment_campaigns"
+          section
           empty={{ title: "No monitoring assessments yet" }}
           title="Monitoring assessments"
           filters={{ program_id: programId }}
@@ -783,7 +785,6 @@ function ProgramFocusedView({
             { key: "status", title: "Status" },
             { key: "starts_at", title: "Starts" },
           ]}
-          createLabel="Schedule assessment"
         />
       </>
     );
@@ -799,7 +800,6 @@ function ProgramFocusedView({
           { key: "status", title: "Status" },
           { key: "started_at", title: "Started" },
         ]}
-        createLabel="Record ingestion job"
       />
     );
   if (view === "Cyber T&E phases") return <AssessmentBrowser programId={programId} />;
@@ -814,7 +814,6 @@ function ProgramFocusedView({
           { key: "title", title: "Risk" },
           { key: "status", title: "Status" },
         ]}
-        createLabel="Record risk"
       />
     );
   return (

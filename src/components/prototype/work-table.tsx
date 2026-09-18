@@ -1,3 +1,6 @@
+import { ProductCollection } from "./product-collection";
+import { RecordSummaryPreview } from "./record-summary-preview";
+import { RecordLink, useDisplayedRecords } from "./record-preview";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -47,6 +50,7 @@ export function WorkTable({
   const parties = useRows("parties");
   const programs = useRows("programs");
   const [adding, setAdding] = useState(false);
+  const [preview, setPreview] = useState<TaskRow | null>(null);
   const rows = useMemo<TaskRow[]>(
     () =>
       (tasks.data ?? []).map((task) => {
@@ -80,22 +84,18 @@ export function WorkTable({
   const columns = useMemo(
     () =>
       defineColumns<TaskRow>((c) => [
-        c.text("title", {
+        c.id("title", {
           header: "Task",
-          width: 330,
+          width: 220,
+          minWidth: 180,
+          priority: 0,
+          preview: setPreview,
+          active: (row) => row.id === preview?.id,
           hideable: false,
           cell: (row) => (
-            <TextLink
-              render={
-                <Link
-                  to="/tasks/$taskId"
-                  params={{ taskId: row.id }}
-                  onClick={(event) => event.stopPropagation()}
-                />
-              }
-            >
+            <RecordLink table="tasks" record={row}>
               {row.title}
-            </TextLink>
+            </RecordLink>
           ),
         }),
         c.status("state", { header: "State", width: 130, tone: (row) => statusTone(row.status) }),
@@ -105,7 +105,7 @@ export function WorkTable({
         c.text("priorityLabel", { header: "Priority", width: 110 }),
         c.text("role", { header: "Assignment", width: 160 }),
       ]),
-    [programId],
+    [programId, preview?.id],
   );
   const table = useDataTable({
     data: rows,
@@ -117,6 +117,7 @@ export function WorkTable({
     reorderable: true,
     initialState: { columnFilters: mineOnly ? [{ id: "role", value: ["Assigned to you"] }] : [] },
   });
+  const displayed = useDisplayedRecords(table);
   return (
     <Stack space="space.200">
       {adding && (
@@ -127,85 +128,88 @@ export function WorkTable({
           onCreated={({ taskId }) => navigate({ to: "/tasks/$taskId", params: { taskId } })}
         />
       )}
-      <QueryState queries={[tasks, assignments, parties, programs]}>
-        <DataTable
-          responsive
-          table={table}
-          fill={fill}
-          onRowClick={(row) => void navigate({ to: "/tasks/$taskId", params: { taskId: row.id } })}
-          empty={{
-            illustration: "tasks",
-            title: "No tasks yet",
-            description: "Create a task and assign a person to start tracking work.",
-            action:
-              workspace.role !== "viewer" ? (
-                <Button
-                  variant="primary"
-                  iconBefore={<Plus />}
-                  disabled={adding}
-                  onClick={() => setAdding(true)}
-                >
-                  Create task
-                </Button>
-              ) : undefined,
-          }}
-          toolbar={
-            <Toolbar
-              search={String(table.state.globalFilter ?? "")}
-              onSearch={(value) => table.setGlobalFilter(value)}
-              placeholder="Find tasks"
-              views={
-                <>
-                  <DataTable.Presets
-                    table={table}
-                    variant="menu"
-                    presets={[
-                      { id: "all", label: "All tasks" },
-                      {
-                        id: "mine",
-                        label: "Assigned to you",
-                        filters: [{ id: "role", value: ["Assigned to you"] }],
-                      },
-                      {
-                        id: "open",
-                        label: "Open",
-                        filters: [
-                          { id: "state", value: ["Open", "In progress", "Waiting", "Blocked"] },
-                        ],
-                      },
-                      { id: "done", label: "Done", filters: [{ id: "state", value: ["Done"] }] },
-                    ]}
-                  />
-                </>
-              }
-              filters={
-                <>
-                  <DataTable.Filter table={table} column="state" />
-                  <DataTable.Filter table={table} column="assignees" />
-                </>
-              }
-              actions={
-                <>
-                  {workspace.role !== "viewer" && (
-                    <Button
-                      size="small"
-                      variant="primary"
-                      iconBefore={<Plus />}
-                      disabled={adding}
-                      onClick={() => setAdding(true)}
-                    >
-                      Create task
-                    </Button>
-                  )}
-                </>
-              }
-            >
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-            </Toolbar>
-          }
+      <ProductCollection
+        queries={[tasks, assignments, parties, programs]}
+        table={table}
+        fill={fill}
+        onRowClick={(row) => void navigate({ to: "/tasks/$taskId", params: { taskId: row.id } })}
+        empty={{
+          illustration: "tasks",
+          title: "No tasks yet",
+          description: "Create a task and assign a person to start tracking work.",
+          action:
+            workspace.role !== "viewer" ? (
+              <Button
+                variant="primary"
+                iconBefore={<Plus />}
+                disabled={adding}
+                onClick={() => setAdding(true)}
+              >
+                Create task
+              </Button>
+            ) : undefined,
+        }}
+        searchLabel="Find tasks"
+        views={
+          <>
+            <DataTable.Presets
+              table={table}
+              variant="menu"
+              presets={[
+                { id: "all", label: "All tasks" },
+                {
+                  id: "mine",
+                  label: "Assigned to you",
+                  filters: [{ id: "role", value: ["Assigned to you"] }],
+                },
+                {
+                  id: "open",
+                  label: "Open",
+                  filters: [{ id: "state", value: ["Open", "In progress", "Waiting", "Blocked"] }],
+                },
+                { id: "done", label: "Done", filters: [{ id: "state", value: ["Done"] }] },
+              ]}
+            />
+          </>
+        }
+        filters={
+          <>
+            <DataTable.Filter table={table} column="state" />
+            <DataTable.Filter table={table} column="assignees" />
+          </>
+        }
+        action={
+          <>
+            {workspace.role !== "viewer" && (
+              <Button
+                size="small"
+                variant="primary"
+                iconBefore={<Plus />}
+                disabled={adding}
+                onClick={() => setAdding(true)}
+              >
+                Create task
+              </Button>
+            )}
+          </>
+        }
+      />
+      {preview && (
+        <RecordSummaryPreview
+          model="tasks"
+          record={rows.find((row) => row.id === preview.id) ?? preview}
+          rows={displayed}
+          onSelect={setPreview}
+          onClose={() => setPreview(null)}
+          fields={[
+            { key: "state", label: "State" },
+            { key: "assignees", label: "Assigned to" },
+            { key: "program", label: "Program" },
+            { key: "due", label: "Due" },
+            { key: "priorityLabel", label: "Priority" },
+          ]}
         />
-      </QueryState>
+      )}
     </Stack>
   );
 }

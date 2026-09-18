@@ -11,13 +11,15 @@ import {
   KeyValue,
   PageHeader,
   Stack,
+  Shell,
+  Inspector,
   TextLink,
 } from "@ledger/design-system";
 import { Download } from "lucide-react";
 import { useRow, useRows } from "@/lib/models";
 import { ProgramQueryState } from "@/components/prototype/program-shared";
 export const Route = createFileRoute("/programs/$programId_/export")({
-  head: () => ({ meta: [{ title: "Program export — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
   component: ProgramExport,
 });
 function ProgramExport() {
@@ -60,6 +62,7 @@ function ProgramExport() {
   }
   if (program.isSuccess && !program.data)
     return <MissingRecord backTo="/programs" kind="Program" />;
+  if (!program.data) return <ProgramQueryState queries={[program]} />;
   return (
     <Stack space="space.250">
       <PageHeader>
@@ -81,7 +84,7 @@ function ProgramExport() {
           </BreadcrumbList>
         </PageHeader.Lead>
         <PageHeader.Heading>
-          <PageHeader.Title>Program transfer</PageHeader.Title>
+          <PageHeader.Title>{program.data.name}</PageHeader.Title>
         </PageHeader.Heading>
         <PageHeader.Actions>
           <Button
@@ -94,6 +97,14 @@ function ProgramExport() {
           </Button>
         </PageHeader.Actions>
       </PageHeader>
+      <Shell.Aside label="Program properties">
+        <Inspector.Group title="Details">
+          <KeyValue label="Code">{program.data.code}</KeyValue>
+          <KeyValue label="Status">{program.data.status}</KeyValue>
+          <KeyValue label="Starts">{program.data.starts_on ?? "Not recorded"}</KeyValue>
+          <KeyValue label="Ends">{program.data.ends_on ?? "Not recorded"}</KeyValue>
+        </Inspector.Group>
+      </Shell.Aside>
       <ProgramQueryState queries={queries}>
         <>
           <p className="text-subtle">

@@ -1,6 +1,6 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronRight, Circle, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import {
   cloneElement,
   createContext,
@@ -9,7 +9,6 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
-  useRef,
   useState,
   type ComponentProps,
   type ComponentType,
@@ -30,10 +29,12 @@ import {
   SIDENAV_MIN,
   slot,
   useShell,
+  useSideNavRail,
   useSkipLink,
   type SideNavTrigger,
 } from "./context";
 import { Splitter, type ShellSplitterProps } from "./splitter";
+import { useSideNavOverlay } from "./use-side-nav-overlay";
 
 /** How deep a side nav item sits under expandable items; each level indents. */
 const DepthContext = createContext(0);
@@ -83,8 +84,10 @@ export function SideNavRoot({
   const shell = useShell();
   const { t } = useLedgerLocale();
   const name = label ?? t("sideNavigation");
-  const navRef = useRef<HTMLElement>(null);
   const { expanded, open, peeking } = shell.sideNav;
+  const { navRef, scrimRef, present } = useSideNavOverlay(open, shell.isDesktop, expanded);
+  const closing = present && !open;
+  const rail = useSideNavRail();
   // While the flyout is held open by a popup, a click outside both closes it.
   useEffect(() => {
     if (!peeking) return;
@@ -116,10 +119,14 @@ export function SideNavRoot({
   }, [inShell, shell.listeners, onCollapse, onExpand]);
   return (
     <>
-      {open && !peeking ? (
+      {present && !shell.isDesktop ? (
         <button
+          ref={scrimRef}
           type="button"
           aria-label={t("closeSideNavigation")}
+          aria-hidden={closing || undefined}
+          inert={closing}
+          data-overlay={open ? "open" : "closing"}
           onClick={() => shell.closeSideNav("scrim")}
           className="shell-scrim bg-blanket lg:hidden"
         />
@@ -130,13 +137,17 @@ export function SideNavRoot({
         id={skipId}
         tabIndex={-1}
         aria-label={name}
+        aria-hidden={closing ? true : props["aria-hidden"]}
+        inert={closing || props.inert}
         data-shell-area="sidenav"
         data-slot="shell-sidenav"
+        data-collapsed={rail && !present ? "icons" : undefined}
+        data-overlay={present ? (open ? "open" : "closing") : undefined}
         className={cn(
           "flex-col border-e border-default bg-surface-sunken outline-none",
-          open
-            ? "shell-sidenav-overlay flex shadow-overlay animate-slide-in-start"
-            : cn("hidden", expanded && "lg:shell-sidenav lg:flex"),
+          present
+            ? "shell-sidenav-overlay flex shadow-overlay"
+            : cn("hidden", (expanded || rail) && "lg:shell-sidenav lg:flex"),
           className,
         )}
         onPointerEnter={(event) => {
@@ -217,9 +228,9 @@ export function SideNavSection({ heading, className, children, ...props }: SideN
       className={cn("flex flex-col gap-025", className)}
     >
       {heading ? (
-        <Eyebrow id={headingId} className="px-150 pb-050 pt-100">
-          {heading}
-        </Eyebrow>
+        <div data-slot="shell-sidenav-heading" className="px-150 pb-050 pt-100">
+          <Eyebrow id={headingId}>{heading}</Eyebrow>
+        </div>
       ) : null}
       {children}
     </div>
@@ -259,7 +270,9 @@ export function SideNavItem({
   ...props
 }: SideNavItemProps) {
   const depth = useContext(DepthContext);
-  return useRender({
+  const shell = useShell();
+  const rail = useSideNavRail();
+  const element = useRender({
     defaultTagName: "a",
     render,
     ref,
@@ -271,15 +284,31 @@ export function SideNavItem({
       style: indent(depth),
       children: (
         <>
-          {navIcon(icon, cn("size-icon-small shrink-0", isActive ? "icon-default" : "icon-subtle"))}
-          {children}
+          {navIcon(
+            icon ?? (shell.collapsedSideNav === "icons" ? Circle : undefined),
+            cn("size-icon-small shrink-0", isActive ? "icon-default" : "icon-subtle"),
+          )}
+          <span data-slot="shell-sidenav-label" className="min-w-0 truncate">
+            {children}
+          </span>
           {badge ? (
-            <span className="ms-auto font-body-xsmall text-subtle tabular-nums">{badge}</span>
+            <span
+              data-slot="shell-sidenav-badge"
+              className="ms-auto font-body-xsmall text-subtle tabular-nums"
+            >
+              {badge}
+            </span>
           ) : null}
         </>
       ),
     }),
   });
+  return (
+    <Tooltip disabled={!rail}>
+      <TooltipTrigger render={element} />
+      <TooltipContent side="inline-end">{children}</TooltipContent>
+    </Tooltip>
+  );
 }
 
 export type SideNavExpandableProps = Omit<ComponentProps<"button">, "children"> & {
@@ -307,6 +336,8 @@ export function SideNavExpandable({
   ...props
 }: SideNavExpandableProps) {
   const depth = useContext(DepthContext);
+  const shell = useShell();
+  const rail = useSideNavRail();
   const levelId = useId();
   const [own, setOwn] = useState(defaultOpen);
   const isOpen = open ?? own;
@@ -316,32 +347,57 @@ export function SideNavExpandable({
   };
   return (
     <div data-slot="shell-sidenav-expandable" className="flex flex-col gap-025">
-      <button
-        {...props}
-        type="button"
-        aria-expanded={isOpen}
-        aria-controls={isOpen ? levelId : undefined}
-        onClick={(event) => {
-          onClick?.(event);
-          if (!event.defaultPrevented) set(!isOpen);
-        }}
-        className={cn(itemBase, itemTone(false), className)}
-        style={indent(depth)}
-      >
-        {navIcon(icon, "size-icon-small shrink-0 icon-subtle")}
-        <span className="min-w-0 flex-1 truncate">{label}</span>
-        {badge ? <span className="font-body-xsmall text-subtle tabular-nums">{badge}</span> : null}
-        <ChevronRight
-          aria-hidden
-          className={cn(
-            "size-icon-small shrink-0 icon-subtle transition-transform duration-fast ease-standard",
-            isOpen && "rotate-90",
-          )}
+      <Tooltip disabled={!rail}>
+        <TooltipTrigger
+          render={
+            <button
+              {...props}
+              type="button"
+              data-slot="shell-sidenav-expandable-trigger"
+              aria-expanded={isOpen && !rail}
+              aria-controls={isOpen && !rail ? levelId : undefined}
+              onClick={(event) => {
+                onClick?.(event);
+                if (event.defaultPrevented) return;
+                if (rail) {
+                  shell.expandSideNav();
+                  set(true);
+                } else set(!isOpen);
+              }}
+              className={cn(itemBase, itemTone(false), className)}
+              style={indent(depth)}
+            >
+              {navIcon(
+                icon ?? (shell.collapsedSideNav === "icons" ? Circle : undefined),
+                "size-icon-small shrink-0 icon-subtle",
+              )}
+              <span data-slot="shell-sidenav-label" className="min-w-0 flex-1 truncate">
+                {label}
+              </span>
+              {badge ? (
+                <span
+                  data-slot="shell-sidenav-badge"
+                  className="font-body-xsmall text-subtle tabular-nums"
+                >
+                  {badge}
+                </span>
+              ) : null}
+              <ChevronRight
+                aria-hidden
+                data-slot="shell-sidenav-chevron"
+                className={cn(
+                  "size-icon-small shrink-0 icon-subtle transition-transform duration-fast ease-standard",
+                  isOpen && "rotate-90",
+                )}
+              />
+            </button>
+          }
         />
-      </button>
+        <TooltipContent side="inline-end">{label}</TooltipContent>
+      </Tooltip>
       {isOpen ? (
         <DepthContext.Provider value={depth + 1}>
-          <div id={levelId} className="flex flex-col gap-025">
+          <div id={levelId} data-slot="shell-sidenav-level" className="flex flex-col gap-025">
             {children}
           </div>
         </DepthContext.Provider>

@@ -352,6 +352,18 @@ export {
 } from "./resizable";
 export { ScrollArea, ScrollBar, type ScrollAreaProps, type ScrollBarProps } from "./scroll-area";
 export {
+  Scroller,
+  ScrollerArrow,
+  ScrollerViewport,
+  type ScrollerActivation,
+  type ScrollerArrowProps,
+  type ScrollerEdge,
+  type ScrollerOrientation,
+  type ScrollerProps,
+  type ScrollerSurface,
+  type ScrollerViewportProps,
+} from "./scroller";
+export {
   Select,
   SelectContent,
   SelectGroup,

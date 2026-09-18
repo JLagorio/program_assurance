@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import { DataTable, Id, PickerSheet, defineColumns, useDataTable } from "@ledger/design-system";
 import type { LibraryComponentItem } from "@/lib/library-items";
+import { DataTable, Id, PickerSheet, defineColumns, useDataTable } from "@ledger/design-system";
+import { useMemo, useRef, useState } from "react";
 
 /** Choose one published component definition from the library, at its latest published version. */
 export function LibraryComponentPicker({
@@ -18,6 +18,7 @@ export function LibraryComponentPicker({
   onPick: (item: LibraryComponentItem) => void;
   onClose: () => void;
 }) {
+  const handingOff = useRef(false);
   const [search, setSearch] = useState("");
   const [chosenId, setChosenId] = useState<string | null>(null);
   const shown = useMemo(
@@ -36,10 +37,9 @@ export function LibraryComponentPicker({
         c.id("definitionCode", {
           header: "Item",
           width: 150,
-          active: (row) => row.id === chosenId,
           cell: (row) => <Id>{row.definitionCode}</Id>,
         }),
-        c.text("definitionName", { header: "Name", minWidth: 200, hideable: false }),
+        c.text("definitionName", { header: "Name", priority: 0, minWidth: 200, hideable: false }),
         c.text("detail", { header: "Component", minWidth: 200, wrap: true }),
         c.text("category", { header: "Category", width: 160 }),
         c.text("version", { header: "Version", width: 90 }),
@@ -49,10 +49,18 @@ export function LibraryComponentPicker({
           cell: (row) => String(row.claimControlIds.length),
         }),
       ]),
-    [chosenId],
+    [],
   );
   const table = useDataTable({
     columns,
+    selectable: true,
+    enableMultiRowSelection: false,
+    state: { rowSelection: chosenId ? { [chosenId]: true } : {} },
+    onRowSelectionChange: (update) => {
+      const next =
+        typeof update === "function" ? update(chosenId ? { [chosenId]: true } : {}) : update;
+      setChosenId(Object.keys(next).find((id) => next[id]) ?? null);
+    },
     data: shown,
     getRowId: (row) => row.id,
     label: "Library components",
@@ -61,6 +69,7 @@ export function LibraryComponentPicker({
   return (
     <PickerSheet
       open={open}
+      finalFocus={() => !handingOff.current}
       onClose={onClose}
       title="Add from library"
       subtitle={`Under ${parentLabel}`}
@@ -71,7 +80,10 @@ export function LibraryComponentPicker({
       action={{
         label: chosen ? `Add ${chosen.componentName} under ${parentLabel}` : "Add component",
         onClick: () => {
-          if (chosen) onPick(chosen);
+          if (chosen) {
+            handingOff.current = true;
+            onPick(chosen);
+          }
         },
         disabled: !chosen,
       }}

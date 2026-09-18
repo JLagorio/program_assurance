@@ -1,3 +1,4 @@
+import { ProductCollection } from "./product-collection";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -12,6 +13,11 @@ import {
   IconButton,
   Id,
   Inline,
+  Stack,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
   TextLink,
   Toolbar,
   defineColumns,
@@ -33,7 +39,12 @@ import {
   Shield,
   Workflow,
 } from "lucide-react";
-import { RecordPreviewActions, RecordPreviewPanel, useDisplayedRecords } from "./record-preview";
+import {
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  useDisplayedRecords,
+  RecordLink,
+} from "./record-preview";
 import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
 import { labelFor } from "@/lib/records";
@@ -49,6 +60,63 @@ import {
   SystemAssuranceDetails,
 } from "./system-assurance-details";
 import { useSystemAssurance } from "./use-system-assurance";
+import { SystemControls } from "./system-baseline";
+import { SystemRequirements } from "./system-requirements";
+import { SystemEvidence } from "./system-evidence";
+
+const PREVIEW_TABS = ["Overview", "Controls", "Requirements", "Evidence"] as const;
+type PreviewTab = (typeof PREVIEW_TABS)[number];
+
+/** The preview body: the same sections as the element's record page, at the panel's width. */
+function ElementPreview({
+  programId,
+  row,
+  rows,
+  onDrill,
+  onAddFromLibrary,
+}: {
+  programId: string;
+  row: SystemAssuranceRow;
+  rows: SystemAssuranceRow[];
+  onDrill: (id: string) => void;
+  onAddFromLibrary: (options: { controlId?: string; source?: "requirement" }) => void;
+}) {
+  const [tab, setTab] = useState<PreviewTab>("Overview");
+  return (
+    <Tabs
+      value={tab}
+      onValueChange={(value) => setTab(PREVIEW_TABS.find((name) => name === value) ?? "Overview")}
+    >
+      <TabsList variant="line" aria-label="Element preview sections">
+        {PREVIEW_TABS.map((name) => (
+          <TabsTrigger key={name} value={name}>
+            {name}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      <TabsContent value={tab}>
+        <Stack space="space.250" className="pt-200">
+          {tab === "Overview" && <SystemAssuranceDetails row={row} rows={rows} onDrill={onDrill} />}
+          {tab === "Controls" && (
+            <SystemControls
+              systemId={row.id}
+              onAddFromLibrary={(controlId) => onAddFromLibrary({ controlId })}
+            />
+          )}
+          {tab === "Requirements" && (
+            <SystemRequirements
+              programId={programId}
+              systemId={row.id}
+              rows={rows}
+              onAddFromLibrary={() => onAddFromLibrary({ source: "requirement" })}
+            />
+          )}
+          {tab === "Evidence" && <SystemEvidence programId={programId} element={row} rows={rows} />}
+        </Stack>
+      </TabsContent>
+    </Tabs>
+  );
+}
 
 type TreeRow = SystemTreeNode<SystemAssuranceRow & { typeLabel: string }>;
 type Editor = { existing?: SystemElement; parent?: SystemElement };
@@ -82,7 +150,13 @@ export function ProgramSystemsTree({
 }) {
   const workspace = useWorkspace();
   const navigate = useNavigate();
-  const { rows: assuranceRows, elements, error, pending } = useSystemAssurance(programId);
+  const {
+    rows: assuranceRows,
+    elements,
+    error,
+    pending,
+    queries: assuranceQueries,
+  } = useSystemAssurance(programId);
   const components = useRows("system_components");
   const libraryElementIds = useMemo(
     () =>
@@ -96,6 +170,10 @@ export function ProgramSystemsTree({
   const [editing, setEditing] = useState<Editor | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [libraryTargetId, setLibraryTargetId] = useState<string | null>(null);
+  const [libraryOptions, setLibraryOptions] = useState<{
+    controlId?: string;
+    source?: "requirement";
+  }>({});
   const [addingProduct, setAddingProduct] = useState(false);
   const collection = workspace.collections.find((item) => item.name === "systems");
   const canCreate = !readOnly && workspace.role !== "viewer" && !!collection?.can_insert;
@@ -131,18 +209,9 @@ export function ProgramSystemsTree({
                 title={`${row.code} · ${row.name}`}
               >
                 <Icon aria-hidden className="size-200 shrink-0 icon-subtle" />
-                <TextLink
-                  render={
-                    <Link
-                      to="/programs/$programId/systems/$scopeId"
-                      params={{ programId, scopeId: row.id }}
-                      onClick={(event) => event.stopPropagation()}
-                    />
-                  }
-                  className="min-w-0 truncate"
-                >
+                <RecordLink table="systems" record={row}>
                   {row.name}
-                </TextLink>
+                </RecordLink>
                 {row.is_authorization_boundary && (
                   <span title="Authorization boundary" aria-label="Authorization boundary">
                     <Shield aria-hidden className="size-150 shrink-0 icon-subtle" />
@@ -252,7 +321,7 @@ export function ProgramSystemsTree({
             ]
           : []),
       ]),
-    [programId, previewId, canCreate, canEdit, libraryElementIds],
+    [previewId, canCreate, canEdit, libraryElementIds],
   );
   const table = useDataTable({
     columns,
@@ -271,36 +340,32 @@ export function ProgramSystemsTree({
   });
   const createAction =
     canCreate && (!rootElementId || root) ? (
-      <Inline space="space.100">
-        {!root && (
-          <Button
-            size="small"
-            variant="secondary"
-            iconBefore={<Boxes />}
-            onClick={() => setAddingProduct(true)}
-          >
-            From a product…
-          </Button>
-        )}
-        <Button
-          size="small"
-          variant="primary"
-          iconBefore={<Plus />}
-          onClick={() => setEditing(root ? { parent: root } : {})}
-        >
-          Create system
-        </Button>
-      </Inline>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button size="small" variant="primary" iconBefore={<Plus />}>
+              Create system
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setEditing(root ? { parent: root } : {})}>
+            Create system
+          </DropdownMenuItem>
+          {!root && (
+            <DropdownMenuItem onClick={() => setAddingProduct(true)}>
+              Add system from product
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     ) : null;
   const displayed = useDisplayedRecords(table);
   return (
     <>
-      <DataTable
-        responsive
+      <ProductCollection
         table={table}
         fill={fill}
-        state={error ? "error" : pending ? "loading" : "ready"}
-        error={error?.message}
         onRowClick={(row) =>
           void navigate({
             to: "/programs/$programId/systems/$scopeId",
@@ -313,17 +378,9 @@ export function ProgramSystemsTree({
           description: "Add the first system, then define its nested elements.",
           action: createAction,
         }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder="Find an element"
-            actions={createAction}
-          >
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
-        }
+        queries={[...assuranceQueries, components]}
+        searchLabel="Find an element"
+        action={createAction}
       />
       {preview && !pending && !error && (
         <RecordPreviewPanel
@@ -361,7 +418,12 @@ export function ProgramSystemsTree({
                         Create system
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem onClick={() => setLibraryTargetId(preview.id)}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setLibraryOptions({});
+                        setLibraryTargetId(preview.id);
+                      }}
+                    >
                       <Library />
                       Add from library
                     </DropdownMenuItem>
@@ -379,11 +441,16 @@ export function ProgramSystemsTree({
             />
           }
         >
-          <SystemAssuranceDetails
+          <ElementPreview
             key={preview.id}
+            programId={programId}
             row={preview}
             rows={assuranceRows}
             onDrill={setPreviewId}
+            onAddFromLibrary={(options) => {
+              setLibraryOptions(options);
+              setLibraryTargetId(preview.id);
+            }}
           />
         </RecordPreviewPanel>
       )}
@@ -399,7 +466,12 @@ export function ProgramSystemsTree({
           programId={programId}
           element={libraryTarget}
           rows={assuranceRows}
-          onClose={() => setLibraryTargetId(null)}
+          controlId={libraryOptions.controlId}
+          initialSource={libraryOptions.source === "requirement" ? "requirement" : undefined}
+          onClose={() => {
+            setLibraryTargetId(null);
+            setLibraryOptions({});
+          }}
         />
       )}
       {editing && (

@@ -1,8 +1,14 @@
+import { ProductCollection } from "./product-collection";
+import { RecordLink, useDisplayedRecords } from "./record-preview";
+import { RecordSummaryPreview } from "./record-summary-preview";
+import { QueryState, MissingRecord } from "./work-common";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  defineColumns,
+  useDataTable,
   Badge,
   Box,
   Button,
@@ -163,151 +169,182 @@ export function RequirementControlMappings({
   const sourceText = context.allocated
     ? "Choose an allocated system and a control from its effective profile."
     : "Allocate this requirement to a system before adding a system control mapping.";
+  const [previewId, setPreviewId] = useState<string>();
+  const rows = useMemo(
+    () =>
+      (links.data ?? []).map((link) => {
+        const control = controls.data?.find((row) => row.id === link.control_id);
+        const part = parts.data?.find((row) => row.id === link.control_part_id);
+        const system = systems.data?.find((row) => row.id === link.system_id);
+        const selection = selections.data?.find((row) => row.id === link.selected_control_id);
+        const baseline = baselines.data?.find((row) => row.system_id === link.system_id);
+        return {
+          ...link,
+          name: control ? `${control.code} · ${control.title}` : "Control unavailable",
+          control,
+          part,
+          coverage: !link.control_part_id
+            ? "Whole control"
+            : (part?.source_id ?? part?.title ?? "Target unavailable"),
+          systemName: system ? `${system.code} · ${system.name}` : "Catalog reference",
+          needsReview:
+            !!link.control_part_id && (!part || !isControlStatement(part, parts.data ?? [])),
+          outdated:
+            !!link.system_id &&
+            selection?.profile_resolution_id !== baseline?.profile_resolution_id,
+        };
+      }),
+    [links.data, controls.data, parts.data, systems.data, selections.data, baselines.data],
+  );
+  const columns = useMemo(
+    () =>
+      defineColumns<(typeof rows)[number]>((c) => [
+        c.id("name", {
+          header: "Control",
+          priority: 0,
+          minWidth: 200,
+          preview: (row) => setPreviewId(row.id),
+          active: (row) => row.id === previewId,
+          cell: (row) => (
+            <RecordLink table="requirement_control_links" record={row}>
+              {row.name}
+            </RecordLink>
+          ),
+        }),
+        c.text("coverage", {
+          header: "Coverage",
+          minWidth: 200,
+          cell: (row) => (
+            <Stack space="space.050">
+              <span>{row.coverage}</span>
+              {row.part?.prose && (
+                <p className="whitespace-pre-wrap font-body-small">{row.part.prose}</p>
+              )}
+              {row.needsReview && (
+                <>
+                  <Badge tone="warning" variant="secondary">
+                    Needs review
+                  </Badge>
+                  <p className="font-body-small text-subtle">
+                    This mapping points to an unavailable or non-statement target. Review its
+                    control coverage.
+                  </p>
+                </>
+              )}
+            </Stack>
+          ),
+        }),
+        c.text("systemName", {
+          header: "System",
+          minWidth: 180,
+          cell: (row) => (
+            <Stack space="space.050">
+              <span>{row.systemName}</span>
+              {row.outdated && (
+                <Badge tone="warning" variant="secondary">
+                  Earlier profile selection
+                </Badge>
+              )}
+            </Stack>
+          ),
+        }),
+        c.text("relationship_type", {
+          header: "Relationship",
+          width: 150,
+          cell: (row) =>
+            relationships.find((item) => item.value === row.relationship_type)?.label ??
+            labelFor(row.relationship_type),
+        }),
+        c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
+        ...(canEdit
+          ? [
+              c.actions((row) => [
+                {
+                  label: "Edit mapping",
+                  onSelect: () =>
+                    setEditing({
+                      link: row,
+                      part: row.part,
+                      control: row.control ? { id: row.control.id, label: row.name } : undefined,
+                    }),
+                },
+              ]),
+            ]
+          : []),
+      ]),
+    [previewId, canEdit],
+  );
+  const table = useDataTable({
+    columns,
+    data: rows,
+    getRowId: (row) => row.id,
+    label: "Requirement control mappings",
+    view: "requirement-control-mappings",
+    resizable: true,
+    reorderable: true,
+  });
+  const displayed = useDisplayedRecords(table);
+  const preview = rows.find((row) => row.id === previewId);
+  const action = writable ? (
+    <Button
+      size="small"
+      variant="primary"
+      iconBefore={<Plus />}
+      disabled={!ready || !context.sources.length}
+      onClick={() => setAdding(true)}
+    >
+      Map control
+    </Button>
+  ) : undefined;
   return (
     <Stack space="space.200">
-      <Inline alignBlock="center" spread="space-between" space="space.150">
-        <h2 className="font-heading-small">Control mappings</h2>
-        {writable && (
-          <Button
-            size="small"
-            variant="primary"
-            iconBefore={<Plus />}
-            disabled={!ready || !context.sources.length}
-            onClick={() => setAdding(true)}
-          >
-            Map control
-          </Button>
+      <QueryState queries={[identity, content]}>
+        {valid ? (
+          <ProductCollection
+            fill
+            table={table}
+            queries={queries}
+            searchLabel="Find a control mapping"
+            action={action}
+            empty={{
+              illustration: "shield",
+              title: "No control mappings yet",
+              description: context.sources.length
+                ? "Map a control to record how this requirement supports it."
+                : context.allocated
+                  ? "Adopt a resolved profile on an allocated system before mapping a control."
+                  : "Allocate this requirement to a system before mapping a control.",
+            }}
+          />
+        ) : (
+          <MissingRecord kind="Requirement" backTo="/programs" />
         )}
-      </Inline>
-      {error ? (
-        <p role="alert" className="text-danger">
-          {error.message}
-        </p>
-      ) : !ready ? (
-        <p role="status">Loading control mappings…</p>
-      ) : !valid ? (
-        <p role="alert">Requirement not found in this program.</p>
-      ) : (
-        <>
-          {!context.sources.length && (
-            <p role="status" className="font-body-small text-subtle">
-              {context.allocated
-                ? "The allocated systems do not have a resolved profile. Select a profile on the system first."
-                : "Allocate this requirement to a system before adding a system control mapping."}
-            </p>
-          )}
-          {links.data!.length ? (
-            <div className="overflow-x-auto">
-              <Table aria-label="Requirement control mappings">
-                <thead>
-                  <Table.Row>
-                    <Table.Header>Control</Table.Header>
-                    <Table.Header width={256}>Coverage</Table.Header>
-                    <Table.Header>System</Table.Header>
-                    <Table.Header>Relationship</Table.Header>
-                    <Table.Header>Rationale</Table.Header>
-                    {canEdit && <Table.Header>Actions</Table.Header>}
-                  </Table.Row>
-                </thead>
-                <tbody>
-                  {links.data!.map((link) => {
-                    const part = parts.data!.find(
-                      (candidate) => candidate.id === link.control_part_id,
-                    );
-                    const control = controls.data!.find(
-                      (candidate) => candidate.id === link.control_id,
-                    );
-                    const statement =
-                      !link.control_part_id || (part && isControlStatement(part, parts.data!));
-                    const system = systems.data!.find((row) => row.id === link.system_id);
-                    const selection = selections.data!.find(
-                      (row) => row.id === link.selected_control_id,
-                    );
-                    const baseline = baselines.data!.find(
-                      (row) => row.system_id === link.system_id,
-                    );
-                    const outdated =
-                      !!link.system_id &&
-                      selection?.profile_resolution_id !== baseline?.profile_resolution_id;
-                    return (
-                      <Table.Row key={link.id}>
-                        <Table.Cell className="whitespace-normal">
-                          {control ? `${control.code} · ${control.title}` : "Control unavailable"}
-                        </Table.Cell>
-                        <Table.Cell className="whitespace-normal">
-                          <Stack space="space.050">
-                            <span className="font-body-small font-medium">
-                              {!link.control_part_id
-                                ? "Whole control"
-                                : (part?.source_id ?? part?.title ?? "Target unavailable")}
-                            </span>
-                            {part?.prose && (
-                              <p className="whitespace-pre-wrap font-body-small">{part.prose}</p>
-                            )}
-                            {!statement && (
-                              <>
-                                <Badge tone="warning" variant="secondary">
-                                  Needs review
-                                </Badge>
-                                <p className="font-body-small text-subtle">
-                                  This existing mapping points to{" "}
-                                  {part
-                                    ? labelFor(part.name).toLowerCase()
-                                    : "an unavailable target"}
-                                  , rather than a control statement with recorded prose. It has been
-                                  preserved for review.
-                                </p>
-                              </>
-                            )}
-                          </Stack>
-                        </Table.Cell>
-                        <Table.Cell className="whitespace-normal">
-                          {system ? `${system.code} · ${system.name}` : "Catalog reference"}
-                          {outdated && (
-                            <Badge tone="warning" variant="secondary">
-                              Earlier profile selection
-                            </Badge>
-                          )}
-                        </Table.Cell>
-                        <Table.Cell>
-                          {relationships.find((item) => item.value === link.relationship_type)
-                            ?.label ?? labelFor(link.relationship_type)}
-                        </Table.Cell>
-                        <Table.Cell className="whitespace-normal">
-                          {link.rationale ?? "Not recorded"}
-                        </Table.Cell>
-                        {canEdit && (
-                          <Table.Cell>
-                            <Button
-                              size="small"
-                              variant="subtle"
-                              onClick={() =>
-                                setEditing({
-                                  link,
-                                  part,
-                                  control: control
-                                    ? {
-                                        id: control.id,
-                                        label: `${control.code} · ${control.title}`,
-                                      }
-                                    : undefined,
-                                })
-                              }
-                            >
-                              Edit mapping
-                            </Button>
-                          </Table.Cell>
-                        )}
-                      </Table.Row>
-                    );
-                  })}
-                </tbody>
-              </Table>
-            </div>
-          ) : (
-            <p className="text-subtle">No control mappings recorded.</p>
-          )}
-        </>
+      </QueryState>
+      {preview && (
+        <RecordSummaryPreview
+          model="requirement_control_links"
+          readOnly={!canEdit || !ready}
+          onEdit={() =>
+            setEditing({
+              link: preview,
+              part: preview.part,
+              control: preview.control
+                ? { id: preview.control.id, label: preview.name }
+                : undefined,
+            })
+          }
+          record={preview}
+          rows={displayed}
+          onSelect={(row) => setPreviewId(row.id)}
+          onClose={() => setPreviewId(undefined)}
+          fields={[
+            { key: "name", label: "Control" },
+            { key: "coverage" },
+            { key: "systemName", label: "System" },
+            { key: "relationship_type" },
+            { key: "rationale" },
+          ]}
+        />
       )}
       {(adding || editing) && (
         <MappingDialog
@@ -536,7 +573,7 @@ function MappingDialog({
                     }}
                     disabled={busy || !canWrite}
                   >
-                    <SelectTrigger id={`${fieldId}-system`}>
+                    <SelectTrigger autoFocus id={`${fieldId}-system`}>
                       <SelectValue
                         placeholder={
                           initial && !systemId ? "Catalog reference" : "Choose an allocated system"
@@ -730,7 +767,7 @@ function MappingDialog({
               Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={busy || !canWrite}>
-              {busy ? "Saving…" : "Save mapping"}
+              {initial ? "Edit control mapping" : "Map control"}
             </Button>
           </DialogFooter>
         </form>

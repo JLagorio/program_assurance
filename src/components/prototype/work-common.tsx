@@ -1,3 +1,4 @@
+import { productRecordNoun } from "@/lib/product-records";
 import { statusTone } from "./work-format";
 import type { ReactNode } from "react";
 import {
@@ -22,6 +23,7 @@ import {
   PageHeader,
   Section,
   Stack,
+  Spinner,
   TextLink,
 } from "@ledger/design-system";
 import { ChevronDown } from "lucide-react";
@@ -48,12 +50,15 @@ export type QueryStatus = {
   data?: unknown;
 };
 export function QueryState({
-  queries,
+  queries: many = [],
+  query,
   children,
 }: {
-  queries: QueryStatus[];
+  queries?: QueryStatus[];
+  query?: QueryStatus;
   children?: ReactNode;
 }) {
+  const queries = query ? [...many, query] : many;
   const failed = queries.find((query) => query.isError);
   const pending = queries.some((query) => query.isPending && query.data === undefined);
   const available = queries.every(
@@ -78,9 +83,9 @@ export function QueryState({
         </Stack>
       )}
       {pending && (
-        <p role="status" className="py-200 text-subtle">
-          Loading records…
-        </p>
+        <Inline space="space.100" role="status" aria-live="polite">
+          <Spinner /> Loading records…
+        </Inline>
       )}
       {available && children}
     </>
@@ -110,7 +115,7 @@ const missingRecordDestinations = {
   "/": "Open workspace",
   "/work": "Open my work",
   "/programs": "Open programs",
-  "/campaigns": "Open test campaigns",
+  "/campaigns": "Open assessment campaigns",
   "/findings": "Open findings and assets",
   "/register": "Open POA&M and risk register",
   "/packages": "Open authorization packages",
@@ -155,6 +160,7 @@ export function MissingRecord({
 }
 export type FormTarget = {
   table: TableName;
+  operationLabel?: string | undefined;
   existing?: DataRecord;
   initialValues?: Record<string, RecordValue>;
 };
@@ -170,6 +176,7 @@ export function ModelForm({
   return (
     <ProductRecordDialog
       table={target.table}
+      operationLabel={target.operationLabel}
       existing={target.existing}
       initialValues={target.initialValues}
       onSaved={onSaved}
@@ -213,7 +220,7 @@ export function RecordActions({
   onEdit,
   table,
   id,
-  editLabel = "Edit record",
+  editLabel,
   readOnly = false,
 }: {
   onEdit: () => void;
@@ -228,7 +235,9 @@ export function RecordActions({
       <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
       <DropdownMenuContent align="end">
         {!readOnly && workspace.role !== "viewer" && (
-          <DropdownMenuItem onClick={onEdit}>{editLabel}</DropdownMenuItem>
+          <DropdownMenuItem onClick={onEdit}>
+            {editLabel ?? `Edit ${productRecordNoun(table)}`}
+          </DropdownMenuItem>
         )}
         <DropdownMenuItem
           render={

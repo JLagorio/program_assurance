@@ -3,7 +3,7 @@
 
 /** The floating surface. */
 export const menuSurface =
-  "z-50 overflow-hidden rounded-large border border-default bg-surface-overlay p-050 shadow-overlay outline-none";
+  "relative z-50 overflow-hidden rounded-large border border-default bg-surface-overlay p-050 shadow-overlay outline-none";
 
 /** Compact rows grow for wrapped labels, descriptions and avatars. */
 export const menuItem =

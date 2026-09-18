@@ -7,6 +7,7 @@ import { createContext, useContext, type ComponentProps, useRef } from "react";
 import { cn } from "../lib/cn";
 import { menuItem, menuItemHighlighted, menuItemDisabled, menuChoiceSelected } from "./menu";
 import { classes } from "../lib/base-ui";
+import { Scroller, ScrollerArrow, ScrollerViewport } from "./scroller";
 import { useLedgerLocale } from "../lib/locale";
 import { type ControlSize } from "./controls";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "./input-group";
@@ -177,21 +178,26 @@ export function ComboboxList({ className, style, ...props }: ComboboxListProps) 
   const defaults = { maxHeight: "min(var(--ds-dimension-layout-panel), var(--available-height))" };
   const { t } = useLedgerLocale();
   return (
-    <Primitive.List
-      aria-labelledby={props["aria-labelledby"]}
-      aria-label={props["aria-labelledby"] ? undefined : t("choose")}
-      data-slot="combobox-list"
-      className={classes(
-        "min-h-0 overflow-y-auto overscroll-none p-050 outline-none empty:p-0",
-        className,
-      )}
-      style={
-        typeof style === "function"
-          ? (state) => ({ ...defaults, ...style(state) })
-          : { ...defaults, ...style }
-      }
-      {...props}
-    />
+    <Scroller orientation="vertical" surface="overlay">
+      <ScrollerViewport
+        render={
+          <Primitive.List
+            aria-labelledby={props["aria-labelledby"]}
+            aria-label={props["aria-labelledby"] ? undefined : t("choose")}
+            data-slot="combobox-list"
+            className={classes("overscroll-none p-050 outline-none empty:p-0", className)}
+            style={
+              typeof style === "function"
+                ? (state) => ({ ...defaults, ...style(state) })
+                : { ...defaults, ...style }
+            }
+            {...props}
+          />
+        }
+      />
+      <ScrollerArrow edge="start" />
+      <ScrollerArrow edge="end" />
+    </Scroller>
   );
 }
 
@@ -274,7 +280,7 @@ export function ComboboxChips({ className, ...props }: ComboboxChipsProps) {
     <Primitive.Chips
       data-slot="combobox-chips"
       className={classes(
-        "flex min-h-control-medium flex-wrap items-center gap-050 rounded-medium border border-input bg-input p-050 has-[:focus-visible]:border-focused has-[:focus-visible]:outline-focused has-[[aria-invalid=true]]:border-danger",
+        "flex min-h-control-medium flex-wrap items-center gap-050 rounded-medium border border-input bg-input p-050 has-[:focus-visible]:border-focused has-[:focus-visible]:outline-field-focused has-[[aria-invalid=true]]:border-danger has-[[aria-invalid=true]]:has-[:focus-visible]:border-danger has-[[aria-invalid=true]]:has-[:focus-visible]:outline-field-danger",
         className,
       )}
       {...props}

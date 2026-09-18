@@ -108,7 +108,7 @@ export const SelectMatrix: Story = {
               aria-labelledby={`${fieldId}-status-1-label`}
               aria-describedby={`${fieldId}-status-1-message`}
               ref={triggerRef}
-              style={(s) => ({ width: 240, outlineOffset: s.open ? 4 : 0 })}
+              style={(s) => ({ width: 240, cursor: s.open ? "default" : "pointer" })}
               className={(s) => (s.open ? "font-medium" : "font-regular")}
               render={<button ref={renderedRef} data-native-target="status" />}
             >
@@ -195,6 +195,7 @@ export const SelectMatrix: Story = {
     await user.keyboard("{ArrowDown}");
     const review = await body.findByRole("option", { name: "In review" });
     await waitFor(() => expect(review).toHaveFocus());
+    await expect(trigger).toHaveStyle({ cursor: "default" });
     await expect(popupRef.current).toHaveStyle({ outlineOffset: "4px" });
     await expect(canvasElement).not.toContainElement(popupRef.current);
     await expect(body.getByRole("group", { name: "Workflow" })).toContainElement(review);
@@ -425,13 +426,13 @@ export const InField: Story = {
   },
 };
 
-/** Custom scroll-arrow composition for a bounded, grouped list in RTL. */
+/** Custom scroll-arrow composition for a bounded list, and the standard Content in RTL. */
 export const Scrolling: Story = {
   render: function FieldExample() {
     const fieldId = useId();
     return (
-      <LedgerProvider direction="rtl">
-        <div className="p-600">
+      <div style={{ maxWidth: 240 }}>
+        <Stack space="space.200">
           <Field>
             <FieldLabel
               id={`${fieldId}-retention-period-7-label`}
@@ -457,7 +458,6 @@ export const Scrolling: Story = {
                 <SelectPrimitive.Positioner sideOffset={4} alignItemWithTrigger={false}>
                   <SelectPrimitive.Popup
                     className={menuSurface}
-                    dir="rtl"
                     style={{ width: 200, maxHeight: 180 }}
                   >
                     <SelectScrollUpButton data-testid="scroll-up" />
@@ -477,36 +477,40 @@ export const Scrolling: Story = {
               </SelectPrimitive.Portal>
             </Select>
           </Field>
-          <Field>
-            <FieldLabel
-              id={`${fieldId}-standard-retention-8-label`}
-              htmlFor={`${fieldId}-standard-retention-8`}
-            >
-              {"Standard retention"}
-            </FieldLabel>
-            <Select<number> defaultValue={12}>
-              <SelectTrigger
-                id={`${fieldId}-standard-retention-8`}
-                aria-labelledby={`${fieldId}-standard-retention-8-label`}
-                style={{ width: 200 }}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent
-                aria-labelledby={`${fieldId}-standard-retention-8-label`}
-                alignItemWithTrigger={false}
-                style={{ maxHeight: 180 }}
-              >
-                {Array.from({ length: 30 }, (_, i) => (
-                  <SelectItem key={i} value={i + 1}>
-                    {i + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        </div>
-      </LedgerProvider>
+          <LedgerProvider direction="rtl">
+            <div dir="rtl">
+              <Field>
+                <FieldLabel
+                  id={`${fieldId}-standard-retention-8-label`}
+                  htmlFor={`${fieldId}-standard-retention-8`}
+                >
+                  {"Standard retention"}
+                </FieldLabel>
+                <Select<number> defaultValue={12}>
+                  <SelectTrigger
+                    id={`${fieldId}-standard-retention-8`}
+                    aria-labelledby={`${fieldId}-standard-retention-8-label`}
+                    style={{ width: 200 }}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    aria-labelledby={`${fieldId}-standard-retention-8-label`}
+                    alignItemWithTrigger={false}
+                    style={{ maxHeight: 180 }}
+                  >
+                    {Array.from({ length: 30 }, (_, i) => (
+                      <SelectItem key={i} value={i + 1}>
+                        {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+          </LedgerProvider>
+        </Stack>
+      </div>
     );
   },
   play: async ({ canvasElement }) => {
@@ -518,6 +522,13 @@ export const Scrolling: Story = {
     await user.click(trigger);
     const list = await body.findByRole("listbox");
     await waitFor(() => expect(body.getByTestId("scroll-down")).toBeVisible());
+    // The arrow spans the popup's inner box, flush with its border.
+    const popup = list.parentElement!;
+    const arrowBox = body.getByTestId("scroll-down").getBoundingClientRect();
+    const popupBox = popup.getBoundingClientRect();
+    await expect(Math.round(arrowBox.left)).toBe(Math.round(popupBox.left + popup.clientLeft));
+    await expect(Math.round(arrowBox.width)).toBe(popup.clientWidth);
+    await expect(Math.round(arrowBox.height)).toBe(24);
     const initial = list.scrollTop;
     await user.hover(body.getByTestId("scroll-down"));
     // Base UI requires actual movement; userEvent.hover emits zero movement.
@@ -608,6 +619,12 @@ export const Dialogs: Story = {
     const dialog = await body.findByRole("dialog", { name: "Record status" });
     const trigger = within(dialog).getByRole("combobox", { name: "Status" });
     await waitFor(() => expect(trigger).toHaveFocus());
+    // Position the nested list after its dialog anchor has finished arriving.
+    await waitFor(() =>
+      expect(dialog.getAnimations().every((animation) => animation.playState !== "running")).toBe(
+        true,
+      ),
+    );
     await user.keyboard("{ArrowDown}");
     const list = await body.findByRole("listbox", { name: "Status" });
     await waitFor(() =>

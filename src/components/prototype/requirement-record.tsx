@@ -1,3 +1,4 @@
+import { ProductRecordDialog } from "./product-record-dialog";
 import { EmptyMessage, MissingRecord } from "./work-common";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
@@ -54,7 +55,7 @@ export function requirementTab(value: unknown): RequirementTab | undefined {
   return REQUIREMENT_TABS.find((tab) => tab === value);
 }
 
-export type RequirementRecordFrame = { content: ReactNode; title: string };
+export type RequirementRecordFrame = { content: ReactNode; title: string; actions: ReactNode };
 
 type RequirementRecordProps = {
   programId: string;
@@ -87,6 +88,7 @@ export function RequirementRecordContent({
     setLockedRecord(state.dirty || state.busy ? (activeRef.current ?? null) : null);
   }, []);
   const [creating, setCreating] = useState(false);
+  const [editingIdentity, setEditingIdentity] = useState(false);
   const ordered = [...(revisions.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const active = lockedRecord ?? ordered[0];
   activeRef.current = active;
@@ -100,8 +102,21 @@ export function RequirementRecordContent({
     workspace.role !== "viewer" && requirement.data?.tenant_id === workspace.tenantId;
   const canCreate = canWrite && collection?.can_insert;
   const canEdit = canWrite && collection?.can_update;
+  const actions =
+    canWrite &&
+    workspace.collections.find((item) => item.name === "engineering_requirements")?.can_update ? (
+      <Button size="small" variant="primary" onClick={() => setEditingIdentity(true)}>
+        Edit engineering requirement
+      </Button>
+    ) : null;
   const frame = (content: ReactNode) =>
-    renderFrame ? renderFrame({ content, title: active?.title ?? "Requirement" }) : content;
+    renderFrame
+      ? renderFrame({
+          content,
+          title: active?.title ?? requirement.data?.code ?? "Requirement",
+          actions,
+        })
+      : content;
 
   if (
     (requirement.data === undefined || revisions.data === undefined) &&
@@ -110,8 +125,9 @@ export function RequirementRecordContent({
     return frame(<ProgramQueryState queries={[requirement, revisions]} />);
   if (!requirement.data || requirement.data.program_id !== programId)
     return frame(
-      <EmptyMessage
-        title="Requirement not found"
+      <MissingRecord
+        backTo="/programs"
+        kind="Requirement"
         description="This requirement is unavailable in this program."
       />,
     );
@@ -181,7 +197,6 @@ export function RequirementRecordContent({
                     ]}
                     canCreate={!!canEdit}
                     readOnly={!canEdit}
-                    createLabel="Link verification procedure"
                   />
                 )}
                 {currentTab === "Evidence" && (
@@ -216,10 +231,17 @@ export function RequirementRecordContent({
         >
           {canCreate && (
             <Button iconBefore={<Plus />} onClick={() => setCreating(true)}>
-              Add requirement details
+              Create requirement revision
             </Button>
           )}
         </Section>
+      )}
+      {editingIdentity && requirement.data && (
+        <ProductRecordDialog
+          table="engineering_requirements"
+          existing={requirement.data}
+          onClose={() => setEditingIdentity(false)}
+        />
       )}
       {creating && (
         <AddRequirementDetailsDialog
@@ -428,7 +450,7 @@ export function ProgramRequirementRecord({
       requirementId={requirementId}
       tab={tab}
       onTabChange={onTabChange}
-      renderFrame={({ content, title }) => (
+      renderFrame={({ content, title, actions }) => (
         <Stack space="space.250">
           <PageHeader>
             <PageHeader.Lead render={<Breadcrumb />}>
@@ -467,6 +489,7 @@ export function ProgramRequirementRecord({
             <PageHeader.Heading>
               <PageHeader.Title>{title}</PageHeader.Title>
             </PageHeader.Heading>
+            <PageHeader.Actions>{actions}</PageHeader.Actions>
           </PageHeader>
           {content}
         </Stack>

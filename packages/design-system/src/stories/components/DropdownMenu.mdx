@@ -13,7 +13,9 @@ Actions and view options anchored to a button, using shadcn's Base UI Menu compo
   <DropdownMenuContent style={{ width: 200 }}>
     <DropdownMenuItem onClick={edit}>Edit</DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem variant="destructive" onClick={archive}>Archive</DropdownMenuItem>
+    <DropdownMenuItem variant="destructive" onClick={archive}>
+      Archive
+    </DropdownMenuItem>
   </DropdownMenuContent>
 </DropdownMenu>
 ```
@@ -22,9 +24,9 @@ Actions and view options anchored to a button, using shadcn's Base UI Menu compo
 
 Root owns controlled or uncontrolled open state, modality, generic trigger payloads and cancellable `onOpenChange(open, details)`. Trigger defaults to a native button and composes existing buttons through `render`. Custom rendered components must accept merged props and refs; use `nativeButton={false}` only when replacing a button with a non-button action target.
 
-Content includes its portal and positioner. It defaults to bottom/start, with a 4px side offset and zero alignment offset. Its width follows the trigger with a 128px minimum; existing consumers explicitly retain their previous widths. It scrolls within available height. Native `style`, `className`, `render` and refs target the popup; classes and styles accept state callbacks. Content's `dir` overrides Ledger's inherited positioning direction.
+Content includes its portal and positioner. It defaults to bottom/start, with a 4px side offset and zero alignment offset. Its width fits its contents and is at least the trigger width or 128px, within the available viewport. A narrow trigger never forces action labels to wrap. It scrolls when the available space is smaller than its contents, inside a [Scroller](?path=/docs/components-scroller--docs) whose hover arrows mark each overflowed edge. Native `style`, `className`, `render` and refs target the popup; classes and styles accept state callbacks. Content's `dir` overrides Ledger's inherited positioning direction.
 
-Use Group around related items and Label inside that Group. Items compose icons, text and Shortcut as children. Destructive actions use `variant="destructive"`; `inset` aligns labels and items without icons. The row uses Ledger's 28px menu height. Wrap long labels in a truncating span or supply deliberate wrapping styles for longer content.
+Use Group around related items and Label inside that Group. Items compose icons, text and Shortcut as children. Destructive actions use `variant="destructive"`; `inset` aligns labels and items without icons. The row uses Ledger's 28px menu height. Action labels stay on one line.
 
 <Canvas of={Stories.DropdownMenuMatrix} />
 

@@ -1,0 +1,8 @@
+/* The Scroller's arrows replace the native scrollbar while they are in play: the Scroller stamps
+   its viewport while it overflows and the pointer can hover. Touch readers keep theirs. */
+[data-scroller-arrows] {
+  scrollbar-width: none;
+}
+[data-scroller-arrows]::-webkit-scrollbar {
+  display: none;
+}

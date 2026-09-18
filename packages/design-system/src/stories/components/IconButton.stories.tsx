@@ -52,6 +52,14 @@ export const IconButtonMatrix: Story = {
         await expect(button.getBoundingClientRect().height).toBe(size);
         const icon = button.querySelector("svg")!;
         await expect(getComputedStyle(icon).width).toBe(col === "medium" ? "16px" : "14px");
+        const buttonBox = button.getBoundingClientRect();
+        const iconBox = icon.getBoundingClientRect();
+        await expect(
+          Math.abs(iconBox.x + iconBox.width / 2 - buttonBox.x - buttonBox.width / 2),
+        ).toBeLessThanOrEqual(0.5);
+        await expect(
+          Math.abs(iconBox.y + iconBox.height / 2 - buttonBox.y - buttonBox.height / 2),
+        ).toBeLessThanOrEqual(0.5);
         if (col !== "loading") await expect(icon).toHaveAttribute("aria-hidden", "true");
       }
       await expect(canvas.getByTestId(`${variant}-selected`)).toHaveAttribute(

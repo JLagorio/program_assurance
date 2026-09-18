@@ -28,6 +28,10 @@ Place domain tests alongside code as `*.test.ts`; Node test-runner suites live i
 
 History has no consistent commit prefix. Write action-oriented subjects. Describe behavior changes, link relevant issues, report validation, and include screenshots for UI changes. Keep commits focused and preserve unrelated workspace edits.
 
+## Design system
+
+Read [`packages/design-system/AGENTS.md`](packages/design-system/AGENTS.md) before changing the kit. It points at the component library guide, the Storybook (the contract, with an MCP server at port 6007) and the checks in CI order; `packages/design-system/llms.txt` is the Storybook as one generated file for tools that cannot reach it. Domain code in `src/lib` never imports the UI; the lint enforces the direction.
+
 ## Screens
 
 Read [the product pattern contract](docs/guides/product-patterns.md) before creating or changing a screen. It decides which Ledger part this application uses for each shape (register, preview, record, form, states, titles), names the closed exceptions, points at the file to copy, and says what checks it. Ledger's Storybook documents the generic component APIs; the contract decides between them here. Do not infer a shape from a neighbouring screen, and do not keep a second copy of the contract in any instruction file. A shape the contract does not cover needs a written recommendation before it is built. After changing a screen, run the lint, type and workflow checks and look at it at desktop and 390px widths.

@@ -105,9 +105,18 @@ try {
     version_number: 2,
     title: "Header published revision",
     method: "test",
-    state: "published",
-    published_at: new Date().toISOString(),
   });
+  const draftStep = await insert("procedure_steps", {
+    procedure_revision_id: revision.id,
+    sequence_number: 1,
+    instruction: "Verify the draft procedure preview edit route.",
+  });
+  const publishedStep = await insert("procedure_steps", {
+    procedure_revision_id: publishedProcedure.id,
+    sequence_number: 1,
+    instruction: "Verify published procedure steps stay read-only.",
+  });
+  await publish("procedure_revisions", publishedProcedure);
   const pkg = await insert("authorization_packages", {
     program_id: program.id,
     system_id: system.id,
@@ -204,7 +213,7 @@ try {
     await check(procedure.title, "Edit procedure", true);
     if (width === 1440) {
       await eye(revision.id).click();
-      await check(revision.title, "Edit revision");
+      await check(revision.title, "Edit procedure revision");
       await eye(procedure.id).click();
       await check(procedure.title, "Edit procedure", true);
     }
@@ -218,35 +227,66 @@ try {
     await cancelDialog();
     await expect(panel()).toHaveCount(0);
     await eye(revision.id).click();
-    await check(revision.title, "Edit revision");
-    await header().getByRole("button", { name: "Edit revision", exact: true }).click();
+    await check(revision.title, "Edit procedure revision");
+    await header().getByRole("button", { name: "Edit procedure revision", exact: true }).click();
     await cancelDialog();
     await expect(panel()).toHaveCount(0);
+    // A step preview inherits its revision's edit policy, and uses the parent workflow editor.
+    await eye(revision.id).click();
+    await eye(draftStep.id).click();
+    await header().getByRole("button", { name: "Edit procedure step", exact: true }).click();
+    await expect(
+      page.getByRole("dialog", { name: "Edit procedure step", exact: true }),
+    ).toBeVisible();
+    await cancelDialog();
+    await expect(panel()).toHaveCount(0);
+    await eye(publishedProcedure.id).click();
+    await eye(publishedStep.id).click();
+    await expect(panel()).toContainText(publishedStep.instruction);
+    await expect(
+      header().getByRole("button", { name: "Edit procedure step", exact: true }),
+    ).toHaveCount(0);
+    await chrome().getByRole("button", { name: "Close details", exact: true }).click();
+
     await page.goto(`${origin}/packages/${pkg.id}`);
+    const versionsTable = page.getByRole("table", { name: /^package versions$/i });
+    const versionSort = versionsTable.getByRole("button", { name: /^Version(?: number)?$/ });
+    const versionHeader = versionsTable
+      .getByRole("columnheader")
+      .filter({ has: page.getByRole("button", { name: /^Version(?: number)?$/ }) });
+    for (
+      let attempt = 0;
+      attempt < 3 && (await versionHeader.getAttribute("aria-sort")) !== "ascending";
+      attempt++
+    )
+      await versionSort.click();
+    await expect(versionHeader).toHaveAttribute("aria-sort", "ascending");
     await eye(pkgVersion.id).click();
-    await check("Version 1", "Edit version");
+    await check("Version 1", "Edit authorization package version");
     await expect(
       panel().getByRole("heading", { name: "Package version 1", exact: true }),
     ).toHaveCount(0);
     await page.screenshot({ path: `${artifacts}/package-${width}.png` });
-    await header().getByRole("button", { name: "Edit version", exact: true }).click();
+    await header()
+      .getByRole("button", { name: "Edit authorization package version", exact: true })
+      .click();
     await cancelDialog();
-    await check("Version 1", "Edit version");
+    await check("Version 1", "Edit authorization package version");
     await chrome().getByRole("button", { name: "Next record", exact: true }).click();
-    await check("Version 2", "Edit version");
+    await check("Version 2", "Edit authorization package version");
     await chrome().getByRole("button", { name: "Previous record", exact: true }).click();
-    await check("Version 1", "Edit version");
+    await check("Version 1", "Edit authorization package version");
     await chrome().getByRole("button", { name: "Close details", exact: true }).click();
     await expect(eye(pkgVersion.id)).toBeFocused();
     console.log(
-      `PASS campaign procedure/revision + package header/edit/cancel/navigation at ${width}px`,
+      `PASS campaign procedure/revision, published step protection + package header/edit/cancel/navigation at ${width}px`,
     );
   }
   await page.goto(`${origin}/campaigns/${campaign.id}?tab=Runs`);
   await eye(run.id).click();
   await check(run.title, "Complete run", true);
   await header().getByRole("button", { name: "More actions", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Edit run", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit test run", exact: true }).click();
   await cancelDialog();
   await expect(panel()).toHaveCount(0);
   await eye(run.id).click();

@@ -1,0 +1,20 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as Stories from "./ShellIconRail.stories";
+
+<Meta of={Stories} />
+
+# Shell icon rail
+
+Set `collapsedSideNav="icons"` on Shell to retain destination icons, the active destination and the profile avatar in a 56px rail on desktop. Names remain accessible and appear in tooltips on hover or focus. Activating an expandable group restores the full navigation and opens its children. The default collapsed mode remains `"hidden"`. With the default app mark, the collapsed expand control occupies the mark’s existing position and appears on hover or keyboard focus. The mark is visible at rest, and the product name keeps its position through collapse and expansion. Phone navigation keeps its separate visible toggle.
+
+<Canvas of={Stories.Desktop} />
+
+Expand and minimize animate the sidebar width over Ledger's moderate duration. The page follows the sidebar while the app mark stays fixed; resizing follows the pointer immediately. Reduced motion and restoring a remembered layout skip the transition.
+
+<Canvas of={Stories.WidthMotion} />
+
+On phones, navigation slides in and out with a fading scrim, and returns focus to its toggle when dismissed. Closing navigation stops accepting input immediately, and reversing the action continues from its current position. The rail does not take space from the page.
+
+<Canvas of={Stories.Mobile390} />
+
+The RTL and persisted first-paint stories verify logical placement and restoration before hydration. See [Shell](?path=/docs/layout-shell--docs) for composition, persistence, keyboard behavior and the complete API.

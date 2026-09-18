@@ -1,3 +1,4 @@
+import { ProductCollection } from "./product-collection";
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -28,7 +29,12 @@ import {
   type RequirementTreeNode,
 } from "@/lib/requirement-tree";
 import { ProgramEditor } from "./program-shared";
-import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  useDisplayedRecords,
+} from "./record-preview";
 import { RequirementRecordContent, type RequirementTab } from "./requirement-record";
 
 type Allocation = { id: string; name: string; kind: string; rationale: string | null };
@@ -111,27 +117,40 @@ function useControlStatements(ids: string[], enabled: boolean) {
 }
 
 function AllocationsDetail({ row }: { row: RequirementNode }) {
+  const columns = useMemo(
+    () =>
+      defineColumns<Allocation>((c) => [
+        c.id("name", {
+          header: "Allocated to",
+          priority: 0,
+          minWidth: 180,
+          cell: (allocation) => (
+            <RecordLink table="requirement_allocations" record={allocation}>
+              {allocation.name}
+            </RecordLink>
+          ),
+        }),
+        c.text("kind", { header: "Target type", width: 160 }),
+        c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
+      ]),
+    [],
+  );
+  const table = useDataTable({
+    columns,
+    data: row.allocations,
+    getRowId: (allocation) => allocation.id,
+    label: `${row.code} allocations`,
+  });
   return (
-    <Table aria-label={`${row.code} allocations`}>
-      <thead>
-        <Table.Row>
-          <Table.Header>Allocated to</Table.Header>
-          <Table.Header width={160}>Target type</Table.Header>
-          <Table.Header>Rationale</Table.Header>
-        </Table.Row>
-      </thead>
-      <tbody>
-        {row.allocations.map((allocation) => (
-          <Table.Row key={allocation.id}>
-            <Table.Cell>{allocation.name}</Table.Cell>
-            <Table.Cell>{allocation.kind}</Table.Cell>
-            <Table.Cell className="whitespace-normal">
-              {allocation.rationale ?? <Absent />}
-            </Table.Cell>
-          </Table.Row>
-        ))}
-      </tbody>
-    </Table>
+    <ProductCollection
+      table={table}
+      searchLabel="Find an allocation"
+      empty={{
+        illustration: "tree",
+        title: "No allocations yet",
+        description: "Allocate this requirement to a system to record its responsibility.",
+      }}
+    />
   );
 }
 
@@ -164,6 +183,7 @@ export function RequirementsTable({
   const processes = useRows("security_processes", { program_id: programId });
   const parties = useRows("parties");
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [localPreviewId, setLocalPreviewId] = useState<string>();
   const [localTab, setLocalTab] = useState<RequirementTab>("Overview");
   const selectedId = onPreview ? previewId : localPreviewId;
@@ -321,36 +341,29 @@ export function RequirementsTable({
           preview: (row) => previewRef.current.openPreview(row.id),
           active: (row) => row.id === previewRef.current.selectedId,
           cell: (row) => (
-            <TextLink
-              render={
-                <Link
-                  to="/programs/$programId/requirements/$requirementId"
-                  params={{ programId, requirementId: row.id }}
-                />
-              }
+            <RecordLink
+              table="engineering_requirements"
+              record={{ id: row.id, program_id: programId }}
             >
               <Id>{row.code}</Id>
-            </TextLink>
+            </RecordLink>
           ),
         }),
-        c.text("statement", {
-          header: "Overview",
+        c.text("name", {
+          header: "Requirement name",
           minWidth: 200,
           priority: 0,
           hideable: false,
           cell: (row) => (
-            <TextLink
-              render={
-                <Link
-                  to="/programs/$programId/requirements/$requirementId"
-                  params={{ programId, requirementId: row.id }}
-                />
-              }
+            <RecordLink
+              table="engineering_requirements"
+              record={{ id: row.id, program_id: programId }}
             >
-              {row.statement}
-            </TextLink>
+              {row.name}
+            </RecordLink>
           ),
         }),
+        c.text("statement", { header: "Statement", minWidth: 200 }),
         c.list("allocatedTo", {
           header: "Allocated to",
           width: 240,
@@ -415,11 +428,7 @@ export function RequirementsTable({
       },
     },
   });
-  const visibleRows = table
-    .getRowModel()
-    .rows.filter((row) => !row.getIsGrouped())
-    .map((row) => row.original);
-  const selectedIndex = visibleRows.findIndex((row) => row.id === selectedId);
+  const visibleRows = useDisplayedRecords(table);
   const queries = [
     requirements,
     revisions,
@@ -454,8 +463,7 @@ export function RequirementsTable({
             separately so every requirement stays visible.
           </p>
         )}
-        <DataTable
-          responsive
+        <ProductCollection
           table={table}
           fill={fill}
           onRowClick={(row) =>
@@ -464,42 +472,28 @@ export function RequirementsTable({
               params: { programId, requirementId: row.id },
             })
           }
-          state={error ? "error" : loading ? "loading" : "ready"}
-          error={error instanceof Error ? error.message : "Requirements could not be loaded."}
           empty={{
             illustration: "shield",
             title: "No requirements yet",
             description: "Create the first engineering requirement for this program.",
             action: newRequirement,
           }}
-          toolbar={
-            <Toolbar
-              search={String(table.state.globalFilter ?? "")}
-              onSearch={(value) => table.setGlobalFilter(value)}
-              placeholder="Find a requirement"
-              views={
-                <DataTable.Presets
-                  table={table}
-                  presets={presets}
-                  variant="menu"
-                  aria-label="Saved views"
-                />
-              }
-              actions={newRequirement}
-              filters={
-                <>
-                  <DataTable.Filter table={table} column="allocation" />
-                  <DataTable.Filter table={table} column="controlMapping" />
-                </>
-              }
-            >
-              <DataTable.Columns table={table}>
-                <Button size="small" iconBefore={<Columns3 />}>
-                  Columns
-                </Button>
-              </DataTable.Columns>
-              <DataTable.Settings table={table} />
-            </Toolbar>
+          queries={queries}
+          searchLabel="Find a requirement"
+          views={
+            <DataTable.Presets
+              table={table}
+              presets={presets}
+              variant="menu"
+              aria-label="Saved views"
+            />
+          }
+          action={newRequirement}
+          filters={
+            <>
+              <DataTable.Filter table={table} column="allocation" />
+              <DataTable.Filter table={table} column="controlMapping" />
+            </>
           }
         />
       </Stack>
@@ -516,10 +510,24 @@ export function RequirementsTable({
           }
         />
       )}
+      {editing && selectedId && (
+        <ProgramEditor
+          table="engineering_requirements"
+          existing={requirements.data?.find((row) => row.id === selectedId)}
+          onClose={() => setEditing(false)}
+        />
+      )}
       {selectedId && (
         <RecordPreviewPanel
           title={projection.byId.get(selectedId)?.name ?? "Requirement"}
           label="Requirement preview"
+          recordActions={
+            canCreate ? (
+              <Button size="small" variant="primary" onClick={() => setEditing(true)}>
+                Edit engineering requirement
+              </Button>
+            ) : undefined
+          }
           defaultWidth={640}
           onClose={() => openPreview(undefined)}
           navigation={

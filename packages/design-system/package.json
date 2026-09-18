@@ -32,6 +32,7 @@
     "prepack": "npm run build",
     "build:tokens": "node build/tokens.mjs",
     "build:lint": "node build/lint-inventory.mjs",
+    "build:llms": "node build/llms.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build",
@@ -57,7 +58,9 @@
     "build",
     "eslint-plugin",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "llms.txt",
+    "AGENTS.md"
   ],
   "peerDependencies": {
     "react": "^19.0.0",

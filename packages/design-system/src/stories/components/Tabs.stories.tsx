@@ -67,15 +67,31 @@ export const ResponsiveWidths: Story = {
       }
       if (width === 720) {
         await expect(viewport.scrollWidth).toBe(viewport.clientWidth);
+        await expect(within(root).queryByRole("button", { name: /^Scroll/ })).toBeNull();
       } else {
         await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+        // The Scroller's arrows: the strip's height, its hairline, one per overflowed edge.
+        // While they show, the scrollbar and its gutter are gone.
+        const forward = await within(root).findByRole("button", { name: "Scroll forward" });
         const scrollbar = root.querySelector<HTMLElement>(
           '[data-slot="scroll-area-scrollbar"][data-orientation="horizontal"]',
         );
-        await waitFor(() => expect(scrollbar).toBeVisible());
-        await expect(scrollbar!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-          list.getBoundingClientRect().bottom,
+        await waitFor(() => expect(scrollbar).not.toBeVisible());
+        await expect(viewport.parentElement!.getBoundingClientRect().height).toBe(
+          list.getBoundingClientRect().height,
         );
+        await expect(within(root).queryByRole("button", { name: "Scroll back" })).toBeNull();
+        await expect(forward.getBoundingClientRect().height).toBe(
+          list.getBoundingClientRect().height,
+        );
+        await expect(forward.getBoundingClientRect().right).toBe(
+          viewport.getBoundingClientRect().right,
+        );
+        await userEvent.click(forward);
+        await waitFor(() => expect(viewport.scrollLeft).toBeGreaterThan(0));
+        const back = await within(root).findByRole("button", { name: "Scroll back" });
+        await userEvent.click(back);
+        await waitFor(() => expect(viewport.scrollLeft).toBe(0));
       }
       tabs[0]!.focus();
       await userEvent.keyboard("{End}");
@@ -172,8 +188,11 @@ export const Variants: Story = {
     const selected = lineTabs.getByRole("tab", { name: "Controls 340" });
     await expect(selected.tagName).toBe("BUTTON");
     await expect(selected.getBoundingClientRect().height).toBe(32);
-    await waitFor(() => expect(getComputedStyle(selected, "::after").opacity).toBe("1"));
-    await expect(getComputedStyle(selected, "::after").height).toBe("2px");
+    const indicator = line.querySelector<HTMLElement>('[data-slot="tabs-indicator"]')!;
+    await waitFor(() =>
+      expect(indicator.getBoundingClientRect().width).toBe(selected.getBoundingClientRect().width),
+    );
+    await expect(indicator.getBoundingClientRect().height).toBe(2);
     selected.focus();
     await userEvent.keyboard("{ArrowRight}");
     await waitFor(() =>
@@ -350,7 +369,11 @@ export const Orientation: Story = {
       ),
     );
     await userEvent.keyboard("{Home}");
-    await waitFor(() => expect(rtlViewport.scrollLeft).toBe(0));
+    // Chrome clamps this fractional RTL strip at 1, not 0: "at the start" is the first tab in view.
+    await waitFor(() => expect(Math.abs(rtlViewport.scrollLeft)).toBeLessThanOrEqual(1));
+    await expect(
+      rtl.getByRole("tab", { name: "Overview" }).getBoundingClientRect().right,
+    ).toBeLessThanOrEqual(rtlViewport.getBoundingClientRect().right + 1);
     const verticalList = canvas.getByRole("tablist", { name: "Vertical views" });
     await expect(verticalList).toHaveAttribute("aria-orientation", "vertical");
     await expect(getComputedStyle(verticalList).flexDirection).toBe("column");
@@ -368,8 +391,11 @@ export const Orientation: Story = {
     await waitFor(() => expect(last).toHaveFocus());
     await userEvent.keyboard("{ArrowDown}");
     await expect(last).toHaveFocus();
-    await waitFor(() => expect(getComputedStyle(last, "::after").opacity).toBe("1"));
-    await expect(getComputedStyle(last, "::after").width).toBe("2px");
+    const indicator = verticalList.querySelector<HTMLElement>('[data-slot="tabs-indicator"]')!;
+    await waitFor(() =>
+      expect(indicator.getBoundingClientRect().top).toBe(last.getBoundingClientRect().top),
+    );
+    await expect(indicator.getBoundingClientRect().width).toBe(2);
     await userEvent.keyboard("{ArrowUp}");
     await waitFor(() => expect(vertical.getByRole("tab", { name: "Evidence" })).toHaveFocus());
   },
@@ -431,6 +457,130 @@ export const Links: Story = {
       await expect(prevented).toEqual([false, false, false, false]);
     } finally {
       canvasElement.ownerDocument.removeEventListener("click", intercept);
+    }
+  },
+};
+
+const motionViews = ["Summary", "Control implementations", "Evidence"];
+function MotionExample({
+  label,
+  variant,
+  orientation = "horizontal",
+  dir = "ltr",
+  reused = false,
+}: {
+  label: string;
+  variant: "default" | "line";
+  orientation?: "horizontal" | "vertical";
+  dir?: "ltr" | "rtl";
+  reused?: boolean;
+}) {
+  const [value, setValue] = useState("Summary");
+  return (
+    <Tabs value={value} onValueChange={setValue} orientation={orientation} dir={dir}>
+      <TabsList variant={variant} aria-label={label}>
+        {motionViews.map((view) => (
+          <TabsTrigger key={view} value={view}>
+            {view}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      {reused ? (
+        <TabsContent value={value}>
+          <Input aria-label={`${label} note`} defaultValue="Retained note" />
+          <Text>{value} content</Text>
+        </TabsContent>
+      ) : (
+        motionViews.map((view) => (
+          <TabsContent key={view} value={view} keepMounted>
+            <Text>{view} content</Text>
+          </TabsContent>
+        ))
+      )}
+    </Tabs>
+  );
+}
+
+/** Sample rendered frames: a measured indicator moves between tabs and the arriving view rises. */
+export const Motion: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <MotionExample label="Filled motion" variant="default" />
+      <MotionExample label="RTL line motion" variant="line" dir="rtl" />
+      <MotionExample label="Vertical motion" variant="line" orientation="vertical" />
+      <MotionExample label="Reused panel motion" variant="line" reused />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    for (const label of [
+      "Filled motion",
+      "RTL line motion",
+      "Vertical motion",
+      "Reused panel motion",
+    ]) {
+      const list = canvas.getByRole("tablist", { name: label });
+      const root = list.closest<HTMLElement>('[data-slot="tabs"]')!;
+      const tabs = within(list);
+      const from = tabs.getByRole("tab", { name: "Summary" });
+      const target = tabs.getByRole("tab", { name: "Control implementations" });
+      const indicator = list.querySelector<HTMLElement>('[data-slot="tabs-indicator"]')!;
+      const vertical = label === "Vertical motion";
+      const coordinate = (element: Element) =>
+        element.getBoundingClientRect()[vertical ? "y" : "x"];
+      await waitFor(() =>
+        expect(Math.abs(coordinate(indicator) - coordinate(from))).toBeLessThan(1),
+      );
+      const start = coordinate(indicator);
+      const end = coordinate(target);
+      const retained =
+        label === "Reused panel motion"
+          ? canvas.getByRole("textbox", { name: `${label} note` })
+          : null;
+      if (retained) await userEvent.type(retained, " edited");
+      const samples: { position: number; opacity: number; rise: number }[] = [];
+      const frames = new Promise<void>((resolve) => {
+        const began = performance.now();
+        const sample = () => {
+          if (target.getAttribute("aria-selected") === "true") {
+            const panel = root.querySelector<HTMLElement>(
+              '[data-slot="tabs-content"]:not([hidden]):not([data-ending-style])',
+            )!;
+            const style = getComputedStyle(panel);
+            samples.push({
+              position: coordinate(indicator),
+              opacity: Number(style.opacity),
+              rise: new DOMMatrixReadOnly(style.transform === "none" ? undefined : style.transform)
+                .m42,
+            });
+          }
+          if (performance.now() - began < 400) requestAnimationFrame(sample);
+          else resolve();
+        };
+        requestAnimationFrame(sample);
+      });
+      await fireEvent.click(target);
+      await frames;
+      const between = samples.some(
+        ({ position }) =>
+          position > Math.min(start, end) + 1 && position < Math.max(start, end) - 1,
+      );
+      const entering = samples.some(
+        ({ opacity, rise }) => opacity > 0.65 && opacity < 0.99 && rise > 0 && rise < 4,
+      );
+      await expect(samples.length).toBeGreaterThan(1);
+      await expect(between).toBe(!reduced);
+      await expect(entering).toBe(!reduced);
+      await expect(Math.abs(coordinate(indicator) - end)).toBeLessThan(1);
+      if (reduced) {
+        await expect(samples.every(({ opacity, rise }) => opacity === 1 && rise === 0)).toBe(true);
+      }
+      if (retained) {
+        await expect(canvas.getByRole("textbox", { name: `${label} note` })).toBe(retained);
+        await expect(retained).toHaveValue("Retained note edited");
+      }
+      await expect(within(root).getAllByRole("tabpanel")).toHaveLength(1);
     }
   },
 };

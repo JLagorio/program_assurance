@@ -13,6 +13,32 @@ const SERVER_ONLY = {
     "TanStack Start does not use the Next.js `server-only` package. Rename the module to `*.server.ts` or mark it with `@tanstack/react-start/server-only`.",
 };
 
+const REFERENCE_KITS = [
+  {
+    group: ["@/ds", "@/ds/*"],
+    message: "The kit is @ledger/design-system; the product shell is @/components/app/shell.",
+  },
+  {
+    group: [
+      "@/components/app/ui",
+      "@/components/app/shapes",
+      "@/components/app/compositions",
+      "@/components/ui/*",
+      "@/components/reui/*",
+    ],
+    message: "Product code imports the kit from @ledger/design-system, not a reference kit.",
+  },
+];
+
+// Domain code never imports the UI: src/lib holds data access, commands and rules that screens
+// compose. The workspace context is the one named exception until it moves into src/lib.
+const DOMAIN_NEVER_IMPORTS_UI = {
+  regex:
+    "^(@ledger/design-system(/.*)?|@/components(/(?!app/workspace$).*)?|@/routes(/.*)?|react-dom(/.*)?)$",
+  message:
+    "src/lib is domain code and never imports the UI. Move the rendering into src/components or src/routes and keep the rule, hook or command here.",
+};
+
 // The product: routes, app components, domain code and the router. Reference kits are not the product.
 const PRODUCT = [
   "src/routes/**/*.{ts,tsx}",
@@ -72,24 +98,7 @@ export default tseslint.config(
         "error",
         {
           paths: [SERVER_ONLY],
-          patterns: [
-            {
-              group: ["@/ds", "@/ds/*"],
-              message:
-                "The kit is @ledger/design-system; the product shell is @/components/app/shell.",
-            },
-            {
-              group: [
-                "@/components/app/ui",
-                "@/components/app/shapes",
-                "@/components/app/compositions",
-                "@/components/ui/*",
-                "@/components/reui/*",
-              ],
-              message:
-                "Product code imports the kit from @ledger/design-system, not a reference kit.",
-            },
-          ],
+          patterns: REFERENCE_KITS,
         },
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
@@ -103,6 +112,15 @@ export default tseslint.config(
     rules: {
       "ledger/product-responsive-table": "error",
       "ledger/product-line-tabs": "error",
+    },
+  },
+  {
+    files: ["src/lib/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { paths: [SERVER_ONLY], patterns: [...REFERENCE_KITS, DOMAIN_NEVER_IMPORTS_UI] },
+      ],
     },
   },
   {

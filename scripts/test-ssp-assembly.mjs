@@ -193,7 +193,10 @@ try {
   ).toHaveCount(1);
   await expect(page.getByText("Control-level support", { exact: true })).toBeVisible();
   await expect(page.getByText("Requirement-level support", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Exact supporting artifact", exact: true }).click();
+  await page
+    .getByRole("table", { name: "SSP supporting evidence", exact: true })
+    .getByRole("button", { name: "Preview row", exact: true })
+    .click();
   await expect(page.getByText("Exact evidence version 1", { exact: true })).toBeVisible();
   const evidencePanel = page.locator('[data-shell-area="panel"]');
   await expect(evidencePanel).toHaveCount(1);
@@ -217,7 +220,7 @@ try {
   await page
     .getByRole("textbox", { name: "Description", exact: true })
     .fill("Updated authored control narrative");
-  await page.getByRole("button", { name: "Save control implementation", exact: true }).click();
+  await page.getByRole("button", { name: "Edit control implementation", exact: true }).click();
   await expect(page.getByText("Updated authored control narrative", { exact: true })).toBeVisible();
   await expect
     .poll(

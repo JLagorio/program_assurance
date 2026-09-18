@@ -1,10 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ProgramWorkspace } from "@/components/prototype/program-workspace";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+/** The legacy dashboard address resolves to the program Overview. */
 export const Route = createFileRoute("/programs/$programId_/dashboard")({
-  head: () => ({ meta: [{ title: "Program dashboard — Program Assurance" }] }),
-  component: ProgramDashboard,
+  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: "/programs/$programId",
+      params: { programId: params.programId },
+      search: { tab: "Overview" },
+    });
+  },
+  component: () => null,
 });
-function ProgramDashboard() {
-  const { programId } = Route.useParams();
-  return <ProgramWorkspace programId={programId} />;
-}

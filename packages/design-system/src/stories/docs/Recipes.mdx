@@ -1,0 +1,72 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Recipes" />
+
+# Recipes
+
+How the parts compose into the screens a product is made of. Each recipe names the parts in order and the story that renders it. These are the package's neutral shapes; an application decides which recipe each of its screens uses and records that in its own contract, not here.
+
+## A register
+
+A page that is one collection.
+
+1. **PageHeader** with the name in `PageHeader.Heading` and `PageHeader.Title`. Nothing under the title.
+2. **DataTable** with `fill`, so the header sticks, the rows scroll inside and pagination sits at the bottom of the window. Frameless: the toolbar sits flush above and a hairline closes the last row.
+3. Its **Toolbar**: search first, saved views in `views`, filters in `filters`, Columns and Settings as children, one small primary in `actions`. The create action lives here, not in the page header.
+4. Columns from `defineColumns` by kind. A date column takes the raw value; the name is a **TextLink** to the record; the id column carries the preview eye.
+5. `responsive` on every product table, with the name at `priority: 0`. Lower-priority fields move into the row's More fields disclosure; nothing disappears.
+6. The empty states are DataTable's own: bare (illustration, title, one line, the same create action) and filtered (Clear filters).
+
+Story: Layout/Pages, Register.
+
+## A record page
+
+1. **PageHeader**: the breadcrumb in `PageHeader.Lead`, the name in `PageHeader.Title`, one primary or an Actions **DropdownMenu** in `PageHeader.Actions`. No back chevron, no sentence, no status badge, no second action row.
+2. **Tabs** with `TabsList variant="line"` when the record has more than one view.
+3. **Shell.Aside** beside the overview holding an **Inspector** group named Details: **KeyValue** rows for state, owner, identifiers and dates. A tab that is a register fills the work area without the rail.
+4. Body content in **Section**s. A single record is never a table; a description is **Prose**; linked records are **Related**.
+5. A supported inline change is an **Editable**; a larger change is a Dialog (below).
+6. Missing record: an **Empty** with the search illustration, a title, a line and a route back.
+
+Story: Layout/Pages, Record.
+
+## A preview beside a register
+
+1. **Shell.Panel** opened by the row's eye. The collection stays mounted, so filters, sort and selection survive.
+2. The panel's outer header holds global navigation only: **PreviewNavigation** with previous, next, the announced position and a real open-in-new-tab link, then Close.
+3. The body starts with an inner **PageHeader**: the record's name as its h2 title, its actions in `PageHeader.Actions` (one small primary, the rest behind an overflow **DropdownMenu**).
+4. **KeyValue** properties below, then the record's sections at the panel's width; **Tabs** in one scrolling row if the preview has views.
+5. **PreviewSheet** replaces the panel only when the task must hold focus, such as a version review.
+
+Story: Layout/Pages, Queue with panel; Patterns/PreviewNavigation.
+
+## A create or edit form
+
+1. **Dialog** titled with the operation and the singular noun. The trigger, the title and the primary say the same words.
+2. **Field** groups over the controls, in a **Stack**; the first field takes focus.
+3. Validate on submit with the primary enabled. An error says what fixes it and the entered values stay.
+4. **DialogFooter** outside the scrolling field region: Cancel as a subtle Button, then the primary. The footer belongs to the form through `form` on the submit button.
+5. A dirty dismissal goes through an **AlertDialog**: Keep editing keeps the values, Discard closes. A pending save blocks dismissal and repeat submission.
+
+Story: Patterns/Forms; Components/Dialog.
+
+## Choosing records
+
+- One record: **RecordPicker**.
+- Many records from hundreds: **PickerSheet** with a search, filters, a DataTable body with selection and a footer that says how many and what happens to them. It may collect one shared rationale.
+- Records the reader must compare first: **RecordBrowser**. Its preview belongs to the selection task and never becomes a second record workflow.
+
+## States
+
+- Loading a page: **PageSkeleton**. Loading a region with a known shape: **Skeleton**. An action in flight: **Spinner** or Button `loading`.
+- Nothing here: **Empty** (`size="compact"` in a small region). A missing scalar: **Absent**.
+- Failure: an **Alert** with a retry, with the stale content kept usable underneath. A failure is never a blank table.
+- Empty data and an empty filter result are different states.
+
+## A toolbar without a DataTable
+
+**Toolbar** over a plain **Table** or a list: the same slots, `filters` collapse into More when space runs out, search takes its own row on a phone. Story: Patterns/Toolbar, Constrained.
+
+## Confirming a decision
+
+**AlertDialog** with a title that names the decision, one line of consequence, Cancel and the verb. It may open over the Dialog or Sheet that owns the decision.

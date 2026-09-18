@@ -24,7 +24,7 @@ import {
 import { Plus } from "lucide-react";
 import { useRow, useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
-import type { DataRecord } from "@/lib/records";
+import { labelFor, type DataRecord } from "@/lib/records";
 import {
   EntityEditor,
   EntitySection,
@@ -204,7 +204,7 @@ export function PackageRecord({ id }: { id: string }) {
                   table="authorization_packages"
                   id={id}
                   onEdit={() => setEditing(row as DataRecord)}
-                  editLabel="Edit package"
+                  editLabel="Edit authorization package"
                 />
               </PageHeader.Actions>
             </PageHeader>
@@ -247,6 +247,7 @@ export function PackageRecord({ id }: { id: string }) {
               </Inspector.Group>
             </Shell.Aside>
             <EntitySection
+              showHeading
               table="package_revisions"
               filters={{ package_id: id }}
               title="Package versions"
@@ -309,7 +310,7 @@ function PackageVersion({
     actions:
       version?.state === "draft" && workspace.role !== "viewer" ? (
         <Button size="small" variant="primary" onClick={() => setEditing(version as DataRecord)}>
-          Edit version
+          Edit authorization package version
         </Button>
       ) : null,
     content: (
@@ -330,6 +331,7 @@ function PackageVersion({
               />
             </Section>
             <EntitySection
+              showHeading
               table="package_documents"
               filters={{ package_revision_id: id }}
               title="Included documents"
@@ -390,6 +392,7 @@ function PackageVersion({
               description="Each document pins one published source version. Publish the package after assembling and reviewing its contents."
             />
             <EntitySection
+              showHeading
               table="review_decisions"
               appendOnly
               filters={{ package_revision_id: id }}
@@ -408,6 +411,7 @@ function PackageVersion({
               ]}
             />
             <EntitySection
+              showHeading
               table="authorization_decisions"
               appendOnly
               readOnly={version.state !== "published"}
@@ -452,7 +456,7 @@ export function Briefing() {
     <Stack space="space.250">
       <PageHeader>
         <PageHeader.Heading>
-          <PageHeader.Title>ATO briefing room</PageHeader.Title>
+          <PageHeader.Title>Authorization decisions</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
       <Grid gap="space.400" templateColumns={{ base: "minmax(0,1fr)", xl: "minmax(0,1fr) 320px" }}>
@@ -481,7 +485,7 @@ export function Briefing() {
           />
           {selection && (
             <RecordPreviewPanel
-              title="Authorization decision"
+              title={`${labelFor(String(selection["decision"]))} · ${String(selection["decided_at"] ?? "Decision")}`}
               label="Authorization decision preview"
               defaultWidth={480}
               onClose={() => setSelection(null)}

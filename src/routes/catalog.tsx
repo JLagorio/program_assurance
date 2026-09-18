@@ -1,11 +1,23 @@
-import { useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  ControlInspector,
+  LibraryControlTable,
+  type ControlSelector,
+} from "@/components/prototype/library-controls";
+import { LibraryLoading } from "@/components/prototype/library-shared";
+import { ProductCollection } from "@/components/prototype/product-collection";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "@/components/prototype/record-preview";
+import { EmptyMessage } from "@/components/prototype/work-common";
+import { useRows, type Row } from "@/lib/models";
 import {
   Badge,
   Count,
   DataTable,
-  Toolbar,
-  defineColumns,
   Id,
   Inline,
   Inspector,
@@ -16,29 +28,17 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Shell,
   Stack,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
   TextLink,
+  defineColumns,
   useDataTable,
 } from "@ledger/design-system";
-import {
-  RecordLink,
-  RecordPreviewActions,
-  RecordPreviewPanel,
-  recordDestination,
-  useDisplayedRecords,
-} from "@/components/prototype/record-preview";
-import { useRows, type Row } from "@/lib/models";
-import {
-  ControlInspector,
-  LibraryControlTable,
-  type ControlSelector,
-} from "@/components/prototype/library-controls";
-import { LibraryLoading } from "@/components/prototype/library-shared";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/catalog")({
   validateSearch: (search: Record<string, unknown>): { edition?: string } =>
@@ -104,9 +104,9 @@ function CatalogPage() {
   return (
     <Stack className="animate-rise" space="space.200">
       <PageHeader>
-        <div className="min-w-0">
+        <PageHeader.Heading>
           <PageHeader.Title>Catalog</PageHeader.Title>
-        </div>
+        </PageHeader.Heading>
       </PageHeader>
       <Tabs
         value={tab}
@@ -219,7 +219,8 @@ function CciTable() {
       defineColumns<(typeof rows)[number]>((c) => [
         c.id("code", {
           header: "CCI",
-          width: 132,
+          width: 180,
+          priority: 0,
           hideable: false,
           preview: setSelected,
           active: (row) => row.id === selected?.id,
@@ -254,8 +255,7 @@ function CciTable() {
   const displayed = useDisplayedRecords(table);
   return (
     <LibraryLoading queries={[items, references, links, controls, types]}>
-      <DataTable
-        responsive
+      <ProductCollection
         table={table}
         fill
         onRowClick={(row) => void navigate(recordDestination("cci_items", row))}
@@ -264,22 +264,12 @@ function CciTable() {
           title: "No CCIs yet",
           description: "Import a CCI release to fill the catalog.",
         }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder="Find a CCI"
-            filters={
-              <>
-                <DataTable.Filter table={table} column="types" />
-                <DataTable.Filter table={table} column="status" />
-                <span className="font-body-small text-subtle">{rows.length} records</span>
-              </>
-            }
-          >
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
+        searchLabel="Find a CCI"
+        filters={
+          <>
+            <DataTable.Filter table={table} column="types" />
+            <DataTable.Filter table={table} column="status" />
+          </>
         }
       />
       {selected && (
@@ -355,7 +345,10 @@ function SourcesList() {
             </Stack>
           ))
         ) : (
-          <p className="text-subtle">No reference sources have been imported.</p>
+          <EmptyMessage
+            title="No reference sources"
+            description="Import a reference source to fill the catalog."
+          />
         )}
       </Stack>
     </LibraryLoading>

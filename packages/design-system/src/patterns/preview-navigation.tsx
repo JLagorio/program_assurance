@@ -1,4 +1,4 @@
-import { cloneElement, type ReactElement, type ReactNode } from "react";
+import { cloneElement, useLayoutEffect, useRef, type ReactElement, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { IconButton, buttonVariants } from "../components/button";
 import { cn } from "../lib/cn";
@@ -29,26 +29,53 @@ export function PreviewNavigation({
   openLink,
 }: PreviewNavigationProps) {
   const { t, formatNumber } = useLedgerLocale();
+  const previousButton = useRef<HTMLButtonElement>(null);
+  const nextButton = useRef<HTMLButtonElement>(null);
+  const group = useRef<HTMLDivElement>(null);
+  const activated = useRef<HTMLButtonElement | null>(null);
+  useLayoutEffect(() => {
+    const source = activated.current;
+    activated.current = null;
+    if (
+      source?.disabled &&
+      (document.activeElement === source || document.activeElement === document.body)
+    ) {
+      const target = [previousButton.current, nextButton.current].find(
+        (button) => button && !button.disabled,
+      );
+      (target ?? group.current?.querySelector<HTMLAnchorElement>("a[href]"))?.focus();
+    }
+  }, [position, total]);
   return (
-    <Inline space="space.050" alignBlock="center" data-slot="preview-navigation">
+    <Inline ref={group} space="space.050" alignBlock="center" data-slot="preview-navigation">
       <span className="sr-only" role="status" aria-live="polite">
         {position > 0
           ? t("recordPosition", { position: formatNumber(position), total: formatNumber(total) })
           : t("recordOutsideResults")}
       </span>
       <IconButton
+        ref={previousButton}
+        isTooltipDisabled
         label={t("previousRecord")}
         variant="subtle"
         icon={<ChevronLeft />}
         disabled={position <= 1 || !onPrevious}
-        onClick={onPrevious}
+        onClick={() => {
+          activated.current = previousButton.current;
+          onPrevious?.();
+        }}
       />
       <IconButton
+        ref={nextButton}
+        isTooltipDisabled
         label={t("nextRecord")}
         variant="subtle"
         icon={<ChevronRight />}
         disabled={position <= 0 || position >= total || !onNext}
-        onClick={onNext}
+        onClick={() => {
+          activated.current = nextButton.current;
+          onNext?.();
+        }}
       />
       {cloneElement(openLink, {
         "aria-label": t("openFullRecord"),

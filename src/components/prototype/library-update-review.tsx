@@ -2,7 +2,6 @@ import { useBlocker } from "@tanstack/react-router";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useMemo, useRef, useState } from "react";
 import {
-  Badge,
   Button,
   Dialog,
   DialogContent,
@@ -13,12 +12,15 @@ import {
   Field,
   FieldLabel,
   Stack,
-  Table,
+  defineColumns,
+  useDataTable,
   Textarea,
   toast,
 } from "@ledger/design-system";
 import { useRows, type Row } from "@/lib/models";
 import { useUpdateLibraryAssignment } from "@/lib/library-apply";
+
+import { ProductCollection } from "./product-collection";
 
 type Outcome = "update" | "keep" | "dropped" | "seed";
 const outcomeLabel: Record<Outcome, string> = {
@@ -119,6 +121,37 @@ export function LibraryUpdateReview({
     }
     return out.sort((a, b) => a.control.localeCompare(b.control, undefined, { numeric: true }));
   }, [contributions.data, currentImplementations.data, newImplementations.data, controls.data]);
+  const columns = useMemo(
+    () =>
+      defineColumns<(typeof lines)[number]>((c) => [
+        c.id("control", { header: "Control", priority: 0, width: 200 }),
+        c.text("now", {
+          header: "Now",
+          minWidth: 200,
+          wrap: true,
+          cell: (line) => line.now || "No narrative",
+        }),
+        c.text("next", {
+          header: `Version ${newRevision.version}`,
+          minWidth: 200,
+          wrap: true,
+          cell: (line) => line.next ?? "Not covered",
+        }),
+        c.status("outcome", {
+          header: "Outcome",
+          width: 200,
+          tone: (line) => outcomeTone[line.outcome],
+          cell: (line) => outcomeLabel[line.outcome],
+        }),
+      ]),
+    [newRevision.version],
+  );
+  const table = useDataTable({
+    columns,
+    data: lines,
+    getRowId: (line) => line.id,
+    label: "Changes by control",
+  });
   const pending = [contributions, currentImplementations, newImplementations, controls].some(
     (query) => query.isPending,
   );
@@ -201,48 +234,20 @@ export function LibraryUpdateReview({
               their text and are marked for review. Controls the new version covers for the first
               time are seeded into the boundary's draft SSP.
             </p>
-            {pending ? (
-              <p className="text-subtle">Comparing versions…</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table aria-label="Changes by control">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header width={200}>Control</Table.Header>
-                      <Table.Header>Now</Table.Header>
-                      <Table.Header>Version {newRevision.version}</Table.Header>
-                      <Table.Header width={200}>Outcome</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {lines.map((line) => (
-                      <Table.Row key={line.id}>
-                        <Table.Cell className="whitespace-normal">{line.control}</Table.Cell>
-                        <Table.Cell className="whitespace-normal">
-                          {line.now || <span className="text-subtle">—</span>}
-                        </Table.Cell>
-                        <Table.Cell className="whitespace-normal">
-                          {line.next ?? <span className="text-subtle">Not covered</span>}
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Badge variant="secondary" size="xsmall" tone={outcomeTone[line.outcome]}>
-                            {outcomeLabel[line.outcome]}
-                          </Badge>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                    {!lines.length && (
-                      <Table.Row>
-                        <Table.Cell colSpan={4}>No narratives to compare.</Table.Cell>
-                      </Table.Row>
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-            )}
+            <ProductCollection
+              table={table}
+              queries={[contributions, currentImplementations, newImplementations, controls]}
+              searchLabel="Find control changes"
+              empty={{
+                illustration: "document",
+                title: "No narratives to compare",
+                description: "This version has no narrative changes for the selected element.",
+              }}
+            />
             <Field>
               <FieldLabel htmlFor="library-update-rationale">Why this update is taken</FieldLabel>
               <Textarea
+                autoFocus
                 disabled={update.isPending}
                 id="library-update-rationale"
                 value={rationale}

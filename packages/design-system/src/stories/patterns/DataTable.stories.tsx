@@ -311,6 +311,32 @@ function Wide({ view }: { view?: string | undefined }) {
 export const PinnedColumns: Story = {
   name: "Pinned, resizable, reorderable",
   render: () => <Wide />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const menu = canvas.getByRole("button", { name: "Status column menu" });
+    const header = menu.closest("th")!;
+    const controls = menu.parentElement!;
+    // Keyboard focus reveals the same opaque controls as hover. The rule must paint above them.
+    menu.focus();
+    await waitFor(() => expect(getComputedStyle(controls).opacity).toBe("1"));
+    const rule = getComputedStyle(header, "::before");
+    await expect(rule.borderBottomWidth).toBe("1px");
+    await expect(Number(rule.zIndex)).toBeGreaterThan(
+      Number(getComputedStyle(controls).zIndex) || 0,
+    );
+    await expect(rule.pointerEvents).toBe("none");
+    await expect(within(header).getByRole("button", { name: "Reorder column" })).toBeVisible();
+
+    await userEvent.click(menu);
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(await body.findByRole("menuitemradio", { name: "Sort ascending" }));
+    await waitFor(() => expect(header).toHaveAttribute("aria-sort", "ascending"));
+    const resize = within(header).getByRole("separator", { name: "Resize column" });
+    const width = Number(resize.getAttribute("aria-valuenow"));
+    resize.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(resize).toHaveAttribute("aria-valuenow", String(width + 8)));
+  },
 };
 
 /** The same table under a view name: reorder, resize, hide or pin something, reload the story, and it is still so. Reset view in the Columns menu forgets it. */

@@ -1,10 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { RiskRecord } from "@/components/prototype/assurance-views";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/risks/$riskId")({
   head: () => ({ meta: [{ title: "Risk — Program Assurance" }] }),
-  component: Page,
+  beforeLoad: ({ params }) => {
+    throw redirect({ to: "/register/risks/$riskId", params });
+  },
 });
-function Page() {
-  const { riskId } = Route.useParams();
-  return <RiskRecord id={riskId} />;
-}

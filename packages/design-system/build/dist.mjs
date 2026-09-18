@@ -8,6 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeLintInventory } from "./lint-inventory.mjs";
+import { writeLlms } from "./llms.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
@@ -82,6 +83,7 @@ if (result.emitSkipped || result.diagnostics.length) {
 }
 
 writeLintInventory(program);
+writeLlms();
 
 const copies = [
   ...fs

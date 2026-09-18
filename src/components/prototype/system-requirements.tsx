@@ -1,3 +1,13 @@
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+} from "./record-preview";
+import { RequirementRecordContent } from "./requirement-record";
+import { QueryState } from "./work-common";
+import { ProductCollection } from "./product-collection";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -25,6 +35,7 @@ type RequirementRow = {
   id: string;
   requirementId: string;
   code: string;
+  name: string;
   statement: string;
   type: string;
   element: string;
@@ -122,6 +133,7 @@ export function SystemRequirements({
             id: allocation.id,
             requirementId: requirement.id,
             code: requirement.code,
+            name: revision.title,
             statement: revision.statement,
             type: labelFor(revision.requirement_type),
             element: `${target.code} · ${target.name}`,
@@ -133,43 +145,35 @@ export function SystemRequirements({
       })
       .sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
   }, [allocations.data, revisions.data, requirements.data, links.data, rows, targets]);
+  const [previewId, setPreviewId] = useState<string>();
   const columns = useMemo(
     () =>
       defineColumns<RequirementRow>((c) => [
-        c.id("code", {
+        c.id("name", {
           header: "Requirement",
-          width: 140,
+          width: 180,
+          priority: 0,
+          preview: (row) => setPreviewId(row.id),
+          active: (row) => row.id === previewId,
           hideable: false,
           cell: (row) => (
-            <TextLink
-              render={
-                <Link
-                  to="/programs/$programId/requirements/$requirementId"
-                  params={{ programId, requirementId: row.requirementId }}
-                />
-              }
+            <RecordLink
+              table="engineering_requirements"
+              record={{ id: row.requirementId, program_id: programId }}
             >
-              <Id>{row.code}</Id>
-            </TextLink>
+              {row.name}
+            </RecordLink>
           ),
         }),
+        c.text("code", { header: "Code", width: 130, priority: 1 }),
         c.text("statement", { header: "Statement", minWidth: 300, hideable: false }),
         c.text("element", {
           header: "Allocated to",
           width: 220,
           cell: (row) => (
-            <TextLink
-              render={
-                <Link
-                  to="/programs/$programId/systems/$scopeId"
-                  params={{ programId, scopeId: row.elementId }}
-                  search={{ tab: "Requirements" }}
-                />
-              }
-              className="min-w-0 truncate"
-            >
+            <RecordLink table="systems" record={{ id: row.elementId, program_id: programId }}>
               {row.element}
-            </TextLink>
+            </RecordLink>
           ),
         }),
         c.number("controls", {
@@ -180,7 +184,7 @@ export function SystemRequirements({
         c.text("type", { header: "Type", width: 130 }),
         c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
       ]),
-    [programId],
+    [programId, previewId],
   );
   const table = useDataTable({
     columns,
@@ -196,36 +200,29 @@ export function SystemRequirements({
   useEffect(() => {
     table.getColumn("element")?.toggleVisibility(includeInside);
   }, [table, includeInside]);
+  const displayed = useDisplayedRecords(table);
+  const preview = data.find((row) => row.id === previewId);
   const queries = [requirements, revisions, allocations, links];
   const error = queries.find((query) => query.error)?.error;
   const pending = queries.some((query) => query.isPending) || !element;
   const canWrite =
     workspace.role !== "viewer" &&
     !!workspace.collections.find((item) => item.name === "requirement_allocations")?.can_insert;
-  const actions = (
-    <Inline space="space.100">
-      {onAddFromLibrary && workspace.role !== "viewer" && (
-        <Button
-          size="small"
-          variant="secondary"
-          iconBefore={<Library />}
-          onClick={onAddFromLibrary}
-        >
-          Add from library
-        </Button>
-      )}
-      {canWrite && element && (
-        <Button
-          size="small"
-          variant="primary"
-          iconBefore={<Plus />}
-          onClick={() => setAllocating(true)}
-        >
-          Allocate…
-        </Button>
-      )}
-    </Inline>
-  );
+  const actions =
+    canWrite && element ? (
+      <Button
+        size="small"
+        variant="primary"
+        iconBefore={<Plus />}
+        onClick={() => setAllocating(true)}
+      >
+        Allocate requirements
+      </Button>
+    ) : onAddFromLibrary && workspace.role !== "viewer" ? (
+      <Button size="small" variant="primary" onClick={onAddFromLibrary}>
+        Add from library
+      </Button>
+    ) : undefined;
   return (
     <>
       {allocating && element && (
@@ -242,11 +239,8 @@ export function SystemRequirements({
           onClose={() => setAllocating(false)}
         />
       )}
-      <DataTable
-        responsive
+      <ProductCollection
         table={table}
-        state={error ? "error" : pending ? "loading" : "ready"}
-        error={error?.message}
         empty={{
           illustration: "shield",
           title: includeInside
@@ -256,28 +250,51 @@ export function SystemRequirements({
             "A requirement is allocated to an element from the Allocation tab of its own record.",
           action: actions,
         }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder="Find a requirement"
-            actions={actions}
+        fill
+        queries={queries}
+        searchLabel="Find a requirement"
+        action={actions}
+        filters={
+          <Button
+            size="small"
+            variant="subtle"
+            aria-pressed={includeInside}
+            onClick={() => setIncludeInside(!includeInside)}
           >
-            <label className="flex items-center gap-100 font-body-small">
-              <Checkbox
-                checked={includeInside}
-                onCheckedChange={(checked) => setIncludeInside(checked === true)}
-              />
-              Include everything inside
-            </label>
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
+            Include everything inside
+          </Button>
         }
       />
+      {preview && (
+        <RecordPreviewPanel
+          title={preview.name}
+          label="Requirement preview"
+          onClose={() => setPreviewId(undefined)}
+          navigation={
+            <RecordPreviewActions
+              table="engineering_requirements"
+              record={preview}
+              rows={displayed}
+              onSelect={(row) => setPreviewId(row.id)}
+              destination={recordDestination("engineering_requirements", {
+                id: preview.requirementId,
+                program_id: programId,
+              })}
+            />
+          }
+        >
+          <RequirementRecordContent
+            programId={programId}
+            requirementId={preview.requirementId}
+            preview
+          />
+        </RecordPreviewPanel>
+      )}
     </>
   );
 }
+
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 
 type Candidate = { id: string; revisionId: string; code: string; statement: string; type: string };
 
@@ -343,13 +360,16 @@ function AllocateToElement({
     selectable: true,
   });
   const chosen = Object.keys(table.state.rowSelection);
+  const guard = useDraftGuard({ dirty: chosen.length > 0 || !!rationale, onClose });
+  const [savedIds] = useState(() => new Set<string>());
   async function allocate() {
+    if (!guard.start()) return;
     setBusy(true);
     setError("");
     try {
       for (const id of chosen) {
         const candidate = candidates.find((item) => item.id === id);
-        if (!candidate) continue;
+        if (!candidate || savedIds.has(id)) continue;
         await save.mutateAsync({
           values: {
             requirement_revision_id: candidate.revisionId,
@@ -357,27 +377,37 @@ function AllocateToElement({
             rationale: rationale.trim() || null,
           },
         });
+        savedIds.add(id);
       }
       toast.add({
         title: `${chosen.length} allocated to ${element.code}`,
         type: "success",
       });
-      onClose();
+      guard.complete();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The allocation could not be saved.");
     } finally {
       setBusy(false);
+      guard.finish();
     }
   }
   return (
     <PickerSheet
       open
-      onClose={onClose}
+      onClose={() => void guard.close()}
       title="Allocate requirements"
       subtitle={`${element.code} · ${element.name}`}
-      search={{ value: search, onChange: setSearch, placeholder: "Search requirements" }}
+      search={{
+        value: search,
+        onChange: (value) => {
+          if (!busy) setSearch(value);
+        },
+        placeholder: "Search requirements",
+      }}
       toolbar={
         <Textarea
+          autoFocus
+          disabled={busy}
           aria-label="Rationale for every allocation"
           placeholder="Why these requirements are allocated here (applies to all)"
           value={rationale}
@@ -386,23 +416,29 @@ function AllocateToElement({
       }
       selected={chosen.length}
       total={shown.length}
-      onClear={() => table.resetRowSelection()}
+      onClear={() => {
+        if (!busy) table.resetRowSelection();
+      }}
       action={{
         label: busy ? "Allocating…" : `Allocate ${chosen.length} to ${element.code}`,
         onClick: () => void allocate(),
         disabled: busy || chosen.length === 0,
       }}
     >
-      <DataTable
-        responsive
-        table={table}
-        state={requirements.isPending || revisions.isPending ? "loading" : "ready"}
-        empty={{
-          illustration: "shield",
-          title: "Every requirement is already allocated here",
-          description: "Adopt a reusable requirement from the library to add another.",
-        }}
-      />
+      <fieldset disabled={busy} className="min-w-0 border-0 p-0">
+        <QueryState queries={[requirements, revisions]}>
+          <DataTable
+            responsive
+            table={table}
+            empty={{
+              illustration: "shield",
+              title: "Every requirement is already allocated here",
+              description: "Adopt a reusable requirement from the library to add another.",
+            }}
+          />
+        </QueryState>
+      </fieldset>
+      {guard.confirmation}
       {error && (
         <p role="alert" className="p-200 font-body-small text-danger">
           {error}

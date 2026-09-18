@@ -55,7 +55,7 @@ export function Description({ className, ...props }: PageHeaderDescriptionProps)
     />
   );
 }
-/** The second column: one primary action or an Actions menu, beside the title at every width. */
+/** The second column: one primary action or an Actions menu. Narrow panels stack these below the title. */
 export function Actions({ className, ...props }: PageHeaderActionsProps) {
   return (
     <div

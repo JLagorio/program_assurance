@@ -1,9 +1,6 @@
-import { RecordLink, recordDestination, useDisplayedRecords } from "./record-preview";
-import { EmptyMessage, MissingRecord } from "./work-common";
-import { displayDate } from "./work-format";
-import { canAuthorLibrary, downloadLibraryRecords } from "./library-utils";
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useWorkspace } from "@/components/app/workspace";
+import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
+import { labelFor, type DataRecord } from "@/lib/records";
 import {
   Absent,
   Breadcrumb,
@@ -12,22 +9,19 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  Section,
-  Toolbar,
-  Badge,
   Button,
   Count,
   DataTable,
   defineColumns,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Id,
-  Inline,
   Inspector,
   KeyValue,
   PageHeader,
+  Section,
   Shell,
   Stack,
   Table,
@@ -38,11 +32,16 @@ import {
   TextLink,
   useDataTable,
 } from "@ledger/design-system";
-import { useRow, useRows, useModelSave, type Row } from "@/lib/models";
-import { useWorkspace } from "@/components/app/workspace";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { ControlInspector } from "./library-controls";
 import { LibraryEditor, LibraryLoading, LibrarySelect } from "./library-shared";
-import { labelFor, type DataRecord } from "@/lib/records";
+import { canAuthorLibrary, downloadLibraryRecords } from "./library-utils";
+import { ProductCollection } from "./product-collection";
+import { recordDestination, RecordLink, useDisplayedRecords } from "./record-preview";
+import { RecordSummaryPreview } from "./record-summary-preview";
+import { EmptyMessage, MissingRecord } from "./work-common";
+import { displayDate } from "./work-format";
 
 export function ComponentLibraryIndex() {
   const navigate = useNavigate();
@@ -52,6 +51,7 @@ export function ComponentLibraryIndex() {
   const components = useRows("defined_components");
   const claims = useRows("defined_component_implementations");
   const [creating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<Row<"component_definitions"> | null>(null);
   const rows = useMemo(
     () =>
       (definitions.data ?? []).map((definition) => {
@@ -83,10 +83,17 @@ export function ComponentLibraryIndex() {
   const columns = useMemo(
     () =>
       defineColumns<(typeof rows)[number]>((c) => [
-        c.id("code", { header: "ID", width: 150 }),
+        c.id("code", {
+          header: "ID",
+          width: 150,
+          preview: setSelected,
+          active: (row) => row.id === selected?.id,
+        }),
         c.text("name", {
           header: "Component definition",
           hideable: false,
+          priority: 0,
+          width: 220,
           cell: (row) => (
             <RecordLink table="component_definitions" record={row}>
               {row.name}
@@ -99,7 +106,7 @@ export function ComponentLibraryIndex() {
         c.number("controls", { header: "Controls", width: 100 }),
         c.status("status", { header: "State", width: 130, tone: () => "neutral" }),
       ]),
-    [],
+    [selected?.id],
   );
   const table = useDataTable({
     data: rows,
@@ -110,6 +117,7 @@ export function ComponentLibraryIndex() {
     resizable: true,
     reorderable: true,
   });
+  const displayed = useDisplayedRecords(table);
   return (
     <Stack space="space.200" className="animate-rise">
       <PageHeader>
@@ -130,8 +138,20 @@ export function ComponentLibraryIndex() {
         />
       )}
       <LibraryLoading queries={[definitions, revisions, components, claims]}>
-        <DataTable
-          responsive
+        <ProductCollection
+          commands={[
+            {
+              label: "Export recorded JSON",
+              disabled: !definitions.data || !revisions.data || !components.data || !claims.data,
+              onSelect: () =>
+                downloadLibraryRecords("component-library.json", {
+                  definitions: definitions.data,
+                  revisions: revisions.data,
+                  components: components.data,
+                  implementations: claims.data,
+                }),
+            },
+          ]}
           table={table}
           fill
           onRowClick={(row) => {
@@ -142,7 +162,7 @@ export function ComponentLibraryIndex() {
           }}
           empty={{
             action: canAuthorLibrary(workspace.role) ? (
-              <Button variant="primary" onClick={() => setCreating(true)}>
+              <Button size="small" variant="primary" onClick={() => setCreating(true)}>
                 Create component
               </Button>
             ) : undefined,
@@ -151,52 +171,45 @@ export function ComponentLibraryIndex() {
             description:
               "Create a component definition, then add its versioned implementation content.",
           }}
-          toolbar={
-            <Toolbar
-              search={String(table.state.globalFilter ?? "")}
-              onSearch={(value) => table.setGlobalFilter(value)}
-              placeholder="Find components"
-              filters={
-                <>
-                  <DataTable.Filter table={table} column="categoryLabel" />
-                  <DataTable.Filter table={table} column="types" />
-                  <DataTable.Filter table={table} column="status" />
-                </>
-              }
-              actions={
-                <>
-                  <Inline space="space.100">
-                    <Button
-                      variant="secondary"
-                      disabled={
-                        !definitions.data || !revisions.data || !components.data || !claims.data
-                      }
-                      onClick={() =>
-                        downloadLibraryRecords("component-library.json", {
-                          definitions: definitions.data,
-                          revisions: revisions.data,
-                          components: components.data,
-                          implementations: claims.data,
-                        })
-                      }
-                    >
-                      Export
-                    </Button>
-                    {canAuthorLibrary(workspace.role) && (
-                      <Button variant="primary" onClick={() => setCreating(true)}>
-                        Create component
-                      </Button>
-                    )}
-                  </Inline>
-                </>
-              }
-            >
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-            </Toolbar>
+          searchLabel="Find components"
+          filters={
+            <>
+              <DataTable.Filter table={table} column="categoryLabel" />
+              <DataTable.Filter table={table} column="types" />
+              <DataTable.Filter table={table} column="status" />
+            </>
+          }
+          action={
+            <>
+              <>
+                {canAuthorLibrary(workspace.role) && (
+                  <Button size="small" variant="primary" onClick={() => setCreating(true)}>
+                    Create component
+                  </Button>
+                )}
+              </>
+            </>
           }
         />
       </LibraryLoading>
+      {selected && (
+        <RecordSummaryPreview
+          model="component_definitions"
+          fields={[
+            { key: "code", label: "Code" },
+            { key: "categoryLabel", label: "Category" },
+            { key: "description", label: "Description" },
+            { key: "version", label: "Latest version" },
+            { key: "status", label: "State" },
+            { key: "types", label: "Types" },
+            { key: "controls", label: "Controls" },
+          ]}
+          record={selected}
+          rows={displayed}
+          onSelect={setSelected}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </Stack>
   );
 }
@@ -210,6 +223,7 @@ export function ComponentLibraryRecord({
 }) {
   const definition = useRow("component_definitions", id);
   const revisions = useRows("component_definition_revisions", { component_definition_id: id });
+  const publish = useModelSave("component_definition_revisions");
   const createRevision = useModelSave("component_definition_revisions");
   const workspace = useWorkspace();
   const [selectedVersion, setSelectedVersion] = useState(initialVersion ?? "");
@@ -221,6 +235,11 @@ export function ComponentLibraryRecord({
       (revision) =>
         revision.id === selectedVersion || String(revision.version_number) === selectedVersion,
     ) ?? versions[0];
+  const publishContent = useRows(
+    "defined_components",
+    current ? { component_definition_revision_id: current.id } : {},
+    { enabled: !!current },
+  );
   const editable = canAuthorLibrary(workspace.role);
   async function newRevision() {
     setError("");
@@ -234,6 +253,19 @@ export function ComponentLibraryRecord({
       setSelectedVersion(row.id);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not create a revision.");
+    }
+  }
+  async function publishVersion() {
+    if (!current || publish.isPending) return;
+    setError("");
+    try {
+      await publish.mutateAsync({
+        id: current.id,
+        revision: current.revision,
+        values: { state: "published" },
+      });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not publish this version.");
     }
   }
   if (!definition.data)
@@ -276,6 +308,14 @@ export function ComponentLibraryRecord({
                   >
                     Create component version
                   </DropdownMenuItem>
+                  {current?.state === "draft" && (
+                    <DropdownMenuItem
+                      disabled={publish.isPending || !publishContent.data?.length}
+                      onClick={() => void publishVersion()}
+                    >
+                      Publish version
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </PageHeader.Actions>
@@ -292,19 +332,6 @@ export function ComponentLibraryRecord({
             existing={definition.data}
             onClose={() => setEditDefinition(false)}
           />
-        )}
-        {current && (
-          <div className="w-layout-rail max-w-full">
-            <LibrarySelect
-              label="Version"
-              value={current.id}
-              options={versions.map((revision) => ({
-                value: revision.id,
-                label: `${revision.version_number} · ${revision.state}`,
-              }))}
-              onChange={setSelectedVersion}
-            />
-          </div>
         )}
         {current ? (
           <ComponentRevision
@@ -347,7 +374,8 @@ function ComponentRevision({
   const uses = useRows("system_components");
   const systems = useRows("systems");
   const programs = useRows("programs");
-  const publish = useModelSave("component_definition_revisions");
+  const [structurePreview, setStructurePreview] = useState<Row<"defined_components"> | null>(null);
+  const [usePreview, setUsePreview] = useState<Row<"system_components"> | null>(null);
   const [tab, setTab] = useState("Overview");
   const [edit, setEdit] = useState<{ table: string; row?: DataRecord } | null>(null);
   const [inspected, setInspected] = useState<Row<"controls"> | null>(null);
@@ -376,9 +404,17 @@ function ComponentRevision({
   const columns = useMemo(
     () =>
       defineColumns<(typeof claimRows)[number]>((c) => [
-        c.id("code", { header: "Control", width: 130 }),
+        c.id("code", {
+          header: "Control",
+          width: 130,
+          preview: (claim) =>
+            setInspected(controls.data?.find((control) => control.id === claim.control_id) ?? null),
+          active: (claim) => claim.control_id === inspected?.id,
+        }),
         c.text("title", {
           header: "Title",
+          priority: 0,
+          minWidth: 220,
           cell: (row) => (
             <RecordLink table="defined_component_implementations" record={row}>
               {row.title}
@@ -413,7 +449,7 @@ function ComponentRevision({
             : []),
         ]),
       ]),
-    [canEdit, controls.data],
+    [canEdit, controls.data, inspected?.id],
   );
   const table = useDataTable({
     data: claimRows,
@@ -436,10 +472,17 @@ function ComponentRevision({
   const structureColumns = useMemo(
     () =>
       defineColumns<Row<"defined_components">>((c) => [
-        c.id("id", { header: "ID", width: 150 }),
+        c.id("id", {
+          header: "ID",
+          width: 150,
+          preview: setStructurePreview,
+          active: (row) => row.id === structurePreview?.id,
+        }),
         c.text("name", {
           header: "Component",
           hideable: false,
+          priority: 0,
+          minWidth: 220,
           cell: (row) => (
             <RecordLink table="defined_components" record={row}>
               {row.name}
@@ -459,7 +502,7 @@ function ComponentRevision({
             ]
           : []),
       ]),
-    [canEdit],
+    [canEdit, structurePreview?.id],
   );
   const structureTable = useDataTable({
     data: components.data ?? [],
@@ -488,10 +531,17 @@ function ComponentRevision({
   const useColumns = useMemo(
     () =>
       defineColumns<(typeof useRowsForTable)[number]>((c) => [
-        c.id("id", { header: "ID", width: 150 }),
+        c.id("id", {
+          header: "ID",
+          width: 150,
+          preview: setUsePreview,
+          active: (row) => row.id === usePreview?.id,
+        }),
         c.text("name", {
           header: "Component instance",
           hideable: false,
+          priority: 0,
+          minWidth: 220,
           cell: (row) => (
             <RecordLink table="system_components" record={row}>
               {row.name}
@@ -531,7 +581,7 @@ function ComponentRevision({
         }),
         c.text("version", { header: "Version", width: 120 }),
       ]),
-    [],
+    [usePreview?.id],
   );
   const usesTable = useDataTable({
     data: useRowsForTable,
@@ -542,39 +592,16 @@ function ComponentRevision({
     resizable: true,
     reorderable: true,
   });
+  const displayedStructure = useDisplayedRecords(structureTable);
+  const displayedUses = useDisplayedRecords(usesTable);
   const createComponentAction = canEdit ? (
     <Button size="small" variant="primary" onClick={() => setEdit({ table: "defined_components" })}>
       Create component
     </Button>
   ) : undefined;
-  async function publishRevision() {
-    setError("");
-    try {
-      await publish.mutateAsync({
-        id: revision.id,
-        revision: revision.revision,
-        values: { state: "published" },
-      });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not publish this version.");
-    }
-  }
+
   return (
     <Stack space="space.200">
-      <Inline space="space.150" alignBlock="center">
-        <Badge variant="secondary" tone="neutral">
-          {revision.state}
-        </Badge>
-        {canEdit && (
-          <Button
-            variant="secondary"
-            disabled={publish.isPending || !components.data?.length}
-            onClick={() => void publishRevision()}
-          >
-            Publish version
-          </Button>
-        )}
-      </Inline>
       {error && (
         <p role="alert" className="text-danger">
           {error}
@@ -621,19 +648,21 @@ function ComponentRevision({
             )}
             {tab === "Controls" && (
               <Stack space="space.200">
-                {canEdit && (
-                  <Inline>
-                    <Button
-                      variant="primary"
-                      disabled={!components.data?.length}
-                      onClick={() => setEdit({ table: "defined_component_implementations" })}
-                    >
-                      Create control implementation
-                    </Button>
-                  </Inline>
-                )}
-                <DataTable
-                  responsive
+                <ProductCollection
+                  action={
+                    canEdit && (
+                      <>
+                        <Button
+                          size="small"
+                          variant="primary"
+                          disabled={!components.data?.length}
+                          onClick={() => setEdit({ table: "defined_component_implementations" })}
+                        >
+                          Create control implementation
+                        </Button>
+                      </>
+                    )
+                  }
                   table={table}
                   onRowClick={(claim) =>
                     void navigate(recordDestination("defined_component_implementations", claim))
@@ -644,53 +673,33 @@ function ComponentRevision({
                     description:
                       "Add a component in Structure, then author its control implementation.",
                   }}
-                  toolbar={
-                    <Toolbar
-                      search={String(table.state.globalFilter ?? "")}
-                      onSearch={(value) => table.setGlobalFilter(value)}
-                      placeholder="Find control implementations"
-                      filters={
-                        <>
-                          <DataTable.Filter table={table} column="component" />
-                          <DataTable.Filter table={table} column="implementation_status" />
-                        </>
-                      }
-                    >
-                      <DataTable.Columns table={table} />
-                      <DataTable.Settings table={table} />
-                    </Toolbar>
+                  fill
+                  searchLabel="Find control implementations"
+                  filters={
+                    <>
+                      <DataTable.Filter table={table} column="component" />
+                      <DataTable.Filter table={table} column="implementation_status" />
+                    </>
                   }
                 />
               </Stack>
             )}
             {tab === "Structure" && (
-              <Section title="Components">
-                <DataTable
-                  responsive
-                  table={structureTable}
-                  fill
-                  onRowClick={(row) => void navigate(recordDestination("defined_components", row))}
-                  empty={{
-                    illustration: "tree",
-                    title: "No components yet",
-                    description:
-                      "Create a component to author this version's reusable implementation content.",
-                    action: createComponentAction,
-                  }}
-                  toolbar={
-                    <Toolbar
-                      search={String(structureTable.state.globalFilter ?? "")}
-                      onSearch={(value) => structureTable.setGlobalFilter(value)}
-                      placeholder="Find components"
-                      filters={<DataTable.Filter table={structureTable} column="component_type" />}
-                      actions={createComponentAction}
-                    >
-                      <DataTable.Columns table={structureTable} />
-                      <DataTable.Settings table={structureTable} />
-                    </Toolbar>
-                  }
-                />
-              </Section>
+              <ProductCollection
+                table={structureTable}
+                fill
+                onRowClick={(row) => void navigate(recordDestination("defined_components", row))}
+                empty={{
+                  illustration: "tree",
+                  title: "No components yet",
+                  description:
+                    "Create a component to author this version's reusable implementation content.",
+                  action: createComponentAction,
+                }}
+                searchLabel="Find components"
+                filters={<DataTable.Filter table={structureTable} column="component_type" />}
+                action={createComponentAction}
+              />
             )}
             {tab === "Versions" && (
               <Table>
@@ -721,31 +730,19 @@ function ComponentRevision({
               </Table>
             )}
             {tab === "Programs" && (
-              <Section title="Program uses">
-                <DataTable
-                  responsive
-                  table={usesTable}
-                  fill
-                  onRowClick={(row) => void navigate(recordDestination("system_components", row))}
-                  empty={{
-                    illustration: "tree",
-                    title: "No program uses yet",
-                    description:
-                      "Add this component version from a system's library to record its use.",
-                  }}
-                  toolbar={
-                    <Toolbar
-                      search={String(usesTable.state.globalFilter ?? "")}
-                      onSearch={(value) => usesTable.setGlobalFilter(value)}
-                      placeholder="Find component instances"
-                      filters={<DataTable.Filter table={usesTable} column="programName" />}
-                    >
-                      <DataTable.Columns table={usesTable} />
-                      <DataTable.Settings table={usesTable} />
-                    </Toolbar>
-                  }
-                />
-              </Section>
+              <ProductCollection
+                table={usesTable}
+                fill
+                onRowClick={(row) => void navigate(recordDestination("system_components", row))}
+                empty={{
+                  illustration: "tree",
+                  title: "No program uses yet",
+                  description:
+                    "Add this component version from a system's library to record its use.",
+                }}
+                searchLabel="Find component instances"
+                filters={<DataTable.Filter table={usesTable} column="programName" />}
+              />
             )}
             {(tab === "Requirements" || tab === "Evidence") && (
               <ComponentTraceability key={tab} kind={tab} uses={currentUses} />
@@ -759,7 +756,15 @@ function ComponentRevision({
             <KeyValue label="Code">
               <Id>{definition.code}</Id>
             </KeyValue>
-            <KeyValue label="Version">{revision.version_number}</KeyValue>
+            <LibrarySelect
+              label="Version"
+              value={revision.id}
+              options={versions.map((version) => ({
+                value: version.id,
+                label: `${version.version_number} · ${version.state}`,
+              }))}
+              onChange={onVersion}
+            />
             <KeyValue label="State">{revision.state}</KeyValue>
             <KeyValue label="Published">
               {revision.published_at ? displayDate(revision.published_at) : "Not published"}
@@ -791,6 +796,36 @@ function ComponentRevision({
             )}
           </Inspector.Group>
         </Shell.Aside>
+      )}
+      {structurePreview && (
+        <RecordSummaryPreview
+          model="defined_components"
+          readOnly={!canEdit}
+          onEdit={() => setEdit({ table: "defined_components", row: structurePreview })}
+          fields={[
+            { key: "component_type", label: "Type" },
+            { key: "description", label: "Description" },
+          ]}
+          record={structurePreview}
+          rows={displayedStructure}
+          onSelect={setStructurePreview}
+          onClose={() => setStructurePreview(null)}
+        />
+      )}
+      {usePreview && (
+        <RecordSummaryPreview
+          model="system_components"
+          fields={[
+            { key: "version", label: "Version" },
+            { key: "description", label: "Description" },
+            { key: "programName", label: "Program" },
+            { key: "systemName", label: "System" },
+          ]}
+          record={usePreview}
+          rows={displayedUses}
+          onSelect={setUsePreview}
+          onClose={() => setUsePreview(null)}
+        />
       )}
       {inspected && (
         <ControlInspector

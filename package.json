@@ -21,7 +21,7 @@
     "ds:api:matrix": "node scripts/ds-api-matrix.mjs",
     "test:api": "node --test scripts/tests/ds-api-check.test.mjs",
     "test:app": "vitest run --config vitest.app.config.ts && node --test scripts/tests/runtime-data-boundary.test.mjs scripts/tests/design-system-boundary.test.mjs",
-    "test:patterns": "node scripts/test-pattern-consistency.mjs && node scripts/test-form-confirmations.mjs && node scripts/test-preview-frames.mjs && node scripts/test-responsive-patterns.mjs && node scripts/test-preview-record-actions.mjs",
+    "test:patterns": "node scripts/test-pattern-consistency.mjs && node scripts/test-form-confirmations.mjs && node scripts/test-preview-frames.mjs && node scripts/test-responsive-patterns.mjs && node scripts/test-preview-record-actions.mjs && node scripts/test-screen-families.mjs && node scripts/test-pattern-form-edges.mjs",
     "local:start": "node scripts/local-supabase.mjs start",
     "local:stop": "node scripts/local-supabase.mjs stop",
     "local:status": "node scripts/local-supabase.mjs status",

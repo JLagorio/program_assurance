@@ -78,7 +78,7 @@ export function Calendar({
         caption_label: "inline-flex items-center gap-050 font-body font-medium",
         dropdowns: "flex h-control-medium items-center justify-center gap-100",
         dropdown_root:
-          "relative flex h-control-small items-center rounded-medium border border-input px-075 focus-within:outline-focused",
+          "relative flex h-control-small items-center rounded-medium border border-input px-075 focus-within:border-focused focus-within:outline-field-focused",
         dropdown: "absolute inset-0 w-full cursor-pointer opacity-0",
         week_number_header: "w-400",
         week_number: "w-400 text-center font-body-xsmall text-subtle",

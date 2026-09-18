@@ -118,7 +118,11 @@ try {
   await page.getByRole("treegrid", { name: "Engineering requirements", exact: true }).waitFor();
   const table = page.getByRole("treegrid", { name: "Engineering requirements", exact: true });
   const search = page.getByRole("searchbox", { name: "Find a requirement", exact: true });
-  await table.getByRole("link", { name: unversioned.code, exact: true }).waitFor();
+  await table
+    .locator(`tr[data-row-id="${unversioned.id}"]`)
+    .getByRole("link", { name: unversioned.code, exact: true })
+    .first()
+    .waitFor();
   assert.ok(await table.getByText("Details not recorded", { exact: true }).count());
   await search.fill("REQ-0");
   const parentRow = table

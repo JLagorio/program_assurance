@@ -1,4 +1,6 @@
-import { useMemo, useRef, type ReactNode } from "react";
+import { ProductCollection } from "./product-collection";
+import { RecordSummaryPreview } from "./record-summary-preview";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import {
   DataTable,
   Toolbar,
@@ -9,6 +11,7 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import type { TableName } from "@/lib/models";
 import { RecordLink, recordDestination, useDisplayedRecords } from "./record-preview";
+import { productRecordNoun } from "@/lib/product-records";
 import { labelFor } from "@/lib/records";
 import { statusTone } from "./work-format";
 
@@ -55,6 +58,7 @@ export function AssessmentTable<T extends { id: string }>({
   label,
   onPreview,
   onEdit,
+  readOnly = false,
   empty,
   filters = [],
   actions,
@@ -72,6 +76,7 @@ export function AssessmentTable<T extends { id: string }>({
   onPreview?: ((row: T) => void) | undefined;
   /** Editing is an explicit row action, never a preview eye. */
   onEdit?: ((row: T) => void) | undefined;
+  readOnly?: boolean;
   /** A string is the empty state's title. */
   empty?: string | AssessmentEmpty | undefined;
   /** Column keys to expose as filter chips. */
@@ -88,6 +93,8 @@ export function AssessmentTable<T extends { id: string }>({
   fill?: boolean | undefined;
 }) {
   const navigate = useNavigate();
+  const [preview, setPreview] = useState<T | null>(null);
+  const openPreview = onPreview ?? setPreview;
   // The table reads labels for status fields so the chips and the badges agree; the cells and
   // the row click still see the record as it came.
   const statusKeys = useMemo(
@@ -119,15 +126,19 @@ export function AssessmentTable<T extends { id: string }>({
           const raw = (row: T) => byIdRef.current.get(row.id) ?? row;
           const cell = (row: T) => column.value(raw(row));
           const size = column.width === undefined ? {} : { width: column.width };
-          const first = index === 0 ? { hideable: false as const } : {};
-          if (index === 0 && model)
+          const namedColumn = columns.findIndex(({ key }) => key === "name" || key === "title");
+          const primary = index === (namedColumn < 0 ? 0 : namedColumn);
+          const first = primary ? { hideable: false as const, priority: 0 } : {};
+          if (primary && model)
             return c.id(column.key ?? "id", {
               header: column.label,
-              minWidth: 220,
+              minWidth: 180,
+              width: 220,
+              priority: 0,
               ...size,
               hideable: false,
-              preview: onPreview ? (row) => onPreview(raw(row)) : undefined,
-              active: (row) => row.id === selectedId,
+              preview: (row) => openPreview(raw(row)),
+              active: (row) => row.id === (selectedId ?? preview?.id),
               cell: (row) => (
                 <RecordLink table={model} record={raw(row)}>
                   {cell(row)}
@@ -156,14 +167,14 @@ export function AssessmentTable<T extends { id: string }>({
           ? [
               c.actions((row) => [
                 {
-                  label: "Edit record",
+                  label: model ? `Edit ${productRecordNoun(model)}` : `Edit ${label.toLowerCase()}`,
                   onSelect: () => onEdit(byIdRef.current.get(row.id) ?? row),
                 },
               ]),
             ]
           : []),
       ]),
-    [columns, model, onPreview, onEdit, selectedId],
+    [columns, model, openPreview, onEdit, selectedId, preview?.id, label],
   );
   const table = useDataTable({
     columns: tableColumns,
@@ -176,38 +187,41 @@ export function AssessmentTable<T extends { id: string }>({
     ...(view ? { view } : {}),
     ...(initialFilters ? { initialState: { columnFilters: initialFilters } } : {}),
   });
-  useDisplayedRecords(table, onDisplayedRowsChange, byId);
+  const displayed = useDisplayedRecords(table, onDisplayedRowsChange, byId);
   const message: AssessmentEmpty = typeof empty === "string" ? { title: empty } : (empty ?? {});
   return (
-    <DataTable
-      responsive
-      table={table}
-      fill={fill}
-      onRowClick={
-        model
-          ? (row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))
-          : undefined
-      }
-      empty={{
-        illustration: message.illustration ?? "records",
-        title: message.title ?? `No ${label.toLowerCase()} yet`,
-        description: message.description,
-        action: message.action,
-      }}
-      toolbar={
-        <Toolbar
-          search={String(table.state.globalFilter ?? "")}
-          onSearch={(value) => table.setGlobalFilter(value)}
-          placeholder={search ?? `Find ${label.toLowerCase()}`}
-          filters={filters.map((key) => (
-            <DataTable.Filter key={key} table={table} column={key} />
-          ))}
-          actions={actions}
-        >
-          <DataTable.Columns table={table} />
-          <DataTable.Settings table={table} />
-        </Toolbar>
-      }
-    />
+    <>
+      <ProductCollection
+        table={table}
+        fill={fill}
+        onRowClick={
+          model
+            ? (row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))
+            : undefined
+        }
+        empty={{
+          illustration: message.illustration ?? "records",
+          title: message.title ?? `No ${label.toLowerCase()} yet`,
+          description: message.description,
+          action: message.action ?? actions,
+        }}
+        searchLabel={search ?? `Find ${label.toLowerCase()}`}
+        filters={filters.map((key) => (
+          <DataTable.Filter key={key} table={table} column={key} />
+        ))}
+        action={actions}
+      />
+      {preview && model && !onPreview && (
+        <RecordSummaryPreview
+          model={model}
+          readOnly={readOnly}
+          onEdit={onEdit ? () => onEdit(byId.get(preview.id) ?? preview) : undefined}
+          record={byId.get(preview.id) ?? preview}
+          rows={displayed}
+          onSelect={setPreview}
+          onClose={() => setPreview(null)}
+        />
+      )}
+    </>
   );
 }

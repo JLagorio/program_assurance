@@ -1,21 +1,21 @@
-import { RecordLink } from "@/components/prototype/record-preview";
+import { useWorkspace } from "@/components/app/workspace";
+import { LibraryEditor, LibraryLoading } from "@/components/prototype/library-shared";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
-import { useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ProductCollection } from "@/components/prototype/product-collection";
+import { RecordLink, useDisplayedRecords } from "@/components/prototype/record-preview";
+import { RecordSummaryPreview } from "@/components/prototype/record-summary-preview";
+import { useRows, type Row } from "@/lib/models";
 import {
   Button,
   DataTable,
   defineColumns,
-  Inline,
   PageHeader,
-  Toolbar,
   Stack,
   useDataTable,
 } from "@ledger/design-system";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
-import { useRows } from "@/lib/models";
-import { useWorkspace } from "@/components/app/workspace";
-import { LibraryEditor, LibraryLoading } from "@/components/prototype/library-shared";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/profiles/")({
   head: () => ({ meta: [{ title: "Profiles — Program Assurance" }] }),
@@ -42,6 +42,7 @@ function ProfilesIndex() {
   const resolutions = useRows("profile_resolutions");
   const selections = useRows("selected_controls");
   const [creating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<Row<"profiles"> | null>(null);
   const rows = useMemo(
     () =>
       (profiles.data ?? []).map((profile) => {
@@ -74,6 +75,8 @@ function ProfilesIndex() {
         c.text("title", {
           header: "Profile",
           hideable: false,
+          priority: 0,
+          width: 220,
           minWidth: 220,
           cell: (row) => (
             <RecordLink table="profiles" record={row}>
@@ -81,14 +84,19 @@ function ProfilesIndex() {
             </RecordLink>
           ),
         }),
-        c.id("code", { header: "Identifier", width: 230 }),
+        c.id("code", {
+          header: "Identifier",
+          width: 150,
+          preview: setSelected,
+          active: (row) => row.id === selected?.id,
+        }),
         c.text("kind", { header: "Source", width: 160 }),
         c.text("version", { header: "Latest revision", width: 125 }),
         c.status("status", { header: "State", width: 125, tone: () => "neutral" }),
         c.text("drafts", { header: "Drafts", width: 110 }),
         c.text("selection", { header: "Controls", width: 115 }),
       ]),
-    [],
+    [selected?.id],
   );
   const table = useDataTable({
     data: rows,
@@ -100,6 +108,7 @@ function ProfilesIndex() {
     reorderable: true,
   });
   const canCreate = canAuthorLibrary(workspace.role);
+  const displayed = useDisplayedRecords(table);
   return (
     <Stack className="animate-rise" space="space.200">
       <PageHeader>
@@ -117,8 +126,7 @@ function ProfilesIndex() {
         />
       )}
       <LibraryLoading queries={[profiles, revisions, resolutions, selections]}>
-        <DataTable
-          responsive
+        <ProductCollection
           table={table}
           fill
           onRowClick={(row) => {
@@ -130,50 +138,62 @@ function ProfilesIndex() {
             description:
               "A profile is a versioned control selection with its source imports and tailoring. Author the first, or import a shared reference.",
             action: canCreate ? (
-              <Button variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
+              <Button
+                size="small"
+                variant="primary"
+                iconBefore={<Plus />}
+                onClick={() => setCreating(true)}
+              >
                 Create profile
               </Button>
             ) : undefined,
           }}
-          toolbar={
-            <Toolbar
-              search={String(table.state.globalFilter ?? "")}
-              onSearch={(value) => table.setGlobalFilter(value)}
-              placeholder="Find profiles"
-              views={
-                <>
-                  <DataTable.Presets table={table} variant="menu" presets={presets} />
-                </>
-              }
-              filters={
-                <>
-                  <DataTable.Filter table={table} column="kind" />
-                  <DataTable.Filter table={table} column="status" />
-                  <DataTable.Filter table={table} column="drafts" />
-                </>
-              }
-              actions={
-                <>
-                  {canCreate && (
-                    <Button
-                      size="small"
-                      variant="primary"
-                      iconBefore={<Plus />}
-                      disabled={creating}
-                      onClick={() => setCreating(true)}
-                    >
-                      Create profile
-                    </Button>
-                  )}
-                </>
-              }
-            >
-              <DataTable.Columns table={table} />
-              <DataTable.Settings table={table} />
-            </Toolbar>
+          searchLabel="Find profiles"
+          views={
+            <>
+              <DataTable.Presets table={table} variant="menu" presets={presets} />
+            </>
+          }
+          filters={
+            <>
+              <DataTable.Filter table={table} column="kind" />
+              <DataTable.Filter table={table} column="status" />
+              <DataTable.Filter table={table} column="drafts" />
+            </>
+          }
+          action={
+            <>
+              {canCreate && (
+                <Button
+                  size="small"
+                  variant="primary"
+                  iconBefore={<Plus />}
+                  disabled={creating}
+                  onClick={() => setCreating(true)}
+                >
+                  Create profile
+                </Button>
+              )}
+            </>
           }
         />
       </LibraryLoading>
+      {selected && (
+        <RecordSummaryPreview
+          model="profiles"
+          fields={[
+            { key: "code", label: "Code" },
+            { key: "kind", label: "Source" },
+            { key: "version", label: "Latest revision" },
+            { key: "status", label: "State" },
+            { key: "selection", label: "Controls" },
+          ]}
+          record={selected}
+          rows={displayed}
+          onSelect={setSelected}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </Stack>
   );
 }

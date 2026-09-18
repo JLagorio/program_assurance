@@ -79,11 +79,7 @@ export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "s
             <PageHeader.Title>Risk register</PageHeader.Title>
           </PageHeader.Heading>
         </PageHeader>
-      ) : (
-        <Heading size="small" as="h2" className="min-w-0 break-words font-semibold text-default">
-          Risk register
-        </Heading>
-      )}
+      ) : null}
       {creating && (
         <EntityEditor
           table="risks"
@@ -122,16 +118,15 @@ export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "s
             }}
             searchLabel="Search risks"
             view="risk-register"
+            commands={[
+              {
+                label: "Export risks",
+                onSelect: () => downloadJson("risk-register.json", query.data),
+                disabled: !query.data,
+              },
+            ]}
             actions={
               <>
-                <Button
-                  size="small"
-                  iconBefore={<Download />}
-                  disabled={!query.data}
-                  onClick={() => downloadJson("risk-register.json", query.data)}
-                >
-                  Export
-                </Button>
                 {workspace.role !== "viewer" && (
                   <Button
                     size="small"
@@ -294,6 +289,7 @@ export function RiskRecord({ id }: { id: string }) {
                       table="risk_responses"
                       filters={{ risk_revision_id: assessment.id }}
                       title="Risk responses"
+                      showHeading
                       columns={[
                         { key: "response_type" },
                         { key: "description" },
@@ -307,6 +303,7 @@ export function RiskRecord({ id }: { id: string }) {
                       table="risk_observations"
                       filters={{ risk_revision_id: assessment.id }}
                       title="Supporting observations"
+                      showHeading
                       columns={[
                         {
                           key: "observation_id",
@@ -387,7 +384,7 @@ function AssessmentEditor({ row }: { row: Row<"risk_revisions"> }) {
   return editing ? (
     <EntityEditor table="risk_revisions" existing={editing} onCancel={() => setEditing(null)} />
   ) : workspace.role !== "viewer" && row.state === "draft" ? (
-    <Button onClick={() => setEditing(row as DataRecord)}>Edit assessment</Button>
+    <Button onClick={() => setEditing(row as DataRecord)}>Edit risk assessment</Button>
   ) : null;
 }
 export function Register() {
@@ -406,15 +403,6 @@ export function Register() {
         <PageHeader.Heading>
           <PageHeader.Title>POA&M & risk register</PageHeader.Title>
         </PageHeader.Heading>
-        <PageHeader.Actions>
-          <Button
-            iconBefore={<Download />}
-            disabled={!items.data}
-            onClick={() => downloadJson("poam-register.json", items.data)}
-          >
-            Export POA&M records
-          </Button>
-        </PageHeader.Actions>
       </PageHeader>
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList variant="line" aria-label="POA&M and risk collections">
@@ -519,7 +507,7 @@ export function PoamRecord({ id }: { id: string }) {
                   table="poam_items"
                   id={id}
                   onEdit={() => setEditing(record as DataRecord)}
-                  editLabel="Edit commitment"
+                  editLabel="Edit remediation item"
                 />
               </PageHeader.Actions>
             </PageHeader>
@@ -549,9 +537,21 @@ export function PoamRecord({ id }: { id: string }) {
                     },
                   ]}
                 />
+                {version && (
+                  <LibrarySelect
+                    label="Remediation plan version"
+                    value={version.id}
+                    options={(versions.data ?? []).map((item) => ({
+                      value: item.id,
+                      label: `Version ${item.version_number}`,
+                    }))}
+                    onChange={setSelected}
+                  />
+                )}
               </Inspector.Group>
             </Shell.Aside>
             <EntitySection
+              showHeading
               table="poam_item_revisions"
               filters={{ poam_item_id: id }}
               initialValues={{ poam_document_id: record.poam_document_id }}
@@ -565,15 +565,6 @@ export function PoamRecord({ id }: { id: string }) {
             <QueryState query={versions}>
               {version ? (
                 <>
-                  <LibrarySelect
-                    label="Remediation plan version"
-                    value={version.id}
-                    options={(versions.data ?? []).map((item) => ({
-                      value: item.id,
-                      label: `Version ${item.version_number}`,
-                    }))}
-                    onChange={setSelected}
-                  />
                   <PoamVersion key={version.id} version={version} />
                 </>
               ) : (
@@ -598,7 +589,9 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
         title={`Remediation plan · version ${version.version_number}`}
         action={
           canEdit ? (
-            <Button onClick={() => setEditing(version as DataRecord)}>Edit plan</Button>
+            <Button onClick={() => setEditing(version as DataRecord)}>
+              Edit remediation commitment
+            </Button>
           ) : (
             <StateBadge value={version.state} />
           )
@@ -624,6 +617,7 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
         />
       </Section>
       <EntitySection
+        showHeading
         table="poam_milestones"
         filters={{ poam_item_revision_id: version.id }}
         title="Milestones"
@@ -638,6 +632,7 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
         readOnly={version.state === "published"}
       />
       <EntitySection
+        showHeading
         table="poam_item_risks"
         filters={{ poam_item_revision_id: version.id }}
         title="Linked risk assessments"
@@ -657,6 +652,7 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
 export function PoamDocument({ id }: { id: string }) {
   const workspace = useWorkspace();
   const query = useRow("poam_documents", id);
+  const [editingDocument, setEditingDocument] = useState(false);
   const [displayedRevisions, setDisplayedRevisions] = useState<DataRecord[]>([]);
   const [editingRevision, setEditingRevision] = useState(false);
   const [revision, setRevision] = useState<DataRecord | null>(null);
@@ -682,8 +678,31 @@ export function PoamDocument({ id }: { id: string }) {
               <PageHeader.Heading>
                 <PageHeader.Title>{query.data.title}</PageHeader.Title>
               </PageHeader.Heading>
+              <PageHeader.Actions>
+                <RecordActions
+                  table="poam_documents"
+                  id={id}
+                  onEdit={() => setEditingDocument(true)}
+                />
+              </PageHeader.Actions>
             </PageHeader>
+            {editingDocument && (
+              <EntityEditor
+                table="poam_documents"
+                existing={query.data as DataRecord}
+                onCancel={() => setEditingDocument(false)}
+              />
+            )}
+            <Shell.Aside label="POA&M document details">
+              <Inspector.Group title="Details">
+                <ModelFacts
+                  record={query.data as DataRecord}
+                  fields={[program, "description", "created_at", "updated_at"]}
+                />
+              </Inspector.Group>
+            </Shell.Aside>
             <EntitySection
+              showHeading
               table="poam_revisions"
               filters={{ poam_document_id: id }}
               title="Document revisions"
@@ -708,7 +727,7 @@ export function PoamDocument({ id }: { id: string }) {
                   revision["state"] === "draft" &&
                   workspace.role !== "viewer" && (
                     <Button size="small" variant="primary" onClick={() => setEditingRevision(true)}>
-                      Edit revision
+                      Edit POA&M revision
                     </Button>
                   )
                 }

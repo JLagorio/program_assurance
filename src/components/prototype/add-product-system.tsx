@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import {
+  Box,
   Button,
   Dialog,
   DialogContent,
@@ -21,6 +22,8 @@ import {
 import type { Impact, SystemType } from "@/lib/program-wizard";
 import { ChoiceField, PartyField, TextField } from "@/components/app/fields";
 import { ProductConfigurationPicker } from "@/components/app/product-configuration-picker";
+
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 
 const systemTypes = [
   { value: "information_system", label: "Information system" },
@@ -73,6 +76,7 @@ function VariantDialog({
   onClose: () => void;
   onSaved?: ((systemId: string) => void) | undefined;
 }) {
+  const formId = useId();
   const parties = useRows("parties");
   const choices = useRows("program_reference_choices", { program_id: programId });
   const resolutions = useRows("profile_resolutions");
@@ -115,7 +119,19 @@ function VariantDialog({
   const chosenProfile =
     profileResolutionId ?? (profileOptions.length === 1 ? profileOptions[0]!.value : null);
   const [error, setError] = useState("");
+  const guard = useDraftGuard({
+    dirty:
+      name !== draft.name ||
+      code !== draft.code ||
+      type !== draft.type ||
+      !!ownerPartyId ||
+      Object.values(categorization).some(Boolean) ||
+      !!rationale ||
+      !!profileResolutionId,
+    onClose,
+  });
   async function submit() {
+    if (guard.busy) return;
     if (!name.trim() || !code.trim() || !type) {
       setError("Enter a name and a code, and choose a type.");
       return;
@@ -133,6 +149,7 @@ function VariantDialog({
       setError("Choose one of the program's profiles.");
       return;
     }
+    if (!guard.start()) return;
     setError("");
     try {
       const { profileKey: _profileKey, ...rest } = draft;
@@ -162,21 +179,26 @@ function VariantDialog({
         description: `${result.elements.length} element${result.elements.length === 1 ? "" : "s"} inherited from ${item.productName} v${item.version} · ${item.configurationName}.`,
       });
       onSaved?.(result.systemId);
-      onClose();
+      guard.complete();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not add the system.");
+    } finally {
+      guard.finish();
     }
   }
   return (
     <Dialog
       open
-      onOpenChange={(open) => {
-        if (!open && !add.isPending) onClose();
+      onOpenChange={(open, details) => {
+        if (!open) {
+          details.cancel();
+          void guard.close();
+        }
       }}
     >
-      <DialogContent style={{ maxWidth: 720 }} showCloseButton={!add.isPending}>
+      <DialogContent style={{ maxWidth: 720 }} showCloseButton={!guard.busy}>
         <DialogHeader>
-          <DialogTitle>Add system from a product</DialogTitle>
+          <DialogTitle>Add system from product</DialogTitle>
           <DialogDescription>
             {item.productName} · {item.configurationName} · v{item.version} · {item.elements.length}{" "}
             element{item.elements.length === 1 ? "" : "s"}
@@ -184,81 +206,99 @@ function VariantDialog({
             inherited as published; edit them in the tree afterwards.
           </DialogDescription>
         </DialogHeader>
-        <Stack space="space.150">
-          <TextField label="Name" value={name} onChange={setName} required autoFocus />
-          <TextField
-            label="Code"
-            value={code}
-            onChange={setCode}
-            required
-            description="Your stable identifier for this variant."
-          />
-          <ChoiceField
-            label="Type"
-            value={type}
-            onChange={(value) => setType(value as SystemType | null)}
-            options={systemTypes}
-            required
-          />
-          <PartyField
-            label="System owner"
-            value={ownerPartyId}
-            onChange={setOwnerPartyId}
-            parties={parties.data ?? []}
-          />
-          <Grid gap="space.150" templateColumns="repeat(3,minmax(0,1fr))">
-            {(["confidentiality", "integrity", "availability"] as const).map((objective) => (
-              <ChoiceField
-                key={objective}
-                label={objective[0]!.toUpperCase() + objective.slice(1)}
-                value={categorization[objective]}
-                options={impacts}
-                required
-                onChange={(value) =>
-                  setCategorization((previous) => ({
-                    ...previous,
-                    [objective]: value as Impact | null,
-                  }))
-                }
-              />
-            ))}
-          </Grid>
-          <TextField
-            label="Categorization rationale"
-            value={rationale}
-            onChange={setRationale}
-            required
-            multiline
-            description="Explain the impact of a loss of confidentiality, integrity, or availability."
-          />
-          <ChoiceField
-            label="Program profile"
-            value={chosenProfile}
-            onChange={setProfileResolutionId}
-            options={profileOptions}
-            required
-            description="The program profile this variant adopts."
-          />
-          {error && (
-            <p role="alert" className="font-body-small text-danger">
-              {error}
-            </p>
-          )}
-        </Stack>
+        <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
+          <form
+            id={formId}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void submit();
+            }}
+          >
+            <fieldset disabled={guard.busy} className="min-w-0 border-0 p-0">
+              <Stack space="space.150">
+                <TextField label="Name" value={name} onChange={setName} required autoFocus />
+                <TextField
+                  label="Code"
+                  value={code}
+                  onChange={setCode}
+                  required
+                  description="Your stable identifier for this variant."
+                />
+                <ChoiceField
+                  label="Type"
+                  value={type}
+                  onChange={(value) => setType(value as SystemType | null)}
+                  options={systemTypes}
+                  required
+                />
+                <PartyField
+                  label="System owner"
+                  value={ownerPartyId}
+                  onChange={setOwnerPartyId}
+                  parties={parties.data ?? []}
+                />
+                <Grid
+                  gap="space.150"
+                  templateColumns={{ base: "minmax(0,1fr)", sm: "repeat(3,minmax(0,1fr))" }}
+                >
+                  {(["confidentiality", "integrity", "availability"] as const).map((objective) => (
+                    <ChoiceField
+                      key={objective}
+                      label={objective[0]!.toUpperCase() + objective.slice(1)}
+                      value={categorization[objective]}
+                      options={impacts}
+                      required
+                      onChange={(value) =>
+                        setCategorization((previous) => ({
+                          ...previous,
+                          [objective]: value as Impact | null,
+                        }))
+                      }
+                    />
+                  ))}
+                </Grid>
+                <TextField
+                  label="Categorization rationale"
+                  value={rationale}
+                  onChange={setRationale}
+                  required
+                  multiline
+                  description="Explain the impact of a loss of confidentiality, integrity, or availability."
+                />
+                <ChoiceField
+                  label="Program profile"
+                  value={chosenProfile}
+                  onChange={setProfileResolutionId}
+                  options={profileOptions}
+                  required
+                  description="The program profile this variant adopts."
+                />
+                {error && (
+                  <p role="alert" className="font-body-small text-danger">
+                    {error}
+                  </p>
+                )}
+              </Stack>
+            </fieldset>
+          </form>
+        </Box>
         <DialogFooter>
-          <Button variant="subtle" disabled={add.isPending} onClick={onClose}>
+          <Button variant="subtle" disabled={guard.busy} onClick={() => void guard.close()}>
             Cancel
           </Button>
           <Button
             variant="primary"
-            isLoading={add.isPending}
-            disabled={add.isPending}
-            onClick={() => void submit()}
+            isLoading={guard.busy}
+            disabled={guard.busy}
+            type="submit"
+            form={formId}
           >
-            Add system
+            Add system from product
           </Button>
         </DialogFooter>
       </DialogContent>
+      {guard.confirmation}
     </Dialog>
   );
 }

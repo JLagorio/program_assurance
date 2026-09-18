@@ -2,12 +2,15 @@
 /** Responsive product compositions, confined to a disposable local workspace. */
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { mkdir, mkdtemp } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, expect as playwrightExpect } from "playwright/test";
 import { localWorkspace } from "./tests/local-workspace.mjs";
 import { expectPreviewHeader, minimizePreview } from "./tests/preview-header.mjs";
+import { expectActionMenu, expectCenteredIcon } from "./tests/action-layout.mjs";
+import { expectIconSideNavigation } from "./tests/side-navigation.mjs";
+import { expectPatternMotion } from "./tests/pattern-motion.mjs";
 
 const started = Date.now();
 const origin = process.env.APP_TEST_URL || "http://127.0.0.1:8080";
@@ -123,6 +126,15 @@ async function systemPreviewFits(name) {
   await documentFits();
 }
 
+async function systemActionsFit(name) {
+  const overflow = panel().getByRole("button", { name: "More system actions", exact: true });
+  await expectCenteredIcon(overflow);
+  await overflow.click();
+  await expectActionMenu(page, ["Create system", "Add from library"]);
+  await screenshot(name);
+  await page.keyboard.press("Escape");
+}
+
 try {
   const program = await insert("programs", {
     code: "RESPONSIVE",
@@ -225,6 +237,16 @@ try {
   await expect(
     row(systems(), child.id).getByRole("link", { name: child.name, exact: true }),
   ).toBeVisible();
+  await expectIconSideNavigation(page, { screenshot });
+  await expectPatternMotion(page, {
+    recordSamples: (samples) =>
+      writeFile(join(artifacts, "motion-samples.json"), JSON.stringify(samples, null, 2)),
+    captureFrame: (name) =>
+      page.screenshot({ path: join(artifacts, `${name}.png`), animations: "allow" }),
+  });
+  await expect(
+    row(systems(), child.id).getByRole("link", { name: child.name, exact: true }),
+  ).toBeVisible();
   await expect(main().getByText(boundary.description, { exact: true })).toHaveCount(0);
   await expect(
     page
@@ -238,7 +260,9 @@ try {
   await screenshot("system-overview-1440");
 
   await page.getByRole("tab", { name: "Controls", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Change baseline", exact: true })).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: "Change control baseline", exact: true }),
+  ).toBeEnabled();
   const details = page.getByRole("button", { name: "Baseline details", exact: true });
   await expect(details).toHaveAttribute("aria-expanded", "false");
   const baselineSource = page
@@ -251,22 +275,29 @@ try {
   await details.click();
 
   await page.goto(`${origin}/programs/${program.id}?tab=System`);
+  for (const width of [1440, 390, 340]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.getByRole("button", { name: "Create system", exact: true }).first().click();
+    await expectActionMenu(page, ["Create system", "Add system from product"]);
+    await screenshot(`system-create-actions-${width}`);
+    await page.keyboard.press("Escape");
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await row(systems(), child.id).getByRole("button", { name: "Preview row", exact: true }).click();
   for (const width of [1440, 390, 340]) {
     await page.setViewportSize({ width, height: 1000 });
     await systemPreviewFits(child.name);
     await screenshot(`system-preview-${width}`);
+    await systemActionsFit(`system-overflow-actions-${width}`);
     if (width === 1440) {
       await minimizePreview(page);
       await systemPreviewFits(child.name);
       await screenshot("system-preview-panel-240");
+      await systemActionsFit("system-overflow-actions-panel-240");
+      await panel().getByRole("separator", { name: "Resize details", exact: true }).focus();
       await page.keyboard.press("End");
     }
   }
-  await panel().getByRole("button", { name: "More system actions", exact: true }).click();
-  await expect(page.getByRole("menuitem", { name: "Create system", exact: true })).toBeVisible();
-  await expect(page.getByRole("menuitem", { name: "Add from library", exact: true })).toBeVisible();
-  await page.keyboard.press("Escape");
   await panel().getByRole("button", { name: "Close details", exact: true }).click();
   await tableFits(systems());
   const more = row(systems(), child.id).getByRole("button", {
@@ -291,9 +322,9 @@ try {
   await search.fill("Responsive");
   await expect(table.locator("tbody tr[data-row-id]")).toHaveCount(3);
   const sorted = table.locator("th").filter({
-    has: page.getByRole("button", { name: "Overview", exact: true, includeHidden: true }),
+    has: page.getByRole("button", { name: "Requirement name", exact: true, includeHidden: true }),
   });
-  await sorted.getByRole("button", { name: "Overview", exact: true }).click();
+  await sorted.getByRole("button", { name: "Requirement name", exact: true }).click();
   await expect(sorted).toHaveAttribute("aria-sort", "ascending");
   const order = () =>
     table
@@ -354,7 +385,7 @@ try {
     assert.deepEqual(await order(), originalOrder);
     await expect(
       row(table, requirements[1].id).getByRole("link", {
-        name: requirements[1].statement,
+        name: requirements[1].title,
         exact: true,
       }),
     ).toBeVisible();
@@ -368,7 +399,7 @@ try {
   ).toBeVisible();
   assert.deepEqual(errors, [], "No uncaught browser errors or native dialogs");
   console.log(
-    `PASS responsive system/requirement patterns in ${Math.round((Date.now() - started) / 1000)}s; artifacts ${artifacts}`,
+    `PASS responsive navigation/system/requirement patterns in ${Math.round((Date.now() - started) / 1000)}s; artifacts ${artifacts}`,
   );
 } catch (error) {
   if (page) {

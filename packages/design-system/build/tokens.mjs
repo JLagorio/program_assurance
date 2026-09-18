@@ -421,7 +421,7 @@ fs.writeFileSync(
 );
 
 const composed = [
-  `/* Composed from border.width.focused, color.border.focused and space.025: the one focus indicator. */
+  `/* Composed from border.width.focused, color.border.focused and space.025: the offset focus indicator. */
 @utility outline-focused {
   outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
   outline-offset: var(--ds-space-025);
@@ -431,8 +431,22 @@ const composed = [
   outline: var(--ds-border-width-focused) solid var(--ds-color-border-danger);
   outline-offset: var(--ds-space-025);
 }`,
+  `/* Fields overlay their border with one 2px edge without moving their content. */
+@utility outline-field-focused {
+  outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
+  outline-offset: calc(-1 * var(--ds-border-width-focused));
+}
+@utility outline-field-danger {
+  outline: var(--ds-border-width-focused) solid var(--ds-color-border-danger);
+  outline-offset: calc(-1 * var(--ds-border-width-focused));
+}`,
 ];
-allClasses.push("outline-focused", "outline-danger");
+allClasses.push(
+  "outline-focused",
+  "outline-danger",
+  "outline-field-focused",
+  "outline-field-danger",
+);
 fs.writeFileSync(
   path.join(outDir, "utilities.css"),
   header("one utility per token, on its own property") +

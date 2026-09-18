@@ -45,6 +45,7 @@ export type SideNavTrigger =
 export type ShellApi = {
   isDesktop: boolean;
   shortcut: boolean;
+  collapsedSideNav: "hidden" | "icons";
   sideNav: { expanded: boolean; open: boolean; peeking: boolean; width: number | null };
   panel: { width: number | null };
   expandSideNav: (trigger?: SideNavTrigger) => void;
@@ -73,6 +74,7 @@ const noop = () => undefined;
 const detached: ShellApi = {
   isDesktop: true,
   shortcut: false,
+  collapsedSideNav: "hidden",
   sideNav: { expanded: true, open: false, peeking: false, width: null },
   panel: { width: null },
   expandSideNav: noop,
@@ -94,6 +96,17 @@ const detached: ShellApi = {
 
 export const ShellContext = createContext<ShellApi | null>(null);
 export const useShell = () => useContext(ShellContext) ?? detached;
+
+/** Icon presentation is desktop-only; an open overlay always shows full labels. */
+export function useSideNavRail() {
+  const shell = useShell();
+  return (
+    shell.isDesktop &&
+    shell.collapsedSideNav === "icons" &&
+    !shell.sideNav.expanded &&
+    !shell.sideNav.open
+  );
+}
 
 /** The part's `data-slot`, spread into a Base UI props object (a literal key would fail the excess-property check). */
 export const slot = (name: string) => ({ "data-slot": name });

@@ -1,3 +1,4 @@
+import { ProductCollection } from "./product-collection";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -18,6 +19,7 @@ import {
   type Preset,
 } from "@ledger/design-system";
 import {
+  RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
   recordDestination,
@@ -125,19 +127,28 @@ export function SystemLibrary({
       defineColumns<Line>((c) => [
         c.id("name", {
           header: "Item",
-          minWidth: 240,
+          minWidth: 200,
+          priority: 0,
           preview: (row) => setSelectedId(row.id),
           active: (row) => row.id === selectedId,
           hideable: false,
           cell: (row) => (
             <span className="flex min-w-0 flex-col">
-              <TextLink
-                render={
-                  <Link {...libraryDestination(row)} onClick={(event) => event.stopPropagation()} />
+              <RecordLink
+                table={
+                  row.definitionId
+                    ? "component_definitions"
+                    : row.revisionId
+                      ? "profile_resolutions"
+                      : "systems"
                 }
+                record={{
+                  id: row.definitionId ?? row.revisionId ?? row.elementId,
+                  program_id: programId,
+                }}
               >
                 {row.name}
-              </TextLink>
+              </RecordLink>
               {row.detail && <span className="font-body-xsmall text-subtle">{row.detail}</span>}
             </span>
           ),
@@ -180,7 +191,7 @@ export function SystemLibrary({
         c.text("updateFlag", { header: "Update", width: 140 }),
         c.text("changeFlag", { header: "Change", width: 140 }),
       ]),
-    [includeInside, element.id, selectedId],
+    [includeInside, element.id, selectedId, programId],
   );
   const table = useDataTable({
     columns,
@@ -219,11 +230,8 @@ export function SystemLibrary({
   ) : null;
   return (
     <>
-      <DataTable
-        responsive
+      <ProductCollection
         table={table}
-        state={error ? "error" : pending ? "loading" : "ready"}
-        error={error?.message}
         onRowClick={(row) => void navigate(libraryDestination(row))}
         empty={{
           illustration: "records",
@@ -232,26 +240,20 @@ export function SystemLibrary({
             "Apply a profile, a component definition or a requirement definition to this element.",
           action: addAction,
         }}
-        toolbar={
-          <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(value) => table.setGlobalFilter(value)}
-            placeholder="Find a library item"
-            views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
-            actions={addAction}
-            filters={
-              <label className="flex items-center gap-100 font-body-small">
-                <Checkbox
-                  checked={includeInside}
-                  onCheckedChange={(checked) => setIncludeInside(checked === true)}
-                />
-                Include everything inside
-              </label>
-            }
+        fill
+        queries={queries}
+        searchLabel="Find a library item"
+        views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
+        action={addAction}
+        filters={
+          <Button
+            size="small"
+            variant="subtle"
+            aria-pressed={includeInside}
+            onClick={() => setIncludeInside(!includeInside)}
           >
-            <DataTable.Columns table={table} />
-            <DataTable.Settings table={table} />
-          </Toolbar>
+            Include everything inside
+          </Button>
         }
       />
       {selected && (
@@ -334,46 +336,6 @@ export function SystemLibrary({
                 </Stack>
               </Inspector.Group>
             )}
-            <Stack space="space.075">
-              {selected.definitionId && (
-                <TextLink
-                  render={
-                    <Link
-                      to="/library/components/$componentKey"
-                      params={{ componentKey: selected.definitionId }}
-                      search={selected.version ? { version: selected.version } : {}}
-                    />
-                  }
-                >
-                  Open the library definition
-                </TextLink>
-              )}
-              {selected.systemComponentId && (
-                <TextLink
-                  render={
-                    <Link
-                      to="/programs/$programId/components/$componentId"
-                      params={{ programId, componentId: selected.systemComponentId }}
-                    />
-                  }
-                >
-                  Open the component instance
-                </TextLink>
-              )}
-              {selected.kind === "Baseline" && (
-                <TextLink
-                  render={
-                    <Link
-                      to="/programs/$programId/systems/$scopeId"
-                      params={{ programId, scopeId: selected.elementId }}
-                      search={{ tab: "Controls" }}
-                    />
-                  }
-                >
-                  Open the controls
-                </TextLink>
-              )}
-            </Stack>
           </Stack>
         </RecordPreviewPanel>
       )}
