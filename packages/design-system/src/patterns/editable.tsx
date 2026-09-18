@@ -202,15 +202,13 @@ function EditableText({ placeholder, multiline = false, ...props }: EditableText
               if (commit(draft)) setEditing(false);
             }}
             onKeyDown={(e) => {
-              if (
-                e.key === "Enter" &&
-                !e.nativeEvent.isComposing &&
-                (!multiline || e.ctrlKey || e.metaKey)
-              ) {
+              if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+              if (e.key === "Enter" && (!multiline || e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 const ok = commit(draft);
                 returnFocus.current = ok;
                 if (ok) setEditing(false);
+                else e.stopPropagation();
               }
               if (e.key === "Escape") {
                 e.preventDefault();

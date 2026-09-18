@@ -73,10 +73,11 @@ Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of 
 
 ## Accessibility
 
-- **Named by the Frame**, or by `label`: the plot is a group and focusable. The tiles are not walked by the keyboard; the Frame's legend and table are the way in, one row per leaf.
+- **Named by the Frame**, or by `label`: the plot is a group. Interactive charts require one of these names. When `onSelect` or `details` is supplied, each leaf is a named button reachable with Tab; Enter and Space perform the same action as a click. Its accessible name includes the branch, full name and value, even when the visible label is shortened. Display-only tiles and unnamed, decorative plots add no tab stops.
 - **Text never sits on a tile's colour**: the name is on a surface chip, in the text colour.
 - **Every tile has a title** with its whole name and value, whether or not the name fits.
-- **A chosen tile's card is a dialog**, and focus returns to the plot when it closes.
+- **A chosen tile's card is a dialog**, and focus returns to that tile when it closes, or the first available tile if it was removed.
+- **Keyboard drill-down preserves the chosen leaf's focus** when Recharts replaces its branch, or focuses the first available tile when that leaf no longer exists.
 - **Loading is `aria-busy`** and named "[the plot's name], loading".
 
 ## Props

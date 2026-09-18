@@ -1,6 +1,7 @@
 import { InputGroupAddon, InputGroupInput, InputGroup } from "../components/input-group";
 import { Button } from "../components/button";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "../components/popover";
+import { Scroller, ScrollerArrow, ScrollerViewport } from "../components/scroller";
 import { useLedgerLocale } from "../lib/locale";
 import { MoreHorizontal, Search } from "lucide-react";
 import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
@@ -50,8 +51,13 @@ export function Toolbar({
       if (!row) return 0;
       const items = Array.from(row.children).filter((child) => child.getClientRects().length);
       const gap = parseFloat(getComputedStyle(row).columnGap) || 8;
+      // A scrolling strip is as wide as what it holds, not what it shows.
+      const contentWidth = (child: Element) => {
+        const viewport = child.querySelector<HTMLElement>('[data-slot="scroller-viewport"]');
+        return Math.max(child.getBoundingClientRect().width, viewport?.scrollWidth ?? 0);
+      };
       return (
-        items.reduce((width, child) => width + child.getBoundingClientRect().width, 0) +
+        items.reduce((width, child) => width + contentWidth(child), 0) +
         gap * Math.max(0, items.length - 1)
       );
     };
@@ -104,8 +110,12 @@ export function Toolbar({
         </InputGroup>
       ) : null}
       {views ? (
-        <div ref={viewRow} data-slot="toolbar-views" className="flex shrink-0 items-center gap-100">
-          {views}
+        <div ref={viewRow} data-slot="toolbar-views" className="flex min-w-0 items-center">
+          <Scroller orientation="horizontal" className="min-w-0">
+            <ScrollerViewport className="flex items-center gap-100">{views}</ScrollerViewport>
+            <ScrollerArrow edge="start" />
+            <ScrollerArrow edge="end" />
+          </Scroller>
         </div>
       ) : null}
       {filters ? (

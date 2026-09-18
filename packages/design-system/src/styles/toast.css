@@ -6,7 +6,7 @@
   margin-inline: auto;
   width: auto;
   max-width: 24rem;
-  @media (min-width: 640px) {
+  @media (width >= theme(--breakpoint-sm)) {
     inset-inline-start: auto;
     width: calc(100% - var(--ds-space-400));
   }

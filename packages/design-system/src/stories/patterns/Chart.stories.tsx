@@ -238,7 +238,7 @@ function FramedChart() {
   const [range, setRange] = useState<"3m" | "9m">("9m");
   const data = range === "3m" ? byMonth.slice(-3) : byMonth;
   return (
-    <Box style={{ width: 720 }}>
+    <Box style={{ width: 720, maxWidth: "100%" }}>
       <Button onClick={() => figure.current?.focus()}>Focus chart</Button>
       <Chart.Frame
         ref={figure}
@@ -285,12 +285,30 @@ export const Framed: Story = {
     await expect(figure).toHaveAttribute("data-report", "findings");
     await userEvent.click(canvas.getByRole("button", { name: "Focus chart" }));
     await expect(figure).toHaveFocus();
+    await userEvent.click(canvas.getByRole("button", { name: "Open" }));
+    await expect(canvas.getByRole("button", { name: "Open" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Show as table" }));
     await userEvent.click(canvas.getByRole("button", { name: "Expand" }));
     const dialog = await page.findByRole("dialog", { name: "Findings over time" });
     await expect(within(dialog).getByRole("figure")).not.toHaveAttribute("id", "findings-chart");
     await expect(canvasElement.ownerDocument.querySelectorAll("#findings-chart")).toHaveLength(1);
+    await expect(within(dialog).getByRole("button", { name: "Open" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    await waitFor(() => expect(within(dialog).getByRole("table")).toBeVisible());
+    await userEvent.click(within(dialog).getByRole("button", { name: "Show as chart" }));
+    await userEvent.click(within(dialog).getByRole("button", { name: "Open" }));
     await userEvent.click(within(dialog).getByRole("button", { name: "Close" }));
     await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    await expect(canvas.queryByRole("table")).not.toBeInTheDocument();
+    await expect(canvas.getByRole("button", { name: "Open" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     await userEvent.click(canvas.getByRole("button", { name: "Focus chart" }));
     await expect(figure).toHaveFocus();
   },
@@ -902,5 +920,31 @@ export const Playground: Story = {
     status: "ready",
     legend: "top",
     size: "medium",
+  },
+};
+
+/** A line, a bar and a stacked bar on a small phone: the frame shrinks to its container, the axes thin out, the legend wraps, and nothing leaves the window. */
+export const SmallPhone: Story = {
+  globals: { viewport: { value: "ledgerSmall", isRotated: false } },
+  tags: ["narrow"],
+  render: () => (
+    <Stack space="space.300">
+      <Chart title="Findings over time" series={findingSeries} swatch="line" size="small">
+        <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
+      </Chart>
+      <Chart title="Findings by source" series={sourceSeries} size="small">
+        <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" />
+      </Chart>
+      <Chart title="Coverage by control family" series={statusSeries} size="small">
+        <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked size="small" />
+      </Chart>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(340));
+    for (const figure of within(canvasElement).getAllByRole("figure")) {
+      await expect(figure.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+      await expect(figure.scrollWidth).toBeLessThanOrEqual(figure.clientWidth + 1);
+    }
   },
 };

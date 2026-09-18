@@ -14,7 +14,7 @@ export type ShellStored = {
   panelWidth?: number | undefined;
 };
 
-/** A stored width is a positive number of pixels; anything else is dropped. The bounds (the area's minimum, half the viewport) are the shell's and apply on restore. */
+/** A stored width is a positive number of pixels; anything else is dropped. The shell enforces the area's minimum on restore; CSS limits its current size without changing the saved preference. */
 const storedWidth = (value: unknown): number | undefined =>
   typeof value === "number" && Number.isFinite(value) && value > 0 ? Math.round(value) : undefined;
 

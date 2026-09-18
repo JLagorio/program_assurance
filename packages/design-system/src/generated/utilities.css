@@ -203,6 +203,12 @@
 @utility bg-input-pressed {
   background-color: var(--ds-color-background-input-pressed);
 }
+@utility bg-input-thumb {
+  background-color: var(--ds-color-background-input-thumb);
+}
+@utility bg-input-thumb-checked {
+  background-color: var(--ds-color-background-input-thumb-checked);
+}
 @utility bg-inverse-subtle {
   background-color: var(--ds-color-background-inverse-subtle);
 }

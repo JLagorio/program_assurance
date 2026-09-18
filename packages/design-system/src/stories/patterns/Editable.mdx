@@ -27,7 +27,7 @@ It is for one value on a record that already exists: the owner in the rail, the 
 
 Two, by what the value is. **Text** for a value the reader writes: a name, an acronym, a next action, a date typed as text. **Select** for one of a fixed set: a status, a method, an owner from a roster, drawn by `render` as the record draws it, a Badge or a Person, so the rail and the table agree.
 
-Where it lives: in a [KeyValue](?path=/docs/components-keyvalue--docs) row of the rail, in a [Fact](?path=/docs/components-fact--docs), in a [Table](?path=/docs/components-table--docs) cell under the column's heading. A [DataTable](?path=/docs/patterns-datatable--docs) column with `editable` draws these itself.
+Where it lives: in a [KeyValue](?path=/docs/components-keyvalue--docs) row of the rail, in a [Fact](?path=/docs/components-fact--docs), in a [Table](?path=/docs/components-table--docs) cell under the column's heading. A [DataTable](?path=/docs/patterns-data-table--docs) column with `editable` draws these itself.
 
 <Canvas of={Stories.InTable} />
 
@@ -96,6 +96,7 @@ There is no disabled state. A value the reader cannot change is plain text in th
 - **The row is named by the label and the value:** "Owner: Dana Whitfield". The label is read before the value, so a screen reader hears what the field is where a sighted reader reads the KeyValue's label beside it.
 - **The field is named by the label** (`aria-label`) and, invalid, is `aria-invalid` and described by the message.
 - **Keyboard:** Tab reaches the row; Enter or Space opens the field with the existing value; Enter commits and Escape puts the old value back, and either returns focus to the row. Leaving the field by Tab or a click commits and focus goes where the reader sent it. Select and searchable Combobox triggers expose the native combobox role. Enter, Space or Down opens the options; arrows move between them and Enter chooses. Escape closes without changing the value. While saving, the trigger stays focusable and read-only, with `aria-disabled` announcing that another edit must wait.
+- **In a DataTable:** Enter moves to the next row only after accepting a valid text commit. Invalid input keeps focus, and an IME composition confirmation neither saves nor changes rows.
 - **A landed save is announced:** "Saved", or "Not saved", from a status region under the row; the Spinner says "Saving".
 - **The stories** exercise validation, keyboard selection, search, save rejection, rollback, pending guards and focus restoration in both themes.
 
@@ -116,16 +117,16 @@ Editable keeps its value, validation and save contract while composing the share
 
 ### Editable.Select
 
-| Prop         | Type                               | What it is                                                                                                |
-| ------------ | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `label`      | `string`, required                 | The field's name, for the screen reader; the options have no heading.                                     |
-| `value`      | `T`, required                      | The current option.                                                                                       |
-| `options`    | `readonly T[]`, required           | The set, in the order it shows.                                                                           |
-| `onChange`   | `(next: T) => void`, required      | As Text.                                                                                                  |
-| `save`       | `(next: T) => Promise`, required   | As Text.                                                                                                  |
-| `validate`   | `(next: string) => string \| null` | As Text: a status the record is not ready for, with the reason.                                           |
+| Prop         | Type                               | What it is                                                                                                                                                              |
+| ------------ | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`      | `string`, required                 | The field's name, for the screen reader; the options have no heading.                                                                                                   |
+| `value`      | `T`, required                      | The current option.                                                                                                                                                     |
+| `options`    | `readonly T[]`, required           | The set, in the order it shows.                                                                                                                                         |
+| `onChange`   | `(next: T) => void`, required      | As Text.                                                                                                                                                                |
+| `save`       | `(next: T) => Promise`, required   | As Text.                                                                                                                                                                |
+| `validate`   | `(next: string) => string \| null` | As Text: a status the record is not ready for, with the reason.                                                                                                         |
 | `render`     | `(value: T) => ReactNode`          | Draws a value: a Badge, a Person. Unsaid, the value as text. The same rendering appears in short and searchable lists; option names and search use the original string. |
-| `searchable` | `boolean`                          | A search field over the rendered options. On by itself past eight options.                         |
+| `searchable` | `boolean`                          | A search field over the rendered options. On by itself past eight options.                                                                                              |
 
 ### Playground
 
@@ -136,7 +137,7 @@ Editable keeps its value, validation and save contract while composing the share
 ## Related
 
 - [KeyValue](?path=/docs/components-keyvalue--docs) and [Fact](?path=/docs/components-fact--docs): the rows an Editable sits in.
-- [DataTable](?path=/docs/patterns-datatable--docs): columns with `editable`, and Enter moving down the column.
+- [DataTable](?path=/docs/patterns-data-table--docs): columns with `editable`, and Enter moving down the column.
 - [Forms](?path=/docs/patterns-forms--docs): a record that does not exist yet, and values that change together.
 - [Input](?path=/docs/components-input--docs) and [Textarea](?path=/docs/components-textarea--docs): the field in a form.
 - [Select](?path=/docs/components-select--docs) and [Combobox](?path=/docs/components-combobox--docs): the native selection parts.

@@ -197,14 +197,18 @@ export function CommandDialog<Payload = unknown>({
   children,
   ...props
 }: CommandDialogProps<Payload>) {
+  const defaults = {
+    maxWidth: 560,
+    maxHeight: "calc(100dvh - var(--ds-space-1000) - var(--ds-space-200))",
+  };
   return (
     <Dialog {...props}>
       <DialogContent
         className={cn("top-1000 translate-y-0", className)}
         style={
           typeof style === "function"
-            ? (state) => ({ maxWidth: 560, ...style(state) })
-            : { maxWidth: 560, ...style }
+            ? (state) => ({ ...defaults, ...style(state) })
+            : { ...defaults, ...style }
         }
         showCloseButton={showCloseButton}
         finalFocus={finalFocus}

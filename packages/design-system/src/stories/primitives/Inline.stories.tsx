@@ -1,6 +1,8 @@
-import { expect, within } from "storybook/test";
+import { useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { Button, Input } from "../../components";
 import { Box, Heading, Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -173,9 +175,32 @@ export const InText: Story = {
   ),
 };
 
+function DraftNotes() {
+  const [notes, setNotes] = useState(["Summary", "Detail"]);
+  return (
+    <Stack space="space.100">
+      <Inline separator="·" space="space.100" alignBlock="center" shouldWrap>
+        {notes.map((note) => (
+          <label key={note}>
+            <Text as="div" size="small">
+              {note}
+            </Text>
+            <Input aria-label={`${note} note`} defaultValue={note} />
+          </label>
+        ))}
+      </Inline>
+      <Inline space="space.100">
+        <Button onClick={() => setNotes((current) => [...current].reverse())}>Reverse notes</Button>
+        <Button onClick={() => setNotes((current) => current.slice(1))}>Remove first note</Button>
+      </Inline>
+    </Stack>
+  );
+}
+
 export const SeparatorAndSpread: Story = {
   render: () => (
     <Stack space="space.300">
+      <DraftNotes />
       <Inline space="space.100" separator="·" alignBlock="center">
         <Text size="small" color="color.text.subtlest">
           SC-7(5)
@@ -206,6 +231,19 @@ export const SeparatorAndSpread: Story = {
       </Box>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const summary = canvas.getByRole("textbox", { name: "Summary note" });
+    await userEvent.clear(summary);
+    await userEvent.type(summary, "Retained draft");
+    await userEvent.click(canvas.getByRole("button", { name: "Reverse notes" }));
+    await expect(canvas.getByRole("textbox", { name: "Summary note" })).toBe(summary);
+    await expect(summary).toHaveValue("Retained draft");
+    await userEvent.click(canvas.getByRole("button", { name: "Remove first note" }));
+    await expect(canvas.queryByRole("textbox", { name: "Detail note" })).toBeNull();
+    await expect(canvas.getByRole("textbox", { name: "Summary note" })).toBe(summary);
+    await expect(summary).toHaveValue("Retained draft");
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button, defineColumns, KeyValue, RecordBrowser, Stack } from "../..";
 import { interact } from "../_lib/interact";
 
@@ -147,5 +147,93 @@ export const RetainedSelection: Story = {
     await userEvent.click(dialog.getByRole("button", { name: "Clear selection" }));
     await expect(dialog.getByText("0 selected", { exact: true })).toBeVisible();
     await userEvent.click(dialog.getByRole("button", { name: "Cancel" }));
+  },
+};
+
+function PendingExample() {
+  const [open, setOpen] = useState(false);
+  const [requests, setRequests] = useState(0);
+  const [closes, setCloses] = useState(0);
+  const pending = useRef<{ resolve: () => void; reject: () => void } | null>(null);
+  return (
+    <div className="p-200">
+      <Button onClick={() => setOpen(true)}>Add evidence</Button>
+      <p>Confirmation requests: {requests}</p>
+      <p>Completed sessions: {closes}</p>
+      <RecordBrowser
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setCloses((count) => count + 1);
+        }}
+        title="Link evidence"
+        description="A delayed confirmation stays with the session that started it."
+        records={records}
+        columns={columns}
+        recordTitle={(record) => record.title}
+        renderPreview={(record) => <p>{record.title}</p>}
+        context={
+          <Stack space="space.100">
+            <Button onClick={() => pending.current?.resolve()}>Finish linking</Button>
+            <Button onClick={() => pending.current?.reject()}>Fail linking</Button>
+            <Button onClick={() => setOpen(false)}>Leave workflow</Button>
+          </Stack>
+        }
+        onConfirm={() => {
+          setRequests((count) => count + 1);
+          return new Promise<void>((resolve, reject) => {
+            pending.current = { resolve, reject: () => reject(new Error("Try linking again.")) };
+          });
+        }}
+        confirmLabel="Link evidence"
+      />
+    </div>
+  );
+}
+
+export const PendingConfirmation: Story = {
+  name: "Pending confirmation and replacement sessions",
+  render: () => <PendingExample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
+    const open = async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Add evidence" }));
+      return within(await screen.findByRole("dialog", { name: "Link evidence" }));
+    };
+    let dialog = await open();
+    await userEvent.click(dialog.getByRole("checkbox", { name: "Select row EVD-001" }));
+    const confirm = dialog.getByRole("button", { name: "Link evidence (1)" });
+    await interact(() => {
+      confirm.click();
+      confirm.click();
+    });
+    await expect(canvas.getByText("Confirmation requests: 1")).toBeInTheDocument();
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    await userEvent.keyboard("{Escape}");
+    await expect(screen.getByRole("dialog", { name: "Link evidence" })).toBeVisible();
+    await userEvent.click(dialog.getByRole("button", { name: "Close" }));
+    await expect(screen.getByRole("dialog", { name: "Link evidence" })).toBeVisible();
+    await userEvent.click(
+      canvasElement.ownerDocument.querySelector('[data-slot="dialog-overlay"]')!,
+    );
+    await expect(screen.getByRole("dialog", { name: "Link evidence" })).toBeVisible();
+    await userEvent.click(dialog.getByRole("button", { name: "Leave workflow" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Link evidence" })).toBeNull());
+    dialog = await open();
+    await userEvent.click(dialog.getByRole("checkbox", { name: "Select row EVD-002" }));
+    await interact(() => dialog.getByRole("button", { name: "Finish linking" }).click());
+    await expect(screen.getByRole("dialog", { name: "Link evidence" })).toBeVisible();
+    await expect(dialog.getByRole("checkbox", { name: "Select row EVD-002" })).toBeChecked();
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toBeEnabled();
+    await expect(canvas.getByText("Completed sessions: 0")).toBeInTheDocument();
+    await interact(() => dialog.getByRole("button", { name: "Link evidence (1)" }).click());
+    await expect(canvas.getByText("Confirmation requests: 2")).toBeInTheDocument();
+    await interact(() => dialog.getByRole("button", { name: "Fail linking" }).click());
+    await expect(dialog.getByRole("alert")).toHaveTextContent("Try linking again.");
+    await expect(dialog.getByRole("checkbox", { name: "Select row EVD-002" })).toBeChecked();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Link evidence" })).toBeNull());
+    await expect(canvas.getByText("Completed sessions: 1")).toBeVisible();
   },
 };

@@ -153,12 +153,15 @@ export function ProgressStacked({
   return (
     <span
       {...a11y}
+      data-slot="progress-stacked"
       className={cn("flex w-full overflow-hidden rounded-full bg-neutral", sizes[size], className)}
     >
       {shown.map((s) =>
         s.onClick ? (
           <button
             key={s.key}
+            data-slot="progress-segment"
+            data-appearance={s.appearance}
             type="button"
             title={s.title}
             aria-label={s.title || s.key}
@@ -169,6 +172,8 @@ export function ProgressStacked({
         ) : (
           <span
             key={s.key}
+            data-slot="progress-segment"
+            data-appearance={s.appearance}
             title={s.title}
             className={segmentClass(s)}
             style={segmentStyle(s, total)}

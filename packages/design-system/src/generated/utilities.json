@@ -84,6 +84,8 @@
     "bg-input",
     "bg-input-hovered",
     "bg-input-pressed",
+    "bg-input-thumb",
+    "bg-input-thumb-checked",
     "bg-inverse-subtle",
     "bg-inverse-subtle-hovered",
     "bg-inverse-subtle-pressed",

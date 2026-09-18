@@ -13,26 +13,26 @@ A row with one gap. Children sit start to end with one space token between them,
 
 ## Anatomy
 
-| Part      | What it is                                                                                                      |
-| --------- | --------------------------------------------------------------------------------------------------------------- |
-| Container | A flex row: a `div`, a `span`, a list or a list item, as `as` names. `display="inline-flex"` keeps it inline-level. |
-| Space     | `space`, one token between every pair of children on the inline axis; `rowSpace` between rows when wrapping, `space` if unset. |
+| Part      | What it is                                                                                                                                            |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Container | A flex row: a `div`, a `span`, a list or a list item, as `as` names. `display="inline-flex"` keeps it inline-level.                                   |
+| Space     | `space`, one token between every pair of children on the inline axis; `rowSpace` between rows when wrapping, `space` if unset.                        |
 | Alignment | `alignBlock`, where the children sit on the block axis: `start`, `center`, `end`, `baseline`, `stretch`; `alignInline`, where they sit along the row. |
-| Spread    | `spread="space-between"`: a label at the start and a count at the end.                                          |
-| Separator | A string or node drawn between children, `aria-hidden`: the dot of a meta line, the slash of a path.           |
-| Wrap      | `shouldWrap`, rows of chips; off, the children overflow.                                                        |
-| Grow      | `grow="fill"` takes the parent's inline space; `hug` is as wide as the children.                                 |
+| Spread    | `spread="space-between"`: a label at the start and a count at the end.                                                                                |
+| Separator | A string or node drawn between children, `aria-hidden`: the dot of a meta line, the slash of a path.                                                  |
+| Wrap      | `shouldWrap`, rows of chips; off, the children overflow.                                                                                              |
+| Grow      | `grow="fill"` takes the parent's inline space; `hug` is as wide as the children.                                                                      |
 
 ## Variants
 
-| Inline       | Use                                                                                                   |
-| ------------ | ----------------------------------------------------------------------------------------------------- |
-| Row          | An id beside a title beside a status: one token between each, on the baseline or centred.             |
-| Wrapping row | Chips, tags, filters: `shouldWrap` with a `rowSpace` tighter than `space`.                            |
-| Meta line    | Facts separated by a dot: `separator="·"` on subtle small text.                                        |
-| Spread       | A label and a count, a title and its action: `spread="space-between"`.                                 |
-| In text      | `as="span" display="inline-flex"`: a chip inside a sentence, the sentence's line height kept.          |
-| List         | `as="ul"` with `as="li"` children: a list of chips, a set of links.                                    |
+| Inline       | Use                                                                                           |
+| ------------ | --------------------------------------------------------------------------------------------- |
+| Row          | An id beside a title beside a status: one token between each, on the baseline or centred.     |
+| Wrapping row | Chips, tags, filters: `shouldWrap` with a `rowSpace` tighter than `space`.                    |
+| Meta line    | Facts separated by a dot: `separator="·"` on subtle small text.                               |
+| Spread       | A label and a count, a title and its action: `spread="space-between"`.                        |
+| In text      | `as="span" display="inline-flex"`: a chip inside a sentence, the sentence's line height kept. |
+| List         | `as="ul"` with `as="li"` children: a list of chips, a set of links.                           |
 
 Not built, and why: a reverse order (the tab order would run against the eye); a `separator` that is read (the dot is decoration; a list that needs its items separated for a screen reader is a list, `as="ul"`); a per-child alignment (a child that sits differently is in its own Inline, or is a Flex); a truncating row (the children truncate themselves with Text's `maxLines`; the row does not know which one should).
 
@@ -40,14 +40,14 @@ Not built, and why: a reverse order (the tab order would run against the eye); a
 
 `space` on the inline axis, `rowSpace` between wrapped rows:
 
-| Token       | px  | Where                                                    |
-| ----------- | --- | -------------------------------------------------------- |
-| `space.050` | 4   | An icon and its word, a dot and its label.               |
-| `space.075` | 6   | A small control and its neighbour.                       |
-| `space.100` | 8   | Chips, buttons in a group, facts on a line.              |
-| `space.150` | 12  | Facts under a title, a control cluster.                  |
-| `space.200` | 16  | Actions at a header's end, columns of a header.          |
-| `space.300` | 24  | A header's title from its actions.                        |
+| Token       | px  | Where                                           |
+| ----------- | --- | ----------------------------------------------- |
+| `space.050` | 4   | An icon and its word, a dot and its label.      |
+| `space.075` | 6   | A small control and its neighbour.              |
+| `space.100` | 8   | Chips, buttons in a group, facts on a line.     |
+| `space.150` | 12  | Facts under a title, a control cluster.         |
+| `space.200` | 16  | Actions at a header's end, columns of a header. |
+| `space.300` | 24  | A header's title from its actions.              |
 
 When wrapping, `rowSpace` is one step tighter than `space`: `space.100` across, `space.050` down.
 
@@ -73,12 +73,12 @@ When wrapping, `rowSpace` is one step tighter than `space`: `space.100` across, 
 
 ## Style
 
-| Element   | Token                                                        |
-| --------- | ------------------------------------------------------------ |
-| Space     | `space.*`, as `gap-x-*`; `rowSpace` as `gap-y-*`             |
+| Element   | Token                                                                  |
+| --------- | ---------------------------------------------------------------------- |
+| Space     | `space.*`, as `gap-x-*`; `rowSpace` as `gap-y-*`                       |
 | Alignment | `items-*` for `alignBlock`, `justify-*` for `alignInline` and `spread` |
-| Separator | The children's font and colour; the row's `space` on each side |
-| Grow      | `flex-1` for `fill`                                          |
+| Separator | The children's font and colour; the row's `space` on each side         |
+| Grow      | `flex-1` for `fill`                                                    |
 
 ## Accessibility
 
@@ -86,6 +86,8 @@ When wrapping, `rowSpace` is one step tighter than `space`: `space.100` across, 
 - **Not on a list.** A span between `li` elements is not a valid child of a list, so a list with a separator is no longer a list.
 - **Visual order is DOM order.** No reverse: what is first on the line is first in the tab order.
 - **A row in text is a `span`.** `as="span" display="inline-flex"` keeps a chip inside a paragraph's flow, so the paragraph is one paragraph to a screen reader.
+
+Keyed children keep their state when separated items are reordered or removed. Use stable keys for dynamic children.
 
 ## Props
 

@@ -952,6 +952,34 @@
     "utility": "bg-input-pressed"
   },
   {
+    "name": "color.background.input.thumb",
+    "cssVar": "--ds-color-background-input-thumb",
+    "type": "color",
+    "group": "background",
+    "description": "The unchecked thumb of a neutral input control. Follows the token mode independently of the document color scheme.",
+    "light": "color.neutral.0",
+    "dark": "color.darkNeutral.1000",
+    "lightResolved": "oklch(1 0 0)",
+    "darkResolved": "oklch(0.945 0.008 285)",
+    "introduced": "0.6.0",
+    "deprecated": null,
+    "utility": "bg-input-thumb"
+  },
+  {
+    "name": "color.background.input.thumb.checked",
+    "cssVar": "--ds-color-background-input-thumb-checked",
+    "type": "color",
+    "group": "background",
+    "description": "The thumb on a checked control’s bold fill.",
+    "light": "color.neutral.0",
+    "dark": "color.darkNeutral.100",
+    "lightResolved": "oklch(1 0 0)",
+    "darkResolved": "oklch(0.196 0.015 285)",
+    "introduced": "0.6.0",
+    "deprecated": null,
+    "utility": "bg-input-thumb-checked"
+  },
+  {
     "name": "color.background.inverse.subtle",
     "cssVar": "--ds-color-background-inverse-subtle",
     "type": "color",
@@ -4242,6 +4270,20 @@
     "utility": "size-icon-medium"
   },
   {
+    "name": "dimension.breakpoint.sm",
+    "cssVar": "--ds-dimension-breakpoint-sm",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's sm, 640px. Pagination shows its Previous/Next words, Stat grids take their columns and a two-month Calendar sits in a row from here.",
+    "light": "40rem",
+    "dark": null,
+    "lightResolved": "40rem",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
     "name": "dimension.breakpoint.md",
     "cssVar": "--ds-dimension-breakpoint-md",
     "type": "dimension",
@@ -4306,6 +4348,20 @@
     "light": "110rem",
     "dark": null,
     "lightResolved": "110rem",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.breakpoint.xl",
+    "cssVar": "--ds-dimension-breakpoint-xl",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's xl, 1280px: the panel breakpoint under its Tailwind name, for Grid's `xl` column count.",
+    "light": "80rem",
+    "dark": null,
+    "lightResolved": "80rem",
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,

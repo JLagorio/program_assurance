@@ -56,11 +56,16 @@ export function RecordBrowser<T extends { id: string }>({
   ...props
 }: RecordBrowserProps<T>) {
   const dismissPreview = useRef<(() => void) | null>(null);
+  const confirming = useRef(false);
   // A fresh session on each open; changing search or closing a preview never clears selection.
   return (
     <Dialog
       open={open}
       onOpenChange={(next, details) => {
+        if (!next && confirming.current) {
+          details.cancel();
+          return;
+        }
         if (!next && details.reason === "escape-key" && dismissPreview.current) {
           details.cancel();
           dismissPreview.current();
@@ -70,7 +75,12 @@ export function RecordBrowser<T extends { id: string }>({
       }}
     >
       {open ? (
-        <RecordBrowserContent {...props} onClose={onClose} dismissPreview={dismissPreview} />
+        <RecordBrowserContent
+          {...props}
+          onClose={onClose}
+          dismissPreview={dismissPreview}
+          confirming={confirming}
+        />
       ) : null}
     </Dialog>
   );
@@ -78,6 +88,7 @@ export function RecordBrowser<T extends { id: string }>({
 
 function RecordBrowserContent<T extends { id: string }>({
   dismissPreview,
+  confirming,
   title,
   description,
   records,
@@ -92,12 +103,23 @@ function RecordBrowserContent<T extends { id: string }>({
   selectedIds,
   onSelectionChange,
   onClose,
-}: Omit<RecordBrowserProps<T>, "open"> & { dismissPreview: RefObject<(() => void) | null> }) {
+}: Omit<RecordBrowserProps<T>, "open"> & {
+  dismissPreview: RefObject<(() => void) | null>;
+  confirming: RefObject<boolean>;
+}) {
   const { t } = useLedgerLocale();
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [internalSelection, setInternalSelection] = useState<Record<string, true>>({});
+  const mounted = useRef(true);
+  useLayoutEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      confirming.current = false;
+    };
+  }, [confirming]);
   const rowSelection = useMemo(
     () =>
       selectedIds === undefined
@@ -175,16 +197,21 @@ function RecordBrowserContent<T extends { id: string }>({
     if (previewBody.current) previewBody.current.scrollTop = 0;
   }, [previewId]);
   const confirm = async () => {
-    if (!selected.length || saving) return;
+    if (!selected.length || confirming.current) return;
+    confirming.current = true;
     setSaving(true);
     setError(null);
     try {
       await onConfirm(selected);
-      onClose();
+      if (mounted.current) onClose();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The records could not be linked.");
+      if (mounted.current)
+        setError(cause instanceof Error ? cause.message : "The records could not be linked.");
     } finally {
-      setSaving(false);
+      if (mounted.current) {
+        confirming.current = false;
+        setSaving(false);
+      }
     }
   };
   return (

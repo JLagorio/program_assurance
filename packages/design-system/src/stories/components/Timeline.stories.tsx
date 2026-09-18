@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { useState, type ReactNode } from "react";
+import { expect, waitFor, within } from "storybook/test";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -1101,4 +1102,25 @@ export const FeedComposition: Story = {
       />
     </Timeline>
   ),
+};
+
+/** Four releases across a small phone: the strip keeps the width its stages need and scrolls inside its container instead of running past the window. */
+export const Narrow: Story = {
+  globals: { viewport: { value: "ledgerSmall", isRotated: false } },
+  tags: ["narrow"],
+  render: () => (
+    <Timeline label="Releases" orientation="horizontal">
+      <Timeline.Item time="Jan 2025" title="v1.0" meta="Initial release" />
+      <Timeline.Item time="Mar 2025" title="v1.1" meta="Bulk import" />
+      <Timeline.Item time="Jun 2025" title="v1.2" meta="Evidence review" />
+      <Timeline.Item time="Sep 2025" title="v2.0" meta="Program setup" />
+    </Timeline>
+  ),
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(340));
+    const list = within(canvasElement).getByRole("list", { name: "Releases" });
+    const viewport = list.parentElement!;
+    await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+    await expect(viewport.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+  },
 };

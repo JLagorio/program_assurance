@@ -14,7 +14,7 @@ import {
 import { ChevronDown } from "lucide-react";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { createRef } from "react";
-import { expect, fn, userEvent, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -405,3 +405,25 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+/** Five steps on a small phone: the strip keeps the width its labels need and scrolls inside its container, arrows at the edges where a pointer can hover, instead of running past the window. */
+export const Narrow: Story = {
+  globals: { viewport: { value: "ledgerSmall", isRotated: false } },
+  tags: ["narrow"],
+  render: () => (
+    <Stepper label="Authorization steps">
+      <Stepper.Item state="done" label="Categorize" meta="Done 3 Aug" />
+      <Stepper.Item state="done" label="Select" meta="Done 21 Aug" />
+      <Stepper.Item state="current" label="Implement" meta="In progress" />
+      <Stepper.Item state="upcoming" label="Assess" />
+      <Stepper.Item state="upcoming" label="Authorize" />
+    </Stepper>
+  ),
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(340));
+    const list = within(canvasElement).getByRole("list", { name: "Authorization steps" });
+    const viewport = list.parentElement!;
+    await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+    await expect(viewport.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+  },
+};

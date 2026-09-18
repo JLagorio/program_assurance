@@ -24,13 +24,8 @@ export function Switch({ className, size = "default", ...props }: SwitchProps) {
     >
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
-        style={({ checked }) => ({
-          backgroundColor: checked
-            ? "var(--ds-color-text-inverse)"
-            : "light-dark(var(--ds-elevation-surface), var(--ds-color-text))",
-        })}
         className={cn(
-          "pointer-events-none block shrink-0 rounded-full shadow-raised transition-transform duration-micro ease-standard motion-reduce:transition-none",
+          "pointer-events-none block shrink-0 rounded-full bg-input-thumb shadow-raised data-checked:bg-input-thumb-checked transition-transform duration-micro ease-standard motion-reduce:transition-none",
           size === "sm"
             ? "size-150 data-checked:translate-x-100 rtl:data-checked:-translate-x-100"
             : "size-200 data-checked:translate-x-150 rtl:data-checked:-translate-x-150",

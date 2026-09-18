@@ -98,3 +98,66 @@ export const DropdownsAndWeekNumbers: Story = {
     await expect(canvas.getByRole("button", { name: /October 14, 2027/ })).toBeVisible();
   },
 };
+
+/** Native navigation layouts keep the controls beside their captions in either direction. */
+export const NavigationLayouts: Story = {
+  render: () => (
+    <div className="flex flex-wrap items-start gap-400">
+      {(["ltr", "rtl"] as const).flatMap((dir) =>
+        ([undefined, "around"] as const).map((navLayout) => (
+          <section key={`${dir}-${navLayout}`} aria-label={`${dir} ${navLayout ?? "default"}`}>
+            <h2 className="font-heading-xsmall">{`${dir} · ${navLayout ?? "default"}`}</h2>
+            <Calendar
+              mode="single"
+              dir={dir}
+              navLayout={navLayout}
+              labels={{ labelNav: () => `${dir} ${navLayout ?? "default"} navigation` }}
+              numberOfMonths={navLayout === "around" ? 2 : 1}
+              defaultMonth={new Date(2026, 8, 1)}
+            />
+          </section>
+        )),
+      )}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const dir of ["ltr", "rtl"]) {
+      for (const layout of ["default", "around"]) {
+        const group = within(canvas.getByRole("region", { name: `${dir} ${layout}` }));
+        const previous = group.getByRole("button", { name: "Previous month" });
+        const next = group.getByRole("button", { name: "Next month" });
+        const captions = group.getAllByRole("status");
+        const first = captions[0]!.getBoundingClientRect();
+        const last = captions[captions.length - 1]!.getBoundingClientRect();
+        const previousBox = previous.getBoundingClientRect();
+        const nextBox = next.getBoundingClientRect();
+        await expect(
+          Math.abs(previousBox.top + previousBox.height / 2 - first.top - first.height / 2),
+        ).toBeLessThanOrEqual(2);
+        await expect(
+          Math.abs(nextBox.top + nextBox.height / 2 - last.top - last.height / 2),
+        ).toBeLessThanOrEqual(2);
+        if (dir === "rtl") {
+          await expect(previousBox.left).toBeGreaterThanOrEqual(first.right);
+          await expect(nextBox.right).toBeLessThanOrEqual(last.left);
+        } else {
+          await expect(previousBox.right).toBeLessThanOrEqual(first.left);
+          await expect(nextBox.left).toBeGreaterThanOrEqual(last.right);
+        }
+        // DayPicker resolves the around layout's physical icon directions itself.
+        const previousIcon = previous.querySelector("svg")!;
+        if (layout === "around") {
+          await expect(previousIcon).toHaveClass(
+            dir === "rtl" ? "lucide-chevron-right" : "lucide-chevron-left",
+          );
+          await expect(getComputedStyle(previousIcon).rotate).toBe("none");
+        }
+        await userEvent.click(next);
+        await expect(group.getAllByRole("status")[0]).toHaveTextContent("October 2026");
+        await userEvent.click(previous);
+        await expect(group.getAllByRole("status")[0]).toHaveTextContent("September 2026");
+      }
+    }
+  },
+};

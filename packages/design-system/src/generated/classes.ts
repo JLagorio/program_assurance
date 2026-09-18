@@ -69,6 +69,8 @@ export const classByToken = {
   "color.background.input": "bg-input",
   "color.background.input.hovered": "bg-input-hovered",
   "color.background.input.pressed": "bg-input-pressed",
+  "color.background.input.thumb": "bg-input-thumb",
+  "color.background.input.thumb.checked": "bg-input-thumb-checked",
   "color.background.inverse.subtle": "bg-inverse-subtle",
   "color.background.inverse.subtle.hovered": "bg-inverse-subtle-hovered",
   "color.background.inverse.subtle.pressed": "bg-inverse-subtle-pressed",

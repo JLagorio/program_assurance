@@ -80,7 +80,7 @@ Not built, and why: no pie (a ring with the number in the middle says more, and 
 
 The height is the whole plot, axis band included, so a card never scrolls inside itself. `height` takes pixels when a layout must. The Frame's states stand in at the same height, so nothing moves when the data arrives. A Donut and a Sparkline are sized in pixels, since they sit inline; a Heatmap's `size` is its cell's height.
 
-The width is the container's. Below about 480px the header wraps: the legend and the tools drop under the title, and the plot keeps its height. An expanded chart is the same Frame at `large` in a Dialog.
+The width is the container's. Below about 480px the header wraps: the legend and the tools drop under the title, and the plot keeps its height. An expanded chart is the same Frame at `large` in a Dialog. Hidden series and the chart/table choice are shared with the original: expanding preserves them, and changes made in the dialog remain after it closes.
 
 <Canvas of={Stories.Narrow} />
 

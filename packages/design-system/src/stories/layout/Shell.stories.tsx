@@ -31,6 +31,7 @@ import {
   BreadcrumbSeparator,
   Id,
   Inspector,
+  LedgerProvider,
   PageHeader,
   PreviewNavigation,
   Section,
@@ -147,6 +148,22 @@ function Nav() {
   );
 }
 
+/** Below `md` the end items fold into this one menu, so the row never grows past the window. */
+function EndOverflow() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
+      />
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>Help</DropdownMenuItem>
+        <DropdownMenuItem>Notifications</DropdownMenuItem>
+        <DropdownMenuItem>Settings</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function EndItems() {
   return (
     <>
@@ -222,7 +239,7 @@ function Demo({
             Create
           </Button>
         </Shell.TopNav.Middle>
-        <Shell.TopNav.End>
+        <Shell.TopNav.End overflow={<EndOverflow />}>
           <EndItems />
         </Shell.TopNav.End>
       </Shell.TopNav>
@@ -687,7 +704,7 @@ function RecordDemo() {
             </InputGroupAddon>
           </InputGroup>
         </Shell.TopNav.Middle>
-        <Shell.TopNav.End>
+        <Shell.TopNav.End overflow={<EndOverflow />}>
           <EndItems />
         </Shell.TopNav.End>
       </Shell.TopNav>
@@ -1017,7 +1034,7 @@ export const Forwarding: Story = {
     );
     // The end slot's children as given: the mode switch's three buttons and three icon buttons, no list around them.
     const actions = canvas.getByRole("group", { name: "Actions" });
-    await expect(actions.querySelectorAll("button")).toHaveLength(6);
+    await expect(within(actions).getAllByRole("button")).toHaveLength(6);
     await expect(actions.querySelector("li")).toBeNull();
     await expect(canvas.getByText("Toggle is a button")).toBeVisible();
     const profile = canvas.getByRole("button", { name: /Sarah Chen/ });
@@ -1060,7 +1077,7 @@ function ForwardingExample() {
           />
           <Shell.AppLogo name="Equinox" />
         </Shell.TopNav.Start>
-        <Shell.TopNav.End>
+        <Shell.TopNav.End overflow={<EndOverflow />}>
           <EndItems />
         </Shell.TopNav.End>
       </Shell.TopNav>
@@ -1405,4 +1422,176 @@ export const BodyHeaderAt340: Story = {
   name: "Panel record header · 340px",
   render: () => <PanelHeaderWidthDemo width={340} bodyHeader />,
   play: ({ canvasElement }) => checkPanelRecordHeaderWidth(canvasElement, 340),
+};
+
+const widthsStoryKey = `${SHELL_STORAGE_KEY}.widths-story`;
+
+function ResizableShellDemo({
+  persist,
+  direction = "ltr",
+}: {
+  persist?: string;
+  direction?: "ltr" | "rtl";
+}) {
+  const [panelOpen, setPanelOpen] = useState(true);
+  return (
+    <LedgerProvider direction={direction}>
+      <Shell persist={persist}>
+        <Shell.TopNav>
+          <Shell.TopNav.Start>
+            <Shell.SideNav.ToggleButton />
+            <Shell.AppLogo name="Equinox" render={<a href="#home" />} />
+          </Shell.TopNav.Start>
+        </Shell.TopNav>
+        <Shell.SideNav defaultWidth={320}>
+          <Shell.SideNav.Body>
+            <Shell.SideNav.Item href="#programs">Programs</Shell.SideNav.Item>
+          </Shell.SideNav.Body>
+          <Shell.SideNav.Splitter />
+        </Shell.SideNav>
+        <Shell.Main>
+          <h1 className="font-heading-medium">Programs</h1>
+          <Button onClick={() => setPanelOpen(true)}>Open details</Button>
+        </Shell.Main>
+        {panelOpen && (
+          <Shell.Panel
+            title="Program details"
+            defaultWidth={480}
+            onClose={() => setPanelOpen(false)}
+          >
+            Preferred widths return when there is room for the desktop layout.
+          </Shell.Panel>
+        )}
+      </Shell>
+    </LedgerProvider>
+  );
+}
+
+/** Restoring on a phone preserves both preferred widths for the next desktop layout. */
+export const PersistedWidths: Story = {
+  parameters: {
+    viewport: {
+      options: {
+        shellPhone390: { name: "Phone (390px)", styles: { width: "390px", height: "844px" } },
+      },
+    },
+  },
+  globals: { viewport: { value: "shellPhone390", isRotated: false } },
+  beforeEach: () => {
+    const previous = localStorage.getItem(widthsStoryKey);
+    const root = document.documentElement;
+    const nav = root.style.getPropertyValue("--shell-sidenav-stored");
+    const panel = root.style.getPropertyValue("--shell-panel-stored");
+    localStorage.setItem(
+      widthsStoryKey,
+      JSON.stringify({ collapsed: false, sideNavWidth: 320, panelWidth: 480 }),
+    );
+    return () => {
+      if (previous === null) localStorage.removeItem(widthsStoryKey);
+      else localStorage.setItem(widthsStoryKey, previous);
+      root.style.setProperty("--shell-sidenav-stored", nav);
+      root.style.setProperty("--shell-panel-stored", panel);
+    };
+  },
+  render: () => <ResizableShellDemo persist={widthsStoryKey} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const stored = () => JSON.parse(localStorage.getItem(widthsStoryKey) ?? "{}");
+    await waitFor(() => expect(stored()).toMatchObject({ sideNavWidth: 320, panelWidth: 480 }));
+    const toggle = canvas.getByRole("button", { name: "Expand side navigation" });
+    await userEvent.click(toggle);
+    const nav = await canvas.findByRole("navigation", { name: "Side navigation" });
+    await waitFor(() => expect(nav.getBoundingClientRect().width).toBe(320));
+    await userEvent.click(canvas.getByRole("button", { name: "Close side navigation" }));
+    if (import.meta.env.MODE !== "test" || !("__vitest_browser__" in globalThis)) return;
+    const { page } = await import("vitest/browser");
+    try {
+      await page.viewport(1440, 900);
+      await waitFor(() => expect(nav.getBoundingClientRect().width).toBe(320));
+      const panel = canvas.getByRole("complementary", { name: "Program details" });
+      await waitFor(() => expect(panel.getBoundingClientRect().width).toBe(480));
+      const navSplitter = canvas.getByRole("separator", { name: "Resize side navigation" });
+      navSplitter.focus();
+      await userEvent.keyboard("{End}");
+      const panelSplitter = canvas.getByRole("separator", { name: "Resize details" });
+      panelSplitter.focus();
+      await userEvent.keyboard("{End}");
+      await waitFor(() => expect(stored()).toMatchObject({ sideNavWidth: 720, panelWidth: 720 }));
+      await page.viewport(1280, 900);
+      await waitFor(() => {
+        expect(nav.getBoundingClientRect().width).toBe(640);
+        expect(panel.getBoundingClientRect().width).toBe(640);
+      });
+      await expect(stored()).toMatchObject({ sideNavWidth: 720, panelWidth: 720 });
+      await page.viewport(1440, 900);
+      await waitFor(() => {
+        expect(nav.getBoundingClientRect().width).toBe(720);
+        expect(panel.getBoundingClientRect().width).toBe(720);
+      });
+    } finally {
+      await page.viewport(390, 844);
+    }
+  },
+};
+
+/** Both logical edges follow the physical pointer and arrow keys in RTL. */
+export const RightToLeftSplitters: Story = {
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: () => <ResizableShellDemo direction="rtl" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const cases = [
+      {
+        area: canvas.getByRole("navigation", { name: "Side navigation" }),
+        label: "Resize side navigation",
+        initial: 320,
+        sign: -1,
+      },
+      {
+        area: await canvas.findByRole("complementary", { name: "Program details" }),
+        label: "Resize details",
+        initial: 480,
+        sign: 1,
+      },
+    ];
+    for (const { area, label, initial, sign } of cases) {
+      const splitter = canvas.getByRole("separator", { name: label });
+      await waitFor(() => expect(area.getBoundingClientRect().width).toBe(initial));
+      splitter.focus();
+      await userEvent.keyboard(sign === 1 ? "{ArrowRight}" : "{ArrowLeft}");
+      await waitFor(() => expect(area.getBoundingClientRect().width).toBe(initial + 16));
+      const box = splitter.getBoundingClientRect();
+      const start = { clientX: box.x + box.width / 2, clientY: box.y + 100 };
+      const end = { ...start, clientX: start.clientX + sign * 32 };
+      await userEvent.pointer([
+        { target: splitter, keys: "[MouseLeft>]", coords: start },
+        { target: splitter, coords: end },
+        { target: splitter, keys: "[/MouseLeft]", coords: end },
+      ]);
+      await waitFor(() => expect(area.getBoundingClientRect().width).toBe(initial + 48));
+      splitter.focus();
+      await userEvent.keyboard(sign === 1 ? "{ArrowLeft}" : "{ArrowRight}");
+      await waitFor(() => expect(area.getBoundingClientRect().width).toBe(initial + 32));
+    }
+  },
+};
+
+/** On a phone the rail follows the page and starts where the page's content ends, not a screen down; the end items are one menu. */
+export const RecordRailPhone: Story = {
+  name: "Record rail at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  tags: ["narrow"],
+  render: () => <RecordDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const main = canvas.getByRole("main");
+    const aside = canvas.getByRole("complementary", { name: "Record properties" });
+    const contentBottom = Math.max(
+      ...Array.from(main.querySelectorAll("*")).map((el) => el.getBoundingClientRect().bottom),
+    );
+    await expect(aside.getBoundingClientRect().top - contentBottom).toBeLessThan(64);
+    await expect(canvas.getByRole("button", { name: "More" })).toBeVisible();
+    await expect(canvas.queryByRole("button", { name: "Help" })).toBeNull();
+  },
 };

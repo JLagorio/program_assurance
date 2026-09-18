@@ -38,7 +38,7 @@
     "build-storybook": "storybook build",
     "test": "node --test \"test/**/*.test.mjs\"",
     "test:report": "CONTRAST_REPORT=1 node --test \"test/**/*.test.mjs\"",
-    "test:a11y": "vitest run --project storybook-light --project storybook-dark",
+    "test:a11y": "vitest run --project storybook-light --project storybook-dark --project storybook-forced-colors",
     "lint": "eslint .",
     "test:consumer": "node build/consumer-smoke.mjs"
   },

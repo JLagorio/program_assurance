@@ -185,3 +185,27 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+/** An identifier or a timestamp with no spaces: `wrap` breaks it inside the rail rather than past it; without `wrap` it truncates and carries its title. */
+export const Unbroken: Story = {
+  render: () => (
+    <Box style={{ width: 260 }} className="border-s border-default ps-200">
+      <KeyValue label="Updated" wrap>
+        2026-09-12T18:01:21.982404+00:00
+      </KeyValue>
+      <KeyValue label="Id" wrap>
+        9d028927-4402-5669-9c15-fe3adbe001f8
+      </KeyValue>
+      <KeyValue label="Id">9d028927-4402-5669-9c15-fe3adbe001f8</KeyValue>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const values = Array.from(canvasElement.querySelectorAll("dd"));
+    const box = canvasElement.firstElementChild!.getBoundingClientRect();
+    for (const value of values) {
+      await expect(value.getBoundingClientRect().right).toBeLessThanOrEqual(box.right + 1);
+    }
+    await expect(values[0]!.scrollWidth).toBeLessThanOrEqual(values[0]!.clientWidth + 1);
+    await expect(values[2]).toHaveAttribute("title", "9d028927-4402-5669-9c15-fe3adbe001f8");
+  },
+};

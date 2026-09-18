@@ -157,6 +157,20 @@ export const Variants: Story = {
     const canvas = within(canvasElement);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     const manual = within(canvas.getByRole("tablist", { name: "Manual views" }));
+    if (matchMedia("(forced-colors: active)").matches) {
+      for (const list of canvas.getAllByRole("tablist")) {
+        const indicator = list.querySelector<HTMLElement>('[data-slot="tabs-indicator"]')!;
+        const style = getComputedStyle(indicator);
+        if (list.dataset["variant"] === "line") {
+          await expect(style.backgroundColor).not.toBe(
+            getComputedStyle(document.body).backgroundColor,
+          );
+        } else {
+          await expect(style.outlineStyle).toBe("solid");
+          await expect(style.outlineColor).not.toBe(style.backgroundColor);
+        }
+      }
+    }
     const overview = manual.getByRole("tab", { name: "Overview" });
     const controls = manual.getByRole("tab", { name: "Controls" });
     overview.focus();

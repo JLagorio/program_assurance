@@ -19,6 +19,10 @@ The caller supplies eligible records, columns including a `c.id` column, preview
 
 Previewing never selects or links a record. Checkboxes select; only the footer confirms. Selection survives search, filtering, pagination and preview navigation. Clear selection resets it. By default, closing the dialog discards the selection; reopening starts a new session. Callers can retain selection across a related creation workflow with `selectedIds` and `onSelectionChange`. Link failures show an error and preserve selection for retry.
 
+While confirmation is pending, Cancel, Escape, the close control and outside clicks cannot dismiss the browser. Confirmation is serialized. If the application closes the browser itself, a late completion from that session cannot close or update a subsequently opened session.
+
+<Canvas of={Stories.PendingConfirmation} />
+
 Arrows traverse the rows on the current table page in their displayed order. At the ends they are disabled. When a preview is outside the filtered results, its arrows are disabled and its selection remains available.
 
 At narrow dialog widths the preview replaces the results area while keeping the table mounted. Back to results restores the previous view and focus. Table scrolling stays within its own region.

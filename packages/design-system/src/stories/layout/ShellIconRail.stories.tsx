@@ -212,6 +212,25 @@ async function checkDesktop(canvasElement: HTMLElement, direction: "ltr" | "rtl"
   splitter.focus();
   await userEvent.keyboard("{Home}");
   await waitFor(() => expect(splitter).toHaveAttribute("aria-valuenow", "200"));
+  await userEvent.keyboard(direction === "rtl" ? "{ArrowLeft}" : "{ArrowRight}");
+  await waitFor(() => expect(nav.getBoundingClientRect().width).toBe(216));
+  const edge = splitter.getBoundingClientRect();
+  const pointerStart = { clientX: edge.x + edge.width / 2, clientY: edge.y + 100 };
+  const pointerEnd = {
+    ...pointerStart,
+    clientX: pointerStart.clientX + (direction === "rtl" ? -32 : 32),
+  };
+  await userEvent.pointer([
+    { target: splitter, keys: "[MouseLeft>]", coords: pointerStart },
+    { target: splitter, coords: pointerEnd },
+    { target: splitter, keys: "[/MouseLeft]", coords: pointerEnd },
+  ]);
+  await waitFor(() => expect(nav.getBoundingClientRect().width).toBe(248));
+  splitter.focus();
+  await userEvent.keyboard(direction === "rtl" ? "{ArrowRight}" : "{ArrowLeft}");
+  await waitFor(() => expect(nav.getBoundingClientRect().width).toBe(232));
+  await userEvent.keyboard("{Home}");
+  await waitFor(() => expect(nav.getBoundingClientRect().width).toBe(200));
   const collapse = canvas.getByRole("button", { name: "Collapse side navigation" });
   collapse.focus();
   await userEvent.keyboard("{Enter}");

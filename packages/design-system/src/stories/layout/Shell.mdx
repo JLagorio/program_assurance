@@ -17,7 +17,10 @@ Every part renders one element and forwards its native props and its ref to it; 
 
 Aside contains supporting context. Panel contains dismissible selected-record or task content. With `title` (and `actions`) it renders its built-in header, close and resizer; without them compose Panel.Header, Panel.Title, Panel.Actions, Panel.Close, Panel.Body and Panel.Splitter yourself, as Composed panel shows, to change the heading's level, the labels or the padding. Panel.onClose is required either way and the Title names the landmark. From the `panel` breakpoint (`dimension.breakpoint.panel`, 80rem: 1280px at the default root size; see [Metrics](?path=/docs/tokens-metrics--docs)) the panel is the last column for the whole height of the window: the banner and the top nav stop at its edge, so opening it narrows everything and covers nothing. Below it the panel replaces the visible Main area under the top nav while retaining Main's state, and it returns focus on close. Global navigation remains available; use Sheet for modal work.
 
-Every default name (Banner, Top navigation, Side navigation, Main content, Page context, Details, Actions, Switch product, the toggle's two labels, the splitters' and the skip links') is a locale message, so a product translates them once with `LedgerLocaleProvider`; a `label` prop overrides one instance. The splitters take the arrow keys, Home for the minimum and End for the maximum. What `persist` restores is validated and clamped to the screen it is restored on.
+Every default name (Banner, Top navigation, Side navigation, Main content, Page context, Details, Actions, Switch product, the toggle's two labels, the splitters' and the skip links') is a locale message, so a product translates them once with `LedgerLocaleProvider`; a `label` prop overrides one instance. The splitters take the arrow keys, Home for the minimum and End for the maximum. Left and Right move the handle in that physical direction, including right-to-left layouts. Restored widths retain the reader’s desktop preference: the current desktop layout is capped at half the viewport, and opening the shell on a phone does not overwrite that preference. Navigation still uses its 90vw overlay limit on phones.
+
+<Canvas of={Stories.PersistedWidths} />
+<Canvas of={Stories.RightToLeftSplitters} />
 
 SideNav retains its existing collapse, persistence, keyboard and resize behavior. Main uses document scrolling; Panel scrolls inside the available viewport. A register that is the page fills the rest of the window with DataTable `fill`: Main publishes its bottom inset as `--shell-inset-bottom`, and the layout otherwise owns placement, so content patterns do not add sticky rails or nested page frames.
 
@@ -63,6 +66,10 @@ The parts with props of their own. The others (SideNav.Header, Body and Footer, 
 <ArgTypes of={Shell.Panel.Close} />
 <ArgTypes of={Shell.Panel.Splitter} />
 
+### The end slot on a phone
+
+`TopNav.End` never shrinks, so what it holds decides the top nav's width. Give it `overflow`, one menu holding the same commands, and below the `md` breakpoint the menu stands in for the children (the Record rail at 390px story). Without it, keep the end items few enough for the narrowest window the product serves.
+
 ### Narrow panel headers
 
-Panel header slots respond to the panel container, including a manually resized desktop panel. Below 400px, a title with actions occupies a full row and navigation/Close share the row beneath; title-only headers keep Close beside the title. Below 320px, a PageHeader inside the panel also puts its action slot below its heading. The normal desktop header remains one row. See the 240px, 320px and 640px Panel header stories, composed-slot forwarding and Panel record header examples.
+Panel header slots respond to the panel container, including a manually resized desktop panel. Below 400px, a title with actions occupies a full row and navigation/Close share the row beneath; title-only headers keep Close beside the title. A PageHeader inside the panel follows its own rule: its actions take the row under the title when the row cannot hold the title's measure beside them. The normal desktop header remains one row. See the 240px, 320px and 640px Panel header stories, composed-slot forwarding and Panel record header examples.

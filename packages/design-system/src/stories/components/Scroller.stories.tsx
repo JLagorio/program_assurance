@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Badge, Scroller, ScrollerArrow, ScrollerViewport } from "../../components";
+import { Button, Scroller, ScrollerArrow, ScrollerViewport } from "../../components";
 import { menuItem, menuSurface } from "../../components/menu";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
@@ -78,7 +78,7 @@ function Strip({ label }: { label: string }) {
       <ScrollerViewport aria-label={label} role="list" tabIndex={0} className="flex gap-100 py-050">
         {views.map((view) => (
           <div key={view} role="listitem" className="shrink-0">
-            <Badge>{view}</Badge>
+            <Button>{view}</Button>
           </div>
         ))}
       </ScrollerViewport>
@@ -133,6 +133,18 @@ export const Horizontal: Story = {
       // Chrome clamps a fractional RTL strip at 1, not 0.
       await waitFor(() => expect(Math.abs(viewport.scrollLeft)).toBeLessThanOrEqual(1));
       await waitFor(() => expect(scope.queryByRole("button", { name: "Scroll back" })).toBeNull());
+      viewport.focus();
+      for (const view of views) {
+        await user.tab();
+        const item = scope.getByRole("button", { name: view });
+        await expect(item).toHaveFocus();
+        await waitFor(() => {
+          const bounds = viewport.getBoundingClientRect();
+          const focused = item.getBoundingClientRect();
+          expect(focused.left).toBeGreaterThanOrEqual(bounds.left - 1);
+          expect(focused.right).toBeLessThanOrEqual(bounds.right + 1);
+        });
+      }
     }
   },
 };

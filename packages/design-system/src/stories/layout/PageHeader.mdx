@@ -14,6 +14,6 @@ One composable page header for collections and records. Two columns: Heading, wh
 
 Compose a Heading with a Title, an optional Lead and one primary action or Actions menu. A breadcrumb is the Lead through `render={<Breadcrumb />}`; a category line is a Lead with text. Record fields, owner/status editors and property strips belong in the work area or Aside, not in PageHeader or a preview header. Description is optional and wraps without hiding content behind a tooltip.
 
-Use PageHeader.Title once for the page's h1. Panel and dialog headings use their own h2 semantics. Actions always occupy a fixed column beside the title, including at phone widths; titles wrap to their left. Keep action groups on one line; use a dropdown when several actions compete for space.
+Use PageHeader.Title once for the page's h1. Panel and dialog headings use their own h2 semantics. Actions sit at the end of the title's row while the row can give the title its measure (14rem) beside them; when it cannot, on a phone or in a narrow panel, they take the next row, right-aligned, and the title wraps at its full width. The same rule holds on a page, in a Shell.Panel and in a Sheet (the Stacked story). Keep action groups on one line; use a dropdown when several actions compete for space.
 
 No part has props of its own: the root is a `header`, Heading and Actions are `div`s, Title an `h1`, Description a `p`, and Lead a `div` or the element given to `render`; each takes its element's native props and ref.

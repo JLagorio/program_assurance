@@ -18,6 +18,7 @@ import {
 } from "../../components/dropdown-menu";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "../../components/popover";
 import { ToggleGroup, ToggleGroupItem } from "../../components/toggle-group";
+import { Scroller, ScrollerArrow, ScrollerViewport } from "../../components/scroller";
 import { type DataTableInstance } from "./use-data-table";
 
 /*
@@ -141,9 +142,10 @@ function ColumnFilter<TData extends RowData>({
   const header = column?.columnDef.header;
   const title = label ?? (typeof header === "string" ? header : columnId);
   const raw = column?.getFilterValue();
+  const facetValues = column?.getFacetedUniqueValues();
   const facets = useMemo(() => {
     if (
-      !column ||
+      !facetValues ||
       kind === "number" ||
       kind === "date" ||
       kind === "list" ||
@@ -151,12 +153,10 @@ function ColumnFilter<TData extends RowData>({
       kind === "actions"
     )
       return null;
-    const values = [...column.getFacetedUniqueValues().entries()].filter(
-      ([v]) => v != null && v !== "",
-    );
+    const values = [...facetValues.entries()].filter(([v]) => v != null && v !== "");
     if (kind === "text" && values.length > FACET_LIMIT) return null;
     return values.sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]), locale));
-  }, [column, kind, locale]);
+  }, [facetValues, kind, locale]);
   if (!column) return null;
 
   let body: ReactNode;
@@ -425,24 +425,31 @@ export function Presets<TData extends RowData>({
       </DropdownMenu>
     );
   }
+  // The strip keeps every question in one row; narrower than its row it scrolls, arrows where a pointer can hover.
   return (
-    <ToggleGroup<string>
-      aria-label={ariaLabel ?? t("savedQuestions")}
-      className={className}
-      size="sm"
-      value={active ? [active.id] : []}
-      onValueChange={([id]) => {
-        if (id === undefined) return;
-        const preset = presets.find((p) => p.id === id);
-        table.setColumnFilters(preset?.filters ?? []);
-      }}
-    >
-      {presets.map((p) => (
-        <ToggleGroupItem key={p.id} value={p.id}>
-          {p.label}
-          <Count value={countRows(table, p.filters)} max={9999} />
-        </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
+    <Scroller orientation="horizontal" className="max-w-full">
+      <ScrollerViewport>
+        <ToggleGroup<string>
+          aria-label={ariaLabel ?? t("savedQuestions")}
+          className={className}
+          size="sm"
+          value={active ? [active.id] : []}
+          onValueChange={([id]) => {
+            if (id === undefined) return;
+            const preset = presets.find((p) => p.id === id);
+            table.setColumnFilters(preset?.filters ?? []);
+          }}
+        >
+          {presets.map((p) => (
+            <ToggleGroupItem key={p.id} value={p.id}>
+              {p.label}
+              <Count value={countRows(table, p.filters)} max={9999} />
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </ScrollerViewport>
+      <ScrollerArrow edge="start" />
+      <ScrollerArrow edge="end" />
+    </Scroller>
   );
 }

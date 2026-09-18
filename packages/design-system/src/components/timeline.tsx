@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { cn } from "../lib/cn";
+import { Scroller, ScrollerArrow, ScrollerViewport } from "./scroller";
 import { Dot, toneClasses, type Tone } from "./badge";
 import { Eyebrow } from "./typography";
 
@@ -115,23 +116,38 @@ function TimelineRoot({
       : "above"
     : (timePosition ?? "end");
   const items = Children.toArray(children);
+  const list = (
+    <ol
+      aria-label={label}
+      data-orientation={orientation}
+      data-size={size}
+      className={cn(horizontal ? "flex items-start" : "grid", className)}
+      style={horizontal ? { minWidth: 420 } : { gridTemplateColumns: columns }}
+    >
+      {items.map((child, i) => (
+        <GroupContext.Provider key={i} value={{ first: i === 0, last: i === items.length - 1 }}>
+          {child}
+        </GroupContext.Provider>
+      ))}
+    </ol>
+  );
   return (
     <TimelineContext.Provider
       value={{ orientation, size, timePosition: position, align, wrap: wrap && !horizontal }}
     >
-      <ol
-        aria-label={label}
-        data-orientation={orientation}
-        data-size={size}
-        className={cn(horizontal ? "flex items-start" : "grid", className)}
-        style={horizontal ? { minWidth: 420 } : { gridTemplateColumns: columns }}
-      >
-        {items.map((child, i) => (
-          <GroupContext.Provider key={i} value={{ first: i === 0, last: i === items.length - 1 }}>
-            {child}
-          </GroupContext.Provider>
-        ))}
-      </ol>
+      {horizontal ? (
+        // Four stages need about 420px; narrower than that the strip scrolls: arrows where a pointer
+        // can hover, a swipe on touch, and the viewport is a tab stop so the arrow keys scroll it.
+        <Scroller orientation="horizontal" className="w-full">
+          <ScrollerViewport tabIndex={0} className="rounded-small focus-visible:outline-focused">
+            {list}
+          </ScrollerViewport>
+          <ScrollerArrow edge="start" />
+          <ScrollerArrow edge="end" />
+        </Scroller>
+      ) : (
+        list
+      )}
     </TimelineContext.Provider>
   );
 }

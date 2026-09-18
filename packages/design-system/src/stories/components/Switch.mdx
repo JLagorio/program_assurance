@@ -29,6 +29,8 @@ These dimensions use Ledger spacing tokens. The thumb moves toward the inline en
 
 Use `defaultChecked` for local state or `checked` and `onCheckedChange(checked, details)` for controlled state. `details.cancel()` rejects a change. `disabled` blocks activation and removes the switch from the tab order; `readOnly` retains focusability while preventing state changes.
 
+The thumb follows the Ledger color tokens even without the optional `base.css` document defaults. In forced-colors mode, system-color boundaries and contrasting thumbs keep both states visible.
+
 ## Labels, Field and forms
 
 A wrapping `<label>` or a sibling `<label htmlFor={id}>` names the setting and toggles it when clicked. Keep the name stable across on/off states. [Field](?path=/docs/components-field--docs) provides label and message parts. Associate them with the control using native IDs and ARIA:

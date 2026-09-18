@@ -48,6 +48,7 @@ export function Banner({
     <div
       role={tone === "danger" ? "alert" : "status"}
       {...props}
+      data-slot="banner"
       className={cn(
         "flex h-layout-banner items-center justify-center gap-100 px-200 font-body font-medium",
         toneClasses[tone].bold,

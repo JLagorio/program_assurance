@@ -27,7 +27,6 @@ import {
   type SideNavTrigger,
   type SkipLink,
 } from "./context";
-import { clampWidth } from "./splitter";
 
 /* ---------- root ---------- */
 
@@ -88,9 +87,10 @@ export function ShellRoot({
     if (!storageKey) return;
     const stored = readShell(storageKey);
     if (stored?.collapsed !== undefined) setExpanded(!stored.collapsed);
-    // A remembered width is clamped again here: the screen may be smaller than when it was dragged.
-    if (stored?.sideNavWidth) setSideNavWidth(clampWidth(stored.sideNavWidth, SIDENAV_MIN));
-    if (stored?.panelWidth) setPanelWidth(clampWidth(stored.panelWidth, PANEL_MIN));
+    // Keep the preferred desktop widths. CSS constrains the current layout without
+    // replacing the saved preferences when this shell mounts on a smaller screen.
+    if (stored?.sideNavWidth) setSideNavWidth(Math.max(stored.sideNavWidth, SIDENAV_MIN));
+    if (stored?.panelWidth) setPanelWidth(Math.max(stored.panelWidth, PANEL_MIN));
     setRestored(true);
   }, [storageKey]);
   useEffect(() => {

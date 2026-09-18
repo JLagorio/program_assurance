@@ -78,6 +78,8 @@ The bold fills are Badge's bold appearance, so a danger banner and a danger bold
 - **The action is in the tab order; the banner is not.** It sits first in the page, before the top navigation, so it is the first thing a keyboard reader meets, which is the point.
 - **The bold fills pass 4.5:1** with the inverse text in both modes; the contrast test covers them.
 
+Action focus rings inherit the banner’s contrasting text color, keeping the ring visible against every bold tone.
+
 ## Props
 
 Native `div` props and refs target the outer message. IDs, ARIA, data attributes, styles and handlers are forwarded; `className` merges with the default layout. The default role remains `status`, or `alert` for danger. An explicit `role` or live-region attribute controls delivery when the enclosing page needs different announcement behavior.

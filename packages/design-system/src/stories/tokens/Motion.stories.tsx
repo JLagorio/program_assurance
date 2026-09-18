@@ -158,7 +158,7 @@ export const Specimens: Story = {
 /** Checks the generated state variants, including the reduced-motion media rules. */
 export const Preference: Story = {
   render: () => (
-    <Stack space="space.200">
+    <Stack space="space.200" className="overflow-hidden">
       <div data-testid="motion-enter" data-state="open" className="data-[state=open]:animate-enter">
         Overlay arrives
       </div>

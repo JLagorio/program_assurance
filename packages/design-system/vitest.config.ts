@@ -30,7 +30,7 @@ export default mergeConfig(
     },
     test: {
       maxWorkers: 3,
-      projects: ["light", "dark"].map((mode) => ({
+      projects: ["light", "dark", "forced-colors"].map((mode) => ({
         extends: true,
         plugins: [
           storybookTest({
@@ -49,6 +49,11 @@ export default mergeConfig(
         test: {
           name: `storybook-${mode}`,
           maxWorkers: 3,
+          // Keep high-contrast regressions on the existing family stories.
+          exclude:
+            mode === "forced-colors"
+              ? ["**/stories/**/!(Switch|RadioGroup|Tabs|Progress).stories.tsx"]
+              : [],
           setupFiles: [path.join(dirname, "test/storybook.setup.ts")],
           browser: {
             enabled: true,
@@ -56,6 +61,7 @@ export default mergeConfig(
             provider: playwright({
               contextOptions: {
                 reducedMotion: mode === "dark" ? "reduce" : "no-preference",
+                forcedColors: mode === "forced-colors" ? "active" : "none",
               },
             }),
             instances: [{ browser: "chromium" }],

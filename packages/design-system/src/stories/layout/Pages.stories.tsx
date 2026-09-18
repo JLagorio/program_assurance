@@ -25,6 +25,9 @@ import {
   SelectContent,
   SelectItem,
   Section,
+  Scroller,
+  ScrollerArrow,
+  ScrollerViewport,
   Shell,
   Stack,
   Table,
@@ -337,11 +340,17 @@ function Workspace({ initial = "record" }: { initial?: "record" | "queue" | "reg
           <Shell.AppLogo name="Workspace" render={<a href="#home" />} />
         </Shell.TopNav.Start>
         <Shell.TopNav.Middle>
-          <Inline space="space.100">
-            <Button onClick={() => setRoute("record")}>Record route</Button>
-            <Button onClick={() => setRoute("queue")}>Queue route</Button>
-            <Button onClick={() => setRoute("register")}>Register route</Button>
-          </Inline>
+          <Scroller orientation="horizontal" className="max-w-full">
+            <ScrollerViewport role="group" aria-label="Example routes">
+              <Inline space="space.100" className="w-max">
+                <Button onClick={() => setRoute("record")}>Record route</Button>
+                <Button onClick={() => setRoute("queue")}>Queue route</Button>
+                <Button onClick={() => setRoute("register")}>Register route</Button>
+              </Inline>
+            </ScrollerViewport>
+            <ScrollerArrow edge="start" />
+            <ScrollerArrow edge="end" />
+          </Scroller>
         </Shell.TopNav.Middle>
       </Shell.TopNav>
       <Shell.Main>
@@ -490,4 +499,20 @@ export const Register: Story = {
 export const CompactQueue: Story = {
   ...QueueWithPanel,
   globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
+  play: async (context) => {
+    await QueueWithPanel.play?.(context);
+    const canvas = within(context.canvasElement);
+    const routes = canvas.getByRole("group", { name: "Example routes" });
+    canvas.getByRole("button", { name: "Record route" }).focus();
+    await userEvent.tab();
+    await userEvent.tab();
+    const last = canvas.getByRole("button", { name: "Register route" });
+    await expect(last).toHaveFocus();
+    await waitFor(() => {
+      expect(last.getBoundingClientRect().right).toBeLessThanOrEqual(
+        routes.getBoundingClientRect().right + 1,
+      );
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth + 1);
+    });
+  },
 };

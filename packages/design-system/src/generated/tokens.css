@@ -68,6 +68,8 @@
   --ds-color-background-input: var(--ds-color-neutral-0);
   --ds-color-background-input-hovered: var(--ds-color-neutral-100);
   --ds-color-background-input-pressed: var(--ds-color-neutral-0);
+  --ds-color-background-input-thumb: var(--ds-color-neutral-0);
+  --ds-color-background-input-thumb-checked: var(--ds-color-neutral-0);
   --ds-color-background-inverse-subtle: oklch(0 0 0 / 0.16);
   --ds-color-background-inverse-subtle-hovered: oklch(0 0 0 / 0.24);
   --ds-color-background-inverse-subtle-pressed: oklch(0 0 0 / 0.32);
@@ -303,11 +305,13 @@
   --ds-dimension-row-menu: 28px;
   --ds-dimension-icon-small: 14px;
   --ds-dimension-icon-medium: 16px;
+  --ds-dimension-breakpoint-sm: 40rem;
   --ds-dimension-breakpoint-md: 48rem;
   --ds-dimension-breakpoint-lg: 64rem;
   --ds-dimension-breakpoint-aside: 75rem;
   --ds-dimension-breakpoint-panel: 80rem;
   --ds-dimension-breakpoint-wide: 110rem;
+  --ds-dimension-breakpoint-xl: 80rem;
   --ds-dimension-layout-sidenav: 228px;
   --ds-dimension-layout-topnav: 48px;
   --ds-dimension-layout-banner: 48px;
@@ -487,6 +491,8 @@
   --ds-color-background-input: var(--ds-color-neutral-0);
   --ds-color-background-input-hovered: var(--ds-color-neutral-100);
   --ds-color-background-input-pressed: var(--ds-color-neutral-0);
+  --ds-color-background-input-thumb: var(--ds-color-neutral-0);
+  --ds-color-background-input-thumb-checked: var(--ds-color-neutral-0);
   --ds-color-background-inverse-subtle: oklch(0 0 0 / 0.16);
   --ds-color-background-inverse-subtle-hovered: oklch(0 0 0 / 0.24);
   --ds-color-background-inverse-subtle-pressed: oklch(0 0 0 / 0.32);
@@ -678,6 +684,8 @@
   --ds-color-background-input: var(--ds-color-dark-neutral-200);
   --ds-color-background-input-hovered: var(--ds-color-dark-neutral-250);
   --ds-color-background-input-pressed: var(--ds-color-dark-neutral-200);
+  --ds-color-background-input-thumb: var(--ds-color-dark-neutral-1000);
+  --ds-color-background-input-thumb-checked: var(--ds-color-dark-neutral-100);
   --ds-color-background-inverse-subtle: oklch(1 0 0 / 0.16);
   --ds-color-background-inverse-subtle-hovered: oklch(1 0 0 / 0.24);
   --ds-color-background-inverse-subtle-pressed: oklch(1 0 0 / 0.32);
@@ -870,6 +878,8 @@
     --ds-color-background-input: var(--ds-color-dark-neutral-200);
     --ds-color-background-input-hovered: var(--ds-color-dark-neutral-250);
     --ds-color-background-input-pressed: var(--ds-color-dark-neutral-200);
+    --ds-color-background-input-thumb: var(--ds-color-dark-neutral-1000);
+    --ds-color-background-input-thumb-checked: var(--ds-color-dark-neutral-100);
     --ds-color-background-inverse-subtle: oklch(1 0 0 / 0.16);
     --ds-color-background-inverse-subtle-hovered: oklch(1 0 0 / 0.24);
     --ds-color-background-inverse-subtle-pressed: oklch(1 0 0 / 0.32);

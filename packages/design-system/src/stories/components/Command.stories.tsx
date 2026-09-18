@@ -25,7 +25,13 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 const inputRef = createRef<HTMLInputElement>();
-function Commands({ onSelect }: { onSelect?: (value: string) => void }) {
+function Commands({
+  onSelect,
+  long = false,
+}: {
+  onSelect?: (value: string) => void;
+  long?: boolean;
+}) {
   return (
     <>
       <CommandInput ref={inputRef} aria-label="Search commands" placeholder="Search commands" />
@@ -51,6 +57,16 @@ function Commands({ onSelect }: { onSelect?: (value: string) => void }) {
           <CommandItem value="home" onSelect={(value) => onSelect?.(value)}>
             Go home
           </CommandItem>
+          {long &&
+            Array.from({ length: 30 }, (_, index) => (
+              <CommandItem
+                key={index}
+                value={`workspace-${index + 1}`}
+                onSelect={(value) => onSelect?.(value)}
+              >
+                Open workspace {index + 1}
+              </CommandItem>
+            ))}
         </CommandGroup>
       </CommandList>
       <CommandFooter>
@@ -86,7 +102,7 @@ export const Filtering: Story = {
     );
   },
 };
-function PaletteDemo() {
+function PaletteDemo({ long = false }: { long?: boolean }) {
   const [open, setOpen] = useState(false),
     [selected, setSelected] = useState("");
   return (
@@ -95,6 +111,7 @@ function PaletteDemo() {
       <CommandDialog open={open} onOpenChange={setOpen} title="Program commands">
         <Command label="Program commands">
           <Commands
+            long={long}
             onSelect={(value) => {
               setSelected(value);
               setOpen(false);
@@ -137,4 +154,43 @@ export const Loading: Story = {
       <CommandLoading label="Loading commands">Searching programs</CommandLoading>
     </Command>
   ),
+};
+
+/** On a short screen the list scrolls while the search and visible Close remain in view. */
+export const ShortViewport: Story = {
+  parameters: {
+    viewport: {
+      options: {
+        commandLandscape: { name: "Landscape phone", styles: { width: "844px", height: "390px" } },
+      },
+    },
+  },
+  globals: { viewport: { value: "commandLandscape", isRotated: false } },
+  render: () => <PaletteDemo long />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument;
+    const body = within(doc.body);
+    const trigger = canvas.getByRole("button", { name: "Open command palette" });
+    await userEvent.click(trigger);
+    const dialog = await body.findByRole("dialog", { name: "Program commands" });
+    const popup = within(dialog);
+    const close = popup.getByRole("button", { name: "Close" });
+    await waitFor(() => {
+      expect(dialog.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight);
+      const box = close.getBoundingClientRect();
+      expect(box.bottom).toBeLessThanOrEqual(window.innerHeight);
+      const target = doc.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+      expect(target === close || close.contains(target)).toBe(true);
+    });
+    popup.getByRole("combobox", { name: "Program commands" }).focus();
+    await userEvent.keyboard("{End}{Enter}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await expect(canvas.getByRole("status")).toHaveTextContent("workspace-30");
+    await userEvent.click(trigger);
+    await userEvent.click(
+      within(await body.findByRole("dialog")).getByRole("button", { name: "Close" }),
+    );
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
 };

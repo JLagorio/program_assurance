@@ -26,6 +26,7 @@ export function Calendar({
   components,
   locale,
   captionLayout = "label",
+  navLayout,
   buttonVariant = "subtle",
   showOutsideDays = true,
   ...props
@@ -46,6 +47,7 @@ export function Calendar({
       dir={direction}
       locale={locale}
       captionLayout={captionLayout}
+      navLayout={navLayout}
       showOutsideDays={showOutsideDays}
       formatters={{
         formatCaption: (date) => calendarFormat(date, { month: "long", year: "numeric" }),
@@ -73,7 +75,7 @@ export function Calendar({
       classNames={{
         root: cn(base.root, "font-body text-default"),
         months: "relative flex flex-col gap-200 sm:flex-row",
-        month: "flex w-full flex-col gap-150",
+        month: cn("flex w-full flex-col gap-150", navLayout === "around" && "relative"),
         month_caption: "flex h-control-small items-center justify-center px-400",
         caption_label: "inline-flex items-center gap-050 font-body font-medium",
         dropdowns: "flex h-control-medium items-center justify-center gap-100",
@@ -83,8 +85,8 @@ export function Calendar({
         week_number_header: "w-400",
         week_number: "w-400 text-center font-body-xsmall text-subtle",
         nav: "absolute inset-x-0 top-0 flex h-control-small items-center justify-between",
-        button_previous: navButton,
-        button_next: navButton,
+        button_previous: cn(navButton, navLayout === "around" && "absolute start-0 top-0"),
+        button_next: cn(navButton, navLayout === "around" && "absolute end-0 top-0"),
         month_grid: "w-full border-collapse",
         weekdays: "flex",
         weekday: "w-400 text-center font-body-xsmall font-medium text-subtle",
@@ -102,7 +104,9 @@ export function Calendar({
       }}
       components={{
         Root: CalendarRoot,
-        Chevron: CalendarChevron,
+        Chevron: (chevronProps) => (
+          <CalendarChevron {...chevronProps} flipInRtl={navLayout !== "around"} />
+        ),
         DayButton: CalendarDayButton,
         WeekNumber: CalendarWeekNumber,
         ...components,
@@ -118,8 +122,9 @@ function CalendarRoot({ className, rootRef, ...props }: ComponentProps<typeof Ro
 function CalendarChevron({
   orientation,
   className,
+  flipInRtl,
   ...props
-}: ComponentProps<typeof DayPickerChevron>) {
+}: ComponentProps<typeof DayPickerChevron> & { flipInRtl: boolean }) {
   const Icon =
     orientation === "left" ? ChevronLeft : orientation === "right" ? ChevronRight : ChevronDown;
   return (
@@ -127,7 +132,7 @@ function CalendarChevron({
       aria-hidden
       className={cn(
         "size-icon-small",
-        (orientation === "left" || orientation === "right") && "rtl:rotate-180",
+        flipInRtl && (orientation === "left" || orientation === "right") && "rtl:rotate-180",
         className,
       )}
       {...props}

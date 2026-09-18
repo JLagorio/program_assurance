@@ -208,10 +208,13 @@ export type ThProps = ComponentProps<"th"> &
     trailing?: ReactNode;
   };
 
+/* A cell's `width` is firm: it is also its `min-width`, because when the table is wider than its
+   frame the browser gives a cell with only a `width` its min-content width instead. */
 const widthStyle = (
   width: number | undefined,
   style: CSSProperties | undefined,
-): CSSProperties | undefined => (width === undefined ? style : { width, ...style });
+): CSSProperties | undefined =>
+  width === undefined ? style : { width, minWidth: width, ...style };
 
 function Th({
   ref,
@@ -478,6 +481,9 @@ function IdCell({
   );
 }
 
+/** The width of the checkbox and the drag-handle columns, `space.400`. DataTable adds the same width to every pinned start offset, so the column must measure exactly this. */
+const NARROW = 32;
+
 /** The checkbox column. In the header it selects every row and reads mixed when only some are; in a row it selects that row. */
 function SelectionCell({
   header = false,
@@ -508,11 +514,11 @@ function SelectionCell({
     />
   );
   return header ? (
-    <Th className="w-400 pe-0" pinned={pinned} offset={offset} edge={edge}>
+    <Th className="pe-0" width={NARROW} pinned={pinned} offset={offset} edge={edge}>
       <span className="flex items-center">{box}</span>
     </Th>
   ) : (
-    <Td className="w-400 max-w-none pe-0" pinned={pinned} offset={offset} edge={edge}>
+    <Td className="max-w-none pe-0" width={NARROW} pinned={pinned} offset={offset} edge={edge}>
       <span className="flex items-center">{box}</span>
     </Td>
   );
@@ -739,7 +745,7 @@ function HandleCell({
   }) {
   const { t } = useLedgerLocale();
   return (
-    <Td className="w-400 max-w-none pe-0" pinned={pinned} offset={offset} edge={edge}>
+    <Td className="max-w-none pe-0" width={NARROW} pinned={pinned} offset={offset} edge={edge}>
       <span
         ref={ref}
         role="button"

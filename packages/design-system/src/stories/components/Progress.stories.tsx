@@ -44,6 +44,16 @@ export const ValuesAndRanges: Story = {
     const canvas = within(canvasElement),
       progress = canvas.getByRole("progressbar", { name: "Assessment progress" });
     await expect(progressRef.current).toBe(progress);
+    if (matchMedia("(forced-colors: active)").matches) {
+      for (const bar of canvas.getAllByRole("progressbar")) {
+        const track = bar.querySelector('[data-slot="progress-track"]')!;
+        const indicator = bar.querySelector('[data-slot="progress-indicator"]')!;
+        await expect(getComputedStyle(track).outlineStyle).toBe("solid");
+        await expect(getComputedStyle(indicator).backgroundColor).not.toBe(
+          getComputedStyle(track).backgroundColor,
+        );
+      }
+    }
     await expect(progress).toHaveAttribute("aria-valuenow", "64");
     const range = canvas.getByRole("progressbar", { name: "Evidence gathered" });
     await expect(range).toHaveAttribute("aria-valuemin", "10");

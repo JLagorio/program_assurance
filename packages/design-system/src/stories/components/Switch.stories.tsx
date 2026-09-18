@@ -54,7 +54,7 @@ export const SwitchMatrix: Story = {
         </label>
       </Specimens>
       <LedgerProvider direction="rtl">
-        <label className="inline-flex items-center gap-100">
+        <label className="inline-flex items-center gap-100 px-150">
           <Switch /> RTL notifications
         </label>
       </LedgerProvider>
@@ -77,10 +77,31 @@ export const SwitchMatrix: Story = {
       await expect(thumb.getBoundingClientRect().width).toBe(thumbSize);
       await expect(thumb.getBoundingClientRect().height).toBe(thumbSize);
       await expect(getComputedStyle(thumb).transitionProperty === "none").toBe(reducedMotion);
+      if (matchMedia("(forced-colors: active)").matches) {
+        await expect(getComputedStyle(off).outlineStyle).toBe("solid");
+        await expect(getComputedStyle(thumb).backgroundColor).not.toBe(
+          getComputedStyle(off).backgroundColor,
+        );
+      } else {
+        // base.css is optional; thumb colors must follow tokens, not color-scheme.
+        const thumbColor = getComputedStyle(thumb).backgroundColor;
+        for (const scheme of ["light", "dark"]) {
+          off.style.colorScheme = scheme;
+          await expect(getComputedStyle(thumb).backgroundColor).toBe(thumbColor);
+        }
+        off.style.removeProperty("color-scheme");
+      }
       const position = () => thumb.getBoundingClientRect().left - off.getBoundingClientRect().left;
       const start = position();
       await userEvent.click(off);
       await expect(off).toBeChecked();
+      if (matchMedia("(forced-colors: active)").matches) {
+        await waitFor(() =>
+          expect(getComputedStyle(thumb).backgroundColor).not.toBe(
+            getComputedStyle(off).backgroundColor,
+          ),
+        );
+      }
       await waitFor(() => expect(position() - start).toBeCloseTo(travel, 1));
       const disabled = canvas.getByRole("switch", { name: `${size} disabled` });
       await expect(disabled).toHaveAttribute("aria-disabled", "true");

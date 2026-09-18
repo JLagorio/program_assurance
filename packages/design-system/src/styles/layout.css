@@ -35,9 +35,23 @@
   );
 }
 
-/* The page header's two columns: what names the page, then its actions. */
+/* The page header: the Lead across the row, then what names the page beside its actions. The
+   heading keeps a readable measure (14rem, about twenty characters of heading-small a line) and
+   grows; when a row cannot hold that measure beside the actions, the actions wrap under it and sit
+   at the end, so a title never breaks one word per line beside a full-label primary. The same rule
+   holds on a page, in a Shell.Panel and in a Sheet, so shell.css has no header rule of its own. */
 @utility page-header {
-  grid-template-columns: minmax(0, 1fr) auto;
+  & > [data-slot="page-header-lead"] {
+    flex-basis: 100%;
+  }
+  & > [data-slot="page-header-heading"],
+  & > [data-slot="page-header-title"] {
+    flex: 1 1 min(100%, 14rem);
+  }
+  & > [data-slot="page-header-actions"] {
+    max-inline-size: 100%;
+    margin-inline-start: auto;
+  }
 }
 
 /* A bar that stays put under the shell's header while the page scrolls: the ActionBar. */

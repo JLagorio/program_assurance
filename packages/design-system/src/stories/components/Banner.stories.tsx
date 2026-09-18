@@ -100,6 +100,11 @@ export const Banners: Story = {
     await userEvent.click(action);
     await userEvent.keyboard("{Enter}");
     await expect(action).toHaveFocus();
+    await userEvent.tab();
+    await userEvent.tab({ shift: true });
+    await expect(action).toHaveFocus();
+    await expect(getComputedStyle(action).outlineStyle).toBe("solid");
+    await expect(getComputedStyle(action).outlineColor).toBe(getComputedStyle(action).color);
     await expect(actionClick).toHaveBeenCalledTimes(2);
     await expect(bannerClick).toHaveBeenCalledTimes(2);
     await expect(canvas.getByRole("status")).toHaveTextContent("The audit window closes");

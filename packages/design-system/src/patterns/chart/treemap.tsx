@@ -45,7 +45,7 @@ export type ChartTreemapProps = {
   label?: string | undefined;
   /** Draws the plot's skeleton in place of the tiles. The Frame sets it from `status="loading"`. */
   loading?: boolean | undefined;
-  /** Called when a tile is clicked: to drill into its branch, or to filter what is under the chart. */
+  /** Called when a tile is clicked or activated with Enter/Space: to drill into its branch, or to filter what is under the chart. */
   onSelect?: ((selection: TreemapSelection) => void) | undefined;
   /** More about the chosen tile, in a card anchored to it. The card's head (the tile, its branch and its value) is the kit's. */
   details?: ((selection: TreemapSelection) => ReactNode) | undefined;
@@ -99,12 +99,14 @@ function Tile({
   depth,
   children,
   format,
-  clickable,
+  onChoose,
+  keyboardAccessible,
   highlighted,
   chosen,
 }: TileProps & {
   format: Formatter;
-  clickable: boolean;
+  onChoose?: ((node: Clicked) => void) | undefined;
+  keyboardAccessible: boolean;
   highlighted: string | null;
   chosen: string | null;
 }) {
@@ -117,8 +119,34 @@ function Tile({
   const dim =
     (highlighted !== null && highlighted !== group && highlighted !== name) ||
     (chosen !== null && chosen !== name);
+  const choose = () =>
+    onChoose?.({ name: name ?? "", value: value ?? 0, group, x, y, width, height });
   return (
-    <g className={cn(clickable && "cursor-pointer", dim && "opacity-disabled") || undefined}>
+    <g
+      data-chart-tile={JSON.stringify([group ?? name, name])}
+      role={keyboardAccessible ? "button" : undefined}
+      tabIndex={keyboardAccessible ? 0 : undefined}
+      aria-label={
+        keyboardAccessible ? `${group && group !== name ? `${group}, ` : ""}${title}` : undefined
+      }
+      onClick={onChoose ? choose : undefined}
+      onKeyDown={
+        keyboardAccessible
+          ? (event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              event.stopPropagation();
+              choose();
+            }
+          : undefined
+      }
+      className={
+        cn(
+          onChoose && "cursor-pointer outline-none focus-visible:outline-focused",
+          dim && "opacity-disabled",
+        ) || undefined
+      }
+    >
       <rect
         x={x}
         y={y}
@@ -155,7 +183,7 @@ function Tile({
 type Clicked = {
   name: string;
   value: number;
-  group?: string;
+  group?: string | undefined;
   x?: number;
   y?: number;
   width?: number;
@@ -193,15 +221,11 @@ export function ChartTreemap({
     );
   const series: ChartSeries[] = [{ key: "value", label: t("value") }];
   const chooses = Boolean(onSelect || details);
-  const content = (p: TileProps) => (
-    <Tile
-      {...p}
-      format={format}
-      clickable={chooses}
-      highlighted={highlighted}
-      chosen={picked?.item.name ?? null}
-    />
-  );
+  const choose = (node: Clicked) => {
+    const selection = { name: node.name, value: node.value, group: node.group ?? node.name };
+    onSelect?.(selection);
+    if (details) pick(selection, rectAnchor(node));
+  };
   const card = picked ? (
     <>
       <CardHead
@@ -234,17 +258,15 @@ export function ChartTreemap({
         nameKey="name"
         aspectRatio={4 / 3}
         {...motion}
-        content={content as never}
-        {...(chooses
-          ? {
-              onClick: (node: unknown) => {
-                const n = node as Clicked;
-                const selection = { name: n.name, value: n.value, group: n.group ?? n.name };
-                onSelect?.(selection);
-                if (details) pick(selection, rectAnchor(n));
-              },
-            }
-          : {})}
+        content={
+          <Tile
+            format={format}
+            onChoose={chooses ? choose : undefined}
+            keyboardAccessible={chooses && Boolean(name)}
+            highlighted={highlighted}
+            chosen={picked?.item.name ?? null}
+          />
+        }
       >
         <Tooltip
           {...tooltipMotion}

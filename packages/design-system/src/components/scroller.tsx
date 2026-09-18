@@ -23,6 +23,8 @@ export type ScrollerActivation = "hover" | "click";
 
 type Edges = { overflows: boolean; atStart: boolean; atEnd: boolean };
 const noEdges: Edges = { overflows: false, atStart: true, atEnd: true };
+// The innermost Scroller owns focus reveal; a containing Scroller must not move it again.
+const revealedFocusEvents = new WeakSet<FocusEvent>();
 
 type ScrollerContextValue = {
   orientation: ScrollerOrientation;
@@ -165,6 +167,37 @@ export function Scroller({
         const next = readEdges(viewport, orientation);
         return sameEdges(previous, next) ? previous : next;
       });
+    const revealFocus = (event: FocusEvent) => {
+      const target = event.target;
+      if (
+        !(target instanceof HTMLElement) ||
+        target === viewport ||
+        revealedFocusEvents.has(event)
+      ) {
+        return;
+      }
+      revealedFocusEvents.add(event);
+      const vertical = orientation === "vertical";
+      const bounds = viewport.getBoundingClientRect();
+      const item = target.getBoundingClientRect();
+      const style = getComputedStyle(viewport);
+      const start =
+        (vertical ? bounds.top + viewport.clientTop : bounds.left + viewport.clientLeft) +
+        (parseFloat(vertical ? style.scrollPaddingTop : style.scrollPaddingLeft) || 0);
+      const end =
+        (vertical
+          ? bounds.top + viewport.clientTop + viewport.clientHeight
+          : bounds.left + viewport.clientLeft + viewport.clientWidth) -
+        (parseFloat(vertical ? style.scrollPaddingBottom : style.scrollPaddingRight) || 0);
+      const itemStart = vertical ? item.top : item.left;
+      const itemEnd = vertical ? item.bottom : item.right;
+      // An item larger than the visible region cannot expose both edges; keep its position.
+      if (itemStart < start && itemEnd > end) return;
+      const distance = itemStart < start ? itemStart - start : itemEnd > end ? itemEnd - end : 0;
+      if (distance) {
+        viewport.scrollBy(vertical ? { top: distance } : { left: distance });
+      }
+    };
     const sizes = new ResizeObserver(update);
     const observeChildren = () => {
       sizes.disconnect();
@@ -179,8 +212,10 @@ export function Scroller({
     observeChildren();
     children.observe(viewport, { childList: true });
     viewport.addEventListener("scroll", update, { passive: true });
+    viewport.addEventListener("focusin", revealFocus);
     return () => {
       viewport.removeEventListener("scroll", update);
+      viewport.removeEventListener("focusin", revealFocus);
       sizes.disconnect();
       children.disconnect();
     };

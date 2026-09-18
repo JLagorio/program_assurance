@@ -724,6 +724,28 @@
               "introduced": "0.1.0"
             }
           }
+        },
+        "thumb": {
+          "default": {
+            "$value": "{color.neutral.0}",
+            "$description": "The unchecked thumb of a neutral input control. Follows the token mode independently of the document color scheme.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.1000}",
+                "introduced": "0.6.0"
+              }
+            }
+          },
+          "checked": {
+            "$value": "{color.neutral.0}",
+            "$description": "The thumb on a checked control’s bold fill.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.100}",
+                "introduced": "0.6.0"
+              }
+            }
+          }
         }
       },
       "inverse": {
@@ -2470,6 +2492,10 @@
       }
     },
     "breakpoint": {
+      "sm": {
+        "$value": "40rem",
+        "$description": "Tailwind's sm, 640px. Pagination shows its Previous/Next words, Stat grids take their columns and a two-month Calendar sits in a row from here."
+      },
       "md": {
         "$value": "48rem",
         "$description": "Tailwind's md, 768px. The product folds the top nav's end items into a menu below it."
@@ -2489,6 +2515,10 @@
       "wide": {
         "$value": "110rem",
         "$description": "1760px. The aside sits beside Main even while a panel is open."
+      },
+      "xl": {
+        "$value": "80rem",
+        "$description": "Tailwind's xl, 1280px: the panel breakpoint under its Tailwind name, for Grid's `xl` column count."
       }
     },
     "layout": {

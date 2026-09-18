@@ -31,7 +31,7 @@ export function KeyValue({
     >
       <dt className="truncate text-subtle">{label}</dt>
       <dd
-        className={cn("min-w-0 text-default", wrap ? "" : "truncate")}
+        className={cn("min-w-0 text-default", wrap ? "break-words" : "truncate")}
         {...(!wrap && typeof children === "string" ? { title: children } : {})}
       >
         {children}

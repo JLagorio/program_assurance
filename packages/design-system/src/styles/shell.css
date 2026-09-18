@@ -59,7 +59,7 @@
    the head of that column and the side nav looks full height; the toggle moves to the slot's end,
    whichever child it is. */
 @utility shell-topnav-start {
-  width: var(--shell-sidenav-width);
+  width: min(var(--shell-sidenav-width), 50vw);
   & > [data-slot="shell-sidenav-toggle"] {
     order: 1;
     margin-inline-start: auto;
@@ -70,7 +70,7 @@
   position: sticky;
   top: var(--shell-top);
   height: calc(100dvh - var(--shell-top));
-  width: var(--shell-sidenav-width);
+  width: min(var(--shell-sidenav-width), 50vw);
 }
 /* Main also publishes the inset under the page, its bottom padding, so a block that fills the
    window (fill-window) ends where the page does. */
@@ -134,27 +134,24 @@
     }
   }
 }
-/* A record can put its identity and primary/menu actions in the panel body beneath navigation.
-   At phone widths and the resize minimum, leave room for full operation labels and record names. */
-@container shell-panel (width < 400px) {
-  [data-slot="page-header"] {
-    grid-template-columns: minmax(0, 1fr);
-    & > [data-slot="page-header-heading"],
-    & > [data-slot="page-header-title"],
-    & > [data-slot="page-header-actions"] {
-      grid-column: 1 / -1;
-    }
-    & > [data-slot="page-header-actions"] {
-      justify-self: end;
-      max-inline-size: 100%;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-  }
-}
 [data-shell-slot="aside"] {
   grid-area: context;
   min-width: 0;
+}
+/* When the aside follows Main (below the aside breakpoint, or beside an open panel below the wide
+   one), Main takes the height it needs and the aside's row takes the rest of the window, so a
+   short record's Details start right under its content instead of a screen down. */
+@media (width < theme(--breakpoint-aside)) {
+  .shell-root:has(> [data-shell-slot="aside"] > [data-shell-area="aside"]) {
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+}
+@media (width >= theme(--breakpoint-aside)) and (width < theme(--breakpoint-wide)) {
+  .shell-root:has(> [data-shell-slot="aside"] > [data-shell-area="aside"]):has(
+      > [data-shell-slot="panel"] > [data-shell-area="panel"]
+    ) {
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
 }
 [data-shell-slot="panel"] {
   grid-area: panel;
@@ -175,7 +172,7 @@
 }
 @media (width >= theme(--breakpoint-panel)) {
   .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) {
-    --shell-panel-inset: var(--shell-panel-width);
+    --shell-panel-inset: min(var(--shell-panel-width), 50vw);
   }
 }
 @media (width >= theme(--breakpoint-aside)) {

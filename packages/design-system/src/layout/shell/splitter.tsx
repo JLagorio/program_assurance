@@ -11,7 +11,7 @@ import { useLedgerLocale } from "../../lib/locale";
 
 /** A width within an area's bounds: never under its minimum, never over half the viewport. */
 export const clampWidth = (width: number, min: number) =>
-  Math.round(Math.min(Math.max(width, min), window.innerWidth / 2));
+  Math.round(Math.max(min, Math.min(width, window.innerWidth / 2)));
 
 /* ---------- splitter ---------- */
 
@@ -66,6 +66,9 @@ export function Splitter({
   }, [min]);
   const measure = () => area()?.getBoundingClientRect().width ?? min;
   const clamp = (w: number) => clampWidth(w, min);
+  // The area lives on a logical edge; pointer coordinates and arrow keys are physical.
+  const physicalDirection = () =>
+    direction * (ref.current && getComputedStyle(ref.current).direction === "rtl" ? -1 : 1);
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -80,7 +83,7 @@ export function Splitter({
   };
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!drag.current) return;
-    setWidth(clamp(drag.current.width + direction * (e.clientX - drag.current.x)));
+    setWidth(clamp(drag.current.width + physicalDirection() * (e.clientX - drag.current.x)));
   };
   const onPointerUp = () => {
     if (!drag.current) return;
@@ -94,9 +97,9 @@ export function Splitter({
     const initialWidth = measure();
     const target =
       e.key === "ArrowRight"
-        ? initialWidth + direction * 16
+        ? initialWidth + physicalDirection() * 16
         : e.key === "ArrowLeft"
-          ? initialWidth - direction * 16
+          ? initialWidth - physicalDirection() * 16
           : e.key === "Home"
             ? min
             : e.key === "End"

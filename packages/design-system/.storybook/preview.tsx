@@ -42,6 +42,11 @@ const preview: Preview = {
     viewport: {
       options: {
         ledgerNarrow: { name: "Narrow (320 CSS px)", styles: { width: "320px", height: "900px" } },
+        ledgerSmall: {
+          name: "Small phone (340 CSS px)",
+          styles: { width: "340px", height: "740px" },
+        },
+        ledgerPhone: { name: "Phone (390 CSS px)", styles: { width: "390px", height: "844px" } },
         ledgerDesktop: { name: "Desktop", styles: { width: "1200px", height: "900px" } },
         ledgerWide: { name: "Wide (1440 CSS px)", styles: { width: "1440px", height: "900px" } },
       },

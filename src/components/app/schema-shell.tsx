@@ -1,7 +1,20 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Box, Button, Inline, Input, ModeSwitch, Shell, Stack } from "@ledger/design-system";
-import { Database, FileText, LayoutDashboard } from "lucide-react";
+import {
+  Box,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  IconButton,
+  Inline,
+  Input,
+  ModeSwitch,
+  Shell,
+  Stack,
+} from "@ledger/design-system";
+import { Database, FileText, LayoutDashboard, MoreHorizontal } from "lucide-react";
 import { database } from "@/lib/database";
 import { domains, labelFor } from "@/lib/records";
 import { useWorkspace } from "./workspace";
@@ -35,7 +48,19 @@ export function SchemaLayout({ children }: { children: ReactNode }) {
             render={<Link to="/" />}
           />
         </Shell.TopNav.Start>
-        <Shell.TopNav.End>
+        <Shell.TopNav.End
+          overflow={
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem render={<Link to="/" />}>Back to prototype</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void signOut()}>Sign out</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          }
+        >
           <Button variant="secondary" size="small" render={<Link to="/" />}>
             Back to prototype
           </Button>

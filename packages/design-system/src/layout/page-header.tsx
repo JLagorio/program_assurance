@@ -10,13 +10,13 @@ export type PageHeaderTitleProps = ComponentProps<"h1">;
 export type PageHeaderDescriptionProps = ComponentProps<"p">;
 export type PageHeaderActionsProps = ComponentProps<"div">;
 
-/** Page identity and navigation/actions: two columns, what names the page on the left and its actions on the right. Lead spans both; Heading holds the Title and what sits under it. Record fields and editors belong in the work area or properties, never the header. */
+/** Page identity and navigation/actions: what names the page, then its actions at the end of the row; when the row cannot give the title its measure beside them, they take the next row. Lead spans the header; Heading holds the Title and what sits under it. Record fields and editors belong in the work area or properties, never the header. */
 function PageHeaderRoot({ className, ...props }: PageHeaderProps) {
   return (
     <header
       {...props}
       data-slot="page-header"
-      className={cn("page-header grid min-w-0 items-start gap-150", className)}
+      className={cn("page-header flex min-w-0 flex-wrap items-start gap-150", className)}
     />
   );
 }
@@ -29,7 +29,7 @@ export function Lead({ render, ref, className, ...props }: PageHeaderLeadProps) 
     state: { slot: "page-header-lead" },
     props: mergeProps<"div">(props, {
       ...{ "data-slot": "page-header-lead" },
-      className: cn("col-span-full min-w-0", className),
+      className: cn("min-w-0", className),
     }),
   });
 }
@@ -55,13 +55,13 @@ export function Description({ className, ...props }: PageHeaderDescriptionProps)
     />
   );
 }
-/** The second column: one primary action or an Actions menu. Narrow panels stack these below the title. */
+/** One primary action or an Actions menu, at the end of the title's row. When the row cannot give the title its measure beside them, they take the next row, right-aligned. */
 export function Actions({ className, ...props }: PageHeaderActionsProps) {
   return (
     <div
       {...props}
       data-slot="page-header-actions"
-      className={cn("col-start-2 flex shrink-0 items-center gap-100", className)}
+      className={cn("flex shrink-0 flex-wrap items-center justify-end gap-100", className)}
     />
   );
 }

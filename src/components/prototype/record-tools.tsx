@@ -22,7 +22,7 @@ import {
 import { ProductRecordDialog } from "./product-record-dialog";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRow, useRows, type TableName, type Filters } from "@/lib/models";
-import { displayValue, labelFor, type DataRecord } from "@/lib/records";
+import { displayValue, labelFor, type DataRecord, type RecordValue } from "@/lib/records";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
 import { QueryState, QueryState as SharedQueryState } from "./work-common";
 export { QueryState } from "./work-common";
@@ -287,6 +287,14 @@ export function EntityEditor({
   );
 }
 
+/** A stored timestamp reads as a local date and time; everything else reads as the record browser shows it. */
+function displayFact(key: string, value: RecordValue | undefined) {
+  if (key.endsWith("_at") && typeof value === "string" && !Number.isNaN(Date.parse(value))) {
+    return new Date(value).toLocaleString();
+  }
+  return displayValue(value);
+}
+
 export function ModelFacts({
   record,
   fields,
@@ -304,7 +312,7 @@ export function ModelFacts({
             label={column.label ?? labelFor(column.key.replace(/_id$/, ""))}
             wrap
           >
-            {column.render ? column.render(record) : displayValue(record[column.key])}
+            {column.render ? column.render(record) : displayFact(column.key, record[column.key])}
           </KeyValue>
         );
       })}

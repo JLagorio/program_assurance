@@ -26,6 +26,8 @@ export type ShellTopNavMiddleProps = ComponentProps<"div">;
 export type ShellTopNavEndProps = ComponentProps<"div"> & {
   /** The group's name, "Actions" by default. */
   label?: string | undefined;
+  /** What stands in for the children below the `md` breakpoint: one menu holding the same commands, so the row never grows past the window. Unsaid, the children stay at every width. */
+  overflow?: ReactNode | undefined;
 };
 
 export function TopNavRoot({ id, label, className, children, ...props }: ShellTopNavProps) {
@@ -90,8 +92,8 @@ export function TopNavMiddle({ className, children, ...props }: ShellTopNavMiddl
   );
 }
 
-/** The end slot: a group of actions, right-aligned. The children render as given, with no list wrapped around them, so a component that returns several buttons is several buttons. A product that needs them to fold on a phone renders its own menu there. */
-export function TopNavEnd({ label, className, children, ...props }: ShellTopNavEndProps) {
+/** The end slot: a group of actions, right-aligned. The children render as given, with no list wrapped around them, so a component that returns several buttons is several buttons. Below the `md` breakpoint `overflow` replaces them with one menu. */
+export function TopNavEnd({ label, className, children, overflow, ...props }: ShellTopNavEndProps) {
   const { t } = useLedgerLocale();
   return (
     <div
@@ -101,7 +103,14 @@ export function TopNavEnd({ label, className, children, ...props }: ShellTopNavE
       data-slot="shell-topnav-end"
       className={cn("flex shrink-0 items-center gap-050 px-150", className)}
     >
-      {children}
+      {overflow === undefined ? (
+        children
+      ) : (
+        <>
+          <span className="hidden md:contents">{children}</span>
+          <span className="contents md:hidden">{overflow}</span>
+        </>
+      )}
     </div>
   );
 }

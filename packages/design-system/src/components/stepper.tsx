@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { cn } from "../lib/cn";
+import { Scroller, ScrollerArrow, ScrollerViewport } from "./scroller";
 
 /* Progress along an ordered path. The list knows each step's place and its
    neighbour's state, so a step draws its own rails: bold behind every completed step, hairline
@@ -55,7 +56,7 @@ function StepperRoot({
       ? ((c.props as { state?: StepState }).state ?? "upcoming")
       : "upcoming",
   );
-  return (
+  const list = (
     <ol
       {...props}
       aria-label={props["aria-label"] ?? label}
@@ -81,6 +82,18 @@ function StepperRoot({
         </StepperContext.Provider>
       ))}
     </ol>
+  );
+  if (orientation !== "horizontal") return list;
+  // Four steps need about 420px; narrower than that the strip scrolls: arrows where a pointer can
+  // hover, a swipe on touch, and the viewport is a tab stop so the arrow keys scroll it.
+  return (
+    <Scroller orientation="horizontal" className="w-full">
+      <ScrollerViewport tabIndex={0} className="rounded-small focus-visible:outline-focused">
+        {list}
+      </ScrollerViewport>
+      <ScrollerArrow edge="start" />
+      <ScrollerArrow edge="end" />
+    </Scroller>
   );
 }
 

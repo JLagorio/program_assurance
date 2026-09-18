@@ -26,8 +26,8 @@ export function PageSkeleton({ rows = 8, className, ...props }: PageSkeletonProp
       className={cn("flex flex-col gap-300", className)}
     >
       <div className="flex flex-col gap-150">
-        <Skeleton shape="heading" width={240} />
-        <Skeleton width={440} />
+        <Skeleton shape="heading" width="min(240px, 60%)" />
+        <Skeleton width="min(440px, 100%)" />
       </div>
       <div className="flex gap-250 border-b border-default pb-150">
         <Skeleton width={48} />
@@ -38,10 +38,10 @@ export function PageSkeleton({ rows = 8, className, ...props }: PageSkeletonProp
       <div className="flex flex-col gap-200">
         {Array.from({ length: rows }, (_, i) => (
           <div key={i} className="flex items-center gap-200">
-            <Skeleton width={72} />
+            <Skeleton width={72} className="shrink" />
             <Skeleton className="flex-1" />
-            <Skeleton width={96} />
-            <Skeleton width={64} />
+            <Skeleton width={96} className="shrink" />
+            <Skeleton width={64} className="shrink" />
           </div>
         ))}
       </div>

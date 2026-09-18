@@ -182,7 +182,6 @@ export const formatCategory: CategoryFormatter = (v) => {
   return String(v);
 };
 
-
 /** Whether any series in the data goes below zero, so the axis and the baseline must too. */
 export const hasNegative = (data: ChartDatum[], keys: string[]) =>
   data.some((d) =>
@@ -1078,7 +1077,7 @@ function Card({
 
 /** Recharts puts the tab stop on its svg (`role="application"`); this is it, inside a plot. */
 const surfaceIn = (el: HTMLElement | null) =>
-  el?.querySelector<SVGElement>(".recharts-surface[tabindex]") ?? null;
+  el?.querySelector<SVGElement>(".recharts-surface[tabindex], [data-chart-tile][tabindex]") ?? null;
 
 /**
  * The container with the kit's height. Named by `label` or by the Frame; unnamed, it is decoration
@@ -1114,9 +1113,43 @@ export function Plot({
   width?: number | undefined;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const focusedTile = useRef<SVGElement | null>(null);
+  const focusedTileKey = useRef<string | null>(null);
   // Whether the plot was focused by a pointer or by the keyboard: the focus ring shows for the keyboard only.
   const [focusedBy, setFocusedBy] = useState<"pointer" | "keyboard" | null>(null);
-  const refocus = () => surfaceIn(ref.current)?.focus();
+  const refocus = useCallback(() => {
+    const tile = focusedTile.current;
+    if (
+      tile?.isConnected &&
+      ref.current?.contains(tile) &&
+      tile.getAttribute("data-chart-tile") === focusedTileKey.current
+    ) {
+      tile.focus();
+      return;
+    }
+    const replacement = Array.from(
+      ref.current?.querySelectorAll<SVGElement>("[data-chart-tile][tabindex]") ?? [],
+    ).find((candidate) => candidate.getAttribute("data-chart-tile") === focusedTileKey.current);
+    (replacement ?? surfaceIn(ref.current))?.focus();
+  }, []);
+  useEffect(() => {
+    if (focusedBy !== "keyboard" || card) return;
+    // A drill-down can replace Recharts' branch DOM. Restore the same leaf after its commit,
+    // provided focus was lost to the document rather than moved to another control or a card.
+    const frame = requestAnimationFrame(() => {
+      const plot = ref.current;
+      const tile = focusedTile.current;
+      if (
+        plot &&
+        tile &&
+        (!tile.isConnected || !plot.contains(tile)) &&
+        plot.ownerDocument.activeElement === plot.ownerDocument.body
+      ) {
+        refocus();
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [children, card, focusedBy, refocus]);
   const onKeyDownCapture = (e: KeyboardEvent<HTMLDivElement>) => {
     setFocusedBy("keyboard");
     if (!onEnter || e.key !== "Enter" || e.target !== surfaceIn(ref.current)) return;
@@ -1140,7 +1173,21 @@ export function Plot({
         className,
       )}
       style={{ height: height ?? heights[size ?? "medium"], width }}
-      onPointerDownCapture={() => setFocusedBy("pointer")}
+      onFocusCapture={(event) => {
+        const tile = (event.target as Element).closest<SVGElement>("[data-chart-tile]");
+        if (tile) {
+          focusedTile.current = tile;
+          focusedTileKey.current = tile.getAttribute("data-chart-tile");
+        }
+      }}
+      onPointerDownCapture={(event) => {
+        setFocusedBy("pointer");
+        const tile = (event.target as Element).closest<SVGElement>("[data-chart-tile]");
+        if (tile) {
+          focusedTile.current = tile;
+          focusedTileKey.current = tile.getAttribute("data-chart-tile");
+        }
+      }}
       onKeyDownCapture={onKeyDownCapture}
       onBlur={(e) => {
         if (!ref.current?.contains(e.relatedTarget as Node | null)) setFocusedBy(null);

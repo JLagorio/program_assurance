@@ -59,6 +59,8 @@ Reduced motion disables both indicator movement and panel entrance. The Motion s
 
 <Canvas of={Stories.Motion} />
 
+In forced-colors mode, system-color outlines and underlines preserve the selected tab in both variants.
+
 ## Props
 
 The four parts expose their corresponding Base UI props, native refs, `render`, events, and state-based `className`/`style`. `TabsList` props and its ref still target the element with `role="tablist"`, inside the horizontal line scroller. The scroller adds no separate Tab stop; keyboard users enter the tablist and arrows or Home/End reveal the focused tab. Public types are `TabsProps`, `TabsListProps`, `TabsTriggerProps` and `TabsContentProps`.

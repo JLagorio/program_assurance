@@ -108,6 +108,14 @@ export const RadioGroupMatrix: Story = {
     const indicator = quarterly.querySelector('[data-slot="radio-group-indicator"]')!;
     await expect(indicator).toBeVisible();
     await expect(indicator.querySelector("span")!.getBoundingClientRect().width).toBe(8);
+    if (matchMedia("(forced-colors: active)").matches) {
+      await expect(getComputedStyle(indicator.querySelector("span")!).backgroundColor).not.toBe(
+        getComputedStyle(quarterly).backgroundColor,
+      );
+      await expect(getComputedStyle(quarterly).borderColor).not.toBe(
+        getComputedStyle(quarterly).backgroundColor,
+      );
+    }
     await userEvent.click(quarterly);
     await expect(quarterly).toBeChecked();
     for (const name of ["Disabled", "Read-only"]) {
@@ -147,7 +155,7 @@ export const Orientation: Story = {
         </RadioGroup>
       </Specimens>
       <LedgerProvider direction="rtl">
-        <Stack space="space.300">
+        <Stack space="space.300" className="px-150">
           <Specimens title="RTL follows the locale">
             <RadioGroup aria-label="RTL frequency" defaultValue="monthly">
               <FrequencyItems />

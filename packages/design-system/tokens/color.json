@@ -724,6 +724,28 @@
               "introduced": "0.1.0"
             }
           }
+        },
+        "thumb": {
+          "default": {
+            "$value": "{color.neutral.0}",
+            "$description": "The unchecked thumb of a neutral input control. Follows the token mode independently of the document color scheme.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.1000}",
+                "introduced": "0.6.0"
+              }
+            }
+          },
+          "checked": {
+            "$value": "{color.neutral.0}",
+            "$description": "The thumb on a checked control’s bold fill.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.100}",
+                "introduced": "0.6.0"
+              }
+            }
+          }
         }
       },
       "inverse": {

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, waitFor, within } from "storybook/test";
 
 import { PageSkeleton } from "../..";
 import { Skeleton, Spinner } from "../../components";
@@ -64,3 +65,17 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+/** The page's shape on a small phone: the head's lines follow the width and nothing runs past the window. */
+export const Narrow: Story = {
+  globals: { viewport: { value: "ledgerSmall", isRotated: false } },
+  tags: ["narrow"],
+  render: () => <PageSkeleton rows={4} />,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(340));
+    const skeleton = within(canvasElement).getByRole("status");
+    for (const line of Array.from(skeleton.querySelectorAll<HTMLElement>("[data-slot=skeleton]"))) {
+      await expect(line.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+    }
+  },
+};

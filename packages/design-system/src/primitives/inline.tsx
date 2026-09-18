@@ -1,6 +1,7 @@
 import {
   Children,
   Fragment,
+  isValidElement,
   type ComponentPropsWithoutRef,
   type ElementType,
   type ReactNode,
@@ -89,7 +90,7 @@ export function Inline({
     >
       {separator && as !== "ul" && as !== "ol"
         ? items.map((child, i) => (
-            <Fragment key={i}>
+            <Fragment key={isValidElement(child) ? child.key : i}>
               {child}
               {i < items.length - 1 ? <span aria-hidden="true">{separator}</span> : null}
             </Fragment>

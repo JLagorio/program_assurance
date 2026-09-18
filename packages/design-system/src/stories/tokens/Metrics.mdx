@@ -51,13 +51,15 @@ The sizes, the stroke, the colour and the naming rules are on the [Icons](?path=
 
 | Token                        | Value  | Variant  | Use                                                                              |
 | ---------------------------- | ------ | -------- | -------------------------------------------------------------------------------- |
-| `dimension.breakpoint.md`    | 48rem  | `md:`    | Tailwind's md. The product folds the top nav's end items into a menu below it.   |
+| `dimension.breakpoint.sm`    | 40rem  | `sm:`    | Tailwind's sm. Pagination's words, Stat's columns and a two-month Calendar from here. |
+| `dimension.breakpoint.md`    | 48rem  | `md:`    | Tailwind's md. `TopNav.End` shows its `overflow` menu below it.                   |
 | `dimension.breakpoint.lg`    | 64rem  | `lg:`    | Tailwind's lg. The side nav is inline from here and an overlay below.            |
 | `dimension.breakpoint.aside` | 75rem  | `aside:` | The aside sits beside Main from here while no panel is open.                     |
 | `dimension.breakpoint.panel` | 80rem  | `panel:` | The panel is a full-height column beside the page; below, it replaces Main.      |
 | `dimension.breakpoint.wide`  | 110rem | `wide:`  | The aside sits beside Main even while a panel is open.                           |
+| `dimension.breakpoint.xl`    | 80rem  | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count. |
 
-One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `md` and `lg` restate Tailwind's values so a class and a media query cannot drift apart.
+One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `sm`, `md`, `lg` and `xl` restate Tailwind's values so a class and a media query cannot drift apart.
 
 `src/styles/layout.css` adds the few templates a class string cannot say, each reading these tokens: `grid-cols-main-rail`, `grid-cols-list-detail`, `sticky-rail`, `min-h-work`, `fill-window` and `shell-root`, the navigation grid. The shell sets `--shell-top` (banner plus top nav) so a sticky rail knows where to stop, and its main area sets `--shell-inset-bottom` so a filled register knows where to end.
 

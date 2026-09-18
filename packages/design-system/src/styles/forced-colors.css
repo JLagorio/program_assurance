@@ -1,0 +1,75 @@
+/* Preserve boundaries and state when the browser replaces author colors and shadows.
+   System colors still follow the reader’s chosen high-contrast palette. */
+@media (forced-colors: active) {
+  [data-slot="switch"],
+  [data-slot="radio-group-item"] {
+    forced-color-adjust: none;
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+  [data-slot="switch"] {
+    outline: var(--ds-border-width) solid ButtonText;
+    outline-offset: calc(-1 * var(--ds-border-width));
+  }
+  [data-slot="switch-thumb"] {
+    background-color: ButtonText;
+  }
+  [data-slot="switch"][data-checked],
+  [data-slot="radio-group-item"][data-checked] {
+    background-color: Highlight;
+  }
+  [data-slot="switch"][data-checked] [data-slot="switch-thumb"],
+  [data-slot="radio-group-indicator"] > span {
+    background-color: HighlightText;
+  }
+  [data-slot="radio-group-item"] {
+    border-color: ButtonText;
+  }
+  [data-slot="switch"][data-disabled],
+  [data-slot="radio-group-item"][data-disabled] {
+    outline-color: GrayText;
+    border-color: GrayText;
+  }
+  [data-slot="switch"][data-disabled][data-checked],
+  [data-slot="radio-group-item"][data-disabled][data-checked] {
+    background-color: GrayText;
+  }
+  [data-slot="switch"][data-disabled]:not([data-checked]) [data-slot="switch-thumb"] {
+    background-color: GrayText;
+  }
+  [data-slot="switch"]:focus-visible,
+  [data-slot="radio-group-item"]:focus-visible {
+    outline: var(--ds-border-width-focused) solid Highlight;
+    outline-offset: var(--ds-space-025);
+  }
+
+  [data-slot="tabs-indicator"] {
+    forced-color-adjust: none;
+    background-color: Canvas;
+    outline: var(--ds-border-width-focused) solid Highlight;
+    outline-offset: calc(-1 * var(--ds-border-width-focused));
+  }
+  [data-slot="tabs-list"][data-variant="line"] > [data-slot="tabs-indicator"] {
+    background-color: Highlight;
+    outline: none;
+  }
+
+  [data-slot="progress-track"],
+  [data-slot="progress-stacked"] {
+    forced-color-adjust: none;
+    background-color: Canvas;
+    outline: var(--ds-border-width) solid CanvasText;
+    outline-offset: calc(-1 * var(--ds-border-width));
+  }
+  [data-slot="progress-indicator"],
+  [data-slot="progress-segment"] {
+    background-color: Highlight;
+    color: CanvasText;
+  }
+  [data-slot="progress-segment"] + [data-slot="progress-segment"] {
+    border-inline-start: var(--ds-border-width) solid Canvas;
+  }
+  [data-slot="progress-segment"][data-appearance="hatched"] {
+    background-color: Canvas;
+  }
+}

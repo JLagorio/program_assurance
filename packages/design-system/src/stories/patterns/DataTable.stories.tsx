@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
 
 import {
@@ -31,6 +31,7 @@ import { Table } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
+import { interact } from "../_lib/interact";
 
 const meta = {
   title: "Patterns/Data table",
@@ -120,7 +121,7 @@ const presets = [
 ];
 
 /** The register: search, filters as chips, presets with counts, sortable headers, the checkbox column and its bar, a glance on the id, row actions, eight rows a page. */
-function Register() {
+function Register({ responsive = false }: { responsive?: boolean }) {
   const table = useDataTable({
     columns,
     data: findings,
@@ -144,8 +145,12 @@ function Register() {
       />
       <DataTable
         table={table}
+        responsive={responsive}
         toolbar={
           <Toolbar
+            search={table.state.globalFilter}
+            onSearch={table.setGlobalFilter}
+            placeholder="Search findings"
             actions={
               <Button size="small" variant="primary">
                 New finding
@@ -160,9 +165,7 @@ function Register() {
                 <DataTable.Filter table={table} column="due" />
               </>
             }
-          >
-            <DataTable.Search table={table} placeholder="Search findings" />
-          </Toolbar>
+          />
         }
         empty={{ title: "No findings yet", description: "The first assessment creates them." }}
       />
@@ -203,6 +206,69 @@ export const RegisterStory: Story = {
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
     await waitFor(() => expect(actions).toHaveFocus());
+  },
+};
+
+function LiveFilterOptions() {
+  const [data, setData] = useState<Finding[]>([]);
+  const table = useDataTable({ columns, data, getRowId: (row) => row.id, label: "Live findings" });
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100">
+        <Button onClick={() => setData(findings.slice(0, 3))}>Load findings</Button>
+        <Button onClick={() => setData([{ ...findings[0]!, status: "In review" }])}>
+          Refresh findings
+        </Button>
+        <DataTable.Filter table={table} column="status" label="Status filter" />
+        <DataTable.Search table={table} placeholder="Search live findings" />
+      </Inline>
+      <DataTable table={table} />
+    </Stack>
+  );
+}
+
+export const LiveFilters: Story = {
+  name: "Filters follow live rows",
+  render: () => <LiveFilterOptions />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
+    const openFilter = async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Status filter" }));
+      const popup = await screen.findByRole("dialog", { name: "Status filter" });
+      await waitFor(() => expect(popup).toBeVisible());
+      return within(popup);
+    };
+    const closeFilter = async () => {
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() =>
+        expect(screen.queryByRole("dialog", { name: "Status filter" })).toBeNull(),
+      );
+    };
+    const initial = await openFilter();
+    await expect(initial.queryByRole("checkbox")).toBeNull();
+    await closeFilter();
+    await userEvent.click(canvas.getByRole("button", { name: "Load findings" }));
+    const loaded = await openFilter();
+    await expect(loaded.getByRole("checkbox", { name: "Draft 1" })).toBeVisible();
+    await expect(loaded.getByRole("checkbox", { name: "Overdue 1" })).toBeVisible();
+    await expect(loaded.getByRole("checkbox", { name: "Verified 1" })).toBeVisible();
+    await closeFilter();
+    const search = canvas.getByRole("textbox", { name: "Search live findings" });
+    await userEvent.type(search, "FND-2200");
+    const narrowed = await openFilter();
+    await expect(narrowed.getAllByRole("checkbox")).toHaveLength(1);
+    await expect(narrowed.getByRole("checkbox", { name: "Draft 1" })).toBeVisible();
+    await closeFilter();
+    await userEvent.clear(search);
+    await userEvent.click(canvas.getByRole("button", { name: "Refresh findings" }));
+    const refreshed = await openFilter();
+    await expect(refreshed.getAllByRole("checkbox")).toHaveLength(1);
+    await userEvent.click(refreshed.getByRole("checkbox", { name: "In review 1" }));
+    await closeFilter();
+    await expect(canvas.getByRole("table", { name: "Live findings" })).toHaveTextContent(
+      "FND-2200",
+    );
   },
 };
 
@@ -557,7 +623,16 @@ export const TreeStory: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const grid = canvas.getByRole("treegrid", { name: "System" });
+    const rootRow = within(grid).getByRole("row", { name: /Flight computer/ });
     const mainBoard = within(grid).getByRole("row", { name: /Main board/ });
+    const headerButtons = within(grid.querySelector("thead")!).getAllByRole("button");
+    headerButtons[headerButtons.length - 1]!.focus();
+    await userEvent.tab();
+    await expect(rootRow).toHaveFocus();
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(mainBoard).toHaveFocus();
+    await expect(rootRow).toHaveAttribute("tabindex", "-1");
+    await expect(grid.querySelectorAll('tr[tabindex="0"]')).toHaveLength(1);
     const guide = mainBoard.querySelector<HTMLElement>("[data-tree-guides]")!;
     await expect(guide).toHaveAttribute("aria-hidden", "true");
     await expect(guide.closest("td")).toBe(mainBoard.children[0]);
@@ -575,7 +650,8 @@ export const TreeStory: Story = {
     await userEvent.click(within(mainBoard).getByRole("button", { name: "Collapse Main board" }));
 
     // Decorative guides must preserve the treegrid's row focus and disclosure behavior.
-    mainBoard.focus();
+    await userEvent.tab({ shift: true });
+    await expect(mainBoard).toHaveFocus();
     await userEvent.keyboard("{ArrowRight}");
     await expect(mainBoard).toHaveAttribute("aria-expanded", "true");
     const chip = within(grid).getByRole("row", { name: /SoC/ });
@@ -586,6 +662,10 @@ export const TreeStory: Story = {
     await userEvent.keyboard("{ArrowLeft}");
     await expect(mainBoard).toHaveAttribute("aria-expanded", "false");
     await expect(within(grid).queryByRole("row", { name: /SoC/ })).toBeNull();
+    await userEvent.click(rootToggle);
+    await expect(rootRow).toHaveAttribute("tabindex", "0");
+    await expect(grid.querySelectorAll('tr[tabindex="0"]')).toHaveLength(1);
+    await userEvent.click(within(grid).getByRole("button", { name: "Expand Flight computer" }));
   },
 };
 
@@ -790,6 +870,9 @@ function GroupByExample() {
   return (
     <DataTable.Metrics>
       <Toolbar
+        search={table.state.globalFilter}
+        onSearch={table.setGlobalFilter}
+        placeholder="Search grouped findings"
         actions={
           <>
             <DataTable.GroupBy
@@ -803,9 +886,7 @@ function GroupByExample() {
             <DataTable.Settings table={table} />
           </>
         }
-      >
-        <DataTable.Search table={table} placeholder="Search grouped findings" />
-      </Toolbar>
+      />
       <DataTable.MetricsContent className="px-200 py-100">
         <Stat label="Total findings" value={findings.length} />
       </DataTable.MetricsContent>
@@ -820,7 +901,7 @@ export const GroupByStory: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const body = within(canvasElement.ownerDocument.body);
-    const search = canvas.getByRole("textbox", { name: "Search grouped findings" });
+    const search = canvas.getByRole("searchbox", { name: "Search grouped findings" });
     await userEvent.type(search, "Segregation");
     await userEvent.click(canvas.getByRole("checkbox", { name: "Select row FND-2200" }));
 
@@ -935,11 +1016,14 @@ function Ranked() {
 export const ReorderingRows: Story = { name: "Reordering rows", render: () => <Ranked /> };
 
 /** Cells that edit in place: the name is an Editable.Text, the status an Editable.Select. Enter commits and moves down the column; the table is a grid. */
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
 function Editing() {
   const [data, setData] = useState(() => findings.slice(0, 6));
   const [saves, setSaves] = useState(0);
+  const pending = useRef<(() => void)[]>([]);
+  const save = () =>
+    new Promise<void>((resolve) => pending.current.push(resolve)).then(() =>
+      setSaves((count) => count + 1),
+    );
   const patch = (id: string, change: Partial<Finding>) =>
     setData((rows) => rows.map((r) => (r.id === id ? { ...r, ...change } : r)));
   const editingColumns = useMemo(
@@ -950,7 +1034,7 @@ function Editing() {
           header: "Finding",
           editable: {
             onChange: (row, next) => patch(row.id, { name: next }),
-            save: () => wait(500).then(() => setSaves((n) => n + 1)),
+            save,
             validate: (next) => (next.trim() ? null : "A name is required."),
           },
         }),
@@ -961,7 +1045,7 @@ function Editing() {
           editable: {
             options: statuses,
             onChange: (row, next) => patch(row.id, { status: next as Finding["status"] }),
-            save: () => wait(500).then(() => setSaves((n) => n + 1)),
+            save,
           },
         }),
         c.person("owner", { header: "Owner", width: 180 }),
@@ -981,11 +1065,50 @@ function Editing() {
       <Text size="small" color="color.text.subtle">
         {saves} saved · role {table.options.meta?.editable ? "grid" : "table"}
       </Text>
+      <Button onClick={() => pending.current.splice(0).forEach((resolve) => resolve())}>
+        Finish saves
+      </Button>
     </Stack>
   );
 }
 
-export const EditingStory: Story = { name: "Editing", render: () => <Editing /> };
+export const EditingStory: Story = {
+  name: "Editing",
+  render: () => <Editing />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const cells = canvas.getAllByRole("button", { name: /^Finding:/ });
+    await userEvent.click(cells[0]!);
+    const input = canvas.getByRole("textbox", { name: "Finding" });
+    await userEvent.clear(input);
+    await interact(() =>
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
+    );
+    await expect(input).toHaveFocus();
+    await expect(input).toHaveAttribute("aria-invalid", "true");
+    await expect(canvas.getByText("0 saved · role grid")).toBeVisible();
+    await userEvent.type(input, "Confirmed owner review");
+    await interact(() => {
+      input.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", isComposing: true, bubbles: true }),
+      );
+      input.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", keyCode: 229, bubbles: true }),
+      );
+    });
+    await expect(input).toHaveFocus();
+    await expect(canvas.getByText("0 saved · role grid")).toBeVisible();
+    await interact(() =>
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
+    );
+    await waitFor(() => expect(cells[1]!).toHaveFocus());
+    await interact(() => canvas.getByRole("button", { name: "Finish saves" }).click());
+    await waitFor(() => expect(canvas.getByText("1 saved · role grid")).toBeVisible());
+    await expect(
+      canvas.getByRole("button", { name: "Finding: Confirmed owner review" }),
+    ).toBeVisible();
+  },
+};
 
 /** The Table parts on their own: a pinned header and cell with an offset, the edge, and a resize handle. */
 function TableParts() {
@@ -1060,9 +1183,12 @@ function States() {
         table={table}
         state={state === "filtered" ? "ready" : state}
         toolbar={
-          <Toolbar filters={<DataTable.Filter table={table} column="status" />}>
-            <DataTable.Search table={table} placeholder="Search findings" />
-          </Toolbar>
+          <Toolbar
+            search={table.state.globalFilter}
+            onSearch={table.setGlobalFilter}
+            placeholder="Search findings"
+            filters={<DataTable.Filter table={table} column="status" />}
+          />
         }
         empty={{
           title: "No findings yet",
@@ -1122,6 +1248,9 @@ function Filling() {
           table={table}
           toolbar={
             <Toolbar
+              search={table.state.globalFilter}
+              onSearch={table.setGlobalFilter}
+              placeholder="Search findings"
               actions={
                 <Button size="small" variant="primary">
                   New finding
@@ -1133,9 +1262,7 @@ function Filling() {
                   <DataTable.Filter table={table} column="owner" />
                 </>
               }
-            >
-              <DataTable.Search table={table} placeholder="Search findings" />
-            </Toolbar>
+            />
           }
           empty={{ title: "No findings yet" }}
         />
@@ -1276,14 +1403,15 @@ function Server() {
         state={loading && !result ? "loading" : "ready"}
         toolbar={
           <Toolbar
+            search={table.state.globalFilter}
+            onSearch={table.setGlobalFilter}
+            placeholder="Search on the server"
             filters={
               <>
                 <DataTable.Filter table={table} column="status" />
               </>
             }
-          >
-            <DataTable.Search table={table} placeholder="Search on the server" />
-          </Toolbar>
+          />
         }
       />
     </div>
@@ -1813,5 +1941,27 @@ export const ResponsiveVirtualRows: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Reverse records" }));
     await waitFor(() => expect(mountedRows()[0]).toHaveAttribute("data-row-id", "1999"));
     await waitFor(fits);
+  },
+};
+
+/** The register on a small phone: search takes its own row, the saved-view strip scrolls inside its row rather than past the window, and the table folds its lower-priority fields into the row disclosure. */
+export const RegisterNarrow: Story = {
+  name: "Register at 340px",
+  globals: { viewport: { value: "ledgerSmall", isRotated: false } },
+  tags: ["narrow"],
+  render: () => <Register responsive />,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(340));
+    const canvas = within(canvasElement);
+    const strip = canvas.getByRole("group", { name: "Saved questions" });
+    const viewport = strip.closest<HTMLElement>("[data-slot=scroller-viewport]")!;
+    // The current labels can fit exactly; longer labels still scroll inside this boundary.
+    await expect(viewport).toHaveStyle({ overflowX: "auto" });
+    await expect(viewport.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+    const table = canvas.getByRole("table", { name: "Findings" });
+    await waitFor(() =>
+      expect(table.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth),
+    );
+    await expect(await canvas.findAllByRole("button", { name: /More fields/ })).not.toHaveLength(0);
   },
 };

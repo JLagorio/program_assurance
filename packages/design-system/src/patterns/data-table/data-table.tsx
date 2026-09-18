@@ -137,7 +137,7 @@ function fittedHeaderWidth<T extends RowData>(
       : 0;
 }
 
-/** `Table.Selection` and `Table.Handle` are `w-400`. */
+/** `Table.Selection` and `Table.Handle` are this wide; the detail chevron column matches them. */
 const NARROW = 32;
 
 const alignClass = (align: "start" | "end" | undefined) =>
@@ -154,7 +154,11 @@ const sizeStyle = (
   return Object.keys(style).length ? style : undefined;
 };
 
-/** Where a column is pinned, how far from that edge, and whether it is the one that touches the middle. */
+/**
+ * Where a column is pinned, how far from that edge, and whether it is the one that touches the
+ * middle. A pinned data column draws its hairline at rest; the row-actions column is chrome, like
+ * the leading columns, so it draws one only while a column is scrolled under it.
+ */
 const pinning = <TData extends RowData>(
   column: Column<F, TData, unknown>,
   before = 0,
@@ -162,6 +166,8 @@ const pinning = <TData extends RowData>(
 ) => {
   const pinned = column.getIsPinned();
   if (!pinned) return { pinned: false as const, offset: undefined, edge: false };
+  const chrome = column.columnDef.meta?.kind === "actions";
+  const edge = (touches: boolean) => (touches ? (chrome ? ("scrolled" as const) : true) : false);
   if (layout) {
     const band = layout.columns.filter((item) => layout.ids.has(item.id) && item.pin === pinned);
     const index = band.findIndex((item) => item.id === column.id);
@@ -171,14 +177,16 @@ const pinning = <TData extends RowData>(
       offset:
         (pinned === "start" ? before : 0) +
         adjacent.reduce((sum, item) => sum + (layout.widths.get(item.id) ?? 0), 0),
-      edge: pinned === "start" ? index === band.length - 1 : index === 0,
+      edge: edge(pinned === "start" ? index === band.length - 1 : index === 0),
     };
   }
 
   return {
     pinned,
     offset: pinned === "start" ? before + column.getStart("start") : column.getAfter("end"),
-    edge: pinned === "start" ? column.getIsLastColumn("start") : column.getIsFirstColumn("end"),
+    edge: edge(
+      pinned === "start" ? column.getIsLastColumn("start") : column.getIsFirstColumn("end"),
+    ),
   };
 };
 
@@ -581,7 +589,16 @@ function BodyCell<TData extends RowData>({
  * sheet. Tab keeps its meaning and moves across.
  */
 function enterMovesDown(event: KeyboardEvent<HTMLTableCellElement>) {
-  if (event.key !== "Enter" || !(event.target instanceof HTMLInputElement)) return;
+  // Editable consumes Enter and bubbles it only after accepting the commit. An ordinary
+  // input, an invalid draft, or an IME confirmation must keep its own keyboard behavior.
+  if (
+    event.key !== "Enter" ||
+    !event.defaultPrevented ||
+    event.nativeEvent.isComposing ||
+    event.keyCode === 229 ||
+    !(event.target instanceof HTMLInputElement)
+  )
+    return;
   const cell = event.currentTarget;
   const row = cell.parentElement;
   if (!row) return;
@@ -618,6 +635,8 @@ type BodyRowProps<TData extends RowData> = {
   onMeasure?: ((index: number, height: number) => void) | undefined;
   onRowClick?: ((row: TData) => void) | undefined;
   onKeyDown?: ((event: KeyboardEvent<HTMLTableRowElement>) => void) | undefined;
+  treeTabStop: boolean;
+  onTreeFocus: (id: string) => void;
 };
 
 /**
@@ -647,6 +666,8 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   onMeasure,
   onRowClick,
   onKeyDown,
+  treeTabStop,
+  onTreeFocus,
 }: BodyRowProps<TData>) {
   const { t } = useLedgerLocale();
   const options = row.table.options.meta;
@@ -725,7 +746,10 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
           ? {
               "aria-level": row.depth + 1,
               ...(row.getCanExpand() ? { "aria-expanded": isExpanded } : {}),
-              tabIndex: -1,
+              tabIndex: treeTabStop ? 0 : -1,
+              onFocus: (event: { target: EventTarget; currentTarget: EventTarget }) => {
+                if (event.target === event.currentTarget) onTreeFocus(row.id);
+              },
               onKeyDown,
             }
           : {})}
@@ -760,7 +784,8 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
         ) : null}
         {leading.detail ? (
           <Table.Cell
-            className="w-400 max-w-none px-0 text-center"
+            className="max-w-none px-0 text-center"
+            width={NARROW}
             onClick={(e) => e.stopPropagation()}
             {...pins("detail")}
           >
@@ -855,8 +880,6 @@ function treeKeys<TData extends RowData>(
     ];
     const focusAt = (el: HTMLTableRowElement | undefined) => {
       if (!el) return;
-      el.tabIndex = 0;
-      tr.tabIndex = -1;
       el.focus();
     };
     const at = siblings.indexOf(tr);
@@ -936,12 +959,6 @@ function EmptyState({
   );
 }
 
-/** The first row is the treegrid's tab stop; whichever row is focused holds it after that. */
-const claimTabStop = (event: { target: EventTarget }) => {
-  const el = event.target as HTMLElement;
-  if (el.tagName === "TR") el.tabIndex = 0;
-};
-
 function DataTableRoot<TData extends RowData>({
   table,
   toolbar,
@@ -973,6 +990,7 @@ function DataTableRoot<TData extends RowData>({
   const root = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [moreOpenIds, setMoreOpenIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [focusedTreeRow, setFocusedTreeRow] = useState<string | null>(null);
   const toggleMore = useCallback((id: string) => {
     setMoreOpenIds((previous) => {
       const next = new Set(previous);
@@ -1088,6 +1106,16 @@ function DataTableRoot<TData extends RowData>({
   const paddingBottom =
     virtual && items.length ? virtualizer.getTotalSize() - (items[items.length - 1]?.end ?? 0) : 0;
   const groups = groupBy ? allRows.filter((r) => r.getIsGrouped() && r.depth === 0) : [];
+  const renderedRows = groupBy
+    ? groups.filter((group) => group.getIsExpanded()).flatMap((group) => group.subRows)
+    : [
+        ...topRows,
+        ...(virtual ? items.flatMap((item) => rows[item.index] ?? []) : rows),
+        ...bottomRows,
+      ];
+  const treeTabStop = renderedRows.some((row) => row.id === focusedTreeRow)
+    ? focusedTreeRow
+    : renderedRows[0]?.id;
   const showRows = state === "ready" && allRows.length > 0;
   const isEmpty = state === "empty" || (state === "ready" && allRows.length === 0);
   // A search or a column filter is what emptied the table, so the way out is to clear it.
@@ -1141,6 +1169,8 @@ function DataTableRoot<TData extends RowData>({
       onMeasure={virtualIndex === undefined ? undefined : measureRow}
       onRowClick={onRowClick}
       onKeyDown={onKeyDown}
+      treeTabStop={row.id === treeTabStop}
+      onTreeFocus={setFocusedTreeRow}
     />
   );
 
@@ -1269,7 +1299,7 @@ function DataTableRoot<TData extends RowData>({
                 </Table.Group>
               ))
             ) : (
-              <tbody {...(tree ? { onFocus: claimTabStop } : {})}>
+              <tbody>
                 {states}
                 {showRows ? (
                   <RowSortable table={table}>

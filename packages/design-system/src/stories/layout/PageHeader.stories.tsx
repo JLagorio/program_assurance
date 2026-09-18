@@ -1,4 +1,4 @@
-import { expect, within } from "storybook/test";
+import { expect, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Breadcrumb,
@@ -101,5 +101,35 @@ export const Constrained: Story = {
     await expect(action.top).toBe(title.top);
     await expect(action.left).toBeGreaterThan(title.right);
     await expect(action.right).toBeLessThanOrEqual(canvasElement.getBoundingClientRect().right);
+  },
+};
+
+/** A full-label primary beside a long title on a phone: the actions take the next row, right-aligned, and the title keeps its measure instead of breaking a word a line. */
+export const Stacked: Story = {
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  tags: ["narrow"],
+  render: () => (
+    <PageHeader>
+      <PageHeader.Lead>Assessment campaigns</PageHeader.Lead>
+      <PageHeader.Heading>
+        <PageHeader.Title>WS-X90 Expanded Control Set Assessment</PageHeader.Title>
+      </PageHeader.Heading>
+      <PageHeader.Actions>
+        <Button variant="primary">Edit assessment campaign</Button>
+      </PageHeader.Actions>
+    </PageHeader>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const header = canvas.getByRole("banner").getBoundingClientRect();
+    const title = canvas.getByRole("heading", { level: 1 }).getBoundingClientRect();
+    const action = canvas
+      .getByRole("button", { name: "Edit assessment campaign" })
+      .getBoundingClientRect();
+    await expect(action.top).toBeGreaterThanOrEqual(title.bottom);
+    await expect(Math.round(action.right)).toBe(Math.round(header.right));
+    await expect(title.width).toBeGreaterThan(200);
+    await expect(action.right).toBeLessThanOrEqual(window.innerWidth);
   },
 };

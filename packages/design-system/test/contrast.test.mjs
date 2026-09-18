@@ -117,6 +117,15 @@ for (const b of [
   (add("color.text.inverse", b, 4.5), add("color.icon.inverse", b, 3));
 add("color.text.warning.inverse", "color.background.warning.bold", 4.5);
 add("color.icon.warning.inverse", "color.background.warning.bold", 3);
+// Banner action rings inherit their text color so they contrast with the actual bold surface.
+for (const tone of ["information", "warning", "danger"])
+  add(
+    tone === "warning" ? "color.text.warning.inverse" : "color.text.inverse",
+    `color.background.${tone}.bold`,
+    3,
+    "banner action focus ring",
+  );
+add("color.background.input.thumb.checked", "color.background.brand.bold", 3);
 for (const s of status) {
   add(`color.text.${s}`, `color.background.${s}`, 4.5);
   add(`color.text.${s}`, `color.background.${s}.subtler`, 4.5);

@@ -28,6 +28,10 @@ Use native single, multiple or range selection, disabled matchers and month boun
 
 Custom `components`, `formatters`, `labels` and `classNames` merge with Calendar’s defaults. Use the exported CalendarDayButton when customizing a day. `buttonVariant` controls the navigation buttons; selected days keep their selection treatment.
 
+`navLayout="around"` places Previous beside the first month caption and Next beside the last, including multi-month and right-to-left calendars. The default and `"after"` layouts share the navigation bar; `"after"` puts it later in the keyboard order.
+
+<Canvas of={Stories.NavigationLayouts} />
+
 ## Accessibility
 
 DayPicker owns keyboard movement and disabled-day behavior. The day button forwards native attributes and moves focus when DayPicker marks it focused. Give standalone pickers a visible context or accessible name. Ledger supplies localized month/day labels; explicit locale, labels and formatters remain caller overrides. Timestamp timezone settings do not shift date-only labels. Native `timeZone` remains available for callers that supply timezone-aware Date values.

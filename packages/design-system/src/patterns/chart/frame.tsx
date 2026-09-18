@@ -2,7 +2,6 @@ import { useRender } from "@base-ui/react/use-render";
 import { Download, Maximize2, Table2 } from "lucide-react";
 import {
   Fragment,
-  createContext,
   useCallback,
   useContext,
   useId,
@@ -10,7 +9,9 @@ import {
   useRef,
   useState,
   type ComponentProps,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
 } from "react";
 import { useLedgerLocale } from "../../lib/locale";
 import {
@@ -190,15 +191,30 @@ export type ChartFrameProps = Omit<ComponentProps<"figure">, "title" | "children
   className?: string | undefined;
 };
 
+type ChartViewState = {
+  hidden: ReadonlySet<string>;
+  setHidden: Dispatch<SetStateAction<ReadonlySet<string>>>;
+  showTable: boolean;
+  setShowTable: Dispatch<SetStateAction<boolean>>;
+};
+
 /**
  * The figure around a plot: title, description, the drill-down's path, legend, actions, the states,
  * the Download menu, the Expand button, and the same numbers as a Table one toggle away. The legend
  * inside it highlights and isolates series; while it loads, the plot inside draws its own skeleton.
  */
-/** True inside the Expand dialog: the Dialog shows the title and the description, so the inner Frame does not. */
-const ExpandedContext = createContext(false);
-
 export function ChartFrame(props: ChartFrameProps) {
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(none);
+  const [showTable, setShowTable] = useState(false);
+  return <ChartFrameView {...props} view={{ hidden, setHidden, showTable, setShowTable }} />;
+}
+
+/** The expanded figure shares its reader state with the original, while keeping separate DOM ids. */
+function ChartFrameView({
+  view,
+  inDialog = false,
+  ...props
+}: ChartFrameProps & { view: ChartViewState; inDialog?: boolean | undefined }) {
   const { t } = useLedgerLocale();
   const { format: defaultFormat, category: defaultCategory } = useChartFormat();
 
@@ -232,11 +248,9 @@ export function ChartFrame(props: ChartFrameProps) {
   } = props;
   const id = useId();
   const figure = useRef<HTMLElement>(null);
-  const [hidden, setHidden] = useState<ReadonlySet<string>>(none);
+  const { hidden, setHidden, showTable, setShowTable } = view;
   const [highlighted, setHighlighted] = useState<string | null>(null);
-  const [showTable, setShowTable] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const inDialog = useContext(ExpandedContext);
   const toggle = useCallback(
     (key: string) =>
       setHidden((prev) => {
@@ -247,7 +261,7 @@ export function ChartFrame(props: ChartFrameProps) {
         if (series && next.size >= series.length) next.clear();
         return next;
       }),
-    [series],
+    [series, setHidden],
   );
   const loading = status === "loading";
   const state = useMemo<FrameState>(
@@ -509,15 +523,15 @@ export function ChartFrame(props: ChartFrameProps) {
             </DialogHeader>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
               {expanded ? (
-                <ExpandedContext.Provider value>
-                  <ChartFrame
-                    {...props}
-                    expandable={false}
-                    size="large"
-                    height={undefined}
-                    className={undefined}
-                  />
-                </ExpandedContext.Provider>
+                <ChartFrameView
+                  {...props}
+                  view={view}
+                  inDialog
+                  expandable={false}
+                  size="large"
+                  height={undefined}
+                  className={undefined}
+                />
               ) : null}
             </div>
           </DialogContent>
