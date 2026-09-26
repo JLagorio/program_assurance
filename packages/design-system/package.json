@@ -44,7 +44,8 @@
     "test:a11y": "vitest run --project storybook-light --project storybook-dark --project storybook-forced-colors",
     "test:layout": "vitest run --project storybook-narrow --project storybook-contained",
     "lint": "eslint .",
-    "test:consumer": "node build/consumer-smoke.mjs"
+    "test:consumer": "node build/consumer-smoke.mjs",
+    "test:gates": "vitest run --project storybook-touch --project storybook-short --project storybook-long"
   },
   "devDependencies": {
     "@tanstack/react-form": "^1.33.5",

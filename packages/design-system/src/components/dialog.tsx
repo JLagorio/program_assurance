@@ -8,7 +8,7 @@ import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { HeadingLevelProvider } from "../primitives/heading-level";
-import { Button } from "./button";
+import { Button, IconButton } from "./button";
 import {
   OverlayPendingContext,
   bodySlot,
@@ -145,19 +145,18 @@ export function DialogContent({
           <HeadingLevelProvider level={3}>{children}</HeadingLevelProvider>
           {showCloseButton && (
             <DialogClose
-              aria-label={t("close")}
               render={
-                <Button
+                <IconButton
+                  label={t("close")}
+                  icon={<X />}
                   variant="subtle"
-                  size="small"
+                  isTooltipDisabled
                   disabled={pending}
                   focusableWhenDisabled
-                  className="absolute end-150 top-100 size-control-small p-0"
+                  className="absolute end-150 top-100"
                 />
               }
-            >
-              <X aria-hidden className="size-icon-small" />
-            </DialogClose>
+            />
           )}
         </Primitive.Popup>
       </DialogPortal>

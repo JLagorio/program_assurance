@@ -11,14 +11,15 @@ export const llmsPath = path.join(root, "llms.txt");
 
 // Section order for the file; folders not listed come last, alphabetically.
 const ORDER = ["docs", "tokens", "primitives", "components", "layout", "patterns"];
+// Guidance in reading order: set up, choose a part, compose it, style it, then the rest.
 const DOCS_ORDER = [
   "Introduction",
   "GettingStarted",
-  "Agents",
   "Choosing",
-  "FromShadcn",
   "Recipes",
   "WhichToken",
+  "Agents",
+  "FromShadcn",
   "Grammar",
   "Lint",
   "Stories",
@@ -57,7 +58,6 @@ export function pageFiles() {
     });
 }
 
-/** Turn one MDX page into Markdown: drop imports and Meta, describe the rendered blocks. */
 /** A page's Storybook title: `<Meta title>` on the page, else the `title` of the stories file it attaches to. */
 export function pageTitle(file, source) {
   const own = /<Meta\s+title="([^"]+)"/.exec(source)?.[1];
@@ -75,13 +75,30 @@ export function pageTitle(file, source) {
   return path.basename(file, ".mdx");
 }
 
+/**
+ * Turn one MDX page into Markdown: drop the page's own imports and Meta, describe the rendered
+ * blocks. A fenced code example passes through whole, its import lines included, since those are
+ * what an agent copies.
+ */
 export function pageToMarkdown(source, file = "page.mdx") {
   const title = pageTitle(file, source);
   const lines = source.split("\n");
   const out = [];
   let skippingImport = false;
+  let fence = null;
   for (const raw of lines) {
     const line = raw.trimEnd();
+    const marker = /^\s*(`{3,}|~{3,})/.exec(line)?.[1];
+    if (fence) {
+      out.push(line);
+      if (marker && marker[0] === fence[0] && marker.length >= fence.length) fence = null;
+      continue;
+    }
+    if (marker && !skippingImport) {
+      fence = marker;
+      out.push(line);
+      continue;
+    }
     if (skippingImport) {
       if (/from\s+"[^"]+";?\s*$/.test(line) || /;\s*$/.test(line)) skippingImport = false;
       continue;
@@ -134,17 +151,61 @@ function tokenSheet() {
   ].join("\n");
 }
 
+// The public API baseline groups every export by the layer that declares it.
+const LAYERS = [
+  ["primitives", "Primitives"],
+  ["components", "Components"],
+  ["layout", "Layout"],
+  ["patterns", "Patterns"],
+  ["mode", "Mode"],
+  ["lib", "Utilities"],
+  ["generated", "Tokens"],
+];
+
+/** The layer an export's declaration lives in, from its target in `api/public-api.json`. */
+export function exportLayer(target) {
+  if (target.startsWith("node_modules/")) return "dependency";
+  return /src\/(\w+)/.exec(target)?.[1] ?? "other";
+}
+
 function exportList() {
-  const { components } = JSON.parse(
-    fs.readFileSync(path.join(root, "eslint-plugin/components.json"), "utf8"),
-  );
+  const { exports } = JSON.parse(fs.readFileSync(path.join(root, "api/public-api.json"), "utf8"));
+  const groups = new Map();
+  for (const [key, { target, kind }] of Object.entries(exports)) {
+    const [specifier, name] = key.split("#");
+    const layer = specifier === "." ? exportLayer(target) : specifier;
+    const group = groups.get(layer) ?? { value: [], type: [] };
+    group[kind === "value" ? "value" : "type"].push(name);
+    groups.set(layer, group);
+  }
+  const line = (label, names) =>
+    names.length
+      ? `${label}: ${names
+          .sort((a, b) => a.localeCompare(b))
+          .map((n) => `\`${n}\``)
+          .join(", ")}.`
+      : "";
+  const section = (title, group) =>
+    group
+      ? [`## ${title}`, line("Values", group.value), line("Types", group.type)]
+          .filter(Boolean)
+          .join("\n\n")
+      : "";
+  const known = new Set([...LAYERS.map(([layer]) => layer), "dependency"]);
+  const subpaths = [...groups.keys()].filter((layer) => layer.startsWith("./")).sort();
+  const other = [...groups.keys()].filter((layer) => !known.has(layer) && !layer.startsWith("./"));
   return [
     "# Public exports",
-    "",
-    "Every value exported from `@ledger/design-system`. Product code imports these from the package root and never declares a local copy (`ledger/no-kit-shadow`).",
-    "",
-    components.map((name) => `- ${name}`).join("\n"),
-  ].join("\n");
+    "Every value and type exported from `@ledger/design-system`, from the public API baseline (`api/public-api.json`), grouped by the layer that declares it. Product code imports these from the package root and never declares a local copy (`ledger/no-kit-shadow`). A name not listed here is not an export: a story helper such as `Matrix`, `Specimens` or `Pair` included.",
+    ...LAYERS.map(([layer, title]) => section(title, groups.get(layer))),
+    ...other.map((layer) => section(layer, groups.get(layer))),
+    section("Dependency types re-exported", groups.get("dependency")),
+    ...subpaths.map((specifier) =>
+      section(`\`@ledger/design-system${specifier.slice(1)}\``, groups.get(specifier)),
+    ),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 export function renderLlms() {
@@ -155,7 +216,7 @@ export function renderLlms() {
     return `<!-- page: ${title} (${rel}) -->\n\n${body}`;
   });
   const intro =
-    "Ledger, the product design system, as one file for agents and tools that cannot reach the running Storybook. Generated by `npm run build:llms` from the Storybook pages under `src/stories`, the token sheet in `src/generated/docs.json` and the public export inventory; do not edit by hand. The running Storybook and its MCP server remain the contract for verifying a change. The repository's `packages/design-system/AGENTS.md` says how to work on the package.";
+    "Ledger, the product design system, as one file for agents and tools that cannot reach the running Storybook. Generated by `npm run build:llms` from the Storybook pages under `src/stories`, the token sheet in `src/generated/docs.json` and the public API baseline in `api/public-api.json`; do not edit by hand. The running Storybook and its MCP server remain the contract for verifying a change. The repository's `packages/design-system/AGENTS.md` says how to work on the package.";
   return (
     [`# ${pkg.name} ${pkg.version}\n\n${intro}`, ...pages, tokenSheet(), exportList()].join(
       "\n\n",

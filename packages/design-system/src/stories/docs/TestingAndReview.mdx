@@ -36,7 +36,7 @@ Inspect 320 CSS pixel width, 200% text enlargement and 400% browser zoom. A dens
 
 `node scripts/ds-check.mjs` resolves public exports through the TypeScript compiler, counts executable story references, checks story coverage and documentation, and rejects a growing exception baseline. `node scripts/ds-public-api.mjs` prints the full public value/type inventory. A reference proves use, not correctness; interaction assertions establish behavior.
 
-ActionBar and WorkPane have no stories (`RETIRED_STORY_EXPORTS` in `scripts/ds-check.mjs`), so no render, accessibility or layout check reaches them; their exports stay in the API baseline, which checks declarations. Inspector renders in the Shell integration stories. Every other family has stories and a page.
+ActionBar and WorkPane have no stories (`RETIRED_STORY_EXPORTS` in `scripts/ds-check.mjs`), so no render, accessibility or layout check reaches them; their exports stay in the API baseline, which checks declarations. Every other family, Inspector included, has stories and a page.
 
 Keep one family page with useful examples, generated props and relevant usage/accessibility guidance. There is no required heading set. Omit sections that add no information, and review the prose against the current examples and implementation. Keep migration guidance in one place and link to it from the changelog.
 
@@ -61,7 +61,7 @@ Storybook applies `dev` and `test` automatically. No custom tag is needed to opt
 
 See [Storybook interaction tests](https://storybook.js.org/docs/writing-tests/interaction-testing) and [tags](https://storybook.js.org/docs/writing-stories/tags). The package unit suite covers nonvisual logic and token generation. The packed consumer suite verifies installation, declarations, SSR and generated CSS.
 
-Axe does not certify keyboard quality, reading order, useful labels, focus visibility, zoom or screen-reader announcements. Review representative workflows with a screen reader and Firefox/WebKit before release. Contrast results cover the declared pairs, including alpha compositing and interactive states; they do not prove every possible composition. Resting input borders retain the intentionally lighter 1.5:1 visibility floor; focus and danger borders meet 3:1 against their declared adjacent surfaces. Text and non-text checks keep their separate thresholds.
+Axe does not certify keyboard quality, reading order, useful labels, focus visibility, zoom or screen-reader announcements. Review representative workflows with a screen reader and Firefox/WebKit before release. Contrast results cover the declared pairs, including alpha compositing and interactive states; they do not prove every possible composition. Resting text-field borders keep the intentionally lighter 1.5:1 visibility floor, and meet 3:1 at increased contrast. The Checkbox and Radio boundary (`color.border.bold`) and the Switch's off track (`color.background.input.track`) meet 3:1 against every surface in every mode; focus and danger borders meet 3:1 against their declared adjacent surfaces. Text and non-text checks keep their separate thresholds.
 
 ## Reference workflows for review
 

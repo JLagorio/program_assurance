@@ -61,6 +61,7 @@ export type {
   ShellPanelActionsProps,
   ShellPanelBodyProps,
   ShellPanelCloseProps,
+  ShellPanelFocusTarget,
   ShellPanelHeaderProps,
   ShellPanelProps,
   ShellPanelTitleProps,

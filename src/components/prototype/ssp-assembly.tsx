@@ -1,6 +1,6 @@
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { ProductCollection } from "./product-collection";
-import { useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   RecordLink,
@@ -9,25 +9,32 @@ import {
   recordDestination,
   useDisplayedRecords,
 } from "./record-preview";
-import { useQuery } from "@tanstack/react-query";
-import { EmptyMessage, QueryState } from "./work-common";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { EmptyMessage, QueryState, type QueryStatus } from "./work-common";
 import {
-  Empty,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyIllustration,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
-  Badge,
-  Box,
+  Absent,
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Button,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
   DataTable,
-  Inline,
+  DateTime,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyIllustration,
+  EmptyMedia,
+  EmptyTitle,
+  IconButton,
   KeyValue,
+  List,
+  Prose,
   Section,
   Select,
   SelectContent,
@@ -35,21 +42,27 @@ import {
   SelectTrigger,
   SelectValue,
   Stack,
-  Table,
+  Text,
   TextLink,
-  Toolbar,
   defineColumns,
   useDataTable,
 } from "@ledger/design-system";
-import { ChevronDown } from "lucide-react";
+import { MoreHorizontal, TriangleAlert } from "lucide-react";
+import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "@/lib/database";
 import { useRow, useRows, type Row } from "@/lib/models";
-import { labelFor, type DataRecord } from "@/lib/records";
+import type { DataRecord } from "@/lib/records";
 import { assembleSsp, sspSelectionGaps, type SspControlAssembly } from "@/lib/ssp-assembly";
+import {
+  implementationStatuses,
+  recordedImplementationStatuses,
+  revisionStates,
+  statusLabel,
+} from "@/lib/status";
 import { EvidenceVersionDetails } from "./evidence-version-details";
 import { ProductRecordDialog } from "./product-record-dialog";
-import { ProgramQueryState, StatusValue, type ProgramTableName } from "./program-shared";
+import type { ProgramTableName } from "./program-shared";
 
 type Editor = {
   table: ProgramTableName;
@@ -58,61 +71,114 @@ type Editor = {
   description: string;
 };
 
-export function ProgramSspAssembly({ programId }: { programId: string }) {
+type LoadState = { data: unknown; fetchStatus: string; isError: boolean };
+/** Settled: the query has rows to show, or nothing to wait for (a disabled query). A failed
+ * refresh keeps its rows, so it stays settled and the screen keeps what the reader has. */
+const settled = (query: LoadState) =>
+  query.data !== undefined || (query.fetchStatus === "idle" && !query.isError);
+
+/** A picker whose choice redraws the region it sits in (the boundary, the SSP revision): `arm`
+ * runs with the choice, and the picker drawn for the new choice takes focus, so the reader stays
+ * on the control they used instead of falling to the page. `node` is the picker now drawn. */
+function useFollowFocus() {
+  const node = useRef<HTMLElement | null>(null);
+  const armed = useRef(false);
+  const ref = useCallback((element: HTMLElement | null) => {
+    node.current = element;
+    if (!element || !armed.current) return;
+    armed.current = false;
+    element.focus();
+  }, []);
+  const arm = useCallback(() => {
+    armed.current = true;
+  }, []);
+  return { ref, node, arm };
+}
+
+/** The program's Controls tab: one authorization boundary's SSP assembly. `fill` while the
+ * register is the tab's one block; off where another block follows it. */
+export function ProgramSspAssembly({
+  programId,
+  fill = true,
+}: {
+  programId: string;
+  fill?: boolean | undefined;
+}) {
   const systems = useRows("systems", { program_id: programId });
   const [chosen, setChosen] = useState<string>();
-  const boundaries = (systems.data ?? []).filter((system) => system.is_authorization_boundary);
+  // Another boundary is another assembly, drawn afresh; its picker takes the focus back.
+  const boundaryPicker = useFollowFocus();
+  // Only a first load with nothing to show waits here. A failed refresh keeps the assembly, its
+  // preview and an open draft mounted; the table's alert says what failed.
+  if (systems.data === undefined) return <QueryState queries={[systems]} />;
+  const boundaries = systems.data.filter((system) => system.is_authorization_boundary);
   const boundary = boundaries.find((system) => system.id === chosen) ?? boundaries[0];
-  if (systems.isPending || systems.error) return <ProgramQueryState queries={[systems]} />;
   if (!boundary)
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia>
+      <QueryState queries={[systems]}>
+        <Empty>
+          <EmptyMedia aria-hidden>
             <EmptyIllustration kind="tree" />
           </EmptyMedia>
-          <EmptyTitle>No authorization boundary yet</EmptyTitle>
-          <EmptyDescription>
-            Create an authorization boundary in the system tree to assemble its control
-            implementations.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <TextLink
-            render={
-              <Link to="/programs/$programId" params={{ programId }} search={{ tab: "System" }} />
-            }
-          >
-            Open systems
-          </TextLink>
-        </EmptyContent>
-      </Empty>
+          <EmptyHeader>
+            <EmptyTitle>No authorization boundary yet</EmptyTitle>
+            <EmptyDescription>
+              Create an authorization boundary in the system tree to assemble its control
+              implementations.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <OpenSystems programId={programId} />
+          </EmptyContent>
+        </Empty>
+      </QueryState>
     );
   return (
-    <Stack space="space.250">
-      {boundaries.length > 1 && (
-        <Select
-          value={boundary.id}
-          onValueChange={(value) => {
-            if (value) setChosen(value);
-          }}
-        >
-          <SelectTrigger aria-label="Authorization boundary" className="w-layout-list max-w-full">
-            <SelectValue>
-              {boundary.code} · {boundary.name}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {boundaries.map((system) => (
-              <SelectItem key={system.id} value={system.id}>
-                {system.code} · {system.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-      <SspAssembly key={boundary.id} programId={programId} systemId={boundary.id} />
-    </Stack>
+    <SspAssembly
+      key={boundary.id}
+      programId={programId}
+      systemId={boundary.id}
+      fill={fill}
+      scope={
+        boundaries.length > 1 ? (
+          <Select
+            value={boundary.id}
+            onValueChange={(value) => {
+              if (!value || value === boundary.id) return;
+              boundaryPicker.arm();
+              setChosen(value);
+            }}
+          >
+            <SelectTrigger
+              ref={boundaryPicker.ref}
+              size="small"
+              aria-label="Authorization boundary"
+            >
+              <SelectValue>
+                {boundary.code} · {boundary.name}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {boundaries.map((system) => (
+                <SelectItem key={system.id} value={system.id}>
+                  {system.code} · {system.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : undefined
+      }
+    />
+  );
+}
+
+function OpenSystems({ programId }: { programId: string }) {
+  return (
+    <TextLink
+      render={<Link to="/programs/$programId" params={{ programId }} search={{ tab: "System" }} />}
+    >
+      Open systems
+    </TextLink>
   );
 }
 
@@ -122,6 +188,8 @@ function useSspParts(ids: string[], enabled: boolean) {
     queryKey: ["ssp-assembly-parts", workspace.tenantId, ids],
     enabled,
     retry: false,
+    // A saved statement changes the ids; the parts already shown stay while the new set loads.
+    placeholderData: keepPreviousData,
     queryFn: async ({ signal }) => {
       const token = await requireIdentity(workspace);
       const rows: Row<"control_parts">[] = [];
@@ -149,94 +217,178 @@ function useSspParts(ids: string[], enabled: boolean) {
 }
 
 /** Boundary SSP assembly. Every selected control is visible, even before anyone
- * has authored its implementation. The selected plan retains its exact baseline. */
-export function SspAssembly({ programId, systemId }: { programId: string; systemId: string }) {
+ * has authored its implementation. The selected plan retains its exact baseline.
+ * The editors live here, above every loading and error branch, so a failed refresh
+ * never takes an open draft away. `scope` is a control that chooses the boundary;
+ * `fill` makes the register fill the window when it is the tab's one block. */
+export function SspAssembly({
+  programId,
+  systemId,
+  fill = false,
+  scope,
+}: {
+  programId: string;
+  systemId: string;
+  fill?: boolean | undefined;
+  scope?: ReactNode;
+}) {
   const workspace = useWorkspace();
   const system = useRow("systems", systemId);
   const plans = useRows("ssp_revisions", { system_id: systemId });
   const [chosenId, setChosenId] = useState<string>();
   const [creating, setCreating] = useState(false);
+  const [editor, setEditor] = useState<Editor>();
+  // Another revision is another register, drawn afresh; its picker takes the focus back.
+  const revisionPicker = useFollowFocus();
+  // Whether the open Create SSP revision dialog has saved: its opener leaves with the empty.
+  const created = useRef(false);
   const ordered = [...(plans.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const plan = ordered.find((item) => item.id === chosenId) ?? ordered[0];
-  if (system.isPending || plans.isPending || system.error || plans.error)
-    return <ProgramQueryState queries={[plans, system]} />;
-  if (
-    !system.data ||
-    system.data.program_id !== programId ||
-    !system.data.is_authorization_boundary
-  )
-    return <p role="alert">Choose an authorization boundary in this program to read its SSP.</p>;
-  return (
-    <Stack space="space.250">
-      {plan ? (
-        <SspAssemblyPlan
-          key={plan.id}
-          programId={programId}
-          plan={plan}
-          planSelector={
+  const loaded = system.data !== undefined && plans.data !== undefined;
+  const boundary =
+    !!system.data && system.data.program_id === programId && system.data.is_authorization_boundary;
+  let body: ReactNode;
+  if (!loaded) body = <QueryState queries={[plans, system]} />;
+  else if (!boundary)
+    body = (
+      <Stack space="space.200">
+        {scope}
+        <QueryState queries={[plans, system]}>
+          <Empty>
+            <EmptyMedia aria-hidden>
+              <EmptyIllustration kind="search" />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>Authorization boundary unavailable</EmptyTitle>
+              <EmptyDescription>
+                Choose an authorization boundary in this program to read its SSP.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <OpenSystems programId={programId} />
+            </EmptyContent>
+          </Empty>
+        </QueryState>
+      </Stack>
+    );
+  else if (plan)
+    body = (
+      <SspAssemblyPlan
+        key={plan.id}
+        programId={programId}
+        plan={plan}
+        fill={fill}
+        context={[plans, system]}
+        onEdit={setEditor}
+        views={
+          <>
+            {scope}
             <Select
-              value={plan?.id}
+              value={plan.id}
               onValueChange={(value) => {
-                if (value) setChosenId(value);
+                if (!value || value === plan.id) return;
+                revisionPicker.arm();
+                setChosenId(value);
               }}
             >
-              <SelectTrigger aria-label="SSP selection" className="w-layout-rail max-w-full">
+              <SelectTrigger ref={revisionPicker.ref} size="small" aria-label="SSP revision">
                 <SelectValue>
-                  SSP {plan?.version_number} · {plan ? labelFor(plan.state) : "Draft"}
+                  SSP {plan.version_number} · {statusLabel(revisionStates, plan.state)}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {ordered.map((item) => (
                   <SelectItem key={item.id} value={item.id}>
-                    SSP {item.version_number} · {labelFor(item.state)}
+                    SSP {item.version_number} · {statusLabel(revisionStates, item.state)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          }
-        />
-      ) : (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia>
+          </>
+        }
+      />
+    );
+  else
+    body = (
+      <Stack space="space.200">
+        {scope}
+        <QueryState queries={[plans, system]}>
+          <Empty>
+            <EmptyMedia aria-hidden>
               <EmptyIllustration kind="document" />
             </EmptyMedia>
-            <EmptyTitle>No SSP recorded</EmptyTitle>
-            <EmptyDescription>
-              Create a system security plan with an explicit resolved baseline to assemble its
-              control implementations.
-            </EmptyDescription>
-          </EmptyHeader>
-          {workspace.role !== "viewer" && (
-            <EmptyContent>
-              <Button variant="primary" onClick={() => setCreating(true)}>
-                Create SSP revision
-              </Button>
-            </EmptyContent>
-          )}
-        </Empty>
-      )}
+            <EmptyHeader>
+              <EmptyTitle>No SSP recorded</EmptyTitle>
+              <EmptyDescription>
+                Create a system security plan with an explicit resolved baseline to assemble its
+                control implementations.
+              </EmptyDescription>
+            </EmptyHeader>
+            {workspace.role !== "viewer" && (
+              <EmptyContent>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    created.current = false;
+                    setCreating(true);
+                  }}
+                >
+                  Create SSP revision
+                </Button>
+              </EmptyContent>
+            )}
+          </Empty>
+        </QueryState>
+      </Stack>
+    );
+  return (
+    <>
+      {body}
       {creating && (
         <ProductRecordDialog
           table="ssp_revisions"
           description="Create a system security plan with an explicit resolved baseline."
           initialValues={{ system_id: systemId }}
           onClose={() => setCreating(false)}
-          onSaved={(row) => setChosenId(row.id)}
+          // The empty and its Create button leave once the SSP exists, so a saved SSP sends focus
+          // to its register's revision picker: at once when it is drawn, or as soon as it is.
+          // Cancel returns to the Create button.
+          onSaved={async (row) => {
+            created.current = true;
+            setChosenId(row.id);
+            await plans.refetch();
+          }}
+          finalFocus={() => {
+            if (!created.current) return true;
+            const picker = revisionPicker.node.current;
+            if (picker?.isConnected) return picker;
+            revisionPicker.arm();
+            return false;
+          }}
         />
       )}
-    </Stack>
+      {editor && <ProductRecordDialog {...editor} onClose={() => setEditor(undefined)} />}
+    </>
   );
 }
 
 function SspAssemblyPlan({
   programId,
   plan,
-  planSelector,
+  views,
+  fill,
+  context,
+  onEdit,
 }: {
   programId: string;
   plan: Row<"ssp_revisions">;
-  planSelector: ReactNode;
+  /** The controls that choose what the register shows (the boundary, the SSP revision). */
+  views: ReactNode;
+  fill: boolean;
+  /** The queries the plan itself came from, so their failed refresh is announced with the rest. */
+  context: QueryStatus[];
+  /** Opens an editor, which returns focus to the control that opened it. */
+  onEdit: (editor: Editor) => void;
 }) {
   const workspace = useWorkspace();
   const selections = useRows("selected_controls");
@@ -272,7 +424,10 @@ function SspAssemblyPlan({
       ].sort(),
     [statements.data, controlMappings.data],
   );
-  const parts = useSspParts(partIds, statements.isSuccess && controlMappings.isSuccess);
+  const parts = useSspParts(
+    partIds,
+    statements.data !== undefined && controlMappings.data !== undefined,
+  );
   const queries = [
     selections,
     controls,
@@ -299,8 +454,7 @@ function SspAssemblyPlan({
     profile,
     profileRecord,
   ];
-  const loading = queries.some((query) => query.isPending);
-  const error = queries.find((query) => query.error)?.error;
+  const ready = queries.every(settled);
   const rows = useMemo(
     () =>
       assembleSsp({
@@ -353,6 +507,7 @@ function SspAssemblyPlan({
     ],
   );
   const [selectedId, setSelectedId] = useState<string>();
+  const gapsReady = [selections, controls, systems, effectiveBaselines].every(settled);
   const selectionGaps = sspSelectionGaps({
     plan,
     selections: selections.data ?? [],
@@ -360,11 +515,21 @@ function SspAssemblyPlan({
     systems: systems.data ?? [],
     effectiveBaselines: effectiveBaselines.data ?? [],
   });
-  const [editor, setEditor] = useState<Editor>();
   const [evidenceId, setEvidenceId] = useState<string>();
   const navigate = useNavigate();
   const selected = rows.find((row) => row.id === selectedId);
   const editable = plan.state === "draft" && workspace.role !== "viewer";
+  // A control with an implementation opens its control record; one without has only its selection.
+  const controlRecord = useMemo(
+    () => (row: SspControlAssembly) =>
+      row.implementation
+        ? ({
+            table: "implemented_requirements",
+            record: { ...row.implementation, program_id: programId },
+          } as const)
+        : ({ table: "selected_controls", record: row.selection } as const),
+    [programId],
+  );
   const columns = useMemo(
     () =>
       defineColumns<SspControlAssembly>((c) => [
@@ -372,6 +537,7 @@ function SspAssemblyPlan({
           header: "Control",
           width: 130,
           priority: 1,
+          pin: "start",
           hideable: false,
           preview: (row) => {
             setSelectedId(row.id);
@@ -384,23 +550,35 @@ function SspAssemblyPlan({
           minWidth: 180,
           priority: 0,
           hideable: false,
-          cell: (row) => (
-            <RecordLink table="selected_controls" record={row.selection}>
-              {row.title}
-            </RecordLink>
-          ),
+          cell: (row) => {
+            const { table: model, record } = controlRecord(row);
+            return (
+              <RecordLink table={model} record={record}>
+                {row.title}
+              </RecordLink>
+            );
+          },
         }),
-        c.text("status", {
+        c.status("status", {
           header: "Recorded implementation",
-          width: 180,
-          cell: (row) => (row.implementation ? <StatusValue value={row.status} /> : "Not recorded"),
+          width: 212,
+          statuses: recordedImplementationStatuses,
+          cell: (row) =>
+            row.implementation ? (
+              <StatusBadge
+                statuses={implementationStatuses}
+                value={row.implementation.implementation_status}
+              />
+            ) : (
+              <Absent label="Not recorded" />
+            ),
         }),
         c.text("narrative", { header: "Control narrative", width: 160 }),
-        c.number("contributionCount", { header: "Contributions", width: 120 }),
+        c.number("contributionCount", { header: "Contributions", width: 140 }),
         c.number("requirementCount", { header: "Requirements", width: 130 }),
         c.number("evidenceCount", { header: "Evidence", width: 105 }),
       ]),
-    [selectedId],
+    [selectedId, controlRecord],
   );
   const table = useDataTable({
     columns,
@@ -439,27 +617,19 @@ function SspAssemblyPlan({
             </RecordLink>
           ),
         }),
-        c.text("code", {
-          header: "Code",
-          priority: 1,
-          width: 130,
-          cell: (row) => (
-            <RecordLink table="engineering_requirements" record={row.requirement}>
-              {row.code}
-            </RecordLink>
-          ),
-        }),
+        // The name is the row's one link; the code identifies it.
+        c.text("code", { header: "Code", priority: 1, width: 130 }),
         c.text("statement", { header: "Statement", minWidth: 220, wrap: true }),
         c.custom("relationship", {
           header: "Relationship",
           text: (row) => [...row.descriptions, ...row.rationales].join(" · "),
           cell: (row) => (
             <Stack space="space.050">
-              <span>{row.descriptions.join(" · ")}</span>
+              <Text>{row.descriptions.join(" · ")}</Text>
               {row.rationales.map((rationale) => (
-                <p className="text-subtle" key={rationale}>
+                <Text as="p" color="color.text.subtle" key={rationale}>
                   {rationale}
-                </p>
+                </Text>
               ))}
             </Stack>
           ),
@@ -482,7 +652,7 @@ function SspAssemblyPlan({
         ...support,
         title: support.artifact?.title ?? "Evidence unavailable",
         versionLabel: support.version
-          ? `Version ${support.version.version_number} · ${labelFor(support.version.state)}`
+          ? `Version ${support.version.version_number} · ${statusLabel(revisionStates, support.version.state)}`
           : "Version unavailable",
       })),
     [selected],
@@ -520,9 +690,17 @@ function SspAssemblyPlan({
             <Stack space="space.075">
               {row.origins.map((origin) => (
                 <Stack key={`${origin.id}/${origin.label}`} space="space.025">
-                  <p>{origin.label}</p>
-                  {origin.claim && <p className="text-subtle">{origin.claim}</p>}
-                  {origin.rationale && <p className="text-subtle">{origin.rationale}</p>}
+                  <Text as="p">{origin.label}</Text>
+                  {origin.claim && (
+                    <Text as="p" color="color.text.subtle">
+                      {origin.claim}
+                    </Text>
+                  )}
+                  {origin.rationale && (
+                    <Text as="p" color="color.text.subtle">
+                      {origin.rationale}
+                    </Text>
+                  )}
                 </Stack>
               ))}
             </Stack>
@@ -541,6 +719,12 @@ function SspAssemblyPlan({
   const displayedEvidence = useDisplayedRecords(evidenceTable);
   const version = versions.data?.find((row) => row.id === evidenceId);
   const artifact = artifacts.data?.find((row) => row.id === version?.artifact_id);
+  const partLabels = useMemo(
+    () => new Map((parts.data ?? []).map((part) => [part.id, part.source_id ?? part.title])),
+    [parts.data],
+  );
+  const partLabel = (statement: Row<"implementation_statements">) =>
+    partLabels.get(statement.control_part_id) ?? "Control statement";
   const authored = rows.filter((row) => row.narrative === "Recorded").length;
   const linkedRequirements = new Set(
     rows.flatMap((row) => row.requirements.map((support) => support.requirement.id)),
@@ -553,99 +737,178 @@ function SspAssemblyPlan({
   const boundaryBaselineDiffers =
     currentBoundaryBaseline?.profile_resolution_id != null &&
     currentBoundaryBaseline.profile_resolution_id !== plan.profile_resolution_id;
+  const boundaryName = systems.data?.find((row) => row.id === plan.system_id)?.name ?? "Boundary";
   const openNarrative = (row: SspControlAssembly) =>
-    setEditor({
+    onEdit({
       table: "implemented_requirements",
       description: `${row.code} · ${row.title}`,
       ...(row.implementation ? { existing: row.implementation as DataRecord } : {}),
       initialValues: { ssp_revision_id: plan.id, selected_control_id: row.id },
     });
+  const previewActions = (row: SspControlAssembly) => {
+    if (!editable) return undefined;
+    const implementation = row.implementation;
+    // Statements and contributions hang off a recorded implementation.
+    const statementEdits = implementation ? row.statements : [];
+    const contributionEdits = implementation ? row.contributions : [];
+    return (
+      <>
+        <Button size="small" variant="primary" onClick={() => openNarrative(row)}>
+          {implementation ? "Edit control implementation" : "Create control implementation"}
+        </Button>
+        {implementation && (statementEdits.length > 0 || contributionEdits.length > 0) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <IconButton
+                  icon={<MoreHorizontal />}
+                  label="More control actions"
+                  size="small"
+                  variant="subtle"
+                />
+              }
+            />
+            <DropdownMenuContent align="end">
+              {statementEdits.map((statement) => (
+                <DropdownMenuItem
+                  key={statement.id}
+                  description={partLabel(statement)}
+                  onClick={() =>
+                    onEdit({
+                      table: "implementation_statements",
+                      existing: statement as DataRecord,
+                      initialValues: {
+                        ssp_revision_id: plan.id,
+                        implemented_requirement_id: implementation.id,
+                        control_part_id: statement.control_part_id,
+                      },
+                      description: `${row.code} · ${partLabel(statement)}`,
+                    })
+                  }
+                >
+                  Edit implementation statement
+                </DropdownMenuItem>
+              ))}
+              {statementEdits.length > 0 && contributionEdits.length > 0 && (
+                <DropdownMenuSeparator />
+              )}
+              {contributionEdits.map(({ record, component }) => (
+                <DropdownMenuItem
+                  key={record.id}
+                  description={component?.name ?? "Component unavailable"}
+                  onClick={() =>
+                    onEdit({
+                      table: "component_contributions",
+                      existing: record as DataRecord,
+                      initialValues: {
+                        ssp_revision_id: plan.id,
+                        implemented_requirement_id: implementation.id,
+                        system_component_id: record.system_component_id,
+                      },
+                      description: `${row.code} · ${component?.name ?? "Component unavailable"}`,
+                    })
+                  }
+                >
+                  Edit component contribution
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </>
+    );
+  };
   return (
     <Stack space="space.200">
-      {!loading && !error && boundaryBaselineDiffers && (
-        <Section title="System baseline differs from this SSP">
-          <p className="text-subtle">
+      {boundaryBaselineDiffers && (
+        <Alert tone="warning" role="status">
+          <TriangleAlert aria-hidden />
+          <AlertTitle>The system baseline differs from this SSP</AlertTitle>
+          <AlertDescription>
             This SSP retains its stored selection. Review the boundary’s changed baseline before
             creating an updated SSP.
-          </p>
-        </Section>
+          </AlertDescription>
+        </Alert>
       )}
-      {!loading && !error && !!selectionGaps.length && (
-        <Section title="System controls outside this SSP selection">
-          <Stack space="space.150">
-            <p className="text-subtle">These controls are outside this SSP’s stored selection.</p>
-            {selectionGaps.map((gap) => (
-              <p key={gap.system.id}>
-                <strong>{gap.system.name}:</strong>{" "}
-                {gap.controls.map((control) => control.code).join(", ")}
-              </p>
-            ))}
-          </Stack>
-        </Section>
-      )}
-      <QueryState queries={queries}>
-        <ProductCollection
-          table={table}
-          onRowClick={(row) => void navigate(recordDestination("selected_controls", row.selection))}
-          empty={{
-            title: "No controls in this SSP selection",
-            description: "The stored baseline contains no selected controls.",
-          }}
-          fill
-          searchLabel="Find selected controls"
-          filters={
-            <>
-              {planSelector}
-              <DataTable.Filter table={table} column="narrative" />
-            </>
-          }
-        />
-      </QueryState>
-      {!loading && !error && (
-        <Collapsible>
-          <CollapsibleTrigger
-            render={<Button variant="subtle" size="small" iconAfter={<ChevronDown />} />}
-          >
-            SSP details
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <Stack space="space.100" className="pt-150">
-              <KeyValue label="Stored baseline" wrap>
-                {profileRecord.data?.title}
-              </KeyValue>
-              <KeyValue label="Selected controls">{rows.length}</KeyValue>
-              <KeyValue label="Control narratives">{authored}</KeyValue>
-              <KeyValue label="Related requirements">{linkedRequirements}</KeyValue>
-              <KeyValue label="Linked evidence versions">{linkedEvidence}</KeyValue>
-              {resolution.data?.resolver_name === "archived-demo-explicit-selection" && (
-                <KeyValue label="Source">Imported demo selection</KeyValue>
-              )}
+      {gapsReady && !!selectionGaps.length && (
+        <Alert tone="warning" role="status">
+          <TriangleAlert aria-hidden />
+          <AlertTitle>System controls outside this SSP selection</AlertTitle>
+          <AlertDescription>
+            <Stack space="space.075">
+              <Text as="p">These controls are outside this SSP’s stored selection.</Text>
+              <List>
+                {selectionGaps.map((gap) => (
+                  <List.Item key={gap.system.id}>
+                    {gap.system.name}: {gap.controls.map((control) => control.code).join(", ")}
+                  </List.Item>
+                ))}
+              </List>
             </Stack>
-          </CollapsibleContent>
-        </Collapsible>
+          </AlertDescription>
+        </Alert>
       )}
-      {selected && !editor && (
+      <Section title="SSP details" isCollapsible>
+        {ready ? (
+          <KeyValue.Group labelWidth={160}>
+            <KeyValue label="Stored baseline" wrap>
+              {profileRecord.data?.title ?? <Absent label="Not recorded" />}
+            </KeyValue>
+            <KeyValue label="Selected controls">{rows.length}</KeyValue>
+            <KeyValue label="Control narratives">{authored}</KeyValue>
+            <KeyValue label="Related requirements">{linkedRequirements}</KeyValue>
+            <KeyValue label="Linked evidence versions">{linkedEvidence}</KeyValue>
+            {resolution.data?.resolver_name === "archived-demo-explicit-selection" && (
+              <KeyValue label="Source">Imported demo selection</KeyValue>
+            )}
+          </KeyValue.Group>
+        ) : (
+          <Text as="p" color="color.text.subtle">
+            {/* A load that failed with nothing to show is not one still in progress; the
+                collection's alert below carries Retry. */}
+            {queries.some((query) => query.isError && query.data === undefined)
+              ? "The SSP details could not be loaded."
+              : "The SSP details appear once its records have loaded."}
+          </Text>
+        )}
+      </Section>
+      <ProductCollection
+        table={table}
+        queries={[...context, ...queries]}
+        onRowClick={(row) => {
+          const { table: model, record } = controlRecord(row);
+          void navigate(recordDestination(model, record));
+        }}
+        empty={{
+          illustration: "shield",
+          title: "No controls in this SSP selection",
+          description: "The stored baseline contains no selected controls.",
+        }}
+        fill={fill}
+        searchLabel="Find selected controls"
+        views={views}
+        filters={<DataTable.Filter table={table} column="narrative" />}
+      />
+      {selected && (
+        // The preview stays open under a dialog opened from it, so focus returns to its trigger.
         <RecordPreviewPanel
           title={selected.title}
           label="SSP control preview"
-          recordActions={
-            editable ? (
-              <Button size="small" variant="primary" onClick={() => openNarrative(selected)}>
-                {selected.implementation
-                  ? "Edit control implementation"
-                  : "Create control implementation"}
-              </Button>
-            ) : undefined
-          }
+          recordActions={previewActions(selected)}
           defaultWidth={640}
           onClose={() => {
             setSelectedId(undefined);
             setEvidenceId(undefined);
           }}
           navigation={
+            // The row finds its place among the displayed rows; the full record is the control's own.
             <RecordPreviewActions
-              table="selected_controls"
-              record={selected.selection}
+              table={controlRecord(selected).table}
+              record={selected}
+              destination={recordDestination(
+                controlRecord(selected).table,
+                controlRecord(selected).record,
+              )}
               rows={displayedRows}
               onSelect={(row) => {
                 setSelectedId(row.id);
@@ -654,12 +917,19 @@ function SspAssemblyPlan({
             />
           }
         >
-          <Stack space="space.200">
-            <KeyValue label="Control">{selected.code}</KeyValue>
-            <KeyValue label="SSP">
-              {systems.data?.find((row) => row.id === plan.system_id)?.name ?? "Boundary"} · SSP{" "}
-              {plan.version_number}
-            </KeyValue>
+          <Stack space="space.300">
+            <KeyValue.Group>
+              <KeyValue label="Control">{selected.code}</KeyValue>
+              <KeyValue label="SSP" wrap>
+                {boundaryName} · SSP {plan.version_number}
+              </KeyValue>
+              <KeyValue label="Implementation">
+                <StatusBadge
+                  statuses={implementationStatuses}
+                  value={selected.implementation?.implementation_status}
+                />
+              </KeyValue>
+            </KeyValue.Group>
             {requirementPreview && (
               <RecordSummaryPreview
                 model="requirement_revisions"
@@ -692,170 +962,147 @@ function SspAssemblyPlan({
                 }
               >
                 <Stack space="space.200">
-                  <p>Exact evidence version {version.version_number}</p>
+                  <KeyValue.Group>
+                    <KeyValue label="Exact version">
+                      Version {version.version_number} ·{" "}
+                      {statusLabel(revisionStates, version.state)}
+                    </KeyValue>
+                  </KeyValue.Group>
                   <EvidenceVersionDetails artifact={artifact} version={version} />
                 </Stack>
               </RecordPreviewPanel>
             )}
-            <Stack space="space.300">
-              <Section title="Control implementation">
-                <Stack space="space.150">
-                  <StatusValue value={selected.implementation?.implementation_status} />
-                  <p className="whitespace-pre-wrap">
-                    {selected.implementation?.description ||
-                      "No control implementation narrative recorded."}
-                  </p>
-                  {selected.implementation?.not_applicable_rationale && (
-                    <p className="whitespace-pre-wrap text-subtle">
-                      Not applicable rationale: {selected.implementation.not_applicable_rationale}
-                    </p>
-                  )}
+            <Section title="Control implementation">
+              <Stack space="space.150">
+                {selected.implementation?.description ? (
+                  <Prose>{selected.implementation.description}</Prose>
+                ) : (
+                  <Text as="p" color="color.text.subtle">
+                    No control implementation narrative recorded.
+                  </Text>
+                )}
+                {selected.implementation?.not_applicable_rationale && (
+                  <Prose label="Not applicable rationale">
+                    {selected.implementation.not_applicable_rationale}
+                  </Prose>
+                )}
+              </Stack>
+            </Section>
+            {!!selected.gaps.length && (
+              <Section title="Recorded gaps">
+                <List>
+                  {selected.gaps.map((gap) => (
+                    <List.Item key={gap}>{gap}</List.Item>
+                  ))}
+                </List>
+              </Section>
+            )}
+            {!!selected.statements.length && (
+              <Section title="Statement narratives">
+                <Stack space="space.200">
+                  {selected.statements.map((statement) => (
+                    <Prose key={statement.id} label={partLabel(statement)}>
+                      {statement.description}
+                    </Prose>
+                  ))}
                 </Stack>
               </Section>
-              {!!selected.gaps.length && (
-                <Section title="Recorded gaps">
-                  <Box as="ul" paddingInlineStart="space.250" className="list-disc text-subtle">
-                    {selected.gaps.map((gap) => (
-                      <li key={gap}>{gap}</li>
-                    ))}
-                  </Box>
-                </Section>
-              )}
-              {!!selected.statements.length && (
-                <Section title="Statement narratives">
-                  <Stack space="space.200">
-                    {selected.statements.map((statement) => (
-                      <div key={statement.id}>
-                        <p className="font-medium">
-                          {parts.data?.find((part) => part.id === statement.control_part_id)
-                            ?.source_id ?? "Control statement"}
-                        </p>
-                        <p className="whitespace-pre-wrap">{statement.description}</p>
-                        {editable && (
-                          <Button
-                            size="small"
-                            variant="secondary"
-                            onClick={() =>
-                              setEditor({
-                                table: "implementation_statements",
-                                existing: statement as DataRecord,
-                                initialValues: {
-                                  ssp_revision_id: plan.id,
-                                  implemented_requirement_id: selected.implementation!.id,
-                                  control_part_id: statement.control_part_id,
-                                },
-                                description: "Update this statement’s implementation narrative.",
-                              })
-                            }
-                          >
-                            Edit implementation statement
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </Stack>
-                </Section>
-              )}
-              <Section title="Contributing systems">
-                <Stack space="space.200">
-                  {!selected.contributions.length && (
-                    <EmptyMessage
-                      compact
-                      title="No component contributions"
-                      description="A nested system or inherited control selection does not create an implementation narrative."
-                    />
-                  )}
-                  {selected.contributions.map(({ record, component, path, binding }) => (
-                    <Section
-                      key={record.id}
-                      title={component?.name ?? "Component unavailable"}
-                      action={
-                        editable ? (
-                          <Button
-                            size="small"
-                            variant="secondary"
-                            onClick={() =>
-                              setEditor({
-                                table: "component_contributions",
-                                existing: record as DataRecord,
-                                initialValues: {
-                                  ssp_revision_id: plan.id,
-                                  implemented_requirement_id: selected.implementation!.id,
-                                  system_component_id: record.system_component_id,
-                                },
-                                description: "Update this component’s contribution narrative.",
-                              })
-                            }
-                          >
-                            Edit component contribution
-                          </Button>
-                        ) : undefined
-                      }
-                    >
-                      <Stack space="space.100">
-                        <p className="text-subtle">
+            )}
+            <Section title="Contributing systems">
+              <Stack space="space.200">
+                {!selected.contributions.length && (
+                  <EmptyMessage
+                    compact
+                    title="No component contributions"
+                    description="A nested system or inherited control selection does not create an implementation narrative."
+                  />
+                )}
+                {selected.contributions.map(({ record, component, path, binding }) => (
+                  <Section key={record.id} title={component?.name ?? "Component unavailable"}>
+                    <Stack space="space.100">
+                      <KeyValue.Group>
+                        <KeyValue label="Path" wrap>
                           {path}
                           {["unbound", "ambiguous"].includes(binding)
                             ? " · Identity needs review"
                             : ""}
-                        </p>
-                        <StatusValue value={record.implementation_status} />
-                        <p className="whitespace-pre-wrap">{record.description}</p>
+                        </KeyValue>
+                        <KeyValue label="Implementation">
+                          <StatusBadge
+                            statuses={implementationStatuses}
+                            value={record.implementation_status}
+                          />
+                        </KeyValue>
+                      </KeyValue.Group>
+                      {record.description && <Prose>{record.description}</Prose>}
+                    </Stack>
+                  </Section>
+                ))}
+              </Stack>
+            </Section>
+            <Section title="Requirements">
+              <ProductCollection
+                table={requirementTable}
+                keepQuestion={false}
+                searchLabel="Find supporting requirements"
+                empty={{
+                  illustration: "shield",
+                  title: "No requirement support",
+                  description: "No requirement support or allocated control mapping is recorded.",
+                }}
+              />
+            </Section>
+            <Section title="Evidence">
+              <ProductCollection
+                table={evidenceTable}
+                keepQuestion={false}
+                searchLabel="Find supporting evidence"
+                empty={{
+                  illustration: "document",
+                  title: "No supporting evidence",
+                  description:
+                    "No evidence is linked through this implementation or its related requirements.",
+                }}
+              />
+            </Section>
+            {!!selected.inherited.length && (
+              <Section title="Accepted provider contributions">
+                <Stack space="space.200">
+                  {selected.inherited.map(({ acceptance, offering, contribution }) => (
+                    <Section
+                      key={acceptance.id}
+                      title={offering?.name ?? "Provider offering unavailable"}
+                    >
+                      <Stack space="space.100">
+                        {contribution?.description ? (
+                          <Prose>{contribution.description}</Prose>
+                        ) : (
+                          <Text as="p" color="color.text.subtle">
+                            Pinned provider narrative unavailable.
+                          </Text>
+                        )}
+                        <KeyValue.Group>
+                          <KeyValue label="Accepted">
+                            <DateTime value={acceptance.accepted_at} />
+                          </KeyValue>
+                        </KeyValue.Group>
+                        {acceptance.rationale && (
+                          <Prose label="Rationale">{acceptance.rationale}</Prose>
+                        )}
+                        {acceptance.consumer_responsibility && (
+                          <Prose label="Consumer responsibility">
+                            {acceptance.consumer_responsibility}
+                          </Prose>
+                        )}
                       </Stack>
                     </Section>
                   ))}
                 </Stack>
               </Section>
-              <Section title="Requirements">
-                <ProductCollection
-                  table={requirementTable}
-                  searchLabel="Find supporting requirements"
-                  empty={{
-                    illustration: "shield",
-                    title: "No requirement support",
-                    description: "No requirement support or allocated control mapping is recorded.",
-                  }}
-                />
-              </Section>
-              <Section title="Evidence">
-                <ProductCollection
-                  table={evidenceTable}
-                  searchLabel="Find supporting evidence"
-                  empty={{
-                    illustration: "document",
-                    title: "No supporting evidence",
-                    description:
-                      "No evidence is linked through this implementation or its related requirements.",
-                  }}
-                />
-              </Section>
-              {!!selected.inherited.length && (
-                <Section title="Accepted provider contributions">
-                  <Stack space="space.200">
-                    {selected.inherited.map(({ acceptance, offering, contribution }) => (
-                      <div key={acceptance.id}>
-                        <p className="font-medium">
-                          {offering?.name ?? "Provider offering unavailable"}
-                        </p>
-                        <p className="whitespace-pre-wrap">
-                          {contribution?.description ?? "Pinned provider narrative unavailable"}
-                        </p>
-                        <p className="text-subtle">
-                          Recorded acceptance: {acceptance.accepted_at}. {acceptance.rationale}
-                        </p>
-                        {acceptance.consumer_responsibility && (
-                          <p>Consumer responsibility: {acceptance.consumer_responsibility}</p>
-                        )}
-                      </div>
-                    ))}
-                  </Stack>
-                </Section>
-              )}
-            </Stack>
+            )}
           </Stack>
         </RecordPreviewPanel>
       )}
-      {editor && <ProductRecordDialog {...editor} onClose={() => setEditor(undefined)} />}
     </Stack>
   );
 }

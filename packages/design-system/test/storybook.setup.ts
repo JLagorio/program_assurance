@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, expect, inject, vi } from "vitest";
+import { commands } from "vitest/browser";
 
+import gatesAllow from "./gates-allow.json";
 import allowList from "./layout-allow.json";
+import { type Gate, gateHelp, runGate } from "./story-gates";
 
 /**
  * Checks every story runs under, after its render and play function and once its web fonts have
@@ -22,6 +25,16 @@ import allowList from "./layout-allow.json";
  * how a check sees it: `layout: "fullscreen"` (page-level) skips only the contained check, and
  * story `globals` render it at the width they pin, with `frame: "canvas"` taking it out of the
  * 320px frame.
+ *
+ * Every project also fails a story that logs a Base UI or React warning on console.warn (TOO-17).
+ * The gate projects add one check each (test/story-gates.ts says what each measures): focus rings
+ * in storybook-light, touch targets in storybook-touch, forced-colour states in
+ * storybook-forced-colors, short windows in storybook-short and long content in storybook-long.
+ * A gate counts its problems per story, and a story fails when it has more than its allowance in
+ * test/gates-allow.json. The allowances record the stories that predated the gate; the list may
+ * only shrink (scripts/check-allow-lists.mjs compares it with the base branch). Run a gate with
+ * LEDGER_GATES_RECORD=1 to write each story's count to node_modules/.cache/ledger-gates instead of
+ * failing.
  */
 
 type LayoutCheck = "narrow" | "contained";
@@ -29,8 +42,34 @@ type LayoutCheck = "narrow" | "contained";
 declare module "vitest" {
   export interface ProvidedContext {
     "ledger/layout-check": LayoutCheck;
+    "ledger/gate": Gate;
+    "ledger/gates-record": boolean;
   }
 }
+
+const provided = <K extends "ledger/gate" | "ledger/gates-record">(key: K) => {
+  try {
+    return inject(key);
+  } catch {
+    return undefined;
+  }
+};
+
+type GateAllow = { about?: string; stories?: Record<string, number> };
+/** How many problems a gate allows a story that predates it: 0 unless it is listed. */
+const gateAllowance = (gate: Gate, storyId: string | undefined): number => {
+  const section = (gatesAllow as Record<string, GateAllow | Record<string, string>>)[gate] as
+    GateAllow | undefined;
+  return storyId === undefined ? 0 : (section?.stories?.[storyId] ?? 0);
+};
+/** Warnings a story may log on purpose, by story id, with the reason. */
+const warningExemption = (storyId: string | undefined): string | undefined =>
+  storyId === undefined
+    ? undefined
+    : (gatesAllow["console-warn"] as Record<string, string>)[storyId];
+
+/** Base UI's development warnings and React's own, which say a part is used wrongly. */
+const WARNING = /^(Base UI:|Warning:|React )/;
 
 const layoutCheck = (): LayoutCheck | undefined => {
   try {
@@ -287,24 +326,76 @@ const framePast = (frame: Element): string | undefined => {
 };
 
 let errors: unknown[][];
+let warnings: unknown[][];
 let restore: (() => void) | undefined;
-beforeEach(() => {
+beforeEach((ctx) => {
+  // A play that needs a mouse (hover, an arrow shown only to a fine pointer) cannot pass on a
+  // touch phone, and one that asserts a token colour cannot pass in forced colours: the gate
+  // project skips it by its file and name, with the reason.
+  const gate = provided("ledger/gate");
+  const skips = gate
+    ? (gatesAllow.skip as unknown as Record<string, Record<string, string> | undefined>)[gate]
+    : undefined;
+  const skip = skips?.[`${ctx.task.file.name.split("/").at(-1)}::${ctx.task.name}`];
+  if (skip !== undefined) ctx.skip(skip);
   errors = [];
+  warnings = [];
   const original = console.error.bind(console);
   const spy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
     errors.push(args);
     original(...args);
   });
-  restore = () => spy.mockRestore();
+  const originalWarn = console.warn.bind(console);
+  const warnSpy = vi.spyOn(console, "warn").mockImplementation((...args: unknown[]) => {
+    if (WARNING.test(String(args[0] ?? ""))) warnings.push(args);
+    originalWarn(...args);
+  });
+  restore = () => {
+    spy.mockRestore();
+    warnSpy.mockRestore();
+  };
 });
+
+/** The gate this project runs, compared with the story's allowance. */
+async function gateCheck(storyId: string | undefined) {
+  const gate = provided("ledger/gate");
+  if (!gate) return;
+  const { count, items } = await runGate(gate);
+  if (provided("ledger/gates-record")) {
+    if (count > 0 && storyId)
+      await commands.writeFile(
+        `node_modules/.cache/ledger-gates/${gate}/${storyId}.json`,
+        JSON.stringify({ gate, storyId, count, items }),
+      );
+    return;
+  }
+  const allowed = gateAllowance(gate, storyId);
+  if (count <= allowed) return;
+  expect.fail(
+    [
+      `The ${gate} gate found ${count} problem${count === 1 ? "" : "s"}${allowed ? ` (the story's allowance is ${allowed})` : ""}:`,
+      ...items.map((item) => `- ${item}`),
+      gateHelp[gate],
+      "The allowances in test/gates-allow.json may only shrink: fix the part rather than raising one.",
+    ].join("\n"),
+  );
+}
+
 afterEach(async (ctx) => {
   restore?.();
   expect(errors, "Stories must not emit unexpected console errors").toEqual([]);
+  const storyId = (ctx.task.meta as { storyId?: string }).storyId;
+  if (warningExemption(storyId) === undefined)
+    expect(warnings, "Stories must not emit Base UI or React warnings").toEqual([]);
 
   await fontsSettled();
   visuallyHidden.reset();
+  await layoutChecks(storyId);
+  await gateCheck(storyId);
+});
+
+async function layoutChecks(storyId: string | undefined) {
   const check = layoutCheck();
-  const storyId = (ctx.task.meta as { storyId?: string }).storyId;
   if (check && exemption(check, storyId) !== undefined) return;
 
   const overflow = pageOverflow();
@@ -346,4 +437,4 @@ afterEach(async (ctx) => {
       "Make the part, or the story's fixed-width frame, fluid (maxWidth, not width). A story that shows this on purpose goes in test/layout-allow.json with its reason.",
     ].join("\n"),
   );
-});
+}

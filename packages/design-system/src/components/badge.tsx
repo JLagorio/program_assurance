@@ -1,13 +1,7 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import {
-  cloneElement,
-  Fragment,
-  isValidElement,
-  type ComponentPropsWithoutRef,
-  type ReactNode,
-} from "react";
+import { cloneElement, Fragment, isValidElement, type ComponentProps, type ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 import { toneClasses, type Tone } from "../lib/status-tone";
@@ -124,7 +118,9 @@ const badgePalette: Record<
   },
 };
 
-type BadgeRecipeProps = Omit<NonNullable<Parameters<typeof badgeRecipe>[0]>, "size"> & {
+type BadgeRecipeProps = Omit<NonNullable<Parameters<typeof badgeRecipe>[0]>, "size" | "variant"> & {
+  /** The treatment. `default`, the brand bold fill, when neither it nor `tone` is given; `secondary`, the subtle fill, when only `tone` is. */
+  variant?: BadgeVariant | null | undefined;
   /** Small is 20px; xsmall is 16px for dense rows and tabs. */
   size?: "small" | "xsmall" | undefined;
   /** Overrides the variant's palette. Brand, or one of the five semantic status tones. */
@@ -133,15 +129,26 @@ type BadgeRecipeProps = Omit<NonNullable<Parameters<typeof badgeRecipe>[0]>, "si
   appearance?: BadgeAppearance | undefined;
 };
 
+/**
+ * The treatment a badge takes: the given variant, or, when only a tone is given, `secondary`, the
+ * subtle fill in that tone, so `<Badge tone="warning">` is a status and not a loud bold pill.
+ * Without either it is `default`, the brand bold fill.
+ */
+function resolveVariant(variant: BadgeVariant | null | undefined, tone: BadgeTone | undefined) {
+  if (variant === null) return null;
+  return variant ?? (tone === undefined ? "default" : "secondary");
+}
+
 /** One recipe for treatment, palette, emphasis and density, also usable on a native element. */
 function badgeVariants({
-  variant = "default",
+  variant: variantProp,
   size = "small",
   tone,
   appearance,
   className,
   class: classProp,
 }: BadgeRecipeProps = {}) {
+  const variant = resolveVariant(variantProp, tone);
   const defaults = variantDefaults[variant ?? "default"];
   const palette = badgePalette[tone ?? defaults.tone];
   const emphasis = appearance ?? defaults.appearance;
@@ -177,7 +184,7 @@ export type BadgeProps = useRender.ComponentProps<"span"> &
 /** A compact label with standard variants, semantic palettes and native render composition. */
 function Badge({
   className,
-  variant = "default",
+  variant: variantProp,
   tone,
   appearance,
   size = "small",
@@ -186,6 +193,7 @@ function Badge({
   render,
   ...props
 }: BadgeProps) {
+  const variant = resolveVariant(variantProp, tone);
   const defaults = variantDefaults[variant ?? "default"];
   const resolvedTone = tone ?? defaults.tone;
   const resolvedAppearance = appearance ?? defaults.appearance;
@@ -238,48 +246,53 @@ const countAppearances = {
   removed: "bg-danger text-danger",
 } as const;
 
-export type CountProps = {
+export type CountProps = Omit<ComponentProps<"span">, "children" | "className"> & {
   /** The number. Anything above `max` renders as `max+`; a string renders as given. */
   value: number | string;
   /** The ceiling, 99 by default: the pill never grows past three characters and a plus. */
-  max?: number;
+  max?: number | undefined;
   /** `default` is the neutral pill; `primary` the brand fill for the one count that must be seen; `important` the danger fill for what needs attention now; `added` and `removed` for a diff. */
-  appearance?: keyof typeof countAppearances;
+  appearance?: keyof typeof countAppearances | undefined;
   className?: string | undefined;
-} & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
+};
 
-/** A number in a pill: unread items, rows in a group, results behind a filter. It is named by the label beside it. */
+/** A number in a pill: unread items, rows in a group, results behind a filter. It is named by the label beside it. Native span props and the ref reach the pill. */
 export function Count({ value, max = 99, appearance = "default", className, ...rest }: CountProps) {
   const text = typeof value === "number" && value > max ? `${max}+` : String(value);
   return (
     <span
+      {...rest}
+      data-slot="count"
+      data-appearance={appearance}
       className={cn(
         "inline-flex h-250 min-w-250 shrink-0 items-center justify-center rounded-full px-075 font-body-small font-medium tabular-nums",
         countAppearances[appearance],
         className,
       )}
-      {...rest}
     >
       {text}
     </span>
   );
 }
 
-export type DotProps = {
+export type DotProps = Omit<ComponentProps<"svg">, "children" | "className"> & {
   tone?: Tone | undefined;
   /** What the dot says when no text sits beside it: the status as a word ("Suspect", "No supplier attestation on file"). With it the dot is an image named by the label; without it the dot is hidden and the text beside it carries the status. */
   label?: string | undefined;
   className?: string | undefined;
 };
 
-/** A 6px status dot. It is an icon, so it takes the tone's icon colour, which is tuned to read at small sizes. */
-export function Dot({ tone = "neutral", label, className }: DotProps) {
+/** A 6px status dot. It is an icon, so it takes the tone's icon colour, which is tuned to read at small sizes. Native svg props and the ref reach the dot. */
+export function Dot({ tone = "neutral", label, className, ...rest }: DotProps) {
   return (
     <svg
+      viewBox="0 0 8 8"
+      {...rest}
       role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
-      viewBox="0 0 8 8"
+      data-slot="dot"
+      data-tone={tone}
       className={cn(
         "inline-block size-075 shrink-0 align-middle",
         toneClasses[tone].icon,
@@ -291,24 +304,26 @@ export function Dot({ tone = "neutral", label, className }: DotProps) {
   );
 }
 
-export type IndicatorProps = {
+export type IndicatorProps = Omit<ComponentProps<"span">, "children" | "className"> & {
   /** The severity or the health the Dot carries. `neutral` mutes the text as well: the lowest rung. */
   tone?: Tone | undefined;
   /** The word beside the Dot: "High", "Healthy", "Obligation not stated". It truncates when the row is narrower than it. */
   children: ReactNode;
   className?: string | undefined;
-} & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
+};
 
-/** Severity or health as a Dot plus text. Never a pill, so the status column stays the only pill in a row. */
+/** Severity or health as a Dot plus text. Never a pill, so the status column stays the only pill in a row. Native span props and the ref reach the outer span. */
 export function Indicator({ tone = "neutral", className, children, ...rest }: IndicatorProps) {
   return (
     <span
+      {...rest}
+      data-slot="indicator"
+      data-tone={tone}
       className={cn(
         "inline-flex max-w-full items-center gap-075 whitespace-nowrap font-body",
         tone === "neutral" ? "text-subtle" : "text-default",
         className,
       )}
-      {...rest}
     >
       <Dot tone={tone} />
       <span className="min-w-0 truncate">{children}</span>

@@ -1,12 +1,37 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
-import { Box, Button, Field, FieldLabel, Inline, Input, Stack } from "@ledger/design-system";
+import { AlertCircle, FileText, RotateCcw, X } from "lucide-react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Attachment,
+  Button,
+  DropZone,
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  Inline,
+  Section,
+  Spinner,
+  Stack,
+  Text,
+  announce,
+  downloadBlob,
+  formatFileSize,
+  toast,
+  useLedgerLocale,
+} from "@ledger/design-system";
 import { getRecord, requireIdentity, saveRecord, type Workspace } from "@/lib/database";
 import type { Collection, DataRecord } from "@/lib/records";
 import { useWorkspace } from "./workspace";
 
-const MAX_BYTES = 50 * 1024 * 1024;
+/** The largest file a reader may choose, in decimal units so the hint and a refusal agree. */
+const MAX_SELECTED_BYTES = 50_000_000;
+/** The evidence bucket's own limit (50 MiB), which a recovered object is checked against. */
+const MAX_STORED_BYTES = 50 * 1024 * 1024;
 async function digest(blob: Blob) {
   const hash = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
   return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -34,13 +59,24 @@ function privateStorage(token: string, signal: AbortSignal) {
   ).storage.from("evidence");
 }
 
+type Operation = "upload" | "recover" | "download";
+const failureTitles: Record<Operation, string> = {
+  upload: "The file was not attached",
+  recover: "The upload was not recovered",
+  download: "The file was not downloaded",
+};
+
 /** Files are uploaded to private Storage and tied to one actual evidence revision. */
 export function EvidenceFile(props: {
   collection: Collection;
   record: DataRecord;
   onBusyChange?: ((busy: boolean) => void) | undefined;
   onDirtyChange?: ((dirty: boolean) => void) | undefined;
-  autoFocus?: boolean | undefined;
+  /**
+   * The Choose a file button. Inside a Dialog or Sheet, give the same ref to the content's
+   * `initialFocus` to start there.
+   */
+  triggerRef?: Ref<HTMLButtonElement> | undefined;
 }) {
   const workspace = useWorkspace();
   return (
@@ -52,40 +88,54 @@ export function EvidenceFile(props: {
   );
 }
 
+function assign<T>(ref: Ref<T> | undefined, node: T | null) {
+  if (typeof ref === "function") ref(node);
+  else if (ref) ref.current = node;
+}
+
 function EvidenceFileEditor({
   collection,
   record,
   workspace,
   onBusyChange,
   onDirtyChange,
-  autoFocus,
+  triggerRef,
 }: {
   collection: Collection;
   record: DataRecord;
   workspace: Workspace;
   onBusyChange?: ((busy: boolean) => void) | undefined;
   onDirtyChange?: ((dirty: boolean) => void) | undefined;
-  autoFocus?: boolean | undefined;
+  triggerRef?: Ref<HTMLButtonElement> | undefined;
 }) {
   const cache = useQueryClient();
+  const { locale } = useLedgerLocale();
   const operation = useRef<AbortController | null>(null);
+  const trigger = useRef<HTMLButtonElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [busy, setBusy] = useState<"upload" | "recover" | "download" | null>(null);
-  const [error, setError] = useState("");
+  const [busy, setBusy] = useState<Operation | null>(null);
+  const [failure, setFailure] = useState<{ operation: Operation; message: string } | null>(null);
+  // What the Upload button found missing when it was pressed: the Field's own error.
+  const [problem, setProblem] = useState<string | undefined>();
   const path =
     typeof record["storage_object_name"] === "string" ? record["storage_object_name"] : null;
   const hasFile = !!path && !!record["storage_object_id"];
+  const storedName = path?.split("/").at(-1) ?? record.id;
   const writable = workspace.role !== "viewer" && record["state"] === "draft" && !hasFile;
   const recordKey = ["record", workspace.tenantId, collection.name, record.id];
+  const bindTrigger = (node: HTMLButtonElement | null) => {
+    trigger.current = node;
+    assign(triggerRef, node);
+  };
   useEffect(() => () => operation.current?.abort(), []);
 
-  function begin(kind: NonNullable<typeof busy>) {
+  function begin(kind: Operation) {
     if (operation.current) return null;
     const controller = new AbortController();
     operation.current = controller;
     onBusyChange?.(true);
     setBusy(kind);
-    setError("");
+    setFailure(null);
     return controller;
   }
   function finish(controller: AbortController) {
@@ -112,7 +162,8 @@ function EvidenceFileEditor({
   }
 
   async function attach(selectedFile?: File) {
-    const controller = begin(selectedFile ? "upload" : "recover");
+    const kind: Operation = selectedFile ? "upload" : "recover";
+    const controller = begin(kind);
     if (!controller) return;
     try {
       const token = await checkIdentity(controller);
@@ -131,7 +182,10 @@ function EvidenceFileEditor({
         typeof current["storage_object_name"] === "string" ? current["storage_object_name"] : "";
       let selectedHash: string | null = null;
       if (selectedFile) {
-        if (selectedFile.size > MAX_BYTES) throw new Error("Choose a file no larger than 50 MiB.");
+        if (selectedFile.size > MAX_SELECTED_BYTES)
+          throw new Error(
+            `Choose a file no larger than ${formatFileSize(MAX_SELECTED_BYTES, { locale })}.`,
+          );
         const filename = selectedFile.name.normalize("NFC").replace(/[^a-zA-Z0-9._-]/g, "_");
         if (!filename || /^\.+$/.test(filename))
           throw new Error("Choose a file with a valid filename.");
@@ -186,7 +240,7 @@ function EvidenceFileEditor({
         // from the actual stored bytes instead of assuming a selected file matches.
         const stored = await storage.download(objectName);
         if (stored.error) throw new Error(stored.error.message);
-        if (stored.data.size > MAX_BYTES)
+        if (stored.data.size > MAX_STORED_BYTES)
           throw new Error("The stored object exceeds the evidence file size limit.");
         const actualHash = await digest(stored.data);
         if (selectedHash && actualHash !== selectedHash)
@@ -215,13 +269,20 @@ function EvidenceFileEditor({
       cache.setQueryData(recordKey, saved);
       setFile(null);
       onDirtyChange?.(false);
+      toast.add({
+        type: "success",
+        title: kind === "upload" ? "File attached" : "Upload recovered",
+        description: objectName.split("/").at(-1),
+      });
     } catch (cause) {
       if (!controller.signal.aborted)
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : "The file could not be attached. Your selected file is retained; retry or recover the upload.",
-        );
+        setFailure({
+          operation: kind,
+          message:
+            cause instanceof Error
+              ? cause.message
+              : "The file could not be attached. Your selected file is retained; retry or recover the upload.",
+        });
     } finally {
       finish(controller);
     }
@@ -238,81 +299,172 @@ function EvidenceFileEditor({
       ).download(path);
       if (downloadError) throw new Error(downloadError.message);
       await checkIdentity(controller);
-      const url = URL.createObjectURL(data);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = path.split("/").at(-1) ?? record.id;
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      downloadBlob(data, storedName);
+      announce(`Downloaded ${storedName}.`);
     } catch (cause) {
       if (!controller.signal.aborted)
-        setError(cause instanceof Error ? cause.message : "The file could not be downloaded.");
+        setFailure({
+          operation: "download",
+          message: cause instanceof Error ? cause.message : "The file could not be downloaded.",
+        });
     } finally {
       finish(controller);
     }
   }
+
+  function choose(selected: File | undefined) {
+    if (!selected) return;
+    setFile(selected);
+    setProblem(undefined);
+    setFailure(null);
+    onDirtyChange?.(true);
+  }
+  function remove() {
+    if (!file) return;
+    const name = file.name;
+    setFile(null);
+    setFailure(null);
+    onDirtyChange?.(false);
+    announce(`Removed ${name}.`);
+    // The row took focus with it; the trigger is the control that survives.
+    trigger.current?.focus();
+  }
+  function upload() {
+    if (busy) return;
+    if (!file) {
+      setProblem("Choose a file to upload.");
+      trigger.current?.focus();
+      return;
+    }
+    void attach(file);
+  }
+  const waiting = "Wait for the current file operation to finish.";
+  const uploadFailed = failure?.operation === "upload" && !!file;
+  const storedSize =
+    typeof record["byte_size"] === "number"
+      ? formatFileSize(record["byte_size"], { locale })
+      : null;
+  const storedType = typeof record["media_type"] === "string" ? record["media_type"] : null;
+
   return (
-    <Box padding="space.250" backgroundColor="elevation.surface.sunken">
+    <Section title="Evidence file">
       <Stack space="space.200">
-        <h2 className="font-heading-small">Evidence file</h2>
         {hasFile && path ? (
-          <Inline space="space.150" alignBlock="center" shouldWrap>
-            <span>{path.split("/").at(-1)}</span>
-            <Button variant="secondary" disabled={!!busy} onClick={() => void download()}>
-              {busy === "download" ? "Downloading…" : "Download file"}
-            </Button>
-          </Inline>
-        ) : (
-          <p className="text-subtle">No uploaded file is attached to this version.</p>
-        )}
+          <Attachment state={busy === "download" ? "processing" : "done"} className="w-full">
+            <Attachment.Media aria-hidden="true">
+              {busy === "download" ? <Spinner isDecorative /> : <FileText />}
+            </Attachment.Media>
+            <Attachment.Content>
+              <Attachment.Title>{storedName}</Attachment.Title>
+              <Attachment.Description>
+                {busy === "download"
+                  ? "Downloading…"
+                  : [storedType, storedSize].filter(Boolean).join(" · ") || "Attached file"}
+              </Attachment.Description>
+            </Attachment.Content>
+            <Attachment.Trigger
+              aria-label={`Download ${storedName}`}
+              title={`Download ${storedName}`}
+              onClick={() => void download()}
+            />
+          </Attachment>
+        ) : !writable ? (
+          <Text color="color.text.subtle">No uploaded file is attached to this version.</Text>
+        ) : null}
         {writable && (
-          <Stack space="space.150">
+          <Stack space="space.200">
             <Field>
-              <FieldLabel htmlFor="evidence-upload">Attach a file (up to 50 MiB)</FieldLabel>
-              <Input
-                autoFocus={autoFocus}
-                id="evidence-upload"
-                type="file"
+              <FieldLabel>Attach a file</FieldLabel>
+              <DropZone
+                maxSize={MAX_SELECTED_BYTES}
                 disabled={!!busy}
-                onChange={(event) => {
-                  const selected = event.target.files?.[0] ?? null;
-                  setFile(selected);
-                  onDirtyChange?.(!!selected);
-                }}
-              />
+                triggerRef={bindTrigger}
+                onSelect={(files) => choose(files[0])}
+                // The zone says why it refused; an earlier "Choose a file" no longer applies.
+                onReject={() => setProblem(undefined)}
+              >
+                <FieldDescription>
+                  Any type, up to {formatFileSize(MAX_SELECTED_BYTES, { locale })}. Its size, media
+                  type and SHA-256 are recorded from the file.
+                </FieldDescription>
+              </DropZone>
+              {problem ? <FieldError>{problem}</FieldError> : null}
             </Field>
-            <Inline space="space.150" shouldWrap>
+            {file ? (
+              <Attachment
+                state={busy === "upload" ? "uploading" : uploadFailed ? "error" : "idle"}
+                className="w-full"
+              >
+                <Attachment.Media aria-hidden="true">
+                  {busy === "upload" ? <Spinner isDecorative /> : <FileText />}
+                </Attachment.Media>
+                <Attachment.Content>
+                  <Attachment.Title>{file.name}</Attachment.Title>
+                  <Attachment.Description>
+                    {busy === "upload"
+                      ? "Uploading…"
+                      : uploadFailed
+                        ? "Not uploaded. Retry, or remove it and choose another file."
+                        : `Ready to upload · ${formatFileSize(file.size, { locale })}`}
+                  </Attachment.Description>
+                </Attachment.Content>
+                {busy !== "upload" ? (
+                  <Attachment.Actions>
+                    {uploadFailed ? (
+                      <Attachment.Action
+                        label={`Retry ${file.name}`}
+                        icon={<RotateCcw />}
+                        onClick={() => void attach(file)}
+                      />
+                    ) : null}
+                    <Attachment.Action
+                      label={`Remove ${file.name}`}
+                      icon={<X />}
+                      onClick={remove}
+                    />
+                  </Attachment.Actions>
+                ) : null}
+              </Attachment>
+            ) : null}
+            <Inline space="space.150" rowSpace="space.100" shouldWrap>
               <Button
                 variant="primary"
-                disabled={!file || !!busy}
-                onClick={() => file && void attach(file)}
+                isLoading={busy === "upload"}
+                disabledReason={busy && busy !== "upload" ? waiting : undefined}
+                onClick={upload}
               >
-                {busy === "upload" ? "Uploading…" : "Upload file"}
+                Upload file
               </Button>
               {path && (
-                <Button variant="secondary" disabled={!!busy} onClick={() => void attach()}>
-                  {busy === "recover" ? "Recovering…" : "Recover uploaded file"}
+                <Button
+                  variant="secondary"
+                  isLoading={busy === "recover"}
+                  disabledReason={busy && busy !== "recover" ? waiting : undefined}
+                  onClick={() => void attach()}
+                >
+                  Recover uploaded file
                 </Button>
               )}
             </Inline>
             {path && (
-              <p className="font-body-small text-subtle">
-                Reserved filename: {path.split("/").at(-1)}. If an earlier upload finished but its
-                record did not save, recover it without uploading again.
-              </p>
+              <Text size="small" color="color.text.subtle">
+                Reserved filename: {storedName}. If an earlier upload finished but its record did
+                not save, recover it without uploading again.
+              </Text>
             )}
-            <p className="font-body-small text-subtle">
-              File size, media type, and SHA-256 are recorded from the file. Publish this version
-              after reviewing its provenance.
-            </p>
+            <Text size="small" color="color.text.subtle">
+              Publish this version after reviewing its provenance.
+            </Text>
           </Stack>
         )}
-        {error && (
-          <p role="alert" className="text-danger">
-            {error}
-          </p>
-        )}
+        {failure ? (
+          <Alert variant="destructive" role="alert">
+            <AlertCircle aria-hidden />
+            <AlertTitle>{failureTitles[failure.operation]}</AlertTitle>
+            <AlertDescription>{failure.message}</AlertDescription>
+          </Alert>
+        ) : null}
       </Stack>
-    </Box>
+    </Section>
   );
 }

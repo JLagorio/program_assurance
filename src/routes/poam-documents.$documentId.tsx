@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PoamDocument } from "@/components/prototype/assurance-views";
 export const Route = createFileRoute("/poam-documents/$documentId")({
-  head: () => ({ meta: [{ title: "POA&M document — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "POA&M plan — Program Assurance" }] }),
   component: Page,
 });
 function Page() {

@@ -1,20 +1,22 @@
 import { ProductRecordDialog } from "./product-record-dialog";
-import { EmptyMessage, MissingRecord } from "./work-common";
+import { DetailFacts, MissingRecord } from "./work-common";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Absent,
+  DateTime,
+  Diff,
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyIllustration,
+  EmptyMedia,
+  EmptyTitle,
   Inspector,
   Shell,
   Id,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
   Button,
-  Inline,
   KeyValue,
   PageHeader,
   Section,
@@ -23,15 +25,19 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  Text,
   TextLink,
   Timeline,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
+import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRow, useRows, type Row } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { requirementIdentityLinks } from "@/lib/requirement-tree";
+import { revisionStates } from "@/lib/status";
 import { RelationName } from "./record-tools";
+import { RecordTrail, TrailLink } from "./record-trail";
 import { RequirementEvidence } from "./requirement-evidence";
 import { RequirementControlMappings } from "./requirement-control-mappings";
 import { RequirementAllocations } from "./requirement-allocations";
@@ -102,13 +108,15 @@ export function RequirementRecordContent({
     workspace.role !== "viewer" && requirement.data?.tenant_id === workspace.tenantId;
   const canCreate = canWrite && collection?.can_insert;
   const canEdit = canWrite && collection?.can_update;
-  const actions =
+  // One rule for the page and the preview: the identity is edited where it can be updated.
+  const canEditIdentity =
     canWrite &&
-    workspace.collections.find((item) => item.name === "engineering_requirements")?.can_update ? (
-      <Button size="small" variant="primary" onClick={() => setEditingIdentity(true)}>
-        Edit engineering requirement
-      </Button>
-    ) : null;
+    !!workspace.collections.find((item) => item.name === "engineering_requirements")?.can_update;
+  const actions = canEditIdentity ? (
+    <Button size="small" variant="primary" onClick={() => setEditingIdentity(true)}>
+      Edit engineering requirement
+    </Button>
+  ) : null;
   const frame = (content: ReactNode) =>
     renderFrame
       ? renderFrame({
@@ -126,16 +134,28 @@ export function RequirementRecordContent({
   if (!requirement.data || requirement.data.program_id !== programId)
     return frame(
       <MissingRecord
+        inline
         backTo="/programs"
         kind="Requirement"
         description="This requirement is unavailable in this program."
       />,
     );
+  const details = active ? (
+    <DetailFacts
+      facts={[
+        ["Code", <Id>{requirement.data.code}</Id>],
+        ["Version", active.version_number],
+        ["State", <StatusBadge statuses={revisionStates} value={active.state} />],
+      ]}
+    />
+  ) : null;
   const content = (
     <Stack space="space.250">
       <ProgramQueryState queries={[requirement, revisions]} />
       {active ? (
         <>
+          {/* A preview has no rail: its identity sits under its header. */}
+          {preview ? details : null}
           <Tabs
             value={currentTab}
             onValueChange={(value) => changeTab(requirementTab(value) ?? "Overview")}
@@ -179,6 +199,7 @@ export function RequirementRecordContent({
                 )}
                 {currentTab === "Verification" && (
                   <ProgramCollection
+                    fill
                     name="requirement_verifications"
                     title="Verification procedures"
                     filters={{ requirement_revision_id: active.id }}
@@ -214,27 +235,31 @@ export function RequirementRecordContent({
           </Tabs>
           {!preview && currentTab === "Overview" && (
             <Shell.Aside label="Requirement details">
-              <Inspector.Group title="Details">
-                <KeyValue label="Code">
-                  <Id>{requirement.data.code}</Id>
-                </KeyValue>
-                <KeyValue label="Version">{active.version_number}</KeyValue>
-                <KeyValue label="Status">{active.state}</KeyValue>
-              </Inspector.Group>
+              <Inspector.Group title="Details">{details}</Inspector.Group>
             </Shell.Aside>
           )}
         </>
       ) : (
-        <Section
-          title="Requirement details"
-          description="Add the authored statement and acceptance criteria to begin this requirement."
-        >
-          {canCreate && (
-            <Button iconBefore={<Plus />} onClick={() => setCreating(true)}>
-              Create requirement revision
-            </Button>
-          )}
-        </Section>
+        <Empty>
+          <EmptyMedia aria-hidden>
+            <EmptyIllustration kind="document" />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No requirement details yet</EmptyTitle>
+            <EmptyDescription>
+              {canCreate
+                ? "Add the statement and acceptance criteria to begin this requirement."
+                : "The statement and acceptance criteria have not been written yet."}
+            </EmptyDescription>
+          </EmptyHeader>
+          {canCreate ? (
+            <EmptyContent>
+              <Button variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
+                Create requirement revision
+              </Button>
+            </EmptyContent>
+          ) : null}
+        </Empty>
       )}
       {editingIdentity && requirement.data && (
         <ProductRecordDialog
@@ -258,12 +283,16 @@ export function RequirementRecordContent({
 
 const changeLabels: Record<string, string> = {
   title: "Title",
-  statement: "Overview",
+  statement: "Statement",
   acceptanceCriteria: "Acceptance criteria",
   rationale: "Rationale",
   requirementType: "Requirement type",
   ownerPartyId: "Owner",
 };
+/** The fields whose edits are paragraphs of authored text, shown as what changed in them. */
+const proseChanges = new Set(["statement", "acceptanceCriteria", "rationale"]);
+const textValue = (value: unknown) =>
+  value === null || value === undefined ? "" : typeof value === "string" ? value : String(value);
 function RequirementActivity({
   programId,
   revisions,
@@ -274,76 +303,93 @@ function RequirementActivity({
   const query = useRows("activity_events", { program_id: programId });
   const parties = useRows("parties");
   const revisionMap = new Map(revisions.map((revision) => [revision.id, revision]));
+  const partyName = new Map((parties.data ?? []).map((party) => [party.id, party.name]));
+  /** The fields whose value changed; an entry whose values all stayed the same says nothing. */
+  const changedFields = (event: DataRecord) => {
+    const changes = event["changes"];
+    if (!changes || typeof changes !== "object" || Array.isArray(changes)) return [];
+    return Object.entries(changes).filter(([, value]) => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+      const change = value as Record<string, unknown>;
+      return change["before"] !== change["after"];
+    }) as [string, Record<string, unknown>][];
+  };
   const events = ((query.data ?? []) as DataRecord[])
     .filter(
       (event) =>
         typeof event["requirement_revision_id"] === "string" &&
         revisionMap.has(event["requirement_revision_id"]) &&
-        !!event["changes"] &&
-        typeof event["changes"] === "object" &&
-        !Array.isArray(event["changes"]) &&
-        Object.keys(event["changes"]).length > 0,
+        changedFields(event).length > 0,
     )
     .sort((a, b) => String(b["occurred_at"]).localeCompare(String(a["occurred_at"])));
   const diffValue = (field: string, value: unknown) => {
-    if (value === null || value === undefined || value === "") return <Absent />;
-    if (field === "ownerPartyId")
-      return parties.data?.find((party) => party.id === value)?.name ?? String(value);
+    if (value === null || value === undefined || value === "") return <Absent label="Empty" />;
+    if (field === "ownerPartyId") return partyName.get(String(value)) ?? "Unavailable owner";
     return field === "requirementType" ? labelFor(String(value)) : String(value);
   };
+  if (query.isPending || query.error || parties.error)
+    return <ProgramQueryState queries={[query, parties]} />;
+  if (!events.length)
+    return (
+      <Empty>
+        <EmptyMedia aria-hidden>
+          <EmptyIllustration kind="records" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>No edits recorded yet</EmptyTitle>
+          <EmptyDescription>
+            Changes to the title, statement, acceptance criteria, rationale, type and owner appear
+            here.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
   return (
-    <Section title="Edit history" count={events.length}>
-      <ProgramQueryState queries={[query]} />
-      {query.isSuccess && !events.length && <EmptyMessage title="No edits recorded yet" />}
-      {!!events.length && (
-        <Timeline label="Edit history" size="small" wrap>
-          {events.map((event) => {
-            const changes = event["changes"];
-            const entries =
-              changes && typeof changes === "object" && !Array.isArray(changes)
-                ? Object.entries(changes).filter(([, value]) => {
-                    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-                    const change = value as Record<string, unknown>;
-                    return change["before"] !== change["after"];
-                  })
-                : [];
-            return (
-              <Timeline.Item
-                key={event.id}
-                title={`${event["event_type"] === "created" ? "Added" : "Edited"} ${entries.map(([field]) => changeLabels[field] ?? labelFor(field)).join(", ")}`}
-                description={
-                  !event["source_requirement_revision_id"] &&
-                  typeof event["description"] === "string"
-                    ? event["description"]
-                    : undefined
-                }
-                meta={
-                  event["actor_party_id"] ? (
-                    <RelationName table="parties" id={String(event["actor_party_id"])} />
-                  ) : (
-                    "Actor not recorded"
-                  )
-                }
-                dateTime={String(event["occurred_at"])}
-                timeTitle={String(event["occurred_at"])}
-                time={new Date(String(event["occurred_at"])).toLocaleString()}
-              >
-                {entries.map(([field, value]) => {
-                  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-                  return (
-                    <span key={field} className="block whitespace-pre-wrap font-body-small">
-                      <strong>{changeLabels[field] ?? labelFor(field)}: </strong>
-                      {diffValue(field, (value as Record<string, unknown>)["before"])} →{" "}
-                      {diffValue(field, (value as Record<string, unknown>)["after"])}
-                    </span>
-                  );
-                })}
-              </Timeline.Item>
-            );
-          })}
-        </Timeline>
-      )}
-    </Section>
+    <Timeline label="Edit history" size="small" wrap>
+      {events.map((event) => {
+        const entries = changedFields(event);
+        const actor = event["actor_party_id"];
+        const occurredAt = String(event["occurred_at"]);
+        return (
+          <Timeline.Item
+            key={event.id}
+            title={`${event["event_type"] === "created" ? "Added" : "Edited"} ${entries.map(([field]) => (changeLabels[field] ?? labelFor(field)).toLowerCase()).join(", ")}`}
+            description={
+              !event["source_requirement_revision_id"] && typeof event["description"] === "string"
+                ? event["description"]
+                : undefined
+            }
+            meta={
+              typeof actor === "string"
+                ? (partyName.get(actor) ?? (parties.data ? "Unavailable person" : "Loading…"))
+                : "Actor not recorded"
+            }
+            time={<DateTime value={occurredAt} focusable={false} />}
+          >
+            <Stack space="space.100">
+              {entries.map(([field, change]) => {
+                const label = changeLabels[field] ?? labelFor(field);
+                // Authored paragraphs compare as a Diff; a title, a type or an owner is one value.
+                return proseChanges.has(field) ? (
+                  <Diff
+                    key={field}
+                    before={textValue(change["before"])}
+                    after={textValue(change["after"])}
+                    beforeLabel="Before"
+                    afterLabel="After"
+                    label={`${label}, before and after this edit`}
+                  />
+                ) : (
+                  <KeyValue key={field} label={label} wrap>
+                    {diffValue(field, change["before"])} → {diffValue(field, change["after"])}
+                  </KeyValue>
+                );
+              })}
+            </Stack>
+          </Timeline.Item>
+        );
+      })}
+    </Timeline>
   );
 }
 
@@ -403,9 +449,9 @@ function RequirementRevisionLink({
   const revision = useRow("requirement_revisions", revisionId);
   const requirement = useRow("engineering_requirements", revision.data?.engineering_requirement_id);
   if (revision.isPending || (revision.data && requirement.isPending))
-    return <span className="text-subtle">Loading requirement…</span>;
+    return <Text color="color.text.subtle">Loading requirement…</Text>;
   if (!revision.data || !requirement.data || requirement.data.program_id !== programId)
-    return <span className="text-subtle">Requirement unavailable</span>;
+    return <Text color="color.text.subtle">Requirement unavailable</Text>;
   return (
     <TextLink
       render={
@@ -442,7 +488,6 @@ export function ProgramRequirementRecord({
       />
     );
   const programName = program.data.name;
-  const requirementCode = requirement.data.code;
   return (
     <RequirementRecordContent
       key={requirementId}
@@ -453,39 +498,19 @@ export function ProgramRequirementRecord({
       renderFrame={({ content, title, actions }) => (
         <Stack space="space.250">
           <PageHeader>
-            <PageHeader.Lead render={<Breadcrumb />}>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    render={<Link to="/programs/$programId" params={{ programId }} />}
-                  >
-                    {programName}
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    render={
-                      <Link
-                        to="/programs/$programId"
-                        params={{ programId }}
-                        search={{ tab: "Requirements" }}
-                      />
-                    }
-                  >
-                    Requirements
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{title}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </PageHeader.Lead>
+            <RecordTrail current={title}>
+              <TrailLink to="/programs">Programs</TrailLink>
+              <TrailLink to="/programs/$programId" params={{ programId }}>
+                {programName}
+              </TrailLink>
+              <TrailLink
+                to="/programs/$programId"
+                params={{ programId }}
+                search={{ tab: "Requirements" }}
+              >
+                Requirements
+              </TrailLink>
+            </RecordTrail>
             <PageHeader.Heading>
               <PageHeader.Title>{title}</PageHeader.Title>
             </PageHeader.Heading>

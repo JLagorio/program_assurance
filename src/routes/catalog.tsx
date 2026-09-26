@@ -3,7 +3,6 @@ import {
   LibraryControlTable,
   type ControlSelector,
 } from "@/components/prototype/library-controls";
-import { LibraryLoading } from "@/components/prototype/library-shared";
 import { ProductCollection } from "@/components/prototype/product-collection";
 import {
   RecordLink,
@@ -12,17 +11,24 @@ import {
   recordDestination,
   useDisplayedRecords,
 } from "@/components/prototype/record-preview";
-import { EmptyMessage } from "@/components/prototype/work-common";
+import { EmptyMessage, QueryState } from "@/components/prototype/work-common";
 import { useRows, type Row } from "@/lib/models";
+import { cciStatuses, referenceResolutionStatuses } from "@/lib/status";
+import { StatusBadge } from "@/components/app/status";
 import {
+  Absent,
   Badge,
   Count,
   DataTable,
+  DateTime,
+  Icon,
   Id,
   Inline,
   Inspector,
   KeyValue,
   PageHeader,
+  Prose,
+  Section,
   Select,
   SelectContent,
   SelectItem,
@@ -38,26 +44,42 @@ import {
   useDataTable,
 } from "@ledger/design-system";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ExternalLink } from "lucide-react";
 import { useMemo, useState } from "react";
 
+const catalogTabs = ["Controls", "CCIs", "Sources"] as const;
+type CatalogTab = (typeof catalogTabs)[number];
+
 export const Route = createFileRoute("/catalog")({
-  validateSearch: (search: Record<string, unknown>): { edition?: string } =>
-    typeof search["edition"] === "string" && /^[0-9a-f-]{36}$/i.test(search["edition"])
+  // The tab and the edition live in the URL, so reload, Back and a shared link keep them.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { edition?: string | undefined; tab?: CatalogTab | undefined } => ({
+    ...(typeof search["edition"] === "string" && /^[0-9a-f-]{36}$/i.test(search["edition"])
       ? { edition: search["edition"] }
-      : {},
+      : {}),
+    ...(() => {
+      const tab = catalogTabs.find(
+        (name) => name.toLowerCase() === String(search["tab"] ?? "").toLowerCase(),
+      );
+      return tab && tab !== "Controls" ? { tab } : {};
+    })(),
+  }),
   head: () => ({ meta: [{ title: "Catalog — Program Assurance" }] }),
   component: CatalogPage,
 });
 
 function CatalogPage() {
-  const { edition } = Route.useSearch();
+  const { edition, tab = "Controls" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const [tab, setTab] = useState("Controls");
   const [control, setControl] = useState<Row<"controls"> | null>(null);
   const [displayedControls, setDisplayedControls] = useState<Row<"controls">[]>([]);
   const revisions = useRows("catalog_revisions");
   const allControls = useRows("controls");
-  const selections = useRows("selected_controls");
+  // Only which profile resolution selects which control: the rest of each selection is not read.
+  const selections = useRows("selected_controls", undefined, {
+    columns: ["id", "profile_resolution_id", "control_id"],
+  });
   const resolutions = useRows("profile_resolutions");
   const profileRevisions = useRows("profile_revisions");
   const profiles = useRows("profiles");
@@ -111,22 +133,26 @@ function CatalogPage() {
       <Tabs
         value={tab}
         onValueChange={(value) => {
-          setTab(String(value));
+          const next = catalogTabs.find((name) => name === value) ?? "Controls";
           setControl(null);
+          void navigate({
+            search: (previous) => ({ ...previous, tab: next === "Controls" ? undefined : next }),
+            replace: true,
+          });
         }}
-        className="contents"
+        className="gap-150"
       >
         <TabsList variant="line" activateOnFocus aria-label="Catalog views">
-          {["Controls", "CCIs", "Sources"].map((name) => (
+          {catalogTabs.map((name) => (
             <TabsTrigger key={name} value={name}>
               {name}
-              {name === "Controls" && controls.data && <Count value={shown.length} max={99999} />}
+              {name === "Controls" && controls.data && <Count value={shown.length} max={9999} />}
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value={tab} className="contents">
+        <TabsContent value={tab}>
           {tab === "Controls" && (
-            <LibraryLoading
+            <QueryState
               queries={[
                 controls,
                 revisions,
@@ -148,10 +174,11 @@ function CatalogPage() {
                   <Select
                     value={current?.id ?? ""}
                     onValueChange={(value) => {
-                      if (value) void navigate({ search: { edition: value } });
+                      if (value)
+                        void navigate({ search: (previous) => ({ ...previous, edition: value }) });
                     }}
                   >
-                    <SelectTrigger aria-label="Catalog edition" size="sm">
+                    <SelectTrigger aria-label="Catalog edition" size="small">
                       <SelectValue placeholder="Catalog edition">
                         {current
                           ? `${catalogTitle(current)} · ${current.version}`
@@ -168,7 +195,7 @@ function CatalogPage() {
                   </Select>
                 }
               />
-            </LibraryLoading>
+            </QueryState>
           )}
           {tab === "CCIs" && <CciTable />}
           {tab === "Sources" && <SourcesList />}
@@ -233,11 +260,7 @@ function CciTable() {
         c.text("definition", { header: "Definition", hideable: false }),
         c.text("controls", { header: "Mapped controls", width: 180 }),
         c.text("types", { header: "Type", width: 132 }),
-        c.status("status", {
-          header: "Source status",
-          width: 130,
-          tone: (row) => (row.status === "deprecated" ? "warning" : "neutral"),
-        }),
+        c.status("status", { header: "Source status", width: 130, statuses: cciStatuses }),
         c.date("published_on", { header: "Published", width: 125 }),
       ]),
     [selected?.id],
@@ -254,10 +277,12 @@ function CciTable() {
   });
   const displayed = useDisplayedRecords(table);
   return (
-    <LibraryLoading queries={[items, references, links, controls, types]}>
+    <>
       <ProductCollection
         table={table}
         fill
+        queries={[items, references, links, controls, types]}
+        noun={{ one: "CCI", other: "CCIs" }}
         onRowClick={(row) => void navigate(recordDestination("cci_items", row))}
         empty={{
           illustration: "shield",
@@ -289,68 +314,117 @@ function CciTable() {
         >
           <Stack space="space.200">
             <Inspector.Group title="Definition">
-              <p className="font-body-small">{selected.definition}</p>
+              <Prose>{selected.definition}</Prose>
             </Inspector.Group>
             <Inspector.Group title="Source record">
-              <KeyValue label="Status">{selected.status}</KeyValue>
-              <KeyValue label="Contributor">{selected.contributor ?? "Not recorded"}</KeyValue>
-              <KeyValue label="Published">{selected.published_on}</KeyValue>
+              <KeyValue.Group>
+                <KeyValue label="Status">
+                  <StatusBadge statuses={cciStatuses} value={selected.status} />
+                </KeyValue>
+                <KeyValue label="Contributor">
+                  {selected.contributor ?? <Absent label="Not recorded" />}
+                </KeyValue>
+                <KeyValue label="Published">
+                  <DateTime value={selected.published_on} absentLabel="Not recorded" />
+                </KeyValue>
+              </KeyValue.Group>
             </Inspector.Group>
             <Inspector.Group title="Publication references">
-              <Stack space="space.150">
+              <Stack space="space.200">
                 {references.data
                   ?.filter((reference) => reference.cci_item_id === selected.id)
                   .map((reference) => (
-                    <Stack key={reference.id} space="space.050">
-                      <p className="font-body-small font-semibold">
+                    <KeyValue.Group key={reference.id}>
+                      <KeyValue label="Publication" wrap>
                         {reference.publication_title} · {reference.publication_version}
-                      </p>
-                      <Id>{reference.source_index}</Id>
-                      <span className="font-body-small text-subtle">
-                        {reference.resolution_status.replaceAll("-", " ")}
-                      </span>
-                    </Stack>
+                      </KeyValue>
+                      <KeyValue label="Index">
+                        <Id>{reference.source_index}</Id>
+                      </KeyValue>
+                      <KeyValue label="Resolution">
+                        <StatusBadge
+                          statuses={referenceResolutionStatuses}
+                          value={reference.resolution_status}
+                        />
+                      </KeyValue>
+                    </KeyValue.Group>
                   ))}
               </Stack>
             </Inspector.Group>
           </Stack>
         </RecordPreviewPanel>
       )}
-    </LibraryLoading>
+    </>
   );
+}
+
+/**
+ * A source's address in a few words: the file it names ("NIST_SP-800-53_rev5_catalog.json"),
+ * else its host, so each source's link reads differently from the next.
+ */
+function sourceName(uri: string) {
+  try {
+    const url = new URL(uri);
+    const file = decodeURIComponent(url.pathname.split("/").filter(Boolean).at(-1) ?? "");
+    return file || url.host || uri;
+  } catch {
+    return uri;
+  }
 }
 
 function SourcesList() {
   const sources = useRows("ref_sources");
   return (
-    <LibraryLoading queries={[sources]}>
-      <Stack space="space.250">
+    <QueryState queries={[sources]}>
+      <Stack space="space.300">
         {sources.data?.length ? (
           sources.data.map((source) => (
-            <Stack key={source.id} space="space.100" className="border-b pb-250">
-              <Inline space="space.100" alignBlock="center" shouldWrap>
-                <h2 className="font-heading-small">{source.title}</h2>
-                <Badge variant="secondary" tone={source.authoritative ? "success" : "warning"}>
-                  {source.authoritative ? "Authoritative source" : "Mirror or derived source"}
-                </Badge>
-              </Inline>
-              <KeyValue label="Authority">{source.authority}</KeyValue>
-              <KeyValue label="Source" wrap>
-                <TextLink href={source.source_uri} target="_blank" rel="noreferrer">
-                  {source.source_uri}
-                </TextLink>
-              </KeyValue>
-              {source.rights && <p className="font-body-small text-subtle">{source.rights}</p>}
-              {source.notes && <p className="font-body-small text-subtle">{source.notes}</p>}
-            </Stack>
+            <Section key={source.id}>
+              <Section.Header divided>
+                <Section.Heading>
+                  <Inline space="space.100" alignBlock="baseline" shouldWrap>
+                    <Section.Title>{source.title}</Section.Title>
+                    <Badge
+                      variant="secondary"
+                      size="xsmall"
+                      tone={source.authoritative ? "success" : "warning"}
+                    >
+                      {source.authoritative ? "Authoritative source" : "Mirror or derived source"}
+                    </Badge>
+                  </Inline>
+                </Section.Heading>
+              </Section.Header>
+              <KeyValue.Group>
+                <KeyValue label="Authority">{source.authority}</KeyValue>
+                <KeyValue label="Source" wrap>
+                  <TextLink href={source.source_uri} target="_blank" rel="noopener noreferrer">
+                    {sourceName(source.source_uri)}{" "}
+                    <Icon label="opens in a new tab">
+                      <ExternalLink />
+                    </Icon>
+                  </TextLink>
+                </KeyValue>
+                {source.rights && (
+                  <KeyValue label="Rights" wrap>
+                    {source.rights}
+                  </KeyValue>
+                )}
+                {source.notes && (
+                  <KeyValue label="Notes" wrap>
+                    {source.notes}
+                  </KeyValue>
+                )}
+              </KeyValue.Group>
+            </Section>
           ))
         ) : (
           <EmptyMessage
+            illustration="document"
             title="No reference sources"
-            description="Import a reference source to fill the catalog."
+            description="Reference sources appear here once a pinned publication is imported."
           />
         )}
       </Stack>
-    </LibraryLoading>
+    </QueryState>
   );
 }

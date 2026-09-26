@@ -69,6 +69,7 @@ import {
   DropdownMenuTrigger,
   getModifierKey,
   IconButton,
+  Input,
   TabsList,
   TabsTrigger,
 } from "../../components";
@@ -2161,5 +2162,83 @@ export const KeepOpenPhone: Story = {
     await expect(nav).toHaveAttribute("data-overlay", "open");
     await expect(link).toHaveFocus();
     await expect(canvas.getByText("Closed by: nothing yet")).toBeVisible();
+  },
+};
+
+function PanelFocusDemo() {
+  const [row, setRow] = useState<number | null>(null);
+  return (
+    <Shell>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Text>Program Assurance</Text>
+        </Shell.TopNav.Start>
+      </Shell.TopNav>
+      <Shell.Main>
+        <Stack space="space.200">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>Findings</PageHeader.Title>
+            </PageHeader.Heading>
+          </PageHeader>
+          <Inline space="space.100">
+            {[1, 2, 3].map((n) => (
+              <Button key={n} onClick={() => setRow(n)}>
+                {`Preview finding ${n}`}
+              </Button>
+            ))}
+          </Inline>
+        </Stack>
+      </Shell.Main>
+      {row !== null && (
+        <Shell.Panel title={`Finding ${row}`} onClose={() => setRow(null)}>
+          <Stack space="space.100">
+            <Input aria-label="Filter evidence" />
+            <Text>{`Evidence for finding ${row}.`}</Text>
+          </Stack>
+        </Shell.Panel>
+      )}
+    </Shell>
+  );
+}
+
+/**
+ * The panel's focus contract on a wide screen, where it sits beside Main: opening it moves focus
+ * into it (at every width, not only where it covers Main), Escape in a field inside it belongs to
+ * the field, and closing it returns focus to the control the reader last used in Main, here the
+ * third row's opener pressed while the first row's preview was open.
+ */
+export const PanelFocus: Story = {
+  name: "Panel focus",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: () => <PanelFocusDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const first = canvas.getByRole("button", { name: "Preview finding 1" });
+    first.focus();
+    await userEvent.keyboard("{Enter}");
+    const panel = await canvas.findByRole("complementary", { name: "Finding 1" });
+    await waitFor(() => expect(panel).toHaveFocus());
+    const filter = within(panel).getByRole("textbox", { name: "Filter evidence" });
+    await userEvent.click(filter);
+    await userEvent.keyboard("AC-2{Escape}");
+    await expect(canvas.getByRole("complementary", { name: "Finding 1" })).toBeInTheDocument();
+    await expect(filter).toHaveFocus();
+    // Another row's opener while the panel is open: the panel stays and shows that row.
+    const third = canvas.getByRole("button", { name: "Preview finding 3" });
+    await userEvent.click(third);
+    await canvas.findByRole("complementary", { name: "Finding 3" });
+    await userEvent.click(within(panel).getByRole("button", { name: "Close details" }));
+    await waitFor(() => expect(third).toHaveFocus());
+    await expect(canvas.queryByRole("complementary")).not.toBeInTheDocument();
+    // Escape from the panel itself closes it and returns focus to its opener.
+    const second = canvas.getByRole("button", { name: "Preview finding 2" });
+    second.focus();
+    await userEvent.keyboard("{Enter}");
+    const reopened = await canvas.findByRole("complementary", { name: "Finding 2" });
+    await waitFor(() => expect(reopened).toHaveFocus());
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(second).toHaveFocus());
+    await expect(canvas.queryByRole("complementary")).not.toBeInTheDocument();
   },
 };

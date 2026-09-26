@@ -123,10 +123,5 @@ export default tseslint.config(
       ],
     },
   },
-  {
-    // The product shell composes the package's Shell parts and keeps the name; it is the one intentional shadow.
-    files: ["src/components/app/shell.tsx"],
-    rules: { "ledger/no-kit-shadow": "off" },
-  },
   eslintPluginPrettier,
 );

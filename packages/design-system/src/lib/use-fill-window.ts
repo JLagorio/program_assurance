@@ -37,14 +37,20 @@ export function useFillWindow(ref: RefObject<HTMLElement | null>, enabled = true
     if (!enabled || !el) return;
     const measure = () => setTop(documentTop(el));
     measure();
-    document.addEventListener("animationend", measure);
+    // Only an animation on the block or a box around it (the page's entrance) can move its top
+    // without a resize; a menu, tooltip or toast animating elsewhere does not, so it is not read.
+    const settle = (event: AnimationEvent) => {
+      if (event.target instanceof Node && event.target.contains(el)) measure();
+    };
+    document.addEventListener("animationend", settle);
     const observer =
       typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(measure);
-    for (let node: HTMLElement | null = el; node && node !== document.documentElement; )
-      observer?.observe(node), (node = node.parentElement);
+    let node: HTMLElement | null = el;
+    for (; node && node !== document.documentElement; node = node.parentElement)
+      observer?.observe(node);
     return () => {
       observer?.disconnect();
-      document.removeEventListener("animationend", measure);
+      document.removeEventListener("animationend", settle);
     };
   }, [ref, enabled]);
   return top;

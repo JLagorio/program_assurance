@@ -14,8 +14,6 @@ import {
   DataTable,
   Inline,
   KeyValue,
-  Stack,
-  Toolbar,
   defineColumns,
   useDataTable,
   type Preset,
@@ -57,12 +55,7 @@ export function ProgramLibrary({
 }) {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string>();
-  const {
-    rows,
-    pending: assurancePending,
-    error: assuranceError,
-    queries: assuranceQueries,
-  } = useSystemAssurance(programId);
+  const { rows, queries: assuranceQueries } = useSystemAssurance(programId);
   const components = useRows("system_components");
   const definedComponents = useRows("defined_components");
   const revisions = useRows("component_definition_revisions");
@@ -183,6 +176,7 @@ export function ProgramLibrary({
     columns,
     data,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.name,
     label: "Library items in this program",
     view: "live-program-library-v1",
     resizable: true,
@@ -199,8 +193,6 @@ export function ProgramLibrary({
     contributions,
     implementations,
   ];
-  const error = assuranceError ?? queries.find((query) => query.error)?.error;
-  const pending = assurancePending || queries.some((query) => query.isPending);
   return (
     <>
       <ProductCollection
@@ -241,14 +233,26 @@ export function ProgramLibrary({
             />
           }
         >
-          <Stack space="space.150">
+          <KeyValue.Group>
             <KeyValue label="Kind">{selected.kind}</KeyValue>
+            {selected.category && <KeyValue label="Category">{selected.category}</KeyValue>}
             <KeyValue label="Version">{selected.version}</KeyValue>
-            <KeyValue label="Applied to">
-              {selected.elements.map((element) => element.label).join(", ")}
+            <KeyValue label="Applied to" wrap>
+              {selected.elements.map((element) => element.label).join(", ") || <Absent />}
             </KeyValue>
-            <KeyValue label="Update">{selected.updateFlag}</KeyValue>
-          </Stack>
+            <KeyValue label="Changed here">
+              {selected.changedHere ? (
+                selected.changedHere
+              ) : (
+                <Absent label="Nothing changed here" />
+              )}
+            </KeyValue>
+            <KeyValue label="Update">
+              {selected.updateAvailable
+                ? `Version ${selected.updateAvailable.version} available`
+                : selected.updateFlag}
+            </KeyValue>
+          </KeyValue.Group>
         </RecordPreviewPanel>
       )}
     </>

@@ -1,14 +1,17 @@
 import { type Meta, type StoryObj } from "@storybook/react-vite";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { DataTable, PickerSheet, defineColumns, useDataTable } from "../..";
 import {
   Button,
+  Field,
+  FieldLabel,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Textarea,
 } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -165,20 +168,14 @@ function PickerStates() {
           onClose={reset}
           title="Allocate requirements"
           subtitle="Flight computer · 14 allocated today"
-          search={{
-            value: String(choose.state.globalFilter ?? ""),
-            onChange: (v) => choose.setGlobalFilter(v),
-            placeholder: "Search requirements",
-          }}
+          table={choose}
+          search={{ placeholder: "Search requirements" }}
           filters={
             <>
               <DataTable.Filter table={choose} column="family" />
               <DataTable.Filter table={choose} column="state" />
             </>
           }
-          selected={chosen.size}
-          total={choose.getRowCount()}
-          onClear={() => choose.resetRowSelection()}
           action={{ label: `Continue with ${chosen.size}`, onClick: () => setFrame("details") }}
         >
           <DataTable
@@ -259,7 +256,7 @@ function PickerStates() {
     </Stack>
   );
 }
-/** Frame one is a DataTable in the sheet: search, the family and state facets, a sortable id column and a selection that survives the search; frame two is a second DataTable whose responsibility and coverage cells edit in place, with a defaults row and "Does not apply" per row. Open it. */
+/** Frame one is a DataTable in the sheet, passed as `table`: the search drives its global filter, and the count, the total and Clear come from its selection. The family and state facets, a sortable id column and a selection that survives the search; frame two is a second DataTable whose responsibility and coverage cells edit in place, with a defaults row and "Does not apply" per row. Open it. */
 export const PickerSheetStory: Story = {
   name: "Picker sheet",
   render: () => <PickerStates />,
@@ -270,7 +267,16 @@ export const PickerSheetStory: Story = {
     await userEvent.click(opener);
     const dialog = within(await page.findByRole("dialog", { name: "Allocate requirements" }));
     await expect(dialog.queryByRole("button", { name: "Back" })).toBeNull();
+    await expect(dialog.getByRole("searchbox", { name: "Search requirements" })).toHaveFocus();
+    await expect(dialog.getByText("28 to choose from")).toBeVisible();
     await userEvent.click(dialog.getByRole("checkbox", { name: "Select row REQ-0101" }));
+    await expect(dialog.getByText("1 chosen of 28")).toBeVisible();
+    // The selection survives a search: the count keeps it, "of" the rows on offer.
+    await userEvent.type(dialog.getByRole("searchbox", { name: "Search requirements" }), "encrypt");
+    await waitFor(() => expect(dialog.getByText("1 chosen of 4")).toBeVisible());
+    await userEvent.keyboard("{Escape}");
+    await expect(dialog.getByRole("searchbox", { name: "Search requirements" })).toHaveValue("");
+    await expect(dialog.getByText("1 chosen of 28")).toBeVisible();
     await userEvent.click(dialog.getByRole("button", { name: "Continue with 1" }));
     await userEvent.click(dialog.getByRole("button", { name: "Back" }));
     await expect(dialog.getByRole("button", { name: "Continue with 1" })).toBeEnabled();
@@ -333,6 +339,195 @@ export const ShortWindow: Story = {
     await expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight + 1);
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+  },
+};
+
+function SearchTheTable() {
+  const [open, setOpen] = useState(false);
+  const table = useDataTable({
+    columns: catalogueColumns,
+    data: catalogue,
+    getRowId: (r) => r.id,
+    selectable: true,
+    label: "Requirements",
+  });
+  return (
+    <Stack space="space.200">
+      <Specimens title="PickerSheet">
+        <Button variant="secondary" onClick={() => setOpen(true)}>
+          Allocate requirements
+        </Button>
+      </Specimens>
+      <PickerSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Allocate requirements"
+        subtitle="Flight computer"
+        table={table}
+        search={{ placeholder: "Search requirements" }}
+        action={{
+          label: `Allocate ${Object.keys(table.state.rowSelection).length} to Flight computer`,
+          onClick: () => setOpen(false),
+        }}
+      >
+        <DataTable
+          table={table}
+          responsive
+          className="rounded-none border-0"
+          empty={{
+            title: "Every requirement is already allocated here",
+            description: "Add requirements to the library to allocate more.",
+          }}
+        />
+      </PickerSheet>
+    </Stack>
+  );
+}
+
+/**
+ * The search filters the table, not the rows handed to it, so a search that matches nothing shows
+ * the table's filtered empty with Clear filters. It never says there is nothing to add, which is
+ * the empty for a collection with no rows at all.
+ */
+export const SearchWithNoMatch: Story = {
+  render: () => <SearchTheTable />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Allocate requirements" }));
+    const dialog = within(await page.findByRole("dialog", { name: "Allocate requirements" }));
+    const search = dialog.getByRole("searchbox", { name: "Search requirements" });
+    await userEvent.type(search, "zzzzqq");
+    await expect(await dialog.findByText("Nothing matches")).toBeVisible();
+    await expect(dialog.queryByText("Every requirement is already allocated here")).toBeNull();
+    await expect(dialog.getByText("0 to choose from")).toBeVisible();
+    await userEvent.click(dialog.getByRole("button", { name: "Clear filters" }));
+    await expect(search).toHaveValue("");
+    await expect(dialog.getByText("28 to choose from")).toBeVisible();
+    await expect(dialog.getByRole("checkbox", { name: "Select row REQ-0101" })).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+  },
+};
+
+/** The save each PendingAndFailure run is waiting on; its play function settles it. */
+const waitingSaves: Array<() => void> = [];
+
+function PendingPicker() {
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [closedBy, setClosedBy] = useState("Not closed yet");
+  const rationale = useRef<HTMLTextAreaElement>(null);
+  const table = useDataTable({
+    columns: catalogueColumns,
+    data: catalogue,
+    getRowId: (r) => r.id,
+    selectable: true,
+    label: "Requirements",
+  });
+  const count = Object.keys(table.state.rowSelection).length;
+  const allocate = async () => {
+    setError(null);
+    setPending(true);
+    await new Promise<void>((settle) => waitingSaves.push(settle));
+    setPending(false);
+    setError("The allocation could not be saved. Your choice is kept; try again.");
+  };
+  return (
+    <Stack space="space.200">
+      <Specimens title="PickerSheet">
+        <Button variant="secondary" onClick={() => setOpen(true)}>
+          Allocate requirements
+        </Button>
+        <Text size="small" color="color.text.subtle">
+          {closedBy}
+        </Text>
+      </Specimens>
+      <PickerSheet
+        open={open}
+        initialFocus={rationale}
+        onClose={(details) => {
+          setClosedBy(`Closed by ${details?.reason ?? "the caller"}`);
+          setOpen(false);
+          setError(null);
+        }}
+        title="Allocate requirements"
+        subtitle="Flight computer"
+        table={table}
+        search={{ placeholder: "Search requirements" }}
+        toolbar={
+          <Field>
+            <FieldLabel>Rationale</FieldLabel>
+            <Textarea ref={rationale} rows={2} />
+          </Field>
+        }
+        pending={pending}
+        error={error}
+        action={{
+          label: `Allocate ${count} to Flight computer`,
+          onClick: () => void allocate(),
+        }}
+      >
+        <DataTable table={table} responsive className="rounded-none border-0" />
+      </PickerSheet>
+    </Stack>
+  );
+}
+
+/**
+ * `initialFocus` puts focus in the rationale. While the allocation runs, `pending` holds the
+ * sheet: Escape, the blanket, the close button and Cancel do nothing, the toolbar and the rows
+ * cannot change, and the primary shows it is working. A failure ends it and shows `error` above the
+ * footer's buttons, outside the scroll, with the choice kept for a retry, as the story ends. `onClose`
+ * hears why the reader closed (`details.reason`), and focus goes back to the opener.
+ */
+export const PendingAndFailure: Story = {
+  render: () => <PendingPicker />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const opener = canvas.getByRole("button", { name: "Allocate requirements" });
+    // Closing: `onClose` hears why, and focus goes back to the opener.
+    await userEvent.click(opener);
+    let popup = await page.findByRole("dialog", { name: "Allocate requirements" });
+    await waitFor(() =>
+      expect(within(popup).getByRole("textbox", { name: "Rationale" })).toHaveFocus(),
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await expect(canvas.getByText("Closed by escape-key")).toBeVisible();
+    await expect(opener).toHaveFocus();
+    // Saving: the sheet holds until the command settles, then shows the failure.
+    await userEvent.click(opener);
+    popup = await page.findByRole("dialog", { name: "Allocate requirements" });
+    const dialog = within(popup);
+    await userEvent.click(dialog.getByRole("checkbox", { name: "Select row REQ-0101" }));
+    const primary = dialog.getByRole("button", { name: "Allocate 1 to Flight computer" });
+    await userEvent.click(primary);
+    await waitFor(() => expect(popup).toHaveAttribute("aria-busy", "true"));
+    await expect(primary).toHaveAttribute("aria-busy", "true");
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await expect(dialog.getByRole("button", { name: "Close" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await expect(popup.querySelector('[data-slot="sheet-body"]')).toHaveAttribute("inert");
+    await userEvent.keyboard("{Escape}");
+    await expect(page.getByRole("dialog", { name: "Allocate requirements" })).toBeVisible();
+    await expect(canvas.getByText("Closed by escape-key")).toBeVisible();
+    waitingSaves.shift()?.();
+    const alert = await dialog.findByRole("alert");
+    await expect(alert).toHaveTextContent("The allocation could not be saved");
+    await expect(popup).not.toHaveAttribute("aria-busy");
+    await expect(popup.querySelector('[data-slot="sheet-body"]')).not.toHaveAttribute("inert");
+    await expect(dialog.getByText("1 chosen of 28")).toBeVisible();
+    await expect(
+      dialog.getByRole("button", { name: "Allocate 1 to Flight computer" }),
+    ).toBeEnabled();
   },
 };
 
@@ -443,7 +638,7 @@ function ControlledSearchDemo() {
   );
 }
 
-/** Search has a persistent accessible name and reports string values to the caller. */
+/** Without `table` the caller owns the query: the search has a persistent accessible name, reports string values to the caller, and Escape empties it before it closes the sheet. */
 export const ControlledSearch: Story = {
   render: () => <ControlledSearchDemo />,
   play: async ({ canvasElement }) => {
@@ -451,10 +646,15 @@ export const ControlledSearch: Story = {
     const page = within(canvasElement.ownerDocument.body);
     await userEvent.click(canvas.getByRole("button", { name: "Open searchable picker" }));
     const dialog = within(await page.findByRole("dialog", { name: "Choose records" }));
-    const search = dialog.getByRole("textbox", { name: "Search" });
+    const search = dialog.getByRole("searchbox", { name: "Search" });
     await userEvent.type(search, "Annual review");
     await expect(search).toHaveAccessibleName("Search");
     await expect(dialog.getByText("Current query: Annual review")).toBeVisible();
+    // Escape empties the query first and keeps the sheet; the next Escape would close it.
+    await userEvent.keyboard("{Escape}");
+    await expect(dialog.getByText("Current query: none")).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Choose records" })).toBeVisible();
+    await userEvent.type(search, "Annual review");
     await expect(dialog.getByRole("button", { name: "Link records" })).toBeDisabled();
     await userEvent.click(dialog.getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
@@ -462,6 +662,7 @@ export const ControlledSearch: Story = {
     const opener = canvas.getByRole("button", { name: "Open minimal picker" });
     await userEvent.click(opener);
     const minimal = within(await page.findByRole("dialog", { name: "Choose records" }));
+    await expect(minimal.queryByRole("searchbox")).toBeNull();
     await expect(minimal.queryByRole("textbox")).toBeNull();
     await expect(minimal.queryByRole("button", { name: "Back" })).toBeNull();
     await userEvent.keyboard("{Escape}");

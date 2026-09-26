@@ -31,8 +31,9 @@ const insert = (table, values) =>
 const table = () => page.getByRole("treegrid", { name: "Program systems", exact: true });
 async function authorSystem(title, code, name, type) {
   const dialog = page.getByRole("dialog", { name: title, exact: true });
-  await dialog.getByLabel("Code", { exact: true }).fill(code);
-  await dialog.getByLabel("Name", { exact: true }).fill(name);
+  // Required labels show an asterisk hidden from assistive technology: find fields by their name.
+  await dialog.getByRole("textbox", { name: "Code", exact: true }).fill(code);
+  await dialog.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await dialog.getByRole("combobox", { name: "System type", exact: true }).click();
   await page.getByRole("option", { name: type, exact: true }).click();
   await dialog.getByRole("button", { name: title, exact: true }).click();
@@ -58,8 +59,17 @@ try {
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByRole("button", { name: "Create system", exact: true }).click();
   const rootDialog = page.getByRole("dialog", { name: "Create system", exact: true });
-  await expect(rootDialog.getByRole("checkbox", { name: "Authorization boundary" })).toBeChecked();
-  await expect(rootDialog.getByRole("checkbox", { name: "Authorization boundary" })).toBeDisabled();
+  // A top-level system is always its own boundary: the dialog says so instead of offering a choice.
+  assert.equal(
+    await rootDialog.getByRole("checkbox", { name: "Authorization boundary" }).count(),
+    0,
+  );
+  await expect(
+    rootDialog.getByText(
+      "A top-level system is its own authorization boundary, with its own baseline and security plan.",
+      { exact: true },
+    ),
+  ).toBeVisible();
   await authorSystem("Create system", "SYS-TREE", "Validation boundary", "Information system");
   const root = await data(
     client.from("systems").select().eq("program_id", program.id).eq("code", "SYS-TREE").single(),
@@ -72,6 +82,17 @@ try {
     .getByRole("button", { name: "More system actions", exact: true })
     .click();
   await page.getByRole("menuitem", { name: "Create system", exact: true }).click();
+  const childDialog = page.getByRole("dialog", { name: "Create system", exact: true });
+  await expect(
+    childDialog.getByText(
+      "This element belongs to its parent’s authorization boundary. Creating it does not create a separate baseline or security plan.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  assert.equal(
+    await childDialog.getByRole("checkbox", { name: "Authorization boundary" }).count(),
+    0,
+  );
   await authorSystem("Create system", "NODE-TREE", "Recorded storage component", "Hardware");
   const child = await data(
     client.from("systems").select().eq("program_id", program.id).eq("code", "NODE-TREE").single(),
@@ -103,8 +124,9 @@ try {
     .click();
   const edit = page.getByRole("dialog", { name: "Edit system", exact: true });
   assert.equal(await edit.getByRole("checkbox", { name: "Authorization boundary" }).count(), 0);
-  await edit.getByLabel("Name", { exact: true }).fill("Edited storage component");
-  await edit.getByRole("button", { name: "Save system", exact: true }).click();
+  await edit.getByRole("textbox", { name: "Name", exact: true }).fill("Edited storage component");
+  // The trigger, the dialog title and the primary use the same words.
+  await edit.getByRole("button", { name: "Edit system", exact: true }).click();
   await expect(edit).toHaveCount(0);
   const edited = await data(client.from("systems").select().eq("id", child.id).single());
   assert.equal(edited.name, "Edited storage component");
@@ -192,7 +214,7 @@ try {
   await expect(row(sibling.id).getByRole("checkbox")).not.toBeChecked();
   await row(child.id).getByRole("checkbox").check();
   await allocation
-    .getByLabel("Rationale (optional)", { exact: true })
+    .getByLabel("Rationale", { exact: true })
     .fill("These two records own the storage behavior.");
   await page.screenshot({ path: "/tmp/system-allocation-dialog.png", animations: "disabled" });
   let loseResponse = true;
@@ -206,17 +228,25 @@ try {
     } else await route.continue();
   });
   await allocation.getByRole("button", { name: "Allocate to 2 systems", exact: true }).click();
-  await allocation.getByRole("alert").waitFor();
+  await expect(allocation.getByRole("alert")).toContainText(
+    "Your choices are kept; allocating again will not duplicate them.",
+  );
+  // Both allocations are one insert: the lost response still committed both rows.
   assert.equal(
     (
       await data(
         client.from("requirement_allocations").select().eq("requirement_revision_id", content.id),
       )
     ).length,
-    1,
+    2,
   );
-  await expect(allocation.getByLabel("Rationale (optional)", { exact: true })).toBeDisabled();
-  await allocation.getByRole("button", { name: "Retry allocation", exact: true }).click();
+  // The failure keeps the draft: the chosen systems and the rationale survive for the retry.
+  await expect(allocation.getByLabel("Rationale", { exact: true })).toHaveValue(
+    "These two records own the storage behavior.",
+  );
+  await expect(row(root.id).getByRole("checkbox")).toBeChecked();
+  await expect(row(child.id).getByRole("checkbox")).toBeChecked();
+  await allocation.getByRole("button", { name: "Allocate to 2 systems", exact: true }).click();
   await expect(allocation).toHaveCount(0);
   await page.unroute(allocationRoute);
   const allocations = await data(
@@ -290,7 +320,12 @@ try {
   await page.goto(`${origin}/programs/${program.id}?tab=System`);
   await table().waitFor();
   assert.equal(await page.getByRole("button", { name: "Create system", exact: true }).count(), 0);
-  assert.equal(await table().getByRole("button", { name: "Row actions", exact: true }).count(), 0);
+  assert.equal(
+    await table()
+      .getByRole("button", { name: /^Row actions/ })
+      .count(),
+    0,
+  );
   const viewerWrite = await client
     .from("requirement_allocations")
     .insert({ tenant_id: tenantId, requirement_revision_id: content.id, system_id: sibling.id });

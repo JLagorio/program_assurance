@@ -1,5 +1,12 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-import { Dialog, DialogBody, DialogClose, DialogContent, DialogFooter } from "../../components";
+import {
+  Dialog,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+} from "../../components";
 import * as Stories from "./Dialog.stories";
 
 <Meta of={Stories} />
@@ -41,7 +48,7 @@ Not for a decision that needs one sentence: that is an [AlertDialog](?path=/docs
 </Dialog>
 ```
 
-- **DialogContent** brings its portal, the blanket and a close button at the top end. It records the overlay surface as the current one, so a sticky header, a pinned cell or a scroll arrow inside paints the dialog's colour, not the page's.
+- **DialogContent** brings its portal, the blanket and a close button at the top end, an IconButton named Close with no tooltip. It records the overlay surface as the current one, so a sticky header, a pinned cell or a scroll arrow inside paints the dialog's colour, not the page's.
 - **DialogHeader** holds the title and the description; the title is the dialog's h2, and headings inside the dialog start at h3.
 - **DialogBody** is the one scrolling region, with the dialog's inset. Put the form in it and the buttons in the footer; never make a `fieldset` or a hand-written `div` the scroller.
 - **DialogFooter** stays outside the scroll, with Cancel, a subtle button, before the primary.
@@ -100,6 +107,8 @@ A failed save keeps the dialog and the draft, ends the pending state and says wh
 
 ## Props
 
+Dialog takes Base UI Dialog's root props, `open`, `defaultOpen`, `onOpenChange` (its details say why: `reason` is `escape-key`, `outside-press`, `close-press` or another, and `cancel()` keeps the dialog open), `onOpenChangeComplete`, `modal`, `disablePointerDismissal`, `actionsRef` and `handle`, and Ledger's `pending`. DialogContent takes the popup's `initialFocus`, `finalFocus`, `render`, `className` and `style`, and Ledger's `width` and `showCloseButton`. DialogTrigger, DialogClose, DialogTitle and DialogDescription take Base UI's part props, `render` among them. The types are in [Base UI's API reference](https://base-ui.com/react/components/dialog#api-reference).
+
 <ArgTypes of={Dialog} />
 
 ### DialogContent
@@ -113,6 +122,10 @@ A failed save keeps the dialog and the draft, ends the pending state and says wh
 ### DialogFooter
 
 <ArgTypes of={DialogFooter} />
+
+### DialogTrigger
+
+<ArgTypes of={DialogTrigger} />
 
 ### DialogClose
 

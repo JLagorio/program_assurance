@@ -99,11 +99,12 @@ export function ToggleGroupItem<Value extends string = string>({
           // Relative, so a visually hidden label (an icon-only item's name) is positioned against
           // the item and stays inside any scroller around the group.
           "relative focus:z-10 focus-visible:z-10",
-          joined && "rounded-none px-100",
+          // The pressed edge (toggle.tsx) follows the joined item's corners.
+          joined && "rounded-none px-100 data-pressed:after:rounded-none",
           joined &&
             (horizontal
-              ? "first:rounded-s-medium last:rounded-e-medium"
-              : "first:rounded-t-medium last:rounded-b-medium"),
+              ? "first:rounded-s-medium last:rounded-e-medium first:data-pressed:after:rounded-s-medium last:data-pressed:after:rounded-e-medium"
+              : "first:rounded-t-medium last:rounded-b-medium first:data-pressed:after:rounded-t-medium last:data-pressed:after:rounded-b-medium"),
           joined &&
             resolvedVariant === "outline" &&
             (horizontal ? "border-s-0 first:border-s" : "border-t-0 first:border-t"),

@@ -91,7 +91,8 @@ try {
   await create.getByRole("button", { name: "Cancel", exact: true }).click();
   const prompt = page.getByRole("alertdialog", { name: "Discard changes?", exact: true });
   await expect(prompt).toBeVisible();
-  await prompt.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(prompt.getByRole("button", { name: "Keep editing", exact: true })).toBeFocused();
+  await prompt.getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(create.getByRole("textbox", { name: "Name", exact: true })).toHaveValue(
     "Retained configuration draft",
   );
@@ -109,7 +110,8 @@ try {
   );
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${origin}/programs/${program.id}?tab=System`);
-  await page.getByRole("button", { name: "Create system", exact: true }).first().click();
+  // Create system opens its own dialog; the split button's menu holds the product route.
+  await page.getByRole("button", { name: "More ways to create a system", exact: true }).click();
   await page.getByRole("menuitem", { name: "Add system from product", exact: true }).click();
   await page.getByRole("row").filter({ hasText: "Base configuration" }).first().click();
   await page
@@ -121,7 +123,7 @@ try {
   await name.fill("Retained variant draft");
   await variant.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(prompt).toBeVisible();
-  await prompt.getByRole("button", { name: "Cancel", exact: true }).click();
+  await prompt.getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(name).toHaveValue("Retained variant draft");
   const submit = variant.getByRole("button", { name: "Add system from product", exact: true });
   assert.equal(
@@ -131,7 +133,16 @@ try {
     true,
   );
   await submit.click();
-  await expect(variant.getByRole("alert")).toContainText("Choose confidentiality");
+  // One issue per field, in field order, in a summary that takes focus.
+  const summary = variant.getByRole("alert", { name: "There is a problem", exact: true });
+  await expect(summary).toBeFocused();
+  await expect(summary.getByRole("listitem")).toHaveText([
+    "Choose the confidentiality impact.",
+    "Choose the integrity impact.",
+    "Choose the availability impact.",
+    "Explain the categorization.",
+  ]);
+  await expect(name).toHaveValue("Retained variant draft");
   for (const label of ["Confidentiality", "Integrity", "Availability"]) {
     await variant.getByRole("combobox", { name: label, exact: true }).click();
     await page.getByRole("option", { name: "Low", exact: true }).click();
@@ -162,7 +173,10 @@ try {
   await expect(variant).toBeVisible();
   release();
   release = null;
-  await expect(variant.getByRole("alert")).toContainText("Test save failure");
+  await expect(summary).toBeHidden();
+  const failure = variant.getByRole("alert").filter({ hasText: "was not added" });
+  await expect(failure.locator('[data-slot="alert-title"]')).toHaveText("The system was not added");
+  await expect(failure).toContainText("Test save failure");
   await expect(name).toHaveValue("Retained variant draft");
   await expect(name).toBeEnabled();
   await page.unroute("**/rest/v1/rpc/add_program_system");

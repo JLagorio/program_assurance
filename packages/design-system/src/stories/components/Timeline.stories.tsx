@@ -31,6 +31,8 @@ import {
   SheetTitle,
   TextLink,
   Timeline,
+  TimelineGroup,
+  TimelineItem,
   tones,
 } from "../../components";
 import {
@@ -45,7 +47,7 @@ import {
   X,
 } from "lucide-react";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
-import { useState, type ReactNode } from "react";
+import { createRef, useState, type ReactNode } from "react";
 import { expect, waitFor, within } from "storybook/test";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -54,6 +56,7 @@ import { Pair } from "../_lib/pair";
 const meta = {
   title: "Components/Timeline",
   component: Timeline,
+  subcomponents: { TimelineItem, TimelineGroup },
   parameters: { layout: "padded" },
   args: {
     label: "Activity",
@@ -114,7 +117,7 @@ const menu = () => (
       <DropdownMenuItem onClick={() => {}}>Copy link</DropdownMenuItem>
       <DropdownMenuItem onClick={() => {}}>Add follow-up</DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuItem variant="destructive" onClick={() => {}}>
+      <DropdownMenuItem variant="danger" onClick={() => {}}>
         Archive
       </DropdownMenuItem>
     </DropdownMenuContent>
@@ -1122,5 +1125,50 @@ export const Narrow: Story = {
     const viewport = list.parentElement!;
     await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
     await expect(viewport.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+  },
+};
+
+const nativeRefs = {
+  list: createRef<HTMLOListElement>(),
+  group: createRef<HTMLLIElement>(),
+  item: createRef<HTMLLIElement>(),
+};
+
+/** Native attributes, a class and a ref reach each part's own element: the list, the group's row and the event's row, so a product can give an event a test id, a tooltip or a focus ref. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Timeline
+      label="History"
+      ref={nativeRefs.list}
+      data-testid="history"
+      className="max-w-layout-measure"
+    >
+      <Timeline.Group label="This week" ref={nativeRefs.group} data-testid="this-week">
+        <Timeline.Item
+          ref={nativeRefs.item}
+          data-testid="published"
+          className="text-default"
+          tone="success"
+          title="Version 3 published"
+          time="2h ago"
+        />
+      </Timeline.Group>
+    </Timeline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const list = canvas.getByTestId("history");
+    await expect(nativeRefs.list.current).toBe(list);
+    await expect(list).toHaveAttribute("data-slot", "timeline");
+    await expect(list).toHaveAccessibleName("History");
+    await expect(list).toHaveClass("max-w-layout-measure");
+    const group = canvas.getByTestId("this-week");
+    await expect(nativeRefs.group.current).toBe(group);
+    await expect(group).toHaveAttribute("data-slot", "timeline-group");
+    const item = canvas.getByTestId("published");
+    await expect(nativeRefs.item.current).toBe(item);
+    await expect(item).toHaveAttribute("data-slot", "timeline-item");
+    await expect(item).toHaveClass("text-default");
+    await expect(item.tagName).toBe("LI");
   },
 };

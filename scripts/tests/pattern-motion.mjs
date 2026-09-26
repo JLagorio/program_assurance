@@ -54,6 +54,28 @@ async function sampleTab(page, target) {
     const trigger = [...list.querySelectorAll('[role="tab"]')].find(
       (element) => element.textContent.trim() === target,
     );
+    // The indicator's own transition events, so a main thread busy rendering the new panel for
+    // longer than the transition cannot hide whether the indicator moved by transition or jumped.
+    const transitions = [];
+    const indicator = list.querySelector('[data-slot="tabs-indicator"]');
+    const duration = indicator
+      ? Math.max(
+          ...getComputedStyle(indicator)
+            .transitionDuration.split(",")
+            .map((value) => Number.parseFloat(value) * (value.trim().endsWith("ms") ? 1 : 1000)),
+        )
+      : 0;
+    const listen = (event) => {
+      if (event.target === indicator)
+        transitions.push({
+          type: event.type,
+          property: event.propertyName,
+          elapsed: event.elapsedTime,
+          at: performance.now() - started,
+        });
+    };
+    for (const type of ["transitionrun", "transitionend", "transitioncancel"])
+      indicator?.addEventListener(type, listen);
     const read = () => {
       const indicator = list.querySelector('[data-slot="tabs-indicator"]');
       const bounds = indicator?.getBoundingClientRect();
@@ -78,7 +100,9 @@ async function sampleTab(page, target) {
       await new Promise(requestAnimationFrame);
       samples.push(read());
     }
-    return samples;
+    for (const type of ["transitionrun", "transitionend", "transitioncancel"])
+      indicator?.removeEventListener(type, listen);
+    return { samples, transitions, duration };
   }, target);
 }
 
@@ -181,19 +205,33 @@ function expectOverlayMotion(samples, reduced, opening) {
   expectStableBrand(samples);
 }
 
-function expectTabMotion(samples, reduced, target) {
+function expectTabMotion({ samples, transitions, duration }, reduced, target) {
   const start = samples[0].indicatorLeft;
   const end = samples.at(-1).indicatorLeft;
   assert.notEqual(start, null, "The app tabs render a shared selection indicator");
   assert.notEqual(end, null);
   assert.ok(Math.abs(end - start) > 10, "The indicator moves to the newly selected app tab");
+  const slid = transitions.some(
+    (event) =>
+      event.type === "transitionend" && event.property === "transform" && event.elapsed > 0,
+  );
+  const intermediate = samples.some((sample) => between(sample.indicatorLeft, start, end));
+  // A frame painted while the transition ran must show it in between. When the new panel's render
+  // holds the main thread past the whole transition, no frame can, and the completed transform
+  // transition is the evidence that the indicator slid rather than jumped.
+  const framed = samples.length > 1 && samples[1].at < duration;
   assert.equal(
-    samples.some((sample) => between(sample.indicatorLeft, start, end)),
+    intermediate || (!framed && slid),
     !reduced,
     reduced
       ? "Reduced motion places the indicator immediately"
       : "The indicator visibly slides between tabs",
   );
+  if (reduced)
+    assert.ok(
+      !transitions.some((event) => event.property === "transform"),
+      "Reduced motion runs no indicator transition",
+    );
   const active = samples.filter((sample) => sample.selected === target && sample.panels === 1);
   assert.ok(active.length > 0, "The selected app tab has a content panel");
   assert.equal(
@@ -272,6 +310,13 @@ export async function expectPatternMotion(page, { recordSamples, captureFrame })
 
       await page.setViewportSize({ width: 390, height: 1000 });
       await expect(nav).toBeHidden();
+      // The page settles at the phone width (responsive tables re-measure) before the overlay
+      // opens, so every sample below measures the navigation's motion, not the resize.
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), {
+          message: "The page fits the phone width before the navigation opens",
+        })
+        .toBe(true);
       run.mobileOpen = await sampleNavigation(page);
       expectOverlayMotion(run.mobileOpen, reduced, true);
       if (!reduced) {

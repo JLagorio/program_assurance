@@ -1,4 +1,4 @@
-import { useId } from "react";
+import type { ReactNode, RefObject } from "react";
 import {
   Combobox,
   ComboboxContent,
@@ -8,6 +8,7 @@ import {
   ComboboxList,
   Field,
   FieldDescription,
+  FieldError,
   FieldLabel,
   Input,
   Select,
@@ -19,6 +20,36 @@ import {
 } from "@ledger/design-system";
 import type { Row } from "@/lib/models";
 
+/**
+ * The control's element, for DialogContent `initialFocus`, an ErrorSummary target, or moving focus
+ * to the first invalid field: a ref object, or the callback `useFormFeedback().ref(field)` returns.
+ */
+export type ControlRef = RefObject<HTMLElement | null> | ((node: HTMLElement | null) => void);
+
+function bind(controlRef: ControlRef | undefined) {
+  if (!controlRef || typeof controlRef === "function") return controlRef;
+  return (node: HTMLElement | null) => {
+    controlRef.current = node;
+  };
+}
+
+/**
+ * What every field wrapper shares. The kit Field ties the label, hint and error to the control and
+ * carries `required`, `invalid` and `disabled` to it: no ids or ARIA are written here.
+ */
+type FieldFrameProps = {
+  label: string;
+  /** Marks the label with the asterisk and announces the requirement. The form checks it on submit. */
+  required?: boolean | undefined;
+  /** A sentence under the control that helps the reader answer. */
+  description?: ReactNode | undefined;
+  /** What fixes the field, from the last validation. It marks the field invalid and describes the control. */
+  error?: string | undefined;
+  /** Disables the control and dims the label. A surrounding FieldSet's `disabled` also reaches it. */
+  disabled?: boolean | undefined;
+  controlRef?: ControlRef | undefined;
+};
+
 export function TextField({
   label,
   value,
@@ -26,43 +57,53 @@ export function TextField({
   required = false,
   multiline = false,
   description,
+  error,
+  disabled,
+  controlRef,
+  placeholder,
+  maxLength,
+  rows,
   autoFocus = false,
-}: {
-  label: string;
+}: FieldFrameProps & {
   value: string;
   onChange: (value: string) => void;
-  required?: boolean;
-  multiline?: boolean;
-  description?: string;
-  autoFocus?: boolean;
+  multiline?: boolean | undefined;
+  placeholder?: string | undefined;
+  maxLength?: number | undefined;
+  rows?: number | undefined;
+  /**
+   * @deprecated Inside a Dialog or Sheet, pass `controlRef` and give the same ref to the content's
+   * `initialFocus`: an `autoFocus` there becomes the place focus returns to when it closes.
+   */
+  autoFocus?: boolean | undefined;
 }) {
-  const id = useId();
-  const props = {
-    id,
+  const ref = bind(controlRef);
+  const shared = {
     value,
-    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      onChange(event.target.value),
-    "aria-required": required,
-    "aria-describedby": description ? `${id}-help` : undefined,
-    autoFocus,
+    ...(placeholder ? { placeholder } : {}),
+    ...(maxLength !== undefined ? { maxLength } : {}),
+    ...(autoFocus ? { autoFocus } : {}),
   };
   return (
-    <Field>
-      <FieldLabel htmlFor={id}>
-        {label}
-        {required ? (
-          <span aria-hidden="true" className="text-danger">
-            {" "}
-            *
-          </span>
-        ) : null}
-      </FieldLabel>
-      {multiline ? <Textarea {...props} /> : <Input {...props} />}
-      {description ? <FieldDescription id={`${id}-help`}>{description}</FieldDescription> : null}
+    <Field invalid={error ? true : undefined} required={required} disabled={disabled}>
+      <FieldLabel>{label}</FieldLabel>
+      {multiline ? (
+        <Textarea
+          ref={ref}
+          {...shared}
+          {...(rows !== undefined ? { rows } : {})}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      ) : (
+        <Input ref={ref} {...shared} onChange={(event) => onChange(event.target.value)} />
+      )}
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
+      {error ? <FieldError>{error}</FieldError> : null}
     </Field>
   );
 }
 
+/** One of a fixed list of plain words (an enum), in a Select. A record set is a ComboboxField. */
 export function ChoiceField({
   label,
   value,
@@ -70,37 +111,28 @@ export function ChoiceField({
   options,
   required = false,
   description,
-}: {
-  label: string;
+  error,
+  disabled,
+  controlRef,
+  placeholder = "Choose…",
+  emptyOption,
+}: FieldFrameProps & {
   value: string | null;
   onChange: (value: string | null) => void;
   options: { value: string; label: string }[];
-  required?: boolean;
-  description?: string;
+  placeholder?: string | undefined;
+  /** For an optional choice: the label of a first item that clears the value, such as "No priority". */
+  emptyOption?: string | undefined;
 }) {
-  const id = useId();
   return (
-    <Field>
-      <FieldLabel id={`${id}-label`} htmlFor={id}>
-        {label}
-        {required ? (
-          <span aria-hidden="true" className="text-danger">
-            {" "}
-            *
-          </span>
-        ) : null}
-      </FieldLabel>
+    <Field invalid={error ? true : undefined} required={required} disabled={disabled}>
+      <FieldLabel>{label}</FieldLabel>
       <Select<string> items={options} value={value || null} onValueChange={onChange}>
-        <SelectTrigger
-          id={id}
-          className="w-full"
-          aria-labelledby={`${id}-label`}
-          aria-required={required}
-          aria-describedby={description ? `${id}-help` : undefined}
-        >
-          <SelectValue placeholder="Choose…" />
+        <SelectTrigger ref={bind(controlRef)} className="w-full">
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
+          {emptyOption ? <SelectItem value={null}>{emptyOption}</SelectItem> : null}
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
@@ -108,64 +140,102 @@ export function ChoiceField({
           ))}
         </SelectContent>
       </Select>
-      {description ? <FieldDescription id={`${id}-help`}>{description}</FieldDescription> : null}
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
+      {error ? <FieldError>{error}</FieldError> : null}
     </Field>
   );
 }
 
-export function PartyField({
+/**
+ * An option in a ComboboxField; `detail` is quieter text after the label, and is searched too. A
+ * detail that repeats the label (a party named by its email) is not shown twice.
+ */
+export type ComboboxOption = { value: string; label: string; detail?: string | null | undefined };
+
+/**
+ * One of many, or a name the reader would type, in a searchable Combobox. The first match is
+ * highlighted as the reader types, so Enter chooses it; an optional field can be cleared.
+ */
+export function ComboboxField({
   label,
   value,
   onChange,
-  parties,
-}: {
-  label: string;
+  options,
+  required = false,
+  description,
+  error,
+  disabled,
+  controlRef,
+  placeholder = "Choose…",
+  emptyMessage = "No matching records.",
+}: FieldFrameProps & {
   value: string | null | undefined;
   onChange: (value: string | null) => void;
-  parties: Row<"parties">[];
+  options: ComboboxOption[];
+  placeholder?: string | undefined;
+  emptyMessage?: string | undefined;
 }) {
-  const id = useId();
-  const options = parties.map((party) => ({
-    value: party.id,
-    label: party.name,
-    email: party.email,
-  }));
   return (
-    <Field>
-      <FieldLabel id={`${id}-label`} htmlFor={id}>
-        {label}
-      </FieldLabel>
-      <Combobox<(typeof options)[number]>
+    <Field invalid={error ? true : undefined} required={required} disabled={disabled}>
+      <FieldLabel>{label}</FieldLabel>
+      <Combobox<ComboboxOption>
         items={options}
-        value={options.find((item) => item.value === value) ?? null}
+        value={options.find((option) => option.value === value) ?? null}
         isItemEqualToValue={(item, selected) => item.value === selected.value}
         filter={(item, query) =>
-          `${item.label} ${item.email ?? ""}`
+          `${item.label} ${item.detail ?? ""}`
             .toLocaleLowerCase()
             .includes(query.toLocaleLowerCase())
         }
         onValueChange={(item) => onChange(item?.value ?? null)}
+        autoHighlight
       >
-        <ComboboxInput
-          id={id}
-          aria-labelledby={`${id}-label`}
-          placeholder="Choose a party (optional)"
-          showClear
-        />
+        <ComboboxInput ref={bind(controlRef)} placeholder={placeholder} showClear={!required} />
         <ComboboxContent>
-          <ComboboxEmpty>No matching parties in this workspace.</ComboboxEmpty>
+          <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
           <ComboboxList>
-            {(item) => (
+            {(item: ComboboxOption) => (
               <ComboboxItem key={item.value} value={item}>
-                <span className="min-w-0 flex-1">{item.label}</span>
-                {item.email ? (
-                  <span className="font-body-small text-subtle">{item.email}</span>
-                ) : null}
+                {item.detail && item.detail !== item.label ? (
+                  <>
+                    <span className="min-w-0 flex-1">{item.label}</span>
+                    <span className="font-body-small text-subtle">{item.detail}</span>
+                  </>
+                ) : (
+                  item.label
+                )}
               </ComboboxItem>
             )}
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
+      {error ? <FieldError>{error}</FieldError> : null}
     </Field>
+  );
+}
+
+/** A person or organization in this workspace, searched by name and email. */
+export function PartyField({
+  parties,
+  placeholder = "Choose a party",
+  ...props
+}: FieldFrameProps & {
+  value: string | null | undefined;
+  onChange: (value: string | null) => void;
+  parties: Row<"parties">[];
+  placeholder?: string | undefined;
+}) {
+  return (
+    <ComboboxField
+      {...props}
+      placeholder={placeholder}
+      emptyMessage="No matching parties in this workspace."
+      options={parties.map((party) => ({
+        value: party.id,
+        label: party.name,
+        detail: party.email,
+      }))}
+    />
   );
 }

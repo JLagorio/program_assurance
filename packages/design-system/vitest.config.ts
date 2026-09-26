@@ -10,6 +10,13 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 const desktop = { value: "ledgerDesktop", isRotated: false };
 const phone = { value: "ledgerPhone", isRotated: false };
 
+/** Story files of these families only, for a gate that concerns them. */
+const onlyFamilies = (families: string[]) => [`**/stories/**/!(${families.join("|")}).stories.tsx`];
+// Gates print their counts instead of failing when this is set (see test/storybook.setup.ts).
+const record = process.env["LEDGER_GATES_RECORD"] === "1";
+// The storybook/test-provided run config: skip Storybook's own axe pass in a project.
+const noAxe = { "storybook/test-provided": { a11y: false } };
+
 // One Storybook project: every story rendered with these globals, under the shared setup file.
 const storybookProject = ({
   name,
@@ -18,6 +25,7 @@ const storybookProject = ({
   exclude = [],
   reducedMotion,
   forcedColors = "none",
+  touch = false,
 }: {
   name: string;
   globals: Record<string, unknown>;
@@ -25,6 +33,7 @@ const storybookProject = ({
   exclude?: string[];
   reducedMotion: "reduce" | "no-preference";
   forcedColors?: "active" | "none";
+  touch?: boolean;
 }) => ({
   extends: true as const,
   plugins: [
@@ -39,18 +48,33 @@ const storybookProject = ({
     name: `storybook-${name}`,
     maxWorkers: 3,
     exclude,
-    provide,
+    provide: { "ledger/gates-record": record, ...provide },
     setupFiles: [path.join(dirname, "test/storybook.setup.ts")],
     browser: {
       enabled: true,
       headless: true,
-      provider: playwright({ contextOptions: { reducedMotion, forcedColors } }),
+      provider: playwright({
+        // A touch phone: touch events, a coarse pointer and no hover.
+        contextOptions: {
+          reducedMotion,
+          forcedColors,
+          ...(touch ? { hasTouch: true, isMobile: true } : {}),
+        },
+      }),
       instances: [{ browser: "chromium" as const }],
     },
   },
 });
 
 // Storybook runs all stories by default: render checks plus any play functions, in both modes.
+// storybook-light also measures every focus stop's ring (the focus gate), and
+// storybook-forced-colors, which runs every story in forced colours, checks that a selected,
+// pressed, current or checked item stays distinct from its siblings. Three more gate projects
+// run without axe: storybook-touch (every story on a 390px touch phone: 24px targets by axe's
+// target-size rule, and no hover-only controls), storybook-short (overlay families in a 320 by
+// 256 window, 400% zoom) and storybook-long (the families that show titles, values and stamps,
+// with their text lengthened, in the 320px frame). test/story-gates.ts says what each measures,
+// and test/gates-allow.json holds the stories that predate a gate.
 // The two layout projects render every story again, narrow, without axe (light already runs it):
 // storybook-narrow at a 390px phone, and storybook-contained in a 320px frame on the desktop
 // canvas (the Frame toolbar's "320px container"). test/storybook.setup.ts fails a story that
@@ -99,6 +123,7 @@ export default mergeConfig(
         "@base-ui/react/toggle-group",
         "@base-ui/react/tooltip",
         "@base-ui/react/use-render",
+        "axe-core",
       ],
     },
     test: {
@@ -110,13 +135,84 @@ export default mergeConfig(
             globals: { mode: mode === "dark" ? "dark" : "light", viewport: desktop },
             reducedMotion: mode === "dark" ? "reduce" : "no-preference",
             forcedColors: mode === "forced-colors" ? "active" : "none",
-            // Keep high-contrast regressions on the existing family stories.
-            exclude:
-              mode === "forced-colors"
-                ? ["**/stories/**/!(Switch|RadioGroup|Tabs|Progress).stories.tsx"]
-                : [],
+            provide:
+              mode === "light"
+                ? { "ledger/gate": "focus" }
+                : mode === "forced-colors"
+                  ? { "ledger/gate": "forced-colors" }
+                  : {},
           }),
         ),
+        storybookProject({
+          name: "touch",
+          globals: { mode: "light", viewport: phone },
+          reducedMotion: "reduce",
+          touch: true,
+          provide: { ...noAxe, "ledger/gate": "touch" },
+        }),
+        storybookProject({
+          name: "short",
+          // Rendered at the phone the narrow project passes, then the gate turns the window to
+          // 320 by 256 with the overlay open.
+          globals: { mode: "light", viewport: phone },
+          reducedMotion: "reduce",
+          exclude: onlyFamilies([
+            "Dialog",
+            "AlertDialog",
+            "Sheet",
+            "Drawer",
+            "Popover",
+            "DropdownMenu",
+            "Select",
+            "Combobox",
+            "Command",
+            "CommandPalette",
+            "SearchDialog",
+            "DatePicker",
+            "DateRangePicker",
+            "PickerSheet",
+            "RecordBrowser",
+            "PreviewSheet",
+            "Toaster",
+            "Forms",
+          ]),
+          provide: { ...noAxe, "ledger/gate": "short" },
+        }),
+        storybookProject({
+          name: "long",
+          globals: { mode: "light", viewport: desktop, frame: "contained" },
+          reducedMotion: "reduce",
+          exclude: onlyFamilies([
+            "Dialog",
+            "AlertDialog",
+            "Sheet",
+            "Empty",
+            "Card",
+            "Select",
+            "Timeline",
+            "KeyValue",
+            "Fact",
+            "Badge",
+            "Related",
+            "Banner",
+            "Text",
+            "Typography",
+            "RecordPicker",
+            "Item",
+            "Tabs",
+            "Breadcrumb",
+            "Toaster",
+            "Alert",
+            "PageHeader",
+            "Section",
+            "Attachment",
+            "Stat",
+            "Id",
+            "TaskRow",
+            "Glance",
+          ]),
+          provide: { ...noAxe, "ledger/gate": "long" },
+        }),
         ...(
           [
             ["narrow", { mode: "light", viewport: phone }],
@@ -127,11 +223,7 @@ export default mergeConfig(
             name: check,
             globals,
             reducedMotion: "reduce",
-            provide: {
-              // Storybook's own run config: skip the axe pass in these projects.
-              "storybook/test-provided": { a11y: false },
-              "ledger/layout-check": check,
-            },
+            provide: { ...noAxe, "ledger/layout-check": check },
           }),
         ),
       ],

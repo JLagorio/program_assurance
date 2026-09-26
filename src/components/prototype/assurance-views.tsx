@@ -1,46 +1,39 @@
 import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { LibrarySelect } from "./library-shared";
-import { EmptyMessage, MissingRecord, RecordActions } from "./work-common";
+import { EmptyMessage, MissingRecord, RecordActions, VersionName } from "./work-common";
 import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
-  Box,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  Inspector,
   Button,
-  Grid,
-  Heading,
-  Inline,
+  HeadingLevelProvider,
+  Inspector,
   PageHeader,
   Section,
   Shell,
   Stack,
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
-  TextLink,
 } from "@ledger/design-system";
-import { Download, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useRows, useRow, type Row } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
-import { labelFor, type DataRecord } from "@/lib/records";
+import { type DataRecord } from "@/lib/records";
+import { revisionStates, severityLevels } from "@/lib/status";
+import { StatusBadge } from "@/components/app/status";
 import {
   downloadJson,
   EntityEditor,
   EntitySection,
-  InspectLink,
   ModelFacts,
   ModelTable,
   QueryState,
   RelationName,
-  StateBadge,
   type DisplayColumn,
 } from "./record-tools";
+import { RecordTrail, TrailLink } from "./record-trail";
+
 const asRecords = (rows: unknown[] | undefined) => (rows ?? []) as DataRecord[];
 const party = (key = "owner_party_id", label = "Owner"): DisplayColumn => ({
   key,
@@ -59,6 +52,17 @@ const versionColumns: DisplayColumn[] = [
   { key: "description" },
   { key: "published_at", label: "Published" },
 ];
+
+/** The trail every POA&M and risk record starts from, back to the collection the record is in. */
+function RegisterTrail({ current, tab }: { current: string; tab: RegisterTab }) {
+  return (
+    <RecordTrail current={current}>
+      <TrailLink to="/register" search={{ tab }}>
+        POA&M & risk register
+      </TrailLink>
+    </RecordTrail>
+  );
+}
 
 export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "section" }) {
   const workspace = useWorkspace(),
@@ -84,74 +88,111 @@ export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "s
         <EntityEditor
           table="risks"
           onCancel={() => setCreating(false)}
-          onSaved={(row) => void navigate({ to: "/risks/$riskId", params: { riskId: row.id } })}
+          onSaved={(row) =>
+            void navigate({ to: "/register/risks/$riskId", params: { riskId: row.id } })
+          }
         />
       )}
-      <QueryState query={query}>
-        <QueryState query={versions}>
-          <ModelTable
-            model="risks"
-            fill
-            rows={asRecords(rows)}
-            columns={[
-              { key: "title", label: "Risk" },
-              program,
-              party(),
-              {
-                key: "severity",
-                label: "Latest severity",
-                render: (row) => <StateBadge value={latest(row.id)?.severity} />,
-              },
-              status,
-              { key: "updated_at", label: "Updated" },
-            ]}
-            empty={{
-              title: "No risks yet",
-              description:
-                "Record a risk when an identified threat or vulnerability requires assessment and treatment.",
-              action:
-                workspace.role !== "viewer" ? (
-                  <Button variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
-                    Create risk
-                  </Button>
-                ) : undefined,
-            }}
-            searchLabel="Search risks"
-            view="risk-register"
-            commands={[
-              {
-                label: "Export risks",
-                onSelect: () => downloadJson("risk-register.json", query.data),
-                disabled: !query.data,
-              },
-            ]}
-            actions={
-              <>
-                {workspace.role !== "viewer" && (
-                  <Button
-                    size="small"
-                    variant="primary"
-                    iconBefore={<Plus />}
-                    onClick={() => setCreating(true)}
-                  >
-                    Create risk
-                  </Button>
-                )}
-              </>
-            }
-          />
-        </QueryState>
-      </QueryState>
+      <ModelTable
+        model="risks"
+        fill
+        rows={asRecords(rows)}
+        queries={[query, versions]}
+        columns={[
+          { key: "title", label: "Risk" },
+          program,
+          party(),
+          {
+            key: "severity",
+            label: "Latest severity",
+            // The latest assessment's severity: the column sorts by its rank and filters by it.
+            value: (row) => latest(row.id)?.severity ?? null,
+            statuses: severityLevels,
+          },
+          status,
+          { key: "updated_at", label: "Updated" },
+        ]}
+        empty={{
+          title: "No risks yet",
+          description:
+            "Record a risk when an identified threat or vulnerability requires assessment and treatment.",
+          action:
+            workspace.role !== "viewer" ? (
+              <Button variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
+                Create risk
+              </Button>
+            ) : undefined,
+        }}
+        searchLabel="Search risks"
+        view="risk-register"
+        commands={[
+          {
+            label: "Export risks",
+            onSelect: () => downloadJson("risk-register.json", query.data),
+            disabled: !query.data,
+          },
+        ]}
+        actions={
+          <>
+            {workspace.role !== "viewer" && (
+              <Button
+                size="small"
+                variant="primary"
+                iconBefore={<Plus />}
+                onClick={() => setCreating(true)}
+              >
+                Create risk
+              </Button>
+            )}
+          </>
+        }
+      />
     </Stack>
   );
 }
-export function RiskRecord({ id }: { id: string }) {
-  const workspace = useWorkspace();
+
+export const RISK_TABS = [
+  "overview",
+  "assessments",
+  "responses",
+  "evidence",
+  "work",
+  "activity",
+] as const;
+export type RiskTab = (typeof RISK_TABS)[number];
+const riskTabLabels: Record<RiskTab, string> = {
+  overview: "Overview",
+  assessments: "Assessments",
+  responses: "Responses",
+  evidence: "Evidence",
+  work: "Work",
+  activity: "Activity",
+};
+/** The tab a URL names, when the route keeps it there. */
+function riskTab(value: unknown): RiskTab | undefined {
+  return RISK_TABS.find((tab) => tab === value);
+}
+
+export function RiskRecord({
+  id,
+  tab: routeTab,
+  onTabChange,
+}: {
+  id: string;
+  /** The tab, when the route keeps it in the URL; local otherwise. */
+  tab?: RiskTab | undefined;
+  onTabChange?: ((tab: RiskTab) => void) | undefined;
+}) {
   const query = useRow("risks", id),
     versions = useRows("risk_revisions", { risk_id: id });
   const [editing, setEditing] = useState<DataRecord | null>(null),
-    [tab, setTab] = useState("overview"),
+    [localTab, setLocalTab] = useState<RiskTab>("overview"),
     [selected, setSelected] = useState<string | null>(null);
+  const tab = routeTab ?? localTab;
+  const select = (next: RiskTab) => {
+    setLocalTab(next);
+    onTabChange?.(next);
+  };
   const record = query.data;
   const assessment =
     versions.data?.find((row) => row.id === selected) ??
@@ -162,19 +203,7 @@ export function RiskRecord({ id }: { id: string }) {
         {record ? (
           <>
             <PageHeader>
-              <PageHeader.Lead render={<Breadcrumb />}>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/register" />}>
-                      POA&M & risk register
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{record.title}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </PageHeader.Lead>
+              <RegisterTrail current={record.title} tab="risks" />
               <PageHeader.Heading>
                 <PageHeader.Title>{record.title}</PageHeader.Title>
               </PageHeader.Heading>
@@ -190,186 +219,192 @@ export function RiskRecord({ id }: { id: string }) {
             {editing && (
               <EntityEditor table="risks" existing={editing} onCancel={() => setEditing(null)} />
             )}
-            <Tabs value={tab} onValueChange={setTab}>
+            <Tabs value={tab} onValueChange={(value) => select(riskTab(value) ?? "overview")}>
               <TabsList variant="line" aria-label="Risk sections">
-                {["overview", "assessments", "responses", "evidence", "work", "activity"].map(
-                  (value) => (
-                    <TabsTrigger key={value} value={value}>
-                      {labelFor(value)}
-                    </TabsTrigger>
-                  ),
-                )}
+                {RISK_TABS.map((value) => (
+                  <TabsTrigger key={value} value={value}>
+                    {riskTabLabels[value]}
+                  </TabsTrigger>
+                ))}
               </TabsList>
-            </Tabs>
-            {tab === "overview" && (
-              <>
-                <Shell.Aside label="Risk details">
-                  <Inspector.Group title="Details">
-                    <ModelFacts
-                      record={record as DataRecord}
-                      fields={[
-                        program,
-                        party(),
-                        "status",
-                        {
-                          key: "scope_id",
-                          label: "Scope",
-                          render: (row) => (
-                            <RelationName table="scopes" id={row["scope_id"] as string | null} />
-                          ),
-                        },
-                      ]}
-                    />
-                  </Inspector.Group>
-                </Shell.Aside>
-                <Section title="Latest assessment">
-                  <QueryState query={versions}>
-                    {assessment ? (
-                      <ModelFacts
-                        record={assessment as DataRecord}
-                        fields={[
-                          "version_number",
-                          "state",
-                          "threat",
-                          "vulnerability",
-                          "likelihood",
-                          "impact",
-                          "severity",
-                          "assessment_rationale",
-                          "assessed_at",
-                        ]}
-                      />
-                    ) : (
-                      <EmptyMessage title="No risk assessment has been recorded" />
-                    )}
-                  </QueryState>
-                </Section>
-              </>
-            )}
-            {tab === "assessments" && (
-              <EntitySection
-                table="risk_revisions"
-                filters={{ risk_id: id }}
-                title="Risk assessments"
-                columns={[...versionColumns, { key: "severity" }]}
-              />
-            )}
-            {tab === "responses" && (
-              <QueryState query={versions}>
-                {assessment ? (
-                  <Stack space="space.250">
-                    <LibrarySelect
-                      label="Assessment version"
-                      value={assessment.id}
-                      options={(versions.data ?? []).map((item) => ({
-                        value: item.id,
-                        label: `Version ${item.version_number}`,
-                      }))}
-                      onChange={setSelected}
-                    />
-                    <Section title={`Assessment version ${assessment.version_number}`}>
-                      <ModelFacts
-                        record={assessment as DataRecord}
-                        fields={[
-                          "state",
-                          "description",
-                          "threat",
-                          "vulnerability",
-                          "likelihood",
-                          "impact",
-                          "severity",
-                          "assessment_rationale",
-                        ]}
-                      />
-                      <Box paddingBlockStart="space.150">
-                        <AssessmentEditor row={assessment} />
-                      </Box>
-                    </Section>
-                    <EntitySection
-                      table="risk_responses"
-                      filters={{ risk_revision_id: assessment.id }}
-                      title="Risk responses"
-                      showHeading
-                      columns={[
-                        { key: "response_type" },
-                        { key: "description" },
-                        party(),
-                        { key: "due_at" },
-                        { key: "approved_at" },
-                      ]}
-                      readOnly={assessment.state === "published"}
-                    />
-                    <EntitySection
-                      table="risk_observations"
-                      filters={{ risk_revision_id: assessment.id }}
-                      title="Supporting observations"
-                      showHeading
-                      columns={[
-                        {
-                          key: "observation_id",
-                          render: (row) => (
-                            <RelationName
-                              table="observations"
-                              id={row["observation_id"] as string}
+              <TabsContent value={tab}>
+                <Stack space="space.250" className="pt-200">
+                  {tab === "overview" && (
+                    <>
+                      <Shell.Aside label="Risk details">
+                        <Inspector.Group title="Details">
+                          <ModelFacts
+                            table="risks"
+                            record={record as DataRecord}
+                            fields={[
+                              program,
+                              party(),
+                              "status",
+                              {
+                                key: "scope_id",
+                                label: "Scope",
+                                render: (row) => (
+                                  <RelationName
+                                    table="scopes"
+                                    id={row["scope_id"] as string | null}
+                                  />
+                                ),
+                              },
+                            ]}
+                          />
+                        </Inspector.Group>
+                      </Shell.Aside>
+                      <Section title="Latest assessment">
+                        <QueryState query={versions}>
+                          {assessment ? (
+                            <ModelFacts
+                              table="risk_revisions"
+                              record={assessment as DataRecord}
+                              fields={[
+                                { key: "version_number", label: "Version" },
+                                "state",
+                                "threat",
+                                "vulnerability",
+                                "likelihood",
+                                "impact",
+                                "severity",
+                                { key: "assessment_rationale", label: "Rationale" },
+                                { key: "assessed_at", label: "Assessed" },
+                              ]}
                             />
+                          ) : (
+                            <EmptyMessage
+                              compact
+                              title="No risk assessment yet"
+                              description="An assessment records the threat, the vulnerability, and how likely and severe the risk is."
+                            />
+                          )}
+                        </QueryState>
+                      </Section>
+                    </>
+                  )}
+                  {tab === "assessments" && (
+                    <EntitySection
+                      table="risk_revisions"
+                      filters={{ risk_id: id }}
+                      title="Risk assessments"
+                      columns={[...versionColumns, { key: "severity" }]}
+                    />
+                  )}
+                  {tab === "responses" && (
+                    <QueryState query={versions}>
+                      {assessment ? (
+                        <Stack space="space.250">
+                          <LibrarySelect
+                            label="Assessment version"
+                            value={assessment.id}
+                            options={(versions.data ?? []).map((item) => ({
+                              value: item.id,
+                              label: `Version ${item.version_number}`,
+                            }))}
+                            onChange={setSelected}
+                          />
+                          <Section
+                            title={`Assessment version ${assessment.version_number}`}
+                            action={<AssessmentEditor row={assessment} />}
+                          >
+                            <ModelFacts
+                              table="risk_revisions"
+                              record={assessment as DataRecord}
+                              fields={[
+                                "state",
+                                "description",
+                                "threat",
+                                "vulnerability",
+                                "likelihood",
+                                "impact",
+                                "severity",
+                                { key: "assessment_rationale", label: "Rationale" },
+                              ]}
+                            />
+                          </Section>
+                          <EntitySection
+                            table="risk_responses"
+                            filters={{ risk_revision_id: assessment.id }}
+                            title="Risk responses"
+                            showHeading
+                            columns={[
+                              { key: "response_type" },
+                              { key: "description" },
+                              party(),
+                              { key: "due_at", label: "Due" },
+                              { key: "approved_at", label: "Approved" },
+                            ]}
+                            readOnly={assessment.state === "published"}
+                          />
+                        </Stack>
+                      ) : (
+                        <EmptyMessage
+                          title="No assessment version"
+                          description="Create an assessment version before recording its response."
+                        />
+                      )}
+                    </QueryState>
+                  )}
+                  {tab === "evidence" && (
+                    <QueryState query={versions}>
+                      {assessment ? (
+                        <EntitySection
+                          table="risk_observations"
+                          filters={{ risk_revision_id: assessment.id }}
+                          title="Supporting observations"
+                          columns={[
+                            {
+                              key: "observation_id",
+                              render: (row) => (
+                                <RelationName
+                                  table="observations"
+                                  id={row["observation_id"] as string}
+                                />
+                              ),
+                            },
+                          ]}
+                          readOnly={assessment.state === "published"}
+                        />
+                      ) : (
+                        <EmptyMessage
+                          title="No assessment evidence yet"
+                          description="Observations support an assessment version; create one first."
+                        />
+                      )}
+                    </QueryState>
+                  )}
+                  {tab === "work" && (
+                    <EntitySection
+                      table="task_risks"
+                      filters={{ risk_id: id }}
+                      title="Risk work"
+                      columns={[
+                        {
+                          key: "task_id",
+                          render: (row) => (
+                            <RelationName table="tasks" id={row["task_id"] as string} />
                           ),
                         },
                       ]}
-                      readOnly={assessment.state === "published"}
                     />
-                  </Stack>
-                ) : (
-                  <EmptyMessage
-                    title="No assessment version"
-                    description="Create an assessment version before recording its response."
-                  />
-                )}
-              </QueryState>
-            )}
-            {tab === "evidence" && (
-              <QueryState query={versions}>
-                {assessment ? (
-                  <EntitySection
-                    table="risk_observations"
-                    filters={{ risk_revision_id: assessment.id }}
-                    title="Observation traceability"
-                    columns={[
-                      {
-                        key: "observation_id",
-                        render: (row) => (
-                          <RelationName table="observations" id={row["observation_id"] as string} />
-                        ),
-                      },
-                    ]}
-                    readOnly={assessment.state === "published"}
-                  />
-                ) : (
-                  <EmptyMessage title="No assessment evidence is recorded" />
-                )}
-              </QueryState>
-            )}
-            {tab === "work" && (
-              <EntitySection
-                table="task_risks"
-                filters={{ risk_id: id }}
-                title="Risk work"
-                columns={[
-                  {
-                    key: "task_id",
-                    render: (row) => <RelationName table="tasks" id={row["task_id"] as string} />,
-                  },
-                ]}
-              />
-            )}
-            {tab === "activity" && (
-              <EntitySection
-                table="activity_events"
-                filters={{ risk_id: id }}
-                title="Activity"
-                columns={[{ key: "event_type" }, { key: "description" }, { key: "occurred_at" }]}
-                readOnly
-              />
-            )}
+                  )}
+                  {tab === "activity" && (
+                    <EntitySection
+                      table="activity_events"
+                      filters={{ risk_id: id }}
+                      title="Activity"
+                      columns={[
+                        { key: "event_type" },
+                        { key: "description" },
+                        { key: "occurred_at", label: "Occurred" },
+                      ]}
+                      readOnly
+                    />
+                  )}
+                </Stack>
+              </TabsContent>
+            </Tabs>
           </>
         ) : (
           <MissingRecord backTo="/register" kind="Risk" />
@@ -378,20 +413,51 @@ export function RiskRecord({ id }: { id: string }) {
     </Stack>
   );
 }
+/** The draft assessment's edit, in its section's action; the trigger stays while its dialog is open. */
 function AssessmentEditor({ row }: { row: Row<"risk_revisions"> }) {
   const workspace = useWorkspace();
   const [editing, setEditing] = useState<DataRecord | null>(null);
-  return editing ? (
-    <EntityEditor table="risk_revisions" existing={editing} onCancel={() => setEditing(null)} />
-  ) : workspace.role !== "viewer" && row.state === "draft" ? (
-    <Button onClick={() => setEditing(row as DataRecord)}>Edit risk assessment</Button>
-  ) : null;
+  if (workspace.role === "viewer" || row.state !== "draft") return null;
+  return (
+    <>
+      <Button size="small" onClick={() => setEditing(row as DataRecord)}>
+        Edit risk assessment
+      </Button>
+      {editing && (
+        <EntityEditor table="risk_revisions" existing={editing} onCancel={() => setEditing(null)} />
+      )}
+    </>
+  );
 }
-export function Register() {
-  const navigate = useNavigate();
-  const [tab, setTab] = useState("poam");
-  const items = useRows("poam_items"),
-    findings = useRows("assessment_findings"),
+
+export const REGISTER_TABS = ["poam", "risks", "unrolled", "documents"] as const;
+export type RegisterTab = (typeof REGISTER_TABS)[number];
+const registerTabLabels: Record<RegisterTab, string> = {
+  poam: "Remediation items",
+  risks: "Risks",
+  unrolled: "Unrolled findings",
+  documents: "POA&M plans",
+};
+/** The tab a URL names, when the route keeps it there. */
+function registerTab(value: unknown): RegisterTab | undefined {
+  return REGISTER_TABS.find((tab) => tab === value);
+}
+
+export function Register({
+  tab: routeTab,
+  onTabChange,
+}: {
+  /** The tab, when the route keeps it in the URL; local otherwise. */
+  tab?: RegisterTab | undefined;
+  onTabChange?: ((tab: RegisterTab) => void) | undefined;
+} = {}) {
+  const [localTab, setLocalTab] = useState<RegisterTab>("poam");
+  const tab = routeTab ?? localTab;
+  const select = (next: RegisterTab) => {
+    setLocalTab(next);
+    onTabChange?.(next);
+  };
+  const findings = useRows("assessment_findings"),
     links = useRows("finding_risks");
   const unrolled = findings.data?.filter(
     (row) =>
@@ -404,74 +470,78 @@ export function Register() {
           <PageHeader.Title>POA&M & risk register</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
-      <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={tab} onValueChange={(value) => select(registerTab(value) ?? "poam")}>
         <TabsList variant="line" aria-label="POA&M and risk collections">
-          <TabsTrigger value="poam">POA&M</TabsTrigger>
-          <TabsTrigger value="risks">Risks</TabsTrigger>
-          <TabsTrigger value="unrolled">Unrolled findings</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          {REGISTER_TABS.map((value) => (
+            <TabsTrigger key={value} value={value}>
+              {registerTabLabels[value]}
+            </TabsTrigger>
+          ))}
         </TabsList>
+        {/* Each collection keeps its search, filters, sort and page while another tab is open. */}
+        <TabsContent value="poam" keepMounted className="pt-200">
+          <EntitySection
+            fill
+            table="poam_items"
+            title="Remediation items"
+            columns={[
+              { key: "title" },
+              status,
+              party(),
+              {
+                key: "poam_document_id",
+                label: "POA&M plan",
+                render: (row) => (
+                  <RelationName table="poam_documents" id={row["poam_document_id"] as string} />
+                ),
+              },
+            ]}
+          />
+        </TabsContent>
+        <TabsContent value="risks" keepMounted className="pt-200">
+          <RiskList headingScope="section" />
+        </TabsContent>
+        <TabsContent value="unrolled" keepMounted className="pt-200">
+          <ModelTable
+            model="assessment_findings"
+            fill
+            rows={asRecords(unrolled)}
+            queries={[findings, links]}
+            columns={[
+              { key: "title" },
+              { key: "determination" },
+              { key: "determined_at", label: "Determined" },
+            ]}
+            empty={{
+              illustration: "done",
+              title: "Nothing unrolled",
+              description: "No unresolved finding is awaiting a recorded risk relationship.",
+            }}
+            searchLabel="Search findings"
+          />
+        </TabsContent>
+        <TabsContent value="documents" keepMounted className="pt-200">
+          <EntitySection
+            fill
+            table="poam_documents"
+            title="POA&M plans"
+            columns={[
+              { key: "title" },
+              program,
+              {
+                key: "scope_id",
+                render: (row) => (
+                  <RelationName table="scopes" id={row["scope_id"] as string | null} />
+                ),
+              },
+            ]}
+          />
+        </TabsContent>
       </Tabs>
-      {tab === "poam" && (
-        <EntitySection
-          fill
-          table="poam_items"
-          title="POA&M items"
-          columns={[
-            { key: "title" },
-            status,
-            party(),
-            {
-              key: "poam_document_id",
-              label: "Document",
-              render: (row) => (
-                <RelationName table="poam_documents" id={row["poam_document_id"] as string} />
-              ),
-            },
-          ]}
-        />
-      )}
-      {tab === "risks" && <RiskList headingScope="section" />}
-      {tab === "unrolled" && (
-        <QueryState query={findings}>
-          <QueryState query={links}>
-            <ModelTable
-              model="assessment_findings"
-              fill
-              rows={asRecords(unrolled)}
-              columns={[{ key: "title" }, { key: "determination" }, { key: "determined_at" }]}
-              empty={{
-                illustration: "done",
-                title: "Nothing unrolled",
-                description: "No unresolved finding is awaiting a recorded risk relationship.",
-              }}
-              searchLabel="Search findings"
-            />
-          </QueryState>
-        </QueryState>
-      )}
-      {tab === "documents" && (
-        <EntitySection
-          fill
-          table="poam_documents"
-          title="POA&M documents"
-          columns={[
-            { key: "title" },
-            program,
-            {
-              key: "scope_id",
-              render: (row) => (
-                <RelationName table="scopes" id={row["scope_id"] as string | null} />
-              ),
-            },
-          ]}
-        />
-      )}
     </Stack>
   );
 }
 export function PoamRecord({ id }: { id: string }) {
-  const workspace = useWorkspace();
   const query = useRow("poam_items", id),
     versions = useRows("poam_item_revisions", { poam_item_id: id });
   const [editing, setEditing] = useState<DataRecord | null>(null),
@@ -486,19 +556,7 @@ export function PoamRecord({ id }: { id: string }) {
         {record ? (
           <>
             <PageHeader>
-              <PageHeader.Lead render={<Breadcrumb />}>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/register" />}>
-                      POA&M & risk register
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{record.title}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </PageHeader.Lead>
+              <RegisterTrail current={record.title} tab="poam" />
               <PageHeader.Heading>
                 <PageHeader.Title>{record.title}</PageHeader.Title>
               </PageHeader.Heading>
@@ -518,16 +576,17 @@ export function PoamRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <Shell.Aside label="Record details">
+            <Shell.Aside label="Remediation item details">
               <Inspector.Group title="Details">
                 <ModelFacts
+                  table="poam_items"
                   record={record as DataRecord}
                   fields={[
                     party(),
                     "status",
                     {
                       key: "poam_document_id",
-                      label: "Document",
+                      label: "POA&M plan",
                       render: (row) => (
                         <RelationName
                           table="poam_documents"
@@ -539,7 +598,7 @@ export function PoamRecord({ id }: { id: string }) {
                 />
                 {version && (
                   <LibrarySelect
-                    label="Remediation plan version"
+                    label="Remediation commitment"
                     value={version.id}
                     options={(versions.data ?? []).map((item) => ({
                       value: item.id,
@@ -555,25 +614,27 @@ export function PoamRecord({ id }: { id: string }) {
               table="poam_item_revisions"
               filters={{ poam_item_id: id }}
               initialValues={{ poam_document_id: record.poam_document_id }}
-              title="Remediation plan versions"
+              title="Remediation commitments"
               columns={[
                 ...versionColumns,
-                { key: "planned_completion_date" },
-                { key: "actual_completion_date" },
+                { key: "planned_completion_date", label: "Planned" },
+                { key: "actual_completion_date", label: "Completed" },
               ]}
             />
             <QueryState query={versions}>
               {version ? (
-                <>
-                  <PoamVersion key={version.id} version={version} />
-                </>
+                <PoamVersion key={version.id} version={version} />
               ) : (
-                <EmptyMessage title="No remediation plan version has been recorded" />
+                <EmptyMessage
+                  compact
+                  title="No remediation commitment yet"
+                  description="A commitment records the plan, its resources and its milestones."
+                />
               )}
             </QueryState>
           </>
         ) : (
-          <MissingRecord backTo="/register" kind="POA&M commitment" />
+          <MissingRecord backTo="/register" kind="Remediation item" />
         )}
       </QueryState>
     </Stack>
@@ -586,14 +647,14 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
   return (
     <Stack space="space.250">
       <Section
-        title={`Remediation plan · version ${version.version_number}`}
+        title={`Remediation commitment · version ${version.version_number}`}
         action={
           canEdit ? (
-            <Button onClick={() => setEditing(version as DataRecord)}>
+            <Button size="small" onClick={() => setEditing(version as DataRecord)}>
               Edit remediation commitment
             </Button>
           ) : (
-            <StateBadge value={version.state} />
+            <StatusBadge statuses={revisionStates} value={version.state} size="xsmall" />
           )
         }
       >
@@ -605,14 +666,15 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
           />
         )}
         <ModelFacts
+          table="poam_item_revisions"
           record={version as DataRecord}
           fields={[
             "description",
-            "remediation_plan",
+            { key: "remediation_plan", label: "Plan" },
             "resources",
-            "planned_completion_date",
-            "actual_completion_date",
-            "completion_rationale",
+            { key: "planned_completion_date", label: "Planned" },
+            { key: "actual_completion_date", label: "Completed" },
+            { key: "completion_rationale", label: "Rationale" },
           ]}
         />
       </Section>
@@ -622,11 +684,11 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
         filters={{ poam_item_revision_id: version.id }}
         title="Milestones"
         columns={[
-          { key: "sequence_number" },
+          { key: "sequence_number", label: "Sequence" },
           { key: "title" },
           party(),
-          { key: "planned_date" },
-          { key: "completed_date" },
+          { key: "planned_date", label: "Planned" },
+          { key: "completed_date", label: "Completed" },
           status,
         ]}
         readOnly={version.state === "published"}
@@ -640,7 +702,7 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
           {
             key: "risk_revision_id",
             render: (row) => (
-              <RelationName table="risk_revisions" id={row["risk_revision_id"] as string} />
+              <VersionName table="risk_revisions" id={row["risk_revision_id"] as string} />
             ),
           },
         ]}
@@ -662,19 +724,7 @@ export function PoamDocument({ id }: { id: string }) {
         {query.data ? (
           <>
             <PageHeader>
-              <PageHeader.Lead render={<Breadcrumb />}>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/register" />}>
-                      POA&M & risk register
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{query.data.title}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </PageHeader.Lead>
+              <RegisterTrail current={query.data.title} tab="documents" />
               <PageHeader.Heading>
                 <PageHeader.Title>{query.data.title}</PageHeader.Title>
               </PageHeader.Heading>
@@ -693,11 +743,17 @@ export function PoamDocument({ id }: { id: string }) {
                 onCancel={() => setEditingDocument(false)}
               />
             )}
-            <Shell.Aside label="POA&M document details">
+            <Shell.Aside label="POA&M plan details">
               <Inspector.Group title="Details">
                 <ModelFacts
+                  table="poam_documents"
                   record={query.data as DataRecord}
-                  fields={[program, "description", "created_at", "updated_at"]}
+                  fields={[
+                    program,
+                    "description",
+                    { key: "created_at", label: "Created" },
+                    { key: "updated_at", label: "Updated" },
+                  ]}
                 />
               </Inspector.Group>
             </Shell.Aside>
@@ -705,7 +761,7 @@ export function PoamDocument({ id }: { id: string }) {
               showHeading
               table="poam_revisions"
               filters={{ poam_document_id: id }}
-              title="Document revisions"
+              title="Plan revisions"
               columns={versionColumns}
               onOpen={(row) => {
                 setRevision(row);
@@ -743,42 +799,52 @@ export function PoamDocument({ id }: { id: string }) {
                   />
                 }
               >
-                <Stack space="space.200">
-                  <ModelFacts
-                    record={revision}
-                    fields={["version_number", "state", "published_at"]}
-                  />
-                  <EntitySection
-                    table="poam_revision_items"
-                    filters={{ poam_revision_id: revision.id }}
-                    initialValues={{ poam_document_id: id }}
-                    title="Included commitment versions"
-                    columns={[
-                      {
-                        key: "poam_item_revision_id",
-                        render: (row) => (
-                          <RelationName
-                            table="poam_item_revisions"
-                            id={row["poam_item_revision_id"] as string}
-                          />
-                        ),
-                      },
-                    ]}
-                    readOnly={revision["state"] === "published"}
-                  />
-                  {editingRevision && (
-                    <EntityEditor
+                {/* The version is the preview's h2; what it includes sits under it. */}
+                <HeadingLevelProvider level={3}>
+                  <Stack space="space.200">
+                    <ModelFacts
                       table="poam_revisions"
-                      existing={revision}
-                      onCancel={() => setEditingRevision(false)}
+                      record={revision}
+                      fields={[
+                        { key: "version_number", label: "Version" },
+                        "state",
+                        { key: "published_at", label: "Published" },
+                      ]}
                     />
-                  )}
-                </Stack>
+                    <EntitySection
+                      table="poam_revision_items"
+                      filters={{ poam_revision_id: revision.id }}
+                      initialValues={{ poam_document_id: id }}
+                      title="Included remediation commitments"
+                      operation="Link remediation commitment"
+                      showHeading
+                      columns={[
+                        {
+                          key: "poam_item_revision_id",
+                          render: (row) => (
+                            <VersionName
+                              table="poam_item_revisions"
+                              id={row["poam_item_revision_id"] as string}
+                            />
+                          ),
+                        },
+                      ]}
+                      readOnly={revision["state"] === "published"}
+                    />
+                    {editingRevision && (
+                      <EntityEditor
+                        table="poam_revisions"
+                        existing={revision}
+                        onCancel={() => setEditingRevision(false)}
+                      />
+                    )}
+                  </Stack>
+                </HeadingLevelProvider>
               </RecordPreviewPanel>
             )}
           </>
         ) : (
-          <MissingRecord backTo="/register" kind="POA&M document" />
+          <MissingRecord backTo="/register" kind="POA&M plan" />
         )}
       </QueryState>
     </Stack>

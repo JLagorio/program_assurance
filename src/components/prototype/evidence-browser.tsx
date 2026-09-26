@@ -1,26 +1,23 @@
-import { displayDate, statusTone } from "./work-format";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type RefObject } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Button,
+  DateTime,
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   IconButton,
+  Id,
   DataTable,
   defineColumns,
   Inline,
   PreviewSheet,
+  Prose,
   Section,
   Stack,
+  formatFileSize,
   useDataTable,
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyMedia,
-  EmptyIllustration,
-  EmptyDescription,
 } from "@ledger/design-system";
 import {
   RecordLink,
@@ -32,12 +29,22 @@ import {
 import type { ReactNode } from "react";
 import { ProductCollection } from "./product-collection";
 import { MoreHorizontal, Plus } from "lucide-react";
-import { useRows, type Row } from "@/lib/models";
+import { useRow, useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
+import { evidenceReviewDecisions, revisionStates, type StatusVocabulary } from "@/lib/status";
+import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { EvidenceFile } from "@/components/app/evidence-file";
 import { CreateEvidenceDialog } from "./create-evidence-dialog";
-import { DetailFacts, ModelForm, QueryState, StatusBadge, type FormTarget } from "./work-common";
+import { EvidenceFacts, EvidenceReviews, ExternalReference } from "./evidence-version-details";
+import { RelationName } from "./record-tools";
+import { DetailFacts, ModelForm, type FormTarget } from "./work-common";
+
+/** The latest review's decision, and "Not reviewed" where the latest version has none. */
+const latestReviewStatuses: StatusVocabulary = {
+  not_reviewed: { label: "Not reviewed", tone: "neutral", rank: -1 },
+  ...evidenceReviewDecisions,
+};
 
 type EvidenceRow = Row<"evidence_artifacts"> & {
   program: string;
@@ -86,7 +93,7 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
             : "Not recorded",
           version: latest ? `Version ${latest.version_number}` : "No versions",
           collected: latest?.collected_at ?? undefined,
-          review: review ? labelFor(review.decision) : "Not reviewed",
+          review: review ? review.decision : "not_reviewed",
         };
       }),
     [artifacts.data, versions.data, reviews.data, programs.data, parties.data],
@@ -124,7 +131,7 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
         c.status("review", {
           header: "Latest review",
           width: 150,
-          tone: (row) => statusTone(row.review.toLowerCase().replaceAll(" ", "_")),
+          statuses: latestReviewStatuses,
         }),
       ]),
     [programId, selectedId, openPreview],
@@ -182,12 +189,12 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
               {
                 id: "pending",
                 label: "Not reviewed",
-                filters: [{ id: "review", value: ["Not reviewed", "Pending"] }],
+                filters: [{ id: "review", value: ["not_reviewed", "pending"] }],
               },
               {
                 id: "revision",
                 label: "Needs revision",
-                filters: [{ id: "review", value: ["Needs revision"] }],
+                filters: [{ id: "review", value: ["needs_revision"] }],
               },
             ]}
           />
@@ -204,17 +211,21 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
               size="small"
               variant="primary"
               iconBefore={<Plus />}
-              disabled={!!form || creating}
-              onClick={() => setCreating(true)}
+              // Stays enabled while its dialog is open, so focus returns to it on close.
+              onClick={() => {
+                if (!form && !creating) setCreating(true);
+              }}
             >
               Create evidence artifact
             </Button>
           ) : undefined
         }
       />
-      {selected && !form && !creating && (
+      {/* The panel stays mounted under a form opened from it, so focus returns to the trigger. */}
+      {selected && (
         <EvidencePreview
           artifact={selected}
+          formOpen={!!form || creating}
           navigation={
             <RecordPreviewActions
               table="evidence_artifacts"
@@ -235,6 +246,7 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
 
 function EvidencePreview({
   artifact,
+  formOpen,
   navigation,
   versionId,
   onSelectVersion: setVersionId,
@@ -242,6 +254,8 @@ function EvidencePreview({
   onEdit,
 }: {
   artifact: Row<"evidence_artifacts">;
+  /** A form is open over the preview: the modal version review steps aside so they do not stack. */
+  formOpen: boolean;
   navigation: ReactNode;
   versionId: string | null;
   onSelectVersion: (id: string | null) => void;
@@ -257,6 +271,24 @@ function EvidencePreview({
   );
   const current = sorted.find((version) => version.id === versionId);
   const writable = workspace.role !== "viewer";
+  // A form opened from the version review replaces the sheet; when the sheet comes back, focus
+  // goes to the control that opened the form, not to the sheet's title.
+  const reviewButton = useRef<HTMLButtonElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const reopenFrom = useRef<"review" | "menu" | null>(null);
+  const editFromSheet = (target: FormTarget, from: "review" | "menu") => {
+    reopenFrom.current = from;
+    onEdit(target);
+  };
+  const reopenFocus = reopenFrom.current
+    ? {
+        initialFocus: () => {
+          const from = reopenFrom.current;
+          reopenFrom.current = null;
+          return (from === "review" ? reviewButton.current : menuButton.current) ?? true;
+        },
+      }
+    : {};
   const columns = useMemo(
     () =>
       defineColumns<Row<"evidence_versions">>((c) => [
@@ -273,7 +305,7 @@ function EvidencePreview({
             </RecordLink>
           ),
         }),
-        c.status("state", { header: "State", width: 130, tone: (row) => statusTone(row.state) }),
+        c.status("state", { header: "State", width: 130, statuses: revisionStates }),
         c.date("collected_at", { header: "Collected", width: 150 }),
         c.text("storage_object_name", {
           header: "File",
@@ -301,7 +333,13 @@ function EvidencePreview({
     <Button
       size="small"
       variant="primary"
-      disabled={versions.isPending || versions.isError}
+      disabledReason={
+        versions.isPending
+          ? "The versions are still loading."
+          : versions.isError
+            ? "Load the versions before creating another."
+            : undefined
+      }
       onClick={() =>
         onEdit({
           table: "evidence_versions",
@@ -338,11 +376,17 @@ function EvidencePreview({
       <Stack space="space.250">
         <DetailFacts
           facts={[
-            ["Description", artifact.description],
+            ["Description", artifact.description ? <Prose>{artifact.description}</Prose> : null],
             ["Kind", labelFor(artifact.artifact_kind)],
             ["Owner", parties.data?.find((party) => party.id === artifact.owner_party_id)?.name],
-            ["Source", artifact.source_uri],
-            ["Retain until", displayDate(artifact.retention_until)],
+            [
+              "Source",
+              artifact.source_uri ? <ExternalReference uri={artifact.source_uri} /> : null,
+            ],
+            [
+              "Retain until",
+              artifact.retention_until ? <DateTime value={artifact.retention_until} /> : null,
+            ],
           ]}
         />
         <Section title="Versions">
@@ -359,7 +403,7 @@ function EvidencePreview({
             }}
           />
         </Section>
-        {current && (
+        {current && !formOpen && (
           <PreviewSheet
             open
             onClose={() => setVersionId(null)}
@@ -383,8 +427,16 @@ function EvidencePreview({
                 Open the full record
               </Link>
             }
+            {...reopenFocus}
             actions={
-              writable ? <EvidenceVersionActions version={current} onEdit={onEdit} /> : undefined
+              writable ? (
+                <EvidenceVersionActions
+                  version={current}
+                  onEdit={editFromSheet}
+                  reviewButton={reviewButton}
+                  menuButton={menuButton}
+                />
+              ) : undefined
             }
           >
             <EvidenceVersion key={current.id} version={current} />
@@ -409,9 +461,14 @@ const evidenceRelationships = [
 function EvidenceVersionActions({
   version,
   onEdit,
+  reviewButton,
+  menuButton,
 }: {
   version: Row<"evidence_versions">;
-  onEdit: (target: FormTarget) => void;
+  /** Opens a form; `from` says which control asked, so focus can return to it. */
+  onEdit: (target: FormTarget, from: "review" | "menu") => void;
+  reviewButton: RefObject<HTMLButtonElement | null>;
+  menuButton: RefObject<HTMLButtonElement | null>;
 }) {
   const workspace = useWorkspace();
   const parties = useRows("parties");
@@ -419,16 +476,20 @@ function EvidenceVersionActions({
   return (
     <Inline space="space.100">
       <Button
+        ref={reviewButton}
         size="small"
         variant="primary"
         onClick={() =>
-          onEdit({
-            table: "evidence_reviews",
-            initialValues: {
-              evidence_version_id: version.id,
-              ...(me ? { reviewer_party_id: me.id } : {}),
+          onEdit(
+            {
+              table: "evidence_reviews",
+              initialValues: {
+                evidence_version_id: version.id,
+                ...(me ? { reviewer_party_id: me.id } : {}),
+              },
             },
-          })
+            "review",
+          )
         }
       >
         Create evidence review
@@ -437,6 +498,7 @@ function EvidenceVersionActions({
         <DropdownMenuTrigger
           render={
             <IconButton
+              ref={menuButton}
               size="small"
               variant="subtle"
               label="Evidence version actions"
@@ -448,7 +510,7 @@ function EvidenceVersionActions({
           {version.state === "draft" && (
             <DropdownMenuItem
               onClick={() =>
-                onEdit({ table: "evidence_versions", existing: version as DataRecord })
+                onEdit({ table: "evidence_versions", existing: version as DataRecord }, "menu")
               }
             >
               Edit evidence version
@@ -458,11 +520,14 @@ function EvidenceVersionActions({
             <DropdownMenuItem
               key={table}
               onClick={() =>
-                onEdit({
-                  table,
-                  operationLabel: `Link ${label.toLowerCase()}`,
-                  initialValues: { evidence_version_id: version.id },
-                })
+                onEdit(
+                  {
+                    table,
+                    operationLabel: `Link ${label.toLowerCase()}`,
+                    initialValues: { evidence_version_id: version.id },
+                  },
+                  "menu",
+                )
               }
             >
               Link {label.toLowerCase()}
@@ -477,79 +542,50 @@ function EvidenceVersionActions({
 function EvidenceVersion({ version }: { version: Row<"evidence_versions"> }) {
   const workspace = useWorkspace();
   const collection = workspace.collections.find((item) => item.name === "evidence_versions");
-  const reviews = useRows("evidence_reviews", { evidence_version_id: version.id });
-  const parties = useRows("parties");
-  const safeExternal =
-    version.external_uri && /^https?:\/\//i.test(version.external_uri)
-      ? version.external_uri
-      : null;
   return (
     <Stack space="space.250">
       <Section title="Version details">
-        <DetailFacts
+        <EvidenceFacts
           facts={[
-            ["State", <StatusBadge value={version.state} />],
-            ["Provenance", version.provenance],
-            ["Collected", displayDate(version.collected_at)],
-            ["Expires", displayDate(version.expires_at)],
+            ["State", <StatusBadge statuses={revisionStates} value={version.state} />],
+            ["Collected", version.collected_at ? <DateTime value={version.collected_at} /> : null],
+            ["Expires", version.expires_at ? <DateTime value={version.expires_at} /> : null],
             [
               "External reference",
-              safeExternal ? (
-                <a href={safeExternal} target="_blank" rel="noreferrer" className="underline">
+              version.external_uri ? (
+                <ExternalReference uri={version.external_uri}>
                   Open external artifact
-                </a>
-              ) : (
-                version.external_uri
-              ),
+                </ExternalReference>
+              ) : null,
             ],
             ["Media type", version.media_type],
-            ["Bytes", version.byte_size],
-            ["SHA-256", version.sha256],
+            [
+              "Size",
+              typeof version.byte_size === "number" ? formatFileSize(version.byte_size) : null,
+            ],
+            ["SHA-256", version.sha256 ? <Id className="break-all">{version.sha256}</Id> : null],
           ]}
         />
+        {/* Authored text reads as a paragraph at every width, not squeezed beside a label. */}
+        {version.provenance ? <Prose label="Provenance">{version.provenance}</Prose> : null}
       </Section>
       {collection && <EvidenceFile collection={collection} record={version as DataRecord} />}
       <EvidenceSupport versionId={version.id} />
-      <Section title="Reviews">
-        <QueryState queries={[reviews, parties]}>
-          {reviews.data?.length ? (
-            <Stack space="space.150">
-              {[...reviews.data]
-                .sort((a, b) =>
-                  (b.reviewed_at ?? b.created_at).localeCompare(a.reviewed_at ?? a.created_at),
-                )
-                .map((review) => (
-                  <div key={review.id} className="border-b border-default py-150">
-                    <Inline space="space.100" alignBlock="center">
-                      <StatusBadge value={review.decision} />
-                      <span>
-                        {parties.data?.find((party) => party.id === review.reviewer_party_id)
-                          ?.name ?? "Unavailable reviewer"}
-                      </span>
-                    </Inline>
-                    <p className="whitespace-pre-wrap pt-100">
-                      {review.rationale || "No rationale recorded."}
-                    </p>
-                    <p className="font-body-small text-subtle">{displayDate(review.reviewed_at)}</p>
-                  </div>
-                ))}
-            </Stack>
-          ) : (
-            <Empty>
-              <EmptyMedia aria-hidden>
-                <EmptyIllustration kind="done" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>Not reviewed yet</EmptyTitle>
-                <EmptyDescription>
-                  Review decisions are recorded for this exact evidence version.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          )}
-        </QueryState>
-      </Section>
+      <EvidenceReviews versionId={version.id} />
     </Stack>
+  );
+}
+
+/** A requirement revision's name, linked to its requirement's record page. */
+function SupportedRequirement({ revisionId }: { revisionId: string }) {
+  const revision = useRow("requirement_revisions", revisionId);
+  const requirement = useRow("engineering_requirements", revision.data?.engineering_requirement_id);
+  if (!revision.data || !requirement.data)
+    return <RelationName table="requirement_revisions" id={revisionId} />;
+  return (
+    <RecordLink table="engineering_requirements" record={requirement.data}>
+      {requirement.data.code} · {revision.data.title}
+    </RecordLink>
   );
 }
 
@@ -637,21 +673,24 @@ function EvidenceSupport({ versionId }: { versionId: string }) {
     })),
   );
   const columns = defineColumns<(typeof links)[number]>((c) => [
-    c.id("label", {
+    c.id("target", {
       header: "Supported record",
       priority: 0,
-      width: 200,
+      minWidth: 200,
       hideable: false,
-      cell: (link) => (
-        <RecordLink
-          table={link.target as import("@/lib/models").TableName}
-          record={{ id: String(link.row[link.column]) }}
-        >
-          Open {link.label.toLowerCase()}
-        </RecordLink>
-      ),
+      // The link reads as the record it opens: its code and name.
+      cell: (link) => {
+        const id = String(link.row[link.column]);
+        return link.target === "requirement_revisions" ? (
+          <SupportedRequirement revisionId={id} />
+        ) : (
+          <RecordLink table={link.target as TableName} record={{ id }}>
+            <RelationName table={link.target as TableName} id={id} />
+          </RecordLink>
+        );
+      },
     }),
-    c.text("table", { header: "Relationship", width: 180, cell: (link) => link.label }),
+    c.text("label", { header: "Record type", width: 180 }),
   ]);
   const table = useDataTable({
     data: links,

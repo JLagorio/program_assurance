@@ -9,6 +9,7 @@ import {
   useRef,
   type ComponentProps,
   type ReactNode,
+  type RefObject,
 } from "react";
 
 import { IconButton, type IconButtonProps } from "../../components/button";
@@ -36,6 +37,10 @@ import { Splitter, type ShellSplitterProps } from "./splitter";
 
 /* ---------- panel ---------- */
 
+/** Where focus goes: `true` for the default, `false` for nowhere, or an element, by ref or from a function called at that moment (which may itself return `true` or `false`). */
+export type ShellPanelFocusTarget =
+  boolean | RefObject<HTMLElement | null> | (() => HTMLElement | boolean | null | undefined);
+
 export type ShellPanelProps = Omit<ComponentProps<"aside">, "title"> & {
   /** The built-in header's heading, also the landmark's name. Give it, or compose Panel.Header, Panel.Title, Panel.Close and Panel.Body yourself. */
   title?: ReactNode | undefined;
@@ -46,7 +51,55 @@ export type ShellPanelProps = Omit<ComponentProps<"aside">, "title"> & {
   onClose: () => void;
   /** The width on first render, while nothing has been dragged or remembered. */
   defaultWidth?: number | undefined;
+  /**
+   * Where focus goes when the panel opens, at every width, while focus is on the page, on the
+   * opener or nowhere: the panel itself by default, an element inside it, or `false` to leave it
+   * where it is. Where the panel covers Main (below the panel breakpoint) it takes focus even with
+   * `false`, since focus cannot stay on a page that is hidden.
+   */
+  initialFocus?: ShellPanelFocusTarget | undefined;
+  /**
+   * Where focus returns when the panel closes with focus inside it: by default the control the
+   * reader last used in Main, the opener unless they have since used another (a second row's
+   * eye); an element; or `false` to leave it to the caller.
+   */
+  finalFocus?: ShellPanelFocusTarget | undefined;
 };
+
+/** The target a focus prop names, the fallback for `true` or nothing, or `false`. */
+function focusTarget(
+  target: ShellPanelFocusTarget | undefined,
+  fallback: HTMLElement | null,
+): HTMLElement | null | false {
+  if (target === false) return false;
+  if (target === undefined || target === true) return fallback;
+  const value = typeof target === "function" ? target() : target.current;
+  if (value === false) return false;
+  return value === true || value == null ? fallback : value;
+}
+
+const NON_TEXT_INPUTS = new Set([
+  "button",
+  "checkbox",
+  "color",
+  "file",
+  "hidden",
+  "image",
+  "radio",
+  "range",
+  "reset",
+  "submit",
+]);
+
+/** Escape in a field belongs to the field (clearing, closing its list, undoing), not to the panel. */
+function isEditable(target: EventTarget) {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  if (target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) return true;
+  if (target instanceof HTMLInputElement) return !NON_TEXT_INPUTS.has(target.type);
+  const role = target.getAttribute("role");
+  return role === "textbox" || role === "searchbox";
+}
 
 export type ShellPanelHeaderProps = ComponentProps<"div">;
 export type ShellPanelTitleProps = useRender.ComponentProps<"h2">;
@@ -90,6 +143,8 @@ export function PanelSurface({
   onClose,
   actions,
   defaultWidth,
+  initialFocus,
+  finalFocus,
   className,
   children,
   onKeyDown,
@@ -104,6 +159,11 @@ export function PanelSurface({
   const panelRef = useRef<HTMLElement>(null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
+  const focusRef = useRef({ initialFocus, finalFocus });
+  focusRef.current = { initialFocus, finalFocus };
+  // What opened this panel, kept for its lifetime, so an effect that runs again (StrictMode's
+  // second pass) does not take the panel itself, where focus now is, for the opener.
+  const openedBy = useRef<{ opener: HTMLElement | null; tracked: HTMLElement | null } | null>(null);
   // The built-in header when a title or actions are given; otherwise the children compose the parts.
   const configured = title !== undefined || actions !== undefined;
   const titled = configured || hasTitle;
@@ -111,35 +171,57 @@ export function PanelSurface({
     () => ({ onClose: () => closeRef.current(), titleId, setHasTitle, titled }),
     [titleId, setHasTitle, titled],
   );
-  // Capture before the compact layout hides Main. Restore only while focus still belongs to this panel.
+  // The focus contract, at every width. On open, focus moves into the panel while it is on the
+  // page, on the opener or nowhere, so Escape and the next keys act in the preview; below the panel
+  // breakpoint the panel covers Main and always takes it. On close with focus inside, focus goes
+  // back to the control the reader last used in Main. The opener is captured before the compact
+  // layout hides Main; the shell tracks focus and pointer presses in Main, so a button a browser
+  // does not focus on click (Safari) still counts, and a later press on another row's eye moves it.
   useLayoutEffect(() => {
     const panel = panelRef.current;
     if (!panel || !slots) return;
     const doc = panel.ownerDocument;
-    const opener =
-      slots.opener.current ?? (doc.activeElement instanceof HTMLElement ? doc.activeElement : null);
-    const compact = window.matchMedia(panelCompactQuery());
-    const focusPanel = () => {
-      if (
-        compact.matches &&
-        (doc.activeElement === doc.body ||
-          doc.activeElement === opener ||
-          doc.activeElement?.closest(MAIN))
-      )
-        panel.focus();
+    const focused = doc.activeElement;
+    const active =
+      focused instanceof HTMLElement && focused !== doc.body && !panel.contains(focused)
+        ? focused
+        : null;
+    // A control outside Main (a top nav button) is not tracked by the shell: it is the opener itself.
+    openedBy.current ??= {
+      opener: active && !active.closest(MAIN) ? active : (slots.opener.current ?? active),
+      tracked: slots.opener.current,
     };
-    focusPanel();
-    compact.addEventListener("change", focusPanel);
+    const { opener, tracked } = openedBy.current;
+    const compact = window.matchMedia(panelCompactQuery());
+    const focusPanel = (coversMain: boolean) => {
+      const current = doc.activeElement;
+      if (current !== doc.body && current !== opener && !current?.closest(MAIN)) return;
+      const target = focusTarget(focusRef.current.initialFocus, panel);
+      if (target === false && !coversMain) return;
+      if (target && target !== panel) target.focus();
+      else panel.focus({ preventScroll: true });
+    };
+    focusPanel(compact.matches);
+    const onCompact = () => {
+      if (compact.matches) focusPanel(true);
+    };
+    compact.addEventListener("change", onCompact);
     return () => {
-      compact.removeEventListener("change", focusPanel);
+      compact.removeEventListener("change", onCompact);
       const returnFocus = panel.contains(doc.activeElement) || doc.activeElement === doc.body;
+      const latest = slots.opener.current;
+      const fallback = latest && latest !== tracked && latest.isConnected ? latest : opener;
+      const target = returnFocus ? focusTarget(focusRef.current.finalFocus, fallback) : false;
+      if (!target) return;
       requestAnimationFrame(() => {
+        // Still in the document: the effect re-ran (StrictMode's second pass, a new `slots`) and
+        // the panel stays open, so focus stays in it.
+        if (panel.isConnected) return;
         if (
-          returnFocus &&
-          opener?.isConnected &&
+          target.isConnected &&
           (doc.activeElement === doc.body || panel.contains(doc.activeElement))
         )
-          opener.focus();
+          target.focus();
       });
     };
   }, [slots]);
@@ -165,7 +247,7 @@ export function PanelSurface({
       )}
       onKeyDown={(event) => {
         onKeyDown?.(event);
-        if (event.key === "Escape" && !event.defaultPrevented) {
+        if (event.key === "Escape" && !event.defaultPrevented && !isEditable(event.target)) {
           event.preventDefault();
           closeRef.current();
         }

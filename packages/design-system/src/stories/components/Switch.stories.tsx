@@ -414,3 +414,27 @@ export const BoundInField: Story = {
 };
 
 export const Playground: Story = {};
+
+/**
+ * The off track is `color.background.input.track`, 3:1 against every surface with the thumb at
+ * 3:1 on it, so an off switch reads as a control and not a faint pill (WCAG 1.4.11). It is not the
+ * neutral fill that buttons and badges share. contrast.test holds both pairs in both modes. The
+ * play compares the track with a hidden `bg-input-track` reference.
+ */
+export const Boundary: Story = {
+  render: () => (
+    <Inline space="space.200" alignBlock="center">
+      <Switch aria-label="Include in the board pack" />
+      <span data-testid="track" aria-hidden className="hidden bg-input-track" />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const control = canvas.getByRole("switch", { name: "Include in the board pack" });
+    await expect(control).not.toBeChecked();
+    if (matchMedia("(forced-colors: active)").matches) return;
+    await expect(getComputedStyle(control).backgroundColor).toBe(
+      getComputedStyle(canvas.getByTestId("track")).backgroundColor,
+    );
+  },
+};

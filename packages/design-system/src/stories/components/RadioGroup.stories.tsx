@@ -462,3 +462,28 @@ export const BoundInField: Story = {
 };
 
 export const Playground: Story = {};
+
+/**
+ * Each radio's boundary is `color.border.bold`, 3:1 against every surface, so an unchosen option
+ * can be found (WCAG 1.4.11). contrast.test holds the pair in both modes and under increased
+ * contrast. The play compares the radio with a hidden `border-bold` reference.
+ */
+export const Boundary: Story = {
+  render: () => (
+    <Inline space="space.200" alignBlock="center">
+      <RadioGroup aria-label="Retention">
+        <RadioGroupItem value="keep" aria-label="Keep" />
+      </RadioGroup>
+      <span data-testid="bold-border" aria-hidden className="hidden border border-bold" />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const radio = canvas.getByRole("radio", { name: "Keep" });
+    await expect(radio).not.toBeChecked();
+    if (matchMedia("(forced-colors: active)").matches) return;
+    await expect(getComputedStyle(radio).borderTopColor).toBe(
+      getComputedStyle(canvas.getByTestId("bold-border")).borderTopColor,
+    );
+  },
+};

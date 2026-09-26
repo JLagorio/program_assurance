@@ -4,16 +4,13 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Columns3, Plus } from "lucide-react";
 import {
-  Absent,
+  Alert,
+  AlertDescription,
   Button,
   DataTable,
   Id,
-  Shell,
   Stack,
-  Table,
   Text,
-  TextLink,
-  Toolbar,
   defineColumns,
   useDataTable,
   type Preset,
@@ -37,7 +34,14 @@ import {
 } from "./record-preview";
 import { RequirementRecordContent, type RequirementTab } from "./requirement-record";
 
-type Allocation = { id: string; name: string; kind: string; rationale: string | null };
+type Allocation = {
+  id: string;
+  name: string;
+  kind: string;
+  rationale: string | null;
+  /** The allocated system, whose record the allocation's name opens. */
+  systemId: string | null;
+};
 type RequirementView = {
   id: string;
   code: string;
@@ -116,7 +120,7 @@ function useControlStatements(ids: string[], enabled: boolean) {
   });
 }
 
-function AllocationsDetail({ row }: { row: RequirementNode }) {
+function AllocationsDetail({ row, programId }: { row: RequirementNode; programId: string }) {
   const columns = useMemo(
     () =>
       defineColumns<Allocation>((c) => [
@@ -124,16 +128,23 @@ function AllocationsDetail({ row }: { row: RequirementNode }) {
           header: "Allocated to",
           priority: 0,
           minWidth: 180,
-          cell: (allocation) => (
-            <RecordLink table="requirement_allocations" record={allocation}>
-              {allocation.name}
-            </RecordLink>
-          ),
+          // The name opens what it names: the allocated system's record.
+          cell: (allocation) =>
+            allocation.systemId ? (
+              <RecordLink
+                table="systems"
+                record={{ id: allocation.systemId, program_id: programId }}
+              >
+                {allocation.name}
+              </RecordLink>
+            ) : (
+              allocation.name
+            ),
         }),
         c.text("kind", { header: "Target type", width: 160 }),
         c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
       ]),
-    [],
+    [programId],
   );
   const table = useDataTable({
     columns,
@@ -144,6 +155,7 @@ function AllocationsDetail({ row }: { row: RequirementNode }) {
   return (
     <ProductCollection
       table={table}
+      keepQuestion={false}
       searchLabel="Find an allocation"
       empty={{
         illustration: "tree",
@@ -183,7 +195,6 @@ export function RequirementsTable({
   const processes = useRows("security_processes", { program_id: programId });
   const parties = useRows("parties");
   const [adding, setAdding] = useState(false);
-  const [editing, setEditing] = useState(false);
   const [localPreviewId, setLocalPreviewId] = useState<string>();
   const [localTab, setLocalTab] = useState<RequirementTab>("Overview");
   const selectedId = onPreview ? previewId : localPreviewId;
@@ -252,6 +263,7 @@ export function RequirementsTable({
                   : undefined;
             return {
               id: row.id,
+              systemId: systemId && target ? systemId : null,
               name: target ? `${target.code} · ${target.name}` : "Target unavailable",
               kind: systemId
                 ? "System element"
@@ -340,14 +352,8 @@ export function RequirementsTable({
           hideable: false,
           preview: (row) => previewRef.current.openPreview(row.id),
           active: (row) => row.id === previewRef.current.selectedId,
-          cell: (row) => (
-            <RecordLink
-              table="engineering_requirements"
-              record={{ id: row.id, program_id: programId }}
-            >
-              <Id>{row.code}</Id>
-            </RecordLink>
-          ),
+          // The name is the row's one link; the code is its identifier.
+          cell: (row) => <Id>{row.code}</Id>,
         }),
         c.text("name", {
           header: "Requirement name",
@@ -418,7 +424,7 @@ export function RequirementsTable({
       initialExpanded: true,
     },
     detailColumn: false,
-    detail: (row) => <AllocationsDetail row={row} />,
+    detail: (row) => <AllocationsDetail row={row} programId={programId} />,
     initialState: {
       columnVisibility: {
         allocation: false,
@@ -458,10 +464,12 @@ export function RequirementsTable({
     <>
       <Stack space="space.150">
         {!loading && !error && projection.unstructuredCount > 0 && (
-          <p role="status" className="font-body-small text-subtle">
-            Some requirements have multiple parents or circular relationships. They remain listed
-            separately so every requirement stays visible.
-          </p>
+          <Alert role="status">
+            <AlertDescription>
+              Some requirements have multiple parents or circular relationships. They remain listed
+              separately so every requirement stays visible.
+            </AlertDescription>
+          </Alert>
         )}
         <ProductCollection
           table={table}
@@ -510,53 +518,45 @@ export function RequirementsTable({
           }
         />
       )}
-      {editing && selectedId && (
-        <ProgramEditor
-          table="engineering_requirements"
-          existing={requirements.data?.find((row) => row.id === selectedId)}
-          onClose={() => setEditing(false)}
-        />
-      )}
       {selectedId && (
-        <RecordPreviewPanel
-          title={projection.byId.get(selectedId)?.name ?? "Requirement"}
-          label="Requirement preview"
-          recordActions={
-            canCreate ? (
-              <Button size="small" variant="primary" onClick={() => setEditing(true)}>
-                Edit engineering requirement
-              </Button>
-            ) : undefined
-          }
-          defaultWidth={640}
-          onClose={() => openPreview(undefined)}
-          navigation={
-            <RecordPreviewActions
-              table="engineering_requirements"
-              record={{ id: selectedId, program_id: programId }}
-              rows={visibleRows}
-              onSelect={(row) => openPreview(row.id)}
-              openLink={
-                <Link
-                  to="/programs/$programId/requirements/$requirementId"
-                  params={{ programId, requirementId: selectedId }}
-                  search={{ tab: selectedTab }}
-                  target="_blank"
-                  rel="noopener noreferrer"
+        <RequirementRecordContent
+          key={`${programId}/${selectedId}`}
+          programId={programId}
+          requirementId={selectedId}
+          tab={selectedTab}
+          onTabChange={changePreviewTab}
+          preview
+          // The preview's header and its record actions are the record's own, so the page and
+          // the preview name the requirement, and gate its edit, the same way.
+          renderFrame={({ content, title, actions }) => (
+            <RecordPreviewPanel
+              title={title}
+              label="Requirement preview"
+              recordActions={actions ?? undefined}
+              defaultWidth={640}
+              onClose={() => openPreview(undefined)}
+              navigation={
+                <RecordPreviewActions
+                  table="engineering_requirements"
+                  record={{ id: selectedId, program_id: programId }}
+                  rows={visibleRows}
+                  onSelect={(row) => openPreview(row.id)}
+                  openLink={
+                    <Link
+                      to="/programs/$programId/requirements/$requirementId"
+                      params={{ programId, requirementId: selectedId }}
+                      search={{ tab: selectedTab }}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  }
                 />
               }
-            />
-          }
-        >
-          <RequirementRecordContent
-            key={`${programId}/${selectedId}`}
-            programId={programId}
-            requirementId={selectedId}
-            tab={selectedTab}
-            onTabChange={changePreviewTab}
-            preview
-          />
-        </RecordPreviewPanel>
+            >
+              {content}
+            </RecordPreviewPanel>
+          )}
+        />
       )}
     </>
   );

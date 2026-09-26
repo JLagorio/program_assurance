@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FileText } from "lucide-react";
 import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
 
 import {
@@ -33,7 +34,7 @@ import {
   type TableQuery,
   type TableQueryParams,
 } from "../..";
-import { Button, Id, Indicator, Input, Spinner, Stat, type Tone } from "../../components";
+import { Button, Id, Indicator, Input, Spinner, Stat, TextLink, type Tone } from "../../components";
 
 import { Table } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
@@ -47,6 +48,14 @@ const meta = {
 } satisfies Meta;
 export default meta;
 type Story = StoryObj;
+
+/** What the page's polite live regions hold now, one entry per line, from the Announcer or `announce`'s own regions. */
+const politeLines = (canvasElement: HTMLElement) =>
+  [
+    ...canvasElement.ownerDocument.querySelectorAll(
+      '[data-slot="announcer-region"][data-politeness="polite"] > div',
+    ),
+  ].map((line) => line.textContent ?? "");
 
 type Finding = {
   id: string;
@@ -399,17 +408,32 @@ export const PinnedColumns: Story = {
       Number(getComputedStyle(controls).zIndex) || 0,
     );
     await expect(rule.pointerEvents).toBe("none");
-    await expect(within(header).getByRole("button", { name: "Reorder column" })).toBeVisible();
+    // The grip and the resize handle are for the pointer: the column's menu moves and sizes the
+    // column by keyboard, so a header is two tab stops, the sort and the menu.
+    const grip = header.querySelector<HTMLElement>('[aria-roledescription="sortable"]')!;
+    await expect(grip).toBeVisible();
+    await expect(grip).toHaveAttribute("aria-label", "Reorder Status column");
+    await expect(grip).toHaveAttribute("aria-hidden", "true");
+    await expect(grip).toHaveAttribute("tabindex", "-1");
+    await expect(header.querySelector('[role="separator"]')).not.toHaveAttribute("tabindex");
+    const stops = [...header.querySelectorAll<HTMLElement>("button, [tabindex]")].filter(
+      (element) => element.tabIndex >= 0 && !element.closest("[aria-hidden=true]"),
+    );
+    await expect(stops.map((element) => element.getAttribute("aria-label") ?? "sort")).toEqual([
+      "sort",
+      "Status column menu",
+    ]);
 
     await userEvent.click(menu);
     const body = within(canvasElement.ownerDocument.body);
     await userEvent.click(await body.findByRole("menuitemradio", { name: "Sort ascending" }));
     await waitFor(() => expect(header).toHaveAttribute("aria-sort", "ascending"));
-    const resize = within(header).getByRole("separator", { name: "Resize column" });
-    const width = Number(resize.getAttribute("aria-valuenow"));
-    resize.focus();
-    await userEvent.keyboard("{ArrowRight}");
-    await waitFor(() => expect(resize).toHaveAttribute("aria-valuenow", String(width + 8)));
+    const width = parseFloat(header.style.width);
+    await userEvent.click(menu);
+    await userEvent.click(await body.findByRole("menuitem", { name: "Wider" }));
+    await waitFor(() => expect(parseFloat(header.style.width)).toBe(width + 32));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
   },
 };
 
@@ -514,7 +538,9 @@ function DraggableHeader({
   table: DataTableInstance<Finding>;
   column: ReturnType<DataTableInstance<Finding>["getVisibleLeafColumns"]>[number];
 }) {
-  const drag = useColumnDrag(column.id, true);
+  // The menu beside the grip moves the column by keyboard, so the grip is for the pointer.
+  const header = typeof column.columnDef.header === "string" ? column.columnDef.header : column.id;
+  const drag = useColumnDrag(column.id, true, { label: header, pointerOnly: true });
   return (
     <Table.Header
       ref={drag.setNodeRef}
@@ -527,7 +553,7 @@ function DraggableHeader({
       }
       width={150}
     >
-      {typeof column.columnDef.header === "string" ? column.columnDef.header : column.id}
+      {header}
     </Table.Header>
   );
 }
@@ -1309,11 +1335,13 @@ export const PinnedRowsStory: Story = {
   render: () => <PinnedRows />,
 };
 
-/** Rows dragged into a new order by their handle; sorting is off while it is on. The story keeps the order. */
+/** Rows dragged into a new order by their handle, or moved one place with Move up and Move down in the row's menu; sorting is off while it is on. `rowLabel` names each row's handle and menu, and what a move says. The story keeps the order. */
 const rankColumns = defineColumns<Finding>((c) => [
   c.id("id"),
   c.text("name", { header: "Finding" }),
   c.person("owner", { header: "Owner", width: 180 }),
+  // No actions of its own: the menu holds only the moves.
+  c.actions(() => []),
 ]);
 
 function Ranked() {
@@ -1322,6 +1350,8 @@ function Ranked() {
     columns: rankColumns,
     data,
     getRowId: (r) => r.id,
+    rowLabel: (r) => r.id,
+    label: "Ranked findings",
     reorderRows: (moved, target, position) =>
       setData((rows) => {
         const rest = rows.filter((r) => r.id !== moved.id);
@@ -1339,7 +1369,42 @@ function Ranked() {
   );
 }
 
-export const ReorderingRows: Story = { name: "Reordering rows", render: () => <Ranked /> };
+export const ReorderingRows: Story = {
+  name: "Reordering rows",
+  render: () => <Ranked />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Ranked findings" });
+    const order = () =>
+      [...table.querySelectorAll<HTMLElement>("tbody tr[data-row-id]")].map(
+        (row) => row.dataset["rowId"],
+      );
+    await expect(within(table).getByRole("button", { name: "Reorder FND-2200" })).toBeVisible();
+
+    // One press moves a row one place: no drag, for a single pointer or a touch screen.
+    const menu = within(table).getByRole("button", { name: "Row actions for FND-2200" });
+    await userEvent.click(menu);
+    await expect(await body.findByRole("menuitem", { name: "Move up" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await userEvent.click(await body.findByRole("menuitem", { name: "Move down" }));
+    await waitFor(() => expect(order().slice(0, 2)).toEqual(["FND-2201", "FND-2200"]));
+    await waitFor(() => expect(menu).toHaveFocus());
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("FND-2200, 2 of 6"));
+
+    // By keyboard alone: open the menu, arrow to Move up, Enter.
+    await userEvent.keyboard("{Enter}");
+    const up = await body.findByRole("menuitem", { name: "Move up" });
+    for (let press = 0; press < 4 && !up.matches(":focus"); press++)
+      await userEvent.keyboard("{ArrowDown}");
+    await expect(up).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(order().slice(0, 2)).toEqual(["FND-2200", "FND-2201"]));
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("FND-2200, 1 of 6"));
+  },
+};
 
 /** Cells that edit in place: the name is an Editable.Text, the status an Editable.Select. Enter commits and moves down the column; the table is a grid. */
 function Editing() {
@@ -1919,19 +1984,26 @@ export const KeyboardResizeMatrix: Story = {
     </LedgerProvider>
   ),
   play: async ({ canvasElement }) => {
-    const handles = within(canvasElement).getAllByRole("separator", {
-      name: "Resize column",
-    });
-    const handle = handles[0]!;
-    const before = Number(handle.getAttribute("aria-valuenow"));
-    handle.focus();
-    await userEvent.keyboard("{ArrowRight}");
-    await waitFor(() => expect(handle).toHaveAttribute("aria-valuenow", String(before + 8)));
-    await userEvent.keyboard("{Home}");
-    await waitFor(() =>
-      expect(handle.getAttribute("aria-valuenow")).toBe(handle.getAttribute("aria-valuemin")),
-    );
-    await expect(within(canvasElement).getByText("1,234")).toBeVisible();
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    // The handle is for the pointer and no tab stop; the keyboard sizes the column from its menu.
+    const handle = canvas.getAllByRole("separator", { name: "Resize column" })[0]!;
+    await expect(handle).not.toHaveAttribute("tabindex");
+    const header = handle.closest("th")!;
+    const before = parseFloat(header.style.width);
+    const menu = canvas.getByRole("button", { name: "Program name column menu" });
+    menu.focus();
+    await userEvent.keyboard("{Enter}");
+    const wider = await body.findByRole("menuitem", { name: "Wider" });
+    for (let press = 0; press < 10 && !wider.matches(":focus"); press++)
+      await userEvent.keyboard("{ArrowDown}");
+    await expect(wider).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(parseFloat(header.style.width)).toBe(before + 32));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(menu).toHaveFocus());
+    await expect(canvas.getByText("1,234")).toBeVisible();
   },
 };
 
@@ -1991,11 +2063,13 @@ export const StoredViewsMatrix: Story = {
     const canvas = within(canvasElement);
     const firstHeader = () => canvas.getAllByRole("columnheader")[0]!;
     const nameWidth = () =>
-      canvas
-        .getAllByRole("columnheader")
-        .find((header) => header.textContent?.includes("Program name"))!
-        .querySelector('[role="separator"]')!
-        .getAttribute("aria-valuenow");
+      String(
+        parseFloat(
+          canvas
+            .getAllByRole("columnheader")
+            .find((header) => header.textContent?.includes("Program name"))!.style.width,
+        ),
+      );
     await canvas.findByRole("table", { name: "Stored programs" });
     await waitFor(() => expect(nameWidth()).toBe("310"));
     await expect(firstHeader()).toHaveTextContent("Program name");
@@ -2648,7 +2722,7 @@ function WidthFromMenu() {
   return <DataTable table={table} />;
 }
 
-/** A resizable column's menu sets its width without a drag, for a single pointer, a touch screen or anyone who cannot drag (WCAG 2.5.7): Wider and Narrower step 32px and keep the menu open for another press, stopping at the column's minimum and maximum, and Reset width returns to the author's width. A polite status says the width the column now has, and the handle's value follows. */
+/** A resizable column's menu sets its width without a drag, for a single pointer, a touch screen or anyone who cannot drag (WCAG 2.5.7): Wider and Narrower step 32px and keep the menu open for another press, stopping at the column's minimum and maximum, and Reset width returns to the author's width. A polite status says the width the column now has. The handle is for the pointer and no tab stop: this menu is the keyboard's way. */
 export const ColumnWidthFromMenu: Story = {
   name: "Column width from its menu",
   render: () => <WidthFromMenu />,
@@ -2656,12 +2730,7 @@ export const ColumnWidthFromMenu: Story = {
     const canvas = within(canvasElement);
     const body = within(canvasElement.ownerDocument.body);
     const table = canvas.getByRole("table", { name: "Findings to size" });
-    const width = (name: string) =>
-      Number(
-        headerNamed(table, name)!
-          .querySelector('[role="separator"]')!
-          .getAttribute("aria-valuenow"),
-      );
+    const width = (name: string) => parseFloat(headerNamed(table, name)!.style.width);
     const item = (name: string) => body.findByRole("menuitem", { name });
     await expect(width("Finding")).toBe(240);
 
@@ -3099,6 +3168,447 @@ export const StatusMapStory: Story = {
     await waitFor(() => expect(order()).toEqual(["WRK-104"]));
     await expect(canvas.getByTestId("status-export").textContent).toContain(
       "WRK-104,Recertify the firewall rules,In review",
+    );
+  },
+};
+
+/*
+ * Render budget. A custom cell counts, per row, how often its row draws, so the play sees which
+ * rows a change redrew: one checkbox redraws one row, a preview step the two rows it changes, a
+ * frame that narrows by a few pixels none, and a frame that folds a column every row.
+ */
+const drawnRows = new Map<string, number>();
+function BudgetRegister() {
+  const [active, setActive] = useState<string | null>(null);
+  const [width, setWidth] = useState(880);
+  const activeNow = useRef(active);
+  activeNow.current = active;
+  // Stable columns and data: the consumer's half of the memo.
+  const budgetColumns = useMemo(
+    () =>
+      defineColumns<Finding>((c) => [
+        c.id("id", {
+          preview: (r) => setActive(r.id),
+          active: (r) => r.id === activeNow.current,
+        }),
+        // The name is the identity, drawn in the row at every width, so its cell sees each row
+        // that draws.
+        c.text("name", {
+          header: "Finding",
+          minWidth: 220,
+          priority: 0,
+          cell: (r) => {
+            drawnRows.set(r.id, (drawnRows.get(r.id) ?? 0) + 1);
+            return r.name;
+          },
+        }),
+        c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+        c.person("owner", { header: "Owner", width: 180 }),
+        c.number("open", { header: "Open items", width: 110 }),
+      ]),
+    [],
+  );
+  const data = useMemo(() => findings.slice(0, 12), []);
+  const table = useDataTable({
+    columns: budgetColumns,
+    data,
+    getRowId: (r) => r.id,
+    selectable: true,
+    label: "Findings on a budget",
+  });
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" shouldWrap>
+        <Button size="small" onClick={() => setWidth((w) => w - 6)}>
+          Narrow a little
+        </Button>
+        <Button size="small" onClick={() => setWidth(420)}>
+          Narrow to a phone
+        </Button>
+      </Inline>
+      <div style={{ width, maxWidth: "100%" }} data-testid="budget-frame">
+        <DataTable table={table} responsive />
+      </div>
+    </Stack>
+  );
+}
+
+export const RenderBudget: Story = {
+  name: "Render budget",
+  render: () => <BudgetRegister />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Findings on a budget" });
+    const settle = () => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
+    const redrawn = () => [...drawnRows.keys()].sort();
+    await settle();
+
+    // One checkbox redraws its own row.
+    drawnRows.clear();
+    await userEvent.click(within(table).getByRole("checkbox", { name: "Select row FND-2202" }));
+    await settle();
+    await expect(redrawn()).toEqual(["FND-2202"]);
+
+    // A preview step redraws the row it leaves and the row it opens.
+    await userEvent.click(within(table).getAllByRole("button", { name: "Preview row" })[1]!);
+    await settle();
+    drawnRows.clear();
+    await userEvent.click(within(table).getAllByRole("button", { name: "Preview row" })[4]!);
+    await settle();
+    await expect(redrawn()).toEqual(["FND-2201", "FND-2204"]);
+
+    // The layout projects draw the story narrower than its frame; the budget is a desktop's.
+    const frameBox = canvas.getByTestId("budget-frame");
+    if (frameBox.getBoundingClientRect().width < 880) return;
+
+    // The name takes the slack through CSS, so a frame that narrows without folding a column
+    // redraws nothing, and the table still fits its frame.
+    const name = within(table).getByRole("columnheader", { name: "Finding" });
+    await expect(name.style.width).toBe("");
+    const tableFrame = table.closest<HTMLElement>('[data-slot="table-container"]')!;
+    drawnRows.clear();
+    for (let step = 0; step < 4; step++) {
+      await userEvent.click(canvas.getByRole("button", { name: "Narrow a little" }));
+      await settle();
+    }
+    await expect(redrawn()).toEqual([]);
+    await expect(tableFrame.scrollWidth).toBeLessThanOrEqual(tableFrame.clientWidth);
+
+    // A frame that folds a column redraws every row once, with More fields.
+    await userEvent.click(canvas.getByRole("button", { name: "Narrow to a phone" }));
+    await waitFor(() =>
+      expect(within(table).getAllByRole("button", { name: /^More fields for / })).toHaveLength(12),
+    );
+    await settle();
+    await expect(redrawn()).toHaveLength(12);
+    await expect(tableFrame.scrollWidth).toBeLessThanOrEqual(tableFrame.clientWidth);
+  },
+};
+
+/*
+ * Narrowed outside the table. The caller filters `data` with a scope toggle the table cannot see,
+ * and says so with `narrowed`: the result that is empty keeps the toolbar, the header and the
+ * control that brings the rows back, in place of the no-records state that would hide them.
+ */
+function NarrowedOutside() {
+  const [inside, setInside] = useState(false);
+  const data = useMemo(() => (inside ? findings.slice(0, 5) : []), [inside]);
+  const table = useDataTable({
+    columns: rankColumns,
+    data,
+    getRowId: (r) => r.id,
+    label: "Findings allocated here",
+  });
+  return (
+    <DataTable
+      table={table}
+      narrowed={!inside}
+      noun={{ one: "finding", other: "findings" }}
+      toolbar={
+        <Toolbar
+          search={table.state.globalFilter}
+          onSearch={table.setGlobalFilter}
+          placeholder="Search findings"
+          filters={
+            <Button size="small" aria-pressed={inside} onClick={() => setInside((on) => !on)}>
+              Include everything inside
+            </Button>
+          }
+        />
+      }
+      empty={{
+        title: "No findings yet",
+        description: "The first assessment creates them.",
+        // The caller's way back while it narrows; the kit's Clear filters for the table's own search.
+        filtered: inside
+          ? undefined
+          : {
+              title: "Nothing allocated here",
+              description: "Its parts hold findings. Include everything inside to see them.",
+              action: <Button onClick={() => setInside(true)}>Include everything inside</Button>,
+            },
+      }}
+    />
+  );
+}
+
+export const NarrowedOutsideTheTable: Story = {
+  name: "Narrowed outside the table",
+  render: () => <NarrowedOutside />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Nothing here, but the parts hold rows: the filtered empty, under the header, with the toolbar.
+    await expect(canvas.getByRole("searchbox", { name: "Search findings" })).toBeVisible();
+    await expect(canvas.getByRole("columnheader", { name: "Finding" })).toBeVisible();
+    await expect(canvas.getByText("Nothing allocated here")).toBeVisible();
+    await expect(canvas.queryByText("No findings yet")).toBeNull();
+    // The table's own Clear filters would clear nothing, so only the caller's way back shows.
+    await expect(canvas.queryByRole("button", { name: "Clear filters" })).toBeNull();
+    const table = canvas.getByRole("table", { name: "Findings allocated here" });
+    await userEvent.click(within(table).getByRole("button", { name: "Include everything inside" }));
+    await waitFor(() => expect(canvas.getAllByRole("row")).toHaveLength(6));
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("5 findings"));
+
+    // A search of the table's own that leaves nothing offers the kit's Clear filters again.
+    await userEvent.type(canvas.getByRole("searchbox", { name: "Search findings" }), "zzqqxx");
+    await userEvent.click(await canvas.findByRole("button", { name: "Clear filters" }));
+    await waitFor(() => expect(canvas.getAllByRole("row")).toHaveLength(6));
+  },
+};
+
+/*
+ * Result status. After a search, a filter, a saved question or a page, the table says the result
+ * once the reader stops, in one polite line through the page's announcer, with the caller's noun;
+ * while it loads, the table is busy.
+ */
+function Announced() {
+  const [state, setState] = useState<DataTableState>("ready");
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (r) => r.id,
+    pageSize: 8,
+    label: "Findings said aloud",
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable
+        table={table}
+        state={state}
+        noun={{ one: "finding", other: "findings" }}
+        toolbar={
+          <Toolbar
+            search={table.state.globalFilter}
+            onSearch={table.setGlobalFilter}
+            placeholder="Search findings"
+            actions={
+              <Button
+                size="small"
+                onClick={() => setState((now) => (now === "loading" ? "ready" : "loading"))}
+              >
+                {state === "loading" ? "Finish loading" : "Reload"}
+              </Button>
+            }
+          />
+        }
+        empty={{ title: "No findings yet" }}
+      />
+    </Stack>
+  );
+}
+
+export const ResultStatus: Story = {
+  name: "Result status",
+  render: () => <Announced />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Findings said aloud" });
+    const search = canvas.getByRole("searchbox", { name: "Search findings" });
+    const said = (line: string) => politeLines(canvasElement).filter((l) => l === line).length;
+    const before = said("3 of 24 findings");
+    // Typing is said once, when the reader stops.
+    await userEvent.type(search, "Firewall");
+    await waitFor(() => expect(said("3 of 24 findings")).toBe(before + 1));
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    await expect(said("3 of 24 findings")).toBe(before + 1);
+
+    await userEvent.type(search, "zz");
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("No matching findings"));
+    await userEvent.clear(search);
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("1–8 of 24 findings"));
+
+    await userEvent.click(canvas.getByRole("button", { name: "Page 2" }));
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("9–16 of 24 findings"));
+
+    // Loading keeps the header and says the table is busy.
+    await userEvent.click(canvas.getByRole("button", { name: "Reload" }));
+    await waitFor(() => expect(table).toHaveAttribute("aria-busy", "true"));
+    await userEvent.click(canvas.getByRole("button", { name: "Finish loading" }));
+    await waitFor(() => expect(table).not.toHaveAttribute("aria-busy"));
+  },
+};
+
+/*
+ * The name link keeps its focus ring. A register's name is a link in the preview column, cut to its
+ * column: the link cuts itself and draws its ring inside its own box, so no clipping ancestor takes
+ * any of it, whether the name fits or not.
+ */
+const linkedColumns = defineColumns<Finding>((c) => [
+  c.text("name", {
+    header: "Finding",
+    minWidth: 140,
+    priority: 0,
+    cell: (r) => (
+      <TextLink href={`#${r.id}`} onClick={(event) => event.preventDefault()}>
+        {r.name}
+      </TextLink>
+    ),
+  }),
+  // The id opens the preview, so the eye sits at the end of the name, the row's first value.
+  c.id("id", { preview: () => undefined }),
+  c.person("owner", { header: "Owner", width: 180, priority: 1 }),
+]);
+
+/** The first name is longer than any panel gives it, so it is cut. */
+const linkedFindings = findings.slice(0, 4).map((finding, at) =>
+  at === 0
+    ? {
+        ...finding,
+        name: "Segregation of duties across payables, receivables and the general ledger close",
+      }
+    : finding,
+);
+
+/** A responsive register in a narrow panel, as the product draws one, so the name is cut. */
+/**
+ * The register's usual shape: the id column is the name, its `cell` the record link and its
+ * `preview` the eye, with an icon beside the link in a flex row, as a tree's element column draws it.
+ */
+const linkedIdColumns = defineColumns<Finding>((c) => [
+  c.id("name", {
+    header: "Finding",
+    minWidth: 140,
+    priority: 0,
+    preview: () => undefined,
+    cell: (r) => (
+      <span className="flex min-w-0 items-center gap-075">
+        <FileText aria-hidden className="size-icon-small shrink-0 icon-subtle" />
+        <TextLink href={`#${r.id}`} onClick={(event) => event.preventDefault()}>
+          {r.name}
+        </TextLink>
+      </span>
+    ),
+  }),
+  c.person("owner", { header: "Owner", width: 180, priority: 1 }),
+]);
+
+function LinkedNames() {
+  const table = useDataTable({
+    columns: linkedColumns,
+    data: linkedFindings,
+    getRowId: (r) => r.id,
+    label: "Findings by name",
+  });
+  const idTable = useDataTable({
+    columns: linkedIdColumns,
+    data: linkedFindings,
+    getRowId: (r) => r.id,
+    label: "Findings by record link",
+  });
+  return (
+    <Stack space="space.300">
+      <div style={{ width: 360, maxWidth: "100%" }}>
+        <DataTable table={table} responsive />
+      </div>
+      <div style={{ width: 360, maxWidth: "100%" }}>
+        <DataTable table={idTable} responsive />
+      </div>
+    </Stack>
+  );
+}
+
+/** Whether any clipping ancestor, up to the table's frame, cuts the focus ring drawn around `el`. */
+function ringClippedBy(el: HTMLElement): HTMLElement | null {
+  const style = getComputedStyle(el);
+  const reach = Math.max(0, parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth));
+  const box = el.getBoundingClientRect();
+  const ring = {
+    left: box.left - reach,
+    right: box.right + reach,
+    top: box.top - reach,
+    bottom: box.bottom + reach,
+  };
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    const clip = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    const inner = {
+      left: rect.left + node.clientLeft,
+      right: rect.left + node.clientLeft + node.clientWidth,
+      top: rect.top + node.clientTop,
+      bottom: rect.top + node.clientTop + node.clientHeight,
+    };
+    const across = clip.overflowX !== "visible";
+    const down = clip.overflowY !== "visible";
+    if (across && (ring.left < inner.left - 0.5 || ring.right > inner.right + 0.5)) return node;
+    if (down && (ring.top < inner.top - 0.5 || ring.bottom > inner.bottom + 0.5)) return node;
+    if (node.dataset["slot"] === "table-container") break;
+  }
+  return null;
+}
+
+export const NameLinkFocus: Story = {
+  name: "Name link focus",
+  render: () => <LinkedNames />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // A text column's link, and the id column's own link beside an icon: in both the first name
+    // is cut, and the ring stays whole all the same.
+    for (const name of ["Findings by name", "Findings by record link"]) {
+      const table = canvas.getByRole("table", { name });
+      const cut = within(table).getAllByRole("link")[0]!;
+      await expect(cut.scrollWidth).toBeGreaterThan(cut.clientWidth);
+      // The link ends in its own ellipsis and nothing around it overflows.
+      await expect(getComputedStyle(cut).textOverflow).toBe("ellipsis");
+      await expect(cut.parentElement!.scrollWidth).toBeLessThanOrEqual(
+        cut.parentElement!.clientWidth,
+      );
+      canvasElement.ownerDocument.body.focus();
+      for (let press = 0; press < 16 && canvasElement.ownerDocument.activeElement !== cut; press++)
+        await userEvent.tab();
+      await expect(cut).toHaveFocus();
+      await expect(cut.matches(":focus-visible")).toBe(true);
+      await expect(getComputedStyle(cut).outlineStyle).toBe("solid");
+      await expect(ringClippedBy(cut)).toBeNull();
+    }
+  },
+};
+
+/*
+ * Columns without a menu. With `columnMenu: false` no menu moves or sizes a column, so the grip and
+ * the resize handle keep their keys: the grip takes Space and the arrow keys, the handle the arrow
+ * keys, Home and End.
+ */
+const menulessColumns = defineColumns<Finding>((c) => [
+  c.id("id"),
+  c.text("name", { header: "Finding", width: 220 }),
+  c.person("owner", { header: "Owner", width: 180 }),
+]);
+
+function Menuless() {
+  const table = useDataTable({
+    columns: menulessColumns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    label: "Findings without column menus",
+    reorderable: true,
+    resizable: true,
+    columnMenu: false,
+  });
+  return <DataTable table={table} />;
+}
+
+export const ColumnsWithoutAMenu: Story = {
+  name: "Columns without a menu",
+  render: () => <Menuless />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Findings without column menus" });
+    const header = within(table).getByRole("columnheader", { name: /Finding/ });
+    await expect(within(header).queryByRole("button", { name: /column menu/ })).toBeNull();
+    // No menu moves the column, so its grip is a named tab stop.
+    const grip = within(header).getByRole("button", { name: "Reorder Finding column" });
+    await expect(grip).not.toHaveAttribute("aria-hidden");
+    await expect(grip.tabIndex).toBe(0);
+    // No menu sizes it, so the handle takes the arrow keys.
+    const handle = within(header).getByRole("separator", { name: "Resize column" });
+    await expect(handle.tabIndex).toBe(0);
+    const before = Number(handle.getAttribute("aria-valuenow"));
+    handle.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(handle).toHaveAttribute("aria-valuenow", String(before + 8)));
+    await userEvent.keyboard("{Home}");
+    await waitFor(() =>
+      expect(handle.getAttribute("aria-valuenow")).toBe(handle.getAttribute("aria-valuemin")),
     );
   },
 };

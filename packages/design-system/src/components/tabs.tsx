@@ -22,10 +22,10 @@ export function Tabs({ className, orientation = "horizontal", dir, ...props }: T
     <DirectionProvider direction={resolvedDirection}>
       <TabsLayoutContext.Provider value={{ orientation, direction: resolvedDirection }}>
         <TabsPrimitive.Root
-          data-slot="tabs"
           dir={dir ?? direction}
           orientation={orientation}
           {...props}
+          data-slot="tabs"
           className={classes(
             "group/tabs flex min-w-0 gap-100 data-[orientation=horizontal]:flex-col",
             className,
@@ -56,9 +56,9 @@ export function TabsList({ className, variant = "default", children, ...props }:
   const [viewport, setViewport] = useState<HTMLElement | null>(null);
   const list = (
     <TabsPrimitive.List
+      {...props}
       data-slot="tabs-list"
       data-variant={variant}
-      {...props}
       className={classes(tabsListVariants({ variant }), className)}
     >
       {children}
@@ -106,8 +106,8 @@ export type TabsTriggerProps = TabsPrimitive.Tab.Props;
 export function TabsTrigger({ className, ...props }: TabsTriggerProps) {
   return (
     <TabsPrimitive.Tab
-      data-slot="tabs-trigger"
       {...props}
+      data-slot="tabs-trigger"
       className={classes(
         "relative z-10 inline-flex h-full min-h-control-small flex-1 shrink-0 items-center justify-center gap-075 whitespace-nowrap rounded-small px-100 font-body font-medium text-subtle outline-none transition-colors duration-fast ease-standard hover:text-default focus-visible:outline-focused data-active:text-default data-disabled:pointer-events-none data-disabled:text-disabled group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start group-data-[variant=line]/tabs-list:h-control-medium group-data-[variant=line]/tabs-list:flex-none group-data-[variant=line]/tabs-list:rounded-none group-data-[variant=line]/tabs-list:px-050 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-medium",
         className,
@@ -151,10 +151,10 @@ export function TabsContent({ className, value, ref, ...props }: TabsContentProp
   }, [value]);
   return (
     <TabsPrimitive.Panel
+      {...props}
       ref={mergedRef}
       data-slot="tabs-content"
       value={value}
-      {...props}
       className={classes(
         "flex-1 outline-none focus-visible:outline-focused [&[hidden]]:hidden",
         className,

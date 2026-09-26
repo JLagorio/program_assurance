@@ -1,31 +1,39 @@
 import { productCreateLabel } from "@/lib/product-records";
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useId, useRef, useState, type FormEvent } from "react";
-import { useBlocker } from "@tanstack/react-router";
+import { useConfirmation } from "@/components/app/confirmation";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { AlertCircle } from "lucide-react";
 import {
-  Box,
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
   Button,
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
+  DateTimeField,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
+  type DialogContentProps,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  ErrorSummary,
   Field,
   FieldDescription,
+  FieldError,
   FieldLabel,
+  FieldSet,
   Grid,
-  Input,
   KeyValue,
   Stack,
-  Textarea,
+  Text,
+  toast,
+  useLedgerLocale,
 } from "@ledger/design-system";
+import { ChoiceField, ComboboxField, PartyField, TextField } from "@/components/app/fields";
+import { unsettledMoment, useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRows } from "@/lib/models";
 import { labelFor } from "@/lib/records";
@@ -36,83 +44,72 @@ import {
   type CreateEvidenceResult,
 } from "@/lib/evidence-create";
 
-type Option = { value: string; label: string };
-function EvidenceChoice({
-  label,
-  value,
-  options,
-  onChange,
-  required = false,
-  disabled = false,
-  description,
-}: {
-  label: string;
-  value: string | null;
-  options: Option[];
-  onChange: (value: string | null) => void;
-  required?: boolean;
-  disabled?: boolean;
-  description?: string | undefined;
-}) {
-  const id = useId();
-  return (
-    <Field>
-      <FieldLabel id={`${id}-label`} htmlFor={id}>
-        {label}
-        {required ? (
-          <span aria-hidden="true" className="text-danger">
-            {" "}
-            *
-          </span>
-        ) : null}
-      </FieldLabel>
-      <Combobox<Option>
-        items={options}
-        value={options.find((option) => option.value === value) ?? null}
-        isItemEqualToValue={(item, selected) => item.value === selected.value}
-        filter={(item, search) =>
-          item.label.toLocaleLowerCase().includes(search.toLocaleLowerCase())
-        }
-        onValueChange={(item) => onChange(item?.value ?? null)}
-        disabled={disabled}
-      >
-        <ComboboxInput
-          id={id}
-          aria-labelledby={`${id}-label`}
-          aria-required={required}
-          aria-describedby={description ? `${id}-help` : undefined}
-          placeholder={required ? "Choose…" : "Choose (optional)…"}
-          showClear={!required}
-        />
-        <ComboboxContent>
-          <ComboboxEmpty>No matching records.</ComboboxEmpty>
-          <ComboboxList>
-            {(item) => (
-              <ComboboxItem key={item.value} value={item}>
-                {item.label}
-              </ComboboxItem>
-            )}
-          </ComboboxList>
-        </ComboboxContent>
-      </Combobox>
-      {description ? <FieldDescription id={`${id}-help`}>{description}</FieldDescription> : null}
-    </Field>
-  );
+/** The form's fields in the order they appear, which is the order their issues are listed in. */
+const evidenceFields = [
+  "title",
+  "kind",
+  "owner",
+  "program",
+  "scope",
+  "description",
+  "externalUri",
+  "collected",
+  "provenance",
+] as const;
+type EvidenceField = (typeof evidenceFields)[number];
+const fieldFor: Record<keyof CreateEvidenceInput, EvidenceField> = {
+  title: "title",
+  artifactKind: "kind",
+  ownerPartyId: "owner",
+  programId: "program",
+  scopeId: "scope",
+  description: "description",
+  externalUri: "externalUri",
+  collectedAt: "collected",
+  provenance: "provenance",
+};
+
+/** Every issue with the values, one per field, in field order, and the parsed values when none. */
+function validate(
+  values: Record<keyof CreateEvidenceInput, unknown>,
+  extra: readonly FormIssue<EvidenceField>[],
+) {
+  const parsed = createEvidenceSchema.safeParse(values);
+  const found = new Map<EvidenceField, string>();
+  for (const issue of extra) if (!found.has(issue.field)) found.set(issue.field, issue.message);
+  if (!parsed.success)
+    for (const issue of parsed.error.issues) {
+      const field = fieldFor[issue.path[0] as keyof CreateEvidenceInput];
+      if (field && !found.has(field)) found.set(field, issue.message);
+    }
+  const issues = evidenceFields.flatMap((field) => {
+    const message = found.get(field);
+    return message ? [{ field, message }] : [];
+  });
+  return { issues, data: parsed.success && !issues.length ? parsed.data : null };
 }
 
+/** The artifact and its first draft version, created together; a file is uploaded after saving. */
 export function CreateEvidenceDialog({
   programId,
   onClose,
   onCreated,
+  finalFocus,
 }: {
   programId?: string | undefined;
+  /** Called once the dialog has finished closing, after `onCreated` when the evidence was created. */
   onClose: () => void;
+  /**
+   * Where focus goes when the dialog closes, for an opener that goes away with the task. By
+   * default it returns to the element that opened the dialog, which stays enabled while it is open.
+   */
+  finalFocus?: DialogContentProps["finalFocus"];
   onCreated?: ((result: CreateEvidenceResult) => void | Promise<void>) | undefined;
 }) {
-  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
-  const id = useId();
+  const formId = useId();
   const [requestId] = useState(() => crypto.randomUUID());
+  const [open, setOpen] = useState(true);
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState<CreateEvidenceInput["artifactKind"] | null>(null);
   const [chosenProgram, setChosenProgram] = useState<string | null>(programId ?? null);
@@ -121,13 +118,22 @@ export function CreateEvidenceDialog({
   const [description, setDescription] = useState("");
   const [externalUri, setExternalUri] = useState("");
   const [collected, setCollected] = useState("");
+  const [collectedEntryError, setCollectedEntryError] = useState<string | null>(null);
   const [provenance, setProvenance] = useState("");
   const [dirty, setDirty] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [saved, setSaved] = useState<CreateEvidenceResult | null>(null);
-  const inFlight = useRef(false);
-  const bypassBlock = useRef(false);
+  const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
+  const [early, setEarly] = useState(false);
+  const created = useRef<CreateEvidenceResult | null>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const failureRef = useRef<HTMLDivElement>(null);
+  const feedback = useFormFeedback<EvidenceField>();
+  const { t } = useLedgerLocale();
+  const { confirm, confirmation } = useConfirmation();
+  const guard = useDraftGuard({
+    dirty,
+    onClose: () => setOpen(false),
+    description: "The evidence details you entered will be lost.",
+  });
   const effectiveProgramId = programId ?? chosenProgram;
   const programs = useRows("programs");
   const parties = useRows("parties");
@@ -146,29 +152,49 @@ export function CreateEvidenceDialog({
     ),
   );
   const invalidContext = !!effectiveProgramId && ready && !contextProgram;
-  const validScope = !scope || availableScopes.some((row) => row.id === scope);
+  const validScope = !scope || !scopes.data || availableScopes.some((row) => row.id === scope);
   const writable = workspace.role !== "viewer";
   const kinds =
     workspace.collections
       .find((collection) => collection.name === "evidence_artifacts")
       ?.columns.find((column) => column.name === "artifact_kind")?.choices ?? [];
-  useBlocker({
-    shouldBlockFn: async () =>
-      !bypassBlock.current &&
-      (inFlight.current ||
-        (dirty && !(await confirm(discardChanges("Discard this unsaved evidence?"))))),
-    enableBeforeUnload: () => !bypassBlock.current && (dirty || inFlight.current),
-  });
+  const values = {
+    title,
+    artifactKind: kind,
+    programId: effectiveProgramId,
+    scopeId: scope,
+    ownerPartyId: owner,
+    description,
+    externalUri,
+    collectedAt: collected || null,
+    provenance,
+  };
+  const extra: FormIssue<EvidenceField>[] = validScope
+    ? []
+    : [{ field: "scope", message: "Choose a scope in this program." }];
+  const check = validate(
+    values,
+    collectedEntryError ? [{ field: "collected", message: collectedEntryError }, ...extra] : extra,
+  );
+  // Validate on submit, then on change: each field's error follows the value once submitted.
+  const errors = new Map(
+    feedback.submitted ? check.issues.map((issue) => [issue.field, issue.message] as const) : [],
+  );
+  const createLabel = productCreateLabel("evidence_artifacts");
+  const unavailable = !writable
+    ? "An editor, admin, or owner can create evidence."
+    : invalidContext
+      ? "Reload the record to create evidence in its program."
+      : loadError
+        ? "Load the workspace records before creating the evidence."
+        : undefined;
+
+  useEffect(() => {
+    if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
+  }, [failure]);
+
   function changed() {
     setDirty(true);
-    setError("");
-  }
-  async function close() {
-    if (inFlight.current) return;
-    if (!dirty || (await confirm(discardChanges("Discard this unsaved evidence?")))) {
-      bypassBlock.current = true;
-      onClose();
-    }
   }
   async function chooseProgram(value: string | null) {
     if (value === chosenProgram) return;
@@ -189,138 +215,144 @@ export function CreateEvidenceDialog({
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (inFlight.current || saved || !writable) return;
-    if (!ready || loadError || invalidContext || !validScope) {
-      setError("Load and choose valid workspace records before adding evidence.");
+    if (guard.busy || unavailable) return;
+    setFailure(null);
+    if (!ready) {
+      setEarly(true);
       return;
     }
-    let collectedAt: string | null = null;
-    if (collected) {
-      const date = new Date(collected);
-      if (!Number.isFinite(date.getTime())) {
-        setError("Enter a valid collection date and time.");
-        return;
-      }
-      collectedAt = date.toISOString();
-    }
-    const parsed = createEvidenceSchema.safeParse({
-      title,
-      artifactKind: kind,
-      programId: effectiveProgramId,
-      scopeId: scope,
-      ownerPartyId: owner,
-      description,
-      externalUri,
-      collectedAt,
-      provenance,
-    });
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Complete the evidence details.");
-      return;
-    }
-    inFlight.current = true;
-    setBusy(true);
-    setError("");
-    let committed = false;
+    // Enter inside the collected field submits before the field has checked a half-typed moment.
+    const unsettled =
+      !collected && !collectedEntryError && unsettledMoment(feedback.node("collected"));
+    if (unsettled) submitRef.current?.focus();
+    const attempt = unsettled
+      ? validate(values, [{ field: "collected", message: t("dateTimeIncomplete") }, ...extra])
+      : check;
+    if (!feedback.report(attempt.issues) || !attempt.data) return;
+    // The fields lock while the save runs; the primary stays focusable while it loads.
+    submitRef.current?.focus();
+    if (!guard.start()) return;
     try {
-      const result = await create.mutateAsync({ requestId, values: parsed.data });
-      committed = true;
-      setSaved(result);
+      created.current = await create.mutateAsync({ requestId, values: attempt.data });
       setDirty(false);
-      bypassBlock.current = true;
-      await onCreated?.(result);
-      onClose();
+      guard.finish();
+      guard.complete();
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : "Evidence could not be added.";
-      setError(
-        committed
-          ? `Evidence was created, but its preview could not be opened. ${message}`
-          : message,
-      );
+      setFailure({
+        title: "The evidence was not created",
+        message: `${cause instanceof Error ? cause.message : "The request failed."} Your details are kept, and creating it again will not make duplicate evidence.`,
+      });
+      guard.finish();
+    }
+  }
+  async function closed() {
+    const result = created.current;
+    try {
+      if (result) await onCreated?.(result);
+    } catch (cause) {
+      toast.add({
+        type: "error",
+        title: "Evidence created",
+        description: `Its preview could not be opened. ${cause instanceof Error ? cause.message : ""}`,
+      });
     } finally {
-      inFlight.current = false;
-      setBusy(false);
+      onClose();
     }
   }
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          close();
-        }
+      open={open}
+      pending={guard.busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        void guard.close();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (!next) void closed();
       }}
     >
-      <DialogContent style={{ maxWidth: 660 }} showCloseButton={!busy}>
+      <DialogContent
+        width="large"
+        initialFocus={() => feedback.node("title") ?? true}
+        {...(finalFocus !== undefined ? { finalFocus } : {})}
+      >
         <DialogHeader>
-          <DialogTitle>{productCreateLabel("evidence_artifacts")}</DialogTitle>
+          <DialogTitle>{createLabel}</DialogTitle>
           <DialogDescription>
             Describe the artifact and its first draft version. You can upload a file after saving.
           </DialogDescription>
         </DialogHeader>
-        <Box className="min-h-0 flex-1 overflow-y-auto" padding="space.250">
-          <form id={`${id}-form`} noValidate onSubmit={(event) => void submit(event)}>
+        <DialogBody>
+          <form id={formId} noValidate onSubmit={(event) => void submit(event)}>
             <Stack space="space.200">
               {loadError ? (
-                <Stack space="space.100">
-                  <p role="alert" className="text-danger">
-                    {loadError.message}
-                  </p>
-                  <Button
-                    size="small"
-                    onClick={() =>
-                      void Promise.all(
-                        queries.filter((query) => query.error).map((query) => query.refetch()),
-                      )
-                    }
-                  >
-                    Retry loading choices
-                  </Button>
-                </Stack>
-              ) : null}
-              {!ready ? (
-                <p role="status" className="text-subtle">
-                  Loading workspace records…
-                </p>
+                <Alert variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The choices could not be loaded</AlertTitle>
+                  <AlertDescription>{loadError.message}</AlertDescription>
+                  <AlertAction>
+                    <Button
+                      size="small"
+                      onClick={() =>
+                        void Promise.all(
+                          queries.filter((query) => query.error).map((query) => query.refetch()),
+                        )
+                      }
+                    >
+                      Retry loading choices
+                    </Button>
+                  </AlertAction>
+                </Alert>
+              ) : !ready ? (
+                // One status region, so a submission while loading is announced as a change.
+                <Text as="p" role="status" color="color.text.subtle">
+                  {early
+                    ? "The workspace records are still loading. Create the evidence once the choices appear."
+                    : "Loading workspace records…"}
+                </Text>
               ) : null}
               {invalidContext ? (
-                <p role="alert" className="text-danger">
-                  The selected program is unavailable. Close this dialog and reload the record.
-                </p>
+                <Alert variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>This program is unavailable</AlertTitle>
+                  <AlertDescription>Close this dialog and reload the record.</AlertDescription>
+                </Alert>
               ) : null}
               {!writable ? (
-                <p role="alert" className="text-subtle">
-                  An editor, admin, or owner can add evidence.
-                </p>
+                <Alert role="note">
+                  <AlertDescription>
+                    An editor, admin, or owner can create evidence.
+                  </AlertDescription>
+                </Alert>
               ) : null}
-              <fieldset disabled={busy || !writable || !!saved} className="min-w-0 border-0 p-0">
-                <Stack space="space.150">
-                  <Field>
-                    <FieldLabel htmlFor={`${id}-title`}>
-                      Artifact title
-                      <span aria-hidden="true" className="text-danger">
-                        {" "}
-                        *
-                      </span>
-                    </FieldLabel>
-                    <Input
-                      id={`${id}-title`}
-                      aria-required
-                      value={title}
-                      onChange={(event) => {
-                        setTitle(event.target.value);
-                        changed();
-                      }}
-                      maxLength={1000}
-                      autoFocus
-                    />
-                  </Field>
+              {failure ? (
+                <Alert ref={failureRef} variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>{failure.title}</AlertTitle>
+                  <AlertDescription>{failure.message}</AlertDescription>
+                </Alert>
+              ) : null}
+              <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
+              <FieldSet disabled={guard.busy || !writable}>
+                <Stack space="space.200">
+                  <TextField
+                    label="Artifact title"
+                    value={title}
+                    onChange={(value) => {
+                      setTitle(value);
+                      changed();
+                    }}
+                    required
+                    maxLength={1000}
+                    error={errors.get("title")}
+                    controlRef={feedback.ref("title")}
+                  />
                   <Grid
-                    gap="space.150"
+                    gap="space.200"
                     templateColumns={{ base: "minmax(0,1fr)", sm: "repeat(2,minmax(0,1fr))" }}
                   >
-                    <EvidenceChoice
+                    <ChoiceField
                       label="Kind"
                       required
                       value={kind}
@@ -329,19 +361,21 @@ export function CreateEvidenceDialog({
                         setKind(value as CreateEvidenceInput["artifactKind"] | null);
                         changed();
                       }}
+                      placeholder="Choose a kind"
+                      error={errors.get("kind")}
+                      controlRef={feedback.ref("kind")}
                     />
-                    <EvidenceChoice
+                    <PartyField
                       label="Owner"
                       value={owner}
-                      options={(parties.data ?? []).map((party) => ({
-                        value: party.id,
-                        label: party.name,
-                      }))}
+                      parties={parties.data ?? []}
                       disabled={!parties.data}
                       onChange={(value) => {
                         setOwner(value);
                         changed();
                       }}
+                      error={errors.get("owner")}
+                      controlRef={feedback.ref("owner")}
                     />
                     {programId ? (
                       <KeyValue label="Program" wrap>
@@ -349,7 +383,7 @@ export function CreateEvidenceDialog({
                           (programs.isPending ? "Loading…" : "Unavailable program")}
                       </KeyValue>
                     ) : (
-                      <EvidenceChoice
+                      <ComboboxField
                         label="Program"
                         value={chosenProgram}
                         options={(programs.data ?? []).map((program) => ({
@@ -357,10 +391,13 @@ export function CreateEvidenceDialog({
                           label: `${program.code} · ${program.name}`,
                         }))}
                         disabled={!programs.data}
-                        onChange={chooseProgram}
+                        onChange={(value) => void chooseProgram(value)}
+                        placeholder="Choose a program"
+                        error={errors.get("program")}
+                        controlRef={feedback.ref("program")}
                       />
                     )}
-                    <EvidenceChoice
+                    <ComboboxField
                       label="Scope"
                       value={scope}
                       options={availableScopes.map((row) => ({
@@ -368,6 +405,7 @@ export function CreateEvidenceDialog({
                         label: `${row.code} · ${row.name}`,
                       }))}
                       disabled={!effectiveProgramId || !scopes.data || !systems.data}
+                      placeholder="Choose a scope"
                       description={
                         !effectiveProgramId
                           ? "Choose a program to select one of its scopes."
@@ -377,103 +415,84 @@ export function CreateEvidenceDialog({
                         setScope(value);
                         changed();
                       }}
+                      error={errors.get("scope")}
+                      controlRef={feedback.ref("scope")}
                     />
                   </Grid>
-                  <Field>
-                    <FieldLabel htmlFor={`${id}-description`}>Description</FieldLabel>
-                    <Textarea
-                      id={`${id}-description`}
-                      value={description}
-                      maxLength={10000}
-                      onChange={(event) => {
-                        setDescription(event.target.value);
-                        changed();
-                      }}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor={`${id}-uri`}>External reference</FieldLabel>
-                    <Input
-                      id={`${id}-uri`}
-                      value={externalUri}
-                      maxLength={4000}
-                      onChange={(event) => {
-                        setExternalUri(event.target.value);
-                        changed();
-                      }}
-                      aria-describedby={`${id}-uri-help`}
-                    />
-                    <FieldDescription id={`${id}-uri-help`}>
-                      An HTTP, HTTPS, or URN reference, if the artifact already exists elsewhere.
-                    </FieldDescription>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor={`${id}-collected`}>Collected date and time</FieldLabel>
-                    <Input
-                      id={`${id}-collected`}
-                      type="datetime-local"
+                  <TextField
+                    label="Description"
+                    value={description}
+                    multiline
+                    maxLength={10000}
+                    onChange={(value) => {
+                      setDescription(value);
+                      changed();
+                    }}
+                    error={errors.get("description")}
+                    controlRef={feedback.ref("description")}
+                  />
+                  <TextField
+                    label="External reference"
+                    value={externalUri}
+                    maxLength={4000}
+                    onChange={(value) => {
+                      setExternalUri(value);
+                      changed();
+                    }}
+                    description="An HTTP, HTTPS, or URN reference, if the artifact already exists elsewhere."
+                    error={errors.get("externalUri")}
+                    controlRef={feedback.ref("externalUri")}
+                  />
+                  <Field invalid={errors.has("collected") ? true : undefined}>
+                    <FieldLabel>Collected date and time</FieldLabel>
+                    <DateTimeField
+                      ref={feedback.ref("collected")}
                       value={collected}
-                      onChange={(event) => {
-                        setCollected(event.target.value);
+                      onValueChange={(value) => {
+                        setCollected(value);
                         changed();
                       }}
-                      aria-describedby={`${id}-collected-help`}
+                      onEntryError={setCollectedEntryError}
                     />
-                    <FieldDescription id={`${id}-collected-help`}>
-                      Optional. Uses your local timezone.
-                    </FieldDescription>
+                    <FieldDescription>When the evidence was gathered, if known.</FieldDescription>
+                    {/* The field shows its own entry error; only the schema's message is added. */}
+                    {errors.has("collected") && errors.get("collected") !== collectedEntryError ? (
+                      <FieldError>{errors.get("collected")}</FieldError>
+                    ) : null}
                   </Field>
-                  <Field>
-                    <FieldLabel htmlFor={`${id}-provenance`}>Provenance</FieldLabel>
-                    <Textarea
-                      id={`${id}-provenance`}
-                      value={provenance}
-                      maxLength={10000}
-                      onChange={(event) => {
-                        setProvenance(event.target.value);
-                        changed();
-                      }}
-                      aria-describedby={`${id}-provenance-help`}
-                    />
-                    <FieldDescription id={`${id}-provenance-help`}>
-                      Record how this evidence was obtained, if known.
-                    </FieldDescription>
-                  </Field>
+                  <TextField
+                    label="Provenance"
+                    value={provenance}
+                    multiline
+                    maxLength={10000}
+                    onChange={(value) => {
+                      setProvenance(value);
+                      changed();
+                    }}
+                    description="Record how this evidence was obtained, if known."
+                    error={errors.get("provenance")}
+                    controlRef={feedback.ref("provenance")}
+                  />
                 </Stack>
-              </fieldset>
-              {error ? (
-                <Box role="alert" className="font-body-small text-danger">
-                  <p>{error}</p>
-                  {!saved ? (
-                    <p className="pt-100">
-                      Your details are retained. Retrying the same request will not create duplicate
-                      evidence.
-                    </p>
-                  ) : null}
-                </Box>
-              ) : null}
+              </FieldSet>
             </Stack>
           </form>
-        </Box>
+        </DialogBody>
         <DialogFooter>
-          <Button variant="subtle" disabled={busy} onClick={close}>
-            {saved ? "Close" : "Cancel"}
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          <Button
+            ref={submitRef}
+            type="submit"
+            form={formId}
+            variant="primary"
+            isLoading={guard.busy}
+            disabledReason={unavailable}
+          >
+            {createLabel}
           </Button>
-          {!saved ? (
-            <Button
-              type="submit"
-              form={`${id}-form`}
-              variant="primary"
-              isLoading={busy}
-              disabled={
-                busy || !writable || !ready || !!loadError || invalidContext || !kinds.length
-              }
-            >
-              {productCreateLabel("evidence_artifacts")}
-            </Button>
-          ) : null}
         </DialogFooter>
       </DialogContent>
+      {guard.confirmation}
       {confirmation}
     </Dialog>
   );

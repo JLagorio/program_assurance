@@ -6,17 +6,18 @@ import {
   useDisplayedRecords,
 } from "./record-preview";
 import { ProductCollection } from "./product-collection";
-import { useBlocker } from "@tanstack/react-router";
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { AlertCircle, ExternalLink } from "lucide-react";
 import {
   Absent,
-  KeyValue,
-  Badge,
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Button,
-  Checkbox,
   DataTable,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -24,30 +25,60 @@ import {
   DialogTitle,
   Field,
   FieldLabel,
+  FieldLegend,
+  FieldSet,
+  FilterChip,
+  Icon,
+  KeyValue,
+  RadioGroup,
+  RadioGroupItem,
   Stack,
   TextLink,
-  Textarea,
-  Toolbar,
+  VisuallyHidden,
   defineColumns,
   toast,
   useDataTable,
+  useLedgerLocale,
   type Preset,
 } from "@ledger/design-system";
+import { TextField } from "@/components/app/fields";
+import { useFormFeedback } from "@/components/app/form-feedback";
+import { StatusBadge } from "@/components/app/status";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRows, type Row } from "@/lib/models";
-import { labelFor } from "@/lib/records";
+import {
+  evidenceReviewDecisions,
+  evidenceUseDecisions,
+  revisionStates,
+  statusLabel,
+  type StatusVocabulary,
+} from "@/lib/status";
 import { useDecideEvidenceUse } from "@/lib/library-apply";
 import type { SystemAssuranceRow } from "@/lib/system-assurance";
+
+type LineStatus = "pending" | "accepted" | "not_applicable" | "linked";
+
+/**
+ * Where a line stands: a proposed use carries the program's decision (the evidence-use
+ * vocabulary), and support already recorded on a narrative or a requirement is linked.
+ */
+const lineStatuses: StatusVocabulary<LineStatus> = {
+  ...evidenceUseDecisions,
+  linked: { label: "Linked", tone: "success", rank: Object.keys(evidenceUseDecisions).length },
+};
 
 type Line = {
   id: string;
   title: string;
   versionId: string;
   version: string;
-  review: string;
-  supports: string;
+  /** The latest review's decision; null when the version has not been reviewed. */
+  review: string | null;
+  supports: string | null;
   kind: "Proposed use" | "Supports narrative" | "Supports requirement";
-  status: "Pending" | "Accepted" | "Not applicable" | "Linked";
+  status: LineStatus;
+  elementId: string;
   elementCode: string;
   rationale: string | null;
   uri: string | null;
@@ -56,8 +87,12 @@ type Line = {
 
 const presets: Preset[] = [
   { id: "all", label: "All evidence" },
-  { id: "pending", label: "Pending decisions", filters: [{ id: "status", value: ["Pending"] }] },
-  { id: "accepted", label: "Accepted", filters: [{ id: "status", value: ["Accepted", "Linked"] }] },
+  { id: "pending", label: "Pending decisions", filters: [{ id: "status", value: ["pending"] }] },
+  {
+    id: "accepted",
+    label: "Accepted",
+    filters: [{ id: "status", value: ["accepted", "linked"] }],
+  },
 ];
 
 function subtree(element: SystemAssuranceRow, rows: SystemAssuranceRow[]) {
@@ -94,6 +129,7 @@ export function SystemEvidence({
   rows: SystemAssuranceRow[];
 }) {
   const workspace = useWorkspace();
+  const { formatNumber } = useLedgerLocale();
   const uses = useRows("evidence_uses", { program_id: programId });
   const versions = useRows("evidence_versions");
   const artifacts = useRows("evidence_artifacts");
@@ -110,11 +146,11 @@ export function SystemEvidence({
   const requirements = useRows("engineering_requirements", { program_id: programId });
   const [includeInside, setIncludeInside] = useState(false);
   const [deciding, setDeciding] = useState<Line | null>(null);
-  const targets = useMemo(
-    () => (includeInside ? subtree(element, rows) : new Set([element.id])),
-    [includeInside, element, rows],
-  );
-  const data = useMemo<Line[]>(() => {
+  const inside = useMemo(() => subtree(element, rows), [element, rows]);
+  const hasInside = inside.size > 1;
+  // The lines for a set of elements. Both scopes are built, so the table can tell "nothing at this
+  // element" from "nothing here or inside".
+  const linesFor = useMemo(() => {
     const elementById = new Map(rows.map((row) => [row.id, row]));
     const versionById = new Map((versions.data ?? []).map((row) => [row.id, row]));
     const artifactById = new Map((artifacts.data ?? []).map((row) => [row.id, row]));
@@ -133,10 +169,6 @@ export function SystemEvidence({
     const contributionById = new Map((contributions.data ?? []).map((row) => [row.id, row]));
     const revisionById = new Map((revisions.data ?? []).map((row) => [row.id, row]));
     const requirementById = new Map((requirements.data ?? []).map((row) => [row.id, row]));
-    const allocatedRevisions = new Map<string, string>();
-    for (const allocation of allocations.data ?? [])
-      if (allocation.system_id && targets.has(allocation.system_id))
-        allocatedRevisions.set(allocation.requirement_revision_id, allocation.system_id);
     const describe = (versionId: string) => {
       const version = versionById.get(versionId);
       const artifact = version ? artifactById.get(version.artifact_id) : undefined;
@@ -144,8 +176,10 @@ export function SystemEvidence({
       return {
         versionId,
         title: artifact?.title ?? "Evidence unavailable",
-        version: version ? `v${version.version_number} · ${labelFor(version.state)}` : "",
-        review: review ? labelFor(review.decision) : "Not reviewed",
+        version: version
+          ? `v${version.version_number} · ${statusLabel(revisionStates, version.state)}`
+          : "",
+        review: review?.decision ?? null,
         uri: version?.external_uri ?? artifact?.source_uri ?? null,
       };
     };
@@ -158,82 +192,92 @@ export function SystemEvidence({
         : undefined;
       return controlId ? (controlById.get(controlId)?.code ?? "Control") : "Narrative";
     };
-    const out: Line[] = [];
-    for (const use of uses.data ?? []) {
-      if (!use.system_id || !targets.has(use.system_id)) continue;
-      const contribution = use.component_contribution_id
-        ? contributionById.get(use.component_contribution_id)
-        : undefined;
-      const revision = use.requirement_revision_id
-        ? revisionById.get(use.requirement_revision_id)
-        : undefined;
-      out.push({
-        id: `use:${use.id}`,
-        ...describe(use.evidence_version_id),
-        supports: contribution
-          ? controlOf(contribution)
-          : revision
+    return (targets: Set<string>): Line[] => {
+      const allocatedRevisions = new Map<string, string>();
+      for (const allocation of allocations.data ?? [])
+        if (allocation.system_id && targets.has(allocation.system_id))
+          allocatedRevisions.set(allocation.requirement_revision_id, allocation.system_id);
+      const out: Line[] = [];
+      for (const use of uses.data ?? []) {
+        if (!use.system_id || !targets.has(use.system_id)) continue;
+        const contribution = use.component_contribution_id
+          ? contributionById.get(use.component_contribution_id)
+          : undefined;
+        const revision = use.requirement_revision_id
+          ? revisionById.get(use.requirement_revision_id)
+          : undefined;
+        out.push({
+          id: `use:${use.id}`,
+          ...describe(use.evidence_version_id),
+          supports: contribution
+            ? controlOf(contribution)
+            : revision
+              ? (requirementById.get(revision.engineering_requirement_id)?.code ?? "Requirement")
+              : null,
+          kind: "Proposed use",
+          status:
+            use.decision === "accepted"
+              ? "accepted"
+              : use.decision === "not_applicable"
+                ? "not_applicable"
+                : "pending",
+          elementId: use.system_id,
+          elementCode: elementById.get(use.system_id)?.code ?? "",
+          rationale: use.rationale,
+          use,
+        });
+      }
+      const acceptedVersions = new Set(
+        out
+          .filter((line) => line.status === "accepted")
+          .map((line) => line.use?.evidence_version_id),
+      );
+      for (const support of implementationEvidence.data ?? []) {
+        const contribution = support.component_contribution_id
+          ? contributionById.get(support.component_contribution_id)
+          : undefined;
+        if (!contribution) continue;
+        const elementId = componentElement.get(contribution.system_component_id);
+        if (!elementId || !targets.has(elementId)) continue;
+        if (acceptedVersions.has(support.evidence_version_id)) continue;
+        out.push({
+          id: `support:${support.id}`,
+          ...describe(support.evidence_version_id),
+          supports: controlOf(contribution),
+          kind: "Supports narrative",
+          status: "linked",
+          elementId,
+          elementCode: elementById.get(elementId)?.code ?? "",
+          rationale: support.applicability_rationale,
+          use: null,
+        });
+      }
+      for (const support of requirementEvidence.data ?? []) {
+        const elementId = allocatedRevisions.get(support.requirement_revision_id);
+        if (!elementId) continue;
+        const revision = revisionById.get(support.requirement_revision_id);
+        out.push({
+          id: `requirement:${support.id}`,
+          ...describe(support.evidence_version_id),
+          supports: revision
             ? (requirementById.get(revision.engineering_requirement_id)?.code ?? "Requirement")
-            : "—",
-        kind: "Proposed use",
-        status:
-          use.decision === "accepted"
-            ? "Accepted"
-            : use.decision === "not_applicable"
-              ? "Not applicable"
-              : "Pending",
-        elementCode: elementById.get(use.system_id)?.code ?? "",
-        rationale: use.rationale,
-        use,
-      });
-    }
-    const acceptedVersions = new Set(
-      out.filter((line) => line.status === "Accepted").map((line) => line.use?.evidence_version_id),
-    );
-    for (const support of implementationEvidence.data ?? []) {
-      const contribution = support.component_contribution_id
-        ? contributionById.get(support.component_contribution_id)
-        : undefined;
-      if (!contribution) continue;
-      const elementId = componentElement.get(contribution.system_component_id);
-      if (!elementId || !targets.has(elementId)) continue;
-      if (acceptedVersions.has(support.evidence_version_id)) continue;
-      out.push({
-        id: `support:${support.id}`,
-        ...describe(support.evidence_version_id),
-        supports: controlOf(contribution),
-        kind: "Supports narrative",
-        status: "Linked",
-        elementCode: elementById.get(elementId)?.code ?? "",
-        rationale: support.applicability_rationale,
-        use: null,
-      });
-    }
-    for (const support of requirementEvidence.data ?? []) {
-      const elementId = allocatedRevisions.get(support.requirement_revision_id);
-      if (!elementId) continue;
-      const revision = revisionById.get(support.requirement_revision_id);
-      out.push({
-        id: `requirement:${support.id}`,
-        ...describe(support.evidence_version_id),
-        supports: revision
-          ? (requirementById.get(revision.engineering_requirement_id)?.code ?? "Requirement")
-          : "Requirement",
-        kind: "Supports requirement",
-        status: "Linked",
-        elementCode: elementById.get(elementId)?.code ?? "",
-        rationale: support.applicability_rationale,
-        use: null,
-      });
-    }
-    return out.sort(
-      (a, b) =>
-        Number(b.status === "Pending") - Number(a.status === "Pending") ||
-        a.title.localeCompare(b.title),
-    );
+            : "Requirement",
+          kind: "Supports requirement",
+          status: "linked",
+          elementId,
+          elementCode: elementById.get(elementId)?.code ?? "",
+          rationale: support.applicability_rationale,
+          use: null,
+        });
+      }
+      return out.sort(
+        (a, b) =>
+          Number(b.status === "pending") - Number(a.status === "pending") ||
+          a.title.localeCompare(b.title),
+      );
+    };
   }, [
     rows,
-    targets,
     uses.data,
     versions.data,
     artifacts.data,
@@ -249,6 +293,16 @@ export function SystemEvidence({
     revisions.data,
     requirements.data,
   ]);
+  const own = useMemo(() => linesFor(new Set([element.id])), [linesFor, element.id]);
+  const everything = useMemo(
+    () => (hasInside ? linesFor(inside) : own),
+    [hasInside, linesFor, inside, own],
+  );
+  const data = includeInside ? everything : own;
+  const hiddenInside = everything.length - own.length;
+  // The scope's own words only when the scope alone leaves nothing: with lines of its own, a search,
+  // a filter or a saved view that matches none keeps the table's Nothing matches and Clear filters.
+  const scopeEmpties = !includeInside && hiddenInside > 0 && own.length === 0;
   const [previewId, setPreviewId] = useState<string>();
   const canDecide = workspace.role !== "viewer";
   const columns = useMemo(
@@ -268,42 +322,54 @@ export function SystemEvidence({
           ),
         }),
         c.text("version", { header: "Version", width: 140 }),
-        c.text("review", { header: "Review", width: 130 }),
-        c.text("supports", { header: "Supports", width: 130 }),
-        c.text("kind", { header: "Relationship", width: 170 }),
-        c.status("status", {
-          header: "Status",
+        c.status("review", {
+          header: "Review",
           width: 130,
-          tone: (row) =>
-            row.status === "Pending"
-              ? "warning"
-              : row.status === "Not applicable"
-                ? "neutral"
-                : "success",
+          statuses: evidenceReviewDecisions,
+          cell: (row) => (
+            <StatusBadge
+              statuses={evidenceReviewDecisions}
+              value={row.review}
+              absentLabel="Not reviewed"
+            />
+          ),
         }),
-        c.text("elementCode", { header: "Element", width: 120 }),
+        c.text("supports", {
+          header: "Supports",
+          width: 130,
+          cell: (row) => row.supports ?? <Absent label="Nothing named" />,
+        }),
+        c.text("kind", { header: "Relationship", width: 170 }),
+        c.status("status", { header: "Status", width: 130, statuses: lineStatuses }),
+        // Which element a line belongs to says something only when the lines come from inside too.
+        ...(includeInside ? [c.text("elementCode", { header: "Element", width: 120 })] : []),
         c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
         ...(canDecide
           ? [
               c.actions((row) =>
-                row.use && row.status === "Pending"
+                row.use && row.status === "pending"
                   ? [{ label: "Decide evidence use", onSelect: () => setDeciding(row) }]
                   : [],
               ),
             ]
           : []),
       ]),
-    [canDecide, previewId],
+    [canDecide, previewId, includeInside],
   );
   const table = useDataTable({
     columns,
     data,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.title,
     label: "Evidence at this element",
-    view: "live-system-evidence-v1",
+    // v2: the Element column shows by default with everything inside, and statuses are stored
+    // values, so earlier saved filters and layouts do not apply.
+    view: "live-system-evidence-v2",
     resizable: true,
     reorderable: true,
-    initialState: { columnVisibility: { rationale: false, elementCode: false } },
+    // An element's lines run to hundreds: pages keep the register quick to draw.
+    pageSize: 50,
+    initialState: { columnVisibility: { rationale: false } },
   });
   const displayed = useDisplayedRecords(table);
   const preview = data.find((row) => row.id === previewId);
@@ -323,31 +389,45 @@ export function SystemEvidence({
     revisions,
     requirements,
   ];
-  const error = queries.find((query) => query.error)?.error;
-  const pending = queries.some((query) => query.isPending);
   return (
     <>
       <ProductCollection
         table={table}
         empty={{
           illustration: "records",
-          title: "No evidence at this element yet",
+          title: includeInside
+            ? "No evidence at this element or inside it yet"
+            : "No evidence at this element yet",
           description:
             "Evidence proposed by applied library items appears here for a decision, beside evidence linked to this element's narratives and requirements.",
+          ...(scopeEmpties
+            ? {
+                filtered: {
+                  title: "No evidence at this element itself",
+                  description: `${formatNumber(hiddenInside)} evidence ${hiddenInside === 1 ? "line belongs" : "lines belong"} to elements inside it.`,
+                  action: (
+                    <Button size="small" onClick={() => setIncludeInside(true)}>
+                      Include everything inside
+                    </Button>
+                  ),
+                },
+              }
+            : {}),
         }}
         fill
         queries={queries}
+        // Without the elements inside, the lines are a narrowing: nothing left keeps the toolbar.
+        narrowed={!includeInside && hiddenInside > 0}
         searchLabel="Find evidence"
         views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
         filters={
-          <Button
-            size="small"
-            variant="subtle"
-            aria-pressed={includeInside}
-            onClick={() => setIncludeInside(!includeInside)}
-          >
-            Include everything inside
-          </Button>
+          hasInside ? (
+            <FilterChip
+              label="Everything inside"
+              isActive={includeInside}
+              onClick={() => setIncludeInside(!includeInside)}
+            />
+          ) : undefined
         }
       />
       {preview && (
@@ -356,7 +436,7 @@ export function SystemEvidence({
           label="Evidence preview"
           onClose={() => setPreviewId(undefined)}
           recordActions={
-            canDecide && preview.use && preview.status === "Pending" ? (
+            canDecide && preview.use && preview.status === "pending" ? (
               <Button size="small" variant="primary" onClick={() => setDeciding(preview)}>
                 Decide evidence use
               </Button>
@@ -372,63 +452,83 @@ export function SystemEvidence({
             />
           }
         >
-          <Stack space="space.150">
-            <KeyValue label="Version">{preview.version}</KeyValue>
-            <KeyValue label="Review">{preview.review}</KeyValue>
-            <KeyValue label="Supports">{preview.supports}</KeyValue>
-            <KeyValue label="Status">{preview.status}</KeyValue>
-            <KeyValue label="Rationale">{preview.rationale ?? <Absent />}</KeyValue>
+          <KeyValue.Group>
+            <KeyValue label="Version">{preview.version || <Absent label="Unavailable" />}</KeyValue>
+            <KeyValue label="Review">
+              <StatusBadge
+                statuses={evidenceReviewDecisions}
+                value={preview.review}
+                absentLabel="Not reviewed"
+              />
+            </KeyValue>
+            <KeyValue label="Supports">
+              {preview.supports ?? <Absent label="Nothing named" />}
+            </KeyValue>
+            <KeyValue label="Relationship">{preview.kind}</KeyValue>
+            <KeyValue label="Status">
+              <StatusBadge statuses={lineStatuses} value={preview.status} />
+            </KeyValue>
+            <KeyValue label="Element">{preview.elementCode || <Absent />}</KeyValue>
+            <KeyValue label="Rationale" wrap>
+              {preview.rationale ?? <Absent label="No rationale recorded" />}
+            </KeyValue>
             {preview.uri && (
               <KeyValue label="Source">
-                <TextLink href={preview.uri} target="_blank" rel="noreferrer">
+                <TextLink href={preview.uri} target="_blank" rel="noopener noreferrer">
                   Open evidence source
+                  <VisuallyHidden> (opens in a new tab)</VisuallyHidden>{" "}
+                  <Icon>
+                    <ExternalLink />
+                  </Icon>
                 </TextLink>
               </KeyValue>
             )}
-          </Stack>
+          </KeyValue.Group>
         </RecordPreviewPanel>
       )}
-      {deciding?.use && <DecideEvidenceUse line={deciding} onClose={() => setDeciding(null)} />}
+      {deciding?.use && (
+        <DecideEvidenceUse key={deciding.id} line={deciding} onClose={() => setDeciding(null)} />
+      )}
     </>
   );
 }
 
+type Decision = "accepted" | "not_applicable";
+
+/** Accept a proposed evidence use, or record why it does not apply here. */
 function DecideEvidenceUse({ line, onClose }: { line: Line; onClose: () => void }) {
   const decide = useDecideEvidenceUse();
-  const { confirm, confirmation } = useConfirmation();
-  const bypassClose = useRef(false);
-  const [decision, setDecision] = useState<"accepted" | "not_applicable">("accepted");
+  const formId = useId();
+  const [open, setOpen] = useState(true);
+  const [decision, setDecision] = useState<Decision>("accepted");
   const [rationale, setRationale] = useState("");
-  const [error, setError] = useState("");
+  const [failure, setFailure] = useState<string | null>(null);
+  const acceptRef = useRef<HTMLButtonElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const failureRef = useRef<HTMLDivElement>(null);
+  const feedback = useFormFeedback<"rationale">();
   const use = line.use!;
-  const submitted = useRef(false);
   const dirty = decision !== "accepted" || rationale !== "";
-  const close = async () => {
-    if (submitted.current) return;
-    if (
-      !dirty ||
-      (await confirm(discardChanges("Your evidence decision has not been recorded.")))
-    ) {
-      bypassClose.current = true;
-      onClose();
-    }
-  };
-  useBlocker({
-    shouldBlockFn: async () =>
-      !bypassClose.current &&
-      (submitted.current ||
-        (dirty &&
-          !(await confirm(discardChanges("Your evidence decision has not been recorded."))))),
-    enableBeforeUnload: () => !bypassClose.current && (dirty || submitted.current),
+  const guard = useDraftGuard({
+    dirty,
+    onClose: () => setOpen(false),
+    description: "Your evidence decision has not been recorded.",
   });
-  async function submit() {
-    if (submitted.current) return;
-    if (decision === "not_applicable" && !rationale.trim()) {
-      setError("Explain why this evidence does not apply.");
-      return;
-    }
-    submitted.current = true;
-    setError("");
+  const issues =
+    decision === "not_applicable" && !rationale.trim()
+      ? [{ field: "rationale" as const, message: "Explain why this evidence does not apply here." }]
+      : [];
+  const error = feedback.submitted ? issues[0]?.message : undefined;
+  useEffect(() => {
+    if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
+  }, [failure]);
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (guard.busy) return;
+    setFailure(null);
+    if (!feedback.report(issues)) return;
+    submitRef.current?.focus();
+    if (!guard.start()) return;
     try {
       await decide.mutateAsync({
         useId: use.id,
@@ -440,85 +540,96 @@ function DecideEvidenceUse({ line, onClose }: { line: Line; onClose: () => void 
         title:
           decision === "accepted" ? "Evidence accepted" : "Evidence recorded as not applicable",
         type: "success",
-        description: `${line.title} · ${line.supports}`,
+        description: `${line.title}${line.supports ? ` · ${line.supports}` : ""}`,
       });
-      bypassClose.current = true;
-      onClose();
+      guard.finish();
+      guard.complete();
     } catch (cause) {
-      submitted.current = false;
-      setError(cause instanceof Error ? cause.message : "The decision could not be recorded.");
+      setFailure(
+        `${(cause instanceof Error ? cause.message : "The request failed.").replace(/[.!?]?$/, ".")} Your decision and rationale are kept, so you can try again.`,
+      );
+      guard.finish();
     }
   }
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          void close();
-        }
+      open={open}
+      pending={guard.busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        void guard.close();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (!next) onClose();
       }}
     >
-      <DialogContent style={{ maxWidth: 560 }} showCloseButton={!decide.isPending}>
+      <DialogContent width="medium" initialFocus={() => acceptRef.current ?? true}>
         <DialogHeader>
           <DialogTitle>Decide evidence use</DialogTitle>
           <DialogDescription>
-            {line.title} · {line.version} · supports {line.supports}
+            {line.title} · {line.version}
+            {line.supports ? ` · supports ${line.supports}` : ""}
           </DialogDescription>
         </DialogHeader>
-        <form
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit();
-          }}
-        >
-          <Stack space="space.200" className="min-h-0 flex-1 overflow-y-auto p-250">
-            <Stack space="space.075">
-              {(["accepted", "not_applicable"] as const).map((value) => (
-                <label key={value} className="flex items-center gap-100 font-body-small">
-                  <Checkbox
-                    autoFocus={value === "accepted"}
-                    disabled={decide.isPending}
-                    checked={decision === value}
-                    onCheckedChange={(checked) => checked && setDecision(value)}
-                    aria-label={value === "accepted" ? "Accept" : "Not applicable"}
+        <DialogBody>
+          <form id={formId} noValidate onSubmit={(event) => void submit(event)}>
+            <Stack space="space.200">
+              {failure ? (
+                <Alert ref={failureRef} variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The decision was not recorded</AlertTitle>
+                  <AlertDescription>{failure}</AlertDescription>
+                </Alert>
+              ) : null}
+              <FieldSet disabled={guard.busy}>
+                <Stack space="space.200">
+                  <Field required>
+                    <FieldSet>
+                      <FieldLegend variant="label">Decision</FieldLegend>
+                      <RadioGroup<Decision>
+                        value={decision}
+                        onValueChange={(value) => setDecision(value)}
+                      >
+                        <Field orientation="horizontal">
+                          <RadioGroupItem ref={acceptRef} value="accepted" />
+                          <FieldLabel>Accept: link this exact version as support here</FieldLabel>
+                        </Field>
+                        <Field orientation="horizontal">
+                          <RadioGroupItem value="not_applicable" />
+                          <FieldLabel>Not applicable here</FieldLabel>
+                        </Field>
+                      </RadioGroup>
+                    </FieldSet>
+                  </Field>
+                  <TextField
+                    label={decision === "accepted" ? "Applicability" : "Why it does not apply"}
+                    required={decision === "not_applicable"}
+                    multiline
+                    value={rationale}
+                    onChange={setRationale}
+                    error={error}
+                    controlRef={feedback.ref("rationale")}
                   />
-                  {value === "accepted"
-                    ? "Accept: link this exact version as support here"
-                    : "Not applicable here"}
-                </label>
-              ))}
+                </Stack>
+              </FieldSet>
             </Stack>
-            <Field>
-              <FieldLabel htmlFor="evidence-use-rationale">
-                {decision === "accepted" ? "Applicability (optional)" : "Why it does not apply"}
-              </FieldLabel>
-              <Textarea
-                disabled={decide.isPending}
-                id="evidence-use-rationale"
-                value={rationale}
-                onChange={(event) => setRationale(event.target.value)}
-              />
-            </Field>
-            {error && (
-              <p role="alert" className="font-body-small text-danger">
-                {error}
-              </p>
-            )}
-          </Stack>
-          <DialogFooter>
-            <Button type="button" variant="subtle" disabled={decide.isPending} onClick={close}>
-              Cancel
-            </Button>
-            <Button variant="primary" disabled={decide.isPending} type="submit">
-              Decide evidence use
-            </Button>
-          </DialogFooter>
-        </form>
+          </form>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          <Button
+            ref={submitRef}
+            type="submit"
+            form={formId}
+            variant="primary"
+            isLoading={guard.busy}
+          >
+            Decide evidence use
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      {confirmation}
+      {guard.confirmation}
     </Dialog>
   );
 }

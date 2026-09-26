@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import {
+  Absent,
   Badge,
   Button,
   Card,
@@ -8,32 +9,46 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  DateTime,
+  Heading,
+  HeadingLevelProvider,
+  Id,
   Inline,
+  KeyValue,
   Stack,
   Text,
+  VisuallyHidden,
 } from "@ledger/design-system";
+import { LevelIndicator } from "@/components/app/status";
 import type { Row } from "@/lib/models";
 import type { LibraryComponentItem } from "@/lib/library-items";
 import type { ProductConfigurationItem } from "@/lib/product-items";
 import type { ProgramWizardDraft, SystemWizardDraft } from "@/lib/program-wizard";
 import type { ProgramTailoringPreview, WizardProfileOption } from "@/lib/program-wizard-reference";
-import { ImpactBadge } from "@/components/prototype/system-assurance-details";
+import { impactLevels } from "@/lib/status";
 import type { WizardResources } from "./resources";
 
 const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
-const sentence = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+const roles = [
+  { role: "program_manager", label: "Program manager" },
+  { role: "authorizing_official", label: "Authorizing official" },
+  { role: "assessor", label: "Assessor" },
+] as const;
+const objectives = [
+  { key: "confidentiality", label: "Confidentiality" },
+  { key: "integrity", label: "Integrity" },
+  { key: "availability", label: "Availability" },
+] as const;
 
-/** One step's summary: a title, a line of counts, two or three lines of names, and the way back to the step. */
+/** One step's summary: a title, a line of counts, its facts, and the way back to the step. */
 function StepCard({
   title,
   description,
-  editLabel,
   onEdit,
   children,
 }: {
   title: string;
   description?: string;
-  editLabel: string;
   onEdit: () => void;
   children: ReactNode;
 }) {
@@ -41,17 +56,19 @@ function StepCard({
     <Card>
       <CardHeader>
         <CardTitle>
-          <h3>{title}</h3>
+          <Heading size="xsmall">{title}</Heading>
         </CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
         <CardAction>
-          <Button size="small" variant="link" aria-label={editLabel} onClick={onEdit}>
-            Edit
+          <Button size="small" variant="link" onClick={onEdit}>
+            Edit<VisuallyHidden> {title.toLowerCase()}</VisuallyHidden>
           </Button>
         </CardAction>
       </CardHeader>
       <CardContent>
-        <Stack space="space.150">{children}</Stack>
+        <HeadingLevelProvider>
+          <Stack space="space.200">{children}</Stack>
+        </HeadingLevelProvider>
       </CardContent>
     </Card>
   );
@@ -79,7 +96,8 @@ export function ReviewStep({
   total: number;
   onEdit: (step: 0 | 1 | 2) => void;
 }) {
-  const party = (id: string | null) => parties.find((item) => item.id === id)?.name ?? null;
+  const party = (id: string | null | undefined) =>
+    id ? (parties.find((item) => item.id === id)?.name ?? "Unavailable party") : null;
   const catalog = data.catalogRevisions.find((item) => item.id === draft.catalogRevisionId);
   const catalogTitle =
     data.catalogs.find((row) => row.id === catalog?.catalog_id)?.title ?? catalog?.title;
@@ -96,18 +114,7 @@ export function ReviewStep({
             entry.id === `${system.product!.revisionId}:${system.product!.configurationId}`,
         ) ?? null)
       : null;
-
-  const people = [
-    draft.sponsorPartyId ? `Sponsor ${party(draft.sponsorPartyId) ?? "unavailable"}` : null,
-    ...draft.roles.map(
-      (assignment) =>
-        `${sentence(assignment.role.replaceAll("_", " "))} ${party(assignment.partyId) ?? "unavailable"}`,
-    ),
-  ].filter(Boolean);
-  const dates =
-    draft.startsOn || draft.endsOn
-      ? `Starts ${draft.startsOn ?? "unset"} · Ends ${draft.endsOn ?? "unset"}`
-      : "No dates";
+  const person = (name: string | null) => name ?? <Absent label="Not assigned" />;
 
   const elements = draft.systems.reduce((sum, system) => sum + system.elements.length, 0);
   const fromLibrary = draft.systems.reduce(
@@ -127,24 +134,37 @@ export function ReviewStep({
 
   return (
     <Stack space="space.300" className="max-w-layout-measure">
-      <StepCard title="Program" editLabel="Edit program" onEdit={() => onEdit(0)}>
-        <Text as="p">
-          {draft.name} · {draft.code}
-        </Text>
-        <Text as="p" color="color.text.subtle">
-          {people.length ? people.join(" · ") : "No sponsor or roles assigned"} · {dates}
-        </Text>
-        {draft.description ? (
-          <Text as="p" color="color.text.subtle" maxLines={2} title={draft.description}>
-            {draft.description}
-          </Text>
-        ) : null}
+      <StepCard title="Program" onEdit={() => onEdit(0)}>
+        <KeyValue.Group labelWidth={160}>
+          <KeyValue label="Name" wrap>
+            {draft.name}
+          </KeyValue>
+          <KeyValue label="Code">
+            <Id>{draft.code}</Id>
+          </KeyValue>
+          {draft.description ? (
+            <KeyValue label="Mission" wrap>
+              <Text maxLines={2}>{draft.description}</Text>
+            </KeyValue>
+          ) : null}
+          <KeyValue label="Sponsor">{person(party(draft.sponsorPartyId))}</KeyValue>
+          {roles.map(({ role, label }) => (
+            <KeyValue key={role} label={label}>
+              {person(party(draft.roles.find((assignment) => assignment.role === role)?.partyId))}
+            </KeyValue>
+          ))}
+          <KeyValue label="Starts on">
+            <DateTime value={draft.startsOn} absentLabel="No start date" />
+          </KeyValue>
+          <KeyValue label="Ends on">
+            <DateTime value={draft.endsOn} absentLabel="No end date" />
+          </KeyValue>
+        </KeyValue.Group>
       </StepCard>
 
       <StepCard
         title="Catalog & profiles"
         description={catalog ? `${catalogTitle} · ${catalog.version}` : "No catalog chosen"}
-        editLabel="Edit catalog & profiles"
         onEdit={() => onEdit(1)}
       >
         {draft.profiles.map((profile) => {
@@ -170,12 +190,7 @@ export function ReviewStep({
         })}
       </StepCard>
 
-      <StepCard
-        title="Systems & components"
-        description={systemsLine}
-        editLabel="Edit systems & components"
-        onEdit={() => onEdit(2)}
-      >
+      <StepCard title="Systems & components" description={systemsLine} onEdit={() => onEdit(2)}>
         {draft.systems.map((system) => {
           const profile = profileOf(system);
           const product = productOf(system);
@@ -190,33 +205,39 @@ export function ReviewStep({
             )
             .filter(Boolean);
           return (
-            <Stack key={system.key} space="space.025">
-              <Inline space="space.100" alignBlock="center" shouldWrap>
-                <Text weight="medium">{system.name}</Text>
-                <Text color="color.text.subtle">{system.code}</Text>
-                <ImpactBadge value={system.confidentiality} />
-                <ImpactBadge value={system.integrity} />
-                <ImpactBadge value={system.availability} />
+            <Stack key={system.key} space="space.100">
+              <Inline space="space.100" alignBlock="baseline" shouldWrap>
+                <Heading size="xsmall">{system.name}</Heading>
+                <Id className="text-subtle">{system.code}</Id>
                 {system.product ? (
                   <Badge variant="secondary" tone="information" size="xsmall">
                     Variant
                   </Badge>
                 ) : null}
               </Inline>
-              <Text as="p" size="small" color="color.text.subtle">
-                {profile ? `${profile.title} ${profile.version}` : "No program profile"} ·{" "}
-                {count(system.elements.length, "element")}
-                {library
-                  ? ` · ${library} from the library${libraryNames.length ? ` (${libraryNames.join(", ")})` : ""}`
-                  : ""}
-              </Text>
-              {system.product ? (
-                <Text as="p" size="small" color="color.text.subtle">
-                  {product
-                    ? `Variant of ${product.productName} · ${product.configurationName} · v${product.version} · ${inherited} inherited · ${product.elements.length - inherited} removed · ${system.elements.length - inherited} added`
-                    : "Variant of a product version that is no longer published"}
-                </Text>
-              ) : null}
+              <KeyValue.Group labelWidth={160}>
+                <KeyValue label="Program profile" wrap>
+                  {profile ? `${profile.title} ${profile.version}` : <Absent label="None" />}
+                </KeyValue>
+                {objectives.map(({ key, label }) => (
+                  <KeyValue key={key} label={label}>
+                    <LevelIndicator levels={impactLevels} value={system[key]} />
+                  </KeyValue>
+                ))}
+                <KeyValue label="Elements" wrap>
+                  {count(system.elements.length, "element")}
+                  {library
+                    ? ` · ${library} from the library${libraryNames.length ? ` (${libraryNames.join(", ")})` : ""}`
+                    : ""}
+                </KeyValue>
+                {system.product ? (
+                  <KeyValue label="Product" wrap>
+                    {product
+                      ? `Variant of ${product.productName} · ${product.configurationName} · v${product.version} · ${inherited} inherited · ${product.elements.length - inherited} removed · ${system.elements.length - inherited} added`
+                      : "Variant of a product version that is no longer published"}
+                  </KeyValue>
+                ) : null}
+              </KeyValue.Group>
             </Stack>
           );
         })}

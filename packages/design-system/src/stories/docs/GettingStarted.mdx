@@ -8,8 +8,10 @@ The package is `@ledger/design-system`. It ships TypeScript source, a generated 
 
 ## Install
 
+The package is private: install the approved internal artifact, or a tarball made with `npm pack` (the README says how).
+
 ```sh
-npm install @ledger/design-system
+npm install ./ledger-design-system-<version>.tgz
 ```
 
 The package ships `dist/` (ESM with declarations, from `npm run build`) and `src/`. A bundler that sets the `development` condition (Vite in dev) resolves to source; everything else resolves to dist. The stylesheets always come from `src`, because `ledger.css` scans the source for the classes your build needs.
@@ -23,29 +25,56 @@ One stylesheet, in this order. The reset must come before the system: it clears 
 @import "@ledger/design-system/reset.css";
 @import "@ledger/design-system/ledger.css";
 @import "@ledger/design-system/base.css";
+@import "@ledger/design-system/fonts.css";
 ```
 
-`ledger.css` carries an `@source` directive pointing at the package, so Tailwind generates the classes the components use even though they live in `node_modules`. `base.css` is optional: it sets the colour scheme, the default border colour and the body's type and colour.
+`ledger.css` carries an `@source` directive pointing at the package, so Tailwind generates the classes the components use even though they live in `node_modules`. `base.css` is optional: it sets the colour scheme, the default border colour and the body's type and colour. `fonts.css` is optional too: the self-hosted Geist faces the type tokens name, so no Google Fonts link or copied `@font-face` is needed.
+
+## The root
+
+Mount the providers once, around the whole application:
+
+```tsx
+import type { ReactNode } from "react";
+import { LedgerProvider, ModeProvider, Toaster } from "@ledger/design-system";
+
+export function Providers({ timeZone, children }: { timeZone: string; children: ReactNode }) {
+  return (
+    <ModeProvider>
+      <LedgerProvider locale="en-US" timeZone={timeZone}>
+        {children}
+        <Toaster />
+      </LedgerProvider>
+    </ModeProvider>
+  );
+}
+```
+
+- **ModeProvider** owns the colour mode; put `modeScript` in the document head, above the stylesheet, so the stored choice applies before the first paint. See [Mode](?path=/docs/components-mode--docs).
+- **LedgerProvider** gives every part the reader's locale, time zone and direction, and the kit's words. Pass the same values on the server and the client. Without it, dates format in UTC and en-US. See [Locale](?path=/docs/components-locale--docs).
+- **Toaster**, once, inside the LedgerProvider so its labels follow the locale. See [Toaster](?path=/docs/components-toaster--docs).
+- **Shell**, the application frame, mounts the tooltip provider and the [Announcer](?path=/docs/components-announcer--docs) itself. A product without a Shell mounts `TooltipProvider` and `<Announcer />` once near its root as well.
 
 ## Components
+
+Import every part from the package root, never a file inside it. Families export flat, named parts (`Dialog`, `DialogContent`, `DialogFooter`; `Breadcrumb`, `BreadcrumbLink`), each with native props and a ref; a few parts are compounds, used through their name (`Shell.Panel`, `Stat.Grid`, `PageHeader.Title`). Each family's page lists its parts and their props.
 
 ```tsx
 import { Button, Stack, Text } from "@ledger/design-system";
 
-export function Empty() {
+export function NoMatches({ onClear }: { onClear: () => void }) {
   return (
     <Stack space="space.200" alignInline="center">
       <Text color="color.text.subtle">No controls match these filters.</Text>
-      <Button variant="primary">Clear filters</Button>
+      <Button variant="primary" onClick={onClear}>
+        Clear filters
+      </Button>
     </Stack>
   );
 }
 ```
 
-Standard reusable components follow the local shadcn Base UI reference with flat named parts,
-native props and refs, and Ledger token styling. Breadcrumb is the first family migrated;
-other existing families keep their documented APIs until explicitly migrated. Assemble
-convenience layouts in patterns while keeping the component parts available.
+A whole empty region is the kit's [Empty](?path=/docs/components-empty--docs), with an illustration, a title and the next step; the example above is only a composition of primitives.
 
 Components never import a router. Breadcrumb uses `render` to compose your router's link;
 the link must accept the merged attributes, handlers and ref:
@@ -61,7 +90,7 @@ import {
   BreadcrumbSeparator,
 } from "@ledger/design-system";
 
-export function RecordTrail() {
+export function ControlTrail() {
   return (
     <Breadcrumb aria-label="Breadcrumb">
       <BreadcrumbList>
@@ -90,6 +119,7 @@ Button is for an action on the page; TabsTrigger uses `render` with `nativeButto
 navigation tab.
 
 ```tsx
+import { Link } from "@tanstack/react-router";
 import { LinkButton } from "@ledger/design-system";
 
 <LinkButton variant="primary" render={<Link to="/controls/new" />}>
@@ -97,9 +127,9 @@ import { LinkButton } from "@ledger/design-system";
 </LinkButton>;
 ```
 
-## Colour mode
+## Colour mode and contrast
 
-Tokens flip on `data-color-mode="dark"` on the root element, or on the system preference when no attribute is set. Nothing in a component knows which mode it is in.
+Tokens flip on `data-color-mode="dark"` on the root element, or on the system preference when no attribute is set; ModeProvider and ModeSwitch set it for the reader. Increased contrast follows `prefers-contrast: more`, or `data-contrast-mode="more"` on the root. Nothing in a component knows which mode it is in.
 
 ```html
 <html data-color-mode="dark"></html>
@@ -107,7 +137,7 @@ Tokens flip on `data-color-mode="dark"` on the root element, or on the system pr
 
 ## Lint
 
-The package exports an ESLint flat config. `recommended` makes every token rule an error and layout-through-primitives a warning.
+The package exports an ESLint flat config. `recommended` makes every token rule an error and layout-through-primitives a warning; the [Lint rules](?path=/docs/guidance-lint-rules--docs) page lists every rule and preset.
 
 ```js
 import ledger from "@ledger/design-system/eslint";

@@ -39,27 +39,22 @@ export const TextLinkMatrix: Story = {
 
 /**
  * Navigation that reads as text. Native href and Base UI render both preserve anchor behavior. A
- * link in a sentence keeps its words as the touch target, including one that wraps in the narrow
- * column; the standalone links take a hit area at least 24px tall where a pointer is coarse.
+ * link in a sentence is underlined at rest, so it never differs from the words beside it by colour
+ * alone, and keeps its words as the touch target, including one that wraps in the narrow column;
+ * the standalone links underline on hover and take a hit area at least 24px tall where a pointer
+ * is coarse.
  */
 export const InProse: Story = {
   render: () => (
     <Stack space="space.200">
       <Text>
-        The finding was raised against{" "}
-        <TextLink className="underline" render={<a href="#ctrl" />}>
-          AC-2(4)
-        </TextLink>{" "}
-        and traces to{" "}
-        <TextLink className="underline" render={<a href="#req" />}>
-          REQ-0118
-        </TextLink>
-        .
+        The finding was raised against <TextLink render={<a href="#ctrl" />}>AC-2(4)</TextLink> and
+        traces to <TextLink render={<a href="#req" />}>REQ-0118</TextLink>.
       </Text>
       <div style={{ maxWidth: 240 }}>
         <Text as="p">
           Raised against the access control family, see{" "}
-          <TextLink className="underline" render={<a href="#req-trace" />}>
+          <TextLink render={<a href="#req-trace" />}>
             REQ-0118 Account management for privileged users
           </TextLink>{" "}
           for the full trace.
@@ -91,10 +86,12 @@ export const InProse: Story = {
     const coarse = matchMedia("(any-pointer: coarse)").matches;
     for (const each of inSentence) {
       await expect(each).toHaveAttribute("data-in-text");
+      await expect(getComputedStyle(each).textDecorationLine).toBe("underline");
       await expect(getComputedStyle(each, "::before").content).toBe("none");
     }
     for (const each of standalone) {
       await expect(each).not.toHaveAttribute("data-in-text");
+      await expect(getComputedStyle(each).textDecorationLine).toBe("none");
       await expect(each).toHaveClass("touch-target-block");
       await expect(getComputedStyle(each).position).toBe("relative");
       const area = getComputedStyle(each, "::before");

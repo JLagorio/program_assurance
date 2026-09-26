@@ -5,7 +5,14 @@ import { SearchField } from "../components/search-field";
 import { Separator } from "../components/separator";
 import { useLedgerLocale } from "../lib/locale";
 import { MoreHorizontal } from "lucide-react";
-import { type FocusEvent, type ReactNode, useLayoutEffect, useRef, useState } from "react";
+import {
+  type FocusEvent,
+  type ReactNode,
+  type RefObject,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { cn } from "../lib/cn";
 
 export type ToolbarProps = {
@@ -75,6 +82,39 @@ function intrinsicWidth(row: HTMLElement | null) {
 }
 
 /**
+ * What the row's layout depends on that a render can change without a resize: the words it shows
+ * and how many elements hold them. Neither reads layout, so a render that leaves both alone, such
+ * as a keystroke in the search, costs no measurement. The search's value is not text content.
+ */
+function contentKey(row: HTMLElement) {
+  return `${row.getElementsByTagName("*").length}:${row.textContent ?? ""}`;
+}
+
+/** The observer that keeps the fold current, and what it is watching. */
+type Watch = { observer: ResizeObserver; targets: Set<Element> };
+
+/**
+ * Watch what the fold depends on: the row, each group in it and each saved view, so a group that
+ * mounts, folds away or changes its content is measured again. Only the difference is observed or
+ * released, because observing a target again reports it again.
+ */
+function follow(
+  watch: Watch,
+  row: HTMLElement,
+  views: HTMLElement | null,
+  groups: RefObject<HTMLElement | null>[],
+) {
+  const targets = new Set<Element>([row]);
+  if (views) targets.add(views);
+  for (const group of groups) if (group.current) targets.add(group.current);
+  const viewport = views?.querySelector('[data-slot="scroller-viewport"]');
+  if (viewport) for (const view of Array.from(viewport.children)) targets.add(view);
+  for (const target of watch.targets) if (!targets.has(target)) watch.observer.unobserve(target);
+  for (const target of targets) if (!watch.targets.has(target)) watch.observer.observe(target);
+  watch.targets = targets;
+}
+
+/**
  * The saved views' width at full size, even while their strip scrolls or a control in it
  * truncates: the strip is laid out at max-content for one measurement and put back before paint.
  */
@@ -118,8 +158,10 @@ export function Toolbar({
   const displayRow = useRef<HTMLDivElement>(null);
   const actionRow = useRef<HTMLDivElement>(null);
   const popup = useRef<HTMLDivElement>(null);
-  // The last width each foldable group asked for while it was in the row.
-  const widths = useRef({ filters: 0, display: 0, more: 0 });
+  // The last width each foldable group asked for while it was in the row, and the saved views'
+  // natural width, which does not depend on the container and is read again only when the views'
+  // content or fonts change (null until then).
+  const widths = useRef({ filters: 0, display: 0, more: 0, views: null as number | null });
   // Whether focus was last in More: its trigger, its popover or a menu opened from inside it.
   // Kept from focus events, because a closing popover can drop focus to the page before the
   // fold is measured.
@@ -133,94 +175,137 @@ export function Toolbar({
   const hasMore = fold.filters || fold.display;
   const twoRows = fold.rows === 2;
 
+  // The fold is measured before paint when the fold, More or the row's content changes, and on the
+  // frame after a resize. A render that changes none of them, such as a keystroke in the search or
+  // a parent's new callbacks, reads no layout. One observer lives as long as the row, follows the
+  // groups as they mount and fold, and measures through a ref that holds the current render.
+  const measured = useRef<{ fold: Fold; open: boolean; content: string } | null>(null);
+  const measureRef = useRef<() => void>(() => undefined);
+  const watch = useRef<Watch | null>(null);
+  const measure = () => {
+    const element = root.current;
+    if (!element) return;
+    const gap = parseFloat(getComputedStyle(element).columnGap) || 8;
+    const cache = widths.current;
+    if (filterRow.current) cache.filters = intrinsicWidth(filterRow.current);
+    if (displayRow.current) cache.display = intrinsicWidth(displayRow.current);
+    const trigger = element.querySelector<HTMLElement>(moreSelector);
+    if (trigger) cache.more = trigger.getBoundingClientRect().width;
+    const available = element.clientWidth;
+    const searchWidth = onSearch ? searchMinimum : 0;
+    cache.views ??= naturalWidth(viewRow.current);
+    const viewsWidth = cache.views;
+    const actionsWidth = intrinsicWidth(actionRow.current);
+    const filtersWidth = filters ? cache.filters : 0;
+    const displayWidth = children ? cache.display : 0;
+    const more = cache.more || moreEstimate;
+    const fits = (...parts: number[]) => {
+      const present = parts.filter((width) => width > 0);
+      const total = present.reduce((sum, width) => sum + width, 0);
+      return total + gap * Math.max(0, present.length - 1) <= available;
+    };
+    // While More is open, what it holds stays in it; the row takes it back when More closes.
+    const holdFilters = open && fold.filters;
+    const holdDisplay = open && fold.display;
+    const fitsAll = fits(searchWidth, viewsWidth, filtersWidth, displayWidth, actionsWidth);
+    const foldFilters = !!filters && (!fitsAll || holdFilters);
+    const foldDisplay =
+      !!children &&
+      (holdDisplay ||
+        (!fitsAll &&
+          !fits(searchWidth, viewsWidth, foldFilters ? more : 0, displayWidth, actionsWidth)));
+    const folded = foldFilters || foldDisplay;
+    const oneRow = fits(
+      searchWidth,
+      viewsWidth,
+      foldFilters ? 0 : filtersWidth,
+      folded ? more : 0,
+      foldDisplay ? 0 : displayWidth,
+      actionsWidth,
+    );
+    const rows = onSearch && !oneRow ? 2 : 1;
+    // Two rows keep the one-row order: the search fills the first row up to the saved views, and
+    // More and the actions start the second. The search keeps at least searchBesideViews; views
+    // wider than the rest scroll inside their share. One spare pixel keeps both on the first row.
+    let reserve = 0;
+    let squeeze = 0;
+    if (rows === 2 && viewsWidth > 0) {
+      const share = Math.max(0, Math.min(viewsWidth, available - searchBesideViews - gap));
+      if (share < viewsWidth) squeeze = Math.floor(share);
+      reserve = Math.ceil((squeeze || viewsWidth) + gap) + 1;
+    }
+    const next: Fold = { filters: foldFilters, display: foldDisplay, rows, reserve, squeeze };
+    if (sameFold(next, fold)) return;
+    const doc = element.ownerDocument;
+    const active = doc.activeElement;
+    const lost = !active || active === doc.body;
+    if (
+      (foldFilters && !fold.filters && filterRow.current?.contains(active)) ||
+      (foldDisplay && !fold.display && displayRow.current?.contains(active))
+    )
+      refocus.current = { to: "more", fold: next };
+    else if (
+      !folded &&
+      (fold.filters || fold.display) &&
+      (trigger?.contains(active) ||
+        popup.current?.contains(active) ||
+        (lost && focusInMore.current))
+    )
+      refocus.current = { to: "returned", fold: next };
+    if (!folded) setOpen(false);
+    setFold(next);
+  };
+
   useLayoutEffect(() => {
     const element = root.current;
     if (!element) return;
-    const measure = () => {
-      const gap = parseFloat(getComputedStyle(element).columnGap) || 8;
-      const cache = widths.current;
-      if (filterRow.current) cache.filters = intrinsicWidth(filterRow.current);
-      if (displayRow.current) cache.display = intrinsicWidth(displayRow.current);
-      const trigger = element.querySelector<HTMLElement>(moreSelector);
-      if (trigger) cache.more = trigger.getBoundingClientRect().width;
-      const available = element.clientWidth;
-      const searchWidth = onSearch ? searchMinimum : 0;
-      const viewsWidth = naturalWidth(viewRow.current);
-      const actionsWidth = intrinsicWidth(actionRow.current);
-      const filtersWidth = filters ? cache.filters : 0;
-      const displayWidth = children ? cache.display : 0;
-      const more = cache.more || moreEstimate;
-      const fits = (...parts: number[]) => {
-        const present = parts.filter((width) => width > 0);
-        const total = present.reduce((sum, width) => sum + width, 0);
-        return total + gap * Math.max(0, present.length - 1) <= available;
-      };
-      // While More is open, what it holds stays in it; the row takes it back when More closes.
-      const holdFilters = open && fold.filters;
-      const holdDisplay = open && fold.display;
-      const fitsAll = fits(searchWidth, viewsWidth, filtersWidth, displayWidth, actionsWidth);
-      const foldFilters = !!filters && (!fitsAll || holdFilters);
-      const foldDisplay =
-        !!children &&
-        (holdDisplay ||
-          (!fitsAll &&
-            !fits(searchWidth, viewsWidth, foldFilters ? more : 0, displayWidth, actionsWidth)));
-      const folded = foldFilters || foldDisplay;
-      const oneRow = fits(
-        searchWidth,
-        viewsWidth,
-        foldFilters ? 0 : filtersWidth,
-        folded ? more : 0,
-        foldDisplay ? 0 : displayWidth,
-        actionsWidth,
-      );
-      const rows = onSearch && !oneRow ? 2 : 1;
-      // Two rows keep the one-row order: the search fills the first row up to the saved views, and
-      // More and the actions start the second. The search keeps at least searchBesideViews; views
-      // wider than the rest scroll inside their share. One spare pixel keeps both on the first row.
-      let reserve = 0;
-      let squeeze = 0;
-      if (rows === 2 && viewsWidth > 0) {
-        const share = Math.max(0, Math.min(viewsWidth, available - searchBesideViews - gap));
-        if (share < viewsWidth) squeeze = Math.floor(share);
-        reserve = Math.ceil((squeeze || viewsWidth) + gap) + 1;
-      }
-      const next: Fold = { filters: foldFilters, display: foldDisplay, rows, reserve, squeeze };
-      if (sameFold(next, fold)) return;
-      const doc = element.ownerDocument;
-      const active = doc.activeElement;
-      const lost = !active || active === doc.body;
-      if (
-        (foldFilters && !fold.filters && filterRow.current?.contains(active)) ||
-        (foldDisplay && !fold.display && displayRow.current?.contains(active))
-      )
-        refocus.current = { to: "more", fold: next };
-      else if (
-        !folded &&
-        (fold.filters || fold.display) &&
-        (trigger?.contains(active) ||
-          popup.current?.contains(active) ||
-          (lost && focusInMore.current))
-      )
-        refocus.current = { to: "returned", fold: next };
-      if (!folded) setOpen(false);
-      setFold(next);
-    };
-    measure();
     // A resize folds on the next frame, so the fold's own layout never re-enters this observer.
     let frame = 0;
-    const observer = new ResizeObserver(() => {
+    const later = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(measure);
+      frame = requestAnimationFrame(() => measureRef.current());
+    };
+    const observer = new ResizeObserver((entries) => {
+      // A saved view that changes size, or their strip while it is not squeezed, has new content.
+      const strip = viewRow.current;
+      const squeezed = !!measured.current?.fold.squeeze;
+      if (
+        strip &&
+        entries.some(({ target }) => strip.contains(target) && (target !== strip || !squeezed))
+      )
+        widths.current.views = null;
+      later();
     });
-    observer.observe(element);
-    for (const row of [viewRow, filterRow, displayRow, actionRow])
-      if (row.current) observer.observe(row.current);
+    watch.current = { observer, targets: new Set() };
+    follow(watch.current, element, viewRow.current, [filterRow, displayRow, actionRow]);
+    // A web font that arrives after the first measure changes every width without a render.
+    const fonts = element.ownerDocument.fonts as FontFaceSet | undefined;
+    const refont = () => {
+      widths.current.views = null;
+      later();
+    };
+    fonts?.addEventListener("loadingdone", refont);
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      watch.current = null;
+      fonts?.removeEventListener("loadingdone", refont);
     };
-  }, [fold, open, onSearch, views, filters, children, actions]);
+  }, []);
+
+  useLayoutEffect(() => {
+    measureRef.current = measure;
+    const element = root.current;
+    if (!element) return;
+    const content = contentKey(element);
+    const last = measured.current;
+    measured.current = { fold, open, content };
+    if (last && last.fold === fold && last.open === open && last.content === content) return;
+    if (last?.content !== content) widths.current.views = null;
+    if (watch.current)
+      follow(watch.current, element, viewRow.current, [filterRow, displayRow, actionRow]);
+    measure();
+  });
 
   useLayoutEffect(() => {
     const pending = refocus.current;

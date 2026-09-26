@@ -53,7 +53,7 @@ Nested drawers must be nested in the React tree. Ledgerâ€™s CSS follows Base UIâ
 
 ## Props
 
-Root takes children and `onOpenChange`; Content takes `initialFocus`, `finalFocus`, refs and `className`.
+Drawer takes Base UI Drawer's root props, `open`, `defaultOpen`, `onOpenChange` (with the change's `reason` and `cancel()` in its details), `onOpenChangeComplete`, `modal`, `disablePointerDismissal`, `actionsRef`, `handle`, `swipeDirection`, `snapPoints`, `snapPoint`, `defaultSnapPoint`, `onSnapPointChange` and `snapToSequentialPoints`, and Ledger's `showSwipeHandle`. DrawerContent takes the popup's `initialFocus`, `finalFocus`, refs, `render` and `className`. The types are in [Base UI's API reference](https://base-ui.com/react/components/drawer#api-reference).
 
 <ArgTypes of={Drawer} />
 <ArgTypes of={DrawerContent} />

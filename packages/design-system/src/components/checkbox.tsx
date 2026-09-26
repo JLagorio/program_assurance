@@ -20,8 +20,10 @@ export function Checkbox({ className, ...props }: CheckboxProps) {
       disabled={props.disabled || field.disabled}
       aria-required={props["aria-required"] ?? ((props.required ?? field.required) || undefined)}
       className={classes(
-        // Invalid is the border; the focus outline stays the focus colour, so a focused invalid box still shows where focus is.
-        "peer relative flex size-200 shrink-0 items-center justify-center rounded-small border border-input bg-input text-inverse outline-none transition-colors duration-fast ease-standard after:absolute after:-inset-x-150 after:-inset-y-100 focus-visible:outline-focused aria-invalid:border-danger data-checked:border-brand data-checked:bg-brand-bold data-indeterminate:border-brand data-indeterminate:bg-brand-bold data-disabled:cursor-not-allowed data-disabled:opacity-disabled motion-reduce:transition-none",
+        // The boundary is color.border.bold, 3:1 against every surface, so an unticked box can be
+        // seen (WCAG 1.4.11). Invalid is the border; the focus outline stays the focus colour, so a
+        // focused invalid box still shows where focus is.
+        "peer relative flex size-200 shrink-0 items-center justify-center rounded-small border border-bold bg-input text-inverse outline-none transition-colors duration-fast ease-standard after:absolute after:-inset-x-150 after:-inset-y-100 focus-visible:outline-focused aria-invalid:border-danger data-checked:border-brand data-checked:bg-brand-bold data-indeterminate:border-brand data-indeterminate:bg-brand-bold data-disabled:cursor-not-allowed data-disabled:opacity-disabled motion-reduce:transition-none",
         className,
       )}
     >

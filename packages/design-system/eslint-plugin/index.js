@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compositionRules } from "./composition-rules.js";
+import { gateRules, withAllowance } from "./gate-rules.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const utilitiesPath = ["../src/generated/utilities.json", "../dist/generated/utilities.json"]
@@ -18,30 +19,63 @@ const deprecated = generated.deprecated;
 
 /* ---------- class extraction ---------- */
 
-const CLASS_FNS = new Set(["cn", "clsx", "twMerge", "cva"]);
+// The class helpers whose string arguments are classes. `classes` is the kit's Base UI helper
+// (src/lib/base-ui.ts). A consumer adds its own through `settings.ledger.classFunctions`.
+const CLASS_FNS = new Set(["cn", "clsx", "twMerge", "cva", "classes"]);
+const classFunctions = (context) =>
+  new Set([...CLASS_FNS, ...(context?.settings?.ledger?.classFunctions ?? [])]);
+
+/** Attributes and object keys that hold classes: className, class, and any *ClassName prop. */
+const CLASS_KEY = /^(className|class|[a-z]\w*ClassName)$/;
+/** A slot map (react-day-picker's `classNames`): the keys are slots and the values are classes. */
+const SLOT_MAP_KEY = /^([a-z]\w*)?classNames$/i;
+const slotValues = (node, handle) => {
+  let value = node;
+  while (value?.type === "JSXExpressionContainer" || value?.type === "TSAsExpression")
+    value = value.expression;
+  if (value?.type !== "ObjectExpression") return;
+  for (const property of value.properties) if (property.type === "Property") handle(property.value);
+};
+
+/** The initialiser of a single-definition const: `const base = "…"` is read where it is used. */
+function constInitOf(context, node) {
+  let scope = context.sourceCode.getScope(node);
+  while (scope && !scope.set.has(node.name)) scope = scope.upper;
+  const definitions = scope?.set.get(node.name)?.defs;
+  if (definitions?.length !== 1) return undefined;
+  const [definition] = definitions;
+  if (definition.type !== "Variable" || definition.parent?.kind !== "const") return undefined;
+  return definition.node.init ?? undefined;
+}
 
 /** Collect every static class string reachable from an expression: literals, template quasis,
-    conditionals, logicals, arrays, clsx-style objects (keys), and nested cn()/clsx() calls. */
-function collect(node, out) {
-  if (!node) return;
+    conditionals, logicals, arrays, clsx-style objects (keys), nested cn()/clsx()/classes() calls,
+    and, when a rule passes its context, single-definition consts and the strings a className
+    callback returns. */
+function collect(node, out, context, seen = new Set()) {
+  if (!node || seen.has(node)) return;
+  seen.add(node);
+  const fns = classFunctions(context);
+  const next = (child) => collect(child, out, context, seen);
   switch (node.type) {
     case "Literal":
       if (typeof node.value === "string") out.push({ text: node.value, node });
       return;
     case "TemplateLiteral":
       for (const q of node.quasis) if (q.value.cooked) out.push({ text: q.value.cooked, node: q });
-      for (const e of node.expressions) collect(e, out);
+      for (const e of node.expressions) next(e);
       return;
     case "ConditionalExpression":
-      collect(node.consequent, out);
-      collect(node.alternate, out);
+      next(node.consequent);
+      next(node.alternate);
       return;
     case "LogicalExpression":
-      collect(node.left, out);
-      collect(node.right, out);
+      // `open && "…"` puts a condition on the left; `a || "…"` and `a ?? "…"` put a class there.
+      if (node.operator !== "&&") next(node.left);
+      next(node.right);
       return;
     case "ArrayExpression":
-      for (const el of node.elements) collect(el, out);
+      for (const el of node.elements) next(el);
       return;
     case "ObjectExpression":
       for (const p of node.properties) {
@@ -52,9 +86,9 @@ function collect(node, out) {
       }
       return;
     case "CallExpression":
-      if (node.callee.type !== "Identifier" || !CLASS_FNS.has(node.callee.name)) return;
+      if (node.callee.type !== "Identifier" || !fns.has(node.callee.name)) return;
       if (node.callee.name === "cva") {
-        collect(node.arguments[0], out);
+        next(node.arguments[0]);
         const config = node.arguments[1];
         if (config?.type !== "ObjectExpression") return;
         for (const property of config.properties) {
@@ -64,7 +98,7 @@ function collect(node, out) {
             for (const axis of property.value.properties) {
               if (axis.type !== "Property" || axis.value.type !== "ObjectExpression") continue;
               for (const variant of axis.value.properties)
-                if (variant.type === "Property") collect(variant.value, out);
+                if (variant.type === "Property") next(variant.value);
             }
           }
           if (name === "compoundVariants" && property.value.type === "ArrayExpression") {
@@ -75,24 +109,50 @@ function collect(node, out) {
                   entry.type === "Property" &&
                   ["class", "className"].includes(entry.key.name ?? entry.key.value)
                 )
-                  collect(entry.value, out);
+                  next(entry.value);
             }
           }
         }
       } else {
-        for (const a of node.arguments) collect(a, out);
+        for (const a of node.arguments) next(a);
       }
       return;
     case "JSXExpressionContainer":
-      collect(node.expression, out);
+      next(node.expression);
       return;
     case "TSAsExpression":
     case "TSSatisfiesExpression":
-      collect(node.expression, out);
+    case "TSNonNullExpression":
+      next(node.expression);
+      return;
+    case "Identifier": {
+      if (!context) return;
+      const init = constInitOf(context, node);
+      if (init) next(init);
+      return;
+    }
+    case "ArrowFunctionExpression":
+    case "FunctionExpression":
+      // A Base UI className callback: `(state) => (state.open ? "…" : "…")`.
+      if (!context) return;
+      if (node.body.type !== "BlockStatement") next(node.body);
+      else returns(node.body, next);
       return;
     default:
       return;
   }
+}
+
+/** Every value a function body returns, through if/else and blocks, but not nested functions. */
+function returns(statement, visit) {
+  if (!statement) return;
+  if (statement.type === "ReturnStatement") visit(statement.argument);
+  else if (statement.type === "BlockStatement") statement.body.forEach((s) => returns(s, visit));
+  else if (statement.type === "IfStatement") {
+    returns(statement.consequent, visit);
+    returns(statement.alternate, visit);
+  } else if (statement.type === "SwitchStatement")
+    statement.cases.forEach((c) => c.consequent.forEach((s) => returns(s, visit)));
 }
 
 /** Split a class string on whitespace, then each class into variants and base (colons outside brackets). */
@@ -119,12 +179,15 @@ function classesOf(text) {
     });
 }
 
-/** Visit every class in className attributes and cn()/clsx() calls. */
+/** Visit every class in class attributes (className, class, *ClassName), class-keyed object
+    properties, and class helper calls, following consts and className callbacks. Each string is
+    reported once, however many places read it. */
 function forEachClass(context, cb) {
   const seen = new WeakSet();
+  const fns = classFunctions(context);
   const handle = (node) => {
     const out = [];
-    collect(node, out);
+    collect(node, out, context);
     for (const { text, node: n } of out) {
       if (seen.has(n)) continue;
       seen.add(n);
@@ -133,16 +196,50 @@ function forEachClass(context, cb) {
   };
   return {
     JSXAttribute(node) {
-      if (
-        node.name.type === "JSXIdentifier" &&
-        (node.name.name === "className" || node.name.name === "class")
-      )
-        handle(node.value);
+      if (node.name.type !== "JSXIdentifier") return;
+      if (CLASS_KEY.test(node.name.name)) handle(node.value);
+      else if (SLOT_MAP_KEY.test(node.name.name)) slotValues(node.value, handle);
+    },
+    Property(node) {
+      if (node.computed || node.parent.type !== "ObjectExpression") return;
+      const key = node.key.name ?? node.key.value;
+      // Keys of a clsx map passed to a class helper are classes themselves; collect reads them.
+      if (typeof key !== "string") return;
+      if (CLASS_KEY.test(key)) handle(node.value);
+      else if (SLOT_MAP_KEY.test(key)) slotValues(node.value, handle);
     },
     CallExpression(node) {
-      if (node.callee.type === "Identifier" && CLASS_FNS.has(node.callee.name)) handle(node);
+      if (node.callee.type === "Identifier" && fns.has(node.callee.name)) handle(node);
+    },
+    VariableDeclarator(node) {
+      // A module-level class constant (`export const menuSeparator = "my-050 border-t"`) is read
+      // where it is declared, since the file that uses it may be another one.
+      const declaration = node.parent;
+      if (declaration.kind !== "const" || !topLevelDeclaration(declaration)) return;
+      const init = node.init;
+      const text =
+        init?.type === "Literal" && typeof init.value === "string"
+          ? init.value
+          : init?.type === "TemplateLiteral" && init.expressions.length === 0
+            ? (init.quasis[0]?.value.cooked ?? "")
+            : undefined;
+      if (text !== undefined && looksLikeClasses(text)) handle(init);
     },
   };
+}
+
+const topLevelDeclaration = (declaration) =>
+  declaration.parent.type === "Program" ||
+  (declaration.parent.type === "ExportNamedDeclaration" &&
+    declaration.parent.parent.type === "Program");
+
+/** A string that is a class list: lowercase utilities, most of them ones the lint knows. */
+function looksLikeClasses(text) {
+  const tokens = text.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0 || tokens.some((t) => /[A-Z]|[^\x21-\x7e]/.test(t.split(":").at(-1))))
+    return false;
+  const known = classesOf(text).filter(({ base }) => isKnown(base)).length;
+  return known >= Math.max(1, Math.ceil(tokens.length / 2));
 }
 
 /* ---------- what a non-token class may be ---------- */
@@ -234,7 +331,8 @@ const structural = [
   /^(fill|stroke)-(none|current)$/, // SVG paint from the text colour, which is a token
   /^divide-(x|y)-0$/,
   /^grid-cols-\(--ds-grid-(base|sm|md|lg|xl)\)$/, // Grid's responsive templateColumns, read from a CSS variable
-  /^h-\(--accordion-panel-height\)$/, // Base UI's measured panel height, used for disclosure motion
+  /^h-\(--(accordion|collapsible)-panel-height\)$/, // Base UI's measured panel height, used for disclosure motion
+  /^content-none$/, // removes a pseudo-element's box, such as a hit area a link in text does not take
   /^toast-(viewport|root)$/, // toast.css: Base UI stack and swipe geometry
 ];
 const spacing = new RegExp(
@@ -361,9 +459,6 @@ const LEGACY = {
   Sidebar: "Shell.SideNav",
   TopBar: "Shell.TopNav",
   NavItem: "Shell.SideNav.Item",
-  PreviewSplit: "PreviewSplit",
-  CommandPalette: "CommandPalette",
-  RecordPicker: "RecordPicker",
 };
 /** Neutral colour, weight and type tokens a table cell may not carry; a status colour (text-danger, text-warning) is data, not design. */
 const CELL_FORBIDDEN =
@@ -579,14 +674,23 @@ const rules = {
       const aliases = new Map();
       const canonical = (text) => {
         const [root, ...restOf] = text.split(".");
-        return [aliases.get(root) ?? root, ...restOf].join(".");
+        return [aliases.get(root) ?? root, ...restOf].filter(Boolean).join(".");
       };
       return {
         ImportDeclaration(node) {
           if (!/design-system|\/shell$/.test(String(node.source.value))) return;
-          for (const s of node.specifiers)
-            if (s.type === "ImportSpecifier" && s.imported.name !== s.local.name)
-              aliases.set(s.local.name, s.imported.name);
+          for (const s of node.specifiers) {
+            if (s.type === "ImportNamespaceSpecifier") aliases.set(s.local.name, "");
+            if (s.type !== "ImportSpecifier") continue;
+            if (s.imported.name !== s.local.name) aliases.set(s.local.name, s.imported.name);
+            // A retired hook or script (useDensity, densityScript) is never JSX: report the import.
+            const dep = deprecatedNames[s.imported.name];
+            if (dep && !/^[A-Z]/.test(s.imported.name))
+              context.report({
+                node: s,
+                message: `${s.imported.name} is deprecated; use ${dep.to}${dep.note ? ` (${dep.note})` : ""}.`,
+              });
+          }
         },
         JSXOpeningElement(node) {
           const name = canonical(jsxTag(node.name));
@@ -671,16 +775,26 @@ const rules = {
             message: `${id.name} is ${LEGACY[id.name]} in the kit. Import that instead of declaring a local copy.`,
           });
       };
-      const topLevel = (n) => n.type === "Program" || n.type === "ExportNamedDeclaration";
+      const topLevel = (n) =>
+        n.type === "Program" ||
+        n.type === "ExportNamedDeclaration" ||
+        n.type === "ExportDefaultDeclaration";
+      // `memo(function …)`, `forwardRef(…)` and `React.memo(…)` declare a component too.
+      const wrapper = (init) =>
+        init?.type === "CallExpression" &&
+        /^(React\.)?(memo|forwardRef)$/.test(context.sourceCode.getText(init.callee));
       return {
         FunctionDeclaration(node) {
+          if (topLevel(node.parent)) check(node.id);
+        },
+        ClassDeclaration(node) {
           if (topLevel(node.parent)) check(node.id);
         },
         VariableDeclarator(node) {
           if (
             node.id.type === "Identifier" &&
             node.init &&
-            /FunctionExpression$/.test(node.init.type) &&
+            (/FunctionExpression$/.test(node.init.type) || wrapper(node.init)) &&
             node.parent.parent &&
             topLevel(node.parent.parent)
           )
@@ -750,28 +864,64 @@ const portability = {
   ],
 };
 
+const { version } = JSON.parse(fs.readFileSync(path.join(here, "../package.json"), "utf8"));
+// Every rule takes an `allow` option (gate-rules.js): per-file counts of sites that predate it.
 const plugin = {
-  meta: { name: "@ledger/design-system/eslint", version: "0.1.0" },
-  rules,
+  meta: { name: "@ledger/design-system/eslint", version },
+  rules: Object.fromEntries(
+    Object.entries({ ...rules, ...gateRules }).map(([name, definition]) => [
+      name,
+      withAllowance(definition),
+    ]),
+  ),
   configs: {},
 };
 
+/**
+ * The kit's own allowances, in test/lint-allow.json: `{ "ledger/rule": { "src/file.tsx": 2 } }`,
+ * sites that predate a rule. The list only shrinks (a file with fewer reports than its allowance
+ * fails until the number is lowered). The file is not published, so a consumer gets none.
+ */
+const packageAllowPath = path.join(here, "../test/lint-allow.json");
+const packageAllow = fs.existsSync(packageAllowPath)
+  ? JSON.parse(fs.readFileSync(packageAllowPath, "utf8"))
+  : {};
+/** A rule at `severity`, with the kit's allowance for it when there is one. */
+const allowing = (name, severity = "error") =>
+  packageAllow[name] ? [severity, { allow: packageAllow[name] }] : severity;
+
 /** The package's own code: everything is an error, and nothing outside the package may be imported. */
+const packageRules = [
+  "ledger/no-arbitrary-value",
+  "ledger/no-alpha-token",
+  "ledger/no-dark-variant",
+  "ledger/no-margin",
+  "ledger/no-static-design-value",
+  "ledger/no-non-token-class",
+  "ledger/no-deprecated-token",
+  "ledger/no-deprecated-name",
+  "ledger/prefer-text-link",
+  "ledger/no-colgroup",
+  "ledger/button-icon-slot",
+  "ledger/no-overlay-autofocus",
+  "ledger/no-disabled-while-loading",
+  "ledger/overlay-width-preset",
+  "ledger/link-button-navigation",
+  "ledger/no-style-design-value",
+];
+/** Rules that judge how a screen uses the kit; stories show their mistakes on purpose (Don't). */
+const usageRules = [
+  "ledger/no-overlay-autofocus",
+  "ledger/no-disabled-while-loading",
+  "ledger/overlay-width-preset",
+  "ledger/link-button-navigation",
+  "ledger/no-style-design-value",
+];
 plugin.configs.package = [
   {
     plugins: { ledger: plugin },
     rules: {
-      "ledger/no-arbitrary-value": "error",
-      "ledger/no-alpha-token": "error",
-      "ledger/no-dark-variant": "error",
-      "ledger/no-margin": "error",
-      "ledger/no-static-design-value": "error",
-      "ledger/no-non-token-class": "error",
-      "ledger/no-deprecated-token": "error",
-      "ledger/no-deprecated-name": "error",
-      "ledger/prefer-text-link": "error",
-      "ledger/no-colgroup": "error",
-      "ledger/button-icon-slot": "error",
+      ...Object.fromEntries(packageRules.map((name) => [name, allowing(name)])),
       ...portability,
     },
   },
@@ -783,7 +933,11 @@ plugin.configs.package = [
   {
     // Stories are documentation: their own layout may use arbitrary widths; the token rules still apply to what they demonstrate.
     files: ["**/stories/**"],
-    rules: { "ledger/no-arbitrary-value": "off", "ledger/no-non-token-class": "warn" },
+    rules: {
+      "ledger/no-arbitrary-value": "off",
+      "ledger/no-non-token-class": allowing("ledger/no-non-token-class", "warn"),
+      ...Object.fromEntries(usageRules.map((name) => [name, "off"])),
+    },
   },
 ];
 
@@ -810,6 +964,12 @@ plugin.configs.recommended = [
       "ledger/no-native-confirm": "error",
       "ledger/text-link-navigation": "error",
       "ledger/dialog-footer-order": "error",
+      "ledger/no-overlay-autofocus": "error",
+      "ledger/no-disabled-while-loading": "error",
+      "ledger/overlay-width-preset": "error",
+      "ledger/no-plain-alert-role": "error",
+      "ledger/link-button-navigation": "error",
+      "ledger/no-style-design-value": "error",
     },
   },
 ];

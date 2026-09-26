@@ -9,8 +9,16 @@ export const menuSurface =
 export const menuItem =
   "flex min-h-row-menu w-full cursor-default select-none items-center gap-100 rounded-medium px-100 py-050 text-start font-body text-default outline-none transition-colors duration-fast ease-standard";
 
-/** The row under the pointer or the keyboard. */
-export const menuItemHighlighted = "data-[highlighted]:bg-neutral-subtle-hovered";
+/**
+ * The row under the pointer or the keyboard. The tint alone is about 1.1:1, so the row the keyboard
+ * is on also draws the inset focus outline: on `:focus-visible` where the list moves focus to its
+ * rows (DropdownMenu, Select), and on the highlight itself where focus stays in the input and the
+ * row is the active descendant (Combobox, SearchDialog). The row under the pointer keeps the tint
+ * alone, since the pointer already shows where it is. In forced colours the row is Highlight
+ * (forced-colors.css).
+ */
+export const menuItemHighlighted =
+  "data-[highlighted]:bg-neutral-subtle-hovered focus-visible:[&:not(:hover)]:outline-field-focused data-[slot=combobox-item]:data-[highlighted]:[&:not(:hover)]:outline-field-focused data-[slot=search-dialog-result]:data-[highlighted]:[&:not(:hover)]:outline-field-focused";
 
 /** A committed choice remains distinct from pointer/keyboard highlight. */
 export const menuChoiceSelected =

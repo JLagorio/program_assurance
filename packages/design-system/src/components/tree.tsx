@@ -67,11 +67,7 @@ function TreeRoot({ label, size = "small", onFocusCapture, onKeyDown, ...props }
         rows.find((row) => row.getAttribute("aria-selected") === "true") ??
         rows[0];
       setEntry(rows, entry);
-      if (
-        removed &&
-        entry &&
-        (document.activeElement === document.body || active !== undefined)
-      ) {
+      if (removed && entry && (document.activeElement === document.body || active !== undefined)) {
         entry.focus();
         focused.current = entry;
       }
@@ -172,6 +168,11 @@ export type TreeItemProps = Omit<ComponentProps<"div">, "onSelect"> & {
   /** A branch: the row takes a chevron and `aria-expanded`. */
   hasChildren?: boolean | undefined;
   /** The branch is open. */
+  isExpanded?: boolean | undefined;
+  /**
+   * The branch is open.
+   * @deprecated Use `isExpanded`, the name that matches `isSelected`; `expanded` is read for one version.
+   */
   expanded?: boolean | undefined;
   /** Opens or closes the branch: the chevron, Right and Left. */
   onToggle?: (() => void) | undefined;
@@ -193,7 +194,8 @@ export function TreeItem({
   setSize,
   lines,
   hasChildren = false,
-  expanded = false,
+  isExpanded,
+  expanded: deprecatedExpanded,
   onToggle,
   isSelected = false,
   onSelect,
@@ -205,6 +207,7 @@ export function TreeItem({
   ...props
 }: TreeItemProps) {
   const size = useContext(TreeContext)?.size ?? "small";
+  const expanded = isExpanded ?? deprecatedExpanded ?? false;
   const guides = lines ?? Array.from({ length: depth }, () => true);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -289,9 +292,14 @@ export function TreeItem({
       }}
       onKeyDown={handleKeyDown}
       className={cn(
-        "flex items-center gap-075 rounded-medium pe-100 outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused",
+        "relative flex items-center gap-075 rounded-medium pe-100 outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused",
         size === "small" ? "h-control-medium" : "h-control-xsmall",
-        isSelected ? "bg-selected" : "hover:bg-neutral-subtle-hovered",
+        // Selected is the selected fill and a 2px bar at the row's start edge in the selected
+        // colour, 3:1 on the fill, so the selection does not rest on a 1.1:1 tint alone. The bar is
+        // absolutely placed, so it takes no room from the guides.
+        isSelected
+          ? "bg-selected before:pointer-events-none before:absolute before:inset-y-050 before:start-0 before:w-025 before:rounded-full before:bg-selected-bold"
+          : "hover:bg-neutral-subtle-hovered",
         onSelect && "cursor-pointer",
         className,
       )}
@@ -316,7 +324,8 @@ export function TreeItem({
           <ChevronRight
             className={cn(
               "size-icon-small transition-transform duration-fast ease-standard",
-              expanded && "rotate-90",
+              // Closed points to the reading direction's end: left in a right-to-left tree.
+              expanded ? "rotate-90" : "rtl:rotate-180",
             )}
           />
         </button>

@@ -66,20 +66,22 @@ async function login(target, path) {
   await target.getByLabel("Password", { exact: true }).fill(workspace.password);
   await target.getByRole("button", { name: "Sign in", exact: true }).click();
 }
-const dialog = () => page.getByRole("dialog");
+/** The open modal dialog or sheet. A toast is a non-modal dialog too, so it is left out. */
+const dialog = () => page.getByRole("dialog").and(page.locator(':not([data-slot="toast"])'));
 async function saveElement(noun = "element") {
   await dialog()
     .getByRole("button", { name: `Create ${noun}`, exact: true })
     .click();
   await dialog().waitFor({ state: "hidden" });
 }
-async function structureRowMenu(text, item) {
+/** Each structure row's menu is named by the element's code: Row actions for GUID. */
+async function structureRowMenu(text, code, item) {
   await page
     .getByRole("treegrid", { name: "Product structure", exact: true })
     .getByRole("row")
     .filter({ hasText: text })
     .first()
-    .getByRole("button", { name: "Row actions", exact: true })
+    .getByRole("button", { name: `Row actions for ${code}`, exact: true })
     .click();
   await page.getByRole("menuitem", { name: item, exact: true }).click();
 }
@@ -169,7 +171,7 @@ try {
   await page.getByRole("combobox", { name: "Version", exact: true }).waitFor();
   assert.match(
     await page.getByRole("combobox", { name: "Version", exact: true }).innerText(),
-    /1 · draft/,
+    /1 · Draft/,
   );
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   assert.ok(
@@ -200,7 +202,7 @@ try {
   await dialog().getByRole("textbox", { name: "Code", exact: true }).fill("GUID");
   await choose("Type", "Subsystem");
   await saveElement();
-  await structureRowMenu("Guidance section", "Add from library…");
+  await structureRowMenu("Guidance section", "GUID", "Add from library…");
   await page.getByLabel("Search the library", { exact: true }).fill("wizard-audit");
   await dialog().getByRole("row").filter({ hasText: "wizard-audit" }).first().click();
   await page
@@ -241,6 +243,10 @@ try {
 
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   await page.getByRole("menuitem", { name: "Publish version", exact: true }).click();
+  // Publishing freezes the version, so it is confirmed first.
+  const publishPrompt = page.getByRole("alertdialog", { name: "Publish version 1?", exact: true });
+  await publishPrompt.getByRole("button", { name: "Publish version", exact: true }).click();
+  await publishPrompt.waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   await page.getByRole("menuitem", { name: "Export OSCAL", exact: true }).waitFor();
   assert.equal(await page.getByRole("button", { name: "Create element", exact: true }).count(), 0);
@@ -268,10 +274,14 @@ try {
   await page.getByRole("checkbox", { name: lowTitle, exact: true }).check();
   await page.getByRole("link", { name: "Open profile", exact: true }).first().waitFor();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByRole("button", { name: "From a product…", exact: true }).click();
+  await page.getByRole("button", { name: "Create system from product", exact: true }).click();
+  await dialog()
+    .getByRole("heading", { name: "Create system from product", exact: true })
+    .waitFor();
   await page.getByLabel("Search products", { exact: true }).fill("Missile");
   await dialog().getByRole("row").filter({ hasText: "Ground launch" }).first().click();
-  await page.getByRole("button", { name: "Add Missile A · Ground launch", exact: true }).click();
+  await dialog().getByText("Missile A · Ground launch chosen", { exact: true }).waitFor();
+  await dialog().getByRole("button", { name: "Create system from product", exact: true }).click();
   await dialog()
     .getByRole("heading", { name: "Variant · Missile A · Ground launch", exact: true })
     .waitFor();
@@ -381,11 +391,35 @@ try {
     animations: "disabled",
   });
 
-  // Version history remains an explicit selector; metadata belongs to Overview.
+  // Version history remains an explicit selector; metadata belongs to Overview. The shown version
+  // is marked in place, and every other version has its own Open version N.
+  const versionsTable = page.getByRole("table", { name: "Versions of this product", exact: true });
+  const versionRow = (number) =>
+    versionsTable
+      .getByRole("row")
+      .filter({ has: page.getByRole("cell", { name: String(number), exact: true }) });
+  const shownVersion = () => page.getByRole("combobox", { name: "Version", exact: true });
   await page.getByRole("tab", { name: "Versions", exact: true }).click();
-  await page.getByRole("button", { name: "Open version", exact: true }).click();
+  await versionRow(1).getByText("Shown on this page", { exact: true }).waitFor();
+  assert.equal(await versionRow(1).getAttribute("aria-current"), "true");
+  assert.equal(await versionsTable.getByRole("button", { name: /^Open version/ }).count(), 0);
+  // A second version, drafted from the first, opens on its Overview; version 1 is then reopened
+  // from the history by its explicit button.
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Create product version", exact: true }).click();
+  await shownVersion()
+    .filter({ hasText: /2 · Draft/ })
+    .waitFor();
+  await page.getByRole("tab", { name: "Versions", exact: true }).click();
+  await versionRow(2).getByText("Shown on this page", { exact: true }).waitFor();
+  assert.equal(await versionRow(2).getAttribute("aria-current"), "true");
+  assert.equal(await versionRow(1).getAttribute("aria-current"), null);
+  await versionRow(1).getByRole("button", { name: "Open version 1", exact: true }).click();
+  await shownVersion()
+    .filter({ hasText: /1 · Published/ })
+    .waitFor();
   await page.getByRole("tab", { name: "Overview", exact: true }).click();
-  assert.match(await page.getByRole("combobox", { name: "Version", exact: true }).innerText(), /1/);
+  assert.match(await shownVersion().innerText(), /1 · Published/);
   await page.getByRole("complementary", { name: "Product details", exact: true }).waitFor();
   assert.equal(await page.getByRole("heading", { level: 1 }).count(), 1);
   // The aside animates into the grid; visibility alone can capture its narrow first frame.
@@ -441,7 +475,8 @@ try {
 
   // Post-create: the Air-launch variant on the same program.
   await page.goto(`${origin}/programs/${programId}?tab=System`);
-  await page.getByRole("button", { name: "Create system", exact: true }).first().click();
+  // Create system opens its dialog directly; the product path is the split button's second part.
+  await page.getByRole("button", { name: "More ways to create a system", exact: true }).click();
   await page.getByRole("menuitem", { name: "Add system from product", exact: true }).click();
   await dialog().getByRole("row").filter({ hasText: "Air launch" }).first().click();
   await page.getByRole("button", { name: "Add Missile A · Air launch", exact: true }).click();
@@ -470,7 +505,7 @@ try {
 
   assert.deepEqual(errors, []);
   console.log(
-    "PASS products: library authoring (product, version, configurations, elements incl. from the library, publish, export), a wizard variant with pruning and a customer element, lineage on the tree, rails and the Variants tab, and a second variant added post-create.",
+    "PASS products: library authoring (product, version, configurations, elements incl. from the library, confirmed publish, export, version history), a wizard variant with pruning and a customer element, lineage on the tree, rails and the Variants tab, and a second variant added post-create.",
   );
 } finally {
   await browser.close();

@@ -778,6 +778,16 @@
               }
             }
           }
+        },
+        "track": {
+          "$value": "{color.neutral.600}",
+          "$description": "The unchecked track of a switch: the control's boundary, at 3:1 against every surface, with the unchecked thumb at 3:1 on it. Not the neutral fill buttons and badges share.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.600}",
+              "introduced": "0.7.0"
+            }
+          }
         }
       },
       "inverse": {

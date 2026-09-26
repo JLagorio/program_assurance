@@ -1,52 +1,31 @@
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useConfirmation } from "@/components/app/confirmation";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import {
-  DataTable,
+  Absent,
+  Alert,
+  AlertDescription,
+  Button,
+  CodeBlock,
+  DateTime,
   defineColumns,
-  useDataTable,
-  Shell,
-  Inspector,
-  KeyValue,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Box,
-  Button,
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  DialogFooter,
-  Field,
-  FieldDescription,
-  FieldLabel,
-  Grid,
-  Inline,
-  Input,
-  PageHeader,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Stack,
-  Textarea,
-  TextLink,
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -54,22 +33,35 @@ import {
   EmptyIllustration,
   EmptyMedia,
   EmptyTitle,
+  Inline,
+  Inspector,
+  KeyValue,
+  LinkButton,
+  PageHeader,
+  Prose,
+  Section,
+  Shell,
+  Skeleton,
+  Stack,
+  Stat,
+  TextLink,
+  VisuallyHidden,
+  useDataTable,
+  useLedgerLocale,
 } from "@ledger/design-system";
-import { deleteRecord, getRecord, listRecords, saveRecord } from "@/lib/database";
+import { deleteRecord, getRecord, listRecords } from "@/lib/database";
 import {
-  defaultValue,
   displayValue,
   labelFor,
-  recordPayload,
   recordTitle,
   systemColumns,
-  isDerivedRecordField,
   titleColumn,
   type Collection,
   type Column,
-  timestampInput,
   type DataRecord,
 } from "@/lib/records";
+import { vocabularyFor } from "@/lib/status";
+import { FieldStatus } from "./status";
 import { useWorkspace } from "./workspace";
 import { ProductCollection } from "@/components/prototype/product-collection";
 import {
@@ -79,65 +71,55 @@ import {
   useDisplayedRecords,
   recordDestination,
 } from "@/components/prototype/record-preview";
+import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { QueryState } from "@/components/prototype/work-common";
 import type { TableName } from "@/lib/models";
 import { EvidenceFile } from "./evidence-file";
 import {
-  isAdditionalProductField,
-  productFieldOrder,
+  productCollectionNoun,
+  productCreateLabel,
   productRecordNoun,
 } from "@/lib/product-records";
+import { RecordEditor, RecordName, type RecordEditorState } from "./record-editor";
+import { relatedCollection, useRecord } from "./record-lookup";
 
-function ErrorMessage({ error }: { error: unknown }) {
-  return (
-    <p role="alert" className="text-danger">
-      {error instanceof Error ? error.message : "The request could not be completed."}
-    </p>
-  );
-}
+// The generic form lives in record-editor.tsx; its callers import it from here too.
+export { RecordEditor, type RecordEditorState };
+
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+const fieldLabel = (name: string) => labelFor(name.replace(/_id$/, ""));
+const PROSE = /description|narrative|rationale|prose|notes|criteria|statement|body|remarks/;
+
 function CollectionNotFound() {
   return (
-    <Box padding="space.400">
-      <Stack space="space.300">
-        <PageHeader>
-          <PageHeader.Heading>
-            <PageHeader.Title>Schema inspector</PageHeader.Title>
-          </PageHeader.Heading>
-        </PageHeader>
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia>
-              <EmptyIllustration kind="search" />
-            </EmptyMedia>
-            <EmptyTitle>Collection not found</EmptyTitle>
-            <EmptyDescription>This collection is unavailable in your workspace.</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <TextLink render={<Link to="/schema" />}>Open schema inspector</TextLink>
-          </EmptyContent>
-        </Empty>
-      </Stack>
-    </Box>
+    <Stack space="space.200">
+      <PageHeader>
+        <PageHeader.Heading>
+          <PageHeader.Title>Schema inspector</PageHeader.Title>
+        </PageHeader.Heading>
+      </PageHeader>
+      <Empty>
+        <EmptyMedia aria-hidden>
+          <EmptyIllustration kind="search" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>Collection not found</EmptyTitle>
+          <EmptyDescription>This collection is unavailable in your workspace.</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <LinkButton variant="primary" render={<Link to="/schema" />}>
+            Open schema inspector
+          </LinkButton>
+        </EmptyContent>
+      </Empty>
+    </Stack>
   );
-}
-function relatedCollection(collection: Collection, column: string, collections: Collection[]) {
-  const relation = collection.relations.find(
-    (item) =>
-      item.target_schema === "public" &&
-      item.columns.includes(column) &&
-      item.target_columns[item.columns.indexOf(column)] === "id" &&
-      column !== "tenant_id",
-  );
-  return relation ? collections.find((item) => item.name === relation.target_table) : undefined;
 }
 
+/** A reference to another record, named once it loads, opening its schema record. */
 function ReferenceLink({ collection, id }: { collection: Collection; id: string }) {
-  const workspace = useWorkspace();
-  const query = useQuery({
-    queryKey: ["record", workspace.tenantId, collection.name, id],
-    queryFn: () => getRecord(workspace, collection, id),
-    retry: false,
-  });
+  const query = useRecord(collection, id);
+  if (query.isError) return <Absent label="Not available" />;
   return (
     <TextLink
       render={
@@ -147,14 +129,12 @@ function ReferenceLink({ collection, id }: { collection: Collection; id: string 
         />
       }
     >
-      {query.data
-        ? recordTitle(query.data, collection)
-        : query.isError
-          ? "Unavailable record"
-          : "Loading record…"}
+      <RecordName collection={collection} id={id} />
     </TextLink>
   );
 }
+
+/** One stored value, in the words and parts the product uses for its kind. */
 function Value({
   collection,
   column,
@@ -168,14 +148,23 @@ function Value({
   const target = relatedCollection(collection, column.name, workspace.collections);
   if (target && typeof value === "string" && value)
     return <ReferenceLink collection={target} id={value} />;
-  if (value === null || value === undefined || value === "")
-    return <span className="text-subtlest">Not recorded</span>;
-  if (column.choices.length && typeof value === "string") return <span>{labelFor(value)}</span>;
+  if (value === null || value === undefined || value === "") return <Absent label="Not recorded" />;
+  if (vocabularyFor(collection.name, column.name))
+    return <FieldStatus table={collection.name} field={column.name} value={value} />;
+  if (column.choices.length && typeof value === "string") return <>{labelFor(value)}</>;
+  if ((column.type === "date" || column.type.startsWith("timestamp")) && typeof value === "string")
+    return <DateTime value={value} />;
   if (typeof value === "object")
     return (
-      <pre className="whitespace-pre-wrap break-words font-body-small">{displayValue(value)}</pre>
+      <CodeBlock
+        lines={displayValue(value).split("\n")}
+        wrap
+        maxHeight={320}
+        label={fieldLabel(column.name)}
+      />
     );
-  return <span className="whitespace-pre-wrap break-words">{displayValue(value)}</span>;
+  if (typeof value === "string" && PROSE.test(column.name)) return <Prose>{value}</Prose>;
+  return <>{displayValue(value)}</>;
 }
 
 export function RecordList({
@@ -194,6 +183,15 @@ export function RecordList({
   );
 }
 
+function useDebounced<T>(value: T, delay = 300) {
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return settled;
+}
+
 function SchemaCollection({
   collection,
   filter,
@@ -206,19 +204,26 @@ function SchemaCollection({
   const name = collection.name;
   const model = name as TableName;
   const [search, setSearch] = useState("");
+  // A cleared search is sent at once: the first page is usually still cached, so the rows come
+  // back with the toolbar and its focus in place instead of an empty collection in between.
+  const debounced = useDebounced(search);
+  const term = search === "" ? "" : debounced;
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 });
   const [selected, setSelected] = useState<DataRecord | null>(null);
   const activeFilter =
     filter && collection.columns.some((column) => column.name === filter[0]) ? filter : undefined;
+  // The search settles before it is sent, and the last page stays while the next loads, so the
+  // toolbar, the reader's typing and the pager never unmount under them.
   const query = useQuery({
-    queryKey: ["records", workspace.tenantId, name, pagination, search, activeFilter],
+    queryKey: ["records", workspace.tenantId, name, pagination, term, activeFilter],
     queryFn: () =>
       listRecords(workspace, collection, {
         page: pagination.pageIndex,
         limit: pagination.pageSize,
-        search,
+        search: term,
         filter: activeFilter,
       }),
+    placeholderData: keepPreviousData,
     retry: false,
   });
   const keyColumn = titleColumn(collection);
@@ -239,33 +244,44 @@ function SchemaCollection({
         const fields = [...new Set(preferred)]
           .flatMap((field) => collection.columns.find((column) => column.name === field) ?? [])
           .slice(0, 5);
-        return fields.map((column, index) =>
-          index === 0
-            ? c.id(column.name, {
-                header: labelFor(column.name),
-                priority: 0,
-                width: 220,
-                hideable: false,
-                preview: setSelected,
-                active: (record) => record.id === selected?.id,
-                cell: (record) => (
-                  <RecordLink table={model} record={record}>
-                    {recordTitle(record, collection)}
-                  </RecordLink>
-                ),
-              })
-            : /^(date|timestamp)/.test(column.type)
-              ? c.date(column.name, { header: labelFor(column.name), width: 150 })
-              : c.text(column.name, {
-                  header: labelFor(column.name.replace(/_id$/, "")),
-                  width: 180,
-                  cell: (record) => (
-                    <Value collection={collection} column={column} value={record[column.name]} />
-                  ),
-                }),
-        );
+        return fields.map((column, index) => {
+          const header = fieldLabel(column.name);
+          const vocabulary = vocabularyFor(name, column.name);
+          if (index === 0)
+            return c.id(column.name, {
+              header,
+              priority: 0,
+              width: 220,
+              hideable: false,
+              preview: setSelected,
+              active: (record) => record.id === selected?.id,
+              cell: (record) => (
+                <RecordLink table={model} record={record}>
+                  {recordTitle(record, collection)}
+                </RecordLink>
+              ),
+            });
+          if (vocabulary)
+            return c.status(column.name, {
+              header,
+              width: 150,
+              statuses: vocabulary.values,
+              cell: (record) => (
+                <FieldStatus table={name} field={column.name} value={record[column.name]} />
+              ),
+            });
+          if (/^(date|timestamp)/.test(column.type))
+            return c.date(column.name, { header, width: 150 });
+          return c.text(column.name, {
+            header,
+            width: 180,
+            cell: (record) => (
+              <Value collection={collection} column={column} value={record[column.name]} />
+            ),
+          });
+        });
       }),
-    [collection, keyColumn, model, selected?.id],
+    [collection, keyColumn, model, name, selected?.id],
   );
   const table = useDataTable({
     data: query.data?.records ?? [],
@@ -286,10 +302,11 @@ function SchemaCollection({
     },
   });
   const displayed = useDisplayedRecords(table);
-  const action =
-    collection.can_insert && workspace.role !== "viewer" ? (
-      <Button
-        size="small"
+  const canCreate = collection.can_insert && workspace.role !== "viewer";
+  const create = (size: "small" | "medium") =>
+    canCreate ? (
+      <LinkButton
+        size={size}
         variant="primary"
         render={
           <Link
@@ -299,568 +316,97 @@ function SchemaCollection({
           />
         }
       >
-        Create {productRecordNoun(name)}
-      </Button>
+        {productCreateLabel(name)}
+      </LinkButton>
     ) : undefined;
-  return (
-    <Box padding="space.400">
-      <Stack space="space.300">
-        <PageHeader>
-          <PageHeader.Heading>
-            <PageHeader.Title>{labelFor(name)}</PageHeader.Title>
-          </PageHeader.Heading>
-        </PageHeader>
-        <ProductCollection
-          table={table}
-          queries={[query]}
-          fill
-          searchLabel={`Search ${labelFor(keyColumn).toLowerCase()}`}
-          action={action}
-          filters={
-            activeFilter ? (
-              <Button
-                size="small"
-                variant="subtle"
-                render={
-                  <Link to="/records/$collection" params={{ collection: name }} search={{}} />
-                }
-              >
-                Clear related-record filter
-              </Button>
-            ) : undefined
-          }
-          onRowClick={(record) => void navigate(recordDestination(model, record))}
-          empty={{
-            illustration: "records",
-            title: `No ${labelFor(name).toLowerCase()} yet`,
-            description: collection.can_insert
-              ? "Create a record to begin this collection."
-              : "No reference records have been imported for this collection.",
-          }}
-        />
-        {selected && (
-          <RecordPreviewPanel
-            title={recordTitle(selected, collection)}
-            label={`${productRecordNoun(name)} preview`}
-            onClose={() => setSelected(null)}
-            navigation={
-              <RecordPreviewActions
-                table={model}
-                record={selected}
-                rows={displayed}
-                onSelect={setSelected}
-              />
-            }
-          >
-            <Stack space="space.150">
-              {collection.columns
-                .filter((column) => column.name in selected && !systemColumns.has(column.name))
-                .map((column) => (
-                  <KeyValue key={column.name} label={labelFor(column.name)} wrap>
-                    <Value collection={collection} column={column} value={selected[column.name]} />
-                  </KeyValue>
-                ))}
-            </Stack>
-          </RecordPreviewPanel>
-        )}
-      </Stack>
-    </Box>
-  );
-}
-
-function Choice({
-  id,
-  value,
-  onChange,
-  choices,
-  disabled = false,
-  required = false,
-  autoFocus = false,
-}: {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-  choices: { value: string; label: string }[];
-  disabled?: boolean;
-  required?: boolean;
-  autoFocus?: boolean;
-}) {
-  const options = [{ value: "", label: required ? "Choose a value" : "Not recorded" }, ...choices];
-  return (
-    <Select<string>
-      items={options}
-      value={value}
-      disabled={disabled}
-      onValueChange={(value) => onChange(value ?? "")}
+  const clearFilter = (
+    <LinkButton
+      size="small"
+      variant="subtle"
+      render={<Link to="/records/$collection" params={{ collection: name }} search={{}} />}
     >
-      <SelectTrigger id={id} autoFocus={autoFocus} className="w-full">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((choice) => (
-          <SelectItem
-            key={choice.value}
-            value={choice.value}
-            disabled={required && choice.value === ""}
-          >
-            {choice.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      Clear related-record filter
+    </LinkButton>
   );
-}
-function ReferencePicker({
-  column,
-  collection,
-  value,
-  onChange,
-  presentation = "schema",
-  autoFocus = false,
-}: {
-  column: Column;
-  collection: Collection;
-  value: string;
-  onChange: (value: string) => void;
-  presentation?: "schema" | "product";
-  autoFocus?: boolean;
-}) {
-  const workspace = useWorkspace();
-  const [search, setSearch] = useState("");
-  const query = useQuery({
-    queryKey: ["reference-options", workspace.tenantId, collection.name, search],
-    queryFn: () => listRecords(workspace, collection, { search, limit: 50 }),
-    retry: false,
-  });
-  const selected = useQuery({
-    queryKey: ["record", workspace.tenantId, collection.name, value],
-    queryFn: () => getRecord(workspace, collection, value),
-    enabled: !!value,
-    retry: false,
-  });
-  const choices = (query.data?.records ?? []).map((record) => ({
-    value: record.id,
-    label: recordTitle(record, collection),
-  }));
-  if (value && !choices.some((choice) => choice.value === value))
-    choices.unshift({
-      value,
-      label: selected.data
-        ? recordTitle(selected.data, collection)
-        : presentation === "product"
-          ? "Loading selected record…"
-          : value,
-    });
-  if (presentation === "product")
-    return (
-      <Stack space="space.100">
-        <Combobox<{ value: string; label: string }>
-          items={choices}
-          value={choices.find((item) => item.value === value) ?? null}
-          isItemEqualToValue={(item, selectedItem) => item.value === selectedItem.value}
-          filter={null}
-          onInputValueChange={(input, details) => {
-            if (["input-change", "input-clear", "clear-press"].includes(details.reason))
-              setSearch(input);
-          }}
-          onValueChange={(item) => onChange(item?.value ?? "")}
-        >
-          <ComboboxInput
-            autoFocus={autoFocus}
-            id={`field-${column.name}`}
-            aria-required={column.required && !column.default}
-            placeholder={`Choose ${productRecordNoun(collection.name)}…`}
-            showClear
-          />
-          <ComboboxContent>
-            <ComboboxEmpty>
-              {query.isPending ? "Loading records…" : "No matching records."}
-            </ComboboxEmpty>
-            <ComboboxList>
-              {(item) => (
-                <ComboboxItem key={item.value} value={item}>
-                  {item.label}
-                </ComboboxItem>
-              )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
-        {query.isError && <ErrorMessage error={query.error} />}
-        {selected.isError && <ErrorMessage error={selected.error} />}
-        {query.data && query.data.count > 50 && (
-          <p className="font-body-small text-subtle">Type to narrow the matching records.</p>
-        )}
-      </Stack>
-    );
+  const preview = selected ? { record: selected } : null;
   return (
-    <Stack space="space.100">
-      <Input
-        autoFocus={autoFocus}
-        aria-label={`Find ${labelFor(column.name.replace(/_id$/, ""))}`}
-        placeholder={`Find ${labelFor(collection.name).toLowerCase()}…`}
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
+    <Stack space="space.200">
+      <PageHeader>
+        <PageHeader.Heading>
+          <PageHeader.Title>{labelFor(name)}</PageHeader.Title>
+        </PageHeader.Heading>
+      </PageHeader>
+      <ProductCollection
+        table={table}
+        queries={[query]}
+        fill
+        // The inspector pages on the server; its question is the route's, not the session's.
+        keepQuestion={false}
+        // The server orders each page by the title; a sort menu would sort one page only.
+        sort={false}
+        searchLabel={`Search ${labelFor(keyColumn).toLowerCase()}`}
+        action={create("small")}
+        filters={activeFilter ? clearFilter : undefined}
+        narrowed={!!activeFilter}
+        onRowClick={(record) => void navigate(recordDestination(model, record))}
+        empty={{
+          illustration: "records",
+          title: `No ${productCollectionNoun(name)} yet`,
+          description: collection.can_insert
+            ? `Create the first ${productRecordNoun(name)} to begin this collection.`
+            : "No reference records have been imported for this collection.",
+          action: create("medium"),
+          ...(activeFilter
+            ? {
+                filtered: {
+                  title: `No related ${productCollectionNoun(name)}`,
+                  description: "Nothing in this collection refers to that record.",
+                  action: clearFilter,
+                },
+              }
+            : {}),
+        }}
       />
-      <Choice id={`field-${column.name}`} value={value} onChange={onChange} choices={choices} />
-      {query.isError && <ErrorMessage error={query.error} />}
-      {query.isPending && (
-        <p role="status" className="font-body-small">
-          Loading related records…
-        </p>
-      )}
-      {query.data?.count === 0 && (
-        <p className="font-body-small text-subtle">
-          No matching {labelFor(collection.name).toLowerCase()}.{" "}
-          <Link to="/records/$collection" params={{ collection: collection.name }}>
-            Open collection
-          </Link>
-        </p>
-      )}
-      {query.data && query.data.count > 50 && (
-        <p className="font-body-small text-subtle">
-          Showing the first 50 matches. Search to narrow the results.
-        </p>
+      {preview && (
+        <RecordPreviewPanel
+          title={recordTitle(preview.record, collection)}
+          label={`${capitalize(productRecordNoun(name))} preview`}
+          onClose={() => setSelected(null)}
+          navigation={
+            <RecordPreviewActions
+              table={model}
+              record={preview.record}
+              rows={displayed}
+              onSelect={setSelected}
+            />
+          }
+        >
+          <KeyValue.Group>
+            {collection.columns
+              // The name is the preview's title; the properties are everything else.
+              .filter(
+                (column) =>
+                  column.name in preview.record &&
+                  column.name !== keyColumn &&
+                  !systemColumns.has(column.name),
+              )
+              .map((column) => (
+                <KeyValue key={column.name} label={fieldLabel(column.name)} wrap>
+                  <Value
+                    collection={collection}
+                    column={column}
+                    value={preview.record[column.name]}
+                  />
+                </KeyValue>
+              ))}
+          </KeyValue.Group>
+        </RecordPreviewPanel>
       )}
     </Stack>
   );
 }
 
-export type RecordEditorState = {
-  dirty: boolean;
-  busy: boolean;
-  noun: string;
-  requestClose: () => void;
-};
-
-export function RecordEditor({
-  collection,
-  existing,
-  initial,
-  initialValues,
-  onSaved,
-  onCancel,
-  presentation = "schema",
-  onStateChange,
-  formLayout = "page",
-  operationLabel,
-}: {
-  collection: Collection;
-  existing?: DataRecord | undefined;
-  initial?: [string, string] | undefined;
-  initialValues?: Record<string, unknown> | undefined;
-  onSaved?: ((record: DataRecord) => void | Promise<void>) | undefined;
-  onCancel: () => void;
-  presentation?: "schema" | "product";
-  formLayout?: "page" | "dialog";
-  /** A connect-existing-record operation shares one explicit label across trigger, title and submit. */
-  operationLabel?: string | undefined;
-  onStateChange?: ((state: RecordEditorState) => void) | undefined;
-}) {
-  const { confirm, confirmation } = useConfirmation();
-  const workspace = useWorkspace();
-  const [baseline] = useState(existing);
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const columns = useMemo(
-    () =>
-      collection.columns.filter(
-        (column) =>
-          !systemColumns.has(column.name) &&
-          !isDerivedRecordField(collection.name, column.name) &&
-          column.name !== "published_at" &&
-          !(
-            collection.name === "evidence_versions" &&
-            [
-              "storage_object_name",
-              "storage_object_id",
-              "media_type",
-              "byte_size",
-              "sha256",
-            ].includes(column.name)
-          ),
-      ),
-    [collection],
-  );
-  const [fields, setFields] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      columns.map((column) => {
-        const value = baseline ? baseline[column.name] : initialValues?.[column.name];
-        return [
-          column.name,
-          initial?.[0] === column.name
-            ? initial[1]
-            : value === null || value === undefined
-              ? baseline
-                ? ""
-                : defaultValue(column)
-              : column.type.startsWith("timestamp")
-                ? timestampInput(String(value))
-                : typeof value === "object"
-                  ? JSON.stringify(value, null, 2)
-                  : String(value),
-        ];
-      }),
-    ),
-  );
-  const noun = productRecordNoun(collection.name, fields);
-  const [busy, setBusy] = useState(false);
-  const [dirty, setDirty] = useState(false);
-  const [error, setError] = useState("");
-  const bypassBlock = useRef(false);
-  const inFlight = useRef(false);
-  const stateRef = useRef({ dirty, onCancel, onStateChange });
-  stateRef.current = { dirty, onCancel, onStateChange };
-  const cancel = useCallback(async () => {
-    if (inFlight.current) return;
-    if (
-      !stateRef.current.dirty ||
-      (await confirm(discardChanges("Discard your unsaved changes?")))
-    ) {
-      bypassBlock.current = true;
-      stateRef.current.onCancel();
-    }
-  }, [confirm]);
-  useEffect(() => {
-    stateRef.current.onStateChange?.({ dirty, busy, noun, requestClose: cancel });
-  }, [dirty, busy, noun, cancel]);
-  useBlocker({
-    shouldBlockFn: async () =>
-      inFlight.current ||
-      (dirty &&
-        !bypassBlock.current &&
-        !(await confirm(discardChanges("Discard your unsaved changes?")))),
-    enableBeforeUnload: () => (dirty || inFlight.current) && !bypassBlock.current,
-  });
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (inFlight.current) return;
-    inFlight.current = true;
-    setBusy(true);
-    setError("");
-    try {
-      const record = await saveRecord(
-        workspace,
-        collection,
-        recordPayload(collection, fields, baseline),
-        baseline,
-      );
-      bypassBlock.current = true;
-      setDirty(false);
-      await queryClient.invalidateQueries({ queryKey: ["records"] });
-      await queryClient.invalidateQueries({
-        queryKey: ["record", workspace.tenantId, collection.name, record.id],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["models", workspace.tenantId, collection.name],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["model", workspace.tenantId, collection.name],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["reference-options", workspace.tenantId, collection.name],
-      });
-      inFlight.current = false;
-      if (onSaved) {
-        await onSaved(record);
-        return;
-      }
-      if (existing) onCancel();
-      await navigate({
-        to: "/records/$collection/$recordId",
-        params: { collection: collection.name, recordId: record.id },
-        search: {},
-      });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The record could not be saved.");
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
-    }
-  }
-  const contextual = (column: Column) =>
-    presentation === "product" &&
-    Boolean(
-      initialValues?.[column.name] ?? (initial?.[0] === column.name ? initial[1] : undefined),
-    ) &&
-    Boolean(fields[column.name]) &&
-    Boolean(relatedCollection(collection, column.name, workspace.collections));
-  const visibleColumns =
-    presentation === "product"
-      ? [...columns]
-          .sort(productFieldOrder)
-          .filter(
-            (column) =>
-              !contextual(column) &&
-              !(
-                column.name === "state" &&
-                fields[column.name] === "draft" &&
-                column.choices.includes("published")
-              ),
-          )
-      : columns;
-  const mainColumns = visibleColumns.filter(
-    (column) => presentation === "schema" || !isAdditionalProductField(column),
-  );
-  const additionalColumns =
-    presentation === "product" ? visibleColumns.filter(isAdditionalProductField) : [];
-  const renderField = (column: Column) => {
-    const target = relatedCollection(collection, column.name, workspace.collections);
-    const value = fields[column.name] ?? "";
-    const change = (next: string) => {
-      setFields((previous) => ({ ...previous, [column.name]: next }));
-      setDirty(true);
-    };
-    const multiline =
-      /description|narrative|rationale|prose|notes|criteria|content|payload/.test(column.name) ||
-      column.type.startsWith("json") ||
-      column.type.endsWith("[]");
-    const numeric = /^(smallint|integer|bigint|numeric|decimal|real|double precision)/.test(
-      column.type,
-    );
-    return (
-      <Field key={column.name}>
-        <FieldLabel htmlFor={`field-${column.name}`}>
-          {labelFor(column.name.replace(/_id$/, ""))}
-          {column.required && !column.default ? " *" : ""}
-        </FieldLabel>
-        {target ? (
-          <ReferencePicker
-            column={column}
-            collection={target}
-            value={value}
-            onChange={change}
-            presentation={presentation}
-            autoFocus={mainColumns[0]?.name === column.name}
-          />
-        ) : column.choices.length ? (
-          <Choice
-            autoFocus={mainColumns[0]?.name === column.name}
-            id={`field-${column.name}`}
-            value={value}
-            onChange={change}
-            choices={column.choices.map((value) => ({ value, label: labelFor(value) }))}
-            disabled={
-              presentation === "product" &&
-              !existing &&
-              collection.name === "parties" &&
-              column.name === "party_type" &&
-              typeof initialValues?.["party_type"] === "string"
-            }
-            required={presentation === "product" && column.required && !column.default}
-          />
-        ) : column.type === "boolean" ? (
-          <Choice
-            autoFocus={mainColumns[0]?.name === column.name}
-            id={`field-${column.name}`}
-            value={value}
-            onChange={change}
-            choices={[
-              { value: "true", label: "Yes" },
-              { value: "false", label: "No" },
-            ]}
-          />
-        ) : multiline ? (
-          <Textarea
-            autoFocus={mainColumns[0]?.name === column.name}
-            id={`field-${column.name}`}
-            value={value}
-            onChange={(event) => change(event.target.value)}
-            required={column.required && !column.default}
-            rows={4}
-          />
-        ) : (
-          <Input
-            autoFocus={mainColumns[0]?.name === column.name}
-            id={`field-${column.name}`}
-            type={
-              column.type === "date"
-                ? "date"
-                : numeric
-                  ? "number"
-                  : column.type.startsWith("timestamp")
-                    ? "datetime-local"
-                    : /email/.test(column.name)
-                      ? "email"
-                      : /url$/.test(column.name)
-                        ? "url"
-                        : "text"
-            }
-            step={numeric ? "any" : undefined}
-            value={value}
-            onChange={(event) => change(event.target.value)}
-            required={column.required && !column.default}
-          />
-        )}
-        {column.description && <FieldDescription>{column.description}</FieldDescription>}
-      </Field>
-    );
-  };
-  const actions = (
-    <>
-      <Button type="button" variant="subtle" disabled={busy} onClick={cancel}>
-        Cancel
-      </Button>
-      <Button type="submit" variant="primary" isLoading={busy} disabled={busy}>
-        {operationLabel ?? (existing ? `Edit ${noun}` : `Create ${noun}`)}
-      </Button>
-    </>
-  );
-  return (
-    <>
-      <form
-        noValidate
-        onSubmit={(event) => void submit(event)}
-        aria-busy={busy}
-        className={formLayout === "dialog" ? "flex min-h-0 flex-1 flex-col" : undefined}
-      >
-        <fieldset
-          disabled={busy}
-          className={
-            formLayout === "dialog" ? "min-h-0 min-w-0 flex-1 overflow-y-auto p-250" : "min-w-0"
-          }
-        >
-          <Stack space="space.250" className="max-w-layout-measure">
-            {columns.filter(contextual).map((column) => (
-              <Box key={column.name} padding="space.150" backgroundColor="elevation.surface.sunken">
-                <p className="font-body-small text-subtle">
-                  {labelFor(column.name.replace(/_id$/, ""))}
-                </p>
-                <ReferenceLink
-                  collection={relatedCollection(collection, column.name, workspace.collections)!}
-                  id={fields[column.name]!}
-                />
-              </Box>
-            ))}
-            {mainColumns.map(renderField)}
-            {additionalColumns.length > 0 && (
-              <details>
-                <summary className="cursor-pointer font-body-small font-medium">
-                  Additional details
-                </summary>
-                <Stack space="space.200" className="pt-200">
-                  {additionalColumns.map(renderField)}
-                </Stack>
-              </details>
-            )}
-            {error && (
-              <p role="alert" className="text-danger">
-                {error}
-              </p>
-            )}
-          </Stack>
-        </fieldset>
-        {formLayout === "dialog" ? (
-          <DialogFooter>{actions}</DialogFooter>
-        ) : (
-          <Inline space="space.150" alignInline="end" className="pt-250">
-            {actions}
-          </Inline>
-        )}
-      </form>
-      {confirmation}
-    </>
-  );
-}
+const DETAIL_FIELD = /^(id|state|status|code|.*_id|.*_at|.*_date)$/;
 
 export function RecordDetail({
   name,
@@ -881,9 +427,9 @@ export function RecordDetail({
     [],
   );
   const { confirm, confirmation } = useConfirmation();
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
-  const deleteInFlight = useRef(false);
+  const deleting = useRef(false);
+  // The Actions menu stays while a dialog it opened is up, so focus can come back to it.
+  const actionsRef = useRef<HTMLButtonElement>(null);
   const cache = useQueryClient();
   const query = useQuery({
     queryKey: ["record", workspace.tenantId, name, id],
@@ -893,40 +439,38 @@ export function RecordDetail({
   });
   const navigate = useNavigate();
   useBlocker({
-    shouldBlockFn: () => deleteInFlight.current,
-    enableBeforeUnload: () => deleteInFlight.current,
+    shouldBlockFn: () => deleting.current,
+    enableBeforeUnload: () => deleting.current,
   });
   async function remove() {
-    if (!collection || !query.data || deleteInFlight.current) return;
-    if (
-      !(await confirm({
-        title: `Delete ${productRecordNoun(name, query.data)}?`,
-        description:
-          "Delete this record permanently? The database blocks deletion if retained records still reference it.",
-        confirmLabel: `Delete ${productRecordNoun(name, query.data)}`,
-        variant: "danger",
-      }))
-    )
-      return;
-    deleteInFlight.current = true;
-    setDeleting(true);
-    setDeleteError("");
-    try {
-      await deleteRecord(workspace, collection, query.data);
-      await cache.invalidateQueries({ queryKey: ["records"] });
-      await cache.invalidateQueries({ queryKey: ["reference-options"] });
-      cache.removeQueries({ queryKey: ["record", workspace.tenantId, name, id] });
-      deleteInFlight.current = false;
-      await navigate({ to: "/records/$collection", params: { collection: name }, search: {} });
-    } catch (cause) {
-      setDeleteError(cause instanceof Error ? cause.message : "The record could not be deleted.");
-    } finally {
-      deleteInFlight.current = false;
-      setDeleting(false);
-    }
+    if (!collection || !query.data || deleting.current) return;
+    const record = query.data;
+    const noun = productRecordNoun(name, record);
+    const removed = await confirm({
+      title: `Delete ${noun}?`,
+      description:
+        "The record is removed permanently. The database refuses the deletion while other records still refer to it.",
+      confirmLabel: `Delete ${noun}`,
+      variant: "danger",
+      failureTitle: `The ${noun} was not deleted`,
+      action: async () => {
+        deleting.current = true;
+        try {
+          await deleteRecord(workspace, collection, record);
+        } finally {
+          deleting.current = false;
+        }
+      },
+    });
+    if (!removed) return;
+    cache.removeQueries({ queryKey: ["record", workspace.tenantId, name, id] });
+    void cache.invalidateQueries({ queryKey: ["records"] });
+    void cache.invalidateQueries({ queryKey: ["reference-options"] });
+    await navigate({ to: "/records/$collection", params: { collection: name }, search: {} });
   }
   if (!collection) return <CollectionNotFound />;
   const creating = id === "new";
+  const noun = productRecordNoun(name, query.data);
   const canEdit =
     workspace.role !== "viewer" &&
     collection.can_update &&
@@ -938,30 +482,55 @@ export function RecordDetail({
     !creating &&
     query.error instanceof Error &&
     query.error.message === "This record does not exist or is not accessible in your workspace.";
+  const trail = (current: ReactNode) => (
+    <RecordTrail current={current}>
+      <TrailLink to="/schema">Schema inspector</TrailLink>
+      <TrailLink to="/records/$collection" params={{ collection: name }}>
+        {labelFor(name)}
+      </TrailLink>
+    </RecordTrail>
+  );
+  // The product's not-found shape: the record's kind as the page title, then the Empty.
   if (missing)
     return (
       <Stack space="space.200">
         <PageHeader>
+          {trail("Not found")}
           <PageHeader.Heading>
-            <PageHeader.Title>Record not found</PageHeader.Title>
+            <PageHeader.Title>{capitalize(noun)}</PageHeader.Title>
           </PageHeader.Heading>
         </PageHeader>
         <Empty>
-          <EmptyMedia>
+          <EmptyMedia aria-hidden>
             <EmptyIllustration kind="search" />
           </EmptyMedia>
           <EmptyHeader>
-            <EmptyTitle>Unavailable record</EmptyTitle>
-            <EmptyDescription>This record is unavailable in your workspace.</EmptyDescription>
+            <EmptyTitle>{capitalize(noun)} not found</EmptyTitle>
+            <EmptyDescription>
+              This {noun} does not exist, or it is not shared with your workspace.
+            </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <TextLink render={<Link to="/records/$collection" params={{ collection: name }} />}>
+            <LinkButton
+              variant="primary"
+              render={<Link to="/records/$collection" params={{ collection: name }} />}
+            >
               Back to {labelFor(name).toLowerCase()}
-            </TextLink>
+            </LinkButton>
           </EmptyContent>
         </Empty>
       </Stack>
     );
+  const title = creating ? (
+    `Create ${editorNoun}`
+  ) : query.data ? (
+    recordTitle(query.data, collection)
+  ) : (
+    <span aria-busy="true">
+      <Skeleton shape="heading" width={240} />
+      <VisuallyHidden>Loading the {noun}</VisuallyHidden>
+    </span>
+  );
   const incoming = workspace.collections.flatMap((other) =>
     other.relations
       .filter((relation) => relation.target_schema === "public" && relation.target_table === name)
@@ -974,111 +543,79 @@ export function RecordDetail({
       ),
   );
   return (
-    <Box padding="space.400">
-      <Stack space="space.300">
-        <PageHeader>
-          <PageHeader.Lead render={<Breadcrumb />}>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink render={<Link to="/schema" />}>Schema inspector</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink
-                  render={<Link to="/records/$collection" params={{ collection: name }} />}
-                >
-                  {labelFor(name)}
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  {creating
-                    ? `Create ${editorNoun}`
-                    : query.data
-                      ? recordTitle(query.data, collection)
-                      : "Record"}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </PageHeader.Lead>
-          <PageHeader.Heading>
-            <PageHeader.Title>
-              {creating
-                ? `Create ${editorNoun}`
-                : query.data
-                  ? recordTitle(query.data, collection)
-                  : "Record"}
-            </PageHeader.Title>
-          </PageHeader.Heading>
-          {!creating && !editing && canEdit && (
-            <PageHeader.Actions>
-              <DropdownMenu>
-                <DropdownMenuTrigger render={<Button />}>Actions</DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setEditing(query.data!)}>
-                    Edit {productRecordNoun(name, query.data)}
+    <Stack space="space.200">
+      <PageHeader>
+        {trail(title)}
+        <PageHeader.Heading>
+          <PageHeader.Title>{title}</PageHeader.Title>
+        </PageHeader.Heading>
+        {!creating && canEdit && (
+          <PageHeader.Actions>
+            <DropdownMenu>
+              <DropdownMenuTrigger ref={actionsRef} render={<Button />}>
+                Actions
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setEditing(query.data!)}>
+                  Edit {noun}
+                </DropdownMenuItem>
+                {collection.can_delete && (
+                  <DropdownMenuItem variant="danger" onClick={() => void remove()}>
+                    Delete {noun}
                   </DropdownMenuItem>
-                  {collection.can_delete && (
-                    <DropdownMenuItem
-                      variant="destructive"
-                      disabled={deleting}
-                      onClick={() => void remove()}
-                    >
-                      Delete {productRecordNoun(name, query.data)}
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </PageHeader.Actions>
-          )}
-        </PageHeader>
-        {confirmation}
-        {deleteError && <ErrorMessage error={deleteError} />}
-        {creating ? (
-          collection.can_insert && workspace.role !== "viewer" ? (
-            <RecordEditor
-              key={`${name}-new`}
-              collection={collection}
-              initial={initial}
-              onStateChange={onEditorStateChange}
-              onCancel={() =>
-                void navigate({
-                  to: "/records/$collection",
-                  params: { collection: name },
-                  search: {},
-                })
-              }
-            />
-          ) : (
-            <p>This collection is maintained through its reference import workflow.</p>
-          )
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </PageHeader.Actions>
+        )}
+      </PageHeader>
+      {confirmation}
+      {creating ? (
+        collection.can_insert && workspace.role !== "viewer" ? (
+          <RecordEditor
+            key={`${name}-new`}
+            collection={collection}
+            initial={initial}
+            onStateChange={onEditorStateChange}
+            onCancel={() =>
+              void navigate({
+                to: "/records/$collection",
+                params: { collection: name },
+                search: {},
+              })
+            }
+          />
         ) : (
-          <>
-            {editing && (
-              <SchemaEditDialog
-                onClose={() => setEditing(null)}
-                collection={collection}
-                existing={editing}
-              />
-            )}
-            <QueryState queries={[query]}>
-              {query.data && (
-                <>
-                  <Shell.Aside label="Record properties">
-                    <Inspector.Group title="Details">
+          <Alert role="note">
+            <AlertDescription>
+              {collection.can_insert
+                ? "An editor, admin, or owner can create records in this collection."
+                : "This collection is maintained through its reference import workflow."}
+            </AlertDescription>
+          </Alert>
+        )
+      ) : (
+        <>
+          {editing && (
+            <SchemaEditDialog
+              finalFocus={actionsRef}
+              onClose={() => setEditing(null)}
+              collection={collection}
+              existing={editing}
+            />
+          )}
+          <QueryState queries={[query]}>
+            {query.data && (
+              <>
+                <Shell.Aside label="Record properties">
+                  <Inspector.Group title="Details">
+                    <KeyValue.Group>
                       {collection.columns
                         .filter(
-                          (column) =>
-                            /^(id|state|status|code|.*_id|.*_at|.*_date)$/.test(column.name) &&
-                            column.name !== "tenant_id",
+                          (column) => DETAIL_FIELD.test(column.name) && column.name !== "tenant_id",
                         )
                         .map((column) => (
-                          <KeyValue
-                            key={column.name}
-                            label={labelFor(column.name.replace(/_id$/, ""))}
-                            wrap
-                          >
+                          <KeyValue key={column.name} label={fieldLabel(column.name)} wrap>
                             <Value
                               collection={collection}
                               column={column}
@@ -1086,71 +623,67 @@ export function RecordDetail({
                             />
                           </KeyValue>
                         ))}
-                    </Inspector.Group>
-                  </Shell.Aside>
-                  {name === "evidence_versions" && (
-                    <EvidenceFile collection={collection} record={query.data} />
-                  )}
-                  <Stack space="space.200">
-                    {collection.columns
-                      .filter(
-                        (column) =>
-                          !systemColumns.has(column.name) &&
-                          !/^(id|state|status|code|.*_id|.*_at|.*_date)$/.test(column.name),
-                      )
-                      .map((column) => (
-                        <Box key={column.name} className="max-w-layout-measure">
-                          <p className="font-body-small font-medium text-subtle pb-050">
-                            {labelFor(column.name.replace(/_id$/, ""))}
-                          </p>
-                          <Value
-                            collection={collection}
-                            column={column}
-                            value={query.data[column.name]}
-                          />
-                        </Box>
+                    </KeyValue.Group>
+                  </Inspector.Group>
+                </Shell.Aside>
+                {name === "evidence_versions" && (
+                  <EvidenceFile collection={collection} record={query.data} />
+                )}
+                <KeyValue.Group layout="stacked" className="max-w-layout-measure">
+                  {collection.columns
+                    .filter(
+                      (column) =>
+                        !systemColumns.has(column.name) && !DETAIL_FIELD.test(column.name),
+                    )
+                    .map((column) => (
+                      <KeyValue key={column.name} label={fieldLabel(column.name)} wrap>
+                        <Value
+                          collection={collection}
+                          column={column}
+                          value={query.data[column.name]}
+                        />
+                      </KeyValue>
+                    ))}
+                </KeyValue.Group>
+                {incoming.length > 0 && (
+                  <Section title="Related records">
+                    <Inline space="space.150" shouldWrap>
+                      {incoming.map((relation) => (
+                        <LinkButton
+                          key={`${relation.collection.name}-${relation.column}`}
+                          size="small"
+                          render={
+                            <Link
+                              to="/records/$collection"
+                              params={{ collection: relation.collection.name }}
+                              search={{ field: relation.column, value: id }}
+                            />
+                          }
+                        >
+                          {labelFor(relation.collection.name)}
+                          {incoming.filter(
+                            (other) => other.collection.name === relation.collection.name,
+                          ).length > 1
+                            ? ` (${fieldLabel(relation.column)})`
+                            : ""}
+                        </LinkButton>
                       ))}
-                  </Stack>
-                  {incoming.length > 0 && (
-                    <Stack space="space.150">
-                      <h2 className="font-heading-small">Related records</h2>
-                      <Inline space="space.150" shouldWrap>
-                        {incoming.map((relation) => (
-                          <Button
-                            key={`${relation.collection.name}-${relation.column}`}
-                            variant="secondary"
-                            size="small"
-                            render={
-                              <Link
-                                to="/records/$collection"
-                                params={{ collection: relation.collection.name }}
-                                search={{ field: relation.column, value: id }}
-                              />
-                            }
-                          >
-                            {labelFor(relation.collection.name)}
-                            {incoming.filter(
-                              (other) => other.collection.name === relation.collection.name,
-                            ).length > 1
-                              ? ` (${labelFor(relation.column.replace(/_id$/, ""))})`
-                              : ""}
-                          </Button>
-                        ))}
-                      </Inline>
-                    </Stack>
-                  )}
-                </>
-              )}
-            </QueryState>
-          </>
-        )}
-      </Stack>
-    </Box>
+                    </Inline>
+                  </Section>
+                )}
+              </>
+            )}
+          </QueryState>
+        </>
+      )}
+    </Stack>
   );
 }
 
+/** One collection's count as a headline number, opening the collection. */
 function RecordCount({ name }: { name: string }) {
   const workspace = useWorkspace();
+  const { formatNumber } = useLedgerLocale();
   const collection = workspace.collections.find((item) => item.name === name);
   const query = useQuery({
     queryKey: ["records", workspace.tenantId, name, "count"],
@@ -1159,86 +692,104 @@ function RecordCount({ name }: { name: string }) {
     retry: false,
   });
   if (!collection) return null;
+  const label = labelFor(name);
   return (
-    <Box
-      padding="space.250"
-      backgroundColor="elevation.surface.raised"
-      className="border border-default rounded-large"
-    >
-      <Stack space="space.150">
-        <TextLink render={<Link to="/records/$collection" params={{ collection: name }} />}>
-          {labelFor(name)}
-        </TextLink>
-        {query.isError ? (
-          <ErrorMessage error={query.error} />
+    <Stat.Tile
+      label={label}
+      value={
+        query.data ? (
+          <TextLink render={<Link to="/records/$collection" params={{ collection: name }} />}>
+            {formatNumber(query.data.count)}
+            <VisuallyHidden> {label.toLowerCase()}</VisuallyHidden>
+          </TextLink>
+        ) : query.isError ? (
+          <Absent label="Not available" />
         ) : (
-          <p className="font-heading-large" role="status">
-            {query.data ? query.data.count.toLocaleString() : "Loading…"}
-          </p>
-        )}
-      </Stack>
-    </Box>
-  );
-}
-export function WorkspaceHome() {
-  return (
-    <Box padding="space.400">
-      <Stack space="space.300">
-        <PageHeader>
-          <PageHeader.Heading>
-            <PageHeader.Title>Schema inspector</PageHeader.Title>
-          </PageHeader.Heading>
-        </PageHeader>
-        <Grid className="grid-cols-1 md:grid-cols-2 xl:grid-cols-4" gap="space.200">
-          {["programs", "systems", "operational_issues", "tasks"].map((name) => (
-            <RecordCount key={name} name={name} />
-          ))}
-        </Grid>
-        <Box padding="space.300" backgroundColor="elevation.surface.sunken">
-          <Stack space="space.150">
-            <h2 className="font-heading-small">Build your assurance record</h2>
-            <p>
-              Create a program and system, define its boundary, and connect its requirements and
-              implementation to the reference controls.
-            </p>
-            <Inline space="space.150" shouldWrap>
-              <Button
-                variant="primary"
-                render={
-                  <Link
-                    to="/records/$collection/$recordId"
-                    params={{ collection: "programs", recordId: "new" }}
-                  />
-                }
-              >
-                Create program
-              </Button>
-              <Button
-                variant="secondary"
-                render={
-                  <Link to="/records/$collection" params={{ collection: "catalog_revisions" }} />
-                }
-              >
-                Explore reference catalogs
-              </Button>
-            </Inline>
-          </Stack>
-        </Box>
-      </Stack>
-    </Box>
+          <span aria-busy="true">
+            <Skeleton shape="heading" width={48} />
+            <VisuallyHidden>Loading</VisuallyHidden>
+          </span>
+        )
+      }
+      {...(query.isError ? { note: "Could not be counted" } : {})}
+    />
   );
 }
 
+export function WorkspaceHome() {
+  const workspace = useWorkspace();
+  const programs = workspace.collections.find((item) => item.name === "programs");
+  const count = useQuery({
+    queryKey: ["records", workspace.tenantId, "programs", "count"],
+    queryFn: () => listRecords(workspace, programs!, { limit: 1 }),
+    enabled: !!programs,
+    retry: false,
+  });
+  return (
+    <Stack space="space.300">
+      <PageHeader>
+        <PageHeader.Heading>
+          <PageHeader.Title>Schema inspector</PageHeader.Title>
+        </PageHeader.Heading>
+      </PageHeader>
+      <Stat.Grid cols={4} role="group" aria-label="Record counts">
+        {["programs", "systems", "operational_issues", "tasks"].map((name) => (
+          <RecordCount key={name} name={name} />
+        ))}
+      </Stat.Grid>
+      {count.data?.count === 0 && (
+        <Empty>
+          <EmptyMedia aria-hidden>
+            <EmptyIllustration kind="records" />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>Build your assurance record</EmptyTitle>
+            <EmptyDescription>
+              Create a program and system, define its boundary, and connect its requirements and
+              implementation to the reference controls.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <LinkButton
+              variant="primary"
+              render={
+                <Link
+                  to="/records/$collection/$recordId"
+                  params={{ collection: "programs", recordId: "new" }}
+                />
+              }
+            >
+              Create program
+            </LinkButton>
+            <LinkButton
+              render={
+                <Link to="/records/$collection" params={{ collection: "catalog_revisions" }} />
+              }
+            >
+              Explore reference catalogs
+            </LinkButton>
+          </EmptyContent>
+        </Empty>
+      )}
+    </Stack>
+  );
+}
+
+/** The inspector's edit form: the generic editor in a Dialog it owns, with the pending lock. */
 function SchemaEditDialog({
   collection,
   existing,
   onClose,
+  finalFocus,
 }: {
   collection: Collection;
   existing: DataRecord;
   onClose: () => void;
+  /** The control focus returns to: the menu item that opened the dialog has gone with its menu. */
+  finalFocus: RefObject<HTMLElement | null>;
 }) {
   const state = useRef<RecordEditorState | null>(null);
+  const [open, setOpen] = useState(true);
   const [busy, setBusy] = useState(false);
   const onStateChange = useCallback((next: RecordEditorState) => {
     state.current = next;
@@ -1246,23 +797,26 @@ function SchemaEditDialog({
   }, []);
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          state.current?.requestClose();
-        }
+      open={open}
+      pending={busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        state.current?.requestClose();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (!next) onClose();
       }}
     >
-      <DialogContent style={{ maxWidth: 760 }} showCloseButton={!busy}>
+      <DialogContent width="large" finalFocus={finalFocus}>
         <DialogHeader>
           <DialogTitle>Edit {productRecordNoun(collection.name, existing)}</DialogTitle>
         </DialogHeader>
         <RecordEditor
           collection={collection}
           existing={existing}
-          onCancel={onClose}
-          onSaved={onClose}
+          onCancel={() => setOpen(false)}
+          onSaved={() => setOpen(false)}
           formLayout="dialog"
           onStateChange={onStateChange}
         />

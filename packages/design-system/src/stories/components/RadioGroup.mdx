@@ -54,7 +54,9 @@ The group renders a div with `role="radiogroup"`. Each item renders a span with 
 
 Replace `RadioGroup.Item` with `RadioGroupItem`. Move label children and `description` into external labels and description elements. Replace `orientation="horizontal"` with layout classes. Selection values and callbacks use Base UI's generic value API, including the cancellable event details argument.
 
-In forced-colors mode, the selected radio keeps a contrasting system-color dot and visible boundary.
+Each radio's boundary is `color.border.bold`, 3:1 against every surface, so an unchosen option can be found (WCAG 1.4.11). In forced-colors mode, the selected radio keeps a contrasting system-color dot and visible boundary.
+
+<Canvas of={Stories.Boundary} />
 
 ## Props
 

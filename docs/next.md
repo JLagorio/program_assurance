@@ -4,12 +4,16 @@ A living list for the design system and the prototype. Josef owns the decisions;
 
 Completed entries record what landed on their date. For screen composition, [the product pattern contract](guides/product-patterns.md) is current; later corrections supersede earlier notes.
 
-Updated 2026-09-25.
+Updated 2026-09-26.
 
 ## Current design-system work
 
 - [x] **Ledger audit** (2026-09-24/25). 55 units, 976 verified findings, the order of work and decisions D1–D13: `docs/guides/ledger-audit-2026-09-24/`.
 - [x] **Missing parts from the audit** (2026-09-25, Josef: "all of the missing files now and stories"; D1, D7 and D8 as the audit recommends). Forms (Field on Base UI Field.Root, ErrorSummary, CheckboxGroup, SearchField, NumberField), overlay bodies and the pending lock, LinkButton and disabledReason, the heading-level context and CollapsibleHeader, Truncate, VisuallyHidden, Icon, Prose, List, KeyValue.Group, date and time fields and display, FileTrigger and DropZone, announce(), Shell locationKey, TopNav.Search and SearchDialog, DataTable.Sort, the table query serializer, StatusMap, Chart.Frame context, Diff, increased contrast and fonts.css. The app is not re-pointed yet. Open: the Combobox "In Dialog" ResizeObserver flake in full light runs, and the builders' decisions listed in the changelog.
+
+- [x] **Prototype conformance and cross-cutting fixes from the audit** (2026-09-26, Josef: "cross cutting in parallel"; D2, D3, D4 for display, D10 and D11 as the audit recommends). App: one status map (`src/lib/status.ts`) behind StatusBadge and LevelIndicator; `RecordTrail` at every trail; LedgerProvider in `__root` with the reader's zone; ProductCollection `sort` and `keepQuestion`; CreateTaskDialog rebuilt as the reference form; a failed refresh keeps the SSP draft (G4-1); Publish confirmed; focus returns from every dialog; allocation, control-mapping and evidence links removable behind a confirmation. Kit: DataTable row names, announcements and row memo; a second cue for highlight, pressed and selected; choice controls at 3:1; control sizes in rem; the Panel takes focus; new lint gates; forced-colours, touch, short and long story projects, the focus-ring gate, app axe and a docs-render check. Changelog "Unreleased · audit implementation".
+
+- [ ] **From the prototype and cross-cutting batch** (Josef's call): the phone Toolbar's third row when More and a long primary cannot share a line (a contract edit beyond the brief); tones (a program's Active blue, a product's Active green, risk Accepted and every Low neutral); registers keeping their question for the session; "Add system from product" against "Create system from product"; the baseline dialog's "Use inherited baseline" primary; people without a full name shown by email; cut 0.7.0 and deprecate ActionBar. Kit handoffs for the family batches: the Stepper's current step, Tree's trailing slot, TextLink `newTab`, a linked Stat.Tile, DataTable single selection and a compact empty, Editable's draft callback, RecordBrowser `empty`, the header grip widening columns on touch, Clear filters dropping focus.
 
 - [x] **Responsive audit, second pass** (2026-09-24/25, Josef: "build it all", the audit's recommendations for the open decisions). The audit is at `docs/guides/responsive-audit-2026-09-24.md`. Landed in the kit, uncommitted:
   - container-keyed Stat.Grid, Calendar, Pagination and WorkPane;

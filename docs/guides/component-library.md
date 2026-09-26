@@ -12,31 +12,33 @@ under `docs/superpowers/specs/`, and the parts document themselves in the packag
 
 The folders separate presentation, application layout and reusable interaction. Components and primitives do not import patterns or layout; patterns may compose layout parts. The application owns routing, data and domain decisions.
 
-| Layer       | Folder                                                | Responsibility                                                                                        |
-| ----------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Tokens      | `tokens/`, `src/generated/`                           | Shared values and generated utilities.                                                                |
-| Primitives  | `src/primitives/`                                     | Spacing, alignment and type: Box, Stack, Inline, Grid.                                                |
-| Components  | `src/components/`                                     | Controls and display families built from shadcn Base UI foundations.                                  |
-| Layout      | `src/layout/`                                         | Shell regions, PageHeader, Section and PageSkeleton.                                                  |
-| Patterns    | `src/patterns/`                                       | Repeated interactions: DataTable, RecordPicker, Composer, Editable, Inspector and coordinated charts. |
-| Mode        | `src/mode/`                                           | Colour mode, storage and the before-paint script.                                                     |
-| Application | `src/routes/`, `src/features/`, `src/components/app/` | Persistent product navigation, route content, permissions, data and workflows.                        |
+| Layer       | Folder                                       | Responsibility                                                                                        |
+| ----------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Tokens      | `tokens/`, `src/generated/`                  | Shared values and generated utilities.                                                                |
+| Primitives  | `src/primitives/`                            | Spacing, alignment and type: Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading and VisuallyHidden. |
+| Components  | `src/components/`                            | Controls and display families built from shadcn Base UI foundations.                                  |
+| Layout      | `src/layout/`                                | Shell regions, PageHeader, Section and PageSkeleton.                                                  |
+| Patterns    | `src/patterns/`                              | Repeated interactions: DataTable, RecordPicker, Composer, Editable, Inspector and coordinated charts. |
+| Mode        | `src/mode/`                                  | Colour mode, storage and the before-paint script; it re-exports LedgerProvider from `src/lib/`.       |
+| Application | `src/routes/`, `src/components/`, `src/lib/` | Persistent product navigation, route content, permissions, data and workflows.                        |
 
 Editable, Gates, Toolbar and the Chart recipe family live in `src/patterns/`. They own inline-save recovery, readiness checks, search/filter/action layout, and chart exploration/export respectively. Chart remains Recharts-based, as in [shadcn’s chart source](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/chart.tsx); the Ledger family adds coordinated views and actions. Toolbar is the tab-navigated search row, distinct from [Base UI’s arrow-navigated Toolbar](https://base-ui.com/react/components/toolbar). Public imports still come from `@ledger/design-system`.
 
 Stepper, Timeline, Stat, Attachment, Banner, CodeBlock and KeyValue remain components. They describe a step sequence, event feed, metric, file, message, code display or fact; they do not own a wizard, upload service or record workflow. Composing small parts alone does not make a component a pattern.
 
-The Shapes category is removed. Inspector, ActionBar and WorkPane live with reusable patterns; Block is replaced by the layout Section. ActionBar and WorkPane remain for existing application consumers without restoring the retired standalone catalog.
+Inspector, ActionBar and WorkPane live with the patterns; Block is replaced by the layout Section. Inspector has its own page. ActionBar and WorkPane have no stories or page (`RETIRED_STORY_EXPORTS` in `scripts/ds-check.mjs`), so no render, accessibility or layout check reaches them: the application's control and parameter pickers use WorkPane, and nothing uses ActionBar. Do not start a new use of either; a screen that needs one raises it first.
 
-Domain files (`src/components/app/*.tsx`) and routes assemble these. They may own a tone map for
-their vocabulary and a component that binds data to a pattern. They never declare a primitive or a
-copy of a kit part; the lint (`ledger/no-kit-shadow`) names the kit part to import instead.
+The application's components and routes assemble these. A domain concept with one visual
+representation (a status, a record link, an identifier) gets one application component that binds
+its vocabulary to a kit part, from one map in the domain layer, and every screen uses it; a screen
+keeps no tone map of its own. Application code never declares a primitive or a copy of a kit part;
+the lint (`ledger/no-kit-shadow`) names the kit part to import instead.
 
-Activity and Task are application compositions in `src/components/app`: their event kinds,
-task states and mention format belong to this product. Their stories live in the application
-Storybook under **Product / Workflows**. Ledger owns the reusable Composer and TaskRow patterns: the application supplies suggestion
-identities/insertion text and task status content. Timeline.Item already supplies the feed item.
-Package stories cover these neutral contracts; workflow stories cover product decisions.
+Event kinds, task states and the mention format belong to the product, not the kit. Ledger owns
+the reusable Composer and TaskRow patterns, and Timeline.Item supplies the feed item: the
+application supplies suggestion identities, insertion text and task status content. Package
+stories cover these neutral contracts; the application's compositions are verified in the running
+app, never in a story (the package Storybook is the only one).
 
 ## Importing
 
@@ -46,7 +48,8 @@ Product code imports the package's root, never a file inside it:
 import { Badge, Table, Id, Indicator, PageHeader, Shell, ModeSwitch } from "@ledger/design-system";
 ```
 
-The stylesheet is three imports after Tailwind, in this order:
+The stylesheet is three imports after Tailwind, in this order, and optionally a fourth,
+`fonts.css`, for the self-hosted Geist faces the type tokens name:
 
 ```css
 @import "tailwindcss" source(none);
@@ -54,6 +57,7 @@ The stylesheet is three imports after Tailwind, in this order:
 @import "@ledger/design-system/reset.css";
 @import "@ledger/design-system/ledger.css";
 @import "@ledger/design-system/base.css";
+@import "@ledger/design-system/fonts.css";
 ```
 
 Hooks that belong with parts live in the package too: `useSort` and `usePage` for a Table,
@@ -62,8 +66,9 @@ anything generic; the prototype is the test vehicle, and when it
 breaks the system is what gets fixed.
 
 The package has no router. `BreadcrumbLink` takes a router link through `render`.
-Navigation with button styling uses `buttonVariants` on a real router Link. TextLink and Shell navigation use
-`render`, while Item accepts a link element as a prop.
+Navigation with button styling is a `LinkButton` (or `LinkIconButton` for an icon alone) with the
+router's Link through `render`. TextLink and Shell navigation use `render`, while Item accepts a
+link element as a prop.
 Custom rendered elements must accept the merged attributes, handlers and ref.
 
 ## Component contracts
@@ -115,27 +120,12 @@ Family pages in Storybook own each component's current API, defaults, integratio
 ## What the lint enforces
 
 The package ships an ESLint plugin with two presets: `package` for its own code, `recommended` for
-every product. A product's own config adds nothing about the kit. The [product pattern contract](product-patterns.md) selects application workflows and named exceptions.
+every product. A product's own config adds nothing about the kit, apart from the two opt-in product
+layout rules this application turns on for its product files. The [product pattern contract](product-patterns.md) selects application workflows and named exceptions.
 
-| Rule                            | Reports                                                                 | Instead                                               |
-| ------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
-| `ledger/no-arbitrary-value`     | `text-[13px]`, `w-[240px]`                                              | A token utility or a primitive prop.                  |
-| `ledger/no-non-token-class`     | A class that is neither a token utility nor a documented structural one | A token utility.                                      |
-| `ledger/no-margin`              | `mt-200`, `-mx-100`                                                     | Stack or Inline space, or Bleed.                      |
-| `ledger/no-static-design-value` | `rounded`, `opacity-50`, `duration-200`, `bg-white`                     | The named token.                                      |
-| `ledger/no-dark-variant`        | `dark:`                                                                 | Nothing; every token flips by itself.                 |
-| `ledger/no-deprecated-token`    | A deprecated token's utility                                            | Its replacement, applied by `--fix`.                  |
-| `ledger/no-deprecated-name`     | A part's old name (`Shell.Sidebar`, `Shell.NavItem`)                    | Its replacement; `--fix` does the one-to-one renames. |
-| `ledger/prefer-text-link`       | A Link or anchor carrying `text-brand` or `hover:underline`             | TextLink render with the link element.                |
-| `ledger/no-colgroup`            | `<colgroup>`                                                            | `width` or `minWidth` on each Table.Header.           |
-| `ledger/use-primitives`         | A `div` or `span` carrying layout classes (warning)                     | Box, Stack, Inline, Flex or Grid.                     |
-| `ledger/cell-plain`             | A Table.Cell carrying a neutral colour, weight or type token            | Nothing; only a status colour may differ.             |
-| `ledger/id-not-blue`            | An Id with `text-brand` outside a link or button                        | Wrap it in a link, or drop the class.                 |
-| `ledger/no-kit-shadow`          | A local component named like a kit part                                 | Import the kit part.                                  |
-| `ledger/no-native-confirm`      | Browser confirm calls in product code                                   | Shared application AlertDialog confirmation.          |
-| `ledger/text-link-navigation`   | TextLink rendering a known non-link/action element                      | A real anchor/router link, or Button for actions.     |
-| `ledger/dialog-footer-order`    | Cancel after the primary in DialogFooter                                | Cancel first, then the primary.                       |
-| `ledger/button-icon-slot`       | An element with `size-icon-*` inside a Button or IconButton             | `iconBefore`, `iconAfter` or `icon`, passed bare.     |
+Every rule, what it reports, what to write instead and which preset turns it on is one table, on the
+Storybook's [Lint rules](../../packages/design-system/src/stories/docs/Lint.mdx) page (Guidance/Lint
+rules, also in `packages/design-system/llms.txt`). Change that table with the rule.
 
 The kit's own structural utilities, defined on tokens in `src/styles/`, pass `ledger/no-non-token-class` by name; the `structural` list in `eslint-plugin/index.js` holds them all. The ones that carry a responsive or touch rule:
 
@@ -157,11 +147,11 @@ Control and requirement content lives in `src/components/prototype/`; `record-pr
 
 Aside follows Main below 1200px and sits beside it above that. A Panel is inline from 1280px, the full height of the window, with the banner and the top nav stopping at its edge; below that it replaces the visible work area under the top nav while Main remains mounted. With both regions present, Aside follows Main until 1760px. Main uses document scrolling; Panel scrolls within the available viewport. Resizing, Escape, visible close and focus return belong to Panel. Use Base UI Sheet when the task needs modal focus containment.
 
-Collection previews put previous/next controls and an Open full record in new tab link in `Shell.Panel.actions`, immediately before Close. Navigation follows the table's current filtered, sorted and expanded rows. For linking many related records, use [RecordBrowser](../../packages/design-system/src/stories/patterns/RecordBrowser.mdx): a large dialog with table search, filters, multi-selection and an internal preview. Application adapters supply eligible records and relationship rules. Previewing is independent of selecting; confirmation links the selection, including records hidden by a filter or another page.
+A collection preview's outer panel bar is navigation only: it composes `Shell.Panel.Header`, `Panel.Actions` holding [PreviewNavigation](../../packages/design-system/src/stories/patterns/PreviewNavigation.mdx) (previous, next, the announced position and an open-in-new-tab link to the full record), Back for a nested frame, and `Panel.Close`. The record's visible name and its actions are an inner `PageHeader` at the start of `Panel.Body`, its title an h2. Navigation follows the table's current filtered, sorted and expanded rows. For linking many related records, use [RecordBrowser](../../packages/design-system/src/stories/patterns/RecordBrowser.mdx): a large dialog with table search, filters, multi-selection and an internal preview. Application adapters supply eligible records and relationship rules. Previewing is independent of selecting; confirmation links the selection, including records hidden by a filter or another page.
 
-`IndexPage`, `ShowPage`, `RecordHeader`, `PreviewRail`, `PreviewSplit`, the standalone `Panel` frame and `Block` are removed. One composable `PageHeader` accepts native props and refs; record fields and editing stay outside the header. `Section` is an optional titled presentation region with an opt-in rule. Disclosure uses Collapsible. RecordPicker, PreviewSheet, DataTable and Composer remain reusable interactions. See the [layout examples](../../packages/design-system/src/stories/layout/Pages.mdx).
+`IndexPage`, `ShowPage`, `RecordHeader`, `PreviewRail`, `PreviewSplit`, the standalone `Panel` frame and `Block` are removed. One composable `PageHeader` accepts native props and refs; record fields and editing stay outside the header. `Section` is an optional titled presentation region with an opt-in rule. Disclosure uses Collapsible. RecordPicker, PreviewSheet, DataTable and Composer remain reusable interactions.
 
-The [Pages guide](../../packages/design-system/src/stories/patterns/Pages.mdx) records the conventions: meaningful headings, task-based tabs, real navigation links, explicit dismissal, preserved in-progress work and responsive focus behavior. Keyboard and modal behavior follow WAI-ARIA and Base UI; visual composition follows the task and available space.
+The [Pages guide](../../packages/design-system/src/stories/layout/Pages.mdx) holds the layout examples and records the conventions: meaningful headings, task-based tabs, real navigation links, explicit dismissal, preserved in-progress work and responsive focus behavior. Keyboard and modal behavior follow WAI-ARIA and Base UI; visual composition follows the task and available space.
 
 ## Rules that stay in the head
 
@@ -232,10 +222,12 @@ changelog entry.
 
 ## What is underneath
 
-Base UI powers Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard,
+Base UI powers Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox,
+CheckboxGroup, Field and FieldSet, Input, Textarea (Field.Control), NumberField, HoverCard,
 Popover, Tooltip, DropdownMenu, Select, Tabs, Accordion, Collapsible, Dialog, Sheet, AlertDialog,
-Progress, ScrollArea, Avatar, Combobox and Separator. It also supplies Badge and BreadcrumbLink's
-composition helpers. The rest of Breadcrumb is native HTML. Command uses cmdk with a Base UI
+Progress, ScrollArea, Avatar, Combobox, SearchDialog (Autocomplete) and Separator. Its `useRender`
+and `mergeProps` supply the `render` composition of Badge, BreadcrumbLink, LinkButton and the
+other parts that take `render`. The rest of Breadcrumb is native HTML. Command uses cmdk with a Base UI
 Dialog shell, matching shadcn's Base UI implementation. Drawer also uses Base UI, including native swipe and snap-point behavior. Toast uses Base UI, with native manager operations and composable parts. TextLink and Shell navigation use useRender/mergeProps. The package has no direct Radix, Sonner or Vaul dependencies; cmdk can retain transitive Radix dependencies.
 Calendar and DatePicker use react-day-picker;
 react-resizable-panels under ResizablePanelGroup/Panel/Handle; recharts under Chart. Preserve the
@@ -256,6 +248,6 @@ Screens import the package's documented APIs.
 
 ## Forms
 
-Forms belongs under **Patterns** in Storybook. Use TanStack Form for state and submission, Zod for validation, and Ledger Field and controls for presentation. The [Forms pattern](http://localhost:6007/?path=/docs/patterns-forms--docs) documents the mapping to shadcn's TanStack guidance.
+Forms belongs under **Patterns** in Storybook. The [Forms pattern](http://localhost:6007/?path=/docs/patterns-forms--docs) composes Field, the controls and primitives, with TanStack Form for state and Zod for validation in its examples, and documents the mapping to shadcn's TanStack guidance; the kit exports presentation, not form state. The create or edit Dialog is the form recipe on Guidance/Recipes.
 
-Application record forms use `src/lib/record-form.ts`: `useRecordForm` configures TanStack's validation policy and exposes its `form.Field` render props, values and form ref. It validates on submit, then on change; changing an action's required fields revalidates existing errors. Submission metadata selects the save command, so draft saves and conditional confirmation actions retain their behavior. Form state and validation stay with TanStack; the package exports presentation controls.
+The application's forms follow the form contract in [product-patterns.md](product-patterns.md) (Forms and confirmations). Its reference is `CreateTaskDialog` in `src/components/prototype/create-task-dialog.tsx`, and `useDraftGuard` in `src/components/app/use-draft-guard.tsx` holds its dirty and pending protection with the kit's `pending` lock.

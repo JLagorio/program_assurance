@@ -1,16 +1,23 @@
 import { ProductCollection } from "./product-collection";
-import { RecordLink, useDisplayedRecords } from "./record-preview";
+import { RecordLink, useDisplayedRecords, useRemovalFocus } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { QueryState, MissingRecord } from "./work-common";
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useId, useMemo, useRef, useState, type FormEvent } from "react";
-import { useBlocker } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useConfirmation } from "@/components/app/confirmation";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
+import { ChoiceField, TextField } from "@/components/app/fields";
+import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, MoreHorizontal, Plus } from "lucide-react";
 import {
   defineColumns,
   useDataTable,
+  Absent,
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
   Badge,
-  Box,
   Button,
   Combobox,
   ComboboxContent,
@@ -19,24 +26,29 @@ import {
   ComboboxItem,
   ComboboxList,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  ErrorSummary,
   Field,
+  FieldDescription,
+  FieldError,
   FieldLabel,
-  Inline,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  FieldSet,
+  IconButton,
+  Prose,
   Stack,
-  Table,
-  Textarea,
+  Text,
+  toast,
 } from "@ledger/design-system";
-import { Plus } from "lucide-react";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "@/lib/database";
 import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
@@ -45,6 +57,7 @@ import {
   requirementMappingBaselines,
   type MappingBaseline,
 } from "@/lib/requirement-control-mappings";
+import { useRemoveRequirementLink } from "@/lib/requirement-links";
 import { labelFor } from "@/lib/records";
 
 const relationships = [
@@ -53,6 +66,8 @@ const relationships = [
   { value: "satisfies", label: "Satisfies" },
 ] as const;
 type Relationship = (typeof relationships)[number]["value"];
+const relationshipLabel = (value: string) =>
+  relationships.find((item) => item.value === value)?.label ?? labelFor(value);
 type ControlChoice = { id: string; label: string };
 type ExistingMapping = {
   link: Row<"requirement_control_links">;
@@ -127,6 +142,8 @@ export function RequirementControlMappings({
     [links.data],
   );
   const parts = useMappingParts(targetIds);
+  const remove = useRemoveRequirementLink();
+  const { confirm, confirmation } = useConfirmation();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<ExistingMapping | null>(null);
   const context = useMemo(
@@ -156,7 +173,6 @@ export function RequirementControlMappings({
     selections,
     parts,
   ];
-  const error = queries.find((query) => query.error)?.error;
   const ready = queries.every((query) => query.data !== undefined && !query.error);
   const valid =
     identity.data?.program_id === programId &&
@@ -164,8 +180,11 @@ export function RequirementControlMappings({
   const collection = workspace.collections.find(
     (item) => item.name === "requirement_control_links",
   );
-  const writable = !readOnly && workspace.role !== "viewer" && !!collection?.can_insert && valid;
-  const canEdit = !readOnly && workspace.role !== "viewer" && !!collection?.can_update && valid;
+  const writer = !readOnly && workspace.role !== "viewer" && valid;
+  const writable = writer && !!collection?.can_insert;
+  const canEdit = writer && !!collection?.can_update;
+  const canRemove = writer && !!collection?.can_delete;
+  const requirementCode = identity.data?.code ?? "Requirement";
   const sourceText = context.allocated
     ? "Choose an allocated system and a control from its effective profile."
     : "Allocate this requirement to a system before adding a system control mapping.";
@@ -196,9 +215,42 @@ export function RequirementControlMappings({
       }),
     [links.data, controls.data, parts.data, systems.data, selections.data, baselines.data],
   );
+  type MappingRow = (typeof rows)[number];
+  const focus = useRemovalFocus(rows);
+  const edit = (row: MappingRow) =>
+    setEditing({
+      link: row,
+      part: row.part,
+      control: row.control ? { id: row.control.id, label: row.name } : undefined,
+    });
+  async function removeMapping(row: MappingRow) {
+    const where = row.system_id ? ` on ${row.systemName}` : "";
+    const removed = await confirm({
+      title: "Remove control mapping?",
+      description: `${requirementCode} will no longer record that it ${relationshipLabel(row.relationship_type).toLowerCase()} ${row.name}${where}. The mapping's rationale is removed with it.`,
+      confirmLabel: "Remove control mapping",
+      variant: "danger",
+      failureTitle: "The control mapping was not removed",
+      action: () => {
+        focus.removed(row.id);
+        return remove.mutateAsync({
+          table: "requirement_control_links",
+          id: row.id,
+          revision: row.revision,
+        });
+      },
+    });
+    if (!removed) return;
+    setPreviewId((current) => (current === row.id ? undefined : current));
+    toast.add({
+      type: "success",
+      title: "Control mapping removed",
+      description: `${requirementCode} no longer maps to ${row.name}${where}.`,
+    });
+  }
   const columns = useMemo(
     () =>
-      defineColumns<(typeof rows)[number]>((c) => [
+      defineColumns<MappingRow>((c) => [
         c.id("name", {
           header: "Control",
           priority: 0,
@@ -218,17 +270,19 @@ export function RequirementControlMappings({
             <Stack space="space.050">
               <span>{row.coverage}</span>
               {row.part?.prose && (
-                <p className="whitespace-pre-wrap font-body-small">{row.part.prose}</p>
+                <Text as="p" size="small" className="whitespace-pre-wrap">
+                  {row.part.prose}
+                </Text>
               )}
               {row.needsReview && (
                 <>
                   <Badge tone="warning" variant="secondary">
                     Needs review
                   </Badge>
-                  <p className="font-body-small text-subtle">
+                  <Text as="p" size="small" color="color.text.subtle">
                     This mapping points to an unavailable or non-statement target. Review its
                     control coverage.
-                  </p>
+                  </Text>
                 </>
               )}
             </Stack>
@@ -251,33 +305,35 @@ export function RequirementControlMappings({
         c.text("relationship_type", {
           header: "Relationship",
           width: 150,
-          cell: (row) =>
-            relationships.find((item) => item.value === row.relationship_type)?.label ??
-            labelFor(row.relationship_type),
+          cell: (row) => relationshipLabel(row.relationship_type),
         }),
         c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
-        ...(canEdit
+        ...(canEdit || canRemove
           ? [
-              c.actions((row) => [
-                {
-                  label: "Edit mapping",
-                  onSelect: () =>
-                    setEditing({
-                      link: row,
-                      part: row.part,
-                      control: row.control ? { id: row.control.id, label: row.name } : undefined,
-                    }),
-                },
+              c.actions((row: MappingRow) => [
+                ...(canEdit ? [{ label: "Edit control mapping", onSelect: () => edit(row) }] : []),
+                ...(canRemove
+                  ? [
+                      {
+                        label: "Remove control mapping",
+                        tone: "danger" as const,
+                        onSelect: () => void removeMapping(row),
+                      },
+                    ]
+                  : []),
               ]),
             ]
           : []),
       ]),
-    [previewId, canEdit],
+    // edit and removeMapping read the row they are given.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [previewId, canEdit, canRemove, requirementCode],
   );
   const table = useDataTable({
     columns,
     data: rows,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.name,
     label: "Requirement control mappings",
     view: "requirement-control-mappings",
     resizable: true,
@@ -285,17 +341,28 @@ export function RequirementControlMappings({
   });
   const displayed = useDisplayedRecords(table);
   const preview = rows.find((row) => row.id === previewId);
+  const unavailable = !ready
+    ? "The control mappings are still loading."
+    : !context.sources.length
+      ? context.allocated
+        ? "Adopt a resolved profile on an allocated system before mapping a control."
+        : "Allocate this requirement to a system before mapping a control."
+      : undefined;
   const action = writable ? (
     <Button
+      ref={(node: HTMLButtonElement | null) => {
+        focus.target.current = node;
+      }}
       size="small"
       variant="primary"
       iconBefore={<Plus />}
-      disabled={!ready || !context.sources.length}
+      disabledReason={unavailable}
       onClick={() => setAdding(true)}
     >
       Map control
     </Button>
   ) : undefined;
+  const previewEditable = canEdit && ready;
   return (
     <Stack space="space.200">
       <QueryState queries={[identity, content]}>
@@ -317,40 +384,70 @@ export function RequirementControlMappings({
             }}
           />
         ) : (
-          <MissingRecord kind="Requirement" backTo="/programs" />
+          <MissingRecord inline kind="Requirement" backTo="/programs" />
         )}
       </QueryState>
       {preview && (
         <RecordSummaryPreview
           model="requirement_control_links"
-          readOnly={!canEdit || !ready}
-          onEdit={() =>
-            setEditing({
-              link: preview,
-              part: preview.part,
-              control: preview.control
-                ? { id: preview.control.id, label: preview.name }
-                : undefined,
-            })
-          }
           record={preview}
           rows={displayed}
           onSelect={(row) => setPreviewId(row.id)}
           onClose={() => setPreviewId(undefined)}
           fields={[
-            { key: "name", label: "Control" },
             { key: "coverage" },
             { key: "systemName", label: "System" },
-            { key: "relationship_type" },
-            { key: "rationale" },
+            {
+              key: "relationship_type",
+              label: "Relationship",
+              render: (row) => relationshipLabel(row.relationship_type),
+            },
+            {
+              key: "rationale",
+              render: (row) =>
+                row.rationale ? <Prose>{row.rationale}</Prose> : <Absent label="Not recorded" />,
+            },
           ]}
+          recordActions={
+            previewEditable || canRemove ? (
+              <>
+                {previewEditable ? (
+                  <Button size="small" variant="primary" onClick={() => edit(preview)}>
+                    Edit control mapping
+                  </Button>
+                ) : null}
+                {canRemove ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <IconButton
+                          size="small"
+                          variant="subtle"
+                          label="Control mapping actions"
+                          icon={<MoreHorizontal />}
+                        />
+                      }
+                    />
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        variant="danger"
+                        onClick={() => void removeMapping(preview)}
+                      >
+                        Remove control mapping
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null}
+              </>
+            ) : undefined
+          }
         />
       )}
       {(adding || editing) && (
         <MappingDialog
           key={editing?.link.id ?? "new"}
           contentId={contentId}
-          requirementCode={identity.data?.code ?? "Requirement"}
+          requirementCode={requirementCode}
           choices={choices}
           sources={context.sources}
           selections={selections.data ?? []}
@@ -364,9 +461,14 @@ export function RequirementControlMappings({
           }}
         />
       )}
+      {confirmation}
     </Stack>
   );
 }
+
+/** The form's fields in the order they appear, which is the order their issues are listed in. */
+const mappingFields = ["system", "control", "statement", "relationship", "rationale"] as const;
+type MappingField = (typeof mappingFields)[number];
 
 function MappingDialog({
   contentId,
@@ -391,11 +493,11 @@ function MappingDialog({
   initial?: ExistingMapping | undefined;
   onClose: () => void;
 }) {
-  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const save = useModelSave("requirement_control_links");
-  const cache = useQueryClient();
-  const fieldId = useId();
+  const formId = useId();
+  const feedback = useFormFeedback<MappingField>();
+  const [open, setOpen] = useState(true);
   const [mappingId] = useState(() => initial?.link.id ?? crypto.randomUUID());
   const [controlId, setControlId] = useState(initial?.control?.id ?? "");
   const [systemId, setSystemId] = useState(
@@ -408,10 +510,17 @@ function MappingDialog({
   const [rationale, setRationale] = useState(initial?.link.rationale ?? "");
   const [dirty, setDirty] = useState(false);
   const [targetDirty, setTargetDirty] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const inFlight = useRef(false);
-  const bypassClose = useRef(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  const saved = useRef(false);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const failureRef = useRef<HTMLDivElement>(null);
+  const guard = useDraftGuard({
+    dirty,
+    onClose: () => setOpen(false),
+    description: initial
+      ? "The changes you made to this control mapping will be lost."
+      : "The control mapping you started will be lost.",
+  });
   const parts = useRows("control_parts", { control_id: controlId }, { enabled: !!controlId });
   const statements = (parts.data ?? [])
     .filter((part) => isControlStatement(part, parts.data ?? []))
@@ -446,42 +555,53 @@ function MappingDialog({
       link.control_part_id === (partId || null) &&
       link.relationship_type === relationship,
   );
-  const close = async () => {
-    if (inFlight.current) return;
-    if (!dirty || (await confirm(discardChanges("Discard this unsaved control mapping?")))) {
-      bypassClose.current = true;
-      onClose();
-    }
-  };
-  useBlocker({
-    shouldBlockFn: async () =>
-      inFlight.current ||
-      (dirty &&
-        !bypassClose.current &&
-        !(await confirm(discardChanges("Discard this unsaved control mapping?")))),
-    enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
-  });
+  // Every issue with the values, in field order. A recorded target that was not changed is kept.
+  const issues: FormIssue<MappingField>[] = [
+    ...(!preserveTarget && !chosenSystem
+      ? [{ field: "system" as const, message: "Choose an allocated system." }]
+      : []),
+    ...(!preserveTarget && (!chosenControl || !selectedControl)
+      ? [
+          {
+            field: "control" as const,
+            message: "Choose a control from the system's effective profile.",
+          },
+        ]
+      : []),
+    ...(!preserveTarget && partId && !chosenPart && !parts.error
+      ? [
+          {
+            field: "statement" as const,
+            message: "Choose a statement of this control, or clear it to map the whole control.",
+          },
+        ]
+      : []),
+    ...(duplicate
+      ? [
+          {
+            field: "relationship" as const,
+            message: "This control target already has that relationship for this system.",
+          },
+        ]
+      : []),
+  ];
+  const errors = new Map(
+    feedback.submitted ? issues.map((issue) => [issue.field, issue.message] as const) : [],
+  );
+  const unavailable = canWrite
+    ? undefined
+    : "An editor, admin, or owner can change the control mappings once they have loaded.";
+  const changed = () => setDirty(true);
+  useEffect(() => {
+    if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
+  }, [failure]);
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (inFlight.current || !canWrite) return;
-    if (
-      (!preserveTarget &&
-        (!chosenSystem ||
-          !chosenControl ||
-          !selectedControl ||
-          (partId && (!chosenPart || parts.error)))) ||
-      duplicate
-    ) {
-      setError(
-        duplicate
-          ? "This control target already has that relationship for this system."
-          : "Choose an allocated system and an available control. The statement is optional.",
-      );
-      return;
-    }
-    inFlight.current = true;
-    setBusy(true);
-    setError("");
+    if (guard.busy || !canWrite) return;
+    setFailure(null);
+    if (!feedback.report(issues)) return;
+    submitRef.current?.focus();
+    if (!guard.start()) return;
     const authored = {
       requirement_revision_id: contentId,
       control_id: preserveTarget ? initial!.link.control_id : controlId,
@@ -516,9 +636,6 @@ function MappingDialog({
             revision: initial.link.revision,
           });
         }
-        await cache.invalidateQueries({
-          queryKey: ["models", workspace.tenantId, "requirement_control_links"],
-        });
       } else if (initial)
         throw new Error("This mapping is no longer available. Your draft is retained.");
       else
@@ -526,253 +643,270 @@ function MappingDialog({
           values: { ...authored, id: mappingId, tenant_id: workspace.tenantId },
         });
       await requireIdentity(workspace);
-      bypassClose.current = true;
-      inFlight.current = false;
-      onClose();
+      saved.current = true;
+      guard.finish();
+      guard.complete();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The control mapping could not be saved.");
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
+      setFailure(
+        `${cause instanceof Error ? cause.message : "The control mapping could not be saved."} Your choices are kept, and saving again will not make a duplicate.`,
+      );
+      guard.finish();
     }
   }
+  const targetName = displayedControl?.label ?? initial?.control?.label ?? "the chosen control";
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          close();
-        }
+      open={open}
+      pending={guard.busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        void guard.close();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (next) return;
+        if (saved.current)
+          toast.add({
+            type: "success",
+            title: initial ? "Control mapping edited" : "Control mapped",
+            description: `${requirementCode} ${relationshipLabel(relationship).toLowerCase()} ${targetName}.`,
+          });
+        onClose();
       }}
     >
-      <DialogContent style={{ maxWidth: 820 }} showCloseButton={!busy}>
+      <DialogContent width="large" initialFocus={() => feedback.node("system") ?? true}>
         <DialogHeader>
           <DialogTitle>{initial ? "Edit control mapping" : "Map control"}</DialogTitle>
-          <DialogDescription>{requirementCode}</DialogDescription>
+          <DialogDescription>
+            {requirementCode} · {sourceText}
+          </DialogDescription>
         </DialogHeader>
-        <form
-          onSubmit={(event) => void submit(event)}
-          className="flex min-h-0 flex-1 flex-col"
-          aria-busy={busy}
-        >
-          <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
-            <fieldset disabled={busy || !canWrite} className="min-w-0">
-              <Stack space="space.200">
-                <p className="font-body-small text-subtle">{sourceText}</p>
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-system`}>System</FieldLabel>
-                  <Select
-                    value={systemId}
-                    onValueChange={(value) => {
-                      setTargetDirty(true);
-                      setSystemId(value ?? "");
-                      setControlId("");
-                      setPartId("");
-                      setDirty(true);
-                    }}
-                    disabled={busy || !canWrite}
-                  >
-                    <SelectTrigger autoFocus id={`${fieldId}-system`}>
-                      <SelectValue
-                        placeholder={
-                          initial && !systemId ? "Catalog reference" : "Choose an allocated system"
-                        }
-                      >
-                        {chosenSystem?.systemName}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sources.map((source) => (
-                        <SelectItem key={source.systemId} value={source.systemId}>
-                          {source.systemName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                {chosenSystem && (
-                  <p className="font-body-small text-subtle">
-                    {chosenSystem.inherited ? "Inherited profile" : "System profile"} ·{" "}
-                    {chosenSystem.source}
-                  </p>
-                )}
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-control`}>Control</FieldLabel>
-                  <Combobox
-                    items={availableControls}
-                    value={displayedControl}
-                    isItemEqualToValue={(item, value) => item.id === value.id}
-                    filter={(item, search) =>
-                      item.label
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]/g, "")
-                        .includes(search.toLowerCase().replace(/[^a-z0-9]/g, ""))
-                    }
-                    onValueChange={(item) => {
-                      setTargetDirty(true);
-                      setControlId(item?.id ?? "");
-                      setPartId("");
-                      setDirty(true);
-                    }}
-                    disabled={busy || !canWrite}
-                  >
-                    <ComboboxInput
-                      id={`${fieldId}-control`}
-                      placeholder="Find a control by code or title"
-                      showClear
-                    />
-                    <ComboboxContent>
-                      <ComboboxEmpty>No matching controls in these system baselines.</ComboboxEmpty>
-                      <ComboboxList>
-                        {(item) => (
-                          <ComboboxItem key={item.id} value={item}>
-                            {item.label}
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
-                </Field>
-                {initial && (!chosenControl || (!!partId && !chosenPart)) && (
-                  <p role="status" className="font-body-small text-subtle">
+        <DialogBody>
+          <form id={formId} noValidate onSubmit={(event) => void submit(event)}>
+            <Stack space="space.200">
+              {!canWrite ? (
+                <Alert role="note">
+                  <AlertDescription>{unavailable}</AlertDescription>
+                </Alert>
+              ) : null}
+              {parts.error ? (
+                <Alert variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The control's statements could not be loaded</AlertTitle>
+                  <AlertDescription>{parts.error.message}</AlertDescription>
+                  <AlertAction>
+                    <Button size="small" onClick={() => void parts.refetch()}>
+                      Retry loading statements
+                    </Button>
+                  </AlertAction>
+                </Alert>
+              ) : null}
+              {failure ? (
+                <Alert ref={failureRef} variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>
+                    {initial ? "The control mapping was not edited" : "The control was not mapped"}
+                  </AlertTitle>
+                  <AlertDescription>{failure}</AlertDescription>
+                </Alert>
+              ) : null}
+              {initial && (!chosenControl || (!!partId && !chosenPart)) ? (
+                <Alert role="note">
+                  <AlertDescription>
                     Recorded target: {initial.control?.label ?? "Control unavailable"} —{" "}
                     {initial.link.control_part_id
                       ? (initial.part?.source_id ?? "Target unavailable")
                       : "Whole control"}
-                    . Choose a system and a control from its effective profile to update this
-                    mapping.
-                  </p>
-                )}
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-statement`}>
-                    Statement or item (optional)
-                  </FieldLabel>
-                  <Combobox
-                    items={statements}
-                    value={chosenPart ?? null}
-                    isItemEqualToValue={(item, value) => item.id === value.id}
-                    filter={(item, search) =>
-                      item.label.toLowerCase().includes(search.toLowerCase())
-                    }
-                    onValueChange={(item) => {
+                    . Choose a system and a control from its effective profile to change it.
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+              <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
+              <FieldSet disabled={guard.busy || !canWrite}>
+                <Stack space="space.200">
+                  <ChoiceField
+                    label="System"
+                    value={systemId || null}
+                    options={sources.map((source) => ({
+                      value: source.systemId,
+                      label: source.systemName,
+                    }))}
+                    onChange={(value) => {
                       setTargetDirty(true);
-                      setPartId(item?.id ?? "");
-                      setDirty(true);
+                      setSystemId(value ?? "");
+                      setControlId("");
+                      setPartId("");
+                      changed();
                     }}
-                    disabled={
-                      busy || !canWrite || !chosenControl || parts.isPending || !!parts.error
+                    required
+                    placeholder={
+                      initial && !systemId ? "Catalog reference" : "Choose an allocated system"
                     }
-                  >
-                    <ComboboxInput
-                      id={`${fieldId}-statement`}
-                      placeholder={
-                        controlId && parts.isPending
-                          ? "Loading statements…"
-                          : "Whole control — select an item to narrow coverage"
+                    description={
+                      chosenSystem
+                        ? `${chosenSystem.inherited ? "Inherited profile" : "System profile"} · ${chosenSystem.source}`
+                        : undefined
+                    }
+                    error={errors.get("system")}
+                    controlRef={feedback.ref("system")}
+                  />
+                  <Field invalid={errors.has("control") ? true : undefined} required>
+                    <FieldLabel>Control</FieldLabel>
+                    <Combobox
+                      items={availableControls}
+                      value={displayedControl}
+                      isItemEqualToValue={(item, value) => item.id === value.id}
+                      filter={(item, search) =>
+                        item.label
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]/g, "")
+                          .includes(search.toLowerCase().replace(/[^a-z0-9]/g, ""))
                       }
-                      showClear
-                    />
-                    <ComboboxContent>
-                      <ComboboxEmpty>No matching statement prose for this control.</ComboboxEmpty>
-                      <ComboboxList>
-                        {(item) => (
-                          <ComboboxItem
-                            key={item.id}
-                            value={item}
-                            className="items-start whitespace-normal"
-                          >
-                            <span>
-                              <span className="font-medium">
-                                {item.part.source_id ?? item.part.title ?? labelFor(item.part.name)}
+                      onValueChange={(item) => {
+                        setTargetDirty(true);
+                        setControlId(item?.id ?? "");
+                        setPartId("");
+                        changed();
+                      }}
+                      autoHighlight
+                    >
+                      <ComboboxInput
+                        ref={feedback.ref("control")}
+                        placeholder="Find a control by code or title"
+                        showClear
+                      />
+                      <ComboboxContent>
+                        <ComboboxEmpty>
+                          No matching controls in this system's profile.
+                        </ComboboxEmpty>
+                        <ComboboxList>
+                          {(item: ControlChoice) => (
+                            <ComboboxItem key={item.id} value={item}>
+                              {item.label}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                    {errors.has("control") ? (
+                      <FieldError>{errors.get("control")}</FieldError>
+                    ) : null}
+                  </Field>
+                  <Field
+                    invalid={errors.has("statement") ? true : undefined}
+                    disabled={!chosenControl || parts.isPending || !!parts.error}
+                  >
+                    <FieldLabel>Statement or item</FieldLabel>
+                    <Combobox
+                      items={statements}
+                      value={chosenPart ?? null}
+                      isItemEqualToValue={(item, value) => item.id === value.id}
+                      filter={(item, search) =>
+                        item.label.toLowerCase().includes(search.toLowerCase())
+                      }
+                      onValueChange={(item) => {
+                        setTargetDirty(true);
+                        setPartId(item?.id ?? "");
+                        changed();
+                      }}
+                    >
+                      <ComboboxInput
+                        ref={feedback.ref("statement")}
+                        placeholder={
+                          controlId && parts.isPending ? "Loading statements…" : "Whole control"
+                        }
+                        showClear
+                      />
+                      <ComboboxContent>
+                        <ComboboxEmpty>No matching statement prose for this control.</ComboboxEmpty>
+                        <ComboboxList>
+                          {(item: (typeof statements)[number]) => (
+                            <ComboboxItem
+                              key={item.id}
+                              value={item}
+                              className="items-start whitespace-normal"
+                            >
+                              <span>
+                                <span className="font-medium">
+                                  {item.part.source_id ??
+                                    item.part.title ??
+                                    labelFor(item.part.name)}
+                                </span>
+                                <span className="block whitespace-pre-wrap font-body-small">
+                                  {item.part.prose}
+                                </span>
                               </span>
-                              <span className="block whitespace-pre-wrap font-body-small">
-                                {item.part.prose}
-                              </span>
-                            </span>
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
-                </Field>
-                {chosenPart && (
-                  <Box padding="space.150" className="rounded-medium border">
-                    <p className="whitespace-pre-wrap font-body-small">{chosenPart.part.prose}</p>
-                  </Box>
-                )}
-                {chosenControl && parts.isSuccess && !statements.length && (
-                  <p role="status" className="font-body-small text-subtle">
-                    This control has no recorded statement prose. The mapping will cover the whole
-                    control.
-                  </p>
-                )}
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-relationship`}>Relationship</FieldLabel>
-                  <Select
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                    <FieldDescription>
+                      {chosenPart ? (
+                        <span className="whitespace-pre-wrap">{chosenPart.part.prose}</span>
+                      ) : chosenControl && parts.isSuccess && !statements.length ? (
+                        "This control has no recorded statement prose, so the mapping covers the whole control."
+                      ) : (
+                        "Leave it empty to map the whole control, or choose an item to narrow the coverage."
+                      )}
+                    </FieldDescription>
+                    {errors.has("statement") ? (
+                      <FieldError>{errors.get("statement")}</FieldError>
+                    ) : null}
+                  </Field>
+                  <ChoiceField
+                    label="Relationship"
                     value={relationship}
-                    onValueChange={(value) => {
+                    options={relationships.map((item) => ({
+                      value: item.value,
+                      label: item.label,
+                    }))}
+                    onChange={(value) => {
                       if (relationships.some((item) => item.value === value)) {
                         setRelationship(value as Relationship);
-                        setDirty(true);
+                        changed();
                       }
                     }}
-                    disabled={busy || !canWrite}
-                  >
-                    <SelectTrigger id={`${fieldId}-relationship`}>
-                      <SelectValue>
-                        {relationships.find((item) => item.value === relationship)?.label}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {relationships.map((item) => (
-                        <SelectItem key={item.value} value={item.value}>
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-rationale`}>Rationale (optional)</FieldLabel>
-                  <Textarea
-                    id={`${fieldId}-rationale`}
-                    rows={3}
-                    value={rationale}
-                    onChange={(event) => {
-                      setRationale(event.target.value);
-                      setDirty(true);
-                    }}
+                    required
+                    error={errors.get("relationship")}
+                    controlRef={feedback.ref("relationship")}
                   />
-                </Field>
-                <p className="font-body-small text-subtle">
-                  This records traceability to the system’s selected control. Implementation
-                  narratives and evidence are recorded separately in its SSP.
-                </p>
-                {duplicate && (
-                  <p role="status" className="font-body-small text-subtle">
-                    This control target already has that relationship for this system.
-                  </p>
-                )}
-                {(error || parts.error) && (
-                  <p role="alert" className="text-danger">
-                    {error || parts.error?.message}
-                  </p>
-                )}
-              </Stack>
-            </fieldset>
-          </Box>
-          <DialogFooter>
-            <Button type="button" variant="subtle" disabled={busy} onClick={close}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" disabled={busy || !canWrite}>
-              {initial ? "Edit control mapping" : "Map control"}
-            </Button>
-          </DialogFooter>
-        </form>
+                  <TextField
+                    label="Rationale"
+                    value={rationale}
+                    onChange={(value) => {
+                      setRationale(value);
+                      changed();
+                    }}
+                    multiline
+                    rows={3}
+                    maxLength={10000}
+                    controlRef={feedback.ref("rationale")}
+                  />
+                  <Text as="p" size="small" color="color.text.subtle">
+                    This records traceability to the system’s selected control. Implementation
+                    narratives and evidence are recorded separately in its SSP.
+                  </Text>
+                </Stack>
+              </FieldSet>
+            </Stack>
+          </form>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          <Button
+            ref={submitRef}
+            type="submit"
+            form={formId}
+            variant="primary"
+            isLoading={guard.busy}
+            disabledReason={unavailable}
+          >
+            {initial ? "Edit control mapping" : "Map control"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      {confirmation}
+      {guard.confirmation}
     </Dialog>
   );
 }

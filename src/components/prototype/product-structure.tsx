@@ -1,6 +1,8 @@
-import { discardChanges, useConfirmation } from "@/components/app/confirmation";
+import { useConfirmation } from "@/components/app/confirmation";
 import { ElementIdentityFields } from "@/components/app/element-fields";
+import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { LibraryComponentPicker } from "@/components/app/library-component-picker";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 import {
   elementTypeForComponent,
   useLibraryComponentItems,
@@ -19,38 +21,49 @@ import type { ElementType } from "@/lib/program-wizard";
 import { labelFor } from "@/lib/records";
 import {
   Absent,
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Badge,
   Button,
   Checkbox,
+  CheckboxGroup,
+  CheckboxGroupSelectAll,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
+  ErrorSummary,
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+  Icon,
   Id,
+  Inline,
   Inspector,
   KeyValue,
-  Section,
   Stack,
+  Text,
   defineColumns,
+  toast,
   useDataTable,
+  useLedgerLocale,
 } from "@ledger/design-system";
-import { useBlocker, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
-import { useCallback, useId, useMemo, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { AlertCircle, Plus } from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { ProductCollection } from "./product-collection";
 import { systemIcon } from "./program-systems-tree";
 import { RecordLink, recordDestination, useDisplayedRecords } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
+import { EmptyMessage } from "./work-common";
 
 type ListItem = { key: string; label: string; meta?: string | null };
 type StructureRow = ProductElementSpec & {
@@ -66,6 +79,9 @@ type ElementDialogTarget = {
   seed?: Partial<Pick<ProductElementSpec, "code" | "name" | "elementType" | "definedComponentId">>;
   seedLibrary?: LibraryComponentItem;
 };
+
+const messageOf = (cause: unknown, fallback = "The request failed.") =>
+  cause instanceof Error ? cause.message : fallback;
 
 /**
  * The element tree of one product version with the configurations each element is in. In a draft
@@ -91,12 +107,12 @@ export function ProductStructure({
   const definitions = useRows("component_definitions");
   const library = useLibraryComponentItems();
   const remove = useRemoveProductElement();
+  const { formatPlural } = useLedgerLocale();
   const [sheet, setSheet] = useState<ElementDialogTarget | null>(null);
   const [picking, setPicking] = useState<{ parentId: string | null } | null>(null);
   const { confirm, confirmation } = useConfirmation();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<StructureRow | null>(null);
-  const [error, setError] = useState("");
   const canEdit = editable && revision.state === "draft";
   const active = configurations.filter((row) => row.state === "active");
   const specs = useMemo(
@@ -129,7 +145,10 @@ export function ProductStructure({
             {
               key: "all",
               label: "All configurations",
-              meta: `${active.length} configuration${active.length === 1 ? "" : "s"}`,
+              meta: formatPlural(active.length, {
+                one: "{count} configuration",
+                other: "{count} configurations",
+              }),
             },
           ]
         : configurations
@@ -148,32 +167,28 @@ export function ProductStructure({
       };
     };
     return productTree(specs).map(decorate);
-  }, [specs, membershipsOf, active, configurations]);
+  }, [specs, membershipsOf, active, configurations, formatPlural]);
+  const removeMutate = remove.mutateAsync;
   const confirmRemove = useCallback(
     async (removing: ProductElementSpec) => {
-      if (remove.isPending) return;
-      const removingCount = descendantsOf(specs, removing.id).length;
-      if (
-        !(await confirm({
-          title: `Remove ${removing.name}?`,
-          description: removingCount
-            ? `The ${removingCount} elements inside it and every configuration membership are removed with it.`
-            : "Its configuration memberships are removed with it.",
-          confirmLabel: "Remove element",
-          variant: "danger",
-        }))
-      )
-        return;
-      setError("");
-      try {
-        await remove.mutateAsync({
-          elementIds: [removing.id, ...descendantsOf(specs, removing.id)],
-        });
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Could not remove the element.");
-      }
+      const inside = descendantsOf(specs, removing.id);
+      const removed = await confirm({
+        title: `Remove ${removing.name}?`,
+        description: inside.length
+          ? `The ${formatPlural(inside.length, { one: "element", other: "{count} elements" })} inside it and every configuration membership are removed with it.`
+          : "Its configuration memberships are removed with it.",
+        confirmLabel: "Remove element",
+        variant: "danger",
+        failureTitle: `${removing.name} was not removed`,
+        action: () => removeMutate({ elementIds: [removing.id, ...inside] }),
+      });
+      if (!removed) return;
+      setSelected((current) =>
+        current && (current.id === removing.id || inside.includes(current.id)) ? null : current,
+      );
+      toast.add({ type: "success", title: `${removing.name} removed` });
     },
-    [confirm, remove, specs],
+    [confirm, removeMutate, specs, formatPlural],
   );
   const columns = useMemo(
     () =>
@@ -184,13 +199,12 @@ export function ProductStructure({
           priority: 0,
           hideable: false,
           cell: (row) => {
-            const Icon = systemIcon(row.elementType);
+            const TypeIcon = systemIcon(row.elementType);
             return (
-              <span
-                className="flex min-w-0 items-center gap-075"
-                title={`${row.code} · ${row.name}`}
-              >
-                <Icon aria-hidden className="size-200 shrink-0 icon-subtle" />
+              <Inline space="space.075" alignBlock="center" className="min-w-0">
+                <Icon label={row.typeLabel} size="medium" color="color.icon.subtle">
+                  <TypeIcon />
+                </Icon>
                 <RecordLink table="product_elements" record={row}>
                   {row.name}
                 </RecordLink>
@@ -199,23 +213,20 @@ export function ProductStructure({
                     Library
                   </Badge>
                 )}
-              </span>
+              </Inline>
             );
           },
         }),
         c.id("code", {
           header: "Code",
           width: 125,
+          priority: 1,
           preview: setSelected,
           active: (row) => row.id === selected?.id,
           cell: (row) => <Id>{row.code}</Id>,
         }),
         c.text("typeLabel", { header: "Type", width: 130 }),
-        c.text("libraryLabel", {
-          header: "Library",
-          width: 220,
-          cell: (row) => (row.libraryLabel ? row.libraryLabel : <Absent />),
-        }),
+        c.text("libraryLabel", { header: "Library", width: 220 }),
         c.list("configurations", {
           header: "Configurations",
           minWidth: 200,
@@ -226,7 +237,7 @@ export function ProductStructure({
           ? [
               c.actions((row) => [
                 {
-                  label: "Edit",
+                  label: `Edit ${row.library ? "component" : "element"}`,
                   onSelect: () => setSheet({ existing: row, parentId: row.parentId }),
                 },
                 {
@@ -241,19 +252,20 @@ export function ProductStructure({
                 { label: "Add from library…", onSelect: () => setPicking({ parentId: row.id }) },
                 {
                   label: "Remove element",
-                  disabled: remove.isPending,
+                  tone: "danger" as const,
                   onSelect: () => void confirmRemove(row),
                 },
               ]),
             ]
           : []),
       ]),
-    [canEdit, selected?.id, remove.isPending, confirmRemove],
+    [canEdit, selected?.id, confirmRemove],
   );
   const table = useDataTable({
     columns,
     data: rows,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.code,
     label: "Product structure",
     view: "live-product-structure-v1",
     resizable: true,
@@ -266,23 +278,19 @@ export function ProductStructure({
     },
   });
   const displayed = useDisplayedRecords(table);
-  const actions = canEdit ? (
-    <Button
-      size="small"
-      variant="primary"
-      iconBefore={<Plus />}
-      onClick={() => setSheet({ parentId: null, seed: { elementType: "subsystem" } })}
-    >
-      Create element
-    </Button>
-  ) : null;
+  const createButton = (size: "small" | "medium") =>
+    canEdit ? (
+      <Button
+        size={size}
+        variant="primary"
+        iconBefore={<Plus />}
+        onClick={() => setSheet({ parentId: null, seed: { elementType: "subsystem" } })}
+      >
+        Create element
+      </Button>
+    ) : null;
   return (
-    <Stack space="space.200">
-      {error && (
-        <p role="alert" className="text-danger">
-          {error}
-        </p>
-      )}
+    <>
       <ProductCollection
         commands={
           canEdit
@@ -297,12 +305,12 @@ export function ProductStructure({
           title: "No elements in this version",
           description: canEdit
             ? "Add a subsystem or a component, or add one from the library."
-            : "This version has no elements.",
-          action: actions,
+            : "Nobody has added an element to this version.",
+          action: createButton("medium"),
         }}
         fill
         searchLabel="Find an element"
-        action={actions}
+        action={createButton("small")}
       />
       {sheet && (
         <ProductElementDialog
@@ -353,13 +361,19 @@ export function ProductStructure({
             { key: "code" },
             { key: "description" },
             { key: "typeLabel", label: "Type" },
-            { key: "libraryLabel", label: "Library" },
+            {
+              key: "libraryLabel",
+              label: "Library",
+              render: (row) => row.libraryLabel || <Absent label="Not from the library" />,
+            },
           ]}
         />
       )}
-    </Stack>
+    </>
   );
 }
+
+type IdentityField = "name" | "code" | "description" | "type";
 
 /** One element: identity, which configurations it is in, and the library component it pins. */
 function ProductElementDialog({
@@ -382,8 +396,13 @@ function ProductElementDialog({
   onClose: () => void;
 }) {
   const save = useSaveProductElement();
-  const id = useId();
-  const { confirm, confirmation } = useConfirmation();
+  const formId = useId();
+  const [open, setOpen] = useState(true);
+  const feedback = useFormFeedback<IdentityField>();
+  const { formatPlural } = useLedgerLocale();
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const failureRef = useRef<HTMLDivElement>(null);
+  const [failure, setFailure] = useState<string | null>(null);
   const existing = target.existing;
   const parent = specs.find((row) => row.id === target.parentId) ?? null;
   const active = configurations.filter((row) => row.state === "active");
@@ -394,6 +413,8 @@ function ProductElementDialog({
           .map((row) => row.product_configuration_id)
       : active.map((row) => row.id),
   );
+  // The configurations this element can join: those its parent is in.
+  const joinable = active.filter((row) => parentIn.has(row.id)).map((row) => row.id);
   const [initialIdentity] = useState<{
     name: string;
     code: string;
@@ -415,13 +436,10 @@ function ProductElementDialog({
           ? memberships
               .filter((row) => row.product_element_id === existing.id)
               .map((row) => row.product_configuration_id)
-          : active.filter((row) => parentIn.has(row.id)).map((row) => row.id),
+          : joinable,
       ),
   );
   const [chosen, setChosen] = useState(initialChosen);
-  const [error, setError] = useState("");
-  const inFlight = useRef(false);
-  const bypassClose = useRef(false);
   const dirty =
     !readOnly &&
     (identity.name !== initialIdentity.name ||
@@ -430,24 +448,19 @@ function ProductElementDialog({
       identity.type !== initialIdentity.type ||
       chosen.size !== initialChosen.size ||
       [...chosen].some((id) => !initialChosen.has(id)));
-  const discardPrompt = discardChanges(
-    "Your changes to this element and its configuration memberships have not been saved.",
-  );
-  const close = async () => {
-    if (inFlight.current) return;
-    if (!dirty || (await confirm(discardPrompt))) {
-      bypassClose.current = true;
-      onClose();
-    }
-  };
-  useBlocker({
-    shouldBlockFn: async () => {
-      if (inFlight.current) return true;
-      if (bypassClose.current || !dirty) return false;
-      return !(await confirm(discardPrompt));
-    },
-    enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
+  const guard = useDraftGuard({
+    dirty,
+    onClose: () => setOpen(false),
+    description: "Your changes to this element and its configuration memberships will be lost.",
   });
+  const issues: FormIssue<IdentityField>[] = [
+    ...(identity.name.trim() ? [] : [{ field: "name" as const, message: "Enter a name." }]),
+    ...(identity.code.trim() ? [] : [{ field: "code" as const, message: "Enter a code." }]),
+    ...(identity.type ? [] : [{ field: "type" as const, message: "Choose a type." }]),
+  ];
+  const errors = new Map(
+    feedback.submitted ? issues.map((issue) => [issue.field, issue.message] as const) : [],
+  );
   const descendantIds = existing ? descendantsOf(specs, existing.id) : [];
   const libraryFacts = existing?.library
     ? {
@@ -468,14 +481,19 @@ function ProductElementDialog({
         (row) => row.product_element_id === id && row.product_configuration_id === configurationId,
       ),
     ).length;
-  async function submit() {
-    if (readOnly || inFlight.current) return;
-    if (!identity.name.trim() || !identity.code.trim() || !identity.type) {
-      setError("Enter a name and a code, and choose a type.");
-      return;
-    }
-    inFlight.current = true;
-    setError("");
+  const elementRevisions = useElementRevisions(revision.id);
+  useEffect(() => {
+    if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
+  }, [failure]);
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (readOnly || guard.busy) return;
+    setFailure(null);
+    if (!feedback.report(issues)) return;
+    const type = identity.type;
+    if (!type) return;
+    submitRef.current?.focus();
+    if (!guard.start()) return;
     try {
       const siblings = specs.filter(
         (row) => row.parentId === target.parentId && row.id !== existing?.id,
@@ -486,10 +504,10 @@ function ProductElementDialog({
           id: existing?.id,
           revision: existing ? elementRevisions.get(existing.id) : undefined,
           parentId: target.parentId,
-          code: identity.code,
-          name: identity.name,
+          code: identity.code.trim(),
+          name: identity.name.trim(),
           description: identity.description,
-          elementType: identity.type,
+          elementType: type,
           definedComponentId,
           position: existing?.position ?? Math.max(-1, ...siblings.map((row) => row.position)) + 1,
         },
@@ -501,30 +519,38 @@ function ProductElementDialog({
         })),
         descendantIds,
       });
-      bypassClose.current = true;
-      onClose();
+      guard.finish();
+      toast.add({
+        type: "success",
+        title: `${identity.name.trim()} ${existing ? "saved" : "created"}`,
+      });
+      guard.complete();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not save the element.");
-    } finally {
-      inFlight.current = false;
+      setFailure(`${messageOf(cause)} Your changes are kept.`);
+      guard.finish();
     }
   }
-  const elementRevisions = useElementRevisions(revision.id);
   const noun = existing?.library || target.seedLibrary ? "component" : "element";
   const title = readOnly
     ? (existing?.name ?? "Element")
     : `${existing ? "Edit" : "Create"} ${noun}`;
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          close();
-        }
+      open={open}
+      pending={guard.busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        void guard.close();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (!next) onClose();
       }}
     >
-      <DialogContent style={{ maxWidth: 620 }} showCloseButton={!save.isPending}>
+      <DialogContent
+        width="large"
+        initialFocus={readOnly ? true : () => feedback.node("name") ?? true}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -532,139 +558,141 @@ function ProductElementDialog({
             {readOnly ? ". This version is published; open a draft version to change it." : "."}
           </DialogDescription>
         </DialogHeader>
-        <form
-          id={`${id}-form`}
-          noValidate
-          className="contents"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit();
-          }}
-        >
-          <fieldset
-            disabled={save.isPending}
-            aria-busy={save.isPending}
-            className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-none px-200 py-150"
-          >
-            <Stack space="space.200">
-              <Section title="Identity">
-                {readOnly ? (
-                  <Stack space="space.050">
-                    <KeyValue label="Name" wrap>
-                      {identity.name}
-                    </KeyValue>
-                    <KeyValue label="Code">
-                      <Id>{identity.code}</Id>
-                    </KeyValue>
-                    <KeyValue label="Description" wrap>
-                      {identity.description || "Not recorded"}
-                    </KeyValue>
-                    <KeyValue label="Type">{labelFor(identity.type ?? "other")}</KeyValue>
-                  </Stack>
-                ) : (
-                  <Stack space="space.150">
-                    <ElementIdentityFields
-                      value={identity}
-                      onChange={(patch) => {
-                        if (!inFlight.current)
-                          setIdentity((previous) => ({ ...previous, ...patch }));
-                      }}
-                      typeLocked={definedComponentId ? "from the component" : undefined}
-                      codeHint="Unique within this product version."
-                      autoFocus
-                    />
-                  </Stack>
-                )}
-              </Section>
-              <Section title="Configurations">
-                {active.length ? (
-                  <Stack space="space.100">
-                    {active.map((configuration) => {
-                      const blocked = !parentIn.has(configuration.id);
-                      const inside = chosen.has(configuration.id) ? leaving(configuration.id) : 0;
-                      return (
-                        <Stack key={configuration.id} space="space.025">
-                          <label className="flex items-center gap-075 font-body-small">
-                            <Checkbox
-                              checked={chosen.has(configuration.id)}
-                              disabled={readOnly || blocked || save.isPending}
-                              onCheckedChange={(checked) => {
-                                if (inFlight.current) return;
-                                setChosen((previous) => {
-                                  const next = new Set(previous);
-                                  if (checked) next.add(configuration.id);
-                                  else next.delete(configuration.id);
-                                  return next;
-                                });
-                              }}
-                            />
-                            {configuration.name}
-                          </label>
-                          {blocked && parent ? (
-                            <span className="ps-300 font-body-xsmall text-subtle">
-                              Not in {configuration.name}: {parent.name} is not a member.
-                            </span>
-                          ) : null}
-                          {!readOnly && inside ? (
-                            <span className="ps-300 font-body-xsmall text-subtle">
-                              Unticking removes the {inside} element{inside === 1 ? "" : "s"} inside
-                              from {configuration.name} too.
-                            </span>
-                          ) : null}
-                        </Stack>
-                      );
-                    })}
-                  </Stack>
-                ) : (
-                  <Empty size="compact">
-                    <EmptyHeader>
-                      <EmptyTitle>No configurations yet</EmptyTitle>
-                      <EmptyDescription>
-                        Add configurations on the Configurations tab; an element joins them here.
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                )}
-              </Section>
-              {libraryFacts ? (
-                <Inspector.Group title="From the library">
-                  <KeyValue label="Definition" wrap>
-                    {libraryFacts.definition}
-                  </KeyValue>
-                  <KeyValue label="Component" wrap>
-                    {libraryFacts.component}
-                  </KeyValue>
-                  <KeyValue label="Version">{libraryFacts.version}</KeyValue>
-                  <p className="font-body-xsmall text-subtle">
-                    A program that creates a variant from this product inherits this component's
-                    claimed controls for the element.
-                  </p>
-                </Inspector.Group>
+        <DialogBody>
+          <form id={formId} noValidate onSubmit={(event) => void submit(event)}>
+            <Stack space="space.250">
+              {failure ? (
+                <Alert ref={failureRef} variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The {noun} was not saved</AlertTitle>
+                  <AlertDescription>{failure}</AlertDescription>
+                </Alert>
               ) : null}
-              {error && (
-                <p role="alert" className="font-body-small text-danger">
-                  {error}
-                </p>
-              )}
+              <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
+              <FieldSet disabled={guard.busy}>
+                <Stack space="space.250">
+                  {readOnly ? (
+                    <KeyValue.Group>
+                      <KeyValue label="Name" wrap>
+                        {identity.name}
+                      </KeyValue>
+                      <KeyValue label="Code">
+                        <Id>{identity.code}</Id>
+                      </KeyValue>
+                      <KeyValue label="Description" wrap>
+                        {identity.description || <Absent label="No description" />}
+                      </KeyValue>
+                      <KeyValue label="Type">{labelFor(identity.type ?? "other")}</KeyValue>
+                    </KeyValue.Group>
+                  ) : (
+                    <Stack space="space.200">
+                      <ElementIdentityFields
+                        value={identity}
+                        onChange={(patch) => {
+                          if (!guard.busy) setIdentity((previous) => ({ ...previous, ...patch }));
+                        }}
+                        typeLocked={definedComponentId ? "from the component" : undefined}
+                        codeHint="Unique within this product version."
+                        errors={{
+                          name: errors.get("name"),
+                          code: errors.get("code"),
+                          type: errors.get("type"),
+                        }}
+                        controlRef={feedback.ref}
+                      />
+                    </Stack>
+                  )}
+                  {active.length ? (
+                    <CheckboxGroup
+                      value={[...chosen]}
+                      onValueChange={(value) => setChosen(new Set(value))}
+                      allValues={joinable}
+                      disabled={readOnly}
+                    >
+                      <FieldLegend>Configurations</FieldLegend>
+                      {!readOnly && joinable.length > 1 ? (
+                        <CheckboxGroupSelectAll>Every configuration</CheckboxGroupSelectAll>
+                      ) : null}
+                      <Stack
+                        space="space.100"
+                        className={!readOnly && joinable.length > 1 ? "ps-300" : undefined}
+                      >
+                        {active.map((configuration) => {
+                          const blocked = !parentIn.has(configuration.id);
+                          const inside = chosen.has(configuration.id)
+                            ? leaving(configuration.id)
+                            : 0;
+                          return (
+                            <Field
+                              key={configuration.id}
+                              orientation="horizontal"
+                              disabled={blocked}
+                            >
+                              <Checkbox value={configuration.id} />
+                              <FieldContent>
+                                <FieldLabel>{configuration.name}</FieldLabel>
+                                {blocked && parent ? (
+                                  <FieldDescription>
+                                    Not available: {parent.name} is not in {configuration.name}.
+                                  </FieldDescription>
+                                ) : null}
+                                {!readOnly && inside ? (
+                                  <FieldDescription>
+                                    Unticking removes the{" "}
+                                    {formatPlural(inside, {
+                                      one: "element",
+                                      other: "{count} elements",
+                                    })}{" "}
+                                    inside from {configuration.name} too.
+                                  </FieldDescription>
+                                ) : null}
+                              </FieldContent>
+                            </Field>
+                          );
+                        })}
+                      </Stack>
+                    </CheckboxGroup>
+                  ) : (
+                    <EmptyMessage
+                      compact
+                      title="No configurations yet"
+                      description="Create configurations on the Configurations tab; an element joins them here."
+                    />
+                  )}
+                  {libraryFacts ? (
+                    <Inspector.Group title="From the library">
+                      <KeyValue.Group>
+                        <KeyValue label="Definition" wrap>
+                          {libraryFacts.definition}
+                        </KeyValue>
+                        <KeyValue label="Component" wrap>
+                          {libraryFacts.component}
+                        </KeyValue>
+                        <KeyValue label="Version">{libraryFacts.version}</KeyValue>
+                      </KeyValue.Group>
+                      <Text as="p" size="small" color="color.text.subtle">
+                        A program that creates a variant from this product inherits this
+                        component&apos;s claimed controls for the element.
+                      </Text>
+                    </Inspector.Group>
+                  ) : null}
+                </Stack>
+              </FieldSet>
             </Stack>
-          </fieldset>
-        </form>
+          </form>
+        </DialogBody>
         <DialogFooter>
           {readOnly ? (
-            <Button variant="primary" onClick={close}>
-              Close
-            </Button>
+            <DialogClose render={<Button variant="primary" />}>Close</DialogClose>
           ) : (
             <>
-              <Button variant="subtle" disabled={save.isPending} onClick={close}>
-                Cancel
-              </Button>
+              <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
               <Button
+                ref={submitRef}
                 variant="primary"
-                isLoading={save.isPending}
-                disabled={save.isPending}
+                isLoading={guard.busy}
                 type="submit"
-                form={`${id}-form`}
+                form={formId}
               >
                 {existing ? `Edit ${noun}` : `Create ${noun}`}
               </Button>
@@ -672,12 +700,12 @@ function ProductElementDialog({
           )}
         </DialogFooter>
       </DialogContent>
-      {confirmation}
+      {guard.confirmation}
     </Dialog>
   );
 }
 
-/** The CAS revision of every element in a version, for the sheet's update. */
+/** The CAS revision of every element in a version, for the dialog's update. */
 function useElementRevisions(revisionId: string) {
   const elements = useRows("product_elements", { product_revision_id: revisionId });
   return useMemo(

@@ -1,46 +1,48 @@
 import { ProgramCollection } from "@/components/prototype/program-shared";
-import { MissingRecord } from "@/components/prototype/work-common";
-import { Box } from "@ledger/design-system";
-import { displayDate } from "@/components/prototype/work-format";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Absent,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Box,
+  Button,
+  DateTime,
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  Button,
-  Inline,
+  DropdownMenuLinkItem,
+  DropdownMenuTrigger,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
   Inspector,
   PageHeader,
+  Prose,
   Section,
   Shell,
   Stack,
-  Table,
-  Empty,
-  EmptyContent,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyMedia,
-  EmptyIllustration,
-  EmptyDescription,
+  TextLink,
+  Timeline,
+  toast,
+  useLedgerLocale,
 } from "@ledger/design-system";
+import { AlertCircle, ChevronDown, History, MessageSquare } from "lucide-react";
 import { useModelSave, useRow, useRows } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
+import { taskPriorities, taskStatuses } from "@/lib/status";
 import { useWorkspace } from "@/components/app/workspace";
+import { LevelIndicator, StatusBadge } from "@/components/app/status";
+import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
+import { RelationName } from "@/components/prototype/record-tools";
 import {
   DetailFacts,
+  MissingRecord,
   ModelForm,
   QueryState,
-  SchemaLink,
-  StatusBadge,
   type FormTarget,
 } from "@/components/prototype/work-common";
 
@@ -52,12 +54,39 @@ function TaskRoute() {
   const { taskId } = Route.useParams();
   return <TaskDetail key={taskId} taskId={taskId} />;
 }
+
+/**
+ * An event's time on a feed: the day and the minute in the reader's zone, so two comments from
+ * the same day keep their order, with the full stamp as the tooltip and the ISO value as `<time>`.
+ */
+function useEventTime() {
+  const { formatDate } = useLedgerLocale();
+  return (value: string) => {
+    const instant = new Date(value);
+    return {
+      time: formatDate(instant, { dateStyle: "medium", timeStyle: "short" }),
+      timeTitle: formatDate(instant, { dateStyle: "full", timeStyle: "long" }),
+      dateTime: value,
+    };
+  };
+}
+
+/** An event's recorded sentence as a title, starting with a capital; its kind when it has none. */
+function eventTitle(description: string | null, kind: string) {
+  const text = description?.trim() || labelFor(kind);
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** Newest first, as a feed reads down the page. */
+function newestFirst<T>(rows: readonly T[], at: (row: T) => string) {
+  return [...rows].sort((a, b) => at(b).localeCompare(at(a)));
+}
+
 function TaskDetail({ taskId }: { taskId: string }) {
   const workspace = useWorkspace();
+  const eventTime = useEventTime();
   const taskQuery = useRow("tasks", taskId);
   const task = taskQuery.data;
-  const program = useRow("programs", task?.program_id);
-  const workstream = useRow("workstreams", task?.workstream_id);
   const parties = useRows("parties");
   const comments = useRows("comments", { task_id: taskId });
   const activity = useRows("activity_events", { task_id: taskId });
@@ -65,29 +94,38 @@ function TaskDetail({ taskId }: { taskId: string }) {
   const [form, setForm] = useState<FormTarget | null>(null);
   const [error, setError] = useState("");
   const me = parties.data?.find((party) => party.auth_user_id === workspace.userId);
+  const canEdit = workspace.role !== "viewer";
+  // While Complete or Reopen saves, the task's revision is about to change: an edit opened now
+  // would carry the old one and fail as a stale write, so both menu items wait and say why.
+  const pending = save.isPending ? { disabledReason: "The task is being saved." } : {};
+  function open(target: FormTarget) {
+    // The trigger stays enabled while its dialog is open; a second press opens nothing new.
+    if (!form) setForm(target);
+  }
   async function toggleDone() {
     if (!task || save.isPending) return;
+    const completing = task.status !== "done";
     setError("");
     try {
       await save.mutateAsync({
         id: task.id,
         revision: task.revision,
         values: {
-          status: task.status === "done" ? "open" : "done",
-          completed_at: task.status === "done" ? null : new Date().toISOString(),
+          status: completing ? "done" : "open",
+          completed_at: completing ? new Date().toISOString() : null,
         },
       });
+      toast.add({ title: completing ? "Task completed" : "Task reopened", type: "success" });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The task could not be saved.");
+      setError(cause instanceof Error ? cause.message : "Try again in a moment.");
     }
   }
   const commentAction =
-    task && workspace.role !== "viewer" ? (
+    task && canEdit ? (
       <Button
         size="small"
-        disabled={!!form}
         onClick={() =>
-          setForm({
+          open({
             table: "comments",
             initialValues: { task_id: task.id, ...(me ? { author_party_id: me.id } : {}) },
           })
@@ -103,79 +141,81 @@ function TaskDetail({ taskId }: { taskId: string }) {
         {task ? (
           <>
             <PageHeader>
-              <PageHeader.Lead render={<Breadcrumb />}>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/work" />}>My work</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      render={
-                        <Link to="/programs/$programId" params={{ programId: task.program_id }} />
-                      }
-                    >
-                      {program.data?.name ?? "Program"}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{task.title}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </PageHeader.Lead>
+              <RecordTrail current={task.title}>
+                <TrailLink to="/work">My work</TrailLink>
+                <TrailLink to="/programs/$programId" params={{ programId: task.program_id }}>
+                  <RelationName table="programs" id={task.program_id} />
+                </TrailLink>
+              </RecordTrail>
               <PageHeader.Heading>
                 <PageHeader.Title>{task.title}</PageHeader.Title>
               </PageHeader.Heading>
               <PageHeader.Actions>
-                {workspace.role !== "viewer" && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger render={<Button>Actions</Button>} />
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        disabled={!!form || save.isPending}
-                        onClick={() => setForm({ table: "tasks", existing: task as DataRecord })}
-                      >
-                        Edit task
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        disabled={save.isPending || !!form}
-                        onClick={() => void toggleDone()}
-                      >
-                        {save.isPending
-                          ? "Saving…"
-                          : task.status === "done"
-                            ? "Reopen"
-                            : "Complete"}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={<Button iconAfter={<ChevronDown />}>Actions</Button>}
+                  />
+                  <DropdownMenuContent align="end">
+                    {canEdit && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={() => open({ table: "tasks", existing: task as DataRecord })}
+                          {...pending}
+                        >
+                          Edit task
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => void toggleDone()} {...pending}>
+                          {task.status === "done" ? "Reopen task" : "Complete task"}
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuLinkItem
+                      closeOnClick
+                      render={
+                        <Link
+                          to="/records/$collection/$recordId"
+                          params={{ collection: "tasks", recordId: task.id }}
+                        />
+                      }
+                    >
+                      Inspect record
+                    </DropdownMenuLinkItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </PageHeader.Actions>
             </PageHeader>
             {error && (
-              <p role="alert" className="text-danger">
-                {error}
-              </p>
+              <Alert variant="destructive" role="alert">
+                <AlertCircle aria-hidden />
+                <AlertTitle>The task was not saved</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
-            <Stack space="space.300" className="min-w-0 pt-200">
+            <Stack space="space.300" className="min-w-0">
               <Section title="Note">
-                <p className="whitespace-pre-wrap pt-100 text-subtle">
-                  {task.description || <Absent />}
-                </p>
+                {task.description ? (
+                  <Box className="max-w-layout-measure">
+                    <Prose>{task.description}</Prose>
+                  </Box>
+                ) : (
+                  <Absent label="No note recorded" />
+                )}
               </Section>
               <Section title="Assignments">
                 <ProgramCollection
                   name="task_assignments"
                   title="Assignments"
                   filters={{ task_id: task.id }}
+                  initialValues={{ task_id: task.id }}
                   columns={[
                     {
                       key: "party_id",
                       title: "Person",
                       value: (row) =>
-                        parties.data?.find((party) => party.id === row["party_id"])?.name ??
-                        "Unavailable person",
+                        parties.data?.find((party) => party.id === row["party_id"])?.name ?? null,
+                      render: (row) => (
+                        <RelationName table="parties" id={row["party_id"] as string | null} />
+                      ),
                     },
                     {
                       key: "assignment_role",
@@ -191,57 +231,57 @@ function TaskDetail({ taskId }: { taskId: string }) {
                 />
               </Section>
               <Section title="Comments" action={commentAction}>
-                <QueryState queries={[comments, parties]}>
+                <QueryState queries={[comments]} retryLabel="Retry loading comments">
                   {comments.data?.length ? (
-                    <Stack space="space.150">
-                      {[...comments.data]
-                        .sort((a, b) => a.created_at.localeCompare(b.created_at))
-                        .map((comment) => (
-                          <Box key={comment.id} className="border-b border-default py-150">
-                            <p className="font-body-small text-subtle">
-                              {parties.data?.find((party) => party.id === comment.author_party_id)
-                                ?.name ?? "Unavailable author"}{" "}
-                              · {displayDate(comment.created_at)}
-                            </p>
-                            <p className="whitespace-pre-wrap pt-100">{comment.body}</p>
-                          </Box>
-                        ))}
-                    </Stack>
+                    <Timeline label="Comments" wrap>
+                      {newestFirst(comments.data, (comment) => comment.created_at).map(
+                        (comment) => (
+                          <Timeline.Item
+                            key={comment.id}
+                            title={<RelationName table="parties" id={comment.author_party_id} />}
+                            {...eventTime(comment.created_at)}
+                          >
+                            <Prose>{comment.body}</Prose>
+                          </Timeline.Item>
+                        ),
+                      )}
+                    </Timeline>
                   ) : (
                     <Empty size="compact">
-                      <EmptyMedia>
-                        <EmptyIllustration kind="inbox" />
+                      <EmptyMedia variant="icon" aria-hidden>
+                        <MessageSquare />
                       </EmptyMedia>
                       <EmptyHeader>
                         <EmptyTitle>No comments yet</EmptyTitle>
                         <EmptyDescription>
-                          Add a comment to share an update about this task.
+                          {canEdit
+                            ? "Create a comment to share an update about this task."
+                            : "Comments about this task will appear here."}
                         </EmptyDescription>
                       </EmptyHeader>
-                      {commentAction && <EmptyContent>{commentAction}</EmptyContent>}
                     </Empty>
                   )}
                 </QueryState>
               </Section>
               <Section title="Activity">
-                <QueryState queries={[activity]}>
+                <QueryState queries={[activity]} retryLabel="Retry loading activity">
                   {activity.data?.length ? (
-                    <Stack space="space.150">
-                      {[...activity.data]
-                        .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))
-                        .map((event) => (
-                          <Box key={event.id} className="border-b border-default py-150">
-                            <p>{event.description ?? labelFor(event.event_type)}</p>
-                            <p className="font-body-small text-subtle">
-                              {displayDate(event.occurred_at)}
-                            </p>
-                          </Box>
-                        ))}
-                    </Stack>
+                    <Timeline label="Activity" size="small" wrap>
+                      {newestFirst(activity.data, (event) => event.occurred_at).map((event) => (
+                        <Timeline.Item
+                          key={event.id}
+                          title={eventTitle(event.description, event.event_type)}
+                          {...(event.actor_party_id
+                            ? { meta: <RelationName table="parties" id={event.actor_party_id} /> }
+                            : {})}
+                          {...eventTime(event.occurred_at)}
+                        />
+                      ))}
+                    </Timeline>
                   ) : (
                     <Empty size="compact">
-                      <EmptyMedia>
-                        <EmptyIllustration kind="inbox" />
+                      <EmptyMedia variant="icon" aria-hidden>
+                        <History />
                       </EmptyMedia>
                       <EmptyHeader>
                         <EmptyTitle>No activity yet</EmptyTitle>
@@ -254,30 +294,39 @@ function TaskDetail({ taskId }: { taskId: string }) {
                 </QueryState>
               </Section>
             </Stack>
-            <Shell.Aside label="Record properties">
+            <Shell.Aside label="Task details">
               <Inspector.Group title="Details">
                 <DetailFacts
                   facts={[
-                    ["State", <StatusBadge value={task.status} />],
-                    ["Priority", task.priority ? labelFor(task.priority) : null],
-                    ["Due", task.due_at ? displayDate(task.due_at) : null],
-                    ["Completed", task.completed_at ? displayDate(task.completed_at) : null],
+                    ["Status", <StatusBadge statuses={taskStatuses} value={task.status} />],
+                    [
+                      "Priority",
+                      task.priority ? (
+                        <LevelIndicator levels={taskPriorities} value={task.priority} />
+                      ) : null,
+                    ],
+                    ["Due", task.due_at ? <DateTime value={task.due_at} format="date" /> : null],
+                    [
+                      "Completed",
+                      task.completed_at ? <DateTime value={task.completed_at} /> : null,
+                    ],
                     [
                       "Workstream",
                       task.workstream_id ? (
-                        <Link
-                          to="/workstreams/$workstreamId"
-                          params={{ workstreamId: task.workstream_id }}
+                        <TextLink
+                          render={
+                            <Link
+                              to="/workstreams/$workstreamId"
+                              params={{ workstreamId: task.workstream_id }}
+                            />
+                          }
                         >
-                          {workstream.data?.title ?? "Open workstream"}
-                        </Link>
+                          <RelationName table="workstreams" id={task.workstream_id} />
+                        </TextLink>
                       ) : null,
                     ],
                   ]}
                 />
-                <Box className="pt-200">
-                  <SchemaLink table="tasks" id={task.id} />
-                </Box>
               </Inspector.Group>
             </Shell.Aside>
           </>

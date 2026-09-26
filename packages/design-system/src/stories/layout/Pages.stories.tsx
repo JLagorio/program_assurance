@@ -36,6 +36,7 @@ import {
   TabsList,
   TabsTrigger,
   Text,
+  Toolbar,
   defineColumns,
   useDataTable,
   type Tone,
@@ -81,7 +82,9 @@ function RecordProperties() {
             save={async () => {}}
             options={["In progress", "Ready for review", "Verified"]}
             render={(value) => (
-              <Badge tone={value === "Verified" ? "success" : "information"}>{value}</Badge>
+              <Badge variant="secondary" tone={value === "Verified" ? "success" : "information"}>
+                {value}
+              </Badge>
             )}
           />
         </KeyValue>
@@ -266,13 +269,13 @@ const risks: Risk[] = Array.from({ length: 60 }, (_, i) => ({
 }));
 const riskColumns = defineColumns<Risk>((c) => [
   c.id("id"),
-  c.text("title", { header: "Risk", minWidth: 240 }),
+  c.text("title", { header: "Risk", minWidth: 200, priority: 0 }),
   c.status("status", { header: "Status", tone: (r) => riskTone[r.status] }),
   c.person("owner", { header: "Owner" }),
   c.date("updated", { header: "Updated", width: 120 }),
 ]);
 
-/** A record's register tab: the header, the tab strip, a section heading, and the register filling the rest of the window. A note added above it re-fits the page. */
+/** A record's register tab: the header, the tab strip, and the register filling the rest of the window. The tab names the collection, so the tab starts with the Toolbar and the table, with no heading or Section around the only table. A note added above it re-fits the page. */
 function RegisterPage() {
   const [noted, setNoted] = useState(false);
   const table = useDataTable({
@@ -305,25 +308,27 @@ function RegisterPage() {
                 The register was reviewed on 12 Sep 2026; no risk was closed.
               </Text>
             )}
-            <Section title="Risk register">
-              <DataTable
-                fill
-                table={table}
-                toolbar={
-                  <Inline space="space.100" alignBlock="center" shouldWrap>
-                    <DataTable.Search table={table} placeholder="Find risks" />
-                    <DataTable.Filter table={table} column="status" />
-                    <Inline className="ml-auto" space="space.100" alignBlock="center">
-                      <DataTable.Columns table={table} />
-                      <Button size="small" variant="primary" iconBefore={<Plus />}>
-                        Record risk
-                      </Button>
-                    </Inline>
-                  </Inline>
-                }
-                empty={{ title: "No risks yet" }}
-              />
-            </Section>
+            <DataTable
+              fill
+              responsive
+              table={table}
+              toolbar={
+                <Toolbar
+                  search={String(table.state.globalFilter ?? "")}
+                  onSearch={(value) => table.setGlobalFilter(value)}
+                  placeholder="Search risks"
+                  filters={<DataTable.Filter table={table} column="status" />}
+                  actions={
+                    <Button size="small" variant="primary" iconBefore={<Plus />}>
+                      Create risk
+                    </Button>
+                  }
+                >
+                  <DataTable.Columns table={table} />
+                </Toolbar>
+              }
+              empty={{ title: "No risks yet" }}
+            />
           </Stack>
         </TabsContent>
       </Tabs>
@@ -450,6 +455,12 @@ export const QueueWithPanel: Story = {
     const note = await canvas.findByRole("textbox", { name: "Working note" });
     await expect(note).toHaveValue("Request evidence");
     note.focus();
+    // Escape in a field belongs to the field: the panel stays open and the note keeps focus.
+    await userEvent.keyboard("{Escape}");
+    await expect(note).toHaveFocus();
+    const reopened = canvas.getByRole("complementary", { name: "Incomplete account review" });
+    // Outside a field, Escape closes the panel and focus returns to the opener.
+    reopened.focus();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(opener).toHaveFocus());
     await userEvent.click(opener);
@@ -487,6 +498,10 @@ export const Register: Story = {
         Math.abs(header.getBoundingClientRect().top - frame.getBoundingClientRect().top),
       ).toBeLessThanOrEqual(1),
     );
+    // The tab names the collection: no heading repeats it, and the toolbar's search comes first.
+    await expect(canvas.queryByRole("heading", { name: "Risk register" })).toBeNull();
+    await expect(canvas.getByRole("searchbox", { name: "Search risks" })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Create risk" })).toBeVisible();
     const before = frame.clientHeight;
     await userEvent.click(canvas.getByRole("button", { name: "Add note" }));
     await expect(canvas.getByText(/The register was reviewed/)).toBeVisible();

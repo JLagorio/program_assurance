@@ -175,7 +175,7 @@
   {
     "file": "poam-documents.$documentId.tsx",
     "path": "/poam-documents/$documentId",
-    "title": "POA&M document",
+    "title": "POA&M plan",
     "family": "record",
     "model": "poam_documents"
   },
@@ -188,9 +188,9 @@
     "tabList": "Profile sections",
     "collectionTabs": ["Controls"],
     "tabExceptions": {
-      "Overview": "Record properties and Details rail.",
+      "Overview": "Revision summary, derivation chain and Details rail.",
       "Derivation": "Source imports definition list and recorded resolutions.",
-      "Tailoring": "Derivation and multiple decision, parameter and effective-control collections."
+      "Tailoring": "Tailoring decisions, parameter and effective-control collections, and the OSCAL rules."
     }
   },
   {
@@ -390,13 +390,13 @@
     "family": "register",
     "model": "poam_items",
     "tabList": "POA&M and risk collections",
-    "collectionTabs": ["POA&M", "Risks", "Unrolled findings", "Documents"],
+    "collectionTabs": ["Remediation items", "Risks", "Unrolled findings", "POA&M plans"],
     "tabExceptions": {}
   },
   {
     "file": "register.poam.$poamId.tsx",
     "path": "/register/poam/$poamId",
-    "title": "POA&M commitment",
+    "title": "Remediation item",
     "family": "record",
     "model": "poam_items"
   },

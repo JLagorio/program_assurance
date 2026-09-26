@@ -377,6 +377,65 @@ export function countRows<TData extends RowData>(
 }
 
 /**
+ * Each preset's count, counted once per set of rows and set of questions: not again on every
+ * keystroke or selection, which leave both as they were.
+ */
+function usePresetCounts<TData extends RowData>(
+  table: DataTableInstance<TData>,
+  presets: Preset[],
+): ReadonlyMap<string, number> {
+  const rows = table.getPreFilteredRowModel();
+  // The key only says when to count again; the count reads the presets themselves, whose values
+  // (a number range's Infinity, an open end) a JSON round trip would change.
+  const questions = JSON.stringify(presets.map((p) => [p.id, p.filters ?? []]));
+  return useMemo(
+    () => {
+      void rows;
+      void questions;
+      return new Map(presets.map((p) => [p.id, countRows(table, p.filters)]));
+    },
+    // `presets` is left out on purpose: a new array with the same questions counts nothing new.
+    [table, rows, questions],
+  );
+}
+
+/** The menu's questions, drawn only while it is open: a closed menu counts nothing. */
+function PresetMenuItems<TData extends RowData>({
+  table,
+  presets,
+}: {
+  table: DataTableInstance<TData>;
+  presets: Preset[];
+}) {
+  const counts = usePresetCounts(table, presets);
+  return presets.map((p) => (
+    <DropdownMenuRadioItem key={p.id} value={p.id} closeOnClick>
+      {p.label}
+      <DropdownMenuShortcut>
+        <span className="tabular-nums">{counts.get(p.id) ?? 0}</span>
+      </DropdownMenuShortcut>
+    </DropdownMenuRadioItem>
+  ));
+}
+
+/** The strip's questions, each with its count, counted once per set of rows. */
+function PresetStripItems<TData extends RowData>({
+  table,
+  presets,
+}: {
+  table: DataTableInstance<TData>;
+  presets: Preset[];
+}) {
+  const counts = usePresetCounts(table, presets);
+  return presets.map((p) => (
+    <ToggleGroupItem key={p.id} value={p.id}>
+      {p.label}
+      <Count value={counts.get(p.id) ?? 0} max={9999} />
+    </ToggleGroupItem>
+  ));
+}
+
+/**
  * Saved questions, each with the count it would show. Choosing one replaces the column filters.
  * `strip` is a ToggleGroup on its own line above the table; `menu` is one small button in the
  * toolbar that reads the current question and opens the list, for a toolbar that also holds
@@ -399,8 +458,20 @@ export function Presets<TData extends RowData>({
 
   const current = JSON.stringify(table.state.columnFilters);
   const active = presets.find((p) => JSON.stringify(p.filters ?? []) === current);
+  // The trigger's count is the active question's; the rows it counts change only with the data.
+  const rows = table.getPreFilteredRowModel();
+  const activeFilters = active ? JSON.stringify(active.filters ?? []) : undefined;
+  const activeCount = useMemo(
+    () => {
+      void rows;
+      void activeFilters;
+      return active ? countRows(table, active.filters) : undefined;
+    },
+    // Keyed by the question's value, not the preset object: see usePresetCounts.
+    [table, rows, activeFilters],
+  );
   if (variant === "menu") {
-    const count = active ? countRows(table, active.filters) : undefined;
+    const count = activeCount;
     const label = active?.label ?? t("view");
     return (
       <DropdownMenu>
@@ -433,14 +504,7 @@ export function Presets<TData extends RowData>({
               if (preset) table.setColumnFilters(preset.filters ?? []);
             }}
           >
-            {presets.map((p) => (
-              <DropdownMenuRadioItem key={p.id} value={p.id} closeOnClick>
-                {p.label}
-                <DropdownMenuShortcut>
-                  <span className="tabular-nums">{countRows(table, p.filters)}</span>
-                </DropdownMenuShortcut>
-              </DropdownMenuRadioItem>
-            ))}
+            <PresetMenuItems table={table} presets={presets} />
           </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -461,12 +525,7 @@ export function Presets<TData extends RowData>({
             table.setColumnFilters(preset?.filters ?? []);
           }}
         >
-          {presets.map((p) => (
-            <ToggleGroupItem key={p.id} value={p.id}>
-              {p.label}
-              <Count value={countRows(table, p.filters)} max={9999} />
-            </ToggleGroupItem>
-          ))}
+          <PresetStripItems table={table} presets={presets} />
         </ToggleGroup>
       </ScrollerViewport>
       <ScrollerArrow edge="start" />

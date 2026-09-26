@@ -1,7 +1,22 @@
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useRef, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Button, Editable, Inline, KeyValue, Section, Stack } from "@ledger/design-system";
+import { AlertCircle } from "lucide-react";
+import {
+  Absent,
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+  Button,
+  Editable,
+  FieldSet,
+  Inline,
+  KeyValue,
+  Prose,
+  Section,
+  Stack,
+} from "@ledger/design-system";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRows, type Row } from "@/lib/models";
 import { useEditRequirement } from "@/lib/requirement-edit";
@@ -53,6 +68,21 @@ export function RequirementForm({
   const draft = useRef<Partial<Values>>({});
   const activeRequest = useRef<PendingChange | null>(null);
   const inFlight = useRef(false);
+  // Each field's editable row, so focus can return to it when the failed-change alert goes away.
+  const fieldNodes = useRef<Partial<Record<FieldName, HTMLDivElement | null>>>({});
+  const alertRef = useRef<HTMLDivElement>(null);
+  const fieldNode = (field: FieldName) => (node: HTMLDivElement | null) => {
+    fieldNodes.current[field] = node;
+  };
+  /** When the alert that held focus is about to go, send focus back to the field it was about. */
+  const returnFocus = (field: FieldName) => {
+    if (!alertRef.current?.contains(document.activeElement)) return;
+    requestAnimationFrame(() => {
+      const active = document.activeElement;
+      if (active && active !== document.body) return;
+      fieldNodes.current[field]?.querySelector<HTMLElement>("button, input, textarea")?.focus();
+    });
+  };
   const workspace = useWorkspace();
   const parties = useRows("parties");
   const edit = useEditRequirement();
@@ -85,6 +115,8 @@ export function RequirementForm({
     });
   function discard() {
     if (inFlight.current) return;
+    const failed = activeRequest.current;
+    if (failed) returnFocus(failed.field);
     draft.current = {};
     activeRequest.current = null;
     setPending(null);
@@ -101,7 +133,8 @@ export function RequirementForm({
     shouldBlockFn: async () => {
       if (inFlight.current) return true;
       if (!Object.keys(draft.current).length && !activeRequest.current) return false;
-      if (!(await confirm(discardChanges("Discard your unsaved requirement change?")))) return true;
+      if (!(await confirm(discardChanges("Your unsaved change to this requirement will be lost."))))
+        return true;
       discard();
       return false;
     },
@@ -124,7 +157,8 @@ export function RequirementForm({
     draft.current[field] = value;
     inFlight.current = true;
     setBusy(true);
-    setPending(null);
+    // A retry keeps the failed-change alert, and its focused Retry button, until it settles.
+    if (!retry) setPending(null);
     report();
     try {
       const result = await edit.mutateAsync({
@@ -137,6 +171,7 @@ export function RequirementForm({
             (field === "rationale" || field === "ownerPartyId") && !value.trim() ? null : value,
         },
       });
+      if (retry) returnFocus(field);
       draft.current = {};
       activeRequest.current = null;
       inFlight.current = false;
@@ -166,9 +201,16 @@ export function RequirementForm({
     multiline = false,
   ) =>
     readOnly ? (
-      <p className="whitespace-pre-wrap">{values[field] || "Not recorded"}</p>
+      values[field] ? (
+        <Prose>{values[field]}</Prose>
+      ) : (
+        <Absent label="Not recorded" />
+      )
     ) : (
+      // Editable reports a draft only at commit; the draft guard reads the field's own input
+      // until the kit offers a draft callback.
       <div
+        ref={fieldNode(field)}
         onChange={(event) => {
           const target = event.target;
           if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)
@@ -195,111 +237,126 @@ export function RequirementForm({
 
   return (
     <Stack space="space.250">
-      <fieldset
-        key={generation}
-        disabled={busy || !!pending}
-        className="min-w-0"
-        aria-label="Requirement details"
-        aria-busy={busy}
-      >
+      {/* Never disabled: a disabled row would drop the focus the Editable keeps on it while it
+          saves. A second change while one is saving or failed is refused by `save` instead, with
+          the reason under that row. */}
+      <FieldSet key={generation} aria-label="Requirement details" aria-busy={busy}>
         <Stack space="space.250">
           <Section title="Requirement details">
-            <Stack space="space.100">
-              <KeyValue label="Title" labelWidth={128} wrap>
+            <KeyValue.Group labelWidth={128}>
+              <KeyValue label="Title" wrap>
                 {text("title")}
               </KeyValue>
-              <KeyValue label="Requirement type" labelWidth={128} wrap>
+              <KeyValue label="Requirement type" wrap>
                 {readOnly || !typeOptions.length ? (
                   labelFor(values.requirementType)
                 ) : (
-                  <Editable.Select
-                    label="Requirement type"
-                    value={labelFor(values.requirementType)}
-                    options={typeOptions.map((value) => labelFor(value))}
-                    onChange={(value) => {
-                      const type = typeOptions.find((option) => labelFor(option) === value);
-                      if (type) setValues((previous) => ({ ...previous, requirementType: type }));
-                    }}
-                    save={(value) => {
-                      const type = typeOptions.find((option) => labelFor(option) === value);
-                      if (!type)
-                        return Promise.reject(new Error("Select an available requirement type."));
-                      return save("requirementType", type);
-                    }}
-                  />
+                  <div ref={fieldNode("requirementType")}>
+                    <Editable.Select
+                      label="Requirement type"
+                      value={labelFor(values.requirementType)}
+                      options={typeOptions.map((value) => labelFor(value))}
+                      onChange={(value) => {
+                        const type = typeOptions.find((option) => labelFor(option) === value);
+                        if (type) setValues((previous) => ({ ...previous, requirementType: type }));
+                      }}
+                      save={(value) => {
+                        const type = typeOptions.find((option) => labelFor(option) === value);
+                        if (!type)
+                          return Promise.reject(new Error("Select an available requirement type."));
+                        return save("requirementType", type);
+                      }}
+                    />
+                  </div>
                 )}
               </KeyValue>
-              <KeyValue label="Owner" labelWidth={128} wrap>
+              <KeyValue label="Owner" wrap>
                 {readOnly || parties.isPending || parties.error ? (
                   ownerLabel(values.ownerPartyId)
                 ) : (
-                  <Editable.Select
-                    label="Owner"
-                    value={ownerLabel(values.ownerPartyId)}
-                    options={["Unassigned", ...ownerOptions.map((option) => option.label)]}
-                    searchable
-                    onChange={(value) => {
-                      const id =
-                        value === "Unassigned"
-                          ? ""
-                          : ownerOptions.find((option) => option.label === value)?.id;
-                      if (id !== undefined)
-                        setValues((previous) => ({ ...previous, ownerPartyId: id }));
-                    }}
-                    save={(value) => {
-                      const id =
-                        value === "Unassigned"
-                          ? ""
-                          : ownerOptions.find((option) => option.label === value)?.id;
-                      if (id === undefined)
-                        return Promise.reject(
-                          new Error(
-                            "The selected owner is no longer available. Reload the available owners.",
-                          ),
-                        );
-                      return save("ownerPartyId", id);
-                    }}
-                  />
+                  <div ref={fieldNode("ownerPartyId")}>
+                    <Editable.Select
+                      label="Owner"
+                      value={ownerLabel(values.ownerPartyId)}
+                      options={["Unassigned", ...ownerOptions.map((option) => option.label)]}
+                      searchable
+                      onChange={(value) => {
+                        const id =
+                          value === "Unassigned"
+                            ? ""
+                            : ownerOptions.find((option) => option.label === value)?.id;
+                        if (id !== undefined)
+                          setValues((previous) => ({ ...previous, ownerPartyId: id }));
+                      }}
+                      save={(value) => {
+                        const id =
+                          value === "Unassigned"
+                            ? ""
+                            : ownerOptions.find((option) => option.label === value)?.id;
+                        if (id === undefined)
+                          return Promise.reject(
+                            new Error(
+                              "The selected owner is no longer available. Reload the available owners.",
+                            ),
+                          );
+                        return save("ownerPartyId", id);
+                      }}
+                    />
+                  </div>
                 )}
               </KeyValue>
-              {parties.error && (
-                <p role="alert" className="text-danger">
-                  Owners could not be loaded: {parties.error.message}
-                </p>
-              )}
-            </Stack>
+            </KeyValue.Group>
+            {parties.error && (
+              <Alert variant="destructive" role="alert">
+                <AlertCircle aria-hidden />
+                <AlertTitle>The owners could not be loaded</AlertTitle>
+                <AlertDescription>{parties.error.message}</AlertDescription>
+                <AlertAction>
+                  <Button size="small" onClick={() => void parties.refetch()}>
+                    Retry loading owners
+                  </Button>
+                </AlertAction>
+              </Alert>
+            )}
           </Section>
           <Section title="Statement">{text("statement", true)}</Section>
           <Section title="Acceptance criteria">{text("acceptanceCriteria", true)}</Section>
           <Section title="Rationale">{text("rationale", true)}</Section>
         </Stack>
-      </fieldset>
+      </FieldSet>
       {pending && (
-        <Section title="Unsaved change" description={pending.error}>
-          <Stack space="space.150">
-            <KeyValue label={labels[pending.field]} wrap>
-              {pending.field === "ownerPartyId" ? (
-                ownerLabel(pending.value)
-              ) : pending.field === "requirementType" ? (
-                labelFor(pending.value)
-              ) : (
-                <span className="whitespace-pre-wrap">{pending.value || "No value"}</span>
-              )}
-            </KeyValue>
-            <Inline space="space.100">
-              <Button
-                variant="secondary"
-                disabled={busy}
-                onClick={() => void save(pending.field, pending.value, pending).catch(() => {})}
-              >
-                Retry change
-              </Button>
-              <Button variant="subtle" disabled={busy} onClick={discard}>
-                Discard change
-              </Button>
-            </Inline>
-          </Stack>
-        </Section>
+        <Alert ref={alertRef} variant="destructive" role="alert">
+          <AlertCircle aria-hidden />
+          <AlertTitle>The change to {labels[pending.field].toLowerCase()} was not saved</AlertTitle>
+          <AlertDescription>
+            <Stack space="space.150">
+              <span>{pending.error}</span>
+              <KeyValue label={labels[pending.field]} wrap>
+                {pending.field === "ownerPartyId" ? (
+                  ownerLabel(pending.value)
+                ) : pending.field === "requirementType" ? (
+                  labelFor(pending.value)
+                ) : pending.value ? (
+                  <Prose>{pending.value}</Prose>
+                ) : (
+                  <Absent label="No value" />
+                )}
+              </KeyValue>
+              <Inline space="space.100">
+                <Button
+                  variant="secondary"
+                  isLoading={busy}
+                  onClick={() => void save(pending.field, pending.value, pending).catch(() => {})}
+                >
+                  Retry change
+                </Button>
+                <Button variant="subtle" onClick={discard}>
+                  Discard change
+                </Button>
+              </Inline>
+            </Stack>
+          </AlertDescription>
+        </Alert>
       )}
       {confirmation}
     </Stack>

@@ -40,7 +40,9 @@ export function TextLink({ render, size, weight, className, ...props }: TextLink
     props: mergeProps<"a">(
       {
         className: cn(
-          "relative rounded-xsmall text-brand underline-offset-2 outline-none transition-colors duration-fast ease-standard hover:underline focus-visible:outline-focused",
+          // A link in a sentence is underlined at rest, since its colour against the text beside it is
+          // 2.0:1 in dark mode (WCAG 1.4.1); a link standing alone underlines on hover.
+          "relative rounded-xsmall text-brand underline-offset-2 outline-none transition-colors duration-fast ease-standard hover:underline data-in-text:underline focus-visible:outline-focused",
           touchArea,
           size && sizes[size],
           weight && weights[weight],

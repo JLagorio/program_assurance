@@ -209,6 +209,9 @@
 @utility bg-input-thumb-checked {
   background-color: var(--ds-color-background-input-thumb-checked);
 }
+@utility bg-input-track {
+  background-color: var(--ds-color-background-input-track);
+}
 @utility bg-inverse-subtle {
   background-color: var(--ds-color-background-inverse-subtle);
 }

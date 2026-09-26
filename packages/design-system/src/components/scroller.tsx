@@ -239,9 +239,16 @@ export function Scroller({
         : 0;
       reveal(current, arrows);
     };
+    // Measured on the next frame, not inside the observer: a list that shrinks below its height
+    // drops the native scrollbar, its items widen by the scrollbar's width, and a second
+    // notification in the same frame makes Chromium report a ResizeObserver loop.
+    let frame = 0;
     const sizes = new ResizeObserver(() => {
-      update();
-      keepCurrentInView();
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        update();
+        keepCurrentInView();
+      });
     });
     const observeChildren = () => {
       sizes.disconnect();
@@ -260,6 +267,7 @@ export function Scroller({
     return () => {
       viewport.removeEventListener("scroll", update);
       viewport.removeEventListener("focusin", revealFocus);
+      cancelAnimationFrame(frame);
       sizes.disconnect();
       children.disconnect();
     };

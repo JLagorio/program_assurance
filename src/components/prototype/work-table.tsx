@@ -1,33 +1,34 @@
 import { ProductCollection } from "./product-collection";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordLink, useDisplayedRecords } from "./record-preview";
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
+  Absent,
   Button,
   DataTable,
-  Toolbar,
+  DateTime,
   defineColumns,
   Stack,
-  TextLink,
   useDataTable,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
 import { useRows, type Row } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
-import { labelFor } from "@/lib/records";
-import { QueryState } from "./work-common";
+import { LevelIndicator, StatusBadge } from "@/components/app/status";
+import { taskPriorities, taskStatuses } from "@/lib/status";
 import { CreateTaskDialog } from "./create-task-dialog";
-import { statusTone } from "./work-format";
 
 type TaskRow = Row<"tasks"> & {
   program: string;
   assignees: string;
-  state: string;
   due: string | undefined;
   role: string;
-  priorityLabel: string;
 };
+
+const ASSIGNED_TO_YOU = "Assigned to you";
+const mineFilter = [{ id: "role", value: [ASSIGNED_TO_YOU] }];
+
 export function WorkTable({
   programId,
   workstreamId,
@@ -63,20 +64,17 @@ export function WorkTable({
         return {
           ...task,
           program:
-            programs.data?.find((item) => item.id === task.program_id)?.name ??
-            "Unavailable program",
+            programs.data?.find((item) => item.id === task.program_id)?.name ?? "Not available",
           assignees:
             assigned
               .map(
                 (item) =>
                   parties.data?.find((party) => party.id === item.party_id)?.name ??
-                  "Unavailable person",
+                  "Not available",
               )
               .join(", ") || "Unassigned",
-          state: labelFor(task.status),
           due: task.due_at ?? undefined,
-          role: mine ? "Assigned to you" : "Other tasks",
-          priorityLabel: task.priority ? labelFor(task.priority) : "Not recorded",
+          role: mine ? ASSIGNED_TO_YOU : "Other tasks",
         };
       }),
     [tasks.data, assignments.data, parties.data, programs.data, workspace.userId],
@@ -86,7 +84,8 @@ export function WorkTable({
       defineColumns<TaskRow>((c) => [
         c.id("title", {
           header: "Task",
-          width: 220,
+          // 200 and the status's 120 fit a phone's row together, so the status stays beside the name.
+          width: 200,
           minWidth: 180,
           priority: 0,
           preview: setPreview,
@@ -98,11 +97,16 @@ export function WorkTable({
             </RecordLink>
           ),
         }),
-        c.status("state", { header: "State", width: 130, tone: (row) => statusTone(row.status) }),
+        c.status("status", { header: "Status", width: 120, priority: 1, statuses: taskStatuses }),
         c.text("assignees", { header: "Assigned to", width: 180 }),
         ...(programId ? [] : [c.text("program", { header: "Program", width: 180 })]),
-        c.date("due", { header: "Due", width: 135 }),
-        c.text("priorityLabel", { header: "Priority", width: 110 }),
+        c.date("due", { header: "Due", width: 135, priority: 2 }),
+        c.status("priority", {
+          header: "Priority",
+          width: 110,
+          statuses: taskPriorities,
+          cell: (row) => <LevelIndicator levels={taskPriorities} value={row.priority} />,
+        }),
         c.text("role", { header: "Assignment", width: 160 }),
       ]),
     [programId, preview?.id],
@@ -111,15 +115,38 @@ export function WorkTable({
     data: rows,
     columns,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.title,
     label: "Tasks",
     view: `tasks-${workstreamId ?? programId ?? "my-work"}`,
     resizable: true,
     reorderable: true,
-    initialState: { columnFilters: mineOnly ? [{ id: "role", value: ["Assigned to you"] }] : [] },
+    initialState: { columnFilters: mineOnly ? mineFilter : [] },
   });
   const displayed = useDisplayedRecords(table);
+  const region = useRef<HTMLElement>(null);
+  /** Everyone's tasks: the filter goes, and focus goes to the search, since the button goes too. */
+  const showAll = () => {
+    table.setColumnFilters([]);
+    requestAnimationFrame(() =>
+      region.current?.querySelector<HTMLInputElement>("input[type='search']")?.focus(),
+    );
+  };
+  // The reader's own tasks are a saved question, not a search: with nothing assigned, the register
+  // says so and offers everyone's tasks, not "Nothing matches".
+  const onlyMine =
+    !String(table.state.globalFilter ?? "") &&
+    JSON.stringify(table.state.columnFilters) === JSON.stringify(mineFilter);
+  const open = () => {
+    if (!adding) setAdding(true);
+  };
+  const create = (size: "small" | "medium") =>
+    workspace.role !== "viewer" ? (
+      <Button size={size} variant="primary" iconBefore={<Plus />} onClick={open}>
+        Create task
+      </Button>
+    ) : undefined;
   return (
-    <Stack space="space.200">
+    <Stack space="space.200" ref={region}>
       {adding && (
         <CreateTaskDialog
           programId={programId}
@@ -132,67 +159,48 @@ export function WorkTable({
         queries={[tasks, assignments, parties, programs]}
         table={table}
         fill={fill}
+        noun={{ one: "task", other: "tasks" }}
         onRowClick={(row) => void navigate({ to: "/tasks/$taskId", params: { taskId: row.id } })}
         empty={{
           illustration: "tasks",
           title: "No tasks yet",
           description: "Create a task and assign a person to start tracking work.",
-          action:
-            workspace.role !== "viewer" ? (
-              <Button
-                variant="primary"
-                iconBefore={<Plus />}
-                disabled={adding}
-                onClick={() => setAdding(true)}
-              >
-                Create task
-              </Button>
-            ) : undefined,
+          action: create("medium"),
+          ...(onlyMine
+            ? {
+                filtered: {
+                  illustration: "inbox",
+                  title: "Nothing assigned to you",
+                  description: "Tasks assigned to you appear here.",
+                  action: <Button onClick={showAll}>Show all tasks</Button>,
+                },
+              }
+            : {}),
         }}
         searchLabel="Find tasks"
         views={
-          <>
-            <DataTable.Presets
-              table={table}
-              variant="menu"
-              presets={[
-                { id: "all", label: "All tasks" },
-                {
-                  id: "mine",
-                  label: "Assigned to you",
-                  filters: [{ id: "role", value: ["Assigned to you"] }],
-                },
-                {
-                  id: "open",
-                  label: "Open",
-                  filters: [{ id: "state", value: ["Open", "In progress", "Waiting", "Blocked"] }],
-                },
-                { id: "done", label: "Done", filters: [{ id: "state", value: ["Done"] }] },
-              ]}
-            />
-          </>
+          <DataTable.Presets
+            table={table}
+            variant="menu"
+            presets={[
+              { id: "all", label: "All tasks" },
+              { id: "mine", label: ASSIGNED_TO_YOU, filters: mineFilter },
+              {
+                id: "open",
+                label: "Open",
+                filters: [{ id: "status", value: ["open", "in_progress", "waiting", "blocked"] }],
+              },
+              { id: "done", label: "Done", filters: [{ id: "status", value: ["done"] }] },
+            ]}
+          />
         }
         filters={
           <>
-            <DataTable.Filter table={table} column="state" />
+            <DataTable.Filter table={table} column="status" />
             <DataTable.Filter table={table} column="assignees" />
           </>
         }
-        action={
-          <>
-            {workspace.role !== "viewer" && (
-              <Button
-                size="small"
-                variant="primary"
-                iconBefore={<Plus />}
-                disabled={adding}
-                onClick={() => setAdding(true)}
-              >
-                Create task
-              </Button>
-            )}
-          </>
-        }
+        action={create("small")}
       />
       {preview && (
         <RecordSummaryPreview
@@ -202,11 +210,29 @@ export function WorkTable({
           onSelect={setPreview}
           onClose={() => setPreview(null)}
           fields={[
-            { key: "state", label: "State" },
+            {
+              key: "status",
+              label: "Status",
+              render: (row) => <StatusBadge statuses={taskStatuses} value={row.status} />,
+            },
             { key: "assignees", label: "Assigned to" },
             { key: "program", label: "Program" },
-            { key: "due", label: "Due" },
-            { key: "priorityLabel", label: "Priority" },
+            {
+              key: "due",
+              label: "Due",
+              render: (row) =>
+                // The day, as the Due column and the task record read it.
+                row.due ? (
+                  <DateTime value={row.due} format="date" />
+                ) : (
+                  <Absent label="Not recorded" />
+                ),
+            },
+            {
+              key: "priority",
+              label: "Priority",
+              render: (row) => <LevelIndicator levels={taskPriorities} value={row.priority} />,
+            },
           ]}
         />
       )}

@@ -103,7 +103,7 @@ function TableRoot({
     ref: table,
     props: {
       "data-slot": "table",
-      className: cn("w-full border-collapse text-left font-body", className),
+      className: cn("w-full border-collapse text-start font-body", className),
       ...(label ? { "aria-label": label } : {}),
       ...(role ? { role } : {}),
       ...props,
@@ -635,7 +635,8 @@ function TableGroup({
               <ChevronDown
                 className={cn(
                   "size-icon-small shrink-0 icon-subtle transition-transform duration-fast ease-standard",
-                  open ? "" : "-rotate-90",
+                  // Closed points to the reading direction's end: left in a right-to-left table.
+                  open ? "" : "-rotate-90 rtl:rotate-90",
                 )}
               />
             </button>
@@ -700,7 +701,7 @@ function TreeCell({
             <ChevronRight
               className={cn(
                 "size-icon-small transition-transform duration-fast ease-standard",
-                expanded && "rotate-90",
+                expanded ? "rotate-90" : "rtl:rotate-180",
               )}
             />
           </button>
@@ -758,7 +759,7 @@ function DisclosureCell({
             <ChevronRight
               className={cn(
                 "size-icon-small transition-transform duration-fast ease-standard",
-                expanded && "rotate-90",
+                expanded ? "rotate-90" : "rtl:rotate-180",
               )}
             />
           </button>
@@ -892,14 +893,14 @@ function ListCell({
           aria-hidden
           className={cn(
             "size-icon-small shrink-0 icon-subtlest transition-transform duration-fast ease-standard",
-            expanded && "rotate-90",
+            expanded ? "rotate-90" : "rtl:rotate-180",
           )}
         />
       )}
     </>
   );
   const shape =
-    "relative flex min-w-0 max-w-full touch-target items-center gap-075 rounded-xsmall text-left outline-none focus-visible:outline-focused";
+    "relative flex min-w-0 max-w-full touch-target items-center gap-075 rounded-xsmall text-start outline-none focus-visible:outline-focused";
   const card = (
     <div className="flex flex-col gap-100">
       <ul className="flex flex-col gap-075">

@@ -16,7 +16,7 @@ const meta = {
   args: {
     label: "Composition",
     children: [
-      <Tree.Item key="1" depth={0} hasChildren expanded isSelected>
+      <Tree.Item key="1" depth={0} hasChildren isExpanded isSelected>
         Atlas payments platform
       </Tree.Item>,
       <Tree.Item key="2" depth={1} hasChildren>
@@ -38,10 +38,10 @@ export const TreeMatrix: Story = {
       <Specimens title="small (32px), text only">
         <Box className="w-layout-list max-w-full">
           <Tree label="Composition">
-            <Tree.Item depth={0} hasChildren expanded>
+            <Tree.Item depth={0} hasChildren isExpanded>
               Atlas payments platform
             </Tree.Item>
-            <Tree.Item depth={1} lines={[true]} hasChildren expanded>
+            <Tree.Item depth={1} lines={[true]} hasChildren isExpanded>
               Payments API
             </Tree.Item>
             <Tree.Item
@@ -71,10 +71,10 @@ export const TreeMatrix: Story = {
       <Specimens title="xsmall (24px), with icons on every row">
         <Box className="w-layout-list max-w-full">
           <Tree label="Control families" size="xsmall">
-            <Tree.Item depth={0} hasChildren expanded trailing={<Count value={12} />}>
+            <Tree.Item depth={0} hasChildren isExpanded trailing={<Count value={12} />}>
               <Folder className="size-icon-small icon-subtle" /> Finance
             </Tree.Item>
-            <Tree.Item depth={1} hasChildren expanded>
+            <Tree.Item depth={1} hasChildren isExpanded>
               <Folder className="size-icon-small icon-subtle" /> Payables
             </Tree.Item>
             <Tree.Item depth={2} isSelected>
@@ -105,7 +105,7 @@ function FamiliesDemo() {
       <Tree.Item
         depth={0}
         hasChildren
-        expanded={open["finance"]}
+        isExpanded={open["finance"]}
         onToggle={() => toggle("finance")}
         isSelected={sel === "finance"}
         onSelect={() => setSel("finance")}
@@ -118,7 +118,7 @@ function FamiliesDemo() {
           <Tree.Item
             depth={1}
             hasChildren
-            expanded={open["payables"]}
+            isExpanded={open["payables"]}
             onToggle={() => toggle("payables")}
             isSelected={
               sel === "payables" || (!open["payables"] && ["ctrl-0412", "ctrl-0418"].includes(sel))
@@ -155,7 +155,7 @@ function FamiliesDemo() {
             depth={1}
             lines={[false]}
             hasChildren
-            expanded={open["receivables"]}
+            isExpanded={open["receivables"]}
             onToggle={() => toggle("receivables")}
             isSelected={sel === "receivables"}
             onSelect={() => setSel("receivables")}
@@ -177,7 +177,7 @@ function FamiliesDemo() {
       <Tree.Item
         depth={0}
         hasChildren
-        expanded={open["security"]}
+        isExpanded={open["security"]}
         onToggle={() => toggle("security")}
         isSelected={sel === "security"}
         onSelect={() => setSel("security")}
@@ -235,7 +235,7 @@ export const Dont: Story = {
       <Pair
         do={
           <Tree label="Control families">
-            <Tree.Item depth={0} hasChildren expanded>
+            <Tree.Item depth={0} hasChildren isExpanded>
               <Folder className="size-icon-small icon-subtle" /> Finance
             </Tree.Item>
             <Tree.Item depth={1}>
@@ -249,7 +249,7 @@ export const Dont: Story = {
         doText="An icon on every row, or on none, so labels at one level align."
         dont={
           <Tree label="Control families">
-            <Tree.Item depth={0} hasChildren expanded>
+            <Tree.Item depth={0} hasChildren isExpanded>
               <Folder className="size-icon-small icon-subtle" /> Finance
             </Tree.Item>
             <Tree.Item depth={1}>CTRL-0412 Segregation of duties</Tree.Item>
@@ -279,7 +279,7 @@ export const Dont: Story = {
         doText="One level of nesting is a collapsible Item list."
         dont={
           <Tree label="Control families">
-            <Tree.Item depth={0} hasChildren expanded>
+            <Tree.Item depth={0} hasChildren isExpanded>
               Finance
             </Tree.Item>
             <Tree.Item depth={1}>CTRL-0412 Segregation of duties</Tree.Item>
@@ -496,5 +496,86 @@ export const NestedTrees: Story = {
     await userEvent.click(removeCollection);
     await expect(beta).not.toBeInTheDocument();
     await expect(removeCollection).toHaveFocus();
+  },
+};
+
+/**
+ * The selected row is the selected fill and a 2px bar at its start edge in the selected colour, a
+ * second cue at 3:1 on the fill, so the selection never rests on a faint tint alone; in forced
+ * colours the row is Highlight. In a right-to-left tree the bar is on the right and a closed
+ * branch's chevron points left. `expanded`, the old name for `isExpanded`, still opens a branch.
+ */
+export const SelectedAndRightToLeft: Story = {
+  name: "Selected and right to left",
+  render: () => (
+    <Stack space="space.300">
+      <Specimens title="Left to right">
+        <Box className="w-layout-list max-w-full">
+          <Tree label="Payables">
+            <Tree.Item depth={0} hasChildren isExpanded>
+              Payables
+            </Tree.Item>
+            <Tree.Item depth={1} isSelected>
+              CTRL-0412 Segregation of duties
+            </Tree.Item>
+            <Tree.Item depth={1} lines={[false]}>
+              CTRL-0418 Vendor master change
+            </Tree.Item>
+          </Tree>
+        </Box>
+      </Specimens>
+      <Specimens title="Right to left, with the deprecated expanded">
+        <Box className="w-layout-list max-w-full" dir="rtl">
+          <Tree label="Receivables">
+            <Tree.Item depth={0} hasChildren expanded>
+              Receivables
+            </Tree.Item>
+            <Tree.Item depth={1} isSelected>
+              CTRL-0510 Credit limits
+            </Tree.Item>
+            <Tree.Item depth={1} lines={[false]} hasChildren>
+              Collections
+            </Tree.Item>
+          </Tree>
+        </Box>
+      </Specimens>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const forced = matchMedia("(forced-colors: active)").matches;
+    for (const [treeName, rowName] of [
+      ["Payables", "CTRL-0412 Segregation of duties"],
+      ["Receivables", "CTRL-0510 Credit limits"],
+    ] as const) {
+      const tree = canvas.getByRole("tree", { name: treeName });
+      const selected = within(tree).getByRole("treeitem", { name: rowName, selected: true });
+      const bar = getComputedStyle(selected, "::before");
+      const plain = within(tree).getAllByRole("treeitem", { selected: false })[0]!;
+      await expect(getComputedStyle(plain, "::before").content).toBe("none");
+      if (forced) {
+        await expect(bar.display).toBe("none");
+        continue;
+      }
+      await expect(bar.position).toBe("absolute");
+      await expect(bar.width).toBe("2px");
+      await expect(bar.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+      const box = selected.getBoundingClientRect();
+      const barLeft = parseFloat(bar.left);
+      const barRight = parseFloat(bar.right);
+      // The bar hugs the row's start edge: the left in LTR, the right in RTL.
+      if (treeName === "Payables") await expect(barLeft).toBe(0);
+      else await expect(barRight).toBe(0);
+      await expect(box.width).toBeGreaterThan(0);
+    }
+    const rtl = canvas.getByRole("tree", { name: "Receivables" });
+    await expect(within(rtl).getByRole("treeitem", { name: "Receivables" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    const closed = within(rtl).getByRole("treeitem", { name: "Collections" });
+    await expect(closed).toHaveAttribute("aria-expanded", "false");
+    const chevron = closed.querySelector("svg")!;
+    await expect(getComputedStyle(chevron).rotate).toBe("180deg");
   },
 };

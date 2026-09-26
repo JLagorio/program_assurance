@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Inspector } from "../../patterns";
+import { Inspector, InspectorGroup } from "../../patterns";
 import * as Stories from "./Inspector.stories";
 
 <Meta of={Stories} />
@@ -47,13 +47,21 @@ A group's heading takes the contextual level, an h3 when nothing sets one. On a 
 
 ### Inspector.Group
 
-<ArgTypes of={Inspector.Group} />
+<ArgTypes of={InspectorGroup} />
+
+Inspector and Inspector.Group take their root's native `div` props, a `className` and a ref, and name themselves last with `data-slot` (`inspector`, `inspector-group`). `InspectorGroup` is the same part by name.
+
+<Canvas of={Stories.NativeAttributes} />
 
 ### Playground
 
 <Canvas of={Stories.Playground} />
 
 <Controls of={Stories.Playground} />
+
+## Don't
+
+<Canvas of={Stories.Dont} />
 
 ## Related
 

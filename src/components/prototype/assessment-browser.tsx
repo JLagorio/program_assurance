@@ -1,37 +1,33 @@
-import { displayDate } from "./work-format";
-import { useState } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
+  Absent,
   Button,
   Count,
-  Section,
-  Shell,
+  DateTime,
+  Prose,
   Stack,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
+  Text,
   TextLink,
+  VisuallyHidden,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
-import { useRows } from "@/lib/models";
+import { useRows, type Row } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
+import { StatusBadge, LevelIndicator } from "@/components/app/status";
+import { campaignStatuses, impactLevels } from "@/lib/status";
 import { type DataRecord } from "@/lib/records";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
 import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
 import { ProgramCollection } from "./program-shared";
 import { RelationName } from "./record-tools";
-import { ImpactBadge } from "./system-assurance-details";
-import type { Impact } from "@/lib/system-assurance";
-import {
-  DetailFacts,
-  ModelForm,
-  QueryState,
-  SchemaLink,
-  StatusBadge,
-  type FormTarget,
-} from "./work-common";
+import { DetailFacts, ModelForm, QueryState, SchemaLink, type FormTarget } from "./work-common";
 
 type AssessmentKind = "Campaigns" | "Events" | "Objectives" | "Scopes";
 type AssessmentRecordKind = Exclude<AssessmentKind, "Scopes">;
@@ -40,15 +36,32 @@ const tables: Record<AssessmentRecordKind, FormTarget["table"]> = {
   Events: "assessment_events",
   Objectives: "assessment_objectives",
 };
-const nouns: Record<AssessmentRecordKind, string> = {
-  Campaigns: "campaign",
-  Events: "event",
-  Objectives: "objective",
+
+type CampaignRow = Row<"assessment_campaigns"> & {
+  program: string;
+  owner: string | null;
+  events: number;
 };
 
-/** Campaigns, their events, their objectives and, within a program, its assessment scopes: registers under one tab strip, each on the kit's table with its own search, chips and create action. Choosing a campaign opens its events with the Campaign chip already set. */
+/** Authored text under its name, or a labelled Absent when there is none. */
+function Described({ label, text }: { label: string; text: unknown }) {
+  return (
+    <Prose label={label}>
+      {typeof text === "string" && text.trim() ? text : <Absent label="Not recorded" />}
+    </Prose>
+  );
+}
+
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** A campaign's or event's window reads in days, as the registers show it. */
+const day = (value: unknown) =>
+  typeof value === "string" && value ? <DateTime value={value} format="date" /> : null;
+
+/** Campaigns, their events, their objectives and, within a program, its assessment scopes: registers under one tab strip, each on the kit's table with its own search, chips and create action. Choosing a campaign's event count opens its events with the Campaign chip already set. */
 export function AssessmentBrowser({ programId }: { programId?: string }) {
   const workspace = useWorkspace();
+  const { formatPlural } = useLedgerLocale();
   const campaigns = useRows("assessment_campaigns", programId ? { program_id: programId } : {});
   const plans = useRows("assessment_plan_revisions");
   const events = useRows("assessment_events");
@@ -62,33 +75,57 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
   const [form, setForm] = useState<FormTarget | null>(null);
   const [selection, setSelection] = useState<FormTarget | null>(null);
   const [displayed, setDisplayed] = useState<Record<string, DataRecord[]>>({});
-  const campaignRows = campaigns.data ?? [];
+  // A campaign's event count opens the Events tab; its button leaves with the Campaigns panel, so
+  // focus goes to the tab the reader is now on.
+  const eventsTab = useRef<HTMLButtonElement>(null);
+  const partyName = useCallback(
+    (id: string | null | undefined) =>
+      id ? (parties.data?.find((party) => party.id === id)?.name ?? "Not available") : null,
+    [parties.data],
+  );
+  const campaignRows = useMemo<CampaignRow[]>(
+    () =>
+      (campaigns.data ?? []).map((campaign) => ({
+        ...campaign,
+        program:
+          programs.data?.find((program) => program.id === campaign.program_id)?.name ??
+          "Not available",
+        owner: partyName(campaign.owner_party_id),
+        events: (events.data ?? []).filter((event) => event.campaign_id === campaign.id).length,
+      })),
+    [campaigns.data, programs.data, events.data, partyName],
+  );
   const campaignTitle = (id: string | null | undefined) =>
-    campaignRows.find((campaign) => campaign.id === id)?.title ?? "Unavailable campaign";
+    campaignRows.find((campaign) => campaign.id === id)?.title ?? "Not available";
   const planRows = (plans.data ?? []).filter((plan) =>
     campaignRows.some((campaign) => campaign.id === plan.campaign_id),
   );
+  const planOf = (id: unknown) => planRows.find((plan) => plan.id === id);
   const eventRows = (events.data ?? [])
     .filter((event) => campaignRows.some((campaign) => campaign.id === event.campaign_id))
     .map((event) => ({
       ...event,
       campaign: campaignTitle(event.campaign_id),
-      plan: String(
-        planRows.find((plan) => plan.id === event.plan_revision_id)?.version_number ??
-          "Unavailable",
-      ),
+      plan: planOf(event.plan_revision_id)?.version_number ?? null,
     }));
   const objectiveRows = (objectives.data ?? [])
     .filter((objective) => planRows.some((plan) => plan.id === objective.plan_revision_id))
     .map((objective) => {
-      const plan = planRows.find((item) => item.id === objective.plan_revision_id);
+      const plan = planOf(objective.plan_revision_id);
       return {
         ...objective,
         campaign: campaignTitle(plan?.campaign_id),
-        plan: plan?.title ?? "Unavailable plan",
+        plan: plan?.title ?? "Not available",
       };
     });
-  const systemIds = new Set((systems.data ?? []).map((system) => system.id));
+  const systemIds = useMemo(
+    () => new Set((systems.data ?? []).map((system) => system.id)),
+    [systems.data],
+  );
+  const inProgram = useCallback(
+    (record: DataRecord) => systemIds.has(String(record["system_id"])),
+    [systemIds],
+  );
   const scopeRows = (scopes.data ?? []).filter((scope) => systemIds.has(scope.system_id));
   const firstBoundary = (systems.data ?? []).find((system) => system.is_authorization_boundary);
   const kinds: AssessmentKind[] = programId
@@ -96,18 +133,43 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
     : ["Campaigns", "Events", "Objectives"];
   const chosen = campaignId ? campaignTitle(campaignId) : null;
   const campaignFilter = chosen ? [{ id: "campaign", value: [chosen] }] : undefined;
-  const selected = selection?.existing;
+  const counts: Partial<Record<AssessmentKind, number | undefined>> = {
+    Campaigns: campaigns.data && campaignRows.length,
+    Events: campaigns.data && events.data && eventRows.length,
+    Objectives: campaigns.data && plans.data && objectives.data && objectiveRows.length,
+    Scopes: systems.data && scopes.data && scopeRows.length,
+  };
+  // The preview reads the record as the registers have it now, so an edit saved from it shows.
+  const live: Record<AssessmentRecordKind, DataRecord[]> = {
+    Campaigns: campaignRows as unknown as DataRecord[],
+    Events: eventRows as unknown as DataRecord[],
+    Objectives: objectiveRows as unknown as DataRecord[],
+  };
+  const selectedKind = (Object.keys(tables) as AssessmentRecordKind[]).find(
+    (kind) => tables[kind] === selection?.table,
+  );
+  const selected =
+    selection?.existing &&
+    ((selectedKind && live[selectedKind].find((row) => row.id === selection.existing!.id)) ??
+      selection.existing);
+  /** The record as stored, without the names the registers derive, for the edit form. */
+  const stored = (record: DataRecord): DataRecord =>
+    ([campaigns, events, objectives] as const)
+      .flatMap((query) => (query.data ?? []) as unknown as DataRecord[])
+      .find((row) => row.id === record.id) ?? record;
   function edit(target: FormTarget) {
-    setSelection(null);
+    // The preview stays open under the dialog, so closing the dialog returns to its Edit.
+    if (form) return;
     setForm(target);
   }
+  const inspect = (table: FormTarget["table"]) => (row: object) =>
+    setSelection({ table, existing: row as DataRecord });
   const add = (kind: AssessmentRecordKind, size: "small" | "medium") =>
     workspace.role !== "viewer" ? (
       <Button
         size={size}
         variant="primary"
         iconBefore={<Plus />}
-        disabled={!!form}
         onClick={() =>
           edit({
             table: tables[kind],
@@ -125,90 +187,139 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
         {productCreateLabel(tables[kind])}
       </Button>
     ) : undefined;
+  const planLink = (id: unknown) =>
+    typeof id === "string" && id ? (
+      <SchemaLink table="assessment_plan_revisions" id={id}>
+        {planOf(id)?.title ?? "Assessment plan revision"}
+      </SchemaLink>
+    ) : null;
+  const campaignLink = (id: unknown) =>
+    typeof id === "string" && id ? (
+      <TextLink render={<Link to="/campaigns/$campaignId" params={{ campaignId: id }} />}>
+        {campaignTitle(id)}
+      </TextLink>
+    ) : null;
+  const previewBody = (record: DataRecord): ReactNode => {
+    if (selection?.table === "assessment_campaigns") {
+      const row = record as unknown as CampaignRow;
+      return (
+        <>
+          <Described label="Description" text={row.description} />
+          <DetailFacts
+            facts={[
+              ["Status", <StatusBadge statuses={campaignStatuses} value={row.status} />],
+              [
+                "Program",
+                <TextLink
+                  render={<Link to="/programs/$programId" params={{ programId: row.program_id }} />}
+                >
+                  {row.program}
+                </TextLink>,
+              ],
+              ["Owner", row.owner],
+              ["Starts", day(row.starts_at)],
+              ["Ends", day(row.ends_at)],
+              ["Events", row.events],
+            ]}
+          />
+        </>
+      );
+    }
+    if (selection?.table === "assessment_events")
+      return (
+        <>
+          <Described label="Description" text={record["description"]} />
+          <DetailFacts
+            facts={[
+              [
+                "Status",
+                <StatusBadge statuses={campaignStatuses} value={String(record["status"] ?? "")} />,
+              ],
+              ["Campaign", campaignLink(record["campaign_id"])],
+              ["Starts", day(record["starts_at"])],
+              ["Ends", day(record["ends_at"])],
+              ["Location", record["location"] as string | null],
+              ["Assessment plan", planLink(record["plan_revision_id"])],
+            ]}
+          />
+        </>
+      );
+    return (
+      <>
+        <Described label="Statement" text={record["description"]} />
+        <DetailFacts
+          facts={[
+            ["Acceptance criterion", record["acceptance_criterion"] as string | null],
+            ["Campaign", campaignLink(planOf(record["plan_revision_id"])?.campaign_id)],
+            ["Assessment plan", planLink(record["plan_revision_id"])],
+          ]}
+        />
+      </>
+    );
+  };
   return (
     <Stack space="space.200">
       {form && <ModelForm target={form} onClose={() => setForm(null)} />}
-      <QueryState
-        queries={[campaigns, plans, events, objectives, programs, parties, systems, scopes]}
-      >
-        <Tabs value={tab} onValueChange={(value) => setTab(value as AssessmentKind)}>
-          <TabsList variant="line" activateOnFocus aria-label="Assessment collections">
-            {kinds.map((name) => (
-              <TabsTrigger value={name} key={name}>
-                {name}
-                <Count
-                  value={
-                    name === "Campaigns"
-                      ? campaignRows.length
-                      : name === "Events"
-                        ? eventRows.length
-                        : name === "Objectives"
-                          ? objectiveRows.length
-                          : scopeRows.length
-                  }
-                />
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value="Campaigns" className="pt-200">
-            <AssessmentTable
-              model="assessment_campaigns"
-              fill
-              label="Campaigns"
-              view="assessment-campaigns"
-              rows={campaignRows}
-              filters={["status"]}
-              actions={add("Campaigns", "small")}
-              empty={{
-                illustration: "calendar",
-                title: "No campaigns yet",
-                description:
-                  "Schedule an assessment campaign to plan its events and record their objectives.",
-                action: add("Campaigns", "medium"),
-              }}
-              columns={[
-                { label: "Campaign", key: "title", value: (row) => row.title },
-                ...(programId
-                  ? []
-                  : [
-                      {
-                        label: "Program",
-                        value: (row: (typeof campaignRows)[number]) =>
-                          programs.data?.find((program) => program.id === row.program_id)?.name ??
-                          "Unavailable program",
-                        width: 180,
-                      },
-                    ]),
-                {
-                  label: "State",
-                  key: "status",
-                  value: (row) => <StatusBadge value={row.status} />,
-                  width: 130,
-                },
-                {
-                  label: "Owner",
-                  value: (row) =>
-                    row.owner_party_id
-                      ? (parties.data?.find((party) => party.id === row.owner_party_id)?.name ??
-                        "Unavailable person")
-                      : "Not recorded",
-                  width: 180,
-                },
-                {
-                  label: "Starts",
-                  key: "starts_at",
-                  value: (row) => displayDate(row.starts_at),
-                  width: 120,
-                },
-                {
-                  label: "Ends",
-                  key: "ends_at",
-                  value: (row) => displayDate(row.ends_at),
-                  width: 120,
-                },
-                {
-                  label: "Events",
-                  value: (row) => (
+      <Tabs value={tab} onValueChange={(value) => setTab(value as AssessmentKind)}>
+        <TabsList variant="line" activateOnFocus aria-label="Assessment collections">
+          {kinds.map((name) => (
+            <TabsTrigger value={name} key={name} {...(name === "Events" ? { ref: eventsTab } : {})}>
+              {name}
+              {counts[name] ? <Count value={counts[name]} /> : null}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value="Campaigns" keepMounted className="pt-200">
+          <AssessmentTable<CampaignRow>
+            model="assessment_campaigns"
+            fill
+            label="Campaigns"
+            view="assessment-campaigns"
+            rows={campaignRows}
+            queries={[campaigns, programs, parties, events]}
+            filters={["status"]}
+            actions={add("Campaigns", "small")}
+            selectedId={
+              selection?.table === "assessment_campaigns" ? selection.existing?.id : undefined
+            }
+            onDisplayedRowsChange={(rows) =>
+              setDisplayed((previous) => ({
+                ...previous,
+                assessment_campaigns: rows as unknown as DataRecord[],
+              }))
+            }
+            onPreview={inspect("assessment_campaigns")}
+            empty={{
+              illustration: "calendar",
+              title: "No campaigns yet",
+              description:
+                "Schedule an assessment campaign to plan its events and record their objectives.",
+              action: add("Campaigns", "medium"),
+            }}
+            // The name's 200 and the status's 120 fit a phone's row together.
+            columns={[
+              { label: "Campaign", key: "title", width: 200 },
+              ...(programId
+                ? []
+                : [{ label: "Program", key: "program" as const, width: 180, priority: 3 }]),
+              {
+                label: "Status",
+                key: "status",
+                statuses: campaignStatuses,
+                width: 120,
+                priority: 1,
+              },
+              { label: "Owner", key: "owner", width: 180, priority: 4 },
+              { label: "Starts", key: "starts_at", width: 120, priority: 2 },
+              { label: "Ends", key: "ends_at", width: 120, priority: 5 },
+              {
+                label: "Events",
+                key: "events",
+                kind: "number",
+                width: 100,
+                priority: 6,
+                value: (row) =>
+                  row.events > 0 ? (
                     <Button
                       variant="link"
                       size="small"
@@ -216,139 +327,128 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                         event.stopPropagation();
                         setCampaignId(row.id);
                         setTab("Events");
+                        requestAnimationFrame(() => eventsTab.current?.focus());
                       }}
                     >
-                      Show{" "}
-                      {(events.data ?? []).filter((event) => event.campaign_id === row.id).length}{" "}
-                      events
+                      <VisuallyHidden>
+                        {`Show ${formatPlural(row.events, { one: "{count} event", other: "{count} events" })} of ${row.title}`}
+                      </VisuallyHidden>
+                      <span aria-hidden>{row.events}</span>
                     </Button>
+                  ) : (
+                    row.events
                   ),
-                  width: 90,
-                },
-              ]}
-            />
-          </TabsContent>
-          <TabsContent value="Events" className="pt-200">
-            <AssessmentTable
-              model="assessment_events"
-              selectedId={
-                selection?.table === "assessment_events" ? selection.existing?.id : undefined
-              }
-              onDisplayedRowsChange={(rows) =>
-                setDisplayed((previous) => ({
-                  ...previous,
-                  assessment_events: rows as DataRecord[],
-                }))
-              }
-              key={campaignId ?? "all"}
-              fill
-              label="Events"
-              view="assessment-events"
-              rows={eventRows}
-              filters={["campaign", "status"]}
-              initialFilters={campaignFilter}
-              actions={add("Events", "small")}
-              empty={{
-                illustration: "calendar",
-                title: "No events yet",
-                description: "Add an assessment event under a campaign to schedule its window.",
-                action: add("Events", "medium"),
-              }}
-              columns={[
-                { label: "Event", key: "title", value: (row) => row.title },
-                { label: "Campaign", key: "campaign", value: (row) => row.campaign, width: 190 },
-                { label: "Plan version", key: "plan", value: (row) => row.plan, width: 115 },
-                {
-                  label: "State",
-                  key: "status",
-                  value: (row) => <StatusBadge value={row.status} />,
-                  width: 130,
-                },
-                {
-                  label: "Starts",
-                  key: "starts_at",
-                  value: (row) => displayDate(row.starts_at),
-                  width: 120,
-                },
-                {
-                  label: "Ends",
-                  key: "ends_at",
-                  value: (row) => displayDate(row.ends_at),
-                  width: 120,
-                },
-              ]}
-              onPreview={(row) => {
-                if (!form)
-                  setSelection({ table: "assessment_events", existing: row as DataRecord });
-              }}
-            />
-          </TabsContent>
-          <TabsContent value="Objectives" className="pt-200">
-            <AssessmentTable
-              model="assessment_objectives"
-              selectedId={
-                selection?.table === "assessment_objectives" ? selection.existing?.id : undefined
-              }
-              onDisplayedRowsChange={(rows) =>
-                setDisplayed((previous) => ({
-                  ...previous,
-                  assessment_objectives: rows as DataRecord[],
-                }))
-              }
-              key={campaignId ?? "all"}
-              fill
-              label="Objectives"
-              view="assessment-objectives"
-              rows={objectiveRows}
-              filters={["campaign"]}
-              initialFilters={campaignFilter}
-              actions={add("Objectives", "small")}
-              empty={{
-                illustration: "shield",
-                title: "No objectives yet",
-                description:
-                  "Record what each assessment plan sets out to show, and the control or requirement it targets.",
-                action: add("Objectives", "medium"),
-              }}
-              columns={[
-                { label: "Objective", key: "title", value: (row) => row.title },
-                {
-                  label: "Statement",
-                  key: "description",
-                  value: (row) => row.description ?? "Not recorded",
-                },
-                { label: "Campaign", key: "campaign", value: (row) => row.campaign, width: 190 },
-                { label: "Plan", key: "plan", value: (row) => row.plan, width: 190 },
-                {
-                  label: "Target",
-                  value: (row) =>
-                    row.target_control_part_id ? (
-                      <SchemaLink table="control_parts" id={row.target_control_part_id}>
-                        Control statement
-                      </SchemaLink>
-                    ) : row.requirement_revision_id ? (
-                      <SchemaLink table="requirement_revisions" id={row.requirement_revision_id}>
-                        Requirement revision
-                      </SchemaLink>
-                    ) : (
-                      "Not recorded"
-                    ),
-                  width: 170,
-                },
-              ]}
-              onPreview={(row) => {
-                if (!form)
-                  setSelection({ table: "assessment_objectives", existing: row as DataRecord });
-              }}
-            />
-          </TabsContent>
-          {programId && (
-            <TabsContent value="Scopes" className="pt-200">
+              },
+            ]}
+          />
+        </TabsContent>
+        <TabsContent value="Events" keepMounted className="pt-200">
+          <AssessmentTable
+            model="assessment_events"
+            selectedId={
+              selection?.table === "assessment_events" ? selection.existing?.id : undefined
+            }
+            onDisplayedRowsChange={(rows) =>
+              setDisplayed((previous) => ({
+                ...previous,
+                assessment_events: rows as DataRecord[],
+              }))
+            }
+            key={campaignId ?? "all"}
+            fill
+            label="Events"
+            view="assessment-events"
+            keepQuestion={`assessment-events-${campaignId ?? "all"}`}
+            rows={eventRows}
+            queries={[events, campaigns, plans]}
+            filters={["campaign", "status"]}
+            initialFilters={campaignFilter}
+            actions={add("Events", "small")}
+            empty={{
+              illustration: "calendar",
+              title: "No events yet",
+              description: "Add an assessment event under a campaign to schedule its window.",
+              action: add("Events", "medium"),
+            }}
+            columns={[
+              { label: "Event", key: "title", width: 200 },
+              { label: "Campaign", key: "campaign", width: 190, priority: 3 },
+              { label: "Plan version", key: "plan", kind: "number", width: 135, priority: 5 },
+              {
+                label: "Status",
+                key: "status",
+                statuses: campaignStatuses,
+                width: 120,
+                priority: 1,
+              },
+              { label: "Starts", key: "starts_at", width: 120, priority: 2 },
+              { label: "Ends", key: "ends_at", width: 120, priority: 4 },
+            ]}
+            onPreview={inspect("assessment_events")}
+          />
+        </TabsContent>
+        <TabsContent value="Objectives" keepMounted className="pt-200">
+          <AssessmentTable
+            model="assessment_objectives"
+            selectedId={
+              selection?.table === "assessment_objectives" ? selection.existing?.id : undefined
+            }
+            onDisplayedRowsChange={(rows) =>
+              setDisplayed((previous) => ({
+                ...previous,
+                assessment_objectives: rows as DataRecord[],
+              }))
+            }
+            key={campaignId ?? "all"}
+            fill
+            label="Objectives"
+            view="assessment-objectives"
+            keepQuestion={`assessment-objectives-${campaignId ?? "all"}`}
+            rows={objectiveRows}
+            queries={[objectives, plans, campaigns]}
+            filters={["campaign"]}
+            initialFilters={campaignFilter}
+            actions={add("Objectives", "small")}
+            empty={{
+              illustration: "shield",
+              title: "No objectives yet",
+              description:
+                "Record what each assessment plan sets out to show, and the control or requirement it targets.",
+              action: add("Objectives", "medium"),
+            }}
+            columns={[
+              { label: "Objective", key: "title" },
+              { label: "Statement", key: "description" },
+              { label: "Campaign", key: "campaign", width: 190 },
+              { label: "Plan", key: "plan", width: 190 },
+              {
+                label: "Target",
+                value: (row) =>
+                  row.target_control_part_id ? (
+                    <SchemaLink table="control_parts" id={row.target_control_part_id}>
+                      Control statement
+                    </SchemaLink>
+                  ) : row.requirement_revision_id ? (
+                    <SchemaLink table="requirement_revisions" id={row.requirement_revision_id}>
+                      Requirement revision
+                    </SchemaLink>
+                  ) : (
+                    <Absent label="Not recorded" />
+                  ),
+                width: 170,
+              },
+            ]}
+            onPreview={inspect("assessment_objectives")}
+          />
+        </TabsContent>
+        {programId && (
+          <TabsContent value="Scopes" keepMounted className="pt-200">
+            <QueryState queries={[systems]}>
               <ProgramCollection
                 name="scopes"
                 fill
                 title="Assessment scopes"
-                where={(record) => systemIds.has(String(record["system_id"]))}
+                where={inProgram}
                 initialValues={{ system_id: firstBoundary?.id ?? null }}
                 columns={[
                   { key: "code", title: "Scope" },
@@ -367,7 +467,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                       record["composition_node_id"] ? (
                         <RelationName table="systems" id={String(record["composition_node_id"])} />
                       ) : (
-                        <span className="text-subtle">Whole system</span>
+                        <Text color="color.text.subtle">Whole system</Text>
                       ),
                   },
                   ...(["confidentiality", "integrity", "availability"] as const).map(
@@ -380,8 +480,9 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                             ? "Integ."
                             : "Avail.",
                       render: (record: DataRecord) => (
-                        <ImpactBadge
-                          value={(record[`${dimension}_impact`] as Impact | null) ?? null}
+                        <LevelIndicator
+                          levels={impactLevels}
+                          value={(record[`${dimension}_impact`] as string | null) ?? null}
                         />
                       ),
                     }),
@@ -392,19 +493,23 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                   description: "Create a scope to categorize a subset of a system for assessment.",
                 }}
               />
-            </TabsContent>
-          )}
-        </Tabs>
-      </QueryState>
-      {selected && selection && !form && (
+            </QueryState>
+          </TabsContent>
+        )}
+      </Tabs>
+      {selected && selection && (
         <RecordPreviewPanel
           title={String(selected["title"])}
-          label="Assessment preview"
+          label={`${capitalize(productRecordNoun(selection.table))} preview`}
           defaultWidth={640}
           onClose={() => setSelection(null)}
           recordActions={
             workspace.role !== "viewer" && (
-              <Button size="small" variant="primary" onClick={() => edit(selection)}>
+              <Button
+                size="small"
+                variant="primary"
+                onClick={() => edit({ table: selection.table, existing: stored(selected) })}
+              >
                 Edit {productRecordNoun(selection.table, selected)}
               </Button>
             )
@@ -418,45 +523,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
             />
           }
         >
-          <Stack space="space.250">
-            <Section title="Details">
-              <p className="whitespace-pre-wrap pb-200">
-                {String(selected["description"] ?? "No description recorded.")}
-              </p>
-              <DetailFacts
-                facts={
-                  selection.table === "assessment_events"
-                    ? [
-                        ["State", <StatusBadge value={String(selected["status"])} />],
-                        ["Starts", displayDate(selected["starts_at"] as string | null)],
-                        ["Ends", displayDate(selected["ends_at"] as string | null)],
-                        ["Location", selected["location"] as string | null],
-                        [
-                          "Assessment plan",
-                          <SchemaLink
-                            table="assessment_plan_revisions"
-                            id={String(selected["plan_revision_id"])}
-                          >
-                            Open plan revision
-                          </SchemaLink>,
-                        ],
-                      ]
-                    : [
-                        ["Acceptance criterion", selected["acceptance_criterion"] as string | null],
-                        [
-                          "Plan",
-                          <SchemaLink
-                            table="assessment_plan_revisions"
-                            id={String(selected["plan_revision_id"])}
-                          >
-                            Open plan revision
-                          </SchemaLink>,
-                        ],
-                      ]
-                }
-              />
-            </Section>
-          </Stack>
+          <Stack space="space.250">{previewBody(selected)}</Stack>
         </RecordPreviewPanel>
       )}
     </Stack>

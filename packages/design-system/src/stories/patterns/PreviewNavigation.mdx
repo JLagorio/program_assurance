@@ -5,16 +5,60 @@ import * as Stories from "./PreviewNavigation.stories";
 
 # PreviewNavigation
 
-Use in `Shell.Panel.actions` for a record preview beside a register. The panel title is the record's name. These controls move through the table's displayed results and open the full record in a new tab.
+The collection controls for a record preview beside a register: previous and next through the table's displayed results, the announced position, and a link that opens the full record in a new tab. It belongs in the preview's outer bar, `Shell.Panel.Actions`, immediately before Close. That bar is navigation only: the record's visible name and its actions are an inner PageHeader at the start of the panel's body, its title an h2, as [Shell](?path=/docs/layout-shell--docs) describes.
 
 <Canvas of={Stories.Collection} />
 
-The application owns selection, filtered and sorted row order, and real record destinations. Supply a one-based `position`, `total`, and callbacks for adjacent records. `openLink` is an anchor or router link with its real destination, `target="_blank"`, and `rel="noopener noreferrer"`. It must lead to that record, not its collection.
+## In the panel
 
-If filtering removes the selected record, keep the preview open with `position={0}`. Both navigation buttons become disabled and the status explains that the record is outside the current results. The full-record link stays available.
+```tsx
+<Shell.Panel label="Requirement preview" onClose={closePreview}>
+  <Shell.Panel.Header>
+    <Shell.Panel.Actions>
+      <PreviewNavigation
+        position={position}
+        total={rows.length}
+        onPrevious={position > 1 ? showPrevious : undefined}
+        onNext={position < rows.length ? showNext : undefined}
+        openLink={<Link to={recordPath} target="_blank" rel="noopener noreferrer" />}
+      />
+    </Shell.Panel.Actions>
+    <Shell.Panel.Close />
+  </Shell.Panel.Header>
+  <Shell.Panel.Body>
+    <PageHeader>
+      <PageHeader.Title>{record.name}</PageHeader.Title>
+      <PageHeader.Actions>
+        <Button size="small" variant="primary">
+          Edit requirement
+        </Button>
+      </PageHeader.Actions>
+    </PageHeader>
+    {/* Labelled properties, then the record's sections. */}
+  </Shell.Panel.Body>
+</Shell.Panel>
+```
+
+The outer bar has no `Shell.Panel.Title`, so the panel takes its accessible name from `label`, and its body's outline starts at 2: the PageHeader.Title is the h2. Do not repeat the record's name in the outer bar, and do not repeat the full-record link at the bottom of the body. A nested record frame adds Back before the navigation.
+
+## What the caller owns
+
+The application owns selection, the filtered, sorted and expanded row order, and real record destinations; the part imports no router and holds no rows. Supply a one-based `position` and the `total` of the displayed rows, and a callback for each adjacent record. Leave a callback out at an endpoint, or pass a position at the end, and that button is disabled. `openLink` is an anchor or router link with the record's real destination, `target="_blank"` and `rel="noopener noreferrer"`; it must lead to that record, not its collection. The part gives it its icon and accessible name.
+
+If filtering removes the selected record, keep the preview open with `position={0}`. Both navigation buttons become disabled and the status says that the record is outside the current results. The full-record link stays available.
 
 <Canvas of={Stories.OutsideResults} />
 
-The controls have consistent accessible names: “Previous record”, “Next record” and “Open full record in new tab”. The screen reader status announces “n of m records”. Focus stays on the navigation control as the preview content changes.
+## Focus and announcements
+
+- The controls are named "Previous record", "Next record" and "Open full record in new tab", and a polite status announces "n of m records" as the position changes.
+- Focus stays on the control the reader used while the preview's content changes, so arrowing through a collection needs no hunt for the button.
+- At an endpoint the control the reader used becomes disabled. Focus moves to the remaining enabled navigation button, or to the full-record link when neither is enabled, so Escape and the next key stay inside the preview.
+
+## Words
+
+Every label and the position template are LedgerProvider messages (`previousRecord`, `nextRecord`, `openFullRecord`, `recordPosition`, `recordOutsideResults`), translated once for the product; see [Locale](?path=/docs/components-locale--docs).
+
+<Canvas of={Stories.Localized} />
 
 <ArgTypes of={Stories.Collection} />

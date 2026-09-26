@@ -1,19 +1,19 @@
 import { ProductCollection } from "./product-collection";
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   Badge,
   Button,
-  Checkbox,
   DataTable,
+  DateTime,
+  FilterChip,
   Inline,
   Inspector,
   KeyValue,
-  Shell,
+  Prose,
   Stack,
-  TextLink,
-  Toolbar,
+  Text,
   defineColumns,
   useDataTable,
   type Preset,
@@ -26,12 +26,15 @@ import {
   useDisplayedRecords,
 } from "./record-preview";
 import { Plus } from "lucide-react";
+import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRows } from "@/lib/models";
 import { labelFor } from "@/lib/records";
+import { implementationStatuses } from "@/lib/status";
 import { libraryUses, type LibraryUseRow } from "@/lib/library-use";
 import type { SystemAssuranceRow } from "@/lib/system-assurance";
 import { LibraryUpdateReview } from "./library-update-review";
+import { EmptyMessage } from "./work-common";
 
 type Line = LibraryUseRow & {
   updateFlag: string;
@@ -133,7 +136,7 @@ export function SystemLibrary({
           active: (row) => row.id === selectedId,
           hideable: false,
           cell: (row) => (
-            <span className="flex min-w-0 flex-col">
+            <Stack space="space.0" className="min-w-0">
               <RecordLink
                 table={
                   row.definitionId
@@ -149,8 +152,12 @@ export function SystemLibrary({
               >
                 {row.name}
               </RecordLink>
-              {row.detail && <span className="font-body-xsmall text-subtle">{row.detail}</span>}
-            </span>
+              {row.detail && (
+                <Text size="xsmall" color="color.text.subtle">
+                  {row.detail}
+                </Text>
+              )}
+            </Stack>
           ),
         }),
         c.text("kind", { header: "Kind", width: 170 }),
@@ -174,10 +181,12 @@ export function SystemLibrary({
           width: 200,
           cell: (row) =>
             includeInside && row.elementId !== element.id ? (
-              <span className="flex min-w-0 flex-col">
+              <Stack space="space.0" className="min-w-0">
                 <span>{row.source}</span>
-                <span className="font-body-xsmall text-subtle">on {row.elementCode}</span>
-              </span>
+                <Text size="xsmall" color="color.text.subtle">
+                  on {row.elementCode}
+                </Text>
+              </Stack>
             ) : (
               row.source
             ),
@@ -198,6 +207,7 @@ export function SystemLibrary({
     data,
     getRowId: (row) => row.id,
     label: "Applied from the library",
+    rowLabel: (row) => row.name,
     view: "live-system-library-v1",
     resizable: true,
     reorderable: true,
@@ -220,8 +230,8 @@ export function SystemLibrary({
     contributions,
     implementations,
   ];
-  const error = queries.find((query) => query.error)?.error;
-  const pending = queries.some((query) => query.isPending);
+  // The toggle matters only where the element has something inside it.
+  const hasInside = rows.some((row) => row.parent_system_id === element.id);
   const canApply = workspace.role !== "viewer" && !!onAddFromLibrary;
   const addAction = canApply ? (
     <Button size="small" variant="primary" iconBefore={<Plus />} onClick={onAddFromLibrary}>
@@ -239,21 +249,37 @@ export function SystemLibrary({
           description:
             "Apply a profile, a component definition or a requirement definition to this element.",
           action: addAction,
+          // The way back from the scope, only while the scope leaves nothing; a search of the
+          // table's own that hides the element's rows keeps the kit's Nothing matches and Clear filters.
+          ...(hasInside && !includeInside && data.length === 0
+            ? {
+                filtered: {
+                  title: "Nothing applied to this element itself",
+                  description: "Include everything inside to see what is applied to its elements.",
+                  action: (
+                    <Button size="small" onClick={() => setIncludeInside(true)}>
+                      Include everything inside
+                    </Button>
+                  ),
+                },
+              }
+            : {}),
         }}
         fill
         queries={queries}
+        // Without the elements inside, the rows are a narrowing: nothing left keeps the toolbar.
+        narrowed={hasInside && !includeInside}
         searchLabel="Find a library item"
         views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
         action={addAction}
         filters={
-          <Button
-            size="small"
-            variant="subtle"
-            aria-pressed={includeInside}
-            onClick={() => setIncludeInside(!includeInside)}
-          >
-            Include everything inside
-          </Button>
+          hasInside ? (
+            <FilterChip
+              label="Include everything inside"
+              isActive={includeInside}
+              onClick={() => setIncludeInside(!includeInside)}
+            />
+          ) : undefined
         }
       />
       {selected && (
@@ -281,24 +307,31 @@ export function SystemLibrary({
           }
         >
           <Stack space="space.200">
-            <Inspector.Group title="Applied">
-              <KeyValue label="Kind">{selected.kind}</KeyValue>
-              {selected.detail && <KeyValue label="Component">{selected.detail}</KeyValue>}
-              {selected.category && (
-                <KeyValue label="Category">{labelFor(selected.category)}</KeyValue>
-              )}
-              <KeyValue label="Version">{selected.version ?? "—"}</KeyValue>
-              <KeyValue label="Source">{selected.source}</KeyValue>
-              <KeyValue label="Element">{selected.elementCode}</KeyValue>
-              {selected.appliedAt && (
+            <Inspector.Group title="Details">
+              <KeyValue.Group>
+                <KeyValue label="Kind">{selected.kind}</KeyValue>
+                {selected.detail && (
+                  // A baseline's detail is its control count, a component definition's its component.
+                  <KeyValue label={selected.kind === "Baseline" ? "Selection" : "Component"}>
+                    {selected.detail}
+                  </KeyValue>
+                )}
+                {selected.category && (
+                  <KeyValue label="Category">{labelFor(selected.category)}</KeyValue>
+                )}
+                <KeyValue label="Version">{selected.version ?? <Absent />}</KeyValue>
+                <KeyValue label="Source">{selected.source}</KeyValue>
+                <KeyValue label="Element">{selected.elementCode}</KeyValue>
                 <KeyValue label="Applied">
-                  {new Date(selected.appliedAt).toLocaleDateString()}
-                  {selected.appliedByName ? ` · ${selected.appliedByName}` : ""}
+                  <DateTime value={selected.appliedAt} format="date" absentLabel="Not recorded" />
                 </KeyValue>
-              )}
-              <KeyValue label="Rationale" wrap>
-                {selected.rationale ?? <span className="text-subtle">Not recorded</span>}
-              </KeyValue>
+                {selected.appliedByName && (
+                  <KeyValue label="Applied by">{selected.appliedByName}</KeyValue>
+                )}
+              </KeyValue.Group>
+              <Prose label="Rationale">
+                {selected.rationale || <Absent label="No rationale recorded" />}
+              </Prose>
             </Inspector.Group>
             {selected.kind === "Component definition" && (
               <Inspector.Group title={`Narratives · ${selectedContributions.length}`}>
@@ -319,9 +352,11 @@ export function SystemLibrary({
                         <span className="font-body-small font-medium">
                           {control?.code ?? "Control"}
                         </span>
-                        <Badge variant="secondary" size="xsmall">
-                          {labelFor(contribution.implementation_status)}
-                        </Badge>
+                        <StatusBadge
+                          statuses={implementationStatuses}
+                          value={contribution.implementation_status}
+                          size="xsmall"
+                        />
                         {changed && (
                           <Badge variant="secondary" size="xsmall" tone="warning">
                             Changed here
@@ -331,7 +366,11 @@ export function SystemLibrary({
                     );
                   })}
                   {!selectedContributions.length && (
-                    <p className="font-body-small text-subtle">No narratives were seeded.</p>
+                    <EmptyMessage
+                      compact
+                      title="No narratives seeded"
+                      description="When it was applied, its controls were excluded, outside the SSP selection, or the boundary had no draft SSP."
+                    />
                   )}
                 </Stack>
               </Inspector.Group>

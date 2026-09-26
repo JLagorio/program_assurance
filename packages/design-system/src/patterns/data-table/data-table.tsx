@@ -7,13 +7,16 @@ import {
   type Row,
   type RowData,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Menu as MenuPrimitive } from "@base-ui/react/menu";
+import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   createContext,
   memo,
   useCallback,
   useContext,
+  useEffect,
   useId,
   useLayoutEffect,
   useMemo,
@@ -24,7 +27,14 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { fitColumns, yieldPins, type PinnedColumn } from "./responsive";
+import { announce } from "../../lib/announce";
+import {
+  fitFrame,
+  yieldPins,
+  type FitColumn,
+  type FrameFit,
+  type PinnedColumn,
+} from "./responsive";
 import { KeyValue } from "../../components/key-value";
 import { Stack } from "../../primitives/stack";
 
@@ -34,7 +44,9 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from "../../components/dropdown-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../../components/hover-card";
 import { Id } from "../../components/id";
@@ -90,9 +102,12 @@ export type DataTableEmpty = {
   secondary?: ReactNode;
   /** The picture above the message. `records` by default; `false` for none. */
   illustration?: EmptyIllustrationKind | false | undefined;
-  /** The narrowed state: shown instead of the above while a search or a column filter is active. */
+  /** The narrowed state: shown instead of the above while a search, a column filter or the caller's `narrowed` is active. */
   filtered?: DataTableFilteredEmpty | undefined;
 };
+
+/** What one row is, in the words the result status uses: `{ one: "task", other: "tasks" }`. */
+export type DataTableNoun = { one: string; other: string };
 
 export type DataTableProps<TData extends RowData> = {
   table: DataTableInstance<TData>;
@@ -101,6 +116,16 @@ export type DataTableProps<TData extends RowData> = {
   state?: DataTableState | undefined;
   /** What the empty state says: one message for no records, another while a search or a filter leaves none. */
   empty?: DataTableEmpty | undefined;
+  /**
+   * The caller has narrowed `data` outside the table's own search and filters: a scope toggle, a
+   * route or server filter, a picker's own search. With nothing left, the table keeps its toolbar
+   * and header and shows the filtered empty instead of the no-records state, so the control that
+   * brings the rows back stays in reach. Give `empty.filtered.action` the way back; the kit's
+   * Clear filters shows only while the table's own search or filters are set.
+   */
+  narrowed?: boolean | undefined;
+  /** What a row is, for the polite result status after a search, a filter or a page ("8 of 24 tasks"). "row" and "rows" unsaid. */
+  noun?: DataTableNoun | undefined;
   /** What the error state says. */
   error?: ReactNode;
   /** The row opens something: the record, a peek. */
@@ -116,8 +141,20 @@ export type DataTableProps<TData extends RowData> = {
 
 type F = DataTableFeatures;
 
-type ResponsiveLayout = ReturnType<typeof fitColumns>;
+type ResponsiveLayout = FrameFit["layout"];
 const ResponsiveLayoutContext = createContext<ResponsiveLayout | null>(null);
+
+/**
+ * The table's shared popups: one row-actions menu and one glance card, opened by each row's
+ * trigger with the row's id as its payload, so a closed menu or card costs a row nothing.
+ */
+type SharedPopups = {
+  actions: MenuPrimitive.Handle<string>;
+  glance: PreviewCardPrimitive.Handle<GlancePayload>;
+};
+/** Which glance a trigger opens: the row, and the id column whose `glance` draws it. */
+type GlancePayload = { rowId: string; columnId: string };
+const SharedPopupsContext = createContext<SharedPopups | null>(null);
 
 /** Where a data column is drawn: its band, how far from that edge, and whether it touches the middle. */
 type DrawnPin = {
@@ -146,6 +183,41 @@ function fittedHeaderWidth<T extends RowData>(
       ? (layout.widths.get(header.column.id) ?? 0)
       : 0;
 }
+
+/** A fitted header's width, except the flexible column's: drawn without one, it takes the slack. */
+function fittedHeaderStyle<T extends RowData>(
+  header: Header<F, T, unknown>,
+  layout: ResponsiveLayout,
+): CSSProperties | undefined {
+  if (header.subHeaders.length === 0 && header.column.id === layout.flexible) return undefined;
+  const width = fittedHeaderWidth(header, layout);
+  return { width, minWidth: width };
+}
+
+/** A row's readable name, for its controls and the announcements: the author's `rowLabel`, else undefined. */
+const rowLabelOf = <TData extends RowData>(row: Row<F, TData>): string | undefined => {
+  const label = row.table.options.meta?.rowLabel?.(row.original as never);
+  return label ? label : undefined;
+};
+
+/** A row's name for what is said about it: its label, the tree's label, else its id. */
+const rowSpokenName = <TData extends RowData>(row: Row<F, TData>): string =>
+  rowLabelOf(row) ?? row.table.options.meta?.tree?.label(row.original as never) ?? row.id;
+
+/** A column's name for what is said about it: its header text, else its id. */
+const columnSpokenName = <TData extends RowData>(column: Column<F, TData, unknown>): string =>
+  typeof column.columnDef.header === "string" ? column.columnDef.header : column.id;
+
+/*
+ * A link inside a cut value keeps its whole focus ring. The value clips across only, and a text
+ * link in it cuts itself at the value's width and draws its ring inside its own box, so the clip
+ * that ends the value in an ellipsis never takes the ring. The same holds for a link in a plain
+ * cell. Beside an icon in a flex row the link shrinks to the room left (`min-w-0`), so it still ends
+ * in its own ellipsis. A link that looks like a button (LinkButton, LinkIconButton) keeps its own
+ * box and ring.
+ */
+const LINK_KEEPS_RING =
+  "[&_a:not([data-slot^=link-])]:inline-block [&_a:not([data-slot^=link-])]:min-w-0 [&_a:not([data-slot^=link-])]:max-w-full [&_a:not([data-slot^=link-])]:overflow-x-clip [&_a:not([data-slot^=link-])]:text-ellipsis [&_a:not([data-slot^=link-])]:whitespace-nowrap [&_a:not([data-slot^=link-])]:align-top [&_a:not([data-slot^=link-]):focus-visible]:outline-field-focused";
 
 /** `Table.Selection` and `Table.Handle` are this wide; the detail chevron column matches them. */
 const NARROW = 32;
@@ -214,6 +286,9 @@ const headerExtra = <TData extends RowData>(
 
 /** No pin gives way. */
 const NONE_RELEASED = "[]";
+
+/** How long the result status waits after the last change to the question, so typing is said once. */
+const RESULT_STATUS_DELAY = 500;
 
 /** Which pins give way in a frame this wide, as a key that state and a memo compare by value. */
 const releaseKey = (columns: readonly PinnedColumn[], frame: number, before: number) =>
@@ -324,18 +399,22 @@ function HeaderCell<TData extends RowData>({
   const sorted = column.getIsSorted();
   const leaf = header.subHeaders.length === 0;
   const sized = table.state.columnSizing[column.id] !== undefined || column.getIsPinned() !== false;
+  // The row-actions column is chrome, always last and pinned to the end: it has no column menu.
+  const hasMenu = leaf && !header.isPlaceholder && headerControls(column).menu;
+  // With a column menu, the menu moves and sizes the column by keyboard, so the grip and the
+  // resize handle are for the pointer and a header costs the keyboard two stops, the sort and the
+  // menu. Without one (`columnMenu: false`), the grip and the handle keep their keys.
   const drag = useColumnDrag(
     column.id,
     Boolean(options?.reorderable) && leaf && !column.getIsPinned() && !header.isPlaceholder,
+    { label: columnSpokenName(column), pointerOnly: hasMenu },
   );
   const pin = leaf ? (drawnPins.get(column.id) ?? UNPINNED) : UNPINNED;
   const canResize = Boolean(options?.resizable) && leaf && column.getCanResize();
   const resizing = table.state.columnResizing;
-  // The row-actions column is chrome, always last and pinned to the end: it has no column menu.
-  const menu =
-    leaf && !header.isPlaceholder && headerControls(column).menu ? (
-      <HeaderMenu table={table} column={column} drawn={layout?.ids} />
-    ) : null;
+  const menu = hasMenu ? <HeaderMenu table={table} column={column} drawn={layout?.ids} /> : null;
+  const resizeMin = column.columnDef.minSize ?? 20;
+  const resizeMax = Math.min(column.columnDef.maxSize ?? 10000, 10000);
   const trailing =
     drag.grip || menu ? (
       <>
@@ -355,10 +434,7 @@ function HeaderCell<TData extends RowData>({
       )}
       style={{
         ...(layout
-          ? {
-              width: fittedHeaderWidth(header, layout),
-              minWidth: fittedHeaderWidth(header, layout),
-            }
+          ? fittedHeaderStyle(header, layout)
           : sizeStyle(header as Header<F, RowData, unknown>, sized, headerExtra(header, touch))),
         ...drag.style,
       }}
@@ -370,22 +446,30 @@ function HeaderCell<TData extends RowData>({
       {...(canSort && leaf ? { sort: sorted || false, onSort: () => column.toggleSorting() } : {})}
       {...(canResize
         ? {
+            // With a menu, the keyboard sets the width there (Wider, Narrower, Reset width), so
+            // the handle is no tab stop of its own; without one, the handle takes the arrow keys.
             resize: {
               onResizeStart: header.getResizeHandler(),
               onResizeReset: () => column.resetSize(),
               value: column.getSize(),
-              min: column.columnDef.minSize ?? 20,
-              max: Math.min(column.columnDef.maxSize ?? 10000, 10000),
-              onResizeKeyboard: (change: number | "min" | "max") => {
-                const min = column.columnDef.minSize ?? 20;
-                const max = Math.min(column.columnDef.maxSize ?? 10000, 10000);
-                const next =
-                  change === "min" ? min : change === "max" ? max : column.getSize() + change;
-                table.setColumnSizing((current) => ({
-                  ...current,
-                  [column.id]: Math.min(max, Math.max(min, next)),
-                }));
-              },
+              min: resizeMin,
+              max: resizeMax,
+              ...(hasMenu
+                ? {}
+                : {
+                    onResizeKeyboard: (change: number | "min" | "max") => {
+                      const next =
+                        change === "min"
+                          ? resizeMin
+                          : change === "max"
+                            ? resizeMax
+                            : column.getSize() + change;
+                      table.setColumnSizing((current) => ({
+                        ...current,
+                        [column.id]: Math.min(resizeMax, Math.max(resizeMin, next)),
+                      }));
+                    },
+                  }),
               isResizing: column.getIsResizing(),
               resizeDelta: column.getIsResizing() ? resizing.deltaOffset : null,
             },
@@ -466,6 +550,7 @@ function BodyCell<TData extends RowData>({
   previewAt: string | undefined;
 }) {
   const { t } = useLedgerLocale();
+  const popups = useContext(SharedPopupsContext);
 
   const meta = cell.column.columnDef.meta;
   const options = cell.column.table.options.meta;
@@ -510,28 +595,28 @@ function BodyCell<TData extends RowData>({
   );
 
   if (meta?.kind === "id") {
-    const glance = meta.glance?.(record);
+    // The glance opens in the table's one card; the row carries only its trigger. The trigger cuts
+    // itself at the id's width and draws its ring inside, so the id's ellipsis never takes it. A
+    // record link the id's `cell` draws (the register's name) does the same.
+    const glance = popups && meta.glance ? Boolean(meta.glance(record)) : false;
     return (
       <Table.Id
         id={withGuides(
-          glance ? (
-            <HoverCard>
-              <HoverCardTrigger
-                render={
-                  <span
-                    tabIndex={0}
-                    className="rounded-xsmall outline-none focus-visible:outline-focused"
-                  >
-                    <Id>{content}</Id>
-                  </span>
-                }
-              />
-              <HoverCardContent align="start" alignOffset={0} style={{ width: 300 }}>
-                {glance}
-              </HoverCardContent>
-            </HoverCard>
+          glance && popups ? (
+            <HoverCardTrigger
+              handle={popups.glance}
+              payload={{ rowId: row.id, columnId: cell.column.id }}
+              render={
+                <span
+                  tabIndex={0}
+                  className="inline-block max-w-full overflow-x-clip text-ellipsis whitespace-nowrap align-top rounded-xsmall outline-none focus-visible:outline-field-focused"
+                >
+                  <Id>{content}</Id>
+                </span>
+              }
+            />
           ) : (
-            content
+            <span className={LINK_KEEPS_RING}>{content}</span>
           ),
         )}
         tone={meta.tone ?? "brand"}
@@ -550,8 +635,9 @@ function BodyCell<TData extends RowData>({
   }
 
   if (meta?.kind === "actions") {
-    const actions = meta.actions?.(record) ?? [];
-    if (actions.length === 0)
+    // A table that reorders rows adds Move up and Move down to every row's menu.
+    const hasActions = (meta.actions?.(record) ?? []).length > 0 || Boolean(options?.reorderRows);
+    if (!hasActions || !popups)
       return (
         <Table.Cell
           className="max-w-none px-0"
@@ -560,6 +646,7 @@ function BodyCell<TData extends RowData>({
           edge={pin.edge}
         />
       );
+    const label = rowLabelOf(row);
     return (
       <Table.Cell
         className="max-w-none px-0 text-center"
@@ -568,30 +655,19 @@ function BodyCell<TData extends RowData>({
         edge={pin.edge}
         onClick={(e) => e.stopPropagation()}
       >
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <IconButton
-                label={t("rowActions")}
-                variant="subtle"
-                className="opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-popup-open:opacity-100 [@media(hover:none)]:opacity-100"
-                icon={<MoreHorizontal />}
-              />
-            }
-          />
-          <DropdownMenuContent align="end" style={{ width: 200 }}>
-            {actions.map((a) => (
-              <DropdownMenuItem
-                key={a.label}
-                onClick={a.onSelect}
-                {...(a.disabled ? { disabled: true } : {})}
-                {...(a.tone === "danger" ? { variant: "destructive" } : {})}
-              >
-                {a.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* The menu is the table's one row menu; the row carries only its trigger. */}
+        <DropdownMenuTrigger
+          handle={popups.actions}
+          payload={row.id}
+          render={
+            <IconButton
+              label={label ? t("rowActionsFor", { label }) : t("rowActions")}
+              variant="subtle"
+              className="opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-popup-open:opacity-100 [@media(hover:none)]:opacity-100"
+              icon={<MoreHorizontal />}
+            />
+          }
+        />
       </Table.Cell>
     );
   }
@@ -610,7 +686,13 @@ function BodyCell<TData extends RowData>({
           className="group/eye relative flex items-center"
           {...(indent ? { style: { paddingInlineStart: indent } } : {})}
         >
-          <span className={cn("min-w-0 flex-1 truncate", previewValueClass(preview.isActive))}>
+          <span
+            className={cn(
+              "min-w-0 flex-1 overflow-x-clip text-ellipsis whitespace-nowrap",
+              LINK_KEEPS_RING,
+              previewValueClass(preview.isActive),
+            )}
+          >
             {body}
           </span>
           <PreviewEye onPreview={preview.onPreview} isActive={preview.isActive} />
@@ -620,7 +702,7 @@ function BodyCell<TData extends RowData>({
 
   return (
     <Table.Cell
-      className={cn(alignClass(meta?.align), meta?.wrap && "whitespace-normal")}
+      className={cn(alignClass(meta?.align), meta?.wrap ? "whitespace-normal" : LINK_KEEPS_RING)}
       pinned={pin.pinned}
       offset={pin.offset}
       edge={pin.edge}
@@ -675,6 +757,8 @@ type BodyRowProps<TData extends RowData> = {
   isDetailOpen: boolean;
   /** The visible columns in order; a change re-renders every row. */
   columnsKey: string;
+  /** The author's column definitions: new ones (a cell that reads new state) re-render every row. */
+  columnDefs: unknown;
   /** A data column is pinned to the start, so the leading columns' edge is not the table's. */
   dataPinned: boolean;
   hintAt: string | undefined;
@@ -694,6 +778,9 @@ type BodyRowProps<TData extends RowData> = {
 /**
  * One row, memoized on what it shows. A thousand rows must not redraw because one checkbox changed:
  * the parent re-renders and hands each row its flags, and only the rows whose flags changed draw.
+ * The props that hold are stable by construction: the leading columns, the fitted layout and the
+ * handlers are memoized, and `onRowClick` is read through a ref. New `data` or new column
+ * definitions redraw every row, so a consumer keeps both stable (useMemo) to keep the memo.
  * In tree mode the row carries the treegrid aria and takes the arrow keys; with a detail it carries
  * the chevron and the detail row after it.
  */
@@ -705,6 +792,7 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   isExpanded,
   isDetailOpen,
   columnsKey: _columnsKey,
+  columnDefs: _columnDefs,
   isActive: _isActive,
   dataPinned,
   hintAt,
@@ -747,11 +835,13 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
       parts.push(sibling);
       sibling = sibling.nextElementSibling;
     }
-    const measure = () =>
-      onMeasure(
-        virtualIndex,
-        parts.reduce((height, part) => height + part.getBoundingClientRect().height, 0),
-      );
+    const measure = () => {
+      const height = parts.reduce((sum, part) => sum + part.getBoundingClientRect().height, 0);
+      // A rendered row is never 0 tall: 0 means it is hidden (Main under a phone-width panel).
+      // Keep its last height, or showing it again reads as rows growing above the fold and the
+      // virtualizer scrolls the table away from where the reader left it.
+      if (height > 0) onMeasure(virtualIndex, height);
+    };
     const observer = new ResizeObserver(measure);
     parts.forEach((part) => observer.observe(part));
     measure();
@@ -774,8 +864,10 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
       )
     : undefined;
   const identityValue = identity?.getValue();
+  const label = rowLabelOf(row);
   const moreLabel = t("moreFieldsFor", {
     label:
+      label ??
       options?.tree?.label(row.original as never) ??
       (typeof identityValue === "string" ? identityValue : row.id),
   });
@@ -810,7 +902,7 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
           <Table.Selection
             checked={isSelected}
             onCheckedChange={(next) => row.toggleSelected(next)}
-            label={t("selectRow", { id: row.id })}
+            label={label ? t("selectNamed", { label }) : t("selectRow", { id: row.id })}
             disabled={!canSelect}
             {...pins("selectable")}
           />
@@ -829,7 +921,7 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
           <Table.Handle
             {...(drag.handle ?? {})}
             isDragging={drag.isDragging}
-            label={t("reorderRow", { id: row.id })}
+            label={label ? t("reorderNamed", { label }) : t("reorderRow", { id: row.id })}
             {...pins("handle")}
           />
         ) : null}
@@ -841,7 +933,13 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
             {...pins("detail")}
           >
             <IconButton
-              label={isDetailOpen ? t("close") : t("open")}
+              label={
+                label
+                  ? t(isDetailOpen ? "hideDetailsFor" : "showDetailsFor", { label })
+                  : isDetailOpen
+                    ? t("close")
+                    : t("open")
+              }
               variant="subtle"
               className="size-250"
               aria-expanded={isDetailOpen}
@@ -1003,11 +1101,147 @@ function EmptyState({
   );
 }
 
+/** A row by its id among every row, the folded and the paged included; nothing once it has gone. */
+function findRow<TData extends RowData>(table: DataTableInstance<TData>, id: string | undefined) {
+  if (id === undefined) return undefined;
+  try {
+    return table.getRow(id, true);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The table's one row menu. Each row's kebab opens it with the row's id, so the rows carry a
+ * trigger each and no menu of their own. It lists the row's actions, then Move up and Move down
+ * when the rows reorder: one press moves a row one place, the way that needs no drag (WCAG 2.5.7),
+ * and a polite status says where it now stands.
+ */
+function RowActionsMenu<TData extends RowData>({
+  table,
+  handle,
+}: {
+  table: DataTableInstance<TData>;
+  handle: MenuPrimitive.Handle<string>;
+}) {
+  return (
+    <DropdownMenu handle={handle}>
+      {({ payload }) => <RowActionsContent table={table} rowId={payload} />}
+    </DropdownMenu>
+  );
+}
+
+function RowActionsContent<TData extends RowData>({
+  table,
+  rowId,
+}: {
+  table: DataTableInstance<TData>;
+  rowId: string | undefined;
+}) {
+  const { t, formatNumber } = useLedgerLocale();
+  const row = findRow(table, rowId);
+  if (!row) return null;
+  const record = row.original as never;
+  const column = table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "actions");
+  const actions = column?.columnDef.meta?.actions?.(record) ?? [];
+  const reorder = table.options.meta?.reorderRows;
+  const order = reorder ? table.getRowModel().rows : [];
+  const at = order.findIndex((r) => r.id === row.id);
+  const previous = at > 0 ? order[at - 1] : undefined;
+  const next = at >= 0 ? order[at + 1] : undefined;
+  const move = (target: Row<F, TData>, position: "before" | "after") => {
+    reorder?.(record, target.original as never, position);
+    // Once the caller has put the row in its place, say where that is.
+    requestAnimationFrame(() => {
+      const now = table.getRowModel().rows;
+      const index = now.findIndex((r) => r.id === row.id);
+      if (index < 0) return;
+      announce(
+        t("rowMoved", {
+          label: rowSpokenName(row),
+          position: formatNumber(index + 1),
+          total: formatNumber(now.length),
+        }),
+      );
+    });
+  };
+  if (actions.length === 0 && !reorder) return null;
+  return (
+    <DropdownMenuContent align="end">
+      {actions.map((a) => (
+        <DropdownMenuItem
+          key={a.label}
+          onClick={a.onSelect}
+          {...(a.disabled ? { disabled: true } : {})}
+          {...(a.tone === "danger" ? { variant: "destructive" } : {})}
+        >
+          {a.label}
+        </DropdownMenuItem>
+      ))}
+      {reorder ? (
+        <>
+          {actions.length ? <DropdownMenuSeparator /> : null}
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              disabled={!previous}
+              onClick={() => {
+                if (previous) move(previous, "before");
+              }}
+            >
+              <span className="flex items-center gap-100">
+                <ArrowUp className="size-icon-small icon-subtle" /> {t("moveUp")}
+              </span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={!next}
+              onClick={() => {
+                if (next) move(next, "after");
+              }}
+            >
+              <span className="flex items-center gap-100">
+                <ArrowDown className="size-icon-small icon-subtle" /> {t("moveDown")}
+              </span>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </>
+      ) : null}
+    </DropdownMenuContent>
+  );
+}
+
+/** The table's one glance card. Each id's trigger opens it with its row and column. */
+function GlanceCard<TData extends RowData>({
+  table,
+  handle,
+}: {
+  table: DataTableInstance<TData>;
+  handle: PreviewCardPrimitive.Handle<GlancePayload>;
+}) {
+  return (
+    <HoverCard handle={handle}>
+      {({ payload }) => {
+        const row = findRow(table, payload?.rowId);
+        const glance =
+          row && payload
+            ? table.getColumn(payload.columnId)?.columnDef.meta?.glance?.(row.original as never)
+            : null;
+        return glance ? (
+          <HoverCardContent align="start" alignOffset={0} style={{ width: 300 }}>
+            {glance}
+          </HoverCardContent>
+        ) : null;
+      }}
+    </HoverCard>
+  );
+}
+
 function DataTableRoot<TData extends RowData>({
   table,
   toolbar,
   state = "ready",
   empty,
+  narrowed: narrowedOutside = false,
+  noun,
   error,
   onRowClick,
   maxHeight,
@@ -1015,15 +1249,17 @@ function DataTableRoot<TData extends RowData>({
   responsive = false,
   className,
 }: DataTableProps<TData>) {
-  const { t, direction } = useLedgerLocale();
+  const { t, direction, formatNumber, formatPlural } = useLedgerLocale();
   const options = table.options.meta;
   const selectable = Boolean(table.options.enableRowSelection);
-  const leading: Leading = {
-    selectable,
-    tree: Boolean(options?.tree) && !options?.tree?.guides,
-    handle: Boolean(options?.reorderRows),
-    detail: Boolean(options?.detail) && options?.detailColumn !== false,
-  };
+  const hasTree = Boolean(options?.tree) && !options?.tree?.guides;
+  const handle = Boolean(options?.reorderRows);
+  const detailColumn = Boolean(options?.detail) && options?.detailColumn !== false;
+  // One object while the four flags hold, so the row memo sees the same leading columns.
+  const leading: Leading = useMemo(
+    () => ({ selectable, tree: hasTree, handle, detail: detailColumn }),
+    [selectable, hasTree, handle, detailColumn],
+  );
   // The page size is the reader's while the table pages; the option is the author's default.
   const pageSize = options?.pageSize === undefined ? undefined : table.state.pagination.pageSize;
   const label = options?.label;
@@ -1033,7 +1269,7 @@ function DataTableRoot<TData extends RowData>({
   const requestedColumns = table.getVisibleLeafColumns();
   const root = useRef<HTMLDivElement>(null);
   const touch = useHoverNone();
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [frameWidth, setFrameWidth] = useState(0);
   const [releasedKey, setReleasedKey] = useState(NONE_RELEASED);
   const [moreOpenIds, setMoreOpenIds] = useState<ReadonlySet<string>>(() => new Set());
   const [focusedTreeRow, setFocusedTreeRow] = useState<string | null>(null);
@@ -1045,36 +1281,65 @@ function DataTableRoot<TData extends RowData>({
       return next;
     });
   }, []);
-  // The frame's width, which the responsive layout fits. It re-renders the table as the frame
-  // changes, so only a responsive table watches it.
+  // What a responsive table fits: each drawn column's width, rank and band, as one key.
+  const lead = leadingWidth(leading);
+  const grouped = headerGroups.length > 1;
+  const fitKey = responsive
+    ? JSON.stringify([
+        requestedColumns.map((column): FitColumn => ({
+          id: column.id,
+          width:
+            (column.columnDef.size !== undefined ||
+            table.state.columnSizing[column.id] !== undefined ||
+            column.getIsPinned()
+              ? column.getSize()
+              : (column.columnDef.minSize ?? 120)) + touchExtra(column, touch),
+          priority: column.columnDef.meta?.priority,
+          action: column.columnDef.meta?.kind === "actions",
+          pin: column.getIsPinned(),
+        })),
+        lead,
+        grouped,
+      ])
+    : "";
+  const fitFor = useCallback((key: string, width: number) => {
+    const [columns, leadWidth, isGrouped] = JSON.parse(key) as [FitColumn[], number, boolean];
+    return fitFrame(columns, width, leadWidth, { grouped: isGrouped });
+  }, []);
+  // The frame's width as last drawn. A resize redraws the table only when the fit it draws
+  // changes: a column folds or returns, a pin gives way. In between, the slack goes to the
+  // flexible column through CSS, so a panel opening or a splitter drag costs no render.
+  const drawnWidth = useRef(0);
+  const latestFitKey = useRef(fitKey);
+  const refit = useCallback(() => {
+    const element = root.current;
+    const key = latestFitKey.current;
+    if (!element || !key) return;
+    const width = element.clientWidth;
+    const drawn = drawnWidth.current;
+    // A frame hidden for a while (a tab panel, a closed panel) keeps the fit it last drew.
+    if (width === drawn || width === 0) return;
+    if (drawn > 0 && fitFor(key, drawn).key === fitFor(key, width).key) return;
+    drawnWidth.current = width;
+    setFrameWidth(width);
+  }, [fitFor]);
   useLayoutEffect(() => {
     const element = root.current;
     if (!element || !responsive || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => setContainerWidth(element.clientWidth));
+    const observer = new ResizeObserver(refit);
     observer.observe(element);
-    setContainerWidth(element.clientWidth);
     return () => observer.disconnect();
-  }, [responsive]);
-  const layout: ResponsiveLayout | null =
-    responsive && containerWidth > 0
-      ? {
-          ...fitColumns(
-            requestedColumns.map((column) => ({
-              id: column.id,
-              width:
-                (column.columnDef.size !== undefined ||
-                table.state.columnSizing[column.id] !== undefined ||
-                column.getIsPinned()
-                  ? column.getSize()
-                  : (column.columnDef.minSize ?? 120)) + touchExtra(column, touch),
-              priority: column.columnDef.meta?.priority,
-              action: column.columnDef.meta?.kind === "actions",
-            })),
-            containerWidth,
-            leadingWidth(leading),
-          ),
-        }
-      : null;
+  }, [responsive, refit]);
+  // New columns, sizes or pins: the width kept from before may no longer draw what the frame does.
+  useLayoutEffect(() => {
+    latestFitKey.current = fitKey;
+    refit();
+  }, [fitKey, refit]);
+  const fit = useMemo(
+    () => (fitKey && frameWidth > 0 ? fitFor(fitKey, frameWidth) : null),
+    [fitKey, frameWidth, fitFor],
+  );
+  const layout: ResponsiveLayout | null = fit?.layout ?? null;
   const visibleColumns = requestedColumns.filter((column) => !layout || layout.ids.has(column.id));
   const columnCount =
     visibleColumns.length + leadingCount(leading) + Number(layout?.collapsed ?? false);
@@ -1084,7 +1349,7 @@ function DataTableRoot<TData extends RowData>({
     "|",
     ...table.state.columnPinning.end,
     JSON.stringify(table.state.columnSizing),
-    layout ? [...layout.widths].filter(([id]) => layout.ids.has(id)).join("|") : "",
+    fit?.key ?? "",
   ].join(" ");
   const idMeta = table.getAllLeafColumns().find((c) => c.columnDef.meta?.preview)?.columnDef.meta;
   const active = idMeta?.active;
@@ -1092,7 +1357,7 @@ function DataTableRoot<TData extends RowData>({
   const hintAt = tree ? previewColumn(visibleColumns) : undefined;
   const fixed = responsive || options?.layout === "fixed";
   // The leading columns are always pinned, so every start offset begins after them.
-  const before = leadingWidth(leading);
+  const before = lead;
   // The reader's pins as drawn in this frame: stored pins stay as they are, but a band that would
   // leave the middle a sliver gives way until there is room again.
   const pinnedBand = (band: "start" | "end") =>
@@ -1108,14 +1373,13 @@ function DataTableRoot<TData extends RowData>({
       }));
   const bands = [...pinnedBand("start"), ...pinnedBand("end")];
   const bandKey = JSON.stringify([bands, before]);
-  // A responsive table already renders as its frame changes, so it works out what gives way as it
-  // draws. Any other table keeps only which pins give way in state, and watches its frame only
-  // while a data column is pinned: resizing the frame redraws it only when a pin gives way or
-  // returns, never on every pixel.
+  // A responsive table works out what gives way as it fits. Any other table keeps only which pins
+  // give way in state, and watches its frame only while a data column is pinned: resizing the
+  // frame redraws it only when a pin gives way or returns, never on every pixel.
   useLayoutEffect(() => {
     if (responsive) return;
     const element = root.current;
-    const [columns, lead] = JSON.parse(bandKey) as [PinnedColumn[], number];
+    const [columns, leadWidth] = JSON.parse(bandKey) as [PinnedColumn[], number];
     if (
       !element ||
       typeof ResizeObserver === "undefined" ||
@@ -1124,16 +1388,16 @@ function DataTableRoot<TData extends RowData>({
       setReleasedKey(NONE_RELEASED);
       return;
     }
-    const measure = () => setReleasedKey(releaseKey(columns, element.clientWidth, lead));
+    const measure = () => setReleasedKey(releaseKey(columns, element.clientWidth, leadWidth));
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     measure();
     return () => observer.disconnect();
   }, [responsive, bandKey]);
-  const released = responsive ? releaseKey(bands, containerWidth, before) : releasedKey;
+  const released = responsive ? (fit?.released ?? NONE_RELEASED) : releasedKey;
   const drawnPins = useMemo(() => {
-    const [columns, lead] = JSON.parse(bandKey) as [PinnedColumn[], number];
-    return drawPins(columns, lead, new Set(JSON.parse(released) as string[]));
+    const [columns, leadWidth] = JSON.parse(bandKey) as [PinnedColumn[], number];
+    return drawPins(columns, leadWidth, new Set(JSON.parse(released) as string[]));
   }, [bandKey, released]);
   const dataPinned = [...drawnPins.values()].some((pin) => pin.pinned === "start");
   // How much of each side of the frame the columns held still cover: the leading columns and the
@@ -1155,9 +1419,24 @@ function DataTableRoot<TData extends RowData>({
             table.state.columnSizing[c.id] !== undefined ||
             c.getIsPinned();
           return sum + (sized ? c.getSize() : (c.columnDef.minSize ?? 120)) + touchExtra(c, touch);
-        }, leadingWidth(leading))
+        }, lead)
       : undefined;
-  const onKeyDown = tree ? treeKeys(table, direction) : undefined;
+  // Stable handlers, so a row redraws for what it shows and not because its parent did.
+  const treeKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLTableRowElement>) => treeKeys(table, direction)(event),
+    [table, direction],
+  );
+  const onKeyDown = tree ? treeKeyDown : undefined;
+  const latestRowClick = useRef(onRowClick);
+  useLayoutEffect(() => {
+    latestRowClick.current = onRowClick;
+  });
+  const rowClick = useCallback((row: TData) => latestRowClick.current?.(row), []);
+  const rowClickHandler = onRowClick ? rowClick : undefined;
+  const [popups] = useState<SharedPopups>(() => ({
+    actions: MenuPrimitive.createHandle<string>(),
+    glance: PreviewCardPrimitive.createHandle<GlancePayload>(),
+  }));
 
   const allRows = table.getRowModel().rows;
   const pinRows = Boolean(options?.pinRows);
@@ -1185,6 +1464,10 @@ function DataTableRoot<TData extends RowData>({
     getItemKey: (index) => rows[index]?.id ?? index,
     overscan: virtual?.overscan ?? 8,
     initialRect: { width: 0, height: maxHeight ?? 480 },
+    // The virtualizer's scroll updates can arrive during a React commit (Main shown again as a
+    // compact-width panel closes); a synchronous flush there logs "flushSync was called from
+    // inside a lifecycle method" on every row.
+    useFlushSync: false,
   });
   const measureRow = useCallback(
     (index: number, height: number) => virtualizer.resizeItem(index, height),
@@ -1212,13 +1495,66 @@ function DataTableRoot<TData extends RowData>({
     : renderedRows[0]?.id;
   const showRows = state === "ready" && allRows.length > 0;
   const isEmpty = state === "empty" || (state === "ready" && allRows.length === 0);
-  // A search or a column filter is what emptied the table, so the way out is to clear it.
-  const narrowed =
-    table.state.columnFilters.length > 0 || String(table.state.globalFilter ?? "") !== "";
+  // A search or a column filter narrowed the rows, or the caller did outside the table: either
+  // way what is empty is the result, not the register, so the toolbar and the header stay.
+  const searched = String(table.state.globalFilter ?? "") !== "";
+  const filteredHere = table.state.columnFilters.length > 0 || searched;
+  const narrowed = filteredHere || narrowedOutside;
   const clearFilters = () => {
     table.setColumnFilters([]);
     table.setGlobalFilter("");
   };
+
+  // The result, said once the reader stops asking: after a search, a filter, a saved question or
+  // a page, one polite line through the page's announcer ("8 of 24 tasks", "No matching tasks").
+  const nounFor = (count: number) =>
+    formatPlural(count, noun ?? { one: t("tableRowOne"), other: t("tableRowOther") });
+  const resultCount = table.getRowCount();
+  const everyRow = table.getPreFilteredRowModel().rows.length;
+  const pageCount = pageSize !== undefined && !groupBy ? table.getPageCount() : 1;
+  const firstOnPage = pageSize !== undefined ? table.state.pagination.pageIndex * pageSize + 1 : 1;
+  const resultMessage =
+    isEmpty && narrowed
+      ? t("tableNoMatching", { noun: nounFor(0) })
+      : pageSize !== undefined && pageCount > 1
+        ? t("tableResultsRange", {
+            from: formatNumber(firstOnPage),
+            to: formatNumber(Math.min(firstOnPage + pageSize - 1, resultCount)),
+            total: formatNumber(resultCount),
+            noun: nounFor(resultCount),
+          })
+        : filteredHere && !table.options.manualFiltering && resultCount !== everyRow
+          ? t("tableResultsOf", {
+              count: formatNumber(resultCount),
+              total: formatNumber(everyRow),
+              noun: nounFor(everyRow),
+            })
+          : t("tableResults", { count: formatNumber(resultCount), noun: nounFor(resultCount) });
+  const question = JSON.stringify([
+    table.state.globalFilter ?? "",
+    table.state.columnFilters,
+    pageSize === undefined ? null : [table.state.pagination.pageIndex, pageSize],
+    narrowedOutside,
+  ]);
+  const settled = state === "ready" || state === "empty";
+  const said = useRef<{ question: string; message: string } | null>(null);
+  useEffect(() => {
+    if (!settled) return;
+    // The first settled result is the page's own, which the page's heading and loading say.
+    if (!said.current) {
+      said.current = { question, message: resultMessage };
+      return;
+    }
+    const asked = question !== said.current.question;
+    // Data narrowed outside the table changes without a question the table can see.
+    const changedOutside = narrowedOutside && resultMessage !== said.current.message;
+    if (!asked && !changedOutside) return;
+    const timer = setTimeout(() => {
+      said.current = { question, message: resultMessage };
+      announce(resultMessage);
+    }, RESULT_STATUS_DELAY);
+    return () => clearTimeout(timer);
+  }, [settled, question, resultMessage, narrowedOutside]);
   const footerGroup = visibleColumns.some((c) => c.columnDef.footer !== undefined)
     ? table.getFooterGroups().find((g) => g.headers.every((h) => h.subHeaders.length === 0))
     : undefined;
@@ -1259,6 +1595,7 @@ function DataTableRoot<TData extends RowData>({
       isExpanded={row.getIsExpanded()}
       isDetailOpen={Boolean(options?.detailOpen?.(row.id))}
       columnsKey={columnsKey}
+      columnDefs={table.options.columns}
       dataPinned={dataPinned}
       hintAt={hintAt}
       previewAt={previewAt}
@@ -1268,7 +1605,7 @@ function DataTableRoot<TData extends RowData>({
       onMoreToggle={toggleMore}
       virtualIndex={virtualIndex}
       onMeasure={virtualIndex === undefined ? undefined : measureRow}
-      onRowClick={onRowClick}
+      onRowClick={rowClickHandler}
       onKeyDown={onKeyDown}
       treeTabStop={row.id === treeTabStop}
       onTreeFocus={setFocusedTreeRow}
@@ -1316,10 +1653,16 @@ function DataTableRoot<TData extends RowData>({
               frame="none"
               illustration={empty?.filtered?.illustration ?? "search"}
               title={empty?.filtered?.title ?? t("noMatches")}
-              description={empty?.filtered?.description ?? t("noMatchesHint")}
+              description={
+                empty?.filtered?.description ?? (filteredHere ? t("noMatchesHint") : undefined)
+              }
               action={
                 empty?.filtered?.action === undefined ? (
-                  <Button onClick={clearFilters}>{t("clearFilters")}</Button>
+                  // Clear filters clears what the table holds; narrowing outside it is the
+                  // caller's to undo, with its own action.
+                  filteredHere ? (
+                    <Button onClick={clearFilters}>{t("clearFilters")}</Button>
+                  ) : null
                 ) : (
                   empty.filtered.action
                 )
@@ -1333,128 +1676,132 @@ function DataTableRoot<TData extends RowData>({
 
   const body = (
     <ResponsiveLayoutContext.Provider value={layout}>
-      <PinsContext.Provider value={drawnPins}>
-        <DragContext table={table}>
-          <Table
-            frameRef={frame}
-            density={options?.density ?? "default"}
-            label={label}
-            {...(fill ? { fill } : maxHeight === undefined ? {} : { maxHeight })}
-            {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}
-            className={cn("border-b border-default", fixed && "table-fixed")}
-            style={minWidth === undefined ? undefined : { minWidth }}
-          >
-            <thead>
-              <ColumnSortable table={table}>
-                {headerGroups.map((group, i) => (
-                  <tr key={group.id}>
-                    {i === headerGroups.length - 1 ? (
-                      <>
-                        {leading.selectable ? (
-                          <Table.Selection
-                            header
-                            checked={table.getIsAllPageRowsSelected()}
-                            indeterminate={
-                              !table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()
-                            }
-                            onCheckedChange={(next) => table.toggleAllPageRowsSelected(next)}
-                            label={t("selectPage")}
-                            {...pins("selectable")}
-                          />
-                        ) : null}
-                        {leading.tree ? narrowHeader("tree") : null}
-                        {leading.handle ? narrowHeader("handle") : null}
-                        {leading.detail ? narrowHeader("detail") : null}
-                      </>
-                    ) : (
-                      Array.from({ length: leadingCount(leading) }, (_, j) => (
-                        <Table.Header key={j} hairline={false} aria-hidden />
-                      ))
-                    )}
-                    {group.headers
+      <SharedPopupsContext.Provider value={popups}>
+        <PinsContext.Provider value={drawnPins}>
+          <DragContext table={table}>
+            <Table
+              frameRef={frame}
+              density={options?.density ?? "default"}
+              label={label}
+              {...(fill ? { fill } : maxHeight === undefined ? {} : { maxHeight })}
+              {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}
+              {...(state === "loading" ? { "aria-busy": true } : {})}
+              className={cn("border-b border-default", fixed && "table-fixed")}
+              style={minWidth === undefined ? undefined : { minWidth }}
+            >
+              <thead>
+                <ColumnSortable table={table}>
+                  {headerGroups.map((group, i) => (
+                    <tr key={group.id}>
+                      {i === headerGroups.length - 1 ? (
+                        <>
+                          {leading.selectable ? (
+                            <Table.Selection
+                              header
+                              checked={table.getIsAllPageRowsSelected()}
+                              indeterminate={
+                                !table.getIsAllPageRowsSelected() &&
+                                table.getIsSomePageRowsSelected()
+                              }
+                              onCheckedChange={(next) => table.toggleAllPageRowsSelected(next)}
+                              label={t("selectPage")}
+                              {...pins("selectable")}
+                            />
+                          ) : null}
+                          {leading.tree ? narrowHeader("tree") : null}
+                          {leading.handle ? narrowHeader("handle") : null}
+                          {leading.detail ? narrowHeader("detail") : null}
+                        </>
+                      ) : (
+                        Array.from({ length: leadingCount(leading) }, (_, j) => (
+                          <Table.Header key={j} hairline={false} aria-hidden />
+                        ))
+                      )}
+                      {group.headers
+                        .filter((header) => visibleHeaders(header, layout) > 0)
+                        .map((header) => (
+                          <HeaderCell key={header.id} header={header} table={table} touch={touch} />
+                        ))}
+                      {layout?.collapsed && (
+                        <Table.Header width={32} className="px-0">
+                          <span className="sr-only">{t("moreFields")}</span>
+                        </Table.Header>
+                      )}
+                    </tr>
+                  ))}
+                </ColumnSortable>
+              </thead>
+              {groupBy && showRows ? (
+                groups.map((group) => (
+                  <Table.Group
+                    key={group.id}
+                    colSpan={columnCount}
+                    open={group.getIsExpanded()}
+                    onToggle={() => group.toggleExpanded()}
+                    title={String(group.groupingValue ?? "")}
+                    count={group.getLeafRows().length}
+                  >
+                    {group.subRows.map((row) => drawRow(row))}
+                  </Table.Group>
+                ))
+              ) : (
+                <tbody>
+                  {states}
+                  {showRows ? (
+                    <RowSortable table={table}>
+                      {topRows.map((row) => drawRow(row, true))}
+                      {virtual ? (
+                        <>
+                          {paddingTop > 0 ? (
+                            <tr aria-hidden style={{ height: paddingTop }}>
+                              <td colSpan={columnCount} />
+                            </tr>
+                          ) : null}
+                          {items.map((item) => {
+                            const row = rows[item.index];
+                            return row ? drawRow(row, false, item.index) : null;
+                          })}
+                          {paddingBottom > 0 ? (
+                            <tr aria-hidden style={{ height: paddingBottom }}>
+                              <td colSpan={columnCount} />
+                            </tr>
+                          ) : null}
+                        </>
+                      ) : (
+                        rows.map((row) => drawRow(row))
+                      )}
+                      {bottomRows.map((row) => drawRow(row, true))}
+                    </RowSortable>
+                  ) : null}
+                </tbody>
+              )}
+              {footerGroup && showRows ? (
+                <tfoot>
+                  <Table.Row isStatic className="border-t border-default">
+                    {Array.from({ length: leadingCount(leading) }, (_, j) => (
+                      <Table.Cell key={j} className="w-400 max-w-none pe-0" />
+                    ))}
+                    {footerGroup.headers
                       .filter((header) => visibleHeaders(header, layout) > 0)
                       .map((header) => (
-                        <HeaderCell key={header.id} header={header} table={table} touch={touch} />
+                        <Table.Cell
+                          key={header.id}
+                          className={alignClass(header.column.columnDef.meta?.align)}
+                          colSpan={visibleHeaders(header, layout)}
+                        >
+                          {header.isPlaceholder || header.column.columnDef.footer === undefined
+                            ? null
+                            : flexRender(header.column.columnDef.footer, header.getContext())}
+                        </Table.Cell>
                       ))}
-                    {layout?.collapsed && (
-                      <Table.Header width={32} className="px-0">
-                        <span className="sr-only">{t("moreFields")}</span>
-                      </Table.Header>
-                    )}
-                  </tr>
-                ))}
-              </ColumnSortable>
-            </thead>
-            {groupBy && showRows ? (
-              groups.map((group) => (
-                <Table.Group
-                  key={group.id}
-                  colSpan={columnCount}
-                  open={group.getIsExpanded()}
-                  onToggle={() => group.toggleExpanded()}
-                  title={String(group.groupingValue ?? "")}
-                  count={group.getLeafRows().length}
-                >
-                  {group.subRows.map((row) => drawRow(row))}
-                </Table.Group>
-              ))
-            ) : (
-              <tbody>
-                {states}
-                {showRows ? (
-                  <RowSortable table={table}>
-                    {topRows.map((row) => drawRow(row, true))}
-                    {virtual ? (
-                      <>
-                        {paddingTop > 0 ? (
-                          <tr aria-hidden style={{ height: paddingTop }}>
-                            <td colSpan={columnCount} />
-                          </tr>
-                        ) : null}
-                        {items.map((item) => {
-                          const row = rows[item.index];
-                          return row ? drawRow(row, false, item.index) : null;
-                        })}
-                        {paddingBottom > 0 ? (
-                          <tr aria-hidden style={{ height: paddingBottom }}>
-                            <td colSpan={columnCount} />
-                          </tr>
-                        ) : null}
-                      </>
-                    ) : (
-                      rows.map((row) => drawRow(row))
-                    )}
-                    {bottomRows.map((row) => drawRow(row, true))}
-                  </RowSortable>
-                ) : null}
-              </tbody>
-            )}
-            {footerGroup && showRows ? (
-              <tfoot>
-                <Table.Row isStatic className="border-t border-default">
-                  {Array.from({ length: leadingCount(leading) }, (_, j) => (
-                    <Table.Cell key={j} className="w-400 max-w-none pe-0" />
-                  ))}
-                  {footerGroup.headers
-                    .filter((header) => visibleHeaders(header, layout) > 0)
-                    .map((header) => (
-                      <Table.Cell
-                        key={header.id}
-                        className={alignClass(header.column.columnDef.meta?.align)}
-                        colSpan={visibleHeaders(header, layout)}
-                      >
-                        {header.isPlaceholder || header.column.columnDef.footer === undefined
-                          ? null
-                          : flexRender(header.column.columnDef.footer, header.getContext())}
-                      </Table.Cell>
-                    ))}
-                  {layout?.collapsed && <Table.Cell />}
-                </Table.Row>
-              </tfoot>
-            ) : null}
-          </Table>
-        </DragContext>
-      </PinsContext.Provider>
+                    {layout?.collapsed && <Table.Cell />}
+                  </Table.Row>
+                </tfoot>
+              ) : null}
+            </Table>
+          </DragContext>
+        </PinsContext.Provider>
+      </SharedPopupsContext.Provider>
     </ResponsiveLayoutContext.Provider>
   );
 
@@ -1467,6 +1814,8 @@ function DataTableRoot<TData extends RowData>({
       ) : (
         body
       )}
+      <RowActionsMenu table={table} handle={popups.actions} />
+      <GlanceCard table={table} handle={popups.glance} />
       {pageSize !== undefined && !groupBy && state !== "loading" && !isEmpty ? (
         <TablePagination
           page={table.state.pagination.pageIndex + 1}

@@ -1,5 +1,5 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-import { Item } from "../../components";
+import { Item, ItemGroup } from "../../components";
 import * as Stories from "./Item.stories";
 
 <Meta of={Stories} />
@@ -29,9 +29,11 @@ Group `size="compact"` reduces vertical padding. `flush` extends separators and 
 
 The title is a real anchor or button. Enter follows links; Space activates buttons. Disclosure buttons announce expanded state and reference the linked title's id. The chevron sits above the title's stretched link, so a click or a tap on it opens the row and never follows the link; where any pointer is coarse its hit area is 24px. Actions are independent tab stops. Plain rows stay out of the tab order unless the caller explicitly supplies tabIndex for programmatic focus.
 
-A group title names the list. It is a heading at the contextual level: an h3 when nothing sets one, one below a titled Section, an h2 in a rail that starts its outline at 2 with `HeadingLevelProvider level={2}`. Use `labelledBy` when a surrounding section already provides the heading. A compact `empty` message is body text, not a heading.
+A group title names the list. It is a heading at the contextual level: an h3 when nothing sets one, one below a titled Section, an h2 in a rail that starts its outline at 2 with `HeadingLevelProvider level={2}`. When a surrounding card or section already draws the heading, point `aria-labelledby` at it; with no visible heading, `aria-label` names the list. Both reach the `ol`, not the wrapper, and the group's own `title` wins over them. `labelledBy` is the deprecated name of `aria-labelledby`, kept for one version. A compact `empty` message is body text, not a heading.
 
 <Canvas of={Stories.GroupHeadingLevel} />
+
+<Canvas of={Stories.GroupNamedFromOutside} />
 
 Keep link titles descriptive; meta and trailing values are separate from the link's accessible name.
 
@@ -40,9 +42,9 @@ Keep link titles descriptive; meta and trailing values are separate from the lin
 ## Props
 
 <ArgTypes of={Item} />
-<ArgTypes of={Item.Group} />
+<ArgTypes of={ItemGroup} />
 
-Item forwards native li attributes, styles, events and refs. Its existing `id`, `title` and `onSelect` props keep their record-content/action meanings. Item.Group forwards native div attributes and refs to the outer wrapper; its `title` remains the visible group heading. Styles merge with the standalone row grid.
+Item forwards native li attributes, styles, events and refs. Its existing `id`, `title` and `onSelect` props keep their record-content/action meanings. Item.Group forwards native div attributes and refs to the outer wrapper, except `aria-label` and `aria-labelledby`, which name the list; its `title` remains the visible group heading. Each part names itself last with `data-slot` (`item`, `item-group`). Styles merge with the standalone row grid.
 
 `link={<Link to="/record" />}` uses Base UI useRender to preserve the supplied link's attributes, ref, handlers and id. Leave the link empty to use Item's configured title. Explicit link children follow Base UI's rendered-element precedence. No router dependency is added.
 

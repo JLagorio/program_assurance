@@ -15,6 +15,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link, linkOptions } from "@tanstack/react-router";
 import { createPortal } from "react-dom";
 import {
+  HeadingLevelProvider,
   IconButton,
   PageHeader,
   Stack,
@@ -59,18 +60,20 @@ function PreviewFrameSlot({ id, hidden }: { id: string; hidden: boolean }) {
 export function RecordPreviewProvider({ children }: { children: ReactNode }) {
   const [frames, setFrames] = useState<PreviewFrame[]>([]);
   const [targets, setTargets] = useState<ReadonlyMap<string, HTMLDivElement>>(new Map());
-  const rootOpener = useRef<HTMLElement | null>(null);
   const panel = useRef<HTMLElement>(null);
+  // The control inside the panel that opened each nested frame, so Back returns to it.
+  const nestedOpeners = useRef(new Map<string, HTMLElement>());
+  const returnTo = useRef<HTMLElement | null>(null);
   const mountedFrames = useRef(new Set<string>());
   const frameRef = useRef(frames);
   frameRef.current = frames;
   const register = useCallback(
     (id: string, parentId: string | null, props: RecordPreviewPanelProps) => {
       const existing = frameRef.current.find((frame) => frame.id === id);
+      const focused = document.activeElement;
+      if (!existing && parentId !== null && focused instanceof HTMLElement)
+        if (panel.current?.contains(focused)) nestedOpeners.current.set(id, focused);
       if (!existing && parentId === null) {
-        if (!panel.current?.contains(document.activeElement))
-          rootOpener.current =
-            document.activeElement instanceof HTMLElement ? document.activeElement : null;
         // A different register replaces the root preview and clears its selection.
         // Unmounted frames may still be in the queued state during a record-type switch.
         for (const frame of frameRef.current)
@@ -89,6 +92,7 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
   );
   const remove = useCallback((id: string) => {
     mountedFrames.current.delete(id);
+    nestedOpeners.current.delete(id);
     setFrames((previous) => {
       const removed = new Set([id]);
       for (const frame of previous)
@@ -116,24 +120,27 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
     children: _children,
     ...panelProps
   } = current?.props ?? {};
+  // Closing the root frame unmounts Shell.Panel, which returns focus to the control the reader
+  // last used in Main (a later row's eye included). Back from a nested frame returns to the
+  // control in the parent frame that opened it.
   const close = () => {
-    const surface = panel.current;
-    const opener = rootOpener.current;
-    const restore = current?.parentId === null && surface?.contains(document.activeElement);
+    returnTo.current = current?.parentId ? (nestedOpeners.current.get(current.id) ?? null) : null;
     current?.props.onClose();
-    // The shell stays mounted across sibling previews, so its original opener may be outdated.
-    if (restore)
-      requestAnimationFrame(() => {
-        if (
-          opener?.isConnected &&
-          (document.activeElement === document.body || surface?.contains(document.activeElement))
-        )
-          opener.focus();
-      });
   };
   const previousFrame = useRef<string | undefined>(undefined);
   useLayoutEffect(() => {
-    if (previousFrame.current && previousFrame.current !== current?.id) panel.current?.focus();
+    if (previousFrame.current && previousFrame.current !== current?.id) {
+      const opener = returnTo.current;
+      returnTo.current = null;
+      // Previous and Next sit in the panel's header, which stays while a keyed preview swaps its
+      // frame: focus stays on the control the reader pressed (or the one PreviewNavigation moved
+      // it to at an endpoint) instead of jumping to the panel.
+      const focused = document.activeElement;
+      const header = panel.current?.querySelector('[data-slot="shell-panel-header"]');
+      const inHeader = focused instanceof HTMLElement && !!header?.contains(focused);
+      if (opener?.isConnected && panel.current?.contains(opener)) opener.focus();
+      else if (!inHeader) panel.current?.focus();
+    }
     previousFrame.current = current?.id;
   }, [current?.id]);
   return (
@@ -190,19 +197,21 @@ export function RecordPreviewPanel(props: RecordPreviewPanelProps) {
   return target
     ? createPortal(
         <PreviewParent.Provider value={id}>
-          <Stack space="space.200">
-            <PageHeader data-record-preview-header="">
-              <PageHeader.Heading>
-                <h2 className="min-w-0 break-words font-heading-small font-semibold text-default">
-                  {props.title}
-                </h2>
-              </PageHeader.Heading>
-              {props.recordActions && (
-                <PageHeader.Actions>{props.recordActions}</PageHeader.Actions>
-              )}
-            </PageHeader>
-            {props.children}
-          </Stack>
+          {/* The panel's outline starts at 2 wherever the preview was rendered from: the record's
+              name is the h2 and the body's headings sit one level below it. */}
+          <HeadingLevelProvider level={2}>
+            <Stack space="space.200">
+              <PageHeader data-record-preview-header="">
+                <PageHeader.Heading>
+                  <PageHeader.Title>{props.title}</PageHeader.Title>
+                </PageHeader.Heading>
+                {props.recordActions && (
+                  <PageHeader.Actions>{props.recordActions}</PageHeader.Actions>
+                )}
+              </PageHeader>
+              <HeadingLevelProvider>{props.children}</HeadingLevelProvider>
+            </Stack>
+          </HeadingLevelProvider>
         </PreviewParent.Provider>,
         target,
       )
@@ -268,6 +277,14 @@ export function recordDestination(table: TableName, record: PreviewRecord) {
           params: { programId, requirementId: id },
         });
       break;
+    // A control the program has implemented opens its control record, with its narrative.
+    case "implemented_requirements":
+      if (programId)
+        return linkOptions({
+          to: "/programs/$programId/controls/$controlId",
+          params: { programId, controlId: id },
+        });
+      break;
   }
   return linkOptions({
     to: "/records/$collection/$recordId",
@@ -328,6 +345,45 @@ export function RecordPreviewActions<T extends { id: string }>({
       }
     />
   );
+}
+
+/**
+ * A confirmed removal takes the row, and the menu that asked, out of the table, and focus would
+ * fall to the page. Call `removed(id)` when the removal succeeds; once `rows` no longer holds that
+ * row and the confirmation has let go of focus, `target` (the collection's primary) takes it.
+ */
+export function useRemovalFocus(rows: readonly { id: string }[]) {
+  const target = useRef<HTMLElement | null>(null);
+  const pending = useRef<string | null>(null);
+  const signature = rows.map((row) => row.id).join("|");
+  const current = useRef(rows);
+  current.current = rows;
+  useEffect(() => {
+    const id = pending.current;
+    if (!id || current.current.some((row) => row.id === id)) return;
+    pending.current = null;
+    let tries = 0;
+    let frame = 0;
+    // Wait for the confirmation to let go of focus and for a preview covering the collection (a
+    // phone's full-screen panel) to close: until then the target is inert and focus() does nothing.
+    const settle = () => {
+      const active = document.activeElement;
+      if (active && active !== document.body && !active.closest('[role="alertdialog"]')) return;
+      if (!active || active === document.body) {
+        target.current?.focus();
+        if (target.current && document.activeElement === target.current) return;
+      }
+      if (tries++ < 60) frame = requestAnimationFrame(settle);
+    };
+    frame = requestAnimationFrame(settle);
+    return () => cancelAnimationFrame(frame);
+  }, [signature]);
+  return {
+    target,
+    removed: (id: string) => {
+      pending.current = id;
+    },
+  };
 }
 
 /** Publish exactly the table's rendered order, including filters, sorting, paging and tree expansion. */

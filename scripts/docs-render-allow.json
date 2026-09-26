@@ -1,0 +1,6 @@
+{
+  "about": "Docs pages that failed to render when the check landed, with the reason. The list may only shrink: fix the page and delete its entry.",
+  "pages": {
+    "components-spinner--docs": "Spinner.stories.tsx passes `ref: fn()` through args, and the docs source snippet reads element.ref, which React 19 reports as a console error. Assert the ref in a play with a render function instead."
+  }
+}

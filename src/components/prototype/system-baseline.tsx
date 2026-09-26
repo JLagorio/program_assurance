@@ -1,45 +1,56 @@
 import { ProductCollection } from "./product-collection";
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useId, useMemo, useRef, useState, type FormEvent } from "react";
-import { useBlocker } from "@tanstack/react-router";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { AlertCircle } from "lucide-react";
 import {
   Absent,
-  Badge,
-  Box,
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Button,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
   DataTable,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  ErrorSummary,
   Field,
+  FieldContent,
+  FieldDescription,
   FieldLabel,
+  FieldLegend,
+  FieldSet,
   Inline,
   KeyValue,
+  Prose,
+  RadioGroup,
+  RadioGroupItem,
+  Section,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
   Stack,
-  Textarea,
-  Toolbar,
+  Text,
   defineColumns,
+  toast,
   useDataTable,
+  useLedgerLocale,
   type Preset,
-  type Tone,
 } from "@ledger/design-system";
-import { ChevronDown } from "lucide-react";
+import { ChoiceField, TextField } from "@/components/app/fields";
+import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import { StatusBadge } from "@/components/app/status";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "@/lib/database";
 import { useRow, useRows, type Row } from "@/lib/models";
-import { labelFor } from "@/lib/records";
+import { implementationStatuses, revisionStates, type StatusVocabulary } from "@/lib/status";
 import { resolutionChain } from "@/lib/profile-chain";
 import { ControlInspector } from "./library-controls";
 import { RecordLink, useDisplayedRecords } from "./record-preview";
@@ -117,13 +128,32 @@ export function profileChoices(input: {
     .sort((a, b) => a.label.localeCompare(b.label));
 }
 
-type ControlSource = "From profile" | "Added here" | "Excluded here";
+type ControlSource = "profile" | "added" | "excluded";
+
+/** Where a control in the effective set came from, against the base profile it is tailored from. */
+const controlSources: StatusVocabulary<ControlSource> = {
+  profile: { label: "From profile", tone: "neutral", rank: 0 },
+  added: { label: "Added here", tone: "success", rank: 1 },
+  excluded: { label: "Excluded here", tone: "warning", rank: 2 },
+};
+
+/** The boundary SSP's implementation status, and a control the SSP has no statement for yet. */
+const implementationColumn: StatusVocabulary = {
+  ...implementationStatuses,
+  not_recorded: {
+    label: "Not recorded",
+    tone: "neutral",
+    rank: Object.keys(implementationStatuses).length,
+  },
+};
+
 type ControlRow = {
   id: string;
   code: string;
   title: string;
   source: ControlSource;
   rationale: string | null;
+  /** The stored implementation status, or `not_recorded`. */
   implementation: string;
   requirements: number;
   control: Row<"controls">;
@@ -135,24 +165,27 @@ const presets: Preset[] = [
   {
     id: "changed",
     label: "Changed here",
-    filters: [{ id: "source", value: ["Added here", "Excluded here"] }],
+    filters: [{ id: "source", value: ["added", "excluded"] }],
   },
   {
     id: "unimplemented",
     label: "No implementation",
-    filters: [{ id: "implementation", value: ["Not recorded"] }],
+    filters: [{ id: "implementation", value: ["not_recorded"] }],
   },
 ];
 
 const NIL = "00000000-0000-0000-0000-000000000000";
 
-function implementationTone(value: string): Tone {
-  const text = value.toLowerCase();
-  if (text.startsWith("implemented")) return "success";
-  if (text.startsWith("partial")) return "warning";
-  if (text.startsWith("planned")) return "information";
-  return "neutral";
-}
+type BaselineMode = "adopt" | "inherit";
+
+/** The element's current baseline, as the dialog names it before anything changes. */
+type BaselineSummary = {
+  title: string | undefined;
+  source: string;
+  count: number;
+  state: string | null | undefined;
+  layeredOn: string | undefined;
+};
 
 /**
  * The element's Controls tab: the baseline it works from and the effective set, with where each
@@ -170,6 +203,7 @@ export function SystemControls({
   onAddFromLibrary?: ((controlId: string) => void) | undefined;
 }) {
   const workspace = useWorkspace();
+  const { formatNumber } = useLedgerLocale();
   const system = useRow("systems", systemId);
   const effective = useRow("system_effective_baselines", systemId);
   const source = useRow("systems", effective.data?.source_system_id);
@@ -312,26 +346,26 @@ export function SystemControls({
       title: control.title,
       source: sourceKind,
       rationale:
-        sourceKind === "Excluded here"
+        sourceKind === "excluded"
           ? exclusionRationale(control)
-          : sourceKind === "Added here"
+          : sourceKind === "added"
             ? (system.data?.baseline_rationale ?? null)
             : null,
-      implementation: implementationByControl.get(control.id) ?? "Not recorded",
+      implementation: implementationByControl.get(control.id) ?? "not_recorded",
       requirements: revisionsByControl.get(control.id)?.size ?? 0,
       control,
       selectionId: selectionIdByControl.get(control.id),
     });
     return [
       ...selectedControls.map((control) =>
-        toRow(control, verifiedSource && !base.has(control.id) ? "Added here" : "From profile"),
+        toRow(control, verifiedSource && !base.has(control.id) ? "added" : "profile"),
       ),
       ...(verifiedSource
         ? [...base]
             .filter((id) => !selected.has(id))
             .flatMap((id) => {
               const control = controlById.get(id);
-              return control ? [toRow(control, "Excluded here")] : [];
+              return control ? [toRow(control, "excluded")] : [];
             })
             .sort((a, b) => controlOrder(a.control, b.control))
         : []),
@@ -358,11 +392,6 @@ export function SystemControls({
           hideable: false,
           preview: (row) => setInspected(row),
           active: (row) => row.id === inspected?.id,
-          cell: (row) => (
-            <RecordLink table="controls" record={row}>
-              {row.code}
-            </RecordLink>
-          ),
         }),
         c.text("title", {
           header: "Title",
@@ -375,55 +404,30 @@ export function SystemControls({
             </RecordLink>
           ),
         }),
-        c.status("source", {
-          header: "Source",
-          width: 140,
-          tone: (row) =>
-            row.source === "Added here"
-              ? "success"
-              : row.source === "Excluded here"
-                ? "warning"
-                : "neutral",
-          cell: (row) => (
-            <span title={row.rationale ?? undefined}>
-              <Badge
-                variant="secondary"
-                tone={
-                  row.source === "Added here"
-                    ? "success"
-                    : row.source === "Excluded here"
-                      ? "warning"
-                      : "neutral"
-                }
-              >
-                {row.source}
-              </Badge>
-            </span>
-          ),
-        }),
+        c.status("source", { header: "Source", width: 140, statuses: controlSources }),
         c.status("implementation", {
           header: "Implementation",
           width: 150,
-          tone: (row) => implementationTone(row.implementation),
+          statuses: implementationColumn,
           cell: (row) =>
-            row.implementation === "Not recorded" ? (
-              <Absent />
+            row.implementation === "not_recorded" ? (
+              <Absent label="Not recorded" />
             ) : (
-              <Badge variant="secondary" tone={implementationTone(row.implementation)}>
-                {labelFor(row.implementation)}
-              </Badge>
+              <StatusBadge statuses={implementationStatuses} value={row.implementation} />
             ),
         }),
         c.number("requirements", {
           header: "Requirements",
           width: 124,
-          cell: (row) => (row.requirements ? String(row.requirements) : <Absent />),
+          cell: (row) =>
+            row.requirements ? String(row.requirements) : <Absent label="None mapped" />,
         }),
+        // Why a control was added or excluded: a column the reader can show, and More fields.
         c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
         ...(onAddFromLibrary
           ? [
               c.actions((row) =>
-                row.source === "Excluded here"
+                row.source === "excluded"
                   ? []
                   : [{ label: "Add from library…", onSelect: () => onAddFromLibrary(row.id) }],
               ),
@@ -436,8 +440,10 @@ export function SystemControls({
     columns,
     data: rows,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.code,
     label: "Controls",
-    view: "live-system-controls-v1",
+    // v2: Source and Implementation filter on stored values, so earlier saved questions do not apply.
+    view: "live-system-controls-v2",
     resizable: true,
     reorderable: true,
     pageSize: 50,
@@ -460,7 +466,6 @@ export function SystemControls({
     ...(currentProfile ? [currentDocument, rules] : []),
     ...(currentResolution ? [resolutionInputs] : []),
   ];
-  const error = queries.find((query) => query.error)?.error;
   const ready = queries.every((query) => query.data !== undefined && !query.error);
   const canEdit =
     !readOnly &&
@@ -471,11 +476,16 @@ export function SystemControls({
     : effective.data?.source_label === "Explicit system adoption"
       ? "Applied here"
       : (effective.data?.source_label ?? "");
+  // An element that adopts nothing itself inherits: the dialog starts where the element is.
+  const explicit = effective.data?.source_label === "Explicit system adoption";
+  const initialMode: BaselineMode =
+    explicit || !effective.data?.profile_resolution_id ? "adopt" : "inherit";
+  const state = currentResolution?.state ?? currentProfile?.state;
   const changeBaseline = canEdit ? (
     <Button
       size="small"
       variant="primary"
-      disabled={!ready || !system.data}
+      disabledReason={!ready || !system.data ? "The baseline is still loading." : undefined}
       onClick={() => setEditing(true)}
     >
       Change control baseline
@@ -483,9 +493,35 @@ export function SystemControls({
   ) : null;
   return (
     <Stack space="space.200">
+      {/* Provenance above the register, so the fill table stays the tab's last block. */}
+      {currentProfile && (
+        <Section title="Baseline details" isCollapsible>
+          <KeyValue.Group labelWidth={144}>
+            <KeyValue label="Profile" wrap>
+              {currentTitle}
+            </KeyValue>
+            <KeyValue label="Source" wrap>
+              {sourceText || <Absent />}
+            </KeyValue>
+            <KeyValue label="Selected controls">{formatNumber(selectedControls.length)}</KeyValue>
+            <KeyValue label="State">
+              <StatusBadge statuses={revisionStates} value={state} />
+            </KeyValue>
+            {overlayBase && (
+              <KeyValue label="Layered on" wrap>
+                {overlayBase.title}
+              </KeyValue>
+            )}
+            {system.data?.baseline_rationale && (
+              <KeyValue label="Tailoring rationale" wrap>
+                <Prose>{system.data.baseline_rationale}</Prose>
+              </KeyValue>
+            )}
+          </KeyValue.Group>
+        </Section>
+      )}
       <ProductCollection
         table={table}
-
         empty={{
           illustration: "shield",
           title: "No baseline yet",
@@ -499,42 +535,9 @@ export function SystemControls({
         views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
         action={changeBaseline}
       />
-      {currentProfile && (
-        <Collapsible>
-          <CollapsibleTrigger
-            render={<Button variant="subtle" size="small" iconAfter={<ChevronDown />} />}
-          >
-            Baseline details
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <Stack space="space.100" className="pt-150">
-              <KeyValue label="Profile" wrap>
-                {currentTitle}
-              </KeyValue>
-              <KeyValue label="Source" wrap>
-                {sourceText}
-              </KeyValue>
-              <KeyValue label="Selected controls">{selectedControls.length}</KeyValue>
-              <KeyValue label="State">
-                {labelFor(currentResolution?.state ?? currentProfile.state)}
-              </KeyValue>
-              {overlayBase && (
-                <KeyValue label="Layered on" wrap>
-                  {overlayBase.title}
-                </KeyValue>
-              )}
-              {system.data?.baseline_rationale && (
-                <KeyValue label="Tailoring rationale" wrap>
-                  <span className="whitespace-pre-wrap">{system.data.baseline_rationale}</span>
-                </KeyValue>
-              )}
-            </Stack>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
       {inspected && (
+        // Not keyed by the control: previous and next keep the panel, its tab and the reader's focus.
         <ControlInspector
-          key={inspected.id}
           control={inspected.control}
           {...(inspected.selectionId ? { selectionId: inspected.selectionId } : {})}
           records={displayed.map((row) => row.control)}
@@ -550,8 +553,20 @@ export function SystemControls({
           system={system.data}
           choices={choices}
           controls={controls.data ?? []}
+          initialMode={initialMode}
           initialProfileId={editorSource?.id ?? null}
           initialControlIds={editorSource ? [...selected] : []}
+          current={
+            currentProfile
+              ? {
+                  title: currentTitle,
+                  source: sourceText,
+                  count: selectedControls.length,
+                  state,
+                  layeredOn: overlayBase?.title,
+                }
+              : null
+          }
           canWrite={canEdit}
           onClose={() => setEditing(false)}
         />
@@ -586,115 +601,201 @@ function controlOrder(a: Row<"controls">, b: Row<"controls">) {
   return a.code.localeCompare(b.code, undefined, { numeric: true });
 }
 
+/** The dialog's fields in the order they appear, which is the order their issues are listed in. */
+type BaselineField = "profile" | "controls" | "rationale";
+type PickerFilter = "all" | "selected" | "changed";
+/** A catalog control in the picker, as the reader sees it: where it stands against the base. */
+type PickerRow = { id: string; code: string; title: string; selection: string };
+const pickerFilters: { value: PickerFilter; label: string }[] = [
+  { value: "all", label: "All catalog controls" },
+  { value: "selected", label: "Selected controls" },
+  { value: "changed", label: "Changed controls" },
+];
+
 function BaselineDialog({
   system: initialSystem,
   choices,
   controls,
+  initialMode,
   initialProfileId,
   initialControlIds,
+  current,
   canWrite,
   onClose,
 }: {
   system: Row<"systems">;
   choices: ProfileChoice[];
   controls: Row<"controls">[];
+  /** Where the element is today: adopting a profile itself, or inheriting. */
+  initialMode: BaselineMode;
   initialProfileId: string | null;
   initialControlIds: string[];
+  /** The element's baseline before anything changes, or null when it has none. */
+  current: BaselineSummary | null;
   canWrite: boolean;
+  /** Called once the dialog has finished closing. */
   onClose: () => void;
 }) {
-  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
+  const { formatNumber } = useLedgerLocale();
   const cache = useQueryClient();
-  const fieldId = useId();
+  const formId = useId();
   // Keep the opening snapshot for CAS even when a background refetch updates the record.
   const [system] = useState(initialSystem);
   const initial = choices.find((choice) => choice.id === initialProfileId);
-  const [mode, setMode] = useState<"adopt" | "inherit">("adopt");
-  const [profileId, setProfileId] = useState(initial?.id ?? "");
+  const [open, setOpen] = useState(true);
+  const [mode, setMode] = useState<BaselineMode>(initialMode);
+  const [profileId, setProfileId] = useState<string | null>(initial?.id ?? null);
   const [picked, setPicked] = useState(() => new Set(initialControlIds));
   const [rationale, setRationale] = useState(system.baseline_rationale ?? "");
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState<PickerFilter>("all");
   const [dirty, setDirty] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const inFlight = useRef(false);
-  const bypass = useRef(false);
+  const [failure, setFailure] = useState<string | null>(null);
   const receipt = useRef<{ key: string; id: string } | null>(null);
+  const adoptRef = useRef<HTMLButtonElement>(null);
+  const inheritRef = useRef<HTMLButtonElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const failureRef = useRef<HTMLDivElement>(null);
+  const feedback = useFormFeedback<BaselineField>();
+  const guard = useDraftGuard({
+    dirty,
+    onClose: () => setOpen(false),
+    description: "The baseline choices you made will be lost.",
+  });
   const chosen = choices.find((choice) => choice.id === profileId);
-  const base = new Set(chosen?.controlIds ?? []);
+  const base = useMemo(() => new Set(chosen?.controlIds ?? []), [chosen]);
   const added = [...picked].filter((id) => !base.has(id)).length;
   const removed = [...base].filter((id) => !picked.has(id)).length;
-  const catalogControls = controls
-    .filter((control) => control.catalog_revision_id === chosen?.catalogId)
-    .sort(controlOrder);
-  const shown = catalogControls.filter(
-    (control) =>
-      `${control.code} ${control.title}`.toLowerCase().includes(search.toLowerCase()) &&
-      (filter === "all" ||
-        (filter === "selected" && picked.has(control.id)) ||
-        (filter === "changed" && picked.has(control.id) !== base.has(control.id))),
+  const tailored = added + removed > 0;
+  const catalogControls = useMemo(
+    () =>
+      controls
+        .filter((control) => control.catalog_revision_id === chosen?.catalogId)
+        .sort(controlOrder),
+    [controls, chosen?.catalogId],
   );
-  const pickerColumns = defineColumns<Row<"controls">>((c) => [
-    c.id("code", { header: "Control", width: 130 }),
-    c.text("title", { header: "Title", priority: 0, minWidth: 180, wrap: true }),
-    c.text("id", {
-      header: "Selection",
-      width: 150,
-      cell: (control) =>
-        picked.has(control.id) !== base.has(control.id)
-          ? picked.has(control.id)
-            ? "Added"
-            : "Removed"
-          : base.has(control.id)
-            ? "From profile"
-            : "Available",
-    }),
-  ]);
+  // The selection filter narrows the rows before the table; the table's own search does the rest.
+  // Each row carries only what the reader sees, so the search never matches a control's uuid.
+  const shown = useMemo<PickerRow[]>(
+    () =>
+      catalogControls.flatMap((control) => {
+        const isPicked = picked.has(control.id);
+        const inBase = base.has(control.id);
+        if (filter === "selected" && !isPicked) return [];
+        if (filter === "changed" && isPicked === inBase) return [];
+        return [
+          {
+            id: control.id,
+            code: control.code,
+            title: control.title,
+            selection:
+              isPicked !== inBase
+                ? isPicked
+                  ? "Added"
+                  : "Removed"
+                : inBase
+                  ? "From profile"
+                  : "Available",
+          },
+        ];
+      }),
+    [catalogControls, filter, picked, base],
+  );
+  const pickerColumns = useMemo(
+    () =>
+      defineColumns<PickerRow>((c) => [
+        c.id("code", { header: "Control", width: 130, priority: 1 }),
+        c.text("title", { header: "Title", priority: 0, minWidth: 180, wrap: true }),
+        c.text("selection", { header: "Selection", width: 150, priority: 2, sortable: false }),
+      ]),
+    [],
+  );
+  const rowSelection = useMemo(
+    () => Object.fromEntries([...picked].map((id) => [id, true as const])),
+    [picked],
+  );
   const pickerTable = useDataTable({
     columns: pickerColumns,
     data: shown,
-    getRowId: (control) => control.id,
+    getRowId: (row) => row.id,
+    rowLabel: (row) => row.code,
     label: "Controls to tailor",
-    selectable: !busy && canWrite,
-    state: {
-      globalFilter: search,
-      rowSelection: Object.fromEntries([...picked].map((id) => [id, true as const])),
-    },
-    onGlobalFilterChange: (next) => setSearch(typeof next === "function" ? next(search) : next),
+    selectable: canWrite,
+    // A catalog holds about 1,200 controls: only the rows in view are drawn.
+    virtualize: true,
+    state: { rowSelection },
     onRowSelectionChange: (next) => {
-      const previous = Object.fromEntries([...picked].map((id) => [id, true as const]));
-      const changed = typeof next === "function" ? next(previous) : next;
+      const changed = typeof next === "function" ? next(rowSelection) : next;
       setPicked(new Set(Object.keys(changed).filter((id) => changed[id])));
       setDirty(true);
     },
   });
-  const close = async () => {
-    if (inFlight.current) return;
-    if (!dirty || (await confirm(discardChanges("Discard this unsaved baseline selection?")))) {
-      bypass.current = true;
-      onClose();
-    }
-  };
-  useBlocker({
-    shouldBlockFn: async () =>
-      inFlight.current ||
-      (dirty &&
-        !bypass.current &&
-        !(await confirm(discardChanges("Discard this unsaved baseline selection?")))),
-    enableBeforeUnload: () => !bypass.current && (dirty || inFlight.current),
-  });
+  const issues: FormIssue<BaselineField>[] =
+    mode === "inherit"
+      ? []
+      : [
+          ...(!chosen
+            ? [
+                {
+                  field: "profile" as const,
+                  message: choices.length
+                    ? "Choose the profile to adopt."
+                    : "No published profile can be adopted yet. Publish a resolved profile first.",
+                },
+              ]
+            : []),
+          ...(chosen && !picked.size
+            ? [
+                {
+                  field: "controls" as const,
+                  message: "Choose at least one control, or reset to the profile's controls.",
+                },
+              ]
+            : []),
+          ...(chosen && tailored && !rationale.trim()
+            ? [
+                {
+                  field: "rationale" as const,
+                  message: "Explain why the controls differ from the profile.",
+                },
+              ]
+            : []),
+        ];
+  // Validate on submit, then on change: each field's error follows the value once submitted.
+  const errors = new Map(
+    feedback.submitted ? issues.map((issue) => [issue.field, issue.message] as const) : [],
+  );
+  const primaryLabel = mode === "inherit" ? "Use inherited baseline" : "Change control baseline";
+
+  useEffect(() => {
+    if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
+  }, [failure]);
+
+  async function chooseProfile(value: string | null) {
+    if (value === profileId) return;
+    const next = choices.find((choice) => choice.id === value);
+    if (
+      chosen &&
+      tailored &&
+      !(await guard.confirm({
+        title: "Change the base profile?",
+        description: `The ${added + removed} tailored ${added + removed === 1 ? "change" : "changes"} to ${chosen.title} will be replaced by the controls of ${next?.title ?? "the profile you chose"}. The rationale is kept.`,
+        confirmLabel: "Change base profile",
+        cancelLabel: "Keep my changes",
+        variant: "primary",
+      }))
+    )
+      return;
+    setProfileId(value);
+    setPicked(new Set(next?.controlIds ?? []));
+    setFilter("all");
+    setDirty(true);
+  }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (inFlight.current || !canWrite) return;
-    if (
-      mode === "adopt" &&
-      (!chosen || !picked.size || ((added || removed) && !rationale.trim()))
-    ) {
-      setError("Choose a profile, at least one control, and a rationale for tailoring.");
-      return;
-    }
+    if (guard.busy || !canWrite) return;
+    setFailure(null);
+    if (!feedback.report(issues)) return;
     const selection =
       mode === "inherit"
         ? { mode }
@@ -707,9 +808,9 @@ function BaselineDialog({
           };
     const key = JSON.stringify(selection);
     if (receipt.current?.key !== key) receipt.current = { key, id: crypto.randomUUID() };
-    inFlight.current = true;
-    setBusy(true);
-    setError("");
+    // The fields lock while the save runs; the primary stays focusable while it loads.
+    submitRef.current?.focus();
+    if (!guard.start()) return;
     try {
       const token = await requireIdentity(workspace);
       const result = await database()
@@ -717,211 +818,293 @@ function BaselineDialog({
           p_tenant_id: workspace.tenantId,
           p_system_id: system.id,
           p_expected_revision: system.revision,
-          p_request_id: receipt.current!.id,
+          p_request_id: receipt.current.id,
           p_selection: selection,
         })
         .setHeader("Authorization", `Bearer ${token}`);
       if (result.error)
         throw new Error(
           result.error.code === "PT409"
-            ? "This system changed in another session. Your choices are retained; reopen the dialog to load the current system."
+            ? "This system changed in another session. Your choices are kept; close the dialog and open it again to load the current system."
             : result.error.message,
         );
-      // Descendant inheritance and all profile readers depend on the committed command.
-      await Promise.all(
+      // Descendant inheritance and every profile reader depend on the committed command. The
+      // dialog closes once Postgres confirms; the lists refresh behind it.
+      void Promise.all(
         ["models", "model", "records", "record", "reference-options"].map((prefix) =>
           cache.invalidateQueries({ queryKey: [prefix, workspace.tenantId] }),
         ),
       );
-      bypass.current = true;
-      inFlight.current = false;
-      onClose();
+      toast.add({
+        type: "success",
+        title: mode === "inherit" ? "Inherited baseline in use" : "Control baseline changed",
+        description: `${system.code} · ${system.name}`,
+      });
+      guard.finish();
+      guard.complete();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The baseline could not be saved.");
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
+      const message = (cause instanceof Error ? cause.message : "The request failed.").replace(
+        /[.!?]?$/,
+        ".",
+      );
+      // The conflict message already says the choices are kept; say it once.
+      setFailure(
+        /kept/.test(message)
+          ? message
+          : `${message} Your choices are kept, and saving again will not apply the change twice.`,
+      );
+      guard.finish();
     }
   }
+  const pickerEmpty =
+    filter === "selected"
+      ? {
+          title: "No controls selected",
+          description: "Choose controls from the whole catalog.",
+        }
+      : {
+          title: "Nothing changed from the profile",
+          description: "Every selected control comes from the base profile.",
+        };
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          close();
-        }
+      open={open}
+      pending={guard.busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        void guard.close();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (!next) onClose();
       }}
     >
-      <DialogContent style={{ maxWidth: 960 }} showCloseButton={!busy}>
+      <DialogContent
+        width="xlarge"
+        initialFocus={() =>
+          (initialMode === "inherit" ? inheritRef.current : adoptRef.current) ?? true
+        }
+      >
         <DialogHeader>
           <DialogTitle>Change control baseline</DialogTitle>
           <DialogDescription>
             {system.code} · {system.name}
           </DialogDescription>
         </DialogHeader>
-        <form
-          onSubmit={(event) => void submit(event)}
-          className="flex min-h-0 flex-1 flex-col"
-          aria-busy={busy}
-        >
-          <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
-            <fieldset disabled={busy || !canWrite}>
-              <Stack space="space.200">
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-mode`}>Baseline source</FieldLabel>
-                  <Select
-                    value={mode}
-                    onValueChange={(value) => {
-                      setMode(value === "inherit" ? "inherit" : "adopt");
-                      setDirty(true);
-                    }}
-                  >
-                    <SelectTrigger autoFocus id={`${fieldId}-mode`}>
-                      <SelectValue>
-                        {mode === "adopt"
-                          ? "Adopt a profile and tailor controls"
-                          : "Use inherited or boundary baseline"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="adopt">Adopt a profile and tailor controls</SelectItem>
-                      <SelectItem value="inherit">Use inherited or boundary baseline</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                {mode === "inherit" ? (
-                  <p className="font-body-small text-subtle">
-                    Remove this system’s explicit adoption. It will use the nearest containing
-                    system’s adoption within its authorization boundary, or the boundary’s recorded
-                    SSP baseline.
-                  </p>
+        <DialogBody>
+          <form id={formId} noValidate onSubmit={(event) => void submit(event)}>
+            <Stack space="space.250">
+              {failure ? (
+                <Alert ref={failureRef} variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The baseline was not changed</AlertTitle>
+                  <AlertDescription>{failure}</AlertDescription>
+                </Alert>
+              ) : null}
+              {!canWrite ? (
+                <Alert role="note">
+                  <AlertDescription>
+                    An editor, admin, or owner can change the control baseline.
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+              <Section title="Current baseline">
+                {current ? (
+                  <KeyValue.Group labelWidth={144}>
+                    <KeyValue label="Profile" wrap>
+                      {current.title ?? <Absent />}
+                    </KeyValue>
+                    <KeyValue label="Source" wrap>
+                      {current.source || <Absent />}
+                    </KeyValue>
+                    <KeyValue label="Selected controls">{formatNumber(current.count)}</KeyValue>
+                    <KeyValue label="State">
+                      <StatusBadge statuses={revisionStates} value={current.state} />
+                    </KeyValue>
+                    {current.layeredOn && (
+                      <KeyValue label="Layered on" wrap>
+                        {current.layeredOn}
+                      </KeyValue>
+                    )}
+                  </KeyValue.Group>
                 ) : (
-                  <>
-                    <Field>
-                      <FieldLabel htmlFor={`${fieldId}-profile`}>Base profile</FieldLabel>
-                      <Select
-                        value={profileId}
+                  <Text as="p" color="color.text.subtle">
+                    This system has no baseline yet: it adopts none and inherits none.
+                  </Text>
+                )}
+              </Section>
+              <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
+              <FieldSet disabled={guard.busy || !canWrite}>
+                <Stack space="space.250">
+                  <Field>
+                    <FieldSet>
+                      <FieldLegend variant="label">Baseline source</FieldLegend>
+                      <RadioGroup<BaselineMode>
+                        value={mode}
                         onValueChange={(value) => {
-                          const next = choices.find((choice) => choice.id === value);
-                          setProfileId(value ?? "");
-                          setPicked(new Set(next?.controlIds ?? []));
+                          setMode(value);
                           setDirty(true);
                         }}
                       >
-                        <SelectTrigger id={`${fieldId}-profile`}>
-                          <SelectValue placeholder="Choose a published profile">
-                            {chosen?.label}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {choices.map((choice) => (
-                            <SelectItem key={choice.id} value={choice.id}>
-                              {choice.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                    {!choices.length && (
-                      <p className="font-body-small text-subtle">
-                        No published, resolved profiles are available.
-                      </p>
-                    )}
-                    {chosen && (
-                      <>
-                        <Inline alignBlock="center" spread="space-between" shouldWrap>
-                          <p className="font-body-small">
-                            {picked.size} selected · {added} added · {removed} removed
-                          </p>
-                          <Button
-                            variant="subtle"
-                            size="small"
-                            onClick={() => {
-                              setPicked(new Set(chosen.controlIds));
-                              setDirty(true);
-                            }}
-                          >
-                            Reset to profile controls
-                          </Button>
-                        </Inline>
-                        <p className="font-body-small text-subtle">
-                          Control changes publish an OSCAL profile layered on this base. Its
-                          parameter values are inherited for selected controls.
-                        </p>
-                        <ProductCollection
-                          table={pickerTable}
-                          searchLabel="Find controls to tailor"
-                          maxHeight={320}
-                          filters={
-                            <Select
-                              value={filter}
-                              onValueChange={(value) => setFilter(value ?? "all")}
+                        <Field orientation="horizontal">
+                          <RadioGroupItem ref={adoptRef} value="adopt" />
+                          <FieldContent>
+                            <FieldLabel>Adopt a profile and tailor its controls</FieldLabel>
+                            <FieldDescription>
+                              Control changes publish an OSCAL profile layered on the base you
+                              choose. Its parameter values are inherited for selected controls.
+                            </FieldDescription>
+                          </FieldContent>
+                        </Field>
+                        <Field orientation="horizontal">
+                          <RadioGroupItem ref={inheritRef} value="inherit" />
+                          <FieldContent>
+                            <FieldLabel>Use the inherited or boundary baseline</FieldLabel>
+                            <FieldDescription>
+                              Removes this system’s own adoption. It uses the nearest containing
+                              system’s adoption within its authorization boundary, or the boundary’s
+                              recorded SSP baseline.
+                            </FieldDescription>
+                          </FieldContent>
+                        </Field>
+                      </RadioGroup>
+                    </FieldSet>
+                  </Field>
+                  {mode === "adopt" && (
+                    <>
+                      <ChoiceField
+                        label="Base profile"
+                        required
+                        value={profileId}
+                        options={choices.map((choice) => ({
+                          value: choice.id,
+                          label: choice.label,
+                        }))}
+                        onChange={(value) => void chooseProfile(value)}
+                        placeholder="Choose a published profile"
+                        description={
+                          choices.length
+                            ? undefined
+                            : "No published, resolved profiles are available."
+                        }
+                        error={errors.get("profile")}
+                        controlRef={feedback.ref("profile")}
+                      />
+                      {chosen && (
+                        <Stack space="space.100">
+                          <Inline alignBlock="center" spread="space-between" shouldWrap>
+                            <Text as="p" size="small">
+                              {formatNumber(picked.size)} selected · {formatNumber(added)} added ·{" "}
+                              {formatNumber(removed)} removed
+                            </Text>
+                            <Button
+                              ref={feedback.ref("controls")}
+                              variant="subtle"
+                              size="small"
+                              aria-describedby={
+                                errors.has("controls") ? `${formId}-controls-error` : undefined
+                              }
+                              onClick={() => {
+                                setPicked(new Set(chosen.controlIds));
+                                setDirty(true);
+                              }}
                             >
-                              <SelectTrigger aria-label="Control selection filter">
-                                <SelectValue>
-                                  {filter === "all"
-                                    ? "All catalog controls"
-                                    : filter === "selected"
-                                      ? "Selected controls"
-                                      : "Changed controls"}
-                                </SelectValue>
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all">All catalog controls</SelectItem>
-                                <SelectItem value="selected">Selected controls</SelectItem>
-                                <SelectItem value="changed">Changed controls</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          }
-                          empty={{
-                            illustration: "search",
-                            title: "No matching controls",
-                            description: "Change the search or selection filter to find controls.",
-                          }}
-                        />
-                      </>
-                    )}
-                    <Field>
-                      <FieldLabel htmlFor={`${fieldId}-rationale`}>
-                        {added || removed ? "Tailoring rationale" : "Adoption rationale (optional)"}
-                      </FieldLabel>
-                      <Textarea
-                        id={`${fieldId}-rationale`}
+                              Reset to profile controls
+                            </Button>
+                          </Inline>
+                          {errors.has("controls") && (
+                            <Text
+                              as="p"
+                              size="small"
+                              color="color.text.danger"
+                              id={`${formId}-controls-error`}
+                            >
+                              {errors.get("controls")}
+                            </Text>
+                          )}
+                          <ProductCollection
+                            table={pickerTable}
+                            searchLabel="Find controls to tailor"
+                            maxHeight={320}
+                            keepQuestion={false}
+                            narrowed={filter !== "all"}
+                            filters={
+                              <Select<PickerFilter>
+                                items={pickerFilters}
+                                value={filter}
+                                onValueChange={(value) => setFilter(value ?? "all")}
+                              >
+                                <SelectTrigger aria-label="Controls shown">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {pickerFilters.map((option) => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            }
+                            empty={{
+                              illustration: "search",
+                              title: "No controls in this catalog",
+                              description: "The profile's catalog has no controls to choose from.",
+                              // Only when the Select alone leaves nothing: a search miss inside
+                              // it keeps the table's own Nothing matches and Clear filters.
+                              ...(filter !== "all" && shown.length === 0
+                                ? {
+                                    filtered: {
+                                      ...pickerEmpty,
+                                      action: (
+                                        <Button size="small" onClick={() => setFilter("all")}>
+                                          Show all catalog controls
+                                        </Button>
+                                      ),
+                                    },
+                                  }
+                                : {}),
+                            }}
+                          />
+                        </Stack>
+                      )}
+                      <TextField
+                        label={tailored ? "Tailoring rationale" : "Adoption rationale"}
+                        required={tailored}
+                        multiline
                         value={rationale}
-                        required={!!(added || removed)}
-                        onChange={(event) => {
-                          setRationale(event.target.value);
+                        onChange={(value) => {
+                          setRationale(value);
                           setDirty(true);
                         }}
-                        placeholder="Explain why this control baseline fits the system"
+                        description="Why this control baseline fits the system."
+                        error={errors.get("rationale")}
+                        controlRef={feedback.ref("rationale")}
                       />
-                    </Field>
-                  </>
-                )}
-                {error && (
-                  <p role="alert" className="font-body-small text-danger">
-                    {error}
-                  </p>
-                )}
-              </Stack>
-            </fieldset>
-          </Box>
-          <DialogFooter>
-            <Button variant="subtle" disabled={busy} onClick={close}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" disabled={busy || !canWrite}>
-              {busy
-                ? "Saving…"
-                : mode === "inherit"
-                  ? "Use inherited baseline"
-                  : "Change control baseline"}
-            </Button>
-          </DialogFooter>
-        </form>
+                    </>
+                  )}
+                </Stack>
+              </FieldSet>
+            </Stack>
+          </form>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          <Button
+            ref={submitRef}
+            type="submit"
+            form={formId}
+            variant="primary"
+            isLoading={guard.busy}
+            disabledReason={
+              canWrite ? undefined : "An editor, admin, or owner can change the control baseline."
+            }
+          >
+            {primaryLabel}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      {confirmation}
+      {guard.confirmation}
     </Dialog>
   );
 }

@@ -63,7 +63,7 @@ export type ItemProps = Omit<ComponentProps<"li">, "id" | "title" | "onSelect"> 
   defaultOpen?: boolean | undefined;
   /** Controlled open state, when collapsible. */
   open?: boolean | undefined;
-  onOpenChange?: CollapsiblePrimitive.Root.Props["onOpenChange"];
+  onOpenChange?: CollapsiblePrimitive.Root.Props["onOpenChange"] | undefined;
   className?: string | undefined;
   /** Content under the row, from the title's column to the end: a sentence, a Badge, a nested Item.Group. */
   children?: ReactNode;
@@ -214,12 +214,13 @@ function ItemRoot({
 
   const li = (
     <li
+      {...props}
+      data-slot="item"
       className={cn(
         "group/item list-none",
         group ? "col-span-full grid grid-cols-subgrid" : "grid",
         className,
       )}
-      {...props}
       style={{ ...(group ? {} : { gridTemplateColumns: columns }), ...props.style }}
     >
       {row}
@@ -251,7 +252,14 @@ export type ItemGroupProps = Omit<ComponentProps<"div">, "title"> & {
   trailing?: ReactNode;
   /** `compact` tightens every row from `space.100` to `space.050` above and below, for a rail. */
   size?: ItemSize | undefined;
-  /** The id of a heading outside the group that names it, when the card the list sits in draws the heading. */
+  /** The id of a heading outside the group that names the list, when the card the list sits in draws the heading. It reaches the list, as does `aria-label`; the group's own `title` wins over both. */
+  "aria-labelledby"?: string | undefined;
+  /** The list's name when no heading shows it. It reaches the list, not the wrapper. */
+  "aria-label"?: string | undefined;
+  /**
+   * The id of a heading outside the group that names it.
+   * @deprecated Use `aria-labelledby`, which now reaches the list; `ledger/no-deprecated-name` fixes it.
+   */
   labelledBy?: string | undefined;
   /** Rows run edge to edge of the card they sit in: the hairlines and the hover fill span it, the text at `space.200`. For an Item.Group inside a Card or a Related. */
   flush?: boolean | undefined;
@@ -267,6 +275,8 @@ export function ItemGroup({
   trailing,
   size = "default",
   labelledBy,
+  "aria-labelledby": ariaLabelledBy,
+  "aria-label": ariaLabel,
   flush = false,
   className,
   ...props
@@ -289,7 +299,9 @@ export function ItemGroup({
       </div>
     ) : (
       <ol
-        aria-labelledby={title ? headingId : labelledBy}
+        data-slot="item-group-list"
+        aria-labelledby={title ? headingId : (ariaLabelledBy ?? labelledBy)}
+        aria-label={title || ariaLabelledBy || labelledBy ? undefined : ariaLabel}
         className="grid [&>li+li]:border-t [&>li+li]:border-default"
         style={{ gridTemplateColumns: columns }}
       >
@@ -297,7 +309,7 @@ export function ItemGroup({
       </ol>
     );
   return (
-    <div className={className} {...props}>
+    <div {...props} data-slot="item-group" className={className}>
       {title || trailing ? (
         <div
           className={cn(

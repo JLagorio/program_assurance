@@ -125,9 +125,11 @@ try {
     .waitFor();
   assert.ok(await table.getByText("Details not recorded", { exact: true }).count());
   await search.fill("REQ-0");
+  // The requirement's name is the row's one link; its code is an identifier beside the eye.
   const parentRow = table
     .getByRole("row")
-    .filter({ has: page.getByRole("link", { name: parent.code, exact: true }) });
+    .filter({ has: page.getByRole("link", { name: parent.current.title, exact: true }) });
+  await parentRow.getByText(parent.code, { exact: true }).waitFor();
   await parentRow.getByRole("button", { name: "Preview row", exact: true }).click();
   await page.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   assert.equal(new URL(page.url()).searchParams.get("requirementId"), parent.id);
@@ -184,6 +186,11 @@ try {
   await create.getByRole("button", { name: "Create evidence artifact", exact: true }).click();
   const prepare = page.getByRole("dialog", { name: "Prepare evidence", exact: true });
   await prepare.getByRole("button", { name: "Publish version", exact: true }).click();
+  // Publishing freezes the version, so the shared confirmation asks first.
+  await page
+    .getByRole("alertdialog", { name: "Publish version 1?", exact: true })
+    .getByRole("button", { name: "Publish version", exact: true })
+    .click();
   await prepare.getByText(/Version published\. Return to the browser/).waitFor();
   assert.equal(
     (await linked(parent.current.id)).length,
@@ -191,9 +198,19 @@ try {
     "Publication alone does not link evidence",
   );
   await prepare.getByRole("button", { name: "Back to evidence browser", exact: true }).click();
-  await picker().getByText("1 selected", { exact: true }).waitFor();
-  await chooseEvidence("New linked evidence");
+  // The newly published version returns already chosen beside the earlier choice.
   await picker().getByText("2 selected", { exact: true }).waitFor();
+  await picker()
+    .getByRole("searchbox", { name: "Search records", exact: true })
+    .fill("New linked evidence");
+  assert.ok(
+    await picker()
+      .getByRole("row")
+      .filter({ has: page.getByRole("cell", { name: "New linked evidence", exact: true }) })
+      .getByRole("checkbox")
+      .isChecked(),
+    "The published version is chosen in the browser",
+  );
 
   const rpc = "**/rest/v1/rpc/link_requirement_evidence";
   await page.route(rpc, (route) =>

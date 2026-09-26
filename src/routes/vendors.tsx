@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Button, PageHeader, Shell, Stack, TextLink } from "@ledger/design-system";
+import { createFileRoute } from "@tanstack/react-router";
+import { Button, PageHeader, Stack } from "@ledger/design-system";
 import { Plus } from "lucide-react";
 import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
@@ -11,7 +11,7 @@ import {
   EntityEditor,
   ModelFacts,
   ModelTable,
-  QueryState,
+  type DisplayColumn,
 } from "@/components/prototype/record-tools";
 export const Route = createFileRoute("/vendors")({
   component: Suppliers,
@@ -24,6 +24,23 @@ function Suppliers() {
   const [editing, setEditing] = useState<DataRecord | "new" | null>(null),
     [preview, setPreview] = useState<DataRecord | null>(null);
   const [displayed, setDisplayed] = useState<DataRecord[]>([]);
+  const canEdit = workspace.role !== "viewer";
+  const createLabel = productCreateLabel("parties", { party_type: "organization" });
+  // A trigger stays enabled while its dialog is open; a second press opens nothing new.
+  const edit = (target: DataRecord | "new") => setEditing((current) => current ?? target);
+  const columns: DisplayColumn[] = [
+    { key: "name", label: "Organization" },
+    { key: "email", label: "Contact email" },
+    {
+      key: "components",
+      label: "Supplied components",
+      kind: "number",
+      width: 190,
+      // The count joins the row, so it sorts, searches and exports with the rest.
+      value: (row) =>
+        components.data?.filter((component) => component.supplier_party_id === row.id).length ?? 0,
+    },
+  ];
   return (
     <Stack space="space.200">
       <PageHeader>
@@ -39,65 +56,54 @@ function Suppliers() {
           onCancel={() => setEditing(null)}
         />
       )}
-      <QueryState query={query}>
-        <QueryState query={components}>
-          <ModelTable
-            model="parties"
-            selectedId={preview?.id}
-            onDisplayedRowsChange={setDisplayed}
-            fill
-            rows={(query.data ?? []) as DataRecord[]}
-            columns={[
-              { key: "name", label: "Organization" },
-              { key: "email", label: "Contact email" },
-              {
-                key: "components",
-                label: "Supplied components",
-                render: (row) =>
-                  components.data?.filter((component) => component.supplier_party_id === row.id)
-                    .length,
-              },
-            ]}
-            onPreview={setPreview}
-            searchLabel="Search organizations"
-            view="supplier-registry"
-            empty={{
-              illustration: "people",
-              title: "No organizations yet",
-              description:
-                "Record supplier organizations, then connect them to actual component definitions. No assurance status or vendor risk score is inferred.",
-              action:
-                workspace.role !== "viewer" ? (
-                  <Button variant="primary" iconBefore={<Plus />} onClick={() => setEditing("new")}>
-                    {productCreateLabel("parties", { party_type: "organization" })}
-                  </Button>
-                ) : undefined,
-            }}
-            actions={
-              workspace.role !== "viewer" && (
-                <Button
-                  size="small"
-                  variant="primary"
-                  iconBefore={<Plus />}
-                  onClick={() => setEditing("new")}
-                >
-                  {productCreateLabel("parties", { party_type: "organization" })}
-                </Button>
-              )
-            }
-          />
-        </QueryState>
-      </QueryState>
+      <ModelTable
+        model="parties"
+        queries={[query, components]}
+        selectedId={preview?.id}
+        onDisplayedRowsChange={setDisplayed}
+        fill
+        rows={(query.data ?? []) as DataRecord[]}
+        columns={columns}
+        onPreview={setPreview}
+        searchLabel="Search organizations"
+        noun={{ one: "organization", other: "organizations" }}
+        view="supplier-registry"
+        empty={{
+          illustration: "people",
+          title: "No organizations yet",
+          description:
+            "Record supplier organizations, then connect them to actual component definitions. No assurance status or vendor risk score is inferred.",
+          action: canEdit ? (
+            <Button variant="primary" iconBefore={<Plus />} onClick={() => edit("new")}>
+              {createLabel}
+            </Button>
+          ) : undefined,
+        }}
+        actions={
+          canEdit ? (
+            <Button
+              size="small"
+              variant="primary"
+              iconBefore={<Plus />}
+              onClick={() => edit("new")}
+            >
+              {createLabel}
+            </Button>
+          ) : undefined
+        }
+      />
       {preview && (
         <RecordPreviewPanel
           title={String(preview["name"])}
-          label="Supplier preview"
+          label="Organization preview"
           defaultWidth={560}
           onClose={() => setPreview(null)}
           recordActions={
-            <Button size="small" variant="primary" onClick={() => setEditing(preview)}>
-              Edit organization
-            </Button>
+            canEdit ? (
+              <Button size="small" variant="primary" onClick={() => edit(preview)}>
+                Edit organization
+              </Button>
+            ) : undefined
           }
           navigation={
             <RecordPreviewActions
@@ -108,9 +114,12 @@ function Suppliers() {
             />
           }
         >
-          <Stack space="space.200">
-            <ModelFacts record={preview} fields={["name", "email"]} />
-          </Stack>
+          <ModelFacts
+            table="parties"
+            record={preview}
+            // The facts use the column's words; a long label widens the label column.
+            fields={columns.slice(1)}
+          />
         </RecordPreviewPanel>
       )}
     </Stack>

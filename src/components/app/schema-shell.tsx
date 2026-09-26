@@ -1,29 +1,18 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  Box,
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  IconButton,
-  Inline,
-  Input,
-  ModeSwitch,
-  Shell,
-  Stack,
-} from "@ledger/design-system";
-import { Database, FileText, LayoutDashboard, MoreHorizontal } from "lucide-react";
-import { database } from "@/lib/database";
+import { Box, Input, ModeSwitch, Shell } from "@ledger/design-system";
+import { Database, FileText, Home, LayoutDashboard } from "lucide-react";
 import { domains, labelFor } from "@/lib/records";
-import { useWorkspace } from "./workspace";
+import { AccountMenu, useWorkspace } from "./workspace";
 
 export function SchemaLayout({ children }: { children: ReactNode }) {
   const workspace = useWorkspace();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  // The page Main shows once it has rendered; a filter in the search keeps the page.
+  const page = useRouterState({
+    select: (state) => (state.resolvedLocation ?? state.location).pathname,
+  });
   const [filter, setFilter] = useState("");
-  const [error, setError] = useState("");
   const known = new Set<string>(domains.flatMap((domain) => [...domain.tables]));
   const groups = [
     ...domains,
@@ -34,40 +23,23 @@ export function SchemaLayout({ children }: { children: ReactNode }) {
         .filter((name) => !known.has(name)),
     },
   ];
-  async function signOut() {
-    const { error } = await database().auth.signOut({ scope: "local" });
-    if (error) setError(error.message);
-  }
   return (
-    <Shell persist sideNavShortcut>
+    <Shell persist sideNavShortcut locationKey={page}>
       <Shell.TopNav>
-        <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
+        <Shell.TopNav.Start>
+          <Shell.SideNav.ToggleButton />
           <Shell.AppLogo
             name="Schema inspector"
             secondaryName={workspace.name}
-            render={<Link to="/" />}
+            // The mark names the inspector, so it leads to the inspector's home.
+            render={<Link to="/schema" aria-label="Schema inspector home" />}
           />
         </Shell.TopNav.Start>
-        <Shell.TopNav.End
-          overflow={
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
-              />
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem render={<Link to="/" />}>Back to prototype</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => void signOut()}>Sign out</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          }
-        >
-          <Button variant="secondary" size="small" render={<Link to="/" />}>
-            Back to prototype
-          </Button>
+        {/* The inspector has no search; the empty middle keeps the actions at the row's end. */}
+        <Shell.TopNav.Middle />
+        <Shell.TopNav.End>
           <ModeSwitch />
-          <Button variant="subtle" size="small" onClick={() => void signOut()}>
-            Sign out
-          </Button>
+          <Shell.TopNav.Item icon={<Home />} label="Back to prototype" render={<Link to="/" />} />
         </Shell.TopNav.End>
       </Shell.TopNav>
       <Shell.SideNav>
@@ -99,7 +71,9 @@ export function SchemaLayout({ children }: { children: ReactNode }) {
                   <Shell.SideNav.Item
                     key={name}
                     icon={group.label === "Reference library" ? Database : FileText}
-                    isActive={pathname.startsWith(`/records/${name}`)}
+                    isActive={
+                      pathname === `/records/${name}` || pathname.startsWith(`/records/${name}/`)
+                    }
                     render={<Link to="/records/$collection" params={{ collection: name }} />}
                   >
                     {labelFor(name)}
@@ -110,25 +84,11 @@ export function SchemaLayout({ children }: { children: ReactNode }) {
           })}
         </Shell.SideNav.Body>
         <Shell.SideNav.Footer>
-          <Box padding="space.150">
-            <Stack space="space.050">
-              <p className="font-body-small truncate" title={workspace.email}>
-                {workspace.email}
-              </p>
-              <p className="font-body-small text-subtle">{labelFor(workspace.role)}</p>
-            </Stack>
-          </Box>
+          <AccountMenu />
         </Shell.SideNav.Footer>
         <Shell.SideNav.Splitter label="Resize navigation" />
       </Shell.SideNav>
-      <Shell.Main>
-        {error && (
-          <Inline>
-            <p role="alert">{error}</p>
-          </Inline>
-        )}
-        {children}
-      </Shell.Main>
+      <Shell.Main>{children}</Shell.Main>
     </Shell>
   );
 }

@@ -1,7 +1,10 @@
 @import "tailwindcss" source(none);
 @source "../src";
-/* Ledger, the design system package: reset, tokens and utilities, document defaults. The prototype adds nothing of its own. */
+/* Ledger, the design system package: reset, tokens and utilities, document defaults and its
+   typefaces. The prototype adds nothing of its own. */
 @import "@ledger/design-system/reset.css";
 @import "@ledger/design-system/ledger.css";
 @import "@ledger/design-system/base.css";
-@import "./components/ui/theme.css"; /* shadcn preset reference, scoped to .theme-shadcn-nova */
+@import "@ledger/design-system/fonts.css";
+/* The package scans its own source for classes; its stories are not part of the product. */
+@source not "../packages/design-system/src/stories";

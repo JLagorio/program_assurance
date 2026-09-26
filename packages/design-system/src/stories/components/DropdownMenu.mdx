@@ -15,7 +15,7 @@ Actions and view options anchored to a button, using shadcn's Base UI Menu compo
   <DropdownMenuContent>
     <DropdownMenuItem onClick={edit}>Edit</DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem variant="destructive" onClick={archive}>
+    <DropdownMenuItem variant="danger" onClick={archive}>
       Archive
     </DropdownMenuItem>
   </DropdownMenuContent>
@@ -28,7 +28,7 @@ Root owns controlled or uncontrolled open state, modality, generic trigger paylo
 
 Content includes its portal and positioner. It defaults to bottom/start, with a 4px side offset and zero alignment offset. Its width fits its contents and is at least the trigger width or 128px, within the available viewport. A narrow trigger never forces action labels to wrap. It scrolls when the available space is smaller than its contents, inside a [Scroller](?path=/docs/components-scroller--docs) whose hover arrows mark each overflowed edge. Native `style`, `className`, `render` and refs target the popup; classes and styles accept state callbacks. Content's `dir` overrides Ledger's inherited positioning direction.
 
-Use Group around related items and Label inside that Group. Items compose icons, text and Shortcut as children. Destructive actions use `variant="destructive"`; a disabled destructive item fades like any other, so it never looks ready to run. `inset` aligns labels and items without icons. The row uses Ledger's 28px menu height. Action labels stay on one line.
+Use Group around related items and Label inside that Group. Items compose icons, text and Shortcut as children. An action that destroys or cannot be undone uses `variant="danger"`, the word Button uses, so a Delete button and the Delete item beside it say the same thing; a disabled danger item fades like any other, so it never looks ready to run. `variant="destructive"` is the deprecated spelling, kept for one version: it renders as `danger` and `ledger/no-deprecated-name` renames it. `inset` aligns labels and items without icons. The row uses Ledger's 28px menu height. Action labels stay on one line.
 
 <Canvas of={Stories.DropdownMenuMatrix} />
 
@@ -68,7 +68,7 @@ Content owns `finalFocus`. Ledger's modal wrappers resolve an activating menu it
 
 ## Migration and API
 
-Replace the configured `trigger` prop with Trigger's `render`; move placement and width into Content. Replace `DropdownMenu.Item`, `.Label` and `.Separator` with the flat exports. `onSelect` becomes `onClick` for actions; `isSelected` becomes CheckboxItem or RadioGroup state; `closeOnSelect` becomes `closeOnClick`; `tone="danger"` becomes `variant="destructive"`; `trailing` becomes Shortcut children. Remove children-as-`close` callbacks: items close through Base UI, and Root exposes controlled state or `actionsRef` for imperative dismissal.
+Replace the configured `trigger` prop with Trigger's `render`; move placement and width into Content. Replace `DropdownMenu.Item`, `.Label` and `.Separator` with the flat exports. `onSelect` becomes `onClick` for actions; `isSelected` becomes CheckboxItem or RadioGroup state; `closeOnSelect` becomes `closeOnClick`; `tone="danger"` becomes `variant="danger"`; `trailing` becomes Shortcut children. Remove children-as-`close` callbacks: items close through Base UI, and Root exposes controlled state or `actionsRef` for imperative dismissal.
 
 See [shadcn Dropdown Menu](https://ui.shadcn.com/docs/components/base/dropdown-menu) and [Base UI Menu](https://base-ui.com/react/components/menu) for the native APIs. Content adds the four positioning props to Popup. Ledger adds token styling and locale/dialog integration; reference catalogs remain independently refreshable.
 

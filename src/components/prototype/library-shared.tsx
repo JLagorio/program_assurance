@@ -7,10 +7,15 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Skeleton,
+  Text,
+  VisuallyHidden,
 } from "@ledger/design-system";
-import { useId } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { ProductRecordDialog } from "./product-record-dialog";
+import { QueryState, type QueryStatus } from "./work-common";
 
+/** One choice from a short fixed list, labelled through the Field binding. */
 export function LibrarySelect({
   label,
   value,
@@ -22,10 +27,9 @@ export function LibrarySelect({
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
 }) {
-  const id = useId();
   return (
     <Field>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <FieldLabel>{label}</FieldLabel>
       <Select<string>
         value={value}
         items={options}
@@ -33,7 +37,7 @@ export function LibrarySelect({
           if (next !== null) onChange(next);
         }}
       >
-        <SelectTrigger id={id} aria-label={label}>
+        <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -48,8 +52,35 @@ export function LibrarySelect({
   );
 }
 
-export { QueryState as LibraryLoading } from "./work-common";
+/**
+ * A value in a rail that comes from its own queries: a skeleton while they load, "Could not
+ * load" when one fails with nothing to show, and the value once they are in. Loading and failure
+ * never read as a value.
+ */
+export function QueryValue({
+  queries,
+  children,
+}: {
+  queries: QueryStatus[];
+  /** The value, drawn only once every query has its data. */
+  children: () => ReactNode;
+}) {
+  if (queries.some((query) => query.isError && query.data === undefined))
+    return <Text color="color.text.subtle">Could not load</Text>;
+  if (queries.some((query) => query.data === undefined))
+    return (
+      <>
+        <Skeleton shape="line" width={64} />
+        <VisuallyHidden>Loading</VisuallyHidden>
+      </>
+    );
+  return <>{children()}</>;
+}
 
+/** @deprecated Use QueryState from `./work-common`, or pass `queries` to ProductCollection. */
+export { QueryState as LibraryLoading };
+
+/** @deprecated Use ProductRecordDialog from `./product-record-dialog`; this passes its props through. */
 export function LibraryEditor({
   table,
   description,
@@ -57,6 +88,7 @@ export function LibraryEditor({
   existing,
   onClose,
   onSaved,
+  finalFocus,
 }: {
   table: string;
   description?: string | undefined;
@@ -64,6 +96,8 @@ export function LibraryEditor({
   existing?: DataRecord;
   onClose: () => void;
   onSaved?: (record: DataRecord) => void | Promise<void>;
+  /** Where focus goes when the dialog closes; the control that opened it unsaid. */
+  finalFocus?: ComponentProps<typeof ProductRecordDialog>["finalFocus"];
 }) {
   return (
     <ProductRecordDialog
@@ -73,6 +107,7 @@ export function LibraryEditor({
       initialValues={initialValues}
       onSaved={onSaved}
       onClose={onClose}
+      {...(finalFocus === undefined ? {} : { finalFocus })}
     />
   );
 }

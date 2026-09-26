@@ -21,6 +21,10 @@ A two-state button built on Base UI with the shadcn composition API. Put icons a
 
 `variant="default"` is unbordered; `variant="outline"` adds a border. Sizes are `sm` (28px), `default` (32px) and `lg` (36px). The default size is `default`.
 
+Hover is the neutral tint. Pressed is the selected palette, `color.background.selected` with `color.text.selected`, and a 1px `color.border.selected` edge at 3:1 on that fill, so a pressed toggle never reads as a hovered one and its state does not rest on a faint fill. The default variant draws the edge out of the flow, so pressing never changes the toggle's size; the outline variant recolours its own border. In forced colours a pressed toggle is Highlight.
+
+<Canvas of={Stories.PressedAgainstHover} />
+
 Use `defaultPressed` for local state, or `pressed` and `onPressedChange(pressed, details)` for controlled state. Calling `details.cancel()` rejects a change. `disabled` blocks activation and removes the toggle from the normal tab order.
 
 Native attributes, event handlers and refs reach the button. `render` composes another action element; it must forward props and refs. Set `nativeButton={false}` for a non-button action. `className` and `style` accept callbacks with `{ pressed, disabled }`. `toggleVariants({ variant, size, className })` exposes the shared styling recipe.

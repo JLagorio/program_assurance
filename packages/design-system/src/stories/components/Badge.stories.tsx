@@ -342,6 +342,43 @@ export const DenseAndLongContent: Story = {
   },
 };
 
+/** A tone without a variant is a status: the secondary treatment, the subtle fill in that tone. Bold is asked for, with `appearance="bold"` or `variant="default"`, never reached by accident. */
+export const ToneWithoutVariant: Story = {
+  render: () => (
+    <Inline space="space.100" shouldWrap>
+      <Badge tone="warning">Withdrawn</Badge>
+      <Badge variant="secondary" tone="warning">
+        Due soon
+      </Badge>
+      <Badge tone="danger" appearance="bold">
+        Overdue
+      </Badge>
+      <Badge variant="default" tone="success">
+        Featured
+      </Badge>
+      <Badge>Plain</Badge>
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const alone = canvas.getByText("Withdrawn");
+    await expect(alone).toHaveAttribute("data-variant", "secondary");
+    await expect(alone).toHaveAttribute("data-appearance", "subtle");
+    // The same paint as the secondary badge in the same tone.
+    await expect(alone.className).toBe(canvas.getByText("Due soon").className);
+    await expect(canvas.getByText("Overdue")).toHaveAttribute("data-appearance", "bold");
+    const explicit = canvas.getByText("Featured");
+    await expect(explicit).toHaveAttribute("data-variant", "default");
+    await expect(explicit).toHaveAttribute("data-appearance", "bold");
+    const plain = canvas.getByText("Plain");
+    await expect(plain).toHaveAttribute("data-tone", "brand");
+    await expect(plain).toHaveAttribute("data-appearance", "bold");
+    await expect(badgeVariants({ tone: "warning" })).toBe(
+      badgeVariants({ variant: "secondary", tone: "warning" }),
+    );
+  },
+};
+
 export const Dont: Story = {
   render: () => (
     <Pair

@@ -9,7 +9,7 @@ import * as Stories from "./Badge.stories";
 
 A compact label built on the shadcn Base UI Badge foundation and adapted to Ledger. One Badge combines six visual treatments with semantic tones, subtle or bold emphasis, two density sizes, optional icons, and rendered-link composition. Every combination uses the same pill anatomy.
 
-`variant` chooses the treatment and its defaults; `tone` chooses the palette; `appearance` adjusts the emphasis of filled treatments; `size` adjusts density. With no props, Badge is the standard brand-filled `default` variant. A record status commonly uses `variant="secondary"` with its tone.
+`variant` chooses the treatment and its defaults; `tone` chooses the palette; `appearance` adjusts the emphasis of filled treatments; `size` adjusts density. With no props, Badge is the standard brand-filled `default` variant. A `tone` without a `variant` is a status: the `secondary` treatment, the subtle fill in that tone, so `<Badge tone="warning">` never renders a loud bold pill by accident. Bold is asked for, with `appearance="bold"` or an explicit `variant="default"`.
 
 <Canvas of={Stories.Matrix} />
 
@@ -51,6 +51,8 @@ import { ArrowUpRight, CircleCheck } from "lucide-react";
 The recipe supplies classes only. A consumer using `badgeVariants` directly owns its element, attributes, refs, semantics, and composition.
 
 <Canvas of={Stories.Recipe} />
+
+<Canvas of={Stories.ToneWithoutVariant} />
 
 ## Variants
 
@@ -184,13 +186,13 @@ Use `icon={<CircleCheck aria-hidden="true" />}` for a leading icon, or place ico
 
 ## Migration
 
-| Previous use                                        | Updated use                                                                                            |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `<Badge tone="success">Verified</Badge>`            | `<Badge variant="secondary" tone="success">Verified</Badge>` preserves subtle status emphasis.         |
-| Neutral `<Badge>Draft</Badge>`                      | `<Badge variant="secondary" tone="neutral">Draft</Badge>`. The unconfigured default is now brand/bold. |
-| `appearance="bold"`, `size="xsmall"`, or `icon={…}` | Keep these conveniences on Badge. Use `secondary` for existing status compositions.                    |
-| A clickable span                                    | Supply a real anchor through `render` for navigation.                                                  |
-| `BadgeProps`                                        | Continue using the same export; it now also includes variants and Base UI render composition.          |
+| Previous use                                        | Updated use                                                                                                |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `<Badge tone="success">Verified</Badge>`            | Renders as `<Badge variant="secondary" tone="success">`, the subtle status. Spell the variant for clarity. |
+| Neutral `<Badge>Draft</Badge>`                      | `<Badge variant="secondary" tone="neutral">Draft</Badge>`. The unconfigured default is now brand/bold.     |
+| `appearance="bold"`, `size="xsmall"`, or `icon={…}` | Keep these conveniences on Badge. Use `secondary` for existing status compositions.                        |
+| A clickable span                                    | Supply a real anchor through `render` for navigation.                                                      |
+| `BadgeProps`                                        | Continue using the same export; it now also includes variants and Base UI render composition.              |
 
 All Badge uses now share the shadcn-derived pill shape, including semantic tones. Existing semantic palettes and compact heights remain, while small labels adopt the shared padding and border anatomy. `Count`, `Dot`, `Indicator`, `Tone`, `tones`, and `toneClasses` keep their existing contracts. `Avatar.Badge` and `AvatarGroupCount` remain separate Avatar parts with their existing APIs. The checked-in shadcn reference and the unrelated reui Badge remain separate code.
 

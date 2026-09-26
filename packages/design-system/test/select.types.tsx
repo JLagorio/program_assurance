@@ -114,5 +114,9 @@ const selectDown: SelectScrollDownButtonProps = {
 </Select>;
 // @ts-expect-error Root owns state; native layout belongs on Trigger.
 <Select width={200} />;
-// @ts-expect-error Trigger follows shadcn's size names.
+// Trigger takes the control scale Input and Button use; `sm` and `default` stay for one version.
 <SelectTrigger size="small" />;
+<SelectTrigger size="medium" />;
+<SelectTrigger size="sm" />;
+// @ts-expect-error No large control.
+<SelectTrigger size="large" />;

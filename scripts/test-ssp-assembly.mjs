@@ -26,14 +26,18 @@ const insert = (table, values) =>
       .select()
       .single(),
   );
+/** One labelled property's value: a row of a KeyValue.Group, found by its term. */
+const fact = (scope, label) =>
+  scope
+    .locator('[data-slot="key-value"]')
+    .filter({ visible: true })
+    .filter({ has: page.locator("dt").getByText(label, { exact: true }) })
+    .locator("dd");
 async function expectSspFact(label, value) {
   const trigger = page.getByRole("button", { name: "SSP details", exact: true });
   if ((await trigger.getAttribute("aria-expanded")) !== "true") await trigger.click();
   await expect(
-    page
-      .locator("dl")
-      .filter({ has: page.getByText(label, { exact: true }) })
-      .locator("dd"),
+    fact(page.getByRole("region", { name: "SSP details", exact: true }), label),
   ).toHaveText(String(value));
 }
 try {
@@ -172,7 +176,9 @@ try {
   await expectSspFact("Selected controls", selected.length);
   await expectSspFact("Control narratives", 1);
   await expectSspFact("Linked evidence versions", 1);
-  await expect(page.getByRole("combobox", { name: "SSP selection" })).toHaveText("SSP 1 · Draft");
+  await expect(page.getByRole("combobox", { name: "SSP revision", exact: true })).toHaveText(
+    "SSP 1 · Draft",
+  );
   const search = page.getByPlaceholder("Find selected controls");
   await search.fill(implementedControl.code);
   await page
@@ -185,7 +191,14 @@ try {
   await expect(
     page.getByText("Assembly boundary / Contributing child", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "REQ-SSP-1", exact: true })).toBeVisible();
+  // The requirement's name links to its record; its code identifies the row.
+  const supportingRequirement = page
+    .getByRole("table", { name: "SSP supporting requirements", exact: true })
+    .locator("tr[data-row-id]")
+    .filter({ hasText: requirement.code });
+  await expect(
+    supportingRequirement.getByRole("link", { name: content.title, exact: true }),
+  ).toBeVisible();
   await expect(
     page
       .getByRole("table", { name: "SSP supporting evidence" })
@@ -197,9 +210,10 @@ try {
     .getByRole("table", { name: "SSP supporting evidence", exact: true })
     .getByRole("button", { name: "Preview row", exact: true })
     .click();
-  await expect(page.getByText("Exact evidence version 1", { exact: true })).toBeVisible();
   const evidencePanel = page.locator('[data-shell-area="panel"]');
   await expect(evidencePanel).toHaveCount(1);
+  // The preview names the exact version the claim cites, not the artifact's latest.
+  await expect(fact(evidencePanel, "Exact version")).toHaveText("Version 1 · Published");
   await expect(
     evidencePanel.getByRole("heading", { name: artifact.title, exact: true }),
   ).toBeVisible();
@@ -207,18 +221,21 @@ try {
     evidencePanel.getByRole("link", { name: "Open full record in new tab", exact: true }),
   ).toHaveAttribute("href", `/records/evidence_versions/${evidence.id}`);
 
-  await expect(
-    page.getByRole("link", { name: "https://example.invalid/ssp-test-v1", exact: true }),
-  ).toBeVisible();
-  assert.equal(
-    await page.getByText("https://example.invalid/ssp-test-v2", { exact: true }).count(),
-    0,
-  );
+  // The exact version's external reference, announced as opening in a new tab; never the latest.
+  const reference = evidencePanel.getByRole("link", {
+    name: "https://example.invalid/ssp-test-v1 opens in a new tab",
+    exact: true,
+  });
+  await expect(reference).toBeVisible();
+  await expect(reference).toHaveAttribute("href", "https://example.invalid/ssp-test-v1");
+  await expect(reference).toHaveAttribute("target", "_blank");
+  assert.equal(await page.getByText(/ssp-test-v2/).count(), 0);
   await page.getByRole("button", { name: "Back to previous record", exact: true }).click();
   await page.getByRole("button", { name: "Edit control implementation", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(1);
   await page
-    .getByRole("textbox", { name: "Description", exact: true })
+    .getByRole("dialog")
+    .getByRole("textbox", { name: "Control narrative", exact: true })
     .fill("Updated authored control narrative");
   await page.getByRole("button", { name: "Edit control implementation", exact: true }).click();
   await expect(page.getByText("Updated authored control narrative", { exact: true })).toBeVisible();
@@ -247,7 +264,8 @@ try {
   await page.getByRole("button", { name: "Create control implementation", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(1);
   await page
-    .getByRole("textbox", { name: "Description", exact: true })
+    .getByRole("dialog")
+    .getByRole("textbox", { name: "Control narrative", exact: true })
     .fill("New recorded narrative for a selected control");
   await page.getByRole("button", { name: "Create control implementation", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -325,7 +343,10 @@ try {
   await page.reload();
   await page.getByRole("tab", { name: "SSP", exact: true }).click();
   await expect(
-    page.getByText("System baseline differs from this SSP", { exact: true }),
+    page
+      .getByRole("status")
+      .filter({ hasText: "The system baseline differs from this SSP" })
+      .filter({ hasText: "This SSP retains its stored selection." }),
   ).toBeVisible();
   await expectSspFact("Selected controls", selected.length);
   assert.equal(

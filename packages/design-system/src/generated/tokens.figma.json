@@ -778,6 +778,16 @@
               }
             }
           }
+        },
+        "track": {
+          "$value": "{color.neutral.600}",
+          "$description": "The unchecked track of a switch: the control's boundary, at 3:1 against every surface, with the unchecked thumb at 3:1 on it. Not the neutral fill buttons and badges share.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.600}",
+              "introduced": "0.7.0"
+            }
+          }
         }
       },
       "inverse": {
@@ -2618,38 +2628,38 @@
     "$type": "dimension",
     "control": {
       "xsmall": {
-        "$value": "24px",
-        "$description": "Extra-small control height. Button xs."
+        "$value": "1.5rem",
+        "$description": "Extra-small control height, 24px at the browser's default text size. Button xs."
       },
       "small": {
-        "$value": "28px",
-        "$description": "Small control height. Button sm, chips, menu items, sidebar items."
+        "$value": "1.75rem",
+        "$description": "Small control height, 28px at the default text size. Button sm, chips, menu items, sidebar items."
       },
       "medium": {
-        "$value": "32px",
-        "$description": "Default control height. Button md, inputs, selects, combobox triggers."
+        "$value": "2rem",
+        "$description": "Default control height, 32px at the default text size. In rem, like the type, so a reader who raises the browser's text size gets taller controls. Button md, inputs, selects, combobox triggers."
       },
       "large": {
-        "$value": "36px",
-        "$description": "Large control height. Reserved for hero forms."
+        "$value": "2.25rem",
+        "$description": "Large control height, 36px at the default text size. Reserved for hero forms."
       }
     },
     "row": {
       "compact": {
-        "$value": "36px",
-        "$description": "Compact table row."
+        "$value": "2.25rem",
+        "$description": "Compact table row, 36px at the default text size."
       },
       "default": {
-        "$value": "40px",
-        "$description": "Default table row."
+        "$value": "2.5rem",
+        "$description": "Default table row, 40px at the default text size. In rem, like the type it holds."
       },
       "header": {
-        "$value": "32px",
-        "$description": "Table header row."
+        "$value": "2rem",
+        "$description": "Table header row, 32px at the default text size."
       },
       "menu": {
-        "$value": "28px",
-        "$description": "Menu, command and tree rows."
+        "$value": "1.75rem",
+        "$description": "Menu, command and tree rows, 28px at the default text size."
       }
     },
     "icon": {
@@ -3102,8 +3112,8 @@
         "$value": {
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
-          "fontSize": "15px",
-          "lineHeight": "22px",
+          "fontSize": "0.9375rem",
+          "lineHeight": "1.375rem",
           "letterSpacing": "{font.letterSpacing.200}"
         },
         "$description": "Reading text and dialog body."
@@ -3112,8 +3122,8 @@
         "$value": {
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
-          "fontSize": "12px",
-          "lineHeight": "16px",
+          "fontSize": "0.75rem",
+          "lineHeight": "1rem",
           "letterSpacing": "{font.letterSpacing.100}"
         },
         "$description": "Table headers, field labels, badges, KeyValue. Labels add font.weight.medium."
@@ -3122,8 +3132,8 @@
         "$value": {
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
-          "fontSize": "11px",
-          "lineHeight": "14px",
+          "fontSize": "0.6875rem",
+          "lineHeight": "0.875rem",
           "letterSpacing": "{font.letterSpacing.100}"
         },
         "$description": "Eyebrow, counts, metadata."
@@ -3132,11 +3142,11 @@
         "$value": {
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
-          "fontSize": "13px",
-          "lineHeight": "18px",
+          "fontSize": "0.8125rem",
+          "lineHeight": "1.125rem",
           "letterSpacing": "{font.letterSpacing.200}"
         },
-        "$description": "Controls, cells, tabs, inputs, menu items. The UI size."
+        "$description": "Controls, cells, tabs, inputs, menu items. The UI size: 13/18px at the browser's default text size. Every size and line height is in rem, so the reader's text-size setting reaches them."
       }
     },
     "heading": {
@@ -3146,8 +3156,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
-          "fontSize": "28px",
-          "lineHeight": "34px",
+          "fontSize": "1.75rem",
+          "lineHeight": "2.125rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
         "$description": "Display: a stat value, a dashboard number. Not a page title."
@@ -3156,8 +3166,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
-          "fontSize": "22px",
-          "lineHeight": "28px",
+          "fontSize": "1.375rem",
+          "lineHeight": "1.75rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
         "$description": "Page and record titles. The only semibold."
@@ -3166,8 +3176,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.medium}",
-          "fontSize": "20px",
-          "lineHeight": "26px",
+          "fontSize": "1.25rem",
+          "lineHeight": "1.625rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
         "$description": "Section headings."
@@ -3176,8 +3186,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.medium}",
-          "fontSize": "15px",
-          "lineHeight": "22px",
+          "fontSize": "0.9375rem",
+          "lineHeight": "1.375rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
         "$description": "Dialog and card titles."
@@ -3186,8 +3196,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.medium}",
-          "fontSize": "11px",
-          "lineHeight": "14px",
+          "fontSize": "0.6875rem",
+          "lineHeight": "0.875rem",
           "letterSpacing": "{font.letterSpacing.500}"
         },
         "$description": "Eyebrows, group headings and menu section labels. The component adds the uppercase."
@@ -3198,8 +3208,8 @@
       "$value": {
         "fontFamily": "{font.family.code}",
         "fontWeight": "{font.weight.regular}",
-        "fontSize": "12px",
-        "lineHeight": "18px",
+        "fontSize": "0.75rem",
+        "lineHeight": "1.125rem",
         "letterSpacing": "{font.letterSpacing.0}"
       },
       "$description": "Code blocks only."

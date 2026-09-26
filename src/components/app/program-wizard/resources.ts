@@ -15,8 +15,6 @@ export function useWizardResources() {
     pending: queries.some((query) => query.isPending),
     error: queries.find((query) => query.error)?.error,
     ready: queries.every((query) => query.data !== undefined),
-    retry: () =>
-      Promise.all(queries.filter((query) => query.error).map((query) => query.refetch())),
     parties: parties.data ?? [],
     data: reference.data,
     libraryItems: library.items,

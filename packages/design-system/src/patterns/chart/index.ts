@@ -21,6 +21,7 @@ export {
   ChartLegend,
   type ChartCrumb,
   type ChartFrameProps,
+  type ChartFrameState,
   type ChartLegendProps,
 } from "./frame";
 export {

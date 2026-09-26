@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { createRef } from "react";
+import { expect, within } from "storybook/test";
 
 import { Badge, Dot, Id, Indicator, Table, tones } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
@@ -187,3 +189,30 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+const indicatorRef = createRef<HTMLSpanElement>();
+const dotRef = createRef<SVGSVGElement>();
+
+/** Native attributes, a class and a ref reach the Indicator's span and the Dot's svg, and each names itself last with `data-slot` and its `data-tone`. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Inline space="space.200" alignBlock="center">
+      <Indicator ref={indicatorRef} tone="danger" data-testid="severity" className="align-middle">
+        High
+      </Indicator>
+      <Dot ref={dotRef} tone="warning" label="Suspect" data-testid="suspect" />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const indicator = canvas.getByTestId("severity");
+    await expect(indicatorRef.current).toBe(indicator);
+    await expect(indicator).toHaveAttribute("data-slot", "indicator");
+    await expect(indicator).toHaveAttribute("data-tone", "danger");
+    await expect(indicator).toHaveClass("align-middle");
+    const dot = canvas.getByRole("img", { name: "Suspect" });
+    await expect(dotRef.current).toBe(dot);
+    await expect(dot).toHaveAttribute("data-testid", "suspect");
+    await expect(dot).toHaveAttribute("data-slot", "dot");
+  },
+};

@@ -26,7 +26,7 @@ const statuses = { draft: "Draft", review: "In review" };
 
 ## Composition and states
 
-Root owns selected values, open state, form props and modality. Trigger owns native button props, refs, render composition, layout and size: `default` is 32px and `sm` is 28px. It fits its contents by default; use `className="w-full"` in a form or native `style` for a fixed width. Value owns the placeholder and displayed value.
+Root owns selected values, open state, form props and modality. Trigger owns native button props, refs, render composition, layout and size, on the control scale Input, Combobox and Button share: `medium` is 32px, the default, and `small` is 28px, for a toolbar or a dense row. `data-size` says the same word, so InputGroup's rule keyed on `small` finds a small Select. `sm` and `default` are the deprecated shadcn spellings, kept for one version and renamed by `ledger/no-deprecated-name`. It fits its contents by default; use `className="w-full"` in a form or native `style` for a fixed width. Value owns the placeholder and displayed value.
 
 Supply Root's `items` label map/array, object-value label conversion, or Value's children to format the selected value. Item children alone do not label the closed trigger. A label can contain the same Dot or Badge shown on the record. Group and Label identify sections; Separator divides them.
 
@@ -68,7 +68,7 @@ Base UI coordinates nested Select, Dialog and Drawer popups. Escape dismisses Se
 
 ## Migration and API
 
-Replace the configured root with Select, SelectTrigger, SelectValue and SelectContent. Move trigger refs, ARIA, size, styles and event handlers to Trigger; replace `width` with native style and `small`/`medium` with `sm`/`default`. Move the placeholder to Value. Replace compound Item/Group/Separator with flat exports and put SelectLabel inside SelectGroup. Supply labels through `items` or Value; handle nullable single values explicitly.
+Replace the configured root with Select, SelectTrigger, SelectValue and SelectContent. Move trigger refs, ARIA, size, styles and event handlers to Trigger; replace `width` with native style; `size` keeps `small` and `medium`. Move the placeholder to Value. Replace compound Item/Group/Separator with flat exports and put SelectLabel inside SelectGroup. Supply labels through `items` or Value; handle nullable single values explicitly.
 
 The implementation follows [shadcn Select](https://ui.shadcn.com/docs/components/base/select) and [Base UI Select](https://base-ui.com/react/components/select), using the installed Base UI version. Content adds shadcn's five positioning props to Popup; Ledger adds token styling and locale/Field/dialog integration.
 

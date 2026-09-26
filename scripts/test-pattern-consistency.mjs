@@ -78,7 +78,18 @@ async function checkHeader(path, title, width) {
   await page.evaluate(() => document.fonts.ready);
   const titleBox = await heading.boundingBox();
   assert.ok(titleBox, `${path}: title has a layout box`);
-  assert.ok(titleBox.width > 100 && titleBox.height > 0, `${path}: title is not crushed`);
+  // The heading keeps its own width when that is shorter than its measure, so a short title is
+  // narrow; crushed means broken across lines or clipped, not narrow.
+  const fit = await heading.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const lines = new Set([...range.getClientRects()].map((rect) => Math.round(rect.top)));
+    return { lines: lines.size, clipped: element.scrollWidth - element.clientWidth };
+  });
+  assert.ok(
+    titleBox.width > 0 && titleBox.height > 0 && fit.lines === 1 && fit.clipped <= 1,
+    `${path}: title is not crushed (${fit.lines} lines, ${fit.clipped}px clipped)`,
+  );
   assert.ok(titleBox.x >= -1 && titleBox.x + titleBox.width <= width + 1);
   if (width === 390) {
     const navigation = page.getByRole("banner", { name: "Top navigation" });
@@ -104,7 +115,7 @@ async function openElement() {
 }
 async function keepEditing() {
   await expect(discardPrompt()).toBeVisible();
-  await discardPrompt().getByRole("button", { name: "Cancel", exact: true }).click();
+  await discardPrompt().getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(discardPrompt()).toBeHidden();
   await expect(elementSheet()).toBeVisible();
 }
@@ -196,6 +207,58 @@ try {
       .limit(1)
       .single(),
   );
+  // An authorization boundary with a published SSP 1 and a draft SSP 2 that records one control.
+  const resolution = await data(
+    client.from("profile_resolutions").select("*").eq("state", "published").limit(1).single(),
+  );
+  const sspSelection = await data(
+    client
+      .from("selected_controls")
+      .select("*")
+      .eq("profile_resolution_id", resolution.id)
+      .order("ordinal")
+      .limit(1)
+      .single(),
+  );
+  const sspControl = await data(
+    client.from("controls").select("*").eq("id", sspSelection.control_id).single(),
+  );
+  const boundary = await insert("systems", {
+    program_id: program.id,
+    code: `BND-${suffix}`,
+    name: `Pattern boundary ${suffix}`,
+    system_type: "information_system",
+  });
+  const publishedPlan = await insert("ssp_revisions", {
+    system_id: boundary.id,
+    profile_resolution_id: resolution.id,
+    version_number: 1,
+  });
+  await insert("implemented_requirements", {
+    ssp_revision_id: publishedPlan.id,
+    selected_control_id: sspSelection.id,
+    description: "Published control narrative",
+    implementation_status: "implemented",
+  });
+  await data(
+    client
+      .from("ssp_revisions")
+      .update({ state: "published", revision: publishedPlan.revision + 1 })
+      .eq("id", publishedPlan.id)
+      .select()
+      .single(),
+  );
+  const draftPlan = await insert("ssp_revisions", {
+    system_id: boundary.id,
+    profile_resolution_id: resolution.id,
+    version_number: 2,
+  });
+  await insert("implemented_requirements", {
+    ssp_revision_id: draftPlan.id,
+    selected_control_id: sspSelection.id,
+    description: "Stored control narrative",
+    implementation_status: "partial",
+  });
 
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -500,7 +563,11 @@ try {
   const saveButton = () =>
     elementSheet().getByRole("button", { name: "Create element", exact: true });
   await saveButton().click();
-  await expect(elementSheet().getByRole("alert")).toHaveText("Simulated element save failure");
+  const saveFailure = elementSheet().getByRole("alert").filter({ hasText: "was not saved" });
+  await expect(saveFailure.locator('[data-slot="alert-title"]')).toHaveText(
+    "The element was not saved",
+  );
+  await expect(saveFailure).toContainText("Simulated element save failure");
   assert.equal(failedPosts, 1);
   await expectDraft();
   await expect(saveButton()).toBeEnabled();
@@ -552,6 +619,104 @@ try {
   console.log(
     "PASS failed save retains draft; pending save blocks edits/close/repeat; retry saves once",
   );
+
+  // A failed background refresh keeps an open SSP narrative draft, its focus and the register.
+  await page.goto(`${origin}/programs/${program.id}?tab=Controls`);
+  const sspTable = page.getByRole("table", { name: "SSP control assembly", exact: true });
+  const revisionPicker = page.getByRole("combobox", { name: "SSP revision", exact: true });
+  await expect(revisionPicker).toHaveText(/^SSP 2 · /);
+  await page
+    .getByRole("searchbox", { name: "Find selected controls", exact: true })
+    .fill(sspControl.code);
+  await tableRow(sspTable, sspSelection.id)
+    .getByRole("button", { name: "Preview row", exact: true })
+    .click();
+  const sspPanel = page.locator('[data-shell-area="panel"]');
+  await expect(
+    sspPanel.getByRole("heading", { name: sspControl.title, exact: true }),
+  ).toBeVisible();
+  const editImplementation = sspPanel.getByRole("button", {
+    name: "Edit control implementation",
+    exact: true,
+  });
+  await editImplementation.click();
+  const narrativeDialog = page.getByRole("dialog", {
+    name: "Edit control implementation",
+    exact: true,
+  });
+  const narrative = narrativeDialog.getByRole("textbox", { name: "Control narrative" });
+  await expect(narrative).toHaveValue("Stored control narrative");
+  await narrative.click();
+  await narrative.press("End");
+  await narrative.pressSequentially(" and its retained draft");
+  const narrativeDraft = "Stored control narrative and its retained draft";
+  await expect(narrative).toHaveValue(narrativeDraft);
+  let failedRefreshes = 0;
+  const refreshEndpoint =
+    /\/rest\/v1\/(ssp_revisions|implemented_requirements|systems|selected_controls)\?/;
+  const failRefresh = (route) => {
+    if (route.request().method() !== "GET") return route.continue();
+    failedRefreshes++;
+    return route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "Injected SSP refresh failure" }),
+    });
+  };
+  await page.route(refreshEndpoint, failRefresh);
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "visible",
+    });
+    window.dispatchEvent(new Event("visibilitychange"));
+  });
+  await expect.poll(() => failedRefreshes).toBeGreaterThan(0);
+  await expect
+    .poll(() =>
+      page.locator('[role="alert"]').filter({ hasText: "Showing the last loaded records" }).count(),
+    )
+    .toBeGreaterThan(0);
+  await expect(narrativeDialog).toBeVisible();
+  await expect(narrative).toHaveValue(narrativeDraft);
+  await expect(narrative).toBeFocused();
+  // The modal hides the page from the accessibility tree, so these read the DOM under it.
+  await expect(page.locator(`main table tbody tr[data-row-id="${sspSelection.id}"]`)).toBeVisible();
+  await expect(sspPanel.locator("h2").filter({ hasText: sspControl.title })).toBeVisible();
+  await page.unroute(refreshEndpoint, failRefresh);
+  await page.keyboard.press("Escape");
+  await expect(discardPrompt()).toBeVisible();
+  await discardPrompt().getByRole("button", { name: "Keep editing", exact: true }).click();
+  await expect(narrative).toHaveValue(narrativeDraft);
+  await page.keyboard.press("Escape");
+  await discardPrompt().getByRole("button", { name: "Discard changes", exact: true }).click();
+  await expect(narrativeDialog).toBeHidden();
+  await expect(editImplementation).toBeFocused();
+  await page.getByRole("button", { name: "Retry loading", exact: true }).first().click();
+  await expect(page.getByRole("button", { name: "Retry loading", exact: true })).toHaveCount(0);
+  await expect(tableRow(sspTable, sspSelection.id)).toBeVisible();
+  const stored = await rows("implemented_requirements", { ssp_revision_id: draftPlan.id });
+  assert.deepEqual(
+    stored.map((row) => row.description),
+    ["Stored control narrative"],
+  );
+  await sspPanel.getByRole("button", { name: "Close details", exact: true }).click();
+  console.log("PASS failed SSP refresh keeps the open narrative draft, its focus and the register");
+
+  // Choosing another SSP revision redraws the register and keeps focus on the picker.
+  await revisionPicker.click();
+  await page.getByRole("option", { name: /^SSP 1 · / }).click();
+  await expect(revisionPicker).toHaveText(/^SSP 1 · /);
+  await expect(revisionPicker).toBeFocused();
+  await expect(tableRow(sspTable, sspSelection.id)).toBeVisible();
+  await revisionPicker.press("ArrowDown");
+  await expect(page.getByRole("option", { name: /^SSP 2 · / })).toBeVisible();
+  // The newest revision is listed first; the open list highlights the chosen SSP 1.
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("Enter");
+  await expect(revisionPicker).toHaveText(/^SSP 2 · /);
+  await expect(revisionPicker).toBeFocused();
+  console.log("PASS choosing an SSP revision by pointer or keyboard keeps focus on its picker");
   assert.deepEqual(errors, [], "No uncaught browser errors or native confirmation dialogs");
   console.log(`PASS pattern consistency. Screenshots: ${screenshots}`);
 } catch (error) {

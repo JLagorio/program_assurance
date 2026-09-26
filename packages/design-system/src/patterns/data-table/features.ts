@@ -105,6 +105,8 @@ export type DataTableMeta = {
   pageSizes?: number[] | undefined;
   /** The accessible name of the table. */
   label?: string | undefined;
+  /** A row's readable name, for its controls and what is said about it. */
+  rowLabel?: ((row: never) => string) | undefined;
   /** The reader can pin and unpin columns from the column menu. */
   pinnable?: boolean | undefined;
   /** The reader can hide columns from the Columns menu and the column menu. */

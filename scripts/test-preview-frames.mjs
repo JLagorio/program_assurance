@@ -193,7 +193,8 @@ try {
       .getByRole("button", { name: "Back to previous record", exact: true })
       .click();
     await expectRecord("observations", observation.id, observation.title);
-    await expect(panel()).toBeFocused();
+    // Back returns focus to the control in the parent frame that opened the nested record.
+    await expect(eye(citations, citation.id)).toBeFocused();
     await expect(citationSearch).toHaveValue(suffix);
     await expect(eye(citations, citation.id)).not.toHaveAttribute("aria-pressed", "true");
     await expect(panel().getByText(observation.description, { exact: true })).toBeVisible();

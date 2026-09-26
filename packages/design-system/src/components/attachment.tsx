@@ -82,11 +82,12 @@ function AttachmentRoot({
 }: AttachmentProps) {
   return (
     <div
+      aria-busy={state === "uploading" || state === "processing" ? true : undefined}
+      {...props}
       data-slot="attachment"
       data-state={state}
       data-size={size}
       data-orientation={orientation}
-      aria-busy={state === "uploading" || state === "processing" ? true : undefined}
       className={cn(
         "group/attachment relative isolate flex max-w-full min-w-0 shrink-0 rounded-medium border border-default bg-surface-raised text-default transition-colors duration-fast ease-standard motion-reduce:transition-none",
         "data-[state=idle]:border-dashed data-[state=error]:border-danger",
@@ -95,7 +96,6 @@ function AttachmentRoot({
         orientation === "vertical" ? "w-layout-rail flex-col" : "w-fit items-center",
         className,
       )}
-      {...props}
     />
   );
 }
@@ -103,6 +103,7 @@ function AttachmentRoot({
 function AttachmentMedia({ variant = "icon", className, ...props }: AttachmentMediaProps) {
   return (
     <div
+      {...props}
       data-slot="attachment-media"
       data-variant={variant}
       className={cn(
@@ -113,7 +114,6 @@ function AttachmentMedia({ variant = "icon", className, ...props }: AttachmentMe
         variant === "image" && "[&>img]:size-full [&>img]:object-cover",
         className,
       )}
-      {...props}
     />
   );
 }
@@ -121,9 +121,9 @@ function AttachmentMedia({ variant = "icon", className, ...props }: AttachmentMe
 function AttachmentContent({ className, ...props }: AttachmentContentProps) {
   return (
     <div
+      {...props}
       data-slot="attachment-content"
       className={cn("flex min-w-0 flex-1 flex-col gap-025", className)}
-      {...props}
     />
   );
 }
@@ -145,9 +145,9 @@ function AttachmentTitle({
   if (truncate === "end" || typeof children !== "string")
     return (
       <span
+        {...props}
         data-slot="attachment-title"
         className={cn("block min-w-0 truncate font-medium", className)}
-        {...props}
       >
         {children}
       </span>
@@ -160,10 +160,10 @@ function AttachmentTitle({
   // selectable, so a selection holds the name once, from the visible pieces.
   return (
     <span
+      {...props}
       data-slot="attachment-title"
       data-truncate="middle"
       className={cn("flex min-w-0 font-medium", className)}
-      {...props}
       onCopy={(event) => {
         onCopy?.(event);
         if (event.defaultPrevented) return;
@@ -189,12 +189,12 @@ function AttachmentTitle({
 function AttachmentDescription({ className, ...props }: AttachmentDescriptionProps) {
   return (
     <span
+      {...props}
       data-slot="attachment-description"
       className={cn(
         "block min-w-0 break-words font-body-small text-subtle group-data-[state=error]/attachment:text-danger",
         className,
       )}
-      {...props}
     />
   );
 }
@@ -202,18 +202,18 @@ function AttachmentDescription({ className, ...props }: AttachmentDescriptionPro
 function AttachmentActions({ className, ...props }: AttachmentActionsProps) {
   return (
     <div
+      {...props}
       data-slot="attachment-actions"
       className={cn(
         "relative z-20 flex shrink-0 flex-wrap items-center gap-050 group-data-[orientation=vertical]/attachment:self-end",
         className,
       )}
-      {...props}
     />
   );
 }
 
 function AttachmentAction({ variant = "subtle", size = "small", ...props }: AttachmentActionProps) {
-  return <IconButton data-slot="attachment-action" variant={variant} size={size} {...props} />;
+  return <IconButton variant={variant} size={size} {...props} data-slot="attachment-action" />;
 }
 
 /** The overlay a card-wide Trigger or Link draws: the whole card, above the content, below Actions. */
@@ -223,10 +223,10 @@ const overlay =
 function AttachmentTrigger({ className, ...props }: AttachmentTriggerProps) {
   return (
     <Button
-      data-slot="attachment-trigger"
       variant="subtle"
-      className={classes(overlay, className)}
       {...props}
+      data-slot="attachment-trigger"
+      className={classes(overlay, className)}
     />
   );
 }
@@ -246,13 +246,13 @@ function AttachmentLink({ render, className, ref, ...props }: AttachmentLinkProp
 function AttachmentGroup({ className, ...props }: AttachmentGroupProps) {
   return (
     <div
+      {...props}
       data-slot="attachment-group"
       className={cn(
         "flex min-w-0 snap-x snap-proximity scroll-px-050 gap-150 overflow-x-auto p-050 focus-visible:outline-focused",
         "[&>[data-slot=attachment]]:flex-none [&>[data-slot=attachment]]:snap-start",
         className,
       )}
-      {...props}
     />
   );
 }

@@ -28,7 +28,7 @@ async function open(path, action, title) {
   );
 }
 async function choose(label, value) {
-  await page.getByRole("dialog").getByLabel(label, { exact: true }).click();
+  await page.getByRole("dialog").getByRole("combobox", { name: label, exact: true }).click();
   await page.getByRole("option", { name: value, exact: true }).click();
 }
 async function save(label) {
@@ -54,24 +54,30 @@ try {
   await open("/risks", "Create risk", "Create risk");
   await page
     .getByRole("dialog")
-    .getByLabel("Title *", { exact: true })
+    .getByRole("textbox", { name: "Title", exact: true })
     .fill("Supply dependency review");
-  await choose("Program *", program.name);
+  await choose("Program", program.name);
   await page.screenshot({ path: "/tmp/product-risk-dialog.png" });
   await save("Create risk");
   assert.equal((await records("risks"))[0].title, "Supply dependency review");
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   await page.getByRole("menuitem", { name: "Edit risk", exact: true }).click();
-  await page.getByRole("dialog").getByLabel("Title *", { exact: true }).fill("Unsaved change");
+  await page
+    .getByRole("dialog")
+    .getByRole("textbox", { name: "Title", exact: true })
+    .fill("Unsaved change");
   await page.keyboard.press("Escape");
   await page
     .getByRole("alertdialog", { name: "Discard changes?", exact: true })
-    .getByRole("button", { name: "Cancel", exact: true })
+    .getByRole("button", { name: "Keep editing", exact: true })
     .click();
   await page.getByRole("alertdialog").waitFor({ state: "hidden" });
   assert.equal(await page.getByRole("dialog").count(), 1, "Declining discard retains the dialog");
   assert.equal(
-    await page.getByRole("dialog").getByLabel("Title *", { exact: true }).inputValue(),
+    await page
+      .getByRole("dialog")
+      .getByRole("textbox", { name: "Title", exact: true })
+      .inputValue(),
     "Unsaved change",
   );
   await page.getByRole("dialog").getByRole("button", { name: "Cancel", exact: true }).click();
@@ -102,20 +108,29 @@ try {
   await open("/profiles", "Create profile", "Create profile");
   await page
     .getByRole("dialog")
-    .getByLabel("Title *", { exact: true })
+    .getByRole("textbox", { name: "Title", exact: true })
     .fill("Workspace profile check");
-  await page.getByRole("dialog").getByLabel("Code *", { exact: true }).fill("FLOW-PROFILE");
+  await page
+    .getByRole("dialog")
+    .getByRole("textbox", { name: "Code", exact: true })
+    .fill("FLOW-PROFILE");
   await save("Create profile");
   assert.equal((await records("profiles"))[0].code, "FLOW-PROFILE");
 
   await open(`/programs/${program.id}?tab=System`, "Create system", "Create system");
   assert.equal(
-    await page.getByRole("dialog").getByLabel("Find Program", { exact: true }).count(),
+    await page.getByRole("dialog").getByRole("combobox", { name: "Program", exact: true }).count(),
     0,
     "Parent program stays fixed by context",
   );
-  await page.getByRole("dialog").getByLabel("Name", { exact: true }).fill("Boundary check system");
-  await page.getByRole("dialog").getByLabel("Code", { exact: true }).fill("FLOW-SYSTEM");
+  await page
+    .getByRole("dialog")
+    .getByRole("textbox", { name: "Name", exact: true })
+    .fill("Boundary check system");
+  await page
+    .getByRole("dialog")
+    .getByRole("textbox", { name: "Code", exact: true })
+    .fill("FLOW-SYSTEM");
   await choose("System type", "Information system");
   await save("Create system");
   const systems = await records("systems");

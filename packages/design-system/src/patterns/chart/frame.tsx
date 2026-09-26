@@ -151,6 +151,9 @@ export type ChartCrumb = {
   onSelect?: (() => void) | undefined;
 };
 
+/** Whether the plot is drawn, loading, refreshing, empty or failed. */
+export type ChartFrameState = "ready" | "loading" | "refreshing" | "empty" | "error";
+
 export type ChartFrameProps = Omit<ComponentProps<"figure">, "title" | "children"> & {
   /** What the chart shows, as a noun phrase: "Coverage by control family". It names the plot to a screen reader. */
   title: string;
@@ -176,8 +179,13 @@ export type ChartFrameProps = Omit<ComponentProps<"figure">, "title" | "children
   download?: ("csv" | "png")[] | undefined;
   /** An Expand button in the header that opens the same chart in a large Dialog, the plot redrawn at `large`. */
   expandable?: boolean | undefined;
-  /** `loading` draws the plot's skeleton at its height; `refreshing` keeps the last plot, dimmed, with a spinner in the header; `empty` and `error` say so in the plot's place. */
-  status?: "ready" | "loading" | "refreshing" | "empty" | "error" | undefined;
+  /** `loading` draws the plot's skeleton at its height; `refreshing` keeps the last plot, dimmed, with a spinner in the header; `empty` and `error` say so in the plot's place. The same word as DataTable's `state`. */
+  state?: ChartFrameState | undefined;
+  /**
+   * The plot's state, under its old name. `state` wins when both are set.
+   * @deprecated Use `state`, the name DataTable uses; `ledger/no-deprecated-name` fixes it.
+   */
+  status?: ChartFrameState | undefined;
   /** What an empty or failed plot says. "Nothing to show yet" and "The chart could not load" when unsaid. */
   statusTitle?: string | undefined;
   statusText?: string | undefined;
@@ -251,7 +259,8 @@ function ChartFrameView({
     actions,
     download: downloads,
     expandable,
-    status = "ready",
+    state: stateProp,
+    status: statusProp,
     statusTitle,
     statusText,
     data,
@@ -266,6 +275,7 @@ function ChartFrameView({
     className,
     ...figureProps
   } = props;
+  const status: ChartFrameState = stateProp ?? statusProp ?? "ready";
   const id = useId();
   const figure = useRef<HTMLElement>(null);
   const { hidden, setHidden, showTable, setShowTable, values, setValues } = view;
@@ -404,6 +414,8 @@ function ChartFrameView({
         {...(summary ? { "aria-describedby": `${id}-summary` } : {})}
         className={cn("flex min-w-0 flex-col gap-150", className)}
         {...(!inDialog ? figureProps : {})}
+        data-slot="chart-frame"
+        data-state={status}
       >
         <div className="flex flex-wrap items-start justify-between gap-x-200 gap-y-100">
           <figcaption className="flex min-w-0 flex-col gap-025" style={{ flex: "1 1 200px" }}>

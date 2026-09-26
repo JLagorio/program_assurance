@@ -21,6 +21,8 @@ const errors = [];
 const prompt = () => page.getByRole("alertdialog", { name: "Discard changes?", exact: true });
 const organization = () => page.getByRole("dialog", { name: "Create organization", exact: true });
 const task = () => page.getByRole("dialog", { name: "Create task", exact: true });
+// The top navigation also links to My work; destinations are chosen in the side navigation.
+const sideNavigation = () => page.getByRole("navigation", { name: "Side navigation", exact: true });
 const orgName = () => organization().getByRole("textbox", { name: /^Name/ });
 async function openOrganization() {
   await page
@@ -31,8 +33,8 @@ async function openOrganization() {
 }
 async function cancelDiscard(surface) {
   await expect(prompt()).toBeVisible();
-  await expect(prompt().getByRole("button", { name: "Cancel", exact: true })).toBeFocused();
-  await prompt().getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(prompt().getByRole("button", { name: "Keep editing", exact: true })).toBeFocused();
+  await prompt().getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(prompt()).toBeHidden();
   await expect(surface()).toBeVisible();
 }
@@ -94,7 +96,8 @@ try {
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await openOrganization();
   await footer(organization(), "Create organization");
-  await expect(organization().getByRole("combobox", { name: /^Party type/ })).toBeDisabled();
+  // The title names the party type the register fixed, so the dialog offers no way to change it.
+  await expect(organization().getByRole("combobox", { name: /^Party type/ })).toHaveCount(0);
   await organization().getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(organization()).toBeHidden();
   await expect(prompt()).toBeHidden();
@@ -173,8 +176,8 @@ try {
   await discard();
   await expect(editedParty()).toBeHidden();
   // Two SPA entries let browser Back exercise TanStack's async blocker.
-  await page.getByRole("link", { name: "My work", exact: true }).click();
-  await page.getByRole("link", { name: "Suppliers", exact: true }).click();
+  await sideNavigation().getByRole("link", { name: "My work", exact: true }).click();
+  await sideNavigation().getByRole("link", { name: "Suppliers", exact: true }).click();
   await openOrganization();
   await orgName().fill("Navigation draft");
   await page.evaluate(() => history.back());
@@ -209,7 +212,7 @@ try {
   await discard();
   await expect(task()).toBeHidden();
   // A wizard's page blocker must preserve an open descendant Sheet on Cancel and Escape.
-  await page.getByRole("link", { name: "Programs", exact: true }).click();
+  await sideNavigation().getByRole("link", { name: "Programs", exact: true }).click();
   await page.getByRole("link", { name: "Create program", exact: true }).first().click();
   await page
     .getByRole("textbox", { name: "Program name", exact: true })
@@ -229,7 +232,10 @@ try {
   await page.keyboard.press("Escape");
   await expect(prompt()).toBeHidden();
   await expect(controls()).toBeVisible();
-  await controls().getByRole("button", { name: "Cancel", exact: true }).click();
+  await controls()
+    .locator('[data-slot="dialog-footer"]')
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
   await expect(controls()).toBeHidden();
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
@@ -274,10 +280,10 @@ try {
   });
   await page.goto(`${origin}/library/components/${definition.id}`);
   await page.getByRole("tab", { name: "Structure", exact: true }).click();
-  await page.getByRole("button", { name: "Create component", exact: true }).first().click();
-  const component = page.getByRole("dialog", { name: "Create component", exact: true });
+  await page.getByRole("button", { name: "Create defined component", exact: true }).first().click();
+  const component = page.getByRole("dialog", { name: "Create defined component", exact: true });
   await expect(component).toBeVisible();
-  await captureForm(component, "library-component", "Create component");
+  await captureForm(component, "library-component", "Create defined component");
   await component.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(component).toBeHidden();
   await expect(prompt()).toBeHidden();
@@ -295,7 +301,7 @@ try {
     .getByRole("table", { name: "Product configurations", exact: true })
     .getByRole("row")
     .filter({ hasText: configuration.name })
-    .getByRole("button", { name: "Row actions", exact: true })
+    .getByRole("button", { name: `Row actions for ${configuration.code}`, exact: true })
     .click();
   await page.getByRole("menuitem", { name: "Edit configuration", exact: true }).click();
   const editedConfiguration = page.getByRole("dialog", { name: "Edit configuration", exact: true });

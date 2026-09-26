@@ -1,0 +1,100 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { LedgerProvider } from "../../mode";
+import * as Stories from "./Locale.stories";
+
+<Meta of={Stories} />
+
+# Locale
+
+**LedgerProvider** gives every part under it the reader's locale, time zone and writing direction, and the kit's own words. Every date, number and label a part shows goes through it: DateTime, RelativeTime and DateLabel, DataTable's `c.date`, the Calendar's first day of the week, a typed day in a DatePicker, Pagination's words, Shell's landmark names. Mount one near the root, with the reader's zone.
+
+<Canvas of={Stories.ReadersZone} />
+
+## At the root
+
+```tsx
+import { LedgerProvider, ModeProvider, Toaster } from "@ledger/design-system";
+
+<ModeProvider>
+  <LedgerProvider locale="en-US" timeZone={readerTimeZone}>
+    <App />
+    <Toaster />
+  </LedgerProvider>
+</ModeProvider>;
+```
+
+The provider renders one element around its children, carrying `lang` from `locale` and `dir` from `direction`. Parts that draw in a portal outside it and depend on direction, such as the Toaster, a Combobox popup, the Calendar and a chart's tooltip, read it from the provider instead.
+
+| Option      | Without it                             | What it decides                                                                                                                                               |
+| ----------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `locale`    | `en-US`, never the host's              | A BCP 47 tag: the words and numerals of dates and numbers, plural rules, 12- or 24-hour clocks, the first day of the week, and how a typed day or time reads. |
+| `timeZone`  | `UTC`                                  | The IANA zone instants show in, such as `America/New_York`. A calendar day never shifts, whatever the zone.                                                   |
+| `direction` | `ltr`                                  | `rtl` for a right-to-left language.                                                                                                                           |
+| `messages`  | The English words in `defaultMessages` | The kit's labels, announcements and templates, by key. Pass a module constant: a new object on every render rebuilds the formatters.                          |
+
+A nested provider inherits every option it does not set, and merges its `messages` over its parent's, so a region can take another zone or a few other words without repeating the rest.
+
+## Days and instants
+
+An ISO day (`"2026-09-18"`) is a calendar day: a due date, a milestone. It reads the same day everywhere. An instant (an ISO timestamp with an offset, a `Date`, epoch milliseconds) is a point in time, shown in the provider's zone, so the same instant is the evening of Sep 18 in Los Angeles and the morning of Sep 19 in Tokyo. Without a `timeZone`, every instant shows in UTC, and an evening entered in the Americas reads as the next day.
+
+<Canvas of={Stories.InstantsAndDays} />
+
+## The same on the server and the client
+
+Pass the same locale and zone to the provider on the server and on the client, or the markup will not match on hydration. The server knows the reader's zone only when the product stores it, as an account preference or a cookie; pass the stored value on both sides. Otherwise render the server's zone first and take the reader's once the client has hydrated:
+
+```tsx
+import { useSyncExternalStore } from "react";
+
+const subscribe = () => () => {};
+const readerZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+/** The reader's zone on the client, and `serverZone` while rendering on the server and hydrating. */
+export function useReaderTimeZone(serverZone = "UTC") {
+  return useSyncExternalStore(subscribe, readerZone, () => serverZone);
+}
+```
+
+React renders the server snapshot during hydration, then renders again with the client's, so the first paint matches the server and the dates settle into the reader's zone straight after. Never read the host's locale or zone during a server render.
+
+## Formatters in your own code
+
+Show a date with DateTime, RelativeTime or DateLabel, and a date column with `c.date`. Where no part fits, such as an export, a message you `announce`, or a document title, `useLedgerLocale()` returns the provider's formatters:
+
+| Returns                                                        | For                                                                                                                             |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `formatDate(value, options?)`                                  | An instant (a `Date` or epoch milliseconds, not a string), in the provider's zone. `options` are `Intl.DateTimeFormat` options. |
+| `formatDay(day, options?)`, `formatDayRange`                   | A calendar day `{ year, month, day }`, or two, never shifted.                                                                   |
+| `formatCalendarDate(date, options?)`                           | A `Date` read as the local year, month and day it was picked on, such as a Calendar's, never shifted.                           |
+| `formatTime(time, options?)`                                   | A wall-clock time `{ hour, minute }`, on the locale's clock.                                                                    |
+| `formatRelative(value, now?, style?)`                          | "5 minutes ago", "tomorrow": `{ text, next }`, `next` being the milliseconds until the words change.                            |
+| `formatNumber(value, options?)`                                | A number, with `Intl.NumberFormat` options.                                                                                     |
+| `formatPlural(count, forms)`                                   | The form for a count, from `{ one, other }` and the locale's other categories, with `{count}`.                                  |
+| `t(key, params?)`                                              | One of the kit's messages, with its `{name}` placeholders filled.                                                               |
+| `zonedParts(value)`, `toInstant(day, time)`                    | The day and time an instant falls on in the zone, and the instant a day and time name there.                                    |
+| `timeZoneName(value, style?)`                                  | The zone's name at an instant: "PDT", or "Pacific Daylight Time" with `"long"`.                                                 |
+| `parseDay(text)`, `parseTime(text)`                            | A day or time typed in the locale's words, or `null`.                                                                           |
+| `locale`, `timeZone`, `direction`, `hourCycle`, `weekStartsOn` | The resolved values.                                                                                                            |
+
+`createLedgerLocale(options)` returns the same object without React, for server code, a worker or a test.
+
+<Canvas of={Stories.Formatters} />
+
+## Messages
+
+Every word the kit writes itself (Close, Clear filters, "2 of 3 records", "Sort by", the landmarks' names) is a message. `defaultMessages` lists every key with its English text. Translate a template whole, placeholders included, so the word order follows the language: `recordPosition` is `"{position} of {total} records"`. A part's own `label` prop still overrides one instance.
+
+<Canvas of={Stories.Messages} />
+
+## Direction
+
+<Canvas of={Stories.RightToLeft} />
+
+## Props
+
+<ArgTypes of={LedgerProvider} />
+
+## Related
+
+[DateTime](?path=/docs/components-datetime--docs) · [DatePicker](?path=/docs/components-datepicker--docs) · [DateTimeField](?path=/docs/components-datetimefield--docs) · [Calendar](?path=/docs/components-calendar--docs) · [Mode](?path=/docs/components-mode--docs) · [Getting started](?path=/docs/guidance-getting-started--docs)

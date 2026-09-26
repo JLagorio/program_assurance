@@ -4,6 +4,10 @@ import { useRef, useState } from "react";
 import { expect, fn, spyOn, userEvent, waitFor, within } from "storybook/test";
 import {
   Attachment,
+  AttachmentLink,
+  AttachmentMedia,
+  AttachmentTitle,
+  AttachmentTrigger,
   Button,
   Dialog,
   DialogContent,
@@ -27,6 +31,7 @@ import { Pair } from "../_lib/pair";
 const meta = {
   title: "Components/Attachment",
   component: Attachment,
+  subcomponents: { AttachmentMedia, AttachmentTitle, AttachmentTrigger, AttachmentLink },
   parameters: { layout: "padded" },
   args: { state: "done", size: "medium", orientation: "horizontal" },
 } satisfies Meta<typeof Attachment>;
@@ -87,6 +92,30 @@ export const Playground: Story = {
       </Attachment.Content>
     </Attachment>
   ),
+};
+
+/** A caller's attributes, class and ref reach each part, and the part's `data-slot` comes last, so a stray attribute never renames the part a selector or a test looks for. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Attachment data-testid="report" data-slot="report-card" className="max-w-layout-measure">
+      <Attachment.Media aria-hidden="true" data-testid="report-media" variant="icon">
+        <FileText />
+      </Attachment.Media>
+      <Attachment.Content>
+        <Attachment.Title title="quarterly-report.pdf">quarterly-report.pdf</Attachment.Title>
+        <Attachment.Description>PDF · 2.4 MB</Attachment.Description>
+      </Attachment.Content>
+    </Attachment>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const card = canvas.getByTestId("report");
+    await expect(card).toHaveAttribute("data-slot", "attachment");
+    await expect(card).toHaveClass("max-w-layout-measure");
+    const media = canvas.getByTestId("report-media");
+    await expect(media).toHaveAttribute("data-slot", "attachment-media");
+    await expect(media).toHaveAttribute("data-variant", "icon");
+  },
 };
 
 export const Images: Story = {

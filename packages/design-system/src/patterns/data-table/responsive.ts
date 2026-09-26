@@ -6,7 +6,7 @@ export type ResponsiveColumn = {
 };
 
 /** Layout only: never changes the reader's visibility, sorting, filters, pins or export. */
-export function fitColumns(columns: ResponsiveColumn[], available: number, leading = 0) {
+export function fitColumns(columns: readonly ResponsiveColumn[], available: number, leading = 0) {
   const widths = new Map(columns.map((column) => [column.id, column.width]));
   const ids = new Set(columns.map((column) => column.id));
   const ordered = columns
@@ -17,7 +17,7 @@ export function fitColumns(columns: ResponsiveColumn[], available: number, leadi
   const total = columns.reduce((sum, column) => sum + column.width, leading);
   if (available <= 0 || total <= available) {
     if (identity && available > total) widths.set(identity.id, identity.width + available - total);
-    return { ids, widths, collapsed: false };
+    return { ids, widths, collapsed: false, identity: identity?.id };
   }
 
   // Preserve the most important record identity and action menus; disclose the other fields.
@@ -44,7 +44,7 @@ export function fitColumns(columns: ResponsiveColumn[], available: number, leadi
   const remaining = budget + (collapsed ? 0 : 32) - used;
   if (identity && remaining > 0)
     widths.set(identity.id, (widths.get(identity.id) ?? 0) + remaining);
-  return { ids, widths, collapsed };
+  return { ids, widths, collapsed, identity: identity?.id };
 }
 
 /** A pinned column as the renderer draws it: its band, its drawn width, and whether it is chrome (the row actions), which never gives way. */
@@ -86,4 +86,60 @@ export function yieldPins(
     band -= column.width;
   }
   return released;
+}
+
+/** A column as a responsive table fits it: its width and rank, and the band the reader pinned it to. */
+export type FitColumn = ResponsiveColumn & {
+  pin?: "start" | "end" | false | undefined;
+};
+
+/** A fitted frame: which columns show and how wide, the column that takes the slack, and which pins give way. */
+export type FrameFit = {
+  layout: ReturnType<typeof fitColumns> & {
+    /**
+     * The identity column when the browser can give it the slack: drawn without a width in a fixed
+     * table, it takes whatever the other columns leave, so a frame that changes by a pixel changes
+     * nothing that React draws. Unset while the identity is pinned (a pin after it needs its width
+     * for its offset) or under a group heading (a spanning heading sets the widths).
+     */
+    flexible: string | undefined;
+  };
+  /** Which pins give way, as a JSON list of ids. */
+  released: string;
+  /** Everything the frame decides about the drawing, as one string: two widths with the same key draw the same table. */
+  key: string;
+};
+
+/**
+ * Layout only: fits `columns` (the visible ones, in drawn order, the start band first and the end
+ * band last) to a frame `frame` pixels wide after `leading` pixels of leading columns. Pure, so a
+ * resize can fit first and redraw only when the key changes: while no column folds or returns and
+ * no pin gives way, the key stays, and the slack goes to the flexible column through CSS.
+ */
+export function fitFrame(
+  columns: readonly FitColumn[],
+  frame: number,
+  leading = 0,
+  { grouped = false }: { grouped?: boolean | undefined } = {},
+): FrameFit {
+  const fitted = fitColumns(columns, frame, leading);
+  const identity = columns.find((column) => column.id === fitted.identity);
+  const flexible = identity && !identity.pin && !grouped ? identity.id : undefined;
+  const bands: PinnedColumn[] = columns
+    .filter((column) => column.pin && fitted.ids.has(column.id))
+    .map((column) => ({
+      id: column.id,
+      pin: column.pin as "start" | "end",
+      width: fitted.widths.get(column.id) ?? 0,
+      chrome: column.action,
+    }));
+  const released = JSON.stringify([...yieldPins(bands, frame, leading)]);
+  const key = JSON.stringify([
+    [...fitted.ids],
+    fitted.collapsed,
+    [...fitted.widths].filter(([id]) => fitted.ids.has(id) && id !== flexible),
+    flexible ?? null,
+    released,
+  ]);
+  return { layout: { ...fitted, flexible }, released, key };
 }

@@ -1,3 +1,4 @@
+import { useConfirmation } from "@/components/app/confirmation";
 import { ControlInspector } from "@/components/prototype/library-controls";
 import { ProductCollection } from "@/components/prototype/product-collection";
 import {
@@ -15,29 +16,41 @@ import {
   type WizardControl,
 } from "@/lib/program-wizard-reference";
 import {
-  Box,
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Button,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
   DataTable,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Fact,
+  IconButton,
+  Id,
+  Icon,
   KeyValue,
+  List,
+  Prose,
   Section,
   Stack,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
+  TextLink,
+  VisuallyHidden,
   defineColumns,
   useDataTable,
   type Preset,
 } from "@ledger/design-system";
-import { useNavigate } from "@tanstack/react-router";
-import { ChevronDown, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { AlertCircle, ExternalLink, MoreHorizontal, Plus } from "lucide-react";
+import { useId, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { ControlPicker } from "./control-picker";
+import { parameterName } from "./names";
 import { ParameterPicker } from "./parameter-picker";
+import { focusAfterConfirmation } from "./reveal-detail";
 import type { ReferenceData } from "./use-reference-data";
 
 export type ProfileTailoringValue = {
@@ -58,6 +71,48 @@ const presets: Preset[] = [
 ];
 
 /**
+ * A record's name in a tailoring collection. On a saved profile it is the record link. In a draft
+ * (the program wizard) it opens the record in a new tab and says so, so reading a control never
+ * leaves the draft; the row opens the preview instead of navigating.
+ */
+function TailoringLink({
+  table,
+  record,
+  inDraft,
+  children,
+}: {
+  table: ComponentProps<typeof RecordLink>["table"];
+  record: ComponentProps<typeof RecordLink>["record"];
+  inDraft: boolean;
+  children: ReactNode;
+}) {
+  if (!inDraft)
+    return (
+      <RecordLink table={table} record={record}>
+        {children}
+      </RecordLink>
+    );
+  return (
+    <TextLink
+      render={
+        <Link
+          {...recordDestination(table, record)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => event.stopPropagation()}
+        />
+      }
+    >
+      {children}
+      <VisuallyHidden> (opens in a new tab)</VisuallyHidden>{" "}
+      <Icon color="color.icon.subtle">
+        <ExternalLink />
+      </Icon>
+    </TextLink>
+  );
+}
+
+/**
  * A profile's tailoring against its base, the OSCAL way: what is tailored out of the base profile,
  * what is tailored in from the catalog, the parameter overrides, and the effective set that results.
  * The wizard edits a program overlay with it; the profile page reads a saved overlay with it.
@@ -71,7 +126,6 @@ export function ProfileTailoringEditor({
   readOnly = false,
   data,
   preview: given,
-  title,
 }: {
   catalogRevisionId: string;
   baseResolutionId: string;
@@ -81,8 +135,6 @@ export function ProfileTailoringEditor({
   readOnly?: boolean | undefined;
   data: ReferenceData;
   preview?: ProgramTailoringPreview | undefined;
-  /** Names the sheets: "Tailor controls · <title>". */
-  title: string;
 }) {
   const preview = useMemo(
     () =>
@@ -95,12 +147,31 @@ export function ProfileTailoringEditor({
   );
   const navigate = useNavigate();
   const allControls = useRows("controls");
+  const { confirm, confirmation } = useConfirmation();
   const [previewControl, setPreviewControl] = useState<string | null>(null);
   const [tab, setTab] = useState("Controls");
+  // Each opening is a new session of the dialog: its search, filter and choice start afresh. The
+  // key changes only on open, so closing runs the dialog's exit and focus return.
+  const [controlsSession, setControlsSession] = useState(0);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [parameterSession, setParameterSession] = useState(0);
   const [parameterOpen, setParameterOpen] = useState(false);
   const [inspectId, setInspectId] = useState<string | null>(null);
+  const [inspectParameterId, setInspectParameterId] = useState<string | null>(null);
+  // A dialog opened from a collection's primary returns focus to that primary. It moves between the
+  // empty state and the toolbar once the first row is recorded, so it is found again on close.
+  const openerId = useId();
+  const fromPrimary = useRef<"controls" | "parameters" | null>(null);
+  const visiblePrimary = (kind: "controls" | "parameters") =>
+    [
+      ...document.querySelectorAll<HTMLElement>(`[data-tailoring-primary="${openerId}-${kind}"]`),
+    ].find((element) => element.getClientRects().length > 0) ?? null;
+  const primaryFocus = (kind: "controls" | "parameters") => () =>
+    fromPrimary.current === kind ? (visiblePrimary(kind) ?? true) : true;
   const editable = !readOnly && !!onChange;
+  // In the wizard the question ends with the draft; on a saved profile it is kept for the session.
+  const keep = (table: string) =>
+    editable ? false : `profile-tailoring:${baseResolutionId}:${table}`;
   const setDecisions = (tailoring: TailoringDecision[]) => onChange?.({ tailoring, parameters });
   const setParameters = (next: ParameterOverride[]) =>
     onChange?.({ tailoring: decisions, parameters: next });
@@ -163,9 +234,9 @@ export function ProfileTailoringEditor({
           priority: 0,
           hideable: false,
           cell: (row) => (
-            <RecordLink table="controls" record={row}>
+            <TailoringLink table="controls" record={row} inDraft={editable}>
               {row.title}
-            </RecordLink>
+            </TailoringLink>
           ),
         }),
         c.text("family", { header: "Family", width: 100 }),
@@ -175,12 +246,13 @@ export function ProfileTailoringEditor({
           tone: (row) => (row.source === "Tailored in" ? "success" : "neutral"),
         }),
       ]),
-    [previewControl],
+    [previewControl, editable],
   );
   const table = useDataTable({
     columns,
     data: effective,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.code,
     label: "Effective control set",
     view: "profile-tailoring-effective-v1",
     pageSize: 50,
@@ -191,23 +263,52 @@ export function ProfileTailoringEditor({
     return control ? [control] : [];
   });
   const inspected = allControls.data?.find((control) => control.id === previewControl);
-  const open = (controlId: string | null) => {
+  const openControls = (controlId: string | null, viaPrimary = false) => {
+    fromPrimary.current = viaPrimary ? "controls" : null;
     setInspectId(controlId);
+    setControlsSession((session) => session + 1);
     setControlsOpen(true);
   };
-  const removeDecision = (controlId: string) =>
-    setDecisions(decisions.filter((item) => item.controlId !== controlId));
+  const openParameters = (parameterId: string | null, viaPrimary = false) => {
+    fromPrimary.current = viaPrimary ? "parameters" : null;
+    setInspectParameterId(parameterId);
+    setParameterSession((session) => session + 1);
+    setParameterOpen(true);
+  };
+  async function removeDecision(controlId: string) {
+    const code = controlById.get(controlId)?.code ?? "The control";
+    if (
+      await confirm({
+        title: "Remove this decision?",
+        description: `${code} returns to what the base profile selects, and its rationale is discarded from the draft.`,
+        confirmLabel: "Remove decision",
+        variant: "danger",
+      })
+    ) {
+      setDecisions(decisions.filter((item) => item.controlId !== controlId));
+      // The row, the menu that asked and any preview of it go; the collection's primary takes focus.
+      focusAfterConfirmation(() => visiblePrimary("controls"));
+    }
+  }
+  async function removeOverride(parameterId: string) {
+    const name =
+      data.parameters.find((item) => item.id === parameterId)?.source_id ?? "The parameter";
+    if (
+      await confirm({
+        title: "Remove this override?",
+        description: `${name} returns to the value the base profile or the catalog sets, and the override's rationale is discarded from the draft.`,
+        confirmLabel: "Remove override",
+        variant: "danger",
+      })
+    ) {
+      setParameters(parameters.filter((item) => item.parameterId !== parameterId));
+      focusAfterConfirmation(() => visiblePrimary("parameters"));
+    }
+  }
   return (
     <Stack space="space.200">
-      <Collapsible>
-        <CollapsibleTrigger
-          render={
-            <Button variant="subtle" size="small" iconAfter={<ChevronDown />}>
-              Details
-            </Button>
-          }
-        />
-        <CollapsibleContent>
+      <Section title="Details" isCollapsible>
+        <Stack space="space.200">
           <Fact.Group>
             <Fact label="Base">{preview.counts.base}</Fact>
             <Fact label="Tailored out">{preview.counts.excluded}</Fact>
@@ -215,40 +316,33 @@ export function ProfileTailoringEditor({
             <Fact label="Effective">{preview.counts.selected}</Fact>
             <Fact label="Parameters overridden">{parameters.length}</Fact>
           </Fact.Group>
-        </CollapsibleContent>
-      </Collapsible>
+          <Section title="By family" count={String(preview.families.length)}>
+            <FamilyTable families={preview.families} inDraft={editable} keep={keep("family")} />
+          </Section>
+        </Stack>
+      </Section>
       {preview.errors.length ? (
-        <Box className="rounded-medium border border-danger p-150" role="alert">
-          <h3 className="font-body font-semibold text-danger">Resolve tailoring conflicts</h3>
-          <Box as="ul" className="list-disc ps-200 font-body-small text-danger">
-            {preview.errors.map((error) => (
-              <li key={error}>{error}</li>
-            ))}
-          </Box>
-        </Box>
+        <Alert variant="destructive" role={editable ? "alert" : "status"}>
+          <AlertCircle aria-hidden />
+          <AlertTitle>Resolve tailoring conflicts</AlertTitle>
+          <AlertDescription>
+            <List>
+              {preview.errors.map((error) => (
+                <List.Item key={error}>{error}</List.Item>
+              ))}
+            </List>
+          </AlertDescription>
+        </Alert>
       ) : null}
       {preview.warnings.length ? (
-        <details className="font-body-small text-subtle">
-          <summary className="cursor-pointer">Reference notes · {preview.warnings.length}</summary>
-          <Box as="ul" className="list-disc ps-200">
+        <Section title="Reference notes" count={String(preview.warnings.length)} isCollapsible>
+          <List>
             {preview.warnings.map((warning) => (
-              <li key={warning}>{warning}</li>
+              <List.Item key={warning}>{warning}</List.Item>
             ))}
-          </Box>
-        </details>
+          </List>
+        </Section>
       ) : null}
-      <Collapsible>
-        <CollapsibleTrigger
-          render={
-            <Button variant="subtle" size="small" iconAfter={<ChevronDown />}>
-              By family · {preview.families.length}
-            </Button>
-          }
-        />
-        <CollapsibleContent>
-          <FamilyTable families={preview.families} />
-        </CollapsibleContent>
-      </Collapsible>
       <Tabs value={tab} onValueChange={(value) => setTab(String(value))}>
         <TabsList variant="line" aria-label="Profile tailoring views">
           <TabsTrigger value="Controls">Controls · {preview.counts.selected}</TabsTrigger>
@@ -258,16 +352,21 @@ export function ProfileTailoringEditor({
           <Stack space="space.200">
             <DecisionTable
               title="Tailored out"
-              count={outRows.length}
               rows={outRows}
               editable={editable}
-              onOpen={open}
+              keep={keep("out")}
+              onOpen={openControls}
               onRemove={removeDecision}
               emptyTitle="Nothing tailored out"
               emptyDescription="Every control the base profile selects stays in."
               action={
                 editable ? (
-                  <Button size="small" iconBefore={<Plus />} onClick={() => open(null)}>
+                  <Button
+                    size="small"
+                    iconBefore={<Plus />}
+                    data-tailoring-primary={`${openerId}-controls`}
+                    onClick={() => openControls(null, true)}
+                  >
                     Tailor controls
                   </Button>
                 ) : null
@@ -275,25 +374,29 @@ export function ProfileTailoringEditor({
             />
             <DecisionTable
               title="Tailored in"
-              count={inRows.length}
               rows={inRows}
               editable={editable}
-              onOpen={open}
+              keep={keep("in")}
+              onOpen={openControls}
               onRemove={removeDecision}
               emptyTitle="Nothing tailored in"
               emptyDescription="No control is added from the catalog beyond the base profile."
             />
-            <Section title="Effective control set" count={preview.counts.selected}>
+            <Section title="Effective control set" count={String(preview.counts.selected)}>
               <ProductCollection
                 table={table}
-                onRowClick={(row) => void navigate(recordDestination("controls", row))}
+                keepQuestion={keep("effective")}
+                onRowClick={(row) =>
+                  editable
+                    ? setPreviewControl(row.id)
+                    : void navigate(recordDestination("controls", row))
+                }
                 views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
                 empty={{
                   illustration: "shield",
                   title: "No controls in the effective set",
                   description: "Choose a base profile with a recorded selection.",
                 }}
-                fill
                 searchLabel="Find a control"
               />
             </Section>
@@ -304,10 +407,10 @@ export function ProfileTailoringEditor({
             parameters={parameters}
             data={data}
             editable={editable}
-            onOpen={() => setParameterOpen(true)}
-            onRemove={(parameterId) =>
-              setParameters(parameters.filter((item) => item.parameterId !== parameterId))
-            }
+            keep={keep("parameters")}
+            onOpen={openParameters}
+            primaryId={`${openerId}-parameters`}
+            onRemove={removeOverride}
           />
         </TabsContent>
       </Tabs>
@@ -320,11 +423,11 @@ export function ProfileTailoringEditor({
         />
       )}
       <ControlPicker
-        key={controlsOpen ? `open-${inspectId}` : "closed"}
+        key={`controls-${controlsSession}`}
         open={controlsOpen}
         onClose={() => setControlsOpen(false)}
         initialControlId={inspectId}
-        title={title}
+        finalFocus={primaryFocus("controls")}
         decisions={decisions}
         onChange={setDecisions}
         readOnly={!editable}
@@ -334,10 +437,11 @@ export function ProfileTailoringEditor({
         data={data}
       />
       <ParameterPicker
-        key={parameterOpen ? "open" : "closed"}
+        key={`parameters-${parameterSession}`}
         open={parameterOpen}
         onClose={() => setParameterOpen(false)}
-        title={title}
+        initialParameterId={inspectParameterId}
+        finalFocus={primaryFocus("parameters")}
         decisions={decisions}
         parameters={parameters}
         onChange={setParameters}
@@ -347,15 +451,30 @@ export function ProfileTailoringEditor({
         data={data}
         preview={preview}
       />
+      {confirmation}
     </Stack>
+  );
+}
+
+/** The overflow for a preview's other record actions, beside its one primary. */
+function MoreActions({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <IconButton icon={<MoreHorizontal />} label={label} size="small" variant="subtle" />
+        }
+      />
+      <DropdownMenuContent align="end">{children}</DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
 function DecisionTable({
   title,
-  count,
   rows,
   editable,
+  keep,
   onOpen,
   onRemove,
   emptyTitle,
@@ -363,14 +482,14 @@ function DecisionTable({
   action,
 }: {
   title: string;
-  count: number;
   rows: { decision: TailoringDecision; control: WizardControl | undefined }[];
   editable: boolean;
+  keep: string | false;
   onOpen: (controlId: string) => void;
   onRemove: (controlId: string) => void;
   emptyTitle: string;
   emptyDescription: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }) {
   const navigate = useNavigate();
   const items = rows.map(({ decision, control }) => ({
@@ -379,7 +498,10 @@ function DecisionTable({
     title: control?.title ?? "Unavailable control",
     rationale: decision.rationale,
   }));
-  const [selected, setSelected] = useState<(typeof items)[number] | null>(null);
+  // The preview follows the decision: once it is removed, from here or from the dialog, it closes.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = items.find((item) => item.id === selectedId) ?? null;
+  const setSelected = (row: { id: string } | null) => setSelectedId(row?.id ?? null);
   const columns = defineColumns<(typeof items)[number]>((c) => [
     c.id("code", {
       header: "Control",
@@ -393,17 +515,17 @@ function DecisionTable({
       priority: 0,
       hideable: false,
       cell: (row) => (
-        <RecordLink table="controls" record={row}>
+        <TailoringLink table="controls" record={row} inDraft={editable}>
           {row.title}
-        </RecordLink>
+        </TailoringLink>
       ),
     }),
     c.text("rationale", { header: "Rationale", width: 360, wrap: true }),
     ...(editable
       ? [
           c.actions((row) => [
-            { label: "Tailor controls", onSelect: () => onOpen(row.id) },
-            { label: "Remove decision", onSelect: () => onRemove(row.id) },
+            { label: "Edit decision", onSelect: () => onOpen(row.id) },
+            { label: "Remove decision", onSelect: () => onRemove(row.id), tone: "danger" as const },
           ]),
         ]
       : []),
@@ -412,17 +534,21 @@ function DecisionTable({
     data: items,
     columns,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.code,
     label: title,
     view: `profile-decisions-${title}`,
   });
   const displayed = useDisplayedRecords(table);
   return (
-    <Section title={title} count={count || null}>
+    <Section title={title} count={items.length ? String(items.length) : null}>
       <ProductCollection
         table={table}
+        keepQuestion={keep}
         searchLabel="Find a tailored control"
         action={action}
-        onRowClick={(row) => void navigate(recordDestination("controls", row))}
+        onRowClick={(row) =>
+          editable ? setSelected(row) : void navigate(recordDestination("controls", row))
+        }
         empty={{ illustration: "shield", title: emptyTitle, description: emptyDescription }}
       />
       {selected && (
@@ -440,23 +566,43 @@ function DecisionTable({
           }
           recordActions={
             editable ? (
-              <Button size="small" variant="primary" onClick={() => onOpen(selected.id)}>
-                Tailor controls
-              </Button>
+              <>
+                <Button size="small" variant="primary" onClick={() => onOpen(selected.id)}>
+                  Edit decision
+                </Button>
+                <MoreActions label="More decision actions">
+                  <DropdownMenuItem variant="danger" onClick={() => onRemove(selected.id)}>
+                    Remove decision
+                  </DropdownMenuItem>
+                </MoreActions>
+              </>
             ) : undefined
           }
         >
-          <KeyValue label="Control">{selected.code}</KeyValue>
-          <KeyValue label="Rationale" wrap>
-            {selected.rationale}
-          </KeyValue>
+          <KeyValue.Group>
+            <KeyValue label="Control">
+              <Id>{selected.code}</Id>
+            </KeyValue>
+            <KeyValue label="Decision">{title}</KeyValue>
+            <KeyValue label="Rationale" wrap>
+              <Prose>{selected.rationale}</Prose>
+            </KeyValue>
+          </KeyValue.Group>
         </RecordPreviewPanel>
       )}
     </Section>
   );
 }
 
-function FamilyTable({ families }: { families: ProgramTailoringPreview["families"] }) {
+function FamilyTable({
+  families,
+  inDraft,
+  keep,
+}: {
+  families: ProgramTailoringPreview["families"];
+  inDraft: boolean;
+  keep: string | false;
+}) {
   const rows = families.map((family) => ({ ...family, id: family.groupId ?? family.sourceId }));
   const columns = defineColumns<(typeof rows)[number]>((c) => [
     c.text("title", {
@@ -466,9 +612,9 @@ function FamilyTable({ families }: { families: ProgramTailoringPreview["families
       hideable: false,
       cell: (row) =>
         row.groupId ? (
-          <RecordLink table="catalog_groups" record={{ id: row.groupId }}>
+          <TailoringLink table="catalog_groups" record={{ id: row.groupId }} inDraft={inDraft}>
             {row.sourceId.toUpperCase()} · {row.title}
-          </RecordLink>
+          </TailoringLink>
         ) : (
           row.title
         ),
@@ -482,12 +628,14 @@ function FamilyTable({ families }: { families: ProgramTailoringPreview["families
     data: rows,
     columns,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.title,
     label: "Controls by family",
     view: "profile-family-summary",
   });
   return (
     <ProductCollection
       table={table}
+      keepQuestion={keep}
       searchLabel="Find a control family"
       empty={{
         illustration: "shield",
@@ -502,13 +650,18 @@ function ParameterTable({
   parameters,
   data,
   editable,
+  keep,
   onOpen,
   onRemove,
+  primaryId,
 }: {
   parameters: ParameterOverride[];
   data: ReferenceData;
   editable: boolean;
-  onOpen: () => void;
+  keep: string | false;
+  onOpen: (parameterId: string | null, viaPrimary?: boolean) => void;
+  /** Marks the toolbar's primary, so the dialog it opens can return focus to it. */
+  primaryId: string;
   onRemove: (id: string) => void;
 }) {
   const navigate = useNavigate();
@@ -517,29 +670,41 @@ function ParameterTable({
     const control = data.controls.find((item) => item.id === parameter?.control_id);
     return {
       id: override.parameterId,
-      name: parameter?.source_id ?? "Unavailable parameter",
+      code: parameter?.source_id ?? "Unavailable parameter",
+      name: parameter
+        ? parameterName(
+            parameter,
+            data.parameterChoices
+              .filter((choice) => choice.parameter_id === parameter.id)
+              .sort((a, b) => a.ordinal - b.ordinal)
+              .map((choice) => choice.value),
+          )
+        : "Unavailable parameter",
       control: control?.code ?? "Unavailable control",
       values: override.values.join("; "),
       rationale: override.rationale,
     };
   });
-  const [selected, setSelected] = useState<(typeof rows)[number] | null>(null);
+  // The preview follows the override: once it is removed, from here or from the dialog, it closes.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = rows.find((row) => row.id === selectedId) ?? null;
+  const setSelected = (row: { id: string } | null) => setSelectedId(row?.id ?? null);
   const columns = defineColumns<(typeof rows)[number]>((c) => [
-    c.id("id", {
+    c.id("code", {
       header: "ID",
-      width: 120,
+      width: 150,
       preview: setSelected,
       active: (row) => row.id === selected?.id,
     }),
     c.text("name", {
       header: "Parameter",
       priority: 0,
-      minWidth: 220,
+      minWidth: 200,
       hideable: false,
       cell: (row) => (
-        <RecordLink table="parameters" record={row}>
+        <TailoringLink table="parameters" record={row} inDraft={editable}>
           {row.name}
-        </RecordLink>
+        </TailoringLink>
       ),
     }),
     c.text("control", { header: "Control", width: 120 }),
@@ -548,8 +713,8 @@ function ParameterTable({
     ...(editable
       ? [
           c.actions((row) => [
-            { label: "Set parameter values", onSelect: onOpen },
-            { label: "Remove override", onSelect: () => onRemove(row.id) },
+            { label: "Edit override", onSelect: () => onOpen(row.id) },
+            { label: "Remove override", onSelect: () => onRemove(row.id), tone: "danger" as const },
           ]),
         ]
       : []),
@@ -558,6 +723,7 @@ function ParameterTable({
     data: rows,
     columns,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.code,
     label: "Parameter overrides",
     view: "profile-parameter-overrides",
   });
@@ -566,11 +732,18 @@ function ParameterTable({
     <>
       <ProductCollection
         table={table}
-        fill
+        keepQuestion={keep}
         searchLabel="Find a parameter override"
-        onRowClick={(row) => void navigate(recordDestination("parameters", row))}
+        onRowClick={(row) =>
+          editable ? setSelected(row) : void navigate(recordDestination("parameters", row))
+        }
         action={
-          <Button size="small" variant="primary" onClick={onOpen}>
+          <Button
+            size="small"
+            variant="primary"
+            data-tailoring-primary={primaryId}
+            onClick={() => onOpen(null, true)}
+          >
             {editable ? "Set parameter values" : "Inspect parameters"}
           </Button>
         }
@@ -595,19 +768,33 @@ function ParameterTable({
           }
           recordActions={
             editable ? (
-              <Button size="small" variant="primary" onClick={onOpen}>
-                Set parameter values
-              </Button>
+              <>
+                <Button size="small" variant="primary" onClick={() => onOpen(selected.id)}>
+                  Edit override
+                </Button>
+                <MoreActions label="More override actions">
+                  <DropdownMenuItem variant="danger" onClick={() => onRemove(selected.id)}>
+                    Remove override
+                  </DropdownMenuItem>
+                </MoreActions>
+              </>
             ) : undefined
           }
         >
-          <KeyValue label="Control">{selected.control}</KeyValue>
-          <KeyValue label="Values" wrap>
-            {selected.values}
-          </KeyValue>
-          <KeyValue label="Rationale" wrap>
-            {selected.rationale}
-          </KeyValue>
+          <KeyValue.Group>
+            <KeyValue label="ID">
+              <Id>{selected.code}</Id>
+            </KeyValue>
+            <KeyValue label="Control">
+              <Id>{selected.control}</Id>
+            </KeyValue>
+            <KeyValue label="Values" wrap>
+              {selected.values}
+            </KeyValue>
+            <KeyValue label="Rationale" wrap>
+              <Prose>{selected.rationale}</Prose>
+            </KeyValue>
+          </KeyValue.Group>
         </RecordPreviewPanel>
       )}
     </>

@@ -1,6 +1,4 @@
 import { ProductCollection } from "./product-collection";
-import { useQueryClient } from "@tanstack/react-query";
-import { QueryState, type QueryStatus } from "./work-common";
 import {
   createContext,
   useCallback,
@@ -11,24 +9,16 @@ import {
   type ReactNode,
 } from "react";
 import {
-  Badge,
-  Box,
+  Absent,
   Button,
   DataTable,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  Section,
-  Input,
+  HeadingLevelProvider,
   KeyValue,
+  Section,
   Stack,
-  TextLink,
-  Shell,
-  Toolbar,
+  Text,
   defineColumns,
   useDataTable,
-  Absent,
   type EmptyIllustrationKind,
 } from "@ledger/design-system";
 import { Plus, Pencil } from "lucide-react";
@@ -45,17 +35,26 @@ import {
   displayValue,
   labelFor,
   recordTitle,
+  titleColumn,
+  type Collection,
   type DataRecord,
   type RecordValue,
 } from "@/lib/records";
-import { useWorkspace } from "@/components/app/workspace";
 import {
-  ProductRecordDialog,
-  ProductRecordForm,
-  type ProductEditorState,
-} from "./product-record-dialog";
-import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
-import { RelationName } from "@/components/prototype/record-tools";
+  neutralVocabulary,
+  vocabularyFor,
+  vocabularyKind,
+  type StatusVocabulary,
+} from "@/lib/status";
+import { LevelIndicator } from "@/components/app/status";
+import { useWorkspace } from "@/components/app/workspace";
+import { ProductRecordDialog } from "./product-record-dialog";
+import {
+  productCollectionNoun,
+  productCreateLabel,
+  productRecordNoun,
+} from "@/lib/product-records";
+import { FactValue, RelationName } from "@/components/prototype/record-tools";
 
 export type ProgramTableName = Parameters<typeof useRows>[0];
 export type ProgramColumn = {
@@ -65,33 +64,7 @@ export type ProgramColumn = {
   value?: (row: DataRecord) => string | number | boolean | null;
   render?: (row: DataRecord) => ReactNode;
 };
-export const programTone = (value: unknown) => {
-  if (
-    [
-      "active",
-      "authorized",
-      "completed",
-      "implemented",
-      "accepted",
-      "published",
-      "closed",
-    ].includes(String(value))
-  )
-    return "success" as const;
-  if (["suspended", "partial", "in_progress", "blocked", "needs_revision"].includes(String(value)))
-    return "warning" as const;
-  if (["denied", "expired", "rejected"].includes(String(value))) return "danger" as const;
-  return "neutral" as const;
-};
-export function StatusValue({ value }: { value: unknown }) {
-  return value == null ? (
-    <Absent />
-  ) : (
-    <Badge tone={programTone(value)} variant="secondary" size="xsmall">
-      {labelFor(String(value))}
-    </Badge>
-  );
-}
+
 export { QueryState as ProgramQueryState } from "./work-common";
 export function ProgramEditor({
   table,
@@ -155,6 +128,84 @@ export function ProgramRecordDialog({
   );
 }
 
+/* Columns a preview never lists: the row's machinery, and when it was first written. */
+const PREVIEW_HIDDEN = new Set([
+  "id",
+  "tenant_id",
+  "created_at",
+  "created_by",
+  "updated_by",
+  "revision",
+]);
+const LONG_TEXT =
+  /(^|_)(description|rationale|narrative|statement|message|notes|justification|plan)$/;
+const IDENTIFIER = /^(code|source_id|asset_id|serial_number|version|version_number)$/;
+const RELATION_KEY = /_id$/;
+
+/** A fact's label: the column's words, a relation named for what it points at ("Owner", not "Owner party"). */
+function factLabel(name: string) {
+  // A date reads as the event: "Due", "Decided", "Updated", not "Due on" or "Decided at".
+  return labelFor(name.replace(/_party_id$/, "").replace(/_(id|at|on)$/, ""));
+}
+
+/** The relation a column holds, when it names another public record by its id. */
+function relationOf(collection: Collection, name: string) {
+  return collection.relations.find(
+    (item) =>
+      item.target_schema === "public" &&
+      item.columns.includes(name) &&
+      item.target_columns[item.columns.indexOf(name)] === "id" &&
+      name !== "tenant_id",
+  );
+}
+
+/**
+ * The facts a linked-record preview shows, in the order a reader asks: identifiers, the status,
+ * who, the other related records, the dates, then the authored text, and when it last changed.
+ * Never the row's machinery, the name already in the header, or the record the preview came from.
+ */
+function previewFields(collection: Collection, table: string, context: Record<string, unknown>) {
+  const title = previewTitleKey(collection);
+  const rank = (name: string) => {
+    if (name === "updated_at") return 8;
+    if (IDENTIFIER.test(name)) return 0;
+    if (vocabularyFor(table, name)) return 1;
+    if (/_party_id$/.test(name)) return 2;
+    if (RELATION_KEY.test(name) && relationOf(collection, name)) return 3;
+    if (/_(at|on|date)$/.test(name)) return 4;
+    if (LONG_TEXT.test(name)) return 6;
+    return 5;
+  };
+  return collection.columns
+    .map((column) => column.name)
+    .filter((name) => !PREVIEW_HIDDEN.has(name) && name !== title && !(name in context))
+    .map((name, index) => ({ name, rank: rank(name), index }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map(({ name }) => name);
+}
+
+/**
+ * The column that names a record in its preview's header: a name, a title or a code. A version's
+ * description is a fact, not its name: a revision is named by its number.
+ */
+function previewTitleKey(collection: Collection) {
+  const key = titleColumn(collection);
+  const versioned = collection.columns.some((column) => column.name === "version_number");
+  return key === "id" || (key === "description" && versioned) ? undefined : key;
+}
+
+/** A preview's title: the record's name, else its version, else what it is; never its id. */
+function previewTitle(row: DataRecord, collection: Collection, table: string) {
+  const key = previewTitleKey(collection);
+  const title = key ? recordTitle(row, collection) : row.id;
+  if (title !== row.id) return title;
+  if (typeof row["version_number"] === "number") return `Version ${row["version_number"]}`;
+  return capitalize(productRecordNoun(table));
+}
+
+/** A noun at the start of a name: "Lifecycle gate", while "POA&M plan" keeps its case. */
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
 function ProgramRecordDialogSurface({
   table,
   row: initialRow,
@@ -193,10 +244,11 @@ function ProgramRecordDialogSurface({
         }}
       />
     );
+  const fields = previewFields(collection, table, initialValues ?? {});
   return (
     <RecordPreviewPanel
-      title={recordTitle(row, collection)}
-      label={`${productRecordNoun(table)} preview`}
+      title={previewTitle(row, collection, table)}
+      label={`${capitalize(productRecordNoun(table))} preview`}
       defaultWidth={640}
       onClose={onClose}
       recordActions={
@@ -215,37 +267,32 @@ function ProgramRecordDialogSurface({
         <RecordPreviewActions table={table} record={row} rows={records} onSelect={onSelect} />
       }
     >
-      <Stack space="space.200">
-        {collection.columns
-          .filter(
-            (column) => !["id", "tenant_id", "created_by", "updated_by"].includes(column.name),
-          )
-          .map((column) => (
-            <KeyValue key={column.name} label={labelFor(column.name)} wrap>
-              {(() => {
-                const relation = collection.relations.find(
-                  (item) =>
-                    item.target_schema === "public" &&
-                    item.columns.includes(column.name) &&
-                    item.target_columns[item.columns.indexOf(column.name)] === "id" &&
-                    column.name !== "tenant_id",
+      {/* The record's name is the preview's h2; what follows sits under it. */}
+      <HeadingLevelProvider level={3}>
+        <Stack space="space.300">
+          {fields.length > 0 && (
+            <KeyValue.Group labelWidth={144}>
+              {fields.map((name) => {
+                const relation = RELATION_KEY.test(name) ? relationOf(collection, name) : undefined;
+                const value = row[name];
+                return (
+                  <KeyValue key={name} label={factLabel(name)} wrap>
+                    {relation && value ? (
+                      <RelationName table={relation.target_table as TableName} id={String(value)} />
+                    ) : LONG_TEXT.test(name) && typeof value === "string" && value ? (
+                      <Text preserveLineBreaks>{value}</Text>
+                    ) : (
+                      <FactValue table={table} field={name} value={value} />
+                    )}
+                  </KeyValue>
                 );
-                return relation && row[column.name] ? (
-                  <RelationName
-                    table={relation.target_table as TableName}
-                    id={String(row[column.name])}
-                  />
-                ) : row[column.name] == null || row[column.name] === "" ? (
-                  <Absent />
-                ) : (
-                  displayValue(row[column.name])
-                );
-              })()}
-            </KeyValue>
-          ))}
-        <ProgramLinkedRecords table={table} row={row} />
-        {children}
-      </Stack>
+              })}
+            </KeyValue.Group>
+          )}
+          <ProgramLinkedRecords table={table} row={row} />
+          {children}
+        </Stack>
+      </HeadingLevelProvider>
     </RecordPreviewPanel>
   );
 }
@@ -279,14 +326,53 @@ const STATUS_KEYS = new Set([
   "determination",
   "decision",
   "priority",
+  "likelihood",
+  "impact",
   "lifecycle_status",
   "authorization_status",
   "implementation_status",
   "review_status",
 ]);
 const CHIP_KEYS = new Set(["role", "method", "kind"]);
-const DATE_KEYS = /_(at|on)$/;
+const DATE_KEYS = /_(at|on|date)$/;
 const NUMBER_KEYS = /_number$/;
+
+/**
+ * The order a collection reads in before the reader sorts it, as ModelTable reads: the recorded
+ * sequence, else the newest version, else the latest change. Never the order of the ids.
+ */
+function readingOrder(rows: DataRecord[]) {
+  const sample = rows[0];
+  if (!sample) return rows;
+  const by = (key: string, direction: 1 | -1) =>
+    [...rows].sort((a, b) => {
+      const left = a[key];
+      const right = b[key];
+      if (left === right) return 0;
+      if (left === null || left === undefined) return 1;
+      if (right === null || right === undefined) return -1;
+      return (left < right ? -1 : 1) * direction;
+    });
+  if ("sequence_number" in sample) return by("sequence_number", 1);
+  if ("version_number" in sample) return by("version_number", -1);
+  if ("updated_at" in sample) return by("updated_at", -1);
+  if ("created_at" in sample) return by("created_at", -1);
+  return rows;
+}
+
+/** The record a collection belongs to, by the column it is filtered on, in the reader's words. */
+const collectionOwners: Record<string, string> = {
+  program_id: "program",
+  system_id: "system",
+  system_component_id: "component",
+  implemented_requirement_id: "control",
+  risk_id: "risk",
+  risk_revision_id: "risk assessment",
+  poam_item_id: "remediation item",
+  poam_item_revision_id: "remediation commitment",
+  poam_document_id: "POA&M plan",
+  poam_revision_id: "POA&M plan version",
+};
 
 export function ProgramCollection({
   name,
@@ -331,7 +417,7 @@ export function ProgramCollection({
     dialogNavigation?.target?.table === name ? dialogNavigation.target.row?.id : selected?.id;
   const collection = workspace.collections.find((item) => item.name === name);
   const records = useMemo(
-    () => ((query.data ?? []) as DataRecord[]).filter((row) => !where || where(row)),
+    () => readingOrder(((query.data ?? []) as DataRecord[]).filter((row) => !where || where(row))),
     [query.data, where],
   );
   // Search, sort, and filters read the same derived values shown in cells. The dialog,
@@ -343,19 +429,27 @@ export function ProgramCollection({
     () =>
       records.map((row) => {
         const view: DataRecord = { ...row };
-        for (const column of columns) {
-          if (column.value) view[column.key] = column.value(row);
-          else if (STATUS_KEYS.has(column.key)) {
-            const value = row[column.key];
-            if (typeof value === "string") view[column.key] = labelFor(value);
-          }
-        }
+        for (const column of columns) if (column.value) view[column.key] = column.value(row);
         for (const column of columns)
           if (DATE_KEYS.test(column.key) && view[column.key] == null) delete view[column.key];
         return view;
       }),
     [records, columns],
   );
+  // Each status or level column reads through its vocabulary: the badge or indicator, the rank it
+  // sorts by, the labels its filter and search use. A field the product has not mapped reads in
+  // words, neutral.
+  const vocabularies = useMemo(() => {
+    const map = new Map<string, StatusVocabulary>();
+    for (const column of columns)
+      if (STATUS_KEYS.has(column.key) && !column.value)
+        map.set(
+          column.key,
+          vocabularyFor(name, column.key)?.values ??
+            neutralVocabulary(records.map((row) => row[column.key])),
+        );
+    return map;
+  }, [columns, name, records]);
   const open = useCallback(
     (row: DataRecord) => {
       const record = byIdRef.current.get(row.id) ?? row;
@@ -383,7 +477,7 @@ export function ProgramCollection({
           const plain = (row: DataRecord) => {
             const value = row[column.key];
             return value === null || value === undefined || value === "" ? (
-              <Absent />
+              <Absent label="Not recorded" />
             ) : (
               displayValue(value)
             );
@@ -397,19 +491,39 @@ export function ProgramCollection({
               priority: primary ? 0 : 1,
               preview: open,
               active: (row) => row.id === activeId,
-              cell: (row) => (
-                <RecordLink table={name} record={raw(row)}>
-                  {render?.(raw(row)) ?? displayValue(row[column.key])}
-                </RecordLink>
-              ),
+              // The record's name is its one link: a code or version before the name only reads.
+              cell: primary
+                ? (row) => (
+                    <RecordLink table={name} record={raw(row)}>
+                      {render?.(raw(row)) ?? displayValue(row[column.key])}
+                    </RecordLink>
+                  )
+                : cell,
             });
-          if (STATUS_KEYS.has(column.key))
+          const statuses = vocabularies.get(column.key);
+          if (statuses) {
+            const level = vocabularyKind(statuses) === "level";
             return c.status(column.key, {
               header,
               width: 140,
-              tone: (row) => programTone(raw(row)[column.key]),
-              ...(render ? { cell } : {}),
+              statuses,
+              ...(render
+                ? { cell }
+                : level
+                  ? {
+                      cell: (row: DataRecord) => {
+                        const value = raw(row)[column.key];
+                        return (
+                          <LevelIndicator
+                            levels={statuses}
+                            value={typeof value === "string" ? value : null}
+                          />
+                        );
+                      },
+                    }
+                  : {}),
             });
+          }
           if (DATE_KEYS.test(column.key))
             return c.date(column.key, { header, width: 130, ...(render ? { cell } : {}) });
           if (NUMBER_KEYS.test(column.key))
@@ -427,7 +541,7 @@ export function ProgramCollection({
           });
         }),
       ),
-    [columns, open, name, activeId],
+    [columns, open, name, activeId, vocabularies],
   );
   const chips = columns
     .filter(
@@ -463,17 +577,29 @@ export function ProgramCollection({
   const allowCreate =
     !readOnly && canCreate && workspace.role !== "viewer" && Boolean(collection?.can_insert);
   const createActionLabel = productCreateLabel(name, { ...filters, ...initialValues });
-  // The table's name in running text: "SSP revisions" keeps its acronym, "Lifecycle gates" loses its capital.
-  const noun = labelFor(name)
-    .split(" ")
-    .map((word) => (word === word.toUpperCase() ? word : word.toLowerCase()))
-    .join(" ");
+  // The collection in running text: "SSP revisions" and "POA&M plans" keep their acronyms.
+  const noun = productCollectionNoun(name, { ...filters, ...initialValues });
+  // What the collection belongs to, named by the key it is filtered on: "for this system".
+  const owner = dialogNavigation
+    ? "record"
+    : (Object.keys(filters ?? {})
+        .map((key) => collectionOwners[key])
+        .find(Boolean) ?? "record");
+  const description =
+    empty?.description ??
+    (allowCreate
+      ? `Create the first ${productRecordNoun(name)} for this ${owner}.`
+      : !canCreate && prerequisite
+        ? prerequisite
+        : "Nothing has been recorded here yet.");
   const content = (
     <ProductCollection
       table={table}
       queries={[query]}
       fill={fill}
       searchLabel={`Find ${noun}`}
+      // A collection inside a preview answers the task at hand; its question ends with it.
+      keepQuestion={!dialogNavigation}
       filters={chips.map((key) => (
         <DataTable.Filter key={key} table={table} column={key} />
       ))}
@@ -490,11 +616,7 @@ export function ProgramCollection({
       empty={{
         illustration: empty?.illustration ?? collectionIllustration[name] ?? "records",
         title: empty?.title ?? `No ${noun} yet`,
-        description:
-          empty?.description ??
-          (!canCreate && prerequisite
-            ? prerequisite
-            : `Create the first ${productRecordNoun(name)} for this program.`),
+        description,
         action: allowCreate ? (
           <Button variant="primary" iconBefore={<Plus />} onClick={openCreate}>
             {createActionLabel}
@@ -521,6 +643,7 @@ export function ProgramCollection({
   );
 }
 
+/** A preview's related collections: each named by its own heading, under the record's title. */
 function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: DataRecord }) {
   const writable = row["state"] !== "published";
   if (table === "configuration_baselines")
@@ -571,6 +694,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="scope_baselines"
+        section
         title="Adopted control baselines"
         filters={{ scope_id: row.id }}
         columns={[
@@ -593,15 +717,12 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="implemented_requirements"
+        section
         title="Control implementations"
         filters={{ ssp_revision_id: row.id }}
         columns={[
           { key: "description", title: "Implementation" },
-          {
-            key: "implementation_status",
-            title: "Status",
-            render: (item) => <StatusValue value={item["implementation_status"]} />,
-          },
+          { key: "implementation_status", title: "Status" },
         ]}
         canCreate={writable}
         readOnly={!writable}
@@ -611,6 +732,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="offered_implementations"
+        section
         title="Offered implementations"
         filters={{ provider_capability_id: row.id }}
         columns={[
@@ -624,6 +746,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="risk_revisions"
+        section
         title="Risk assessments"
         filters={{ risk_id: row.id }}
         columns={[
@@ -640,6 +763,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="risk_responses"
+        section
         title="Risk responses"
         filters={{ risk_revision_id: row.id }}
         columns={[
@@ -655,6 +779,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="poam_revisions"
+        section
         title="Plan revisions"
         filters={{ poam_document_id: row.id }}
         columns={[
@@ -668,7 +793,8 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="poam_item_revisions"
-        title="Remediation revisions"
+        section
+        title="Remediation commitments"
         filters={{ poam_item_id: row.id }}
         initialValues={{ poam_document_id: row["poam_document_id"] ?? null }}
         columns={[
@@ -683,6 +809,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="poam_milestones"
+        section
         title="Milestones"
         filters={{ poam_item_revision_id: row.id }}
         columns={[
@@ -698,6 +825,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="package_revisions"
+        section
         title="Package revisions"
         filters={{ package_id: row.id }}
         columns={[
@@ -711,6 +839,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="gate_criteria"
+        section
         title="Gate criteria"
         filters={{ gate_id: row.id }}
         columns={[
@@ -724,6 +853,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
     return (
       <ProgramCollection
         name="import_issues"
+        section
         title="Import validation issues"
         filters={{ ingestion_job_id: row.id }}
         columns={[

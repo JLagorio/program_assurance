@@ -248,10 +248,11 @@ try {
     row(systems(), child.id).getByRole("link", { name: child.name, exact: true }),
   ).toBeVisible();
   await expect(main().getByText(boundary.description, { exact: true })).toHaveCount(0);
+  // The Details rail is one definition list; the description is its labelled row.
   await expect(
     page
       .locator('[data-shell-area="aside"]')
-      .locator("dl")
+      .locator("dl > div")
       .filter({ has: page.getByText("Description", { exact: true }) })
       .locator("dd"),
   ).toHaveText(boundary.description);
@@ -265,20 +266,30 @@ try {
   ).toBeEnabled();
   const details = page.getByRole("button", { name: "Baseline details", exact: true });
   await expect(details).toHaveAttribute("aria-expanded", "false");
+  // Baseline details is a collapsible Section whose facts are one definition list.
   const baselineSource = page
-    .locator("dl")
-    .filter({ has: page.getByText("Source", { exact: true }) });
+    .getByRole("region", { name: "Baseline details", exact: true })
+    .locator("dl > div")
+    .filter({ has: page.getByText("Source", { exact: true }) })
+    .locator("dd");
   await expect(baselineSource).toBeHidden();
   await tableFits(page.getByRole("table", { name: "Controls", exact: true }));
   await details.click();
-  await expect(baselineSource.locator("dd")).toHaveText("Applied here");
+  await expect(baselineSource).toHaveText("Applied here");
   await details.click();
 
   await page.goto(`${origin}/programs/${program.id}?tab=System`);
   for (const width of [1440, 390, 340]) {
     await page.setViewportSize({ width, height: 1000 });
-    await page.getByRole("button", { name: "Create system", exact: true }).first().click();
-    await expectActionMenu(page, ["Create system", "Add system from product"]);
+    // Create system is the primary; the other way to create one sits in its split menu.
+    await expect(
+      page.getByRole("button", { name: "Create system", exact: true }).first(),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "More ways to create a system", exact: true })
+      .first()
+      .click();
+    await expectActionMenu(page, ["Add system from product"]);
     await screenshot(`system-create-actions-${width}`);
     await page.keyboard.press("Escape");
   }

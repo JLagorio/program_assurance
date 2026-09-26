@@ -1,39 +1,30 @@
-import { MissingRecord } from "@/components/prototype/work-common";
-import { Box } from "@ledger/design-system";
-import { displayDate } from "@/components/prototype/work-format";
-import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Absent,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  Button,
-  Inspector,
-  PageHeader,
-  Section,
-  Shell,
-  Stack,
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyMedia,
-  EmptyIllustration,
-} from "@ledger/design-system";
-import { useRow } from "@/lib/models";
-import type { DataRecord } from "@/lib/records";
-import { useWorkspace } from "@/components/app/workspace";
+import { StatusBadge } from "@/components/app/status";
+import { RelationName } from "@/components/prototype/record-tools";
+import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { WorkTable } from "@/components/prototype/work-table";
 import {
   DetailFacts,
+  MissingRecord,
   ModelForm,
   QueryState,
-  SchemaLink,
-  StatusBadge,
+  RecordActions,
 } from "@/components/prototype/work-common";
+import { useRow } from "@/lib/models";
+import type { DataRecord } from "@/lib/records";
+import { workstreamStatuses } from "@/lib/status";
+import {
+  Absent,
+  Box,
+  DateTime,
+  Inspector,
+  PageHeader,
+  Prose,
+  Section,
+  Shell,
+  Stack,
+} from "@ledger/design-system";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 
 export const Route = createFileRoute("/workstreams/$workstreamId")({
   component: WorkstreamRoute,
@@ -44,11 +35,9 @@ function WorkstreamRoute() {
   return <WorkstreamDetail key={workstreamId} workstreamId={workstreamId} />;
 }
 function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
-  const workspace = useWorkspace();
   const query = useRow("workstreams", workstreamId);
   const row = query.data;
   const program = useRow("programs", row?.program_id);
-  const owner = useRow("parties", row?.owner_party_id);
   const [editing, setEditing] = useState<DataRecord | null>(null);
   return (
     <Stack space="space.200" className="min-w-0">
@@ -62,73 +51,57 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
         {row ? (
           <>
             <PageHeader>
-              <PageHeader.Lead render={<Breadcrumb />}>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      render={
-                        <Link to="/programs/$programId" params={{ programId: row.program_id }} />
-                      }
-                    >
-                      {program.data?.name ?? "Program"}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{row.title}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </PageHeader.Lead>
+              <RecordTrail current={row.title}>
+                <TrailLink to="/programs">Programs</TrailLink>
+                <TrailLink to="/programs/$programId" params={{ programId: row.program_id }}>
+                  {/* The program as every program page names it; loading and failure as RelationName says them. */}
+                  {program.data ? (
+                    `${program.data.code} · ${program.data.name}`
+                  ) : (
+                    <RelationName table="programs" id={row.program_id} />
+                  )}
+                </TrailLink>
+              </RecordTrail>
               <PageHeader.Heading>
                 <PageHeader.Title>{row.title}</PageHeader.Title>
               </PageHeader.Heading>
               <PageHeader.Actions>
-                {workspace.role !== "viewer" && (
-                  <Button
-                    variant="primary"
-                    disabled={!!editing}
-                    onClick={() => setEditing(row as DataRecord)}
-                  >
-                    Edit workstream
-                  </Button>
-                )}
+                <RecordActions
+                  table="workstreams"
+                  id={row.id}
+                  onEdit={() => setEditing(row as DataRecord)}
+                />
               </PageHeader.Actions>
             </PageHeader>
-            <Box className="border-b border-default" />
-            <Stack space="space.300" className="min-w-0 pt-200">
+            <Stack space="space.300" className="min-w-0">
               <Section title="Objective">
-                <p className="max-w-layout-measure whitespace-pre-wrap pt-150 text-subtle">
-                  {row.description || <Absent />}
-                </p>
+                {row.description ? (
+                  <Box className="max-w-layout-measure">
+                    <Prose>{row.description}</Prose>
+                  </Box>
+                ) : (
+                  <Absent label="No objective recorded" />
+                )}
               </Section>
               <Section title="Tasks">
-                <WorkTable programId={row.program_id} workstreamId={row.id} fill />
+                <WorkTable programId={row.program_id} workstreamId={row.id} />
               </Section>
             </Stack>
-            <Shell.Aside label="Workstream properties">
+            <Shell.Aside label="Workstream details">
               <Inspector.Group title="Details">
                 <DetailFacts
                   facts={[
+                    ["Status", <StatusBadge statuses={workstreamStatuses} value={row.status} />],
                     [
-                      "Lead",
-                      row.owner_party_id
-                        ? owner.isError
-                          ? "Unavailable person"
-                          : (owner.data?.name ?? "Loading…")
-                        : null,
+                      "Owner",
+                      row.owner_party_id ? (
+                        <RelationName table="parties" id={row.owner_party_id} />
+                      ) : null,
                     ],
-                    ["Status", <StatusBadge value={row.status} />],
-                    ["Starts", row.starts_on ? displayDate(row.starts_on) : null],
-                    ["Ends", row.ends_on ? displayDate(row.ends_on) : null],
+                    ["Starts", row.starts_on ? <DateTime value={row.starts_on} /> : null],
+                    ["Ends", row.ends_on ? <DateTime value={row.ends_on} /> : null],
                   ]}
                 />
-                <Box className="pt-200">
-                  <SchemaLink table="workstreams" id={row.id} />
-                </Box>
               </Inspector.Group>
             </Shell.Aside>
           </>

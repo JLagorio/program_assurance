@@ -4,7 +4,7 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # Which token
 
-The Token grammar page explains the naming; the token sheets list every value. This page is the short answer to "which one": the tokens a screen reaches for most, by job, with the utility class beside each. Primitive props (`<Stack space="space.200">`, `<Box padding="space.150" background="elevation.surface.sunken">`) take the token name; classes take the utility.
+The Token grammar page explains the naming; the token sheets list every value. This page is the short answer to "which one": the tokens a screen reaches for most, by job, with the utility class beside each. Primitive props (`<Stack space="space.200">`, `<Box padding="space.150" backgroundColor="elevation.surface.sunken">`) take the token name; classes take the utility.
 
 ## Text
 
@@ -36,17 +36,18 @@ Each surface has `.hovered` and `.pressed` siblings; use those, never opacity on
 
 ## Backgrounds by meaning
 
-| Job                                   | Token family                           | Utilities                                                                                   |
-| ------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------- |
-| A neutral control or chip             | `color.background.neutral`             | `bg-neutral`, `-hovered`, `-pressed`, `-subtle`, `-bold`                                    |
-| The primary action                    | `color.background.brand.bold`          | `bg-brand-bold`, `-hovered`, `-pressed`                                                     |
-| A tinted brand region                 | `color.background.brand.subtlest`      | `bg-brand-subtlest`                                                                         |
-| A selected row or item                | `color.background.selected`            | `bg-selected`, `-hovered`, `-bold`                                                          |
-| An input                              | `color.background.input`               | `bg-input`, `-hovered`, `-pressed`                                                          |
-| Danger, warning, success, information | `color.background.danger` and the rest | `bg-danger` (the tone), `-subtler`, `-subtle`, `-bold`, each with `-hovered` and `-pressed` |
-| Something on a dark surface           | `color.background.inverse.subtle`      | `bg-inverse-subtle`                                                                         |
-| A blanket under a modal               | `color.blanket`                        |                                                                                             |
-| A skeleton                            | `color.skeleton`                       |                                                                                             |
+| Job                                   | Token family                                         | Utilities                                                                                   |
+| ------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| A neutral control or chip             | `color.background.neutral`                           | `bg-neutral`, `-hovered`, `-pressed`, `-subtle`, `-bold`                                    |
+| The primary action                    | `color.background.brand.bold`                        | `bg-brand-bold`, `-hovered`, `-pressed`                                                     |
+| A tinted brand region                 | `color.background.brand.subtlest`                    | `bg-brand-subtlest`                                                                         |
+| A selected row or item                | `color.background.selected`                          | `bg-selected`, `-hovered`, `-bold`                                                          |
+| An input                              | `color.background.input`                             | `bg-input`, `-hovered`, `-pressed`                                                          |
+| A switch's off track                  | `color.background.input.track`, 3:1 on every surface | `bg-input-track`                                                                            |
+| Danger, warning, success, information | `color.background.danger` and the rest               | `bg-danger` (the tone), `-subtler`, `-subtle`, `-bold`, each with `-hovered` and `-pressed` |
+| Something on a dark surface           | `color.background.inverse.subtle`                    | `bg-inverse-subtle`                                                                         |
+| A blanket under a modal               | `color.blanket`                                      |                                                                                             |
+| A skeleton                            | `color.skeleton`                                     |                                                                                             |
 
 Text on a subtle tone is the `.bolder` text token of the same tone; text on a bold tone is `color.text.inverse`.
 
@@ -56,7 +57,8 @@ Text on a subtle tone is the `.bolder` text token of the same tone; text on a bo
 | -------------------------------- | ---------------------------------------------------- | --------------------------------------- |
 | Every divider and default border | `color.border`                                       | `border-default`                        |
 | A stronger border                | `color.border.bold`                                  | `border-bold`                           |
-| An input                         | `color.border.input`                                 | `border-input`                          |
+| A text field                     | `color.border.input`                                 | `border-input`                          |
+| A checkbox or radio boundary     | `color.border.bold`, 3:1 on every surface            | `border-bold`                           |
 | Focus ring                       | `color.border.focused`, 2px                          | `border-focused`                        |
 | Selected                         | `color.border.selected`, 2px                         | `border-selected`                       |
 | Disabled                         | `color.border.disabled`                              | `border-disabled`                       |
@@ -77,6 +79,7 @@ Widths: `border.width` 1px for everything, `border.width.selected` and `border.w
 | `space.250`  | 20px  | Comfortable.                                           |
 | `space.300`  | 24px  | Relaxed: between a header and its actions.             |
 | `space.400`  | 32px  | Spacious: page gutters.                                |
+| `space.500`  | 40px  | Generous.                                              |
 | `space.600`  | 48px  | Between sections.                                      |
 | `space.800`  | 64px  | Between page sections.                                 |
 | `space.1000` | 80px  | A hero.                                                |
@@ -91,7 +94,7 @@ Utilities take the same key on any spacing or sizing property: `p-200`, `gap-100
 | `font.body.large`      | 15/22 | Reading text, dialog body.                                                        |
 | `font.body.small`      | 12/16 | Table headers, field labels, badges, KeyValue; labels add `font.weight.medium`.   |
 | `font.body.xsmall`     | 11/14 | Eyebrow, counts, metadata.                                                        |
-| `font.heading.medium`  | 22/28 | Page and record titles. The only semibold.                                        |
+| `font.heading.medium`  | 22/28 | Page and record titles. Semibold, as is `heading.large`.                          |
 | `font.heading.small`   | 20/26 | Section headings.                                                                 |
 | `font.heading.xsmall`  | 15/22 | Dialog and card titles.                                                           |
 | `font.heading.xxsmall` | 11/14 | Eyebrows, group headings, menu section labels (the component adds the uppercase). |
@@ -102,31 +105,23 @@ Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`
 
 ## Sizes
 
-| Token                      | Value | For                                                                   |
-| -------------------------- | ----- | --------------------------------------------------------------------- |
-| `dimension.control.xsmall` | 24px  | Button xs.                                                            |
-| `dimension.control.small`  | 28px  | Button sm, chips, menu items, sidebar items, everything in a Toolbar. |
-| `dimension.control.medium` | 32px  | The default: Button md, inputs, selects, combobox triggers.           |
-| `dimension.control.large`  | 36px  | Hero forms only.                                                      |
-| `dimension.row`            | 40px  | A table row; `.compact` 36px; `.header` 32px; `.menu` 28px.           |
-| `dimension.icon.small`     | 14px  | An icon inside a small or medium control.                             |
-| `dimension.icon.medium`    | 16px  | A standalone icon, an icon button's glyph.                            |
-| `dimension.layout.rail`    | 272px | The rail beside a record: Inspector, Aside.                           |
-| `dimension.layout.panel`   | 320px | The preview panel before the reader resizes it.                       |
-| `dimension.layout.sidenav` | 228px | The side nav, expanded.                                               |
-| `dimension.layout.topnav`  | 48px  | The top nav, and the banner above it.                                 |
+| Token                      | Value | For                                                                 |
+| -------------------------- | ----- | ------------------------------------------------------------------- |
+| `dimension.control.xsmall` | 24px  | Button `xsmall`.                                                    |
+| `dimension.control.small`  | 28px  | Button `small`, chips, menu items, side nav items, a Toolbar's row. |
+| `dimension.control.medium` | 32px  | The default: Button `medium`, inputs, selects, combobox triggers.   |
+| `dimension.control.large`  | 36px  | Hero forms only.                                                    |
+| `dimension.row`            | 40px  | A table row; `.compact` 36px; `.header` 32px; `.menu` 28px.         |
+| `dimension.icon.small`     | 14px  | An icon inside a small or medium control.                           |
+| `dimension.icon.medium`    | 16px  | A standalone icon, an icon button's glyph.                          |
+| `dimension.layout.rail`    | 272px | The rail beside a record: Inspector, Aside.                         |
+| `dimension.layout.panel`   | 320px | The preview panel before the reader resizes it.                     |
+| `dimension.layout.sidenav` | 228px | The side nav, expanded.                                             |
+| `dimension.layout.topnav`  | 48px  | The top nav, and the banner above it.                               |
 
 ## Radius
 
-| Token            | Value | For                                 |
-| ---------------- | ----- | ----------------------------------- |
-| `radius.xsmall`  | 2px   | Checkbox, tiny chips.               |
-| `radius.small`   | 3px   | Badges, count chips, Kbd, skeleton. |
-| `radius.medium`  | 5px   | Buttons, inputs, chips, menu items. |
-| `radius.large`   | 7px   | Cards, popovers.                    |
-| `radius.xlarge`  | 9px   | Dialogs, sheets.                    |
-| `radius.xxlarge` | 12px  | Large surfaces, spotlight cards.    |
-| `radius.full`    | pill  | Dots, avatars, pills, meters.       |
+`radius.xsmall` 2px, `small` 3px, `medium` 5px, `large` 7px, `xlarge` 9px, `xxlarge` 12px and `full`, as `rounded-xsmall` to `rounded-full`. The bigger the surface, the larger the radius: a control is medium, a card large. Which part takes which is one table, on the [Shape](?path=/docs/tokens-shape--docs) sheet; a part you build takes the radius of the part it sits beside.
 
 ## Motion
 

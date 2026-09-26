@@ -33,13 +33,36 @@ async function select(label, name) {
   await page.getByRole("combobox", { name: label, exact: true }).click();
   await page.getByRole("option", { name, exact: true }).click();
 }
+// The trigger, the dialog title and the adopt primary all say Change control baseline.
+const operation = "Change control baseline";
+const dialog = () => page.getByRole("dialog", { name: operation, exact: true });
+const trigger = () => page.getByRole("main").getByRole("button", { name: operation, exact: true });
+const primary = (name = operation) => dialog().getByRole("button", { name, exact: true });
+const adoptSource = () =>
+  dialog().getByRole("radio", { name: "Adopt a profile and tailor its controls", exact: true });
+const inheritSource = () =>
+  dialog().getByRole("radio", { name: "Use the inherited or boundary baseline", exact: true });
+/** The catalog controls to tailor; each row's checkbox is named "Select <code>". */
+const controlBoxes = () =>
+  dialog()
+    .getByRole("table", { name: "Controls to tailor", exact: true })
+    .locator("tbody tr[data-row-id]")
+    .getByRole("checkbox");
+const controlCode = async (box) => (await box.getAttribute("aria-label")).replace(/^Select /, "");
+// A required label's asterisk is hidden from assistive technology: find the field by its name.
+const tailoringRationale = () =>
+  dialog().getByRole("textbox", { name: "Tailoring rationale", exact: true });
+/** The dialog opens where the element is: adopting itself, or inheriting. */
+async function openBaseline(mode) {
+  await trigger().click();
+  await expect(dialog()).toBeVisible();
+  await expect(mode === "adopt" ? adoptSource() : inheritSource()).toBeChecked();
+}
 /** The baseline lives on the record's Controls tab. */
 async function baselineUrl(programId, systemId) {
   await page.goto(`${origin}/programs/${programId}/systems/${systemId}`);
   await page.getByRole("tab", { name: "Controls", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Change baseline", exact: true })).toBeEnabled({
-    timeout: 30000,
-  });
+  await expect(trigger()).toBeEnabled({ timeout: 30000 });
 }
 async function baselineDetails() {
   const trigger = page.getByRole("button", { name: "Baseline details", exact: true });
@@ -85,10 +108,11 @@ try {
   await page.getByLabel("Password", { exact: true }).fill(workspace.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByRole("tab", { name: "Controls", exact: true }).click();
-  await page.getByRole("button", { name: "Change baseline", exact: true }).click();
+  // A system with no baseline yet opens on adoption.
+  await openBaseline("adopt");
   await select("Base profile", `${record.title} · ${profile.version}`);
-  await page.getByRole("button", { name: "Save baseline", exact: true }).click();
-  await page.getByRole("dialog", { name: "Change control baseline" }).waitFor({ state: "hidden" });
+  await primary().click();
+  await dialog().waitFor({ state: "hidden" });
   assert.equal(
     (await data(client.from("systems").select().eq("id", root.id).single()))
       .adopted_profile_resolution_id,
@@ -117,15 +141,26 @@ try {
     .getByText(/^Inherited from /)
     .first()
     .waitFor();
-  await page.getByRole("button", { name: "Change baseline", exact: true }).click();
-  const checkbox = page.getByRole("checkbox").first();
-  const code = (await checkbox.getAttribute("aria-label")).replace("Include ", "");
+  // The child inherits, so the dialog opens on the inherited source; adopting shows the inherited profile.
+  await openBaseline("inherit");
+  await expect(primary("Use inherited baseline")).toBeVisible();
+  await adoptSource().click();
+  await expect(primary()).toBeVisible();
+  assert.ok(
+    (
+      await dialog().getByRole("combobox", { name: "Base profile", exact: true }).innerText()
+    ).includes(record.title),
+    "Adopting starts from the inherited profile",
+  );
+  const checkbox = controlBoxes().first();
+  const code = await controlCode(checkbox);
+  await expect(checkbox).toBeChecked();
   await checkbox.uncheck();
-  await page
-    .getByLabel("Tailoring rationale", { exact: true })
-    .fill("Remove this control because the child does not perform that function.");
-  await page.getByRole("button", { name: "Save baseline", exact: true }).click();
-  await page.getByRole("dialog", { name: "Change control baseline" }).waitFor({ state: "hidden" });
+  await tailoringRationale().fill(
+    "Remove this control because the child does not perform that function.",
+  );
+  await primary().click();
+  await dialog().waitFor({ state: "hidden" });
   const adopted = await data(client.from("systems").select().eq("id", child.id).single());
   assert.notEqual(adopted.adopted_profile_resolution_id, resolution.id);
   assert.ok(adopted.adopted_profile_resolution_id);
@@ -144,33 +179,39 @@ try {
   );
   // Since program setup v2 the tailored profile is published at creation and layered on its base.
   await baselineDetails();
-  await page
-    .locator("dl")
-    .filter({ has: page.getByText("Layered on", { exact: true }) })
-    .getByText(record.title, { exact: true })
-    .waitFor();
+  await expect(
+    page
+      .getByRole("region", { name: "Baseline details", exact: true })
+      .locator('[data-slot="key-value"]')
+      .filter({ has: page.locator("dt").getByText("Layered on", { exact: true }) })
+      .locator("dd"),
+  ).toHaveText(record.title);
   await page.screenshot({ path: "/tmp/system-baseline-tailoring.png", fullPage: true });
-  await page.getByRole("button", { name: "Change baseline", exact: true }).click();
+  // The child now adopts its own tailored profile, so the dialog opens on adoption.
+  await openBaseline("adopt");
   assert.ok(
-    (await page.getByRole("combobox", { name: "Base profile", exact: true }).innerText()).includes(
-      record.title,
-    ),
+    (
+      await dialog().getByRole("combobox", { name: "Base profile", exact: true }).innerText()
+    ).includes(record.title),
   );
   assert.equal(
-    await page.getByRole("checkbox", { name: `Include ${code}`, exact: true }).isChecked(),
+    await dialog()
+      .getByRole("checkbox", { name: `Select ${code}`, exact: true })
+      .isChecked(),
     false,
     "Reopening retains the earlier removal",
   );
   assert.equal(
-    await page.getByLabel("Tailoring rationale", { exact: true }).inputValue(),
+    await tailoringRationale().inputValue(),
     "Remove this control because the child does not perform that function.",
   );
-  const second = page.getByRole("checkbox").nth(1);
-  const secondCode = (await second.getAttribute("aria-label")).replace("Include ", "");
+  const second = controlBoxes().nth(1);
+  const secondCode = await controlCode(second);
+  assert.notEqual(secondCode, code);
   await second.uncheck();
   await page.screenshot({ path: "/tmp/system-baseline-dialog.png", fullPage: true });
-  await page.getByRole("button", { name: "Save baseline", exact: true }).click();
-  await page.getByRole("dialog", { name: "Change control baseline" }).waitFor({ state: "hidden" });
+  await primary().click();
+  await dialog().waitFor({ state: "hidden" });
   const updated = await data(client.from("systems").select().eq("id", child.id).single());
   const secondControl = await data(
     client.from("controls").select().eq("code", secondCode).limit(1).single(),
@@ -188,10 +229,10 @@ try {
     0,
     "Re-tailoring preserves earlier choices and adds the new removal",
   );
-  await page.getByRole("button", { name: "Change baseline", exact: true }).click();
-  await select("Baseline source", "Use inherited or boundary baseline");
-  await page.getByRole("button", { name: "Use inherited baseline", exact: true }).click();
-  await page.getByRole("dialog", { name: "Change control baseline" }).waitFor({ state: "hidden" });
+  await openBaseline("adopt");
+  await inheritSource().click();
+  await primary("Use inherited baseline").click();
+  await dialog().waitFor({ state: "hidden" });
   assert.equal(
     (await data(client.from("systems").select().eq("id", child.id).single()))
       .adopted_profile_resolution_id,
@@ -204,23 +245,24 @@ try {
   const before = (
     await data(client.from("system_baseline_requests").select().eq("tenant_id", tenantId))
   ).length;
-  await page.getByRole("button", { name: "Change baseline", exact: true }).click();
-  await page.getByRole("checkbox").first().uncheck();
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await openBaseline("inherit");
+  await adoptSource().click();
+  await controlBoxes().first().uncheck();
+  await dialog().getByRole("button", { name: "Cancel", exact: true }).click();
   await page
     .getByRole("alertdialog", { name: "Discard changes?", exact: true })
     .getByRole("button", { name: "Discard changes", exact: true })
     .click();
   await page.getByRole("alertdialog").waitFor({ state: "hidden" });
+  await dialog().waitFor({ state: "hidden" });
   assert.equal(
     (await data(client.from("system_baseline_requests").select().eq("tenant_id", tenantId))).length,
     before,
   );
-  await page.getByRole("button", { name: "Change baseline", exact: true }).click();
-  await page.getByRole("checkbox").first().uncheck();
-  await page
-    .getByLabel("Tailoring rationale", { exact: true })
-    .fill("Retain this choice if another session edits the system.");
+  await openBaseline("inherit");
+  await adoptSource().click();
+  await controlBoxes().first().uncheck();
+  await tailoringRationale().fill("Retain this choice if another session edits the system.");
   const current = await data(client.from("systems").select().eq("id", child.id).single());
   await data(
     client
@@ -233,10 +275,10 @@ try {
   );
   await page.evaluate(() => window.dispatchEvent(new Event("visibilitychange")));
   await page.getByText("Changed in another session", { exact: true }).first().waitFor();
-  await page.getByRole("button", { name: "Save baseline", exact: true }).click();
-  await page.getByRole("alert").filter({ hasText: "changed in another session" }).waitFor();
+  await primary().click();
+  await dialog().getByRole("alert").filter({ hasText: "changed in another session" }).waitFor();
   assert.equal(
-    await page.getByLabel("Tailoring rationale", { exact: true }).inputValue(),
+    await tailoringRationale().inputValue(),
     "Retain this choice if another session edits the system.",
   );
   assert.equal(
@@ -248,12 +290,13 @@ try {
       .adopted_profile_resolution_id,
     null,
   );
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await dialog().getByRole("button", { name: "Cancel", exact: true }).click();
   await page
     .getByRole("alertdialog", { name: "Discard changes?", exact: true })
     .getByRole("button", { name: "Discard changes", exact: true })
     .click();
   await page.getByRole("alertdialog").waitFor({ state: "hidden" });
+  await dialog().waitFor({ state: "hidden" });
   assert.deepEqual(errors, []);
   console.log(
     "Baseline browser passed: published adoption, child inheritance, tailored draft persistence, restore inheritance, discard without writes, conflict retains draft.",

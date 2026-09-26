@@ -1,7 +1,7 @@
 import { KeyValue } from "@ledger/design-system";
 import { labelFor } from "@/lib/records";
 import type { ElementType } from "@/lib/program-wizard";
-import { ChoiceField, TextField } from "./fields";
+import { ChoiceField, TextField, type ControlRef } from "./fields";
 
 export const elementTypeOptions = [
   "subsystem",
@@ -13,6 +13,8 @@ export const elementTypeOptions = [
   "data",
   "other",
 ].map((value) => ({ value, label: value[0]!.toUpperCase() + value.slice(1) }));
+
+type IdentityField = "name" | "code" | "description" | "type";
 
 /**
  * The identity of one element, shared by the wizard's element sheet and the product structure
@@ -26,6 +28,8 @@ export function ElementIdentityFields({
   descriptionLabel = "Description",
   descriptionHint,
   codeHint = "Unique within this system.",
+  errors,
+  controlRef,
   autoFocus = false,
 }: {
   value: { name: string; code: string; description: string; type: ElementType | null };
@@ -34,10 +38,18 @@ export function ElementIdentityFields({
   ) => void;
   /** Why the type cannot change, shown after the type; undefined leaves it editable. */
   typeLocked?: string | undefined;
-  descriptionLabel?: string;
+  descriptionLabel?: string | undefined;
   descriptionHint?: string | undefined;
-  codeHint?: string;
-  autoFocus?: boolean;
+  codeHint?: string | undefined;
+  /** What fixes each field, from the last validation; each shows under its field and marks it invalid. */
+  errors?: Partial<Record<IdentityField, string | undefined>> | undefined;
+  /** Receives each control, for the Sheet's `initialFocus` (the name) and for focusing an invalid field. */
+  controlRef?: ((field: IdentityField) => ControlRef) | undefined;
+  /**
+   * @deprecated Pass `controlRef` and give the name's control to the Sheet's `initialFocus`: an
+   * `autoFocus` inside an overlay becomes the place focus returns to when it closes.
+   */
+  autoFocus?: boolean | undefined;
 }) {
   return (
     <>
@@ -46,6 +58,8 @@ export function ElementIdentityFields({
         value={value.name}
         onChange={(name) => onChange({ name })}
         required
+        error={errors?.name}
+        controlRef={controlRef?.("name")}
         autoFocus={autoFocus}
       />
       <TextField
@@ -54,13 +68,17 @@ export function ElementIdentityFields({
         onChange={(code) => onChange({ code })}
         required
         description={codeHint}
+        error={errors?.code}
+        controlRef={controlRef?.("code")}
       />
       <TextField
         label={descriptionLabel}
         value={value.description}
         onChange={(description) => onChange({ description })}
         multiline
-        {...(descriptionHint ? { description: descriptionHint } : {})}
+        description={descriptionHint}
+        error={errors?.description}
+        controlRef={controlRef?.("description")}
       />
       {typeLocked ? (
         <KeyValue label="Type">
@@ -73,6 +91,8 @@ export function ElementIdentityFields({
           onChange={(type) => onChange({ type: type as ElementType })}
           options={elementTypeOptions}
           required
+          error={errors?.type}
+          controlRef={controlRef?.("type")}
         />
       )}
     </>

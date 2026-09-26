@@ -142,7 +142,7 @@ export const SelectMatrix: Story = {
             <SelectTrigger
               id={`${fieldId}-unavailable-status-2`}
               aria-labelledby={`${fieldId}-unavailable-status-2-label`}
-              size="sm"
+              size="small"
             >
               <SelectValue />
             </SelectTrigger>
@@ -185,7 +185,12 @@ export const SelectMatrix: Story = {
     await expect(valueRef.current).toHaveTextContent("In review");
     await expect(trigger).toHaveAttribute("type", "button");
     await expect(trigger).toHaveAccessibleDescription("The same status mark used on the record.");
-    await expect(canvas.getByRole("combobox", { name: "Unavailable status" })).toBeDisabled();
+    const small = canvas.getByRole("combobox", { name: "Unavailable status" });
+    await expect(small).toBeDisabled();
+    // `small` is the 28px control Input and Button call small; `sm` is its deprecated spelling.
+    await expect(small).toHaveAttribute("data-size", "small");
+    await expect(small.getBoundingClientRect().height).toBe(28);
+    await expect(trigger).toHaveAttribute("data-size", "medium");
     const locked = canvas.getByRole("combobox", { name: "Locked status" });
     await expect(locked).toHaveAttribute("aria-readonly", "true");
     await user.click(locked);
@@ -449,7 +454,7 @@ export const Scrolling: Story = {
               <SelectTrigger
                 id={`${fieldId}-retention-period-7`}
                 aria-labelledby={`${fieldId}-retention-period-7-label`}
-                size="sm"
+                size="small"
                 style={{ width: 200 }}
               >
                 <SelectValue />

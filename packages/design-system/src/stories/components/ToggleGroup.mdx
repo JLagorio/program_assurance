@@ -20,7 +20,7 @@ A group of toggle buttons with shared selection and keyboard navigation. Compose
 
 ## Selection and layout
 
-Selection is an array in both modes. By default, at most one item can be pressed; pressing it again clears the selection. Add `multiple` to allow several pressed items. `defaultValue` initializes local state; `value` and `onValueChange(values, details)` control it. Call `details.cancel()` to reject a change, such as clearing a required view.
+Selection is an array in both modes. By default, at most one item can be pressed; pressing it again clears the selection. Add `multiple` to allow several pressed items. A pressed item takes Toggle's pressed look, the selected fill with a 1px `color.border.selected` edge that follows a joined group's corners, so the current view never looks like a hovered one; in forced colours it is Highlight. `defaultValue` initializes local state; `value` and `onValueChange(values, details)` control it. Call `details.cancel()` to reject a change, such as clearing a required view.
 
 Group `variant` and `size` pass to its items. Variants are `default` and `outline`; sizes are `sm` (28px), `default` (32px) and `lg` (36px). Default `spacing={2}` leaves an 8px gap; `spacing={0}` joins the items. `orientation="vertical"` stacks them and changes arrow navigation.
 

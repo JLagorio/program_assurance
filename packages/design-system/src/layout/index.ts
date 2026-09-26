@@ -12,6 +12,7 @@ export {
   type ShellPanelActionsProps,
   type ShellPanelBodyProps,
   type ShellPanelCloseProps,
+  type ShellPanelFocusTarget,
   type ShellPanelHeaderProps,
   type ShellPanelProps,
   type ShellPanelTitleProps,
@@ -39,6 +40,11 @@ export { SHELL_STORAGE_KEY, shellScript, shellScriptFor, type ShellStored } from
 
 export {
   PageHeader,
+  PageHeaderActions,
+  PageHeaderDescription,
+  PageHeaderHeading,
+  PageHeaderLead,
+  PageHeaderTitle,
   type PageHeaderActionsProps,
   type PageHeaderDescriptionProps,
   type PageHeaderHeadingProps,

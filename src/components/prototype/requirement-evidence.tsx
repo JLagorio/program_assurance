@@ -1,25 +1,36 @@
-import { discardChanges, useConfirmation } from "@/components/app/confirmation";
+import { useConfirmation } from "@/components/app/confirmation";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { ProductCollection } from "./product-collection";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
+import { AlertCircle, MoreHorizontal, Plus } from "lucide-react";
 import {
-  Box,
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Button,
-  buttonVariants,
-  DataTable,
-  Toolbar,
-  Shell,
   defineColumns,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Inline,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  FieldSet,
+  IconButton,
   KeyValue,
+  LinkButton,
+  Prose,
   RecordBrowser,
   Stack,
+  Text,
+  toast,
   useDataTable,
   Empty,
   EmptyHeader,
@@ -29,20 +40,22 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@ledger/design-system";
-import { Plus } from "lucide-react";
 import { useWorkspace } from "@/components/app/workspace";
 import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
 import { useLinkRequirementEvidence } from "@/lib/requirement-evidence";
+import { useRemoveRequirementLink } from "@/lib/requirement-links";
 import { labelFor } from "@/lib/records";
+import { revisionStates } from "@/lib/status";
 import type { CreateEvidenceResult } from "@/lib/evidence-create";
 import { CreateEvidenceDialog } from "./create-evidence-dialog";
-import { EvidenceVersionDetails } from "./evidence-version-details";
+import { EvidenceFacts, EvidenceVersionDetails } from "./evidence-version-details";
 import {
   RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
   recordDestination,
   useDisplayedRecords,
+  useRemovalFocus,
 } from "./record-preview";
 import { QueryState } from "./work-common";
 
@@ -63,11 +76,14 @@ const pickerColumns = defineColumns<EvidenceChoice>((c) => [
   c.id("versionLabel", { header: "Version", width: 120, hideable: false }),
   c.text("title", { header: "Artifact", minWidth: 260, hideable: false }),
   c.text("kind", { header: "Kind", width: 130 }),
-  c.status("state", { header: "State", width: 115, tone: () => "success" }),
+  c.status("state", { header: "State", width: 115, statuses: revisionStates }),
   c.text("owner", { header: "Owner", width: 165 }),
   c.text("context", { header: "Context", width: 150 }),
   c.date("collected", { header: "Collected", width: 125 }),
 ]);
+
+const plural = (count: number, one: string, many = `${one}s`) =>
+  `${count} ${count === 1 ? one : many}`;
 
 export function RequirementEvidence({
   programId,
@@ -93,11 +109,18 @@ export function RequirementEvidence({
   const pendingCreated = useRef<CreateEvidenceResult | null>(null);
   const inFlight = useRef(false);
   const link = useLinkRequirementEvidence();
+  const remove = useRemoveRequirementLink();
+  const { confirm, confirmation } = useConfirmation();
+  const collection = workspace.collections.find((item) => item.name === "requirement_evidence");
   const writable =
     !readOnly && workspace.role !== "viewer" && requirement.data?.tenant_id === workspace.tenantId;
+  const canUnlink = writable && !!collection?.can_delete;
   const contextValid = identity.data?.program_id === programId;
   const queries = [requirement, identity, links, artifacts, versions, parties];
   const ready = queries.every((query) => query.data !== undefined && !query.error);
+  const requirementName = identity.data
+    ? `${identity.data.code} · ${requirement.data?.title ?? ""}`
+    : (requirement.data?.title ?? "This requirement");
   const all = useMemo<EvidenceChoice[]>(() => {
     const artifactMap = new Map((artifacts.data ?? []).map((row) => [row.id, row]));
     return (versions.data ?? [])
@@ -110,7 +133,7 @@ export function RequirementEvidence({
             title: artifact.title,
             versionLabel: `Version ${version.version_number}`,
             kind: labelFor(artifact.artifact_kind),
-            state: labelFor(version.state),
+            state: version.state,
             owner: artifact.owner_party_id
               ? (parties.data?.find((party) => party.id === artifact.owner_party_id)?.name ??
                 "Unavailable owner")
@@ -127,13 +150,16 @@ export function RequirementEvidence({
           a.title.localeCompare(b.title) || b.version.version_number - a.version.version_number,
       );
   }, [artifacts.data, versions.data, parties.data]);
-  const linkedIds = new Set((links.data ?? []).map((row) => row.evidence_version_id));
-  const linked = all.filter((row) => linkedIds.has(row.id));
+  const linkFor = useMemo(
+    () => new Map((links.data ?? []).map((row) => [row.evidence_version_id, row])),
+    [links.data],
+  );
+  const linked = useMemo(() => all.filter((row) => linkFor.has(row.id)), [all, linkFor]);
   const eligible = all.filter(
     (row) =>
       row.version.state === "published" &&
       (!row.artifact.program_id || row.artifact.program_id === programId) &&
-      !linkedIds.has(row.id),
+      !linkFor.has(row.id),
   );
   const availableVersions = all.filter(
     (row) => !row.artifact.program_id || row.artifact.program_id === programId,
@@ -144,6 +170,34 @@ export function RequirementEvidence({
   );
   const publishedVersions = availableVersions.filter((row) => row.version.state === "published");
   const preview = all.find((row) => row.id === previewId);
+  const focus = useRemovalFocus(linked);
+  async function unlink(row: EvidenceChoice) {
+    const record = linkFor.get(row.id);
+    if (!record) return;
+    const name = `${row.title}, ${row.versionLabel.toLowerCase()}`;
+    const removed = await confirm({
+      title: "Unlink evidence?",
+      description: `${name} will no longer support ${requirementName}. The evidence version is kept; the claim and rationale recorded on this link are removed.`,
+      confirmLabel: "Unlink evidence",
+      variant: "danger",
+      failureTitle: "The evidence was not unlinked",
+      action: () => {
+        focus.removed(row.id);
+        return remove.mutateAsync({
+          table: "requirement_evidence",
+          id: record.id,
+          revision: record.revision,
+        });
+      },
+    });
+    if (!removed) return;
+    setPreviewId((current) => (current === row.id ? null : current));
+    toast.add({
+      type: "success",
+      title: "Evidence unlinked",
+      description: `${name} no longer supports this requirement.`,
+    });
+  }
   const columns = useMemo(
     () =>
       defineColumns<EvidenceChoice>((c) => [
@@ -169,13 +223,27 @@ export function RequirementEvidence({
         c.text("kind", { header: "Kind", width: 135 }),
         c.text("owner", { header: "Owner", width: 165 }),
         c.date("collected", { header: "Collected", width: 130 }),
+        ...(canUnlink
+          ? [
+              c.actions((row: EvidenceChoice) => [
+                {
+                  label: "Unlink evidence",
+                  tone: "danger" as const,
+                  onSelect: () => void unlink(row),
+                },
+              ]),
+            ]
+          : []),
       ]),
-    [previewId],
+    // unlink reads the row it is given and the current links.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [previewId, canUnlink, linkFor],
   );
   const table = useDataTable({
     data: linked,
     columns,
     getRowId: (row) => row.id,
+    rowLabel: (row) => `${row.title}, ${row.versionLabel}`,
     label: "Linked evidence",
     pageSize: 10,
     resizable: true,
@@ -193,7 +261,7 @@ export function RequirementEvidence({
     setSelectedIds([]);
     setSurface("browse");
   }
-  async function confirm(records: EvidenceChoice[]) {
+  async function confirmLink(records: EvidenceChoice[]) {
     if (inFlight.current) return;
     if (!writable || !contextValid || !ready)
       throw new Error("Reload this requirement before linking evidence.");
@@ -204,21 +272,35 @@ export function RequirementEvidence({
         requirementRevisionId,
         evidenceVersionIds: records.map((row) => row.id),
       });
+      toast.add({
+        type: "success",
+        title: `${plural(records.length, "evidence version")} linked`,
+        description: records.map((row) => `${row.title}, ${row.versionLabel}`).join("; "),
+      });
     } finally {
       inFlight.current = false;
     }
   }
+  const unavailable = !ready
+    ? "The evidence is still loading."
+    : !contextValid
+      ? "Reload this requirement to add evidence to it."
+      : undefined;
   const addEvidence = writable ? (
     <Button
+      ref={(node: HTMLButtonElement | null) => {
+        focus.target.current = node;
+      }}
       iconBefore={<Plus />}
       size="small"
       variant="primary"
-      disabled={!ready || !contextValid}
+      disabledReason={unavailable}
       onClick={beginBrowse}
     >
       Add evidence
     </Button>
   ) : null;
+  const previewLink = preview ? linkFor.get(preview.id) : undefined;
   return (
     <Stack space="space.150">
       <QueryState queries={queries}>
@@ -246,21 +328,12 @@ export function RequirementEvidence({
             }
           }}
         >
-          <DialogContent
-            style={{ width: "90vw", maxWidth: "none", height: "90dvh", maxHeight: "90dvh" }}
-          >
+          <DialogContent width="medium">
             <DialogHeader>
               <DialogTitle>Add evidence</DialogTitle>
-              <DialogDescription>
-                Choose published evidence from this program or unscoped workspace artifacts.
-              </DialogDescription>
+              <DialogDescription>{requirementName}</DialogDescription>
             </DialogHeader>
-            <Box padding="space.250" className="border-b border-default">
-              <KeyValue label="Requirement">
-                {identity.data?.code} · {requirement.data?.title}
-              </KeyValue>
-            </Box>
-            <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
+            <DialogBody>
               <Empty>
                 <EmptyMedia aria-hidden>
                   <EmptyIllustration kind="document" />
@@ -275,44 +348,37 @@ export function RequirementEvidence({
                     {publishedVersions.length
                       ? `${publishedVersions.length} published ${publishedVersions.length === 1 ? "version is" : "versions are"} already linked to this requirement.`
                       : draftVersions.length
-                        ? `${draftVersions.length} draft evidence ${draftVersions.length === 1 ? "version exists" : "versions exist"} in this program or the workspace. Drafts become available here after publication.`
+                        ? `${plural(draftVersions.length, "draft evidence version")} in this program or the workspace ${draftVersions.length === 1 ? "becomes" : "become"} available here once published.`
                         : "This program and the workspace have no published evidence versions to link."}
+                    {publishedVersions.length && draftVersions.length
+                      ? ` ${plural(draftVersions.length, "more draft version")} ${draftVersions.length === 1 ? "is" : "are"} waiting for publication.`
+                      : ""}
+                    {draftsWithoutSource.length
+                      ? ` ${draftsWithoutSource.length} of the drafts still ${draftsWithoutSource.length === 1 ? "needs" : "need"} an uploaded file or an external reference before publication.`
+                      : ""}
                   </EmptyDescription>
                 </EmptyHeader>
                 <EmptyContent>
-                  <Stack space="space.150">
-                    {publishedVersions.length && draftVersions.length ? (
-                      <p className="font-body-small text-subtle">
-                        {draftVersions.length} additional draft evidence{" "}
-                        {draftVersions.length === 1 ? "version is" : "versions are"} waiting for
-                        publication.
-                      </p>
-                    ) : null}
-                    {draftsWithoutSource.length ? (
-                      <p className="font-body-small text-subtle">
-                        {draftsWithoutSource.length} of these drafts still need an uploaded file or
-                        an external reference before they can be published.
-                      </p>
-                    ) : null}
-                    <Inline alignInline="center" space="space.100" shouldWrap>
+                  <LinkButton
+                    variant="secondary"
+                    render={
                       <Link
-                        className={buttonVariants({ variant: "secondary" })}
                         to="/programs/$programId"
                         params={{ programId }}
                         search={{ tab: "Evidence" }}
-                      >
-                        Open program evidence
-                      </Link>
-                      <Button variant="primary" onClick={() => setSurface("create")}>
-                        Create evidence artifact
-                      </Button>
-                    </Inline>
-                  </Stack>
+                      />
+                    }
+                  >
+                    Open program evidence
+                  </LinkButton>
                 </EmptyContent>
               </Empty>
-            </Box>
+            </DialogBody>
             <DialogFooter>
-              <Button onClick={closeBrowser}>Close</Button>
+              <DialogClose render={<Button variant="subtle" />}>Close</DialogClose>
+              <Button variant="primary" onClick={() => setSurface("create")}>
+                Create evidence artifact
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -331,29 +397,27 @@ export function RequirementEvidence({
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
           onClose={closeBrowser}
-          onConfirm={confirm}
+          onConfirm={confirmLink}
           confirmLabel="Link evidence"
           context={
             <Stack space="space.100">
-              <KeyValue label="Requirement">
-                {identity.data?.code} · {requirement.data?.title}
-              </KeyValue>
-              <p className="font-body-small text-subtle">
+              <KeyValue label="Requirement">{requirementName}</KeyValue>
+              <Text as="p" size="small" color="color.text.subtle">
                 Only this program’s evidence and unscoped workspace artifacts are available. Each
                 row is a specific version. Already linked versions are excluded.
-              </p>
+              </Text>
               {!ready ? (
-                <p role="alert" className="text-danger">
-                  Evidence records could not be loaded completely. Close the browser and retry
-                  loading the requirement.
-                </p>
+                <Alert variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The evidence could not be loaded completely</AlertTitle>
+                  <AlertDescription>Close the browser and reload the requirement.</AlertDescription>
+                </Alert>
               ) : null}
             </Stack>
           }
           actions={
             <Button
               size="small"
-              disabled={link.isPending}
               onClick={() => {
                 if (!inFlight.current) setSurface("create");
               }}
@@ -366,6 +430,8 @@ export function RequirementEvidence({
       {surface === "create" ? (
         <CreateEvidenceDialog
           programId={programId}
+          // The opener leaves with the browser; the next surface takes focus when it opens.
+          finalFocus={false}
           onCreated={(result) => {
             pendingCreated.current = result;
             setCreated(result);
@@ -380,7 +446,14 @@ export function RequirementEvidence({
         <PrepareEvidence
           versionId={created.versionId}
           artifactId={created.artifactId}
-          onClose={() => setSurface("browse")}
+          onClose={(published) => {
+            // A version published here is what the reader came to link: it returns chosen.
+            if (published)
+              setSelectedIds((current) =>
+                current.includes(created.versionId) ? current : [...current, created.versionId],
+              );
+            setSurface("browse");
+          }}
         />
       ) : null}
       {preview && !surface ? (
@@ -389,6 +462,27 @@ export function RequirementEvidence({
           label="Evidence version preview"
           defaultWidth={640}
           onClose={() => setPreviewId(null)}
+          recordActions={
+            canUnlink && previewLink ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <IconButton
+                      size="small"
+                      variant="subtle"
+                      label="Linked evidence actions"
+                      icon={<MoreHorizontal />}
+                    />
+                  }
+                />
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem variant="danger" onClick={() => void unlink(preview)}>
+                    Unlink evidence
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : undefined
+          }
           navigation={
             <RecordPreviewActions
               table="evidence_versions"
@@ -399,27 +493,24 @@ export function RequirementEvidence({
           }
         >
           <Stack space="space.200">
-            <KeyValue label="Version">{preview.version.version_number}</KeyValue>
+            {previewLink ? (
+              <EvidenceFacts
+                facts={[
+                  ["Claim", previewLink.claim ? <Prose>{previewLink.claim}</Prose> : null],
+                  [
+                    "Applicability rationale",
+                    previewLink.applicability_rationale ? (
+                      <Prose>{previewLink.applicability_rationale}</Prose>
+                    ) : null,
+                  ],
+                ]}
+              />
+            ) : null}
             <EvidenceVersionDetails artifact={preview.artifact} version={preview.version} />
-            {(links.data ?? [])
-              .filter((row) => row.evidence_version_id === preview.id)
-              .map((row) => (
-                <Stack key={row.id} space="space.150" className="pt-200">
-                  {row.claim ? (
-                    <KeyValue label="Claim" wrap>
-                      {row.claim}
-                    </KeyValue>
-                  ) : null}
-                  {row.applicability_rationale ? (
-                    <KeyValue label="Applicability rationale" wrap>
-                      {row.applicability_rationale}
-                    </KeyValue>
-                  ) : null}
-                </Stack>
-              ))}
           </Stack>
         </RecordPreviewPanel>
       ) : null}
+      {confirmation}
     </Stack>
   );
 }
@@ -431,127 +522,167 @@ function PrepareEvidence({
 }: {
   artifactId: string;
   versionId: string;
-  onClose: () => void;
+  /** Called once the dialog has closed; `published` when this version was published here. */
+  onClose: (published: boolean) => void;
 }) {
   const workspace = useWorkspace();
   const artifact = useRow("evidence_artifacts", artifactId);
   const version = useRow("evidence_versions", versionId);
   const parties = useRows("parties");
   const publish = useModelSave("evidence_versions");
-  const busy = useRef(false);
-  const fileInFlight = useRef(false);
+  const [open, setOpen] = useState(true);
   const [fileBusy, setFileBusy] = useState(false);
   const [fileDirty, setFileDirty] = useState(false);
-  const bypassClose = useRef(false);
-  const { confirm, confirmation } = useConfirmation();
-  const [error, setError] = useState("");
+  const uploading = useRef(false);
+  // An upload in flight holds the route as a pending save does; the Dialog's `pending` holds it.
+  useBlocker({
+    shouldBlockFn: () => uploading.current,
+    enableBeforeUnload: () => uploading.current,
+  });
+  const published = useRef(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const publishRef = useRef<HTMLButtonElement>(null);
+  const backRef = useRef<HTMLButtonElement>(null);
+  const guard = useDraftGuard({
+    dirty: fileDirty,
+    onClose: () => setOpen(false),
+    description: "The file you chose has not been uploaded and will be lost.",
+  });
   const current = version.data;
   const me = parties.data?.find((party) => party.auth_user_id === workspace.userId);
-  const canPublish =
-    !!current &&
-    current.state === "draft" &&
-    !!(current.external_uri || current.storage_object_id) &&
-    !(current.storage_object_name && !current.storage_object_id) &&
-    workspace.role !== "viewer";
-  useBlocker({
-    shouldBlockFn: async () =>
-      !bypassClose.current &&
-      (busy.current ||
-        fileInFlight.current ||
-        (fileDirty &&
-          !(await confirm(discardChanges("Discard the selected file before uploading it?"))))),
-    enableBeforeUnload: () =>
-      !bypassClose.current && (busy.current || fileInFlight.current || fileDirty),
-  });
-  async function close() {
-    if (busy.current || fileInFlight.current) return;
-    if (
-      !fileDirty ||
-      (await confirm(discardChanges("Discard the selected file before uploading it?")))
-    ) {
-      bypassClose.current = true;
-      onClose();
-    }
-  }
+  const busy = guard.busy || fileBusy;
+  // The file control is the task's first step. When the version was still loading as the dialog
+  // opened, focus moves to it once it appears.
+  const arrived = useRef(false);
+  const loaded = !!artifact.data && !!current;
+  useEffect(() => {
+    if (!loaded || arrived.current) return;
+    arrived.current = true;
+    const frame = requestAnimationFrame(() => trigger.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [loaded]);
+  const unpublishable = !current
+    ? "The version is still loading."
+    : workspace.role === "viewer"
+      ? "An editor, admin, or owner can publish evidence."
+      : current.storage_object_name && !current.storage_object_id
+        ? "Finish the upload before publishing."
+        : !(current.external_uri || current.storage_object_id)
+          ? "Attach a file or record an external reference before publishing."
+          : undefined;
+  // Publishing takes the Publish button away with the draft state; the next step, back to the
+  // browser where the version is chosen, takes focus once the prompt has let go of it. The prompt
+  // hands focus back to the last opener it can still find, which may be outside this dialog.
+  const state = current?.state;
+  useEffect(() => {
+    if (state !== "published" || !published.current) return;
+    let waited = 0;
+    let held = 0;
+    let frame = 0;
+    const settle = () => {
+      const active = document.activeElement;
+      if (active?.closest('[role="alertdialog"]')) {
+        if (waited++ < 120) frame = requestAnimationFrame(settle);
+        return;
+      }
+      const dialog = backRef.current?.closest('[role="dialog"]');
+      if (dialog && !dialog.contains(active)) backRef.current?.focus();
+      if (held++ < 10) frame = requestAnimationFrame(settle);
+    };
+    frame = requestAnimationFrame(settle);
+    return () => cancelAnimationFrame(frame);
+  }, [state]);
+  /** Publishing cannot be undone: the shared prompt asks, runs it, and says a failure there. */
   async function publishVersion() {
-    if (busy.current || fileInFlight.current || !current || !canPublish) return;
-    busy.current = true;
-    setError("");
-    try {
-      await publish.mutateAsync({
-        id: current.id,
-        revision: current.revision,
-        values: { state: "published", ...(me ? { published_by_party_id: me.id } : {}) },
-      });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The version could not be published.");
-    } finally {
-      busy.current = false;
-    }
+    if (busy || !current || unpublishable) return;
+    const version = current;
+    // The dialog stays open and says the result itself ("Version published…"), so no toast: at a
+    // phone's width one would cover the footer that now holds focus.
+    await guard.confirm({
+      title: `Publish version ${version.version_number}?`,
+      description:
+        "A published version cannot be changed or deleted. It becomes available to link in the evidence browser; publishing does not record a review decision.",
+      confirmLabel: "Publish version",
+      variant: "primary",
+      failureTitle: "The version was not published",
+      action: async () => {
+        if (!guard.start()) throw new Error("Wait for the current change to finish.");
+        try {
+          await publish.mutateAsync({
+            id: version.id,
+            revision: version.revision,
+            values: { state: "published", ...(me ? { published_by_party_id: me.id } : {}) },
+          });
+          published.current = true;
+        } finally {
+          guard.finish();
+        }
+      },
+    });
   }
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          close();
-        }
+      open={open}
+      pending={busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        void guard.close();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (!next) onClose(published.current || current?.state === "published");
       }}
     >
-      <DialogContent
-        style={{ maxWidth: 800, height: "85dvh" }}
-        showCloseButton={!publish.isPending && !fileBusy}
-      >
+      <DialogContent width="large" initialFocus={() => trigger.current ?? true}>
         <DialogHeader>
           <DialogTitle>Prepare evidence</DialogTitle>
           <DialogDescription>
             Attach a file or review the external reference, then publish this version when ready.
           </DialogDescription>
         </DialogHeader>
-        <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
-          <QueryState queries={[artifact, version, parties]}>
-            {artifact.data && current ? (
-              <fieldset disabled={publish.isPending} className="min-w-0 border-0 p-0">
-                <EvidenceVersionDetails
-                  artifact={artifact.data}
-                  version={current}
-                  autoFocus
-                  onFileDirtyChange={setFileDirty}
-                  onFileBusyChange={(active) => {
-                    fileInFlight.current = active;
-                    setFileBusy(active);
-                  }}
-                />
-              </fieldset>
+        <DialogBody>
+          <Stack space="space.200">
+            <QueryState queries={[artifact, version, parties]}>
+              {artifact.data && current ? (
+                <FieldSet disabled={guard.busy}>
+                  <EvidenceVersionDetails
+                    artifact={artifact.data}
+                    version={current}
+                    triggerRef={trigger}
+                    onFileDirtyChange={setFileDirty}
+                    onFileBusyChange={(active) => {
+                      uploading.current = active;
+                      setFileBusy(active);
+                    }}
+                  />
+                </FieldSet>
+              ) : null}
+            </QueryState>
+            {current?.state === "draft" ? (
+              <Text as="p" color="color.text.subtle">
+                Publishing freezes this version and makes it available in the evidence browser. It
+                does not record a review decision or link it automatically.
+              </Text>
             ) : null}
-          </QueryState>
-          {current?.state === "draft" ? (
-            <p className="pt-200 text-subtle">
-              Publishing freezes this version and makes it available in the evidence browser. It
-              does not record a review decision or link it automatically.
-            </p>
-          ) : null}
-          {current?.state === "published" ? (
-            <p role="status" className="pt-200">
-              Version published. Return to the browser and select it to link it to this requirement.
-            </p>
-          ) : null}
-          {error ? (
-            <p role="alert" className="pt-200 text-danger">
-              {error}
-            </p>
-          ) : null}
-        </Box>
+            {current?.state === "published" ? (
+              <Alert role="status">
+                <AlertDescription>
+                  Version published. Return to the browser to link it: it is already chosen there.
+                </AlertDescription>
+              </Alert>
+            ) : null}
+          </Stack>
+        </DialogBody>
         <DialogFooter>
-          <Button variant="subtle" disabled={publish.isPending || fileBusy} onClick={close}>
+          <DialogClose render={<Button ref={backRef} variant="subtle" />}>
             Back to evidence browser
-          </Button>
+          </DialogClose>
           {current?.state === "draft" ? (
             <Button
+              ref={publishRef}
               variant="primary"
-              isLoading={publish.isPending}
-              disabled={!canPublish || publish.isPending || fileBusy}
+              isLoading={guard.busy}
+              disabledReason={unpublishable}
               onClick={() => void publishVersion()}
             >
               Publish version
@@ -559,7 +690,7 @@ function PrepareEvidence({
           ) : null}
         </DialogFooter>
       </DialogContent>
-      {confirmation}
+      {guard.confirmation}
     </Dialog>
   );
 }

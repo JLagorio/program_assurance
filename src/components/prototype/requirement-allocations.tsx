@@ -1,41 +1,65 @@
 import { ProductCollection } from "./product-collection";
-import { RecordLink, useDisplayedRecords } from "./record-preview";
+import {
+  RecordLink,
+  recordDestination,
+  useDisplayedRecords,
+  useRemovalFocus,
+} from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { QueryState, MissingRecord } from "./work-common";
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useMemo, useRef, useState } from "react";
-import { Link, useBlocker } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useConfirmation } from "@/components/app/confirmation";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
+import { TextField } from "@/components/app/fields";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { AlertCircle, MoreHorizontal, Plus } from "lucide-react";
 import {
-  Box,
+  Absent,
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Button,
   DataTable,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Field,
-  FieldLabel,
-  Inline,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  FieldSet,
+  IconButton,
+  PickerSheet,
+  Prose,
   Stack,
-  Table,
-  Textarea,
-  TextLink,
-  Toolbar,
+  Text,
   defineColumns,
+  toast,
   useDataTable,
 } from "@ledger/design-system";
-import { Plus } from "lucide-react";
 import { useWorkspace } from "@/components/app/workspace";
-import { database, requireIdentity } from "@/lib/database";
 import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
+import { useAllocateRequirement, useRemoveRequirementLink } from "@/lib/requirement-links";
 import { systemPath, systemTree, type SystemElement, type SystemTreeNode } from "@/lib/system-tree";
-import { RelationName } from "./record-tools";
 
-type Allocation = Row<"requirement_allocations"> & { system_id: string | null };
+type Allocation = Row<"requirement_allocations">;
+type AllocationRow = Allocation & {
+  systemId: string | null;
+  system: SystemElement | undefined;
+  name: string;
+  targetType: string;
+  /** The control mappings recorded for this system on this revision; they go with the allocation. */
+  mappings: Row<"requirement_control_links">[];
+};
+
+const plural = (count: number, one: string, many = `${one}s`) =>
+  `${count} ${count === 1 ? one : many}`;
 
 export function RequirementAllocations({
   programId,
@@ -49,31 +73,41 @@ export function RequirementAllocations({
   readOnly?: boolean;
 }) {
   const workspace = useWorkspace();
+  const navigate = useNavigate();
   const identity = useRow("engineering_requirements", requirementId);
   const content = useRow("requirement_revisions", contentId);
   const allocations = useRows("requirement_allocations", { requirement_revision_id: contentId });
+  const mappings = useRows("requirement_control_links", { requirement_revision_id: contentId });
   const systems = useRows("systems", { program_id: programId });
+  const remove = useRemoveRequirementLink();
+  const { confirm, confirmation } = useConfirmation();
   const [adding, setAdding] = useState(false);
-  const queries = [identity, content, allocations, systems];
-  const error = queries.find((query) => query.error)?.error;
+  const [editing, setEditing] = useState<AllocationRow | null>(null);
+  const queries = [identity, content, allocations, mappings, systems];
   const ready = queries.every((query) => query.data !== undefined && !query.error);
   const valid =
     identity.data?.program_id === programId &&
     content.data?.engineering_requirement_id === requirementId;
-  const canWrite =
+  const collection = workspace.collections.find((item) => item.name === "requirement_allocations");
+  const writer =
     !readOnly &&
     workspace.role !== "viewer" &&
     identity.data?.tenant_id === workspace.tenantId &&
-    !!workspace.collections.find((item) => item.name === "requirement_allocations")?.can_insert &&
     valid;
+  const canWrite = writer && !!collection?.can_insert;
+  const canEdit = writer && !!collection?.can_update;
+  const canRemove = writer && !!collection?.can_delete;
+  const requirementCode = identity.data?.code ?? "Requirement";
   const elements = useMemo(() => (systems.data ?? []) as SystemElement[], [systems.data]);
-  const rows = useMemo(
+  const rows = useMemo<AllocationRow[]>(
     () =>
-      ((allocations.data ?? []) as Allocation[]).map((allocation) => {
+      (allocations.data ?? []).map((allocation) => {
         const systemId = allocation.system_id ?? allocation.composition_node_id;
         const system = elements.find((element) => element.id === systemId);
         return {
           ...allocation,
+          systemId,
+          system,
           name: system
             ? `${system.code} · ${system.name}`
             : systemId
@@ -88,35 +122,97 @@ export function RequirementAllocations({
               : allocation.provider_capability_id
                 ? "Provider capability"
                 : "Security process",
+          mappings: systemId
+            ? (mappings.data ?? []).filter((mapping) => mapping.system_id === systemId)
+            : [],
         };
       }),
-    [allocations.data, elements],
+    [allocations.data, mappings.data, elements],
   );
   const [previewId, setPreviewId] = useState<string>();
+  const focus = useRemovalFocus(rows);
+  /** The allocation's name opens what it names, the system's record; the eye previews the allocation. */
+  const systemLink = (row: AllocationRow) =>
+    row.system ? recordDestination("systems", { id: row.system.id, program_id: programId }) : null;
+  async function removeAllocation(row: AllocationRow) {
+    const count = row.mappings.length;
+    const removed = await confirm({
+      title: "Remove allocation?",
+      description: count
+        ? `${row.name} will no longer be responsible for ${requirementCode}. Its ${plural(count, "control mapping")} for this system will be removed with it.`
+        : `${row.name} will no longer be responsible for ${requirementCode}. The allocation's rationale is removed with it.`,
+      confirmLabel: "Remove allocation",
+      variant: "danger",
+      failureTitle: "The allocation was not removed",
+      action: () => {
+        focus.removed(row.id);
+        return remove.mutateAsync({
+          table: "requirement_allocations",
+          id: row.id,
+          revision: row.revision,
+          mappings: row.mappings.map((mapping) => ({
+            id: mapping.id,
+            revision: mapping.revision,
+          })),
+        });
+      },
+    });
+    if (!removed) return;
+    setPreviewId((current) => (current === row.id ? undefined : current));
+    toast.add({
+      type: "success",
+      title: "Allocation removed",
+      description: count
+        ? `${requirementCode} is no longer allocated to ${row.name}, and ${plural(count, "control mapping")} went with it.`
+        : `${requirementCode} is no longer allocated to ${row.name}.`,
+    });
+  }
   const columns = useMemo(
     () =>
-      defineColumns<(typeof rows)[number]>((c) => [
+      defineColumns<AllocationRow>((c) => [
         c.id("name", {
           header: "Allocated to",
           minWidth: 200,
           priority: 0,
           preview: (row) => setPreviewId(row.id),
           active: (row) => row.id === previewId,
-          cell: (row) => (
-            <RecordLink table="requirement_allocations" record={row}>
-              {row.name}
-            </RecordLink>
-          ),
+          cell: (row) =>
+            row.system ? (
+              <RecordLink table="systems" record={{ id: row.system.id, program_id: programId }}>
+                {row.name}
+              </RecordLink>
+            ) : (
+              row.name
+            ),
         }),
         c.text("targetType", { header: "Target type", width: 160 }),
         c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
+        ...(canEdit || canRemove
+          ? [
+              c.actions((row: AllocationRow) => [
+                ...(canEdit ? [{ label: "Edit allocation", onSelect: () => setEditing(row) }] : []),
+                ...(canRemove
+                  ? [
+                      {
+                        label: "Remove allocation",
+                        tone: "danger" as const,
+                        onSelect: () => void removeAllocation(row),
+                      },
+                    ]
+                  : []),
+              ]),
+            ]
+          : []),
       ]),
-    [previewId],
+    // removeAllocation reads the current rows through its arguments.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [previewId, canEdit, canRemove, programId, requirementCode],
   );
   const table = useDataTable({
     columns,
     data: rows,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.name,
     label: "Requirement allocations",
     view: "requirement-allocations",
     resizable: true,
@@ -124,12 +220,20 @@ export function RequirementAllocations({
   });
   const displayed = useDisplayedRecords(table);
   const preview = rows.find((row) => row.id === previewId);
+  const unavailable = !elements.length
+    ? "Create a system in this program before allocating the requirement."
+    : !ready
+      ? "The allocations are still loading."
+      : undefined;
   const action = canWrite ? (
     <Button
+      ref={(node: HTMLButtonElement | null) => {
+        focus.target.current = node;
+      }}
       size="small"
       variant="primary"
       iconBefore={<Plus />}
-      disabled={!ready || !elements.length}
+      disabledReason={unavailable}
       onClick={() => setAdding(true)}
     >
       Allocate requirement
@@ -145,6 +249,11 @@ export function RequirementAllocations({
             queries={queries}
             searchLabel="Find an allocation"
             action={action}
+            onRowClick={(row) => {
+              const destination = systemLink(row);
+              if (destination) void navigate(destination);
+              else setPreviewId(row.id);
+            }}
             empty={{
               illustration: "tree",
               title: "No allocations yet",
@@ -154,70 +263,143 @@ export function RequirementAllocations({
             }}
           />
         ) : (
-          <MissingRecord kind="Requirement" backTo="/programs" />
+          <MissingRecord inline kind="Requirement" backTo="/programs" />
         )}
       </QueryState>
       {preview && (
         <RecordSummaryPreview
           model="requirement_allocations"
-          readOnly
           record={preview}
           rows={displayed}
           onSelect={(row) => setPreviewId(row.id)}
           onClose={() => setPreviewId(undefined)}
+          // The name is the system the allocation names, and opens it, as the row's name does; no
+          // property repeats it.
+          title={
+            preview.system ? (
+              <RecordLink table="systems" record={{ id: preview.system.id, program_id: programId }}>
+                {preview.name}
+              </RecordLink>
+            ) : (
+              preview.name
+            )
+          }
+          fields={[
+            { key: "targetType", label: "Target type" },
+            {
+              key: "rationale",
+              label: "Rationale",
+              render: (row) =>
+                row.rationale ? <Prose>{row.rationale}</Prose> : <Absent label="Not recorded" />,
+            },
+          ]}
+          recordActions={
+            canEdit || canRemove ? (
+              <AllocationActions
+                onEdit={canEdit ? () => setEditing(preview) : undefined}
+                onRemove={canRemove ? () => void removeAllocation(preview) : undefined}
+              />
+            ) : undefined
+          }
         />
       )}
       {adding && (
-        <AllocateRequirementDialog
+        <AllocateRequirementSheet
           contentId={contentId}
-          requirementCode={identity.data?.code ?? "Requirement"}
+          requirementCode={requirementCode}
+          requirementTitle={content.data?.title}
           systems={elements}
           allocations={rows}
-          canWrite={canWrite && ready}
           onClose={() => setAdding(false)}
         />
       )}
+      {editing && (
+        <EditAllocationDialog
+          key={editing.id}
+          allocation={editing}
+          onClose={() => setEditing(null)}
+        />
+      )}
+      {confirmation}
     </Stack>
   );
 }
 
-type Choice = SystemTreeNode<SystemElement & { typeLabel: string; path: string }>;
-type Submission = { targets: { id: string; systemId: string }[]; rationale: string | null };
+/** The preview's record commands: Edit allocation, and Remove allocation behind the overflow. */
+function AllocationActions({
+  onEdit,
+  onRemove,
+}: {
+  onEdit?: (() => void) | undefined;
+  onRemove?: (() => void) | undefined;
+}) {
+  const menu = onRemove ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <IconButton
+            size="small"
+            variant="subtle"
+            label="Allocation actions"
+            icon={<MoreHorizontal />}
+          />
+        }
+      />
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem variant="danger" onClick={onRemove}>
+          Remove allocation
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : null;
+  if (!onEdit) return menu;
+  return (
+    <>
+      <Button size="small" variant="primary" onClick={onEdit}>
+        Edit allocation
+      </Button>
+      {menu}
+    </>
+  );
+}
 
-/** Every checked row is an explicit allocation. No tree selection cascades to descendants. */
-export function AllocateRequirementDialog({
+type Choice = SystemTreeNode<SystemElement & { typeLabel: string; path: string }>;
+
+/**
+ * Choosing the systems a requirement is allocated to: every checked row is an explicit
+ * allocation, and choosing a parent leaves its children unchosen. One rationale applies to all,
+ * and the allocations are written together.
+ */
+function AllocateRequirementSheet({
   contentId,
   requirementCode,
+  requirementTitle,
   systems,
   allocations,
-  canWrite,
   onClose,
 }: {
   contentId: string;
   requirementCode: string;
+  requirementTitle?: string | undefined;
   systems: SystemElement[];
-  allocations: Allocation[];
-  canWrite: boolean;
+  allocations: AllocationRow[];
   onClose: () => void;
 }) {
-  const { confirm, confirmation } = useConfirmation();
-  const formRegion = useRef<HTMLDivElement>(null);
-  const workspace = useWorkspace();
-  const save = useModelSave("requirement_allocations");
-  const cache = useQueryClient();
+  const allocate = useAllocateRequirement();
   const [alreadyAllocated] = useState(
-    () => new Set(allocations.flatMap((row) => row.system_id ?? row.composition_node_id ?? [])),
+    () => new Set(allocations.flatMap((row) => row.systemId ?? [])),
   );
   const [selection, setSelection] = useState<Record<string, true>>({});
   const [rationale, setRationale] = useState("");
-  const [submission, setSubmission] = useState<Submission | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [savedCount, setSavedCount] = useState(0);
-  const inFlight = useRef(false);
-  const bypassClose = useRef(false);
-  const selectedIds = Object.keys(selection).filter((id) => selection[id]);
-  const dirty = !!selectedIds.length || !!rationale || submission !== null;
+  const [error, setError] = useState<string | null>(null);
+  // One id per system for the whole session, so a retry after an uncertain response is the same write.
+  const ids = useRef(new Map<string, string>());
+  const chosen = Object.keys(selection).filter((id) => selection[id]);
+  const guard = useDraftGuard({
+    dirty: chosen.length > 0 || !!rationale.trim(),
+    onClose,
+    description: "The systems you chose and the rationale will be lost.",
+  });
   const rows = useMemo(
     () =>
       systemTree(
@@ -234,14 +416,25 @@ export function AllocateRequirementDialog({
   const columns = useMemo(
     () =>
       defineColumns<Choice>((c) => [
-        c.id("code", { header: "System", width: 170, hideable: false }),
-        c.text("name", { header: "Name", minWidth: 250, hideable: false }),
-        c.text("typeLabel", { header: "Type", width: 150 }),
-        c.custom("allocated", {
-          header: "Allocation",
-          width: 160,
-          cell: (row) => (alreadyAllocated.has(row.id) ? "Already allocated" : ""),
+        c.id("code", { header: "System", width: 150, priority: 1, hideable: false }),
+        c.text("name", {
+          header: "Name",
+          minWidth: 200,
+          priority: 0,
+          hideable: false,
+          cell: (row) =>
+            alreadyAllocated.has(row.id) ? (
+              <Stack space="space.025">
+                <span>{row.name}</span>
+                <Text size="small" color="color.text.subtle">
+                  Already allocated
+                </Text>
+              </Stack>
+            ) : (
+              row.name
+            ),
         }),
+        c.text("typeLabel", { header: "Type", width: 150, priority: 2 }),
       ]),
     [alreadyAllocated],
   );
@@ -249,6 +442,7 @@ export function AllocateRequirementDialog({
     columns,
     data: rows,
     getRowId: (row) => row.id,
+    rowLabel: (row) => `${row.code} · ${row.name}`,
     label: "Systems available for allocation",
     tree: { children: (row) => row.children, label: (row) => row.code, initialExpanded: true },
     selectable: (row) => !alreadyAllocated.has(row.id),
@@ -256,190 +450,193 @@ export function AllocateRequirementDialog({
     state: { rowSelection: selection },
     onRowSelectionChange: setSelection,
   });
-  const close = async () => {
-    if (inFlight.current) return;
-    if (
-      !dirty ||
-      (await confirm(
-        discardChanges(
-          submission
-            ? "Close this allocation attempt? Any allocations already saved will remain recorded."
-            : "Discard your unsaved allocation choices?",
-        ),
-      ))
-    ) {
-      bypassClose.current = true;
-      onClose();
-    }
-  };
-  useBlocker({
-    shouldBlockFn: async () =>
-      inFlight.current ||
-      (dirty &&
-        !bypassClose.current &&
-        !(await confirm(
-          discardChanges(
-            submission
-              ? "Leave this allocation attempt? Any saved allocations remain recorded."
-              : "Discard your unsaved allocation choices?",
-          ),
-        ))),
-    enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
-  });
+  const names = (list: string[]) =>
+    list
+      .map((id) => systems.find((system) => system.id === id)?.code)
+      .filter(Boolean)
+      .join(", ");
   async function submit() {
-    if (!canWrite || inFlight.current) return;
-    const request = submission ?? {
-      targets: selectedIds.map((systemId) => ({ id: crypto.randomUUID(), systemId })),
-      rationale: rationale.trim() || null,
-    };
-    if (
-      !request.targets.length ||
-      request.targets.some((target) => !systems.some((system) => system.id === target.systemId))
-    ) {
-      setError("Choose an available system from this program.");
-      return;
-    }
-    setSubmission(request);
-    inFlight.current = true;
-    setBusy(true);
-    setError("");
-    let confirmed = 0;
-    try {
-      const token = await requireIdentity(workspace);
-      for (const target of request.targets) {
-        const authored = {
-          requirement_revision_id: contentId,
-          system_id: target.systemId,
-          rationale: request.rationale,
-        };
-        const { data: existing, error: lookupError } = await database()
-          .from("requirement_allocations")
-          .select()
-          .eq("tenant_id", workspace.tenantId)
-          .eq("id", target.id)
-          .setHeader("Authorization", `Bearer ${token}`)
-          .maybeSingle();
-        if (lookupError) throw new Error(lookupError.message);
-        if (existing) {
-          if (
-            !Object.entries(authored).every(
-              ([key, value]) => (existing as Record<string, unknown>)[key] === value,
-            )
-          )
-            throw new Error(
-              "An allocation changed after this save attempt. Your submitted choices are retained for review.",
-            );
-        } else
-          await save.mutateAsync({
-            values: { ...authored, id: target.id, tenant_id: workspace.tenantId },
-          });
-        confirmed += 1;
-        setSavedCount(confirmed);
+    if (!chosen.length || guard.busy) return;
+    setError(null);
+    if (!guard.start()) return;
+    const targets = chosen.map((systemId) => {
+      let id = ids.current.get(systemId);
+      if (!id) {
+        id = crypto.randomUUID();
+        ids.current.set(systemId, id);
       }
-      await cache.invalidateQueries({
-        queryKey: ["models", workspace.tenantId, "requirement_allocations"],
+      return { id, systemId };
+    });
+    try {
+      await allocate.mutateAsync({
+        requirementRevisionId: contentId,
+        targets,
+        rationale: rationale.trim() || null,
       });
-      await requireIdentity(workspace);
-      bypassClose.current = true;
-      inFlight.current = false;
-      onClose();
+      guard.finish();
+      toast.add({
+        type: "success",
+        title: `Allocated to ${plural(targets.length, "system")}`,
+        description: `${requirementCode} is allocated to ${names(chosen)}.`,
+      });
+      guard.complete();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The allocations could not be saved.");
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
+      setError(
+        `${cause instanceof Error ? cause.message : "The allocations could not be saved."} Your choices are kept; allocating again will not duplicate them.`,
+      );
+      guard.finish();
+    }
+  }
+  return (
+    <PickerSheet
+      open
+      onClose={() => void guard.close()}
+      title="Allocate requirement"
+      subtitle={requirementTitle ? `${requirementCode} · ${requirementTitle}` : requirementCode}
+      table={table}
+      search={{ placeholder: "Find a system to allocate" }}
+      toolbar={
+        <TextField
+          label="Rationale"
+          value={rationale}
+          onChange={setRationale}
+          multiline
+          rows={2}
+          maxLength={10000}
+          description="Why these systems are responsible. It applies to every system you choose."
+        />
+      }
+      pending={guard.busy}
+      error={error}
+      action={{
+        label: chosen.length
+          ? `Allocate to ${plural(chosen.length, "system")}`
+          : "Allocate to systems",
+        onClick: () => void submit(),
+      }}
+    >
+      <DataTable
+        responsive
+        table={table}
+        empty={{
+          illustration: "tree",
+          title: "No systems in this program",
+          description: "Create a system in this program before allocating the requirement.",
+        }}
+      />
+      {guard.confirmation}
+    </PickerSheet>
+  );
+}
+
+/** An allocation's rationale is the one thing about it that changes; a new target is a new allocation. */
+function EditAllocationDialog({
+  allocation,
+  onClose,
+}: {
+  allocation: AllocationRow;
+  /** Called once the dialog has finished closing; a saved rationale shows in the table and preview. */
+  onClose: () => void;
+}) {
+  const formId = useId();
+  const save = useModelSave("requirement_allocations");
+  const [open, setOpen] = useState(true);
+  const [rationale, setRationale] = useState(allocation.rationale ?? "");
+  const [failure, setFailure] = useState<string | null>(null);
+  const saved = useRef(false);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const rationaleRef = useRef<HTMLElement | null>(null);
+  const failureRef = useRef<HTMLDivElement>(null);
+  const guard = useDraftGuard({
+    dirty: rationale !== (allocation.rationale ?? ""),
+    onClose: () => setOpen(false),
+    description: "The rationale you entered will be lost.",
+  });
+  useEffect(() => {
+    if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
+  }, [failure]);
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (guard.busy) return;
+    setFailure(null);
+    submitRef.current?.focus();
+    if (!guard.start()) return;
+    try {
+      await save.mutateAsync({
+        id: allocation.id,
+        revision: allocation.revision,
+        values: { rationale: rationale.trim() || null },
+      });
+      saved.current = true;
+      guard.finish();
+      guard.complete();
+    } catch (cause) {
+      setFailure(
+        `${cause instanceof Error ? cause.message : "The allocation could not be saved."} Your rationale is kept.`,
+      );
+      guard.finish();
     }
   }
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          close();
-        }
+      open={open}
+      pending={guard.busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        void guard.close();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (next) return;
+        if (saved.current)
+          toast.add({ type: "success", title: "Allocation edited", description: allocation.name });
+        onClose();
       }}
     >
-      <DialogContent
-        style={{ maxWidth: 1120 }}
-        showCloseButton={!busy}
-        initialFocus={() => formRegion.current?.querySelector("input") ?? false}
-      >
+      <DialogContent width="medium" initialFocus={() => rationaleRef.current ?? true}>
         <DialogHeader>
-          <DialogTitle>Allocate requirement</DialogTitle>
-          <DialogDescription>
-            {requirementCode} · Select each responsible system or nested element.
-          </DialogDescription>
+          <DialogTitle>Edit allocation</DialogTitle>
+          <DialogDescription>{allocation.name}</DialogDescription>
         </DialogHeader>
-        <form
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit();
-          }}
-        >
-          <Box ref={formRegion} padding="space.200" className="min-h-0 flex-1 overflow-y-auto">
+        <DialogBody>
+          <form id={formId} noValidate onSubmit={(event) => void submit(event)}>
             <Stack space="space.200">
-              <p className="font-body-small text-subtle">
-                Each checked row receives its own allocation. Selecting a parent leaves its children
-                unselected.
-              </p>
-              <fieldset disabled={busy || !!submission || !canWrite} className="min-w-0">
-                <Stack space="space.200">
-                  <DataTable
-                    responsive
-                    table={table}
-                    empty={{
-                      illustration: "search",
-                      title: "No systems available",
-                      description:
-                        "Create a system or change the search to find an allocation target.",
-                    }}
-                    toolbar={
-                      <Toolbar
-                        search={String(table.state.globalFilter ?? "")}
-                        onSearch={(value) => table.setGlobalFilter(value)}
-                        placeholder="Find a system to allocate"
-                      />
-                    }
-                  />
-                  <Field>
-                    <FieldLabel htmlFor="allocation-rationale">Rationale (optional)</FieldLabel>
-                    <Textarea
-                      id="allocation-rationale"
-                      value={rationale}
-                      onChange={(event) => setRationale(event.target.value)}
-                      rows={3}
-                    />
-                  </Field>
-                </Stack>
-              </fieldset>
-              {error && (
-                <p role="alert" className="text-danger">
-                  {error}
-                </p>
-              )}
-              {submission && !busy && error && (
-                <p className="font-body-small text-subtle">
-                  {savedCount} of {submission.targets.length} allocations confirmed. Retry checks
-                  the same records before saving; submitted choices are retained.
-                </p>
-              )}
+              {failure ? (
+                <Alert ref={failureRef} variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The allocation was not edited</AlertTitle>
+                  <AlertDescription>{failure}</AlertDescription>
+                </Alert>
+              ) : null}
+              <FieldSet disabled={guard.busy}>
+                <TextField
+                  label="Rationale"
+                  value={rationale}
+                  onChange={setRationale}
+                  multiline
+                  rows={4}
+                  maxLength={10000}
+                  description="Why this system is responsible for the requirement."
+                  controlRef={rationaleRef}
+                />
+              </FieldSet>
             </Stack>
-          </Box>
-          <DialogFooter>
-            <span className="mr-auto font-body-small">{selectedIds.length} selected</span>
-            <Button type="button" variant="subtle" disabled={busy} onClick={close}>
-              Cancel
-            </Button>
-            <Button variant="primary" disabled={busy || !canWrite} isLoading={busy} type="submit">
-              Allocate requirement
-            </Button>
-          </DialogFooter>
-        </form>
+          </form>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          <Button
+            ref={submitRef}
+            type="submit"
+            form={formId}
+            variant="primary"
+            isLoading={guard.busy}
+          >
+            Edit allocation
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      {confirmation}
+      {guard.confirmation}
     </Dialog>
   );
 }

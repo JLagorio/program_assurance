@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Timeline } from "../../components";
+import { Timeline, TimelineGroup, TimelineItem } from "../../components";
 import * as Stories from "./Timeline.stories";
 
 <Meta of={Stories} />
@@ -19,7 +19,7 @@ A timeline is for events; things with a date are an Item list, and a fixed path 
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Rail        | A hairline, `color.border`, through the centre of every marker. Each row draws its own piece of it in the marker column, so it runs from the first marker to the last whatever the rows hold and wherever the time sits.                                                                       |
 | Marker      | On the rail, at the list's size: a bare Dot in the tone at `small`; a ring on `elevation.surface.raised` holding a Dot at `medium` and `large`. With `icon`, a disc in the tone with the icon on it (a check, a cross, a play). Anything the slot holds as `marker`: an Avatar for who did it. |
-| Title       | What happened, `font.body` in `color.text`, one line unless the list says `wrap`; medium weight when emphasised. It may be a sentence: the name in medium weight, the verb subtle, the record as a link. On a row that opens, this is the link or button, stretched over the row.          |
+| Title       | What happened, `font.body` in `color.text`, one line unless the list says `wrap`; medium weight when emphasised. It may be a sentence: the name in medium weight, the verb subtle, the record as a link. On a row that opens, this is the link or button, stretched over the row.              |
 | Time        | `font.body.xsmall` in `color.text.subtle`, as the reader would say it, where the list puts it: at the end of the title's line, above the title as a dated line, first in the footer, or in a column before the rail. Across, above or below the marker. A `<time>` when `dateTime` is given.   |
 | Meta        | Under the title, one line, `font.body.xsmall` in `color.text.subtle`: who, and the kind.                                                                                                                                                                                                       |
 | Description | Under the meta, `font.body.small` in `color.text.subtle`, wrapping: what the event amounts to, in a sentence.                                                                                                                                                                                  |
@@ -139,13 +139,17 @@ Down the page the list is one CSS grid the rows share, time · marker · body, a
 
 <ArgTypes of={Timeline} />
 
+Each part takes its element's native props, a `className` and a ref, and names itself last with `data-slot` (`timeline`, `timeline-group`, `timeline-item`): the list, the group's row and the event's row. Across, the list sits inside a scroller.
+
+<Canvas of={Stories.NativeAttributes} />
+
 ### Timeline.Item
 
-<ArgTypes of={Timeline.Item} />
+<ArgTypes of={TimelineItem} />
 
 ### Timeline.Group
 
-<ArgTypes of={Timeline.Group} />
+<ArgTypes of={TimelineGroup} />
 
 ### Playground
 

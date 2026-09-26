@@ -35,7 +35,7 @@ Mixed state uses a separate boolean `indeterminate` prop. [Table.Selection](?pat
 
 In a Field the FieldLabel names the box and toggles it when clicked, the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it; nothing needs an id. Outside a Field, a wrapping label or a sibling label with `htmlFor` and the checkbox's `id` names it, and `aria-describedby` links supporting text. Use `aria-label` only for a box with no visible label. Several related boxes belong in a [CheckboxGroup](?path=/docs/components-checkboxgroup--docs); requiring the group does not require every box. Native `required` on the box is a browser and Base UI constraint; the Field's `required` only announces and marks.
 
-Invalid is the danger border. The keyboard focus outline stays the focus colour on an invalid box, so focus is visible while the reader moves through a list of errors. A FieldSet's `disabled` disables the boxes inside it, which a native `<fieldset disabled>` alone does not.
+The box's boundary is `color.border.bold`, 3:1 against every surface, so an unticked box can be found (WCAG 1.4.11); text fields keep their lighter `color.border.input`, which increased contrast raises. Invalid is the danger border. The keyboard focus outline stays the focus colour on an invalid box, so focus is visible while the reader moves through a list of errors. A FieldSet's `disabled` disables the boxes inside it, which a native `<fieldset disabled>` alone does not.
 
 <Canvas of={Stories.InvalidAndFocused} />
 

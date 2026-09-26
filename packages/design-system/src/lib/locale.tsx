@@ -20,7 +20,15 @@ export type LedgerProviderProps = LedgerLocaleOptions & {
   children: ReactNode;
 };
 
-/** Scoped copy, number/date formatting and direction; independent of routing and translation vendors. */
+/**
+ * The reader's locale, time zone and direction, and the kit's words, for every part inside: dates,
+ * numbers, plural forms, labels and announcements. Mount one near the root with the reader's zone,
+ * the same on the server and the client; without one, parts format in en-US and UTC. A nested
+ * provider inherits every option it does not set and merges its `messages` over its parent's.
+ * Renders one `div` carrying `lang` and `dir`. Keep `messages` a stable object, such as a module
+ * constant: a new one on every render rebuilds the formatters. Independent of routing and
+ * translation vendors.
+ */
 export function LedgerProvider({
   children,
   locale,
@@ -49,7 +57,8 @@ export function LedgerProvider({
 }
 
 /**
- * Read copy and formatters from the closest LedgerProvider. English/UTC is the safe default.
+ * Read copy and formatters from the closest LedgerProvider, for text no part renders (an export, an
+ * announcement, a document title); a date on screen is a DateTime. English/UTC is the default.
  * Instants format in the provider's `timeZone`; calendar days (`formatDay`, `formatCalendarDate`)
  * never shift; typed days and times parse in the provider's locale (`parseDay`, `parseTime`).
  */

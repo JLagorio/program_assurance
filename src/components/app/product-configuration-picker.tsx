@@ -1,55 +1,80 @@
 import type { ProductConfigurationItem } from "@/lib/product-items";
-import { DataTable, Id, PickerSheet, defineColumns, useDataTable } from "@ledger/design-system";
+import {
+  DataTable,
+  Id,
+  Inline,
+  PickerSheet,
+  defineColumns,
+  useDataTable,
+} from "@ledger/design-system";
 import { useMemo, useRef, useState } from "react";
+
+type ProductConfigurationRow = ProductConfigurationItem & {
+  elementCount: number;
+  /** The configuration's name then its code: what the column shows, sorts and searches. */
+  configuration: string;
+};
+
+const columns = defineColumns<ProductConfigurationRow>((c) => [
+  c.id("productCode", {
+    header: "Product",
+    width: 140,
+    cell: (row) => <Id>{row.productCode}</Id>,
+  }),
+  c.text("productName", { header: "Name", priority: 0, minWidth: 180, hideable: false }),
+  c.text("configuration", {
+    header: "Configuration",
+    minWidth: 160,
+    cell: (row) => (
+      <Inline space="space.075" alignBlock="baseline" shouldWrap>
+        {row.configurationName}
+        <Id>{row.configurationCode}</Id>
+      </Inline>
+    ),
+  }),
+  c.number("version", { header: "Version", width: 90 }),
+  c.number("elementCount", { header: "Elements", width: 96 }),
+  c.number("libraryCount", { header: "Library components", width: 150 }),
+  c.text("configurationDescription", { header: "Description", minWidth: 200, wrap: true }),
+]);
 
 /** Choose one published product version and one of its configurations to create a variant from. */
 export function ProductConfigurationPicker({
   open,
   items,
   pending = false,
+  title = "From a product",
+  actionLabel,
+  defaultChosenId = null,
   onPick,
   onClose,
 }: {
   open: boolean;
   items: ProductConfigurationItem[];
   pending?: boolean | undefined;
+  /** The operation, in the words of the trigger that opened the sheet. */
+  title?: string | undefined;
+  /** The primary's words, when it repeats the operation; otherwise it names the chosen configuration. */
+  actionLabel?: string | undefined;
+  /** The configuration chosen before, when the reader comes Back to the sheet. */
+  defaultChosenId?: string | null | undefined;
   onPick: (item: ProductConfigurationItem) => void;
   onClose: () => void;
 }) {
   const handingOff = useRef(false);
-  const [search, setSearch] = useState("");
-  const [chosenId, setChosenId] = useState<string | null>(null);
-  const shown = useMemo(
+  const [chosenId, setChosenId] = useState<string | null>(defaultChosenId);
+  // Every published configuration goes to the table; the sheet's search narrows it through the
+  // table's own filter, so a search that finds nothing says so and offers Clear filters.
+  const rows = useMemo(
     () =>
-      items.filter((item) =>
-        `${item.productCode} ${item.productName} ${item.configurationCode} ${item.configurationName}`
-          .toLowerCase()
-          .includes(search.toLowerCase()),
-      ),
-    [items, search],
+      items.map((item) => ({
+        ...item,
+        elementCount: item.elements.length,
+        configuration: `${item.configurationName} ${item.configurationCode}`,
+      })),
+    [items],
   );
   const chosen = items.find((item) => item.id === chosenId) ?? null;
-  const columns = useMemo(
-    () =>
-      defineColumns<ProductConfigurationItem>((c) => [
-        c.id("productCode", {
-          header: "Product",
-          width: 140,
-          cell: (row) => <Id>{row.productCode}</Id>,
-        }),
-        c.text("productName", { header: "Name", priority: 0, minWidth: 180, hideable: false }),
-        c.text("configurationName", { header: "Configuration", minWidth: 160 }),
-        c.number("version", { header: "Version", width: 90 }),
-        c.number("elements", {
-          header: "Elements",
-          width: 96,
-          cell: (row) => String(row.elements.length),
-        }),
-        c.number("libraryCount", { header: "Library components", width: 150 }),
-        c.text("configurationDescription", { header: "Description", minWidth: 200, wrap: true }),
-      ]),
-    [],
-  );
   const table = useDataTable({
     columns,
     selectable: true,
@@ -60,8 +85,9 @@ export function ProductConfigurationPicker({
         typeof update === "function" ? update(chosenId ? { [chosenId]: true } : {}) : update;
       setChosenId(Object.keys(next).find((id) => next[id]) ?? null);
     },
-    data: shown,
+    data: rows,
     getRowId: (row) => row.id,
+    rowLabel: (row) => `${row.productName} · ${row.configurationName}`,
     label: "Product configurations",
     view: "product-configuration-picker",
   });
@@ -70,14 +96,16 @@ export function ProductConfigurationPicker({
       open={open}
       finalFocus={() => !handingOff.current}
       onClose={onClose}
-      title="From a product"
+      title={title}
       subtitle="A published version and one of its configurations"
-      width={880}
-      search={{ value: search, onChange: setSearch, placeholder: "Search products" }}
-      selected={chosen ? 1 : 0}
-      total={shown.length}
+      width="xlarge"
+      table={table}
+      search={{ placeholder: "Search products" }}
+      summary={chosen ? `${chosen.productName} · ${chosen.configurationName} chosen` : undefined}
       action={{
-        label: chosen ? `Add ${chosen.productName} · ${chosen.configurationName}` : "Add system",
+        label:
+          actionLabel ??
+          (chosen ? `Add ${chosen.productName} · ${chosen.configurationName}` : "Add system"),
         onClick: () => {
           if (chosen) {
             handingOff.current = true;

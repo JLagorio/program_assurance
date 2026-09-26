@@ -82,8 +82,8 @@
         "$value": {
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
-          "fontSize": "15px",
-          "lineHeight": "22px",
+          "fontSize": "0.9375rem",
+          "lineHeight": "1.375rem",
           "letterSpacing": "{font.letterSpacing.200}"
         },
         "$description": "Reading text and dialog body."
@@ -92,8 +92,8 @@
         "$value": {
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
-          "fontSize": "12px",
-          "lineHeight": "16px",
+          "fontSize": "0.75rem",
+          "lineHeight": "1rem",
           "letterSpacing": "{font.letterSpacing.100}"
         },
         "$description": "Table headers, field labels, badges, KeyValue. Labels add font.weight.medium."
@@ -102,8 +102,8 @@
         "$value": {
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
-          "fontSize": "11px",
-          "lineHeight": "14px",
+          "fontSize": "0.6875rem",
+          "lineHeight": "0.875rem",
           "letterSpacing": "{font.letterSpacing.100}"
         },
         "$description": "Eyebrow, counts, metadata."
@@ -112,11 +112,11 @@
         "$value": {
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
-          "fontSize": "13px",
-          "lineHeight": "18px",
+          "fontSize": "0.8125rem",
+          "lineHeight": "1.125rem",
           "letterSpacing": "{font.letterSpacing.200}"
         },
-        "$description": "Controls, cells, tabs, inputs, menu items. The UI size."
+        "$description": "Controls, cells, tabs, inputs, menu items. The UI size: 13/18px at the browser's default text size. Every size and line height is in rem, so the reader's text-size setting reaches them."
       }
     },
     "heading": {
@@ -126,8 +126,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
-          "fontSize": "28px",
-          "lineHeight": "34px",
+          "fontSize": "1.75rem",
+          "lineHeight": "2.125rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
         "$description": "Display: a stat value, a dashboard number. Not a page title."
@@ -136,8 +136,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
-          "fontSize": "22px",
-          "lineHeight": "28px",
+          "fontSize": "1.375rem",
+          "lineHeight": "1.75rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
         "$description": "Page and record titles. The only semibold."
@@ -146,8 +146,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.medium}",
-          "fontSize": "20px",
-          "lineHeight": "26px",
+          "fontSize": "1.25rem",
+          "lineHeight": "1.625rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
         "$description": "Section headings."
@@ -156,8 +156,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.medium}",
-          "fontSize": "15px",
-          "lineHeight": "22px",
+          "fontSize": "0.9375rem",
+          "lineHeight": "1.375rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
         "$description": "Dialog and card titles."
@@ -166,8 +166,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.medium}",
-          "fontSize": "11px",
-          "lineHeight": "14px",
+          "fontSize": "0.6875rem",
+          "lineHeight": "0.875rem",
           "letterSpacing": "{font.letterSpacing.500}"
         },
         "$description": "Eyebrows, group headings and menu section labels. The component adds the uppercase."
@@ -178,8 +178,8 @@
       "$value": {
         "fontFamily": "{font.family.code}",
         "fontWeight": "{font.weight.regular}",
-        "fontSize": "12px",
-        "lineHeight": "18px",
+        "fontSize": "0.75rem",
+        "lineHeight": "1.125rem",
         "letterSpacing": "{font.letterSpacing.0}"
       },
       "$description": "Code blocks only."

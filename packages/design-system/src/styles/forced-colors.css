@@ -72,4 +72,116 @@
   [data-slot="progress-segment"][data-appearance="hatched"] {
     background-color: Canvas;
   }
+
+  /* State that the tokens draw as a tint. A floating list's highlighted row (DropdownMenu, Select,
+     Combobox, the command list, SearchDialog: the row Enter acts on), an open submenu's trigger, a
+     pressed Toggle or Button (aria-pressed, the preview eye included), the selected Tree row, the
+     current page in the side nav and the current page in Pagination (a raised button whose shadow
+     forced colours remove) become Highlight, with everything inside them in HighlightText; the
+     tokens' second cues (the pressed edge, the selected bar) give way to it. */
+  :is(
+      [data-slot="dropdown-menu-item"],
+      [data-slot="dropdown-menu-checkbox-item"],
+      [data-slot="dropdown-menu-radio-item"],
+      [data-slot="dropdown-menu-link-item"],
+      [data-slot="dropdown-menu-sub-trigger"],
+      [data-slot="select-item"],
+      [data-slot="combobox-item"],
+      [data-slot="search-dialog-result"]
+    ):is([data-highlighted], [data-popup-open]):not([data-disabled]),
+  [cmdk-item][data-selected="true"]:not([data-disabled="true"]),
+  :is([data-slot="toggle"], [data-slot="toggle-group-item"])[data-pressed],
+  [aria-pressed="true"],
+  [role="tree"] [role="treeitem"][aria-selected="true"],
+  [data-slot="shell-sidenav-item"][aria-current="page"],
+  [data-slot="pagination-item"] > [aria-current="page"] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+    outline-color: HighlightText;
+  }
+  :is(
+      :is(
+          [data-slot="dropdown-menu-item"],
+          [data-slot="dropdown-menu-checkbox-item"],
+          [data-slot="dropdown-menu-radio-item"],
+          [data-slot="dropdown-menu-link-item"],
+          [data-slot="dropdown-menu-sub-trigger"],
+          [data-slot="select-item"],
+          [data-slot="combobox-item"],
+          [data-slot="search-dialog-result"]
+        ):is([data-highlighted], [data-popup-open]):not([data-disabled]),
+      [cmdk-item][data-selected="true"]:not([data-disabled="true"]),
+      :is([data-slot="toggle"], [data-slot="toggle-group-item"])[data-pressed],
+      [aria-pressed="true"],
+      [role="tree"] [role="treeitem"][aria-selected="true"],
+      [data-slot="shell-sidenav-item"][aria-current="page"],
+      [data-slot="pagination-item"] > [aria-current="page"]
+    )
+    * {
+    /* A Badge or a Count inside keeps no fill of its own, so nothing sits HighlightText on a
+       colour the palette did not choose. */
+    background-color: transparent;
+    border-color: HighlightText;
+    color: HighlightText;
+  }
+  :is([data-slot="toggle"], [data-slot="toggle-group-item"])[data-pressed]::after,
+  [role="tree"] [role="treeitem"][aria-selected="true"]::before {
+    display: none;
+  }
+  /* Focus outside a Highlight fill is drawn in CanvasText, so it reads apart from the fill. */
+  :is(
+    :is([data-slot="toggle"], [data-slot="toggle-group-item"])[data-pressed],
+    [aria-pressed="true"],
+    [role="tree"] [role="treeitem"][aria-selected="true"],
+    [data-slot="shell-sidenav-item"][aria-current="page"],
+    [data-slot="pagination-item"] > [aria-current="page"]
+  ):focus-visible {
+    outline-color: CanvasText;
+  }
+  /* A disabled row reads as disabled, not as one more enabled row; the keyboard on it is a
+     Highlight outline inside the row, since a Highlight fill would say it can be chosen. */
+  :is(
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-radio-item"],
+    [data-slot="dropdown-menu-link-item"],
+    [data-slot="dropdown-menu-sub-trigger"],
+    [data-slot="select-item"],
+    [data-slot="combobox-item"],
+    [data-slot="search-dialog-result"]
+  )[data-disabled],
+  [cmdk-item][data-disabled="true"] {
+    forced-color-adjust: none;
+    background-color: Canvas;
+    color: GrayText;
+  }
+  :is(
+      [data-slot="dropdown-menu-item"],
+      [data-slot="dropdown-menu-checkbox-item"],
+      [data-slot="dropdown-menu-radio-item"],
+      [data-slot="dropdown-menu-link-item"],
+      [data-slot="dropdown-menu-sub-trigger"],
+      [data-slot="select-item"],
+      [data-slot="combobox-item"],
+      [data-slot="search-dialog-result"]
+    )[data-disabled]
+    *,
+  [cmdk-item][data-disabled="true"] * {
+    color: GrayText;
+  }
+  :is(
+      [data-slot="dropdown-menu-item"],
+      [data-slot="dropdown-menu-checkbox-item"],
+      [data-slot="dropdown-menu-radio-item"],
+      [data-slot="dropdown-menu-link-item"],
+      [data-slot="dropdown-menu-sub-trigger"],
+      [data-slot="select-item"],
+      [data-slot="combobox-item"],
+      [data-slot="search-dialog-result"]
+    )[data-disabled]:is([data-highlighted], :focus-visible),
+  [cmdk-item][data-disabled="true"][data-selected="true"] {
+    outline: var(--ds-border-width-focused) solid Highlight;
+    outline-offset: calc(-1 * var(--ds-border-width-focused));
+  }
 }

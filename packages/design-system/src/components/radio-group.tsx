@@ -43,8 +43,9 @@ export function RadioGroupItem<Value = unknown>({
       {...props}
       disabled={props.disabled || field.disabled}
       className={classes(
-        // Invalid is the border, from the item or its group; the focus outline keeps the focus colour.
-        "group/radio-group-item peer relative flex size-200 shrink-0 items-center justify-center rounded-full border border-input bg-input outline-none after:absolute after:-inset-x-150 after:-inset-y-100 focus-visible:outline-focused aria-invalid:border-danger group-aria-invalid/radio-group:border-danger data-checked:border-brand data-checked:bg-brand-bold data-checked:text-inverse data-disabled:cursor-not-allowed data-disabled:opacity-disabled",
+        // The boundary is color.border.bold, 3:1 against every surface (WCAG 1.4.11). Invalid is the
+        // border, from the item or its group; the focus outline keeps the focus colour.
+        "group/radio-group-item peer relative flex size-200 shrink-0 items-center justify-center rounded-full border border-bold bg-input outline-none after:absolute after:-inset-x-150 after:-inset-y-100 focus-visible:outline-focused aria-invalid:border-danger group-aria-invalid/radio-group:border-danger data-checked:border-brand data-checked:bg-brand-bold data-checked:text-inverse data-disabled:cursor-not-allowed data-disabled:opacity-disabled",
         className,
       )}
     >

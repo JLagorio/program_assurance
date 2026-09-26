@@ -4,7 +4,7 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # Writing stories
 
-The Storybook is the package's test suite and its documentation at once: every story renders in both colour modes with its play function and an axe pass (`npm run test:a11y`) and again at a phone and in a narrow frame (`npm run test:layout`), every exported part must appear in one (`npm run ds:check`), and the family's MDX page draws its examples from the same file. The MCP tool `get-storybook-story-instructions` is the generic Storybook 9 guidance; this page is what this package adds to it.
+The Storybook is the package's test suite and its documentation at once: every story renders in both colour modes with its play function and an axe pass (`npm run test:a11y`) and again at a phone and in a narrow frame (`npm run test:layout`), every exported part must appear in one (`npm run ds:check`), and the family's MDX page draws its examples from the same file. The MCP tool `get-storybook-story-instructions` is the generic Storybook guidance (the package runs Storybook 10); this page is what this package adds to it.
 
 ## Shape of a stories file
 
@@ -14,7 +14,10 @@ import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Badge, Button } from "../../components";
 import { Inline, Stack } from "../../primitives";
-import { Matrix, Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix, Specimens } = storyLayout;
 
 const meta = {
   title: "Components/Badge",
@@ -25,19 +28,24 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** The usage to copy, first, with the controls. */
+export const Playground: Story = {};
+
 /** The six reference variants beside the icon positions. */
-export const Matrix: Story = { render: () => <Matrix rows={…} cols={…} render={…} /> };
+export const Variants: Story = { render: () => <Matrix rows={…} cols={…} render={…} /> };
 ```
 
 - Imports come from `@storybook/react-vite` and `storybook/test`, never the `@storybook/test` or `@storybook/react` names.
 - Parts are imported by relative path from `../../components`, `../../primitives`, `../../patterns`, `../../layout`. The package never imports its own root.
 - `title` is `<Category>/<Family>`: Primitives, Components, Layout, Patterns, Tokens, Guidance. One family, one file, one `title`.
 - The JSDoc comment above a story is its description on the docs page. Write it as the sentence the reader needs, not the story's name again.
+- The first story is the usage to copy: plain parts and primitives, no `_lib` helper. MCP `docs-show` returns the first three stories' code, and an agent copies them.
+- `_lib` helpers (Matrix, Specimens, Pair) are story layout, not package exports. The MCP snippet lists every relative import under the package name, so a story file binds them locally (`import * as storyLayout from "../_lib/matrix"`, then `const { Matrix, Specimens } = storyLayout`); a locally declared name is left out of the snippet's import line.
 
 ## What to cover
 
 - Every named part of the family, rendered. `ds:check` fails on an export with no story.
-- Representative states, not every permutation: default, hover and pressed through the tokens, disabled, invalid, loading, empty, error, the sizes that change behaviour. The `_lib/matrix` **Matrix** and **Specimens** helpers lay a family's variants out for comparison; **Pair** in `_lib/pair` puts a Do beside a Don't with one line each on why; every family's page carries one.
+- Representative states, not every permutation: default, hover and pressed through the tokens, disabled, invalid, loading, empty, error, the sizes that change behaviour. The `_lib/matrix` **Matrix** and **Specimens** helpers lay a family's variants out for comparison. **Pair** in `_lib/pair` puts a Do beside a Don't with one line each on why: give a family a Don't story wherever a misuse is likely (a wrong part, a wrong word, a missing name), not as a required section.
 - One playground covers the controls. Keep distinct regression cases as their own stories rather than folding them into the playground.
 - A `play` function on every interactive story: drive it with `userEvent`, assert the visible outcome with role and label queries on `canvas`, and assert `fn` callbacks were called. Wait for a menu to mount before asserting `aria-expanded`.
 - Render once. Josef switches the mode in the toolbar; a story never renders light and dark side by side.

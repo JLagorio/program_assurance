@@ -52,6 +52,16 @@ const impact = (system, dimension) =>
         : "Availability",
   );
 const panel = () => page.locator('[data-shell-area="panel"]');
+/**
+ * One labelled property's value: a row of a KeyValue.Group, found by its term. Only what the
+ * reader sees: a nested preview keeps its parent frame mounted, hidden, for Back.
+ */
+const fact = (scope, label) =>
+  scope
+    .locator('[data-slot="key-value"]')
+    .filter({ visible: true })
+    .filter({ has: page.locator("dt").getByText(label, { exact: true }) })
+    .locator("dd");
 const tabs = () => page.getByRole("tablist", { name: "Element sections", exact: true });
 async function choose(dialog, label, value) {
   await dialog.getByRole("combobox", { name: label, exact: true }).click();
@@ -299,25 +309,32 @@ try {
   await page.goto(`${origin}/programs/${program.id}?tab=System`);
   await row(scoped).getByRole("button", { name: "Preview row", exact: true }).click();
   await expect(panel()).toBeVisible();
-  await expect(panel().getByRole("tab")).toHaveCount(0);
+  // The preview carries the record's sections as one named line tab strip, starting on Overview.
+  const previewTabs = panel().getByRole("tablist", {
+    name: "Element preview sections",
+    exact: true,
+  });
+  await expect(previewTabs.getByRole("tab")).toHaveText([
+    "Overview",
+    "Controls",
+    "Requirements",
+    "Evidence",
+  ]);
+  await expect(previewTabs.getByRole("tab", { name: "Overview", exact: true })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   await expect(panel().getByRole("heading", { name: scoped.name, exact: true })).toBeVisible();
-  await expect(
-    panel()
-      .locator("dl")
-      .filter({ has: page.getByText("Part of", { exact: true }) })
-      .getByRole("link"),
-  ).toHaveText([root.name, parent.name]);
-  await expect(panel()).toContainText("From an assessment scope");
+  await expect(fact(panel(), "Part of").getByRole("link")).toHaveText([root.name, parent.name]);
+  await expect(fact(panel(), "Boundary").getByRole("link")).toHaveText(root.name);
+  // Each impact says where it came from: the scope's values, and the element's own integrity.
+  await expect(fact(panel(), "Impact")).toContainText(
+    "Confidentiality from an assessment scope · Integrity recorded on this element · Availability from an assessment scope",
+  );
   await expect(panel()).toContainText(low.title);
   await expect(panel()).toContainText(`${low.count} controls`);
   await expect(panel()).toContainText(`Inherited from ${root.code}`);
-  await expect(panel().getByRole("link", { name: "1 allocated", exact: true })).toBeVisible();
-  await expect(
-    panel()
-      .locator("dl")
-      .filter({ has: page.getByText("Including children", { exact: true }) })
-      .locator("dd"),
-  ).toHaveText("2 requirements");
+  await expect(fact(panel(), "Requirements")).toHaveText("1 allocated · 2 including children");
   const resolved = await data(
     client.from("system_effective_baselines").select().eq("system_id", scoped.id).single(),
   );
@@ -331,19 +348,28 @@ try {
   // Contains drills in place: the same panel, the child.
   await panel().getByRole("button", { name: leaf.name, exact: true }).click();
   await expect(panel().getByRole("heading", { name: leaf.name, exact: true })).toBeVisible();
+  await expect(
+    panel().getByRole("button", { name: "Back to previous record", exact: true }),
+  ).toBeVisible();
   await expect(panel().getByRole("heading", { name: "Contains", exact: true })).toHaveCount(0);
-  await expect(panel().getByRole("link", { name: "1 allocated", exact: true })).toBeVisible();
+  await expect(fact(panel(), "Requirements")).toHaveText("1 allocated");
 
-  // The eye opens the same preview; Edit lives in its header.
-  await row(scoped).getByRole("button", { name: "Preview row", exact: true }).click();
+  // Back returns to the parent frame, kept mounted, with focus on the control that opened the child.
+  await panel().getByRole("button", { name: "Back to previous record", exact: true }).click();
   await expect(panel().getByRole("heading", { name: scoped.name, exact: true })).toBeVisible();
+  await expect(
+    panel().getByRole("button", { name: "Back to previous record", exact: true }),
+  ).toHaveCount(0);
+  await expect(panel().getByRole("button", { name: leaf.name, exact: true })).toBeFocused();
+  await expect(row(scoped).getByRole("button", { name: "Preview row", exact: true })).toBeVisible();
+  // Edit lives in the preview's header.
   await panel().getByRole("button", { name: "Edit system", exact: true }).click();
   const edit = page.getByRole("dialog", { name: "Edit system", exact: true });
   await choose(edit, "Confidentiality impact", "Moderate");
   await choose(edit, "Integrity impact", "Not categorized");
   await choose(edit, "Availability impact", "Low");
   await edit
-    .getByLabel("Categorization rationale (optional)", { exact: true })
+    .getByLabel("Categorization rationale", { exact: true })
     .fill("Recorded subsystem categorization reviewed separately from the assessment scope.");
   await edit.getByRole("button", { name: "Edit system", exact: true }).click();
   await expect(edit).toHaveCount(0);
@@ -385,12 +411,11 @@ try {
   await page.getByRole("button", { name: "Baseline details", exact: true }).click();
   await expect(main).toContainText(low.title);
   await expect(main).toContainText(`Inherited from ${root.code}`);
-  await expect(
-    main
-      .locator("dl")
-      .filter({ has: page.getByText("Selected controls", { exact: true }) })
-      .locator("dd"),
-  ).toHaveText(String(low.count));
+  const baselineDetails = main.getByRole("region", { name: "Baseline details", exact: true });
+  await expect(fact(baselineDetails, "Source")).toHaveText(
+    `Inherited from ${root.code} · ${root.name}`,
+  );
+  await expect(fact(baselineDetails, "Selected controls")).toHaveText(String(low.count));
   const controls = page.getByRole("table", { name: "Controls", exact: true });
   await expect(controls.locator("tr[data-row-id]")).toHaveCount(Math.min(50, low.count));
   await expect(
@@ -409,7 +434,11 @@ try {
   const requirements = page.getByRole("table", { name: "Allocated requirements", exact: true });
   await expect(requirements.locator("tr[data-row-id]")).toHaveCount(1);
   await expect(requirements).toContainText(requirement.code);
-  await page.getByRole("button", { name: "Include everything inside", exact: true }).click();
+  // The scope is a toggle chip in the toolbar; the element's own rows are its narrowing.
+  const everythingInside = page.getByRole("button", { name: "Everything inside", exact: true });
+  await expect(everythingInside).toHaveAttribute("aria-pressed", "false");
+  await everythingInside.click();
+  await expect(everythingInside).toHaveAttribute("aria-pressed", "true");
   await expect(requirements.locator("tr[data-row-id]")).toHaveCount(2);
   await expect(requirements).toContainText(leafRequirement.code);
   await page.goto(`${origin}/programs/${program.id}/systems/${scoped.id}?tab=Baseline`);

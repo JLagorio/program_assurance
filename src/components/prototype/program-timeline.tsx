@@ -1,39 +1,23 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
-  Badge,
-  Box,
   Button,
-  IconButton,
+  DateTime,
   Inline,
+  LinkButton,
   Section,
   Stack,
+  Text,
   Timeline,
+  Truncate,
+  token,
 } from "@ledger/design-system";
-import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  CircleDashed,
-  Clock3,
-  Minus,
-  TriangleAlert,
-  X,
-} from "lucide-react";
-import { labelFor } from "@/lib/records";
-import {
-  lifecycleGateDate,
-  lifecycleGateTone,
-  programTimeline,
-  type LifecycleGate,
-} from "@/lib/program-timeline";
+import { Check, CircleDashed, Clock3, Minus, TriangleAlert, X } from "lucide-react";
+import { lifecycleGateDate, programTimeline, type LifecycleGate } from "@/lib/program-timeline";
+import { lifecycleGateStatuses, statusTone } from "@/lib/status";
+import { StatusBadge } from "@/components/app/status";
+import { EmptyMessage } from "./work-common";
 import { ProgramRecordDialog } from "./program-shared";
-
-const dateFormat = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  timeZone: "UTC",
-});
 
 function gateIcon(status: string) {
   if (["completed", "passed"].includes(status)) return <Check aria-hidden />;
@@ -44,6 +28,21 @@ function gateIcon(status: string) {
   return <CircleDashed aria-hidden />;
 }
 
+/** When a gate falls due or was decided, in the reader's words; the preview holds the full value. */
+function gateTime(gate: LifecycleGate) {
+  const date = lifecycleGateDate(gate);
+  if (!date) return "Date not set";
+  return (
+    <>
+      {date.label} <DateTime value={date.value} format="date" focusable={false} />
+    </>
+  );
+}
+
+/**
+ * One strip of gates across the Overview. The kit Timeline scrolls itself where it is narrower
+ * than its stages; each stage keeps a rail's width so its title and date stay readable.
+ */
 function GateRail({
   gates,
   label,
@@ -53,97 +52,66 @@ function GateRail({
   label: string;
   onSelect: (id: string) => void;
 }) {
-  const rail = useRef<HTMLDivElement>(null);
   return (
     <Stack space="space.050" className="min-w-0">
-      <Inline spread="space-between" alignBlock="center">
-        <span className="font-body-small text-subtle">{label}</span>
-        <Inline space="space.025">
-          <IconButton
-            label={`Scroll ${label.toLowerCase()} backward`}
-            icon={<ChevronLeft />}
-            size="small"
-            variant="subtle"
-            onClick={() => rail.current?.scrollBy({ left: -rail.current.clientWidth * 0.8 })}
-          />
-          <IconButton
-            label={`Scroll ${label.toLowerCase()} forward`}
-            icon={<ChevronRight />}
-            size="small"
-            variant="subtle"
-            onClick={() => rail.current?.scrollBy({ left: rail.current.clientWidth * 0.8 })}
-          />
-        </Inline>
-      </Inline>
-      <div
-        ref={rail}
-        role="region"
-        aria-label={label}
-        tabIndex={0}
-        className="min-w-0 overflow-x-auto rounded-medium pb-100 focus-visible:outline-focused"
+      <Text size="small" color="color.text.subtle">
+        {label}
+      </Text>
+      <Timeline
+        label={label}
+        orientation="horizontal"
+        align="start"
+        size="large"
+        style={{ minWidth: `calc(${gates.length} * ${token("dimension.layout.rail")})` }}
       >
-        <Timeline
-          label={label}
-          orientation="horizontal"
-          align="start"
-          size="large"
-          className="*:w-layout-rail *:shrink-0 *:basis-auto"
-        >
-          {gates.map((gate) => {
-            const date = lifecycleGateDate(gate);
-            const tone = lifecycleGateTone(gate.status);
-            return (
-              <Timeline.Item
-                key={gate.id}
-                title={
-                  <span className="block whitespace-normal font-body-small font-medium">
-                    {gate.title}
-                  </span>
-                }
-                icon={gateIcon(gate.status)}
-                tone={tone}
-                time={
-                  date ? `${date.label} ${dateFormat.format(new Date(date.value))}` : "Date not set"
-                }
-                dateTime={date?.value}
-                meta={gate.sequence_number !== null ? `Step ${gate.sequence_number}` : undefined}
-                onSelect={() => onSelect(gate.id)}
-                footer={
-                  <Badge size="xsmall" variant="secondary" tone={tone}>
-                    {labelFor(gate.status)}
-                  </Badge>
-                }
-              />
-            );
-          })}
-        </Timeline>
-      </div>
+        {gates.map((gate) => (
+          <Timeline.Item
+            key={gate.id}
+            title={<Truncate>{gate.title}</Truncate>}
+            icon={gateIcon(gate.status)}
+            tone={statusTone(lifecycleGateStatuses, gate.status)}
+            time={gateTime(gate)}
+            meta={gate.sequence_number !== null ? `Step ${gate.sequence_number}` : undefined}
+            onSelect={() => onSelect(gate.id)}
+            footer={
+              <StatusBadge statuses={lifecycleGateStatuses} value={gate.status} size="xsmall" />
+            }
+          />
+        ))}
+      </Timeline>
     </Stack>
   );
 }
 
 /** Program milestones use the recorded gate schedule, never inferred stage completion. */
 export function ProgramTimeline({
+  programId,
   gates,
-  onOpenSchedule,
 }: {
+  programId: string;
   gates: LifecycleGate[];
-  onOpenSchedule: () => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = gates.find((gate) => gate.id === selectedId);
   const { sequenced, scheduled, unscheduled } = programTimeline(gates);
   const completed = gates.filter((gate) => ["completed", "passed"].includes(gate.status)).length;
+  const schedule = (
+    <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Schedule" }} />
+  );
   if (!gates.length)
     return (
-      <Box padding="space.200" className="rounded-medium border border-default">
-        <Inline alignBlock="center" spread="space-between">
-          <p className="text-subtle">No lifecycle gates defined.</p>
-          <Button size="small" variant="subtle" onClick={onOpenSchedule}>
-            Set up program work
-          </Button>
-        </Inline>
-      </Box>
+      <Section title="Lifecycle timeline">
+        <EmptyMessage
+          compact
+          title="No lifecycle gates yet"
+          description="Gates mark the reviews and decisions the program passes through; they are set on the Schedule tab."
+          action={
+            <LinkButton size="small" render={schedule}>
+              Set up program work
+            </LinkButton>
+          }
+        />
+      </Section>
     );
   return (
     <>
@@ -151,9 +119,9 @@ export function ProgramTimeline({
         title="Lifecycle timeline"
         description={`${completed} of ${gates.length} gates completed`}
         action={
-          <Button size="small" variant="subtle" onClick={onOpenSchedule}>
+          <LinkButton size="small" variant="subtle" render={schedule}>
             Open schedule
-          </Button>
+          </LinkButton>
         }
       >
         <Stack space="space.150" className="min-w-0">
@@ -169,7 +137,9 @@ export function ProgramTimeline({
           )}
           {unscheduled.length > 0 && (
             <Stack space="space.075">
-              <span className="font-body-small text-subtle">Unscheduled gates</span>
+              <Text size="small" color="color.text.subtle">
+                Unscheduled gates
+              </Text>
               <Inline shouldWrap space="space.075">
                 {unscheduled.map((gate) => (
                   <Button
@@ -180,9 +150,11 @@ export function ProgramTimeline({
                     iconBefore={gateIcon(gate.status)}
                   >
                     {gate.title}
-                    <Badge size="xsmall" variant="secondary" tone={lifecycleGateTone(gate.status)}>
-                      {labelFor(gate.status)}
-                    </Badge>
+                    <StatusBadge
+                      statuses={lifecycleGateStatuses}
+                      value={gate.status}
+                      size="xsmall"
+                    />
                   </Button>
                 ))}
               </Inline>
@@ -194,6 +166,7 @@ export function ProgramTimeline({
         <ProgramRecordDialog
           table="lifecycle_gates"
           row={selected}
+          initialValues={{ program_id: programId }}
           records={[...sequenced, ...scheduled, ...unscheduled]}
           onSelect={(row) => setSelectedId(row.id)}
           onClose={() => setSelectedId(null)}

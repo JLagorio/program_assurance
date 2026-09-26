@@ -8,6 +8,8 @@ const validateSchema = new Ajv({ strict: false, allErrors: true }).compile(schem
 const source = JSON.parse(
   fs.readFileSync(new URL("../src/generated/tokens.figma.json", import.meta.url)),
 );
+// A DTCG dimension in px at the browser's default text size (16px), whichever unit it ships in.
+const px = (dimension) => (dimension.unit === "rem" ? dimension.value * 16 : dimension.value);
 const countTokens = (tree) =>
   "$value" in tree
     ? 1
@@ -22,10 +24,11 @@ test("every shipped token has a conformant 2025.10 value in both mode exports", 
     assert.deepEqual(exported, exportDtcg(source, mode));
     assert.equal(validateSchema(exported), true, JSON.stringify(validateSchema.errors));
     assert.equal(validateDtcg(exported), countTokens(source));
-    assert.deepEqual(exported.dimension.control.xsmall.$value, { value: 24, unit: "px" });
+    // Control heights and type ship in rem, so they follow the reader's text size.
+    assert.deepEqual(exported.dimension.control.xsmall.$value, { value: 1.5, unit: "rem" });
     assert.deepEqual(exported.motion.duration.micro.$value, { value: 70, unit: "ms" });
     const body = exported.font.body.default.$value;
-    assert.equal(body.fontSize.value * body.lineHeight, 18);
+    assert.equal(Math.round(px(body.fontSize) * body.lineHeight * 1000) / 1000, 18);
     assert.equal(body.fontFamily, source.font.body.default.$value.fontFamily);
     assert.equal(body.fontWeight, source.font.body.default.$value.fontWeight);
     assert.equal(
@@ -42,9 +45,13 @@ test("font-relative tracking survives the export boundary at the actual type siz
   const sourceTracking = heading.$extensions["org.ledger.css"].sourceLetterSpacing;
   assert.match(sourceTracking, /^\{/);
   const key = sourceTracking.slice(1, -1).split(".").at(-1);
+  // Tracking is exported in px at the default text size: em times the type size in px.
+  assert.equal(heading.$value.letterSpacing.unit, "px");
   assert.equal(
-    heading.$value.letterSpacing.value,
-    parseFloat(source.font.letterSpacing[key].$value) * heading.$value.fontSize.value,
+    Math.round(heading.$value.letterSpacing.value * 1000) / 1000,
+    Math.round(
+      parseFloat(source.font.letterSpacing[key].$value) * px(heading.$value.fontSize) * 1000,
+    ) / 1000,
   );
 });
 test("interchange validation rejects string dimensions, invalid composites, cycles and missing aliases", () => {

@@ -2,6 +2,21 @@ import type { LibraryComponentItem } from "@/lib/library-items";
 import { DataTable, Id, PickerSheet, defineColumns, useDataTable } from "@ledger/design-system";
 import { useMemo, useRef, useState } from "react";
 
+type LibraryComponentRow = LibraryComponentItem & { controlCount: number };
+
+const columns = defineColumns<LibraryComponentRow>((c) => [
+  c.id("definitionCode", {
+    header: "Item",
+    width: 150,
+    cell: (row) => <Id>{row.definitionCode}</Id>,
+  }),
+  c.text("definitionName", { header: "Name", priority: 0, minWidth: 200, hideable: false }),
+  c.text("detail", { header: "Component", minWidth: 200, wrap: true }),
+  c.text("category", { header: "Category", width: 160 }),
+  c.text("version", { header: "Version", width: 90 }),
+  c.number("controlCount", { header: "Controls", width: 96 }),
+]);
+
 /** Choose one published component definition from the library, at its latest published version. */
 export function LibraryComponentPicker({
   open,
@@ -19,38 +34,14 @@ export function LibraryComponentPicker({
   onClose: () => void;
 }) {
   const handingOff = useRef(false);
-  const [search, setSearch] = useState("");
   const [chosenId, setChosenId] = useState<string | null>(null);
-  const shown = useMemo(
-    () =>
-      items.filter((item) =>
-        `${item.definitionCode} ${item.definitionName} ${item.componentName} ${item.category}`
-          .toLowerCase()
-          .includes(search.toLowerCase()),
-      ),
-    [items, search],
+  // The whole library goes to the table; the sheet's search narrows it through the table's own
+  // filter, so a search that finds nothing says so and offers Clear filters.
+  const rows = useMemo(
+    () => items.map((item) => ({ ...item, controlCount: item.claimControlIds.length })),
+    [items],
   );
   const chosen = items.find((item) => item.id === chosenId) ?? null;
-  const columns = useMemo(
-    () =>
-      defineColumns<LibraryComponentItem>((c) => [
-        c.id("definitionCode", {
-          header: "Item",
-          width: 150,
-          cell: (row) => <Id>{row.definitionCode}</Id>,
-        }),
-        c.text("definitionName", { header: "Name", priority: 0, minWidth: 200, hideable: false }),
-        c.text("detail", { header: "Component", minWidth: 200, wrap: true }),
-        c.text("category", { header: "Category", width: 160 }),
-        c.text("version", { header: "Version", width: 90 }),
-        c.number("claimControlIds", {
-          header: "Controls",
-          width: 96,
-          cell: (row) => String(row.claimControlIds.length),
-        }),
-      ]),
-    [],
-  );
   const table = useDataTable({
     columns,
     selectable: true,
@@ -61,8 +52,9 @@ export function LibraryComponentPicker({
         typeof update === "function" ? update(chosenId ? { [chosenId]: true } : {}) : update;
       setChosenId(Object.keys(next).find((id) => next[id]) ?? null);
     },
-    data: shown,
+    data: rows,
     getRowId: (row) => row.id,
+    rowLabel: (row) => `${row.definitionCode} ${row.definitionName}`,
     label: "Library components",
     view: "library-component-picker",
   });
@@ -73,10 +65,10 @@ export function LibraryComponentPicker({
       onClose={onClose}
       title="Add from library"
       subtitle={`Under ${parentLabel}`}
-      width={880}
-      search={{ value: search, onChange: setSearch, placeholder: "Search the library" }}
-      selected={chosen ? 1 : 0}
-      total={shown.length}
+      width="xlarge"
+      table={table}
+      search={{ placeholder: "Search the library" }}
+      summary={chosen ? `${chosen.componentName} chosen` : undefined}
       action={{
         label: chosen ? `Add ${chosen.componentName} under ${parentLabel}` : "Add component",
         onClick: () => {

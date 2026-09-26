@@ -149,6 +149,10 @@ function tabLayoutOverride(context, node) {
   return null;
 }
 
+/** Footers whose Cancel comes before the primary, and the parts that dismiss. */
+const FOOTERS = /^(Dialog|AlertDialog|Sheet|Drawer)Footer$/;
+const CLOSES = /^(Dialog|Sheet|Drawer)Close$|^AlertDialogCancel$/;
+
 export const compositionRules = {
   "product-responsive-table": rule(
     "Product DataTable instances explicitly enable responsive column adaptation.",
@@ -216,6 +220,18 @@ export const compositionRules = {
       JSXOpeningElement(node) {
         if (names.name(node.name) !== "TextLink") return;
         const render = attribute(node, "render");
+        if (
+          !render &&
+          !attribute(node, "href") &&
+          !node.attributes.some((item) => item.type === "JSXSpreadAttribute")
+        ) {
+          context.report({
+            node,
+            message:
+              "TextLink needs a destination: an href, or a router link in render. An action that reads as text is a Button.",
+          });
+          return;
+        }
         const element = render?.value?.expression;
         if (element?.type !== "JSXElement") return;
         const rendered = names.name(element.openingElement.name);
@@ -237,23 +253,31 @@ export const compositionRules = {
       return {
         ImportDeclaration: names.import,
         JSXElement(node) {
-          if (names.name(node.openingElement.name) !== "DialogFooter") return;
+          if (!FOOTERS.test(names.name(node.openingElement.name))) return;
           const buttons = [];
           const visit = (child) => {
             if (!child) return;
             if (child.type === "JSXElement") {
               const name = names.name(child.openingElement.name);
-              if (["Button", "DialogClose"].includes(name)) {
+              if (name === "Button" || name === "AlertDialogAction" || CLOSES.test(name)) {
                 const text = child.children
                   .map((part) => (part.type === "JSXText" ? part.value : (literal(part) ?? "")))
                   .join("")
                   .trim();
+                // A close part rendered as a kit Button carries its variant on the render element.
+                const rendered = unwrap(attribute(child.openingElement, "render")?.value);
+                const variant =
+                  literal(attribute(child.openingElement, "variant")?.value) ??
+                  (rendered?.type === "JSXElement"
+                    ? literal(attribute(rendered.openingElement, "variant")?.value)
+                    : undefined);
                 buttons.push({
                   node: child,
-                  cancel: text === "Cancel",
-                  primary: literal(attribute(child.openingElement, "variant")?.value) === "primary",
+                  cancel: text === "Cancel" || (CLOSES.test(name) && variant !== "primary"),
+                  primary: variant === "primary" || name === "AlertDialogAction",
                 });
-              } else if (!/^(Dialog|AlertDialog|Sheet)/.test(name)) child.children.forEach(visit);
+              } else if (!/^(Dialog|AlertDialog|Sheet|Drawer)/.test(name))
+                child.children.forEach(visit);
             } else if (child.type === "JSXFragment") child.children.forEach(visit);
             else if (child.type === "JSXExpressionContainer") visit(child.expression);
             else if (child.type === "LogicalExpression") visit(child.right);
@@ -266,7 +290,8 @@ export const compositionRules = {
             if (button.cancel && index > firstPrimary)
               context.report({
                 node: button.node,
-                message: "Place Cancel before the primary action in DialogFooter.",
+                message:
+                  "Place Cancel, or the close part, before the primary action in the footer.",
               });
         },
       };

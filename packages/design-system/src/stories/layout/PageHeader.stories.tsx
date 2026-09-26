@@ -14,12 +14,15 @@ import {
   DropdownMenuItem,
   HeadingLevelProvider,
   PageHeader,
+  PageHeaderLead,
+  PageHeaderTitle,
   Section,
 } from "../..";
 
 const meta = {
   title: "Layout/PageHeader",
   component: PageHeader,
+  subcomponents: { PageHeaderTitle, PageHeaderLead },
   parameters: { layout: "padded" },
 } satisfies Meta<typeof PageHeader>;
 export default meta;

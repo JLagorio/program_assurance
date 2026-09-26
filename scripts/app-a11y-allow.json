@@ -1,0 +1,9 @@
+{
+  "about": "Known axe violations and console messages per screen when the sweep landed, counted by rule. The counts may only shrink: fix the screen and lower its entry (scripts/check-allow-lists.mjs compares with the base branch).",
+  "screens": {
+    "390 /programs preview": {
+      "landmark-one-main": 1,
+      "page-has-heading-one": 1
+    }
+  }
+}

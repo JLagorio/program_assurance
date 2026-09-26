@@ -14,6 +14,7 @@ import { token } from "../../generated/tokens";
 import { announce, Announcer } from "../../lib/announce";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
+import { HeadingLevelProvider } from "../../primitives/heading-level";
 import { AreaPortal, SlotsContext } from "../slots";
 import { applyShell, readShell, SHELL_STORAGE_KEY, writeShell } from "../storage";
 import {
@@ -197,12 +198,65 @@ export function ShellRoot({
     },
     [collapsedSideNav],
   );
+  // A splitter drag follows the pointer on the root element's own style and keeps the width once,
+  // when the pointer lets go: every pointer move would otherwise re-render each part that reads the
+  // shell, write the browser's storage and restyle the document. A width set any other way (a key,
+  // a default, a reset) is kept at once. The grid's columns animate when the panel opens or closes
+  // (shell.css); while a drag moves them they follow the pointer instead of easing behind it.
+  const drag = useRef<{ sideNav?: number; panel?: number; transition?: string } | null>(null);
+  const liveWidth = useCallback((area: "sideNav" | "panel", width: number | null) => {
+    const root = rootRef.current;
+    const current = drag.current;
+    if (!current || !root || width === null) return false;
+    if (current.transition === undefined) {
+      current.transition = root.style.transition;
+      root.style.transition = "none";
+    }
+    current[area] = width;
+    root.style.setProperty(
+      area === "sideNav" ? "--shell-sidenav-width" : "--shell-panel-width",
+      `${width}px`,
+    );
+    return true;
+  }, []);
+  const startDrag = useCallback(() => {
+    if (drag.current) return;
+    drag.current = {};
+    const doc = rootRef.current?.ownerDocument ?? document;
+    // On the document, so the splitter has handled the release (or put the width back after a
+    // cancelled gesture) first, and a release outside the shell still ends the drag.
+    const end = () => {
+      doc.removeEventListener("pointerup", end);
+      doc.removeEventListener("pointercancel", end);
+      const dragged = drag.current;
+      drag.current = null;
+      const root = rootRef.current;
+      if (root && dragged?.transition !== undefined) {
+        // Style the last width without a transition, then give the columns theirs back.
+        void getComputedStyle(root).transitionProperty;
+        root.style.transition = dragged.transition;
+      }
+      if (dragged?.sideNav !== undefined) setSideNavWidth(dragged.sideNav);
+      if (dragged?.panel !== undefined) setPanelWidth(dragged.panel);
+    };
+    doc.addEventListener("pointerup", end);
+    doc.addEventListener("pointercancel", end);
+  }, []);
   // A drag follows the pointer immediately. Only explicit expand/collapse changes animate;
   // restoring a saved width or crossing a breakpoint must not animate the initial layout.
-  const resizeSideNav = useCallback((width: number | null) => {
-    setSideNavMotion(false);
-    setSideNavWidth(width);
-  }, []);
+  const resizeSideNav = useCallback(
+    (width: number | null) => {
+      setSideNavMotion(false);
+      if (!liveWidth("sideNav", width)) setSideNavWidth(width);
+    },
+    [liveWidth],
+  );
+  const resizePanel = useCallback(
+    (width: number | null) => {
+      if (!liveWidth("panel", width)) setPanelWidth(width);
+    },
+    [liveWidth],
+  );
   const toggleSideNav = useCallback(
     (trigger: SideNavTrigger = "hook") => {
       if (isDesktop) (expanded ? collapseSideNav : expandSideNav)(trigger);
@@ -333,7 +387,7 @@ export function ShellRoot({
       endPeek,
       holdPeek,
       setSideNavWidth: resizeSideNav,
-      setPanelWidth,
+      setPanelWidth: resizePanel,
       setBanner,
       registerSkipLink,
       skipLinks,
@@ -359,6 +413,7 @@ export function ShellRoot({
       endPeek,
       holdPeek,
       resizeSideNav,
+      resizePanel,
       registerSkipLink,
       skipLinks,
       focusThePage,
@@ -392,6 +447,7 @@ export function ShellRoot({
           onPointerDownCapture={(event) => {
             onPointerDownCapture?.(event);
             const target = event.target as HTMLElement;
+            if (event.button === 0 && target.closest('[data-slot="shell-splitter"]')) startDrag();
             if (target.closest(MAIN)) {
               const control = target.closest<HTMLElement>(
                 "button, a[href], input, textarea, select, [tabindex]",
@@ -507,7 +563,11 @@ export type ShellAsideProps = ComponentProps<"aside"> & {
   label?: string | undefined;
 };
 
-/** Supporting page context. It follows Main on smaller screens and sits beside it when space permits. */
+/**
+ * Supporting page context. It follows Main on smaller screens and sits beside it when space
+ * permits. Its outline starts under the page's h1 wherever it is rendered: a heading placed
+ * directly inside (an Inspector group, a Section) is an h2.
+ */
 export function Aside({ children, label, className, ...props }: ShellAsideProps) {
   const { t } = useLedgerLocale();
   if (children === null || children === undefined || children === false) return null;
@@ -520,7 +580,7 @@ export function Aside({ children, label, className, ...props }: ShellAsideProps)
         aria-label={label ?? t("pageContext")}
         className={cn("min-w-0 p-200 lg:p-300", className)}
       >
-        {children}
+        <HeadingLevelProvider level={2}>{children}</HeadingLevelProvider>
       </aside>
     </AreaPortal>
   );

@@ -760,6 +760,16 @@
               }
             }
           }
+        },
+        "track": {
+          "$type": "color",
+          "$value": "{color.neutral.600}",
+          "$description": "The unchecked track of a switch: the control's boundary, at 3:1 against every surface, with the unchecked thumb at 3:1 on it. Not the neutral fill buttons and badges share.",
+          "$extensions": {
+            "ledger": {
+              "introduced": "0.7.0"
+            }
+          }
         }
       },
       "inverse": {
@@ -3642,68 +3652,68 @@
       "xsmall": {
         "$type": "dimension",
         "$value": {
-          "value": 24,
-          "unit": "px"
+          "value": 1.5,
+          "unit": "rem"
         },
-        "$description": "Extra-small control height. Button xs."
+        "$description": "Extra-small control height, 24px at the browser's default text size. Button xs."
       },
       "small": {
         "$type": "dimension",
         "$value": {
-          "value": 28,
-          "unit": "px"
+          "value": 1.75,
+          "unit": "rem"
         },
-        "$description": "Small control height. Button sm, chips, menu items, sidebar items."
+        "$description": "Small control height, 28px at the default text size. Button sm, chips, menu items, sidebar items."
       },
       "medium": {
         "$type": "dimension",
         "$value": {
-          "value": 32,
-          "unit": "px"
+          "value": 2,
+          "unit": "rem"
         },
-        "$description": "Default control height. Button md, inputs, selects, combobox triggers."
+        "$description": "Default control height, 32px at the default text size. In rem, like the type, so a reader who raises the browser's text size gets taller controls. Button md, inputs, selects, combobox triggers."
       },
       "large": {
         "$type": "dimension",
         "$value": {
-          "value": 36,
-          "unit": "px"
+          "value": 2.25,
+          "unit": "rem"
         },
-        "$description": "Large control height. Reserved for hero forms."
+        "$description": "Large control height, 36px at the default text size. Reserved for hero forms."
       }
     },
     "row": {
       "compact": {
         "$type": "dimension",
         "$value": {
-          "value": 36,
-          "unit": "px"
+          "value": 2.25,
+          "unit": "rem"
         },
-        "$description": "Compact table row."
+        "$description": "Compact table row, 36px at the default text size."
       },
       "default": {
         "$type": "dimension",
         "$value": {
-          "value": 40,
-          "unit": "px"
+          "value": 2.5,
+          "unit": "rem"
         },
-        "$description": "Default table row."
+        "$description": "Default table row, 40px at the default text size. In rem, like the type it holds."
       },
       "header": {
         "$type": "dimension",
         "$value": {
-          "value": 32,
-          "unit": "px"
+          "value": 2,
+          "unit": "rem"
         },
-        "$description": "Table header row."
+        "$description": "Table header row, 32px at the default text size."
       },
       "menu": {
         "$type": "dimension",
         "$value": {
-          "value": 28,
-          "unit": "px"
+          "value": 1.75,
+          "unit": "rem"
         },
-        "$description": "Menu, command and tree rows."
+        "$description": "Menu, command and tree rows, 28px at the default text size."
       }
     },
     "icon": {
@@ -4488,8 +4498,8 @@
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
           "fontSize": {
-            "value": 15,
-            "unit": "px"
+            "value": 0.9375,
+            "unit": "rem"
           },
           "lineHeight": 1.4666666666666666,
           "letterSpacing": {
@@ -4500,7 +4510,7 @@
         "$description": "Reading text and dialog body.",
         "$extensions": {
           "org.ledger.css": {
-            "sourceLineHeight": "22px",
+            "sourceLineHeight": "1.375rem",
             "sourceLetterSpacing": "{font.letterSpacing.200}"
           }
         }
@@ -4511,8 +4521,8 @@
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
           "fontSize": {
-            "value": 12,
-            "unit": "px"
+            "value": 0.75,
+            "unit": "rem"
           },
           "lineHeight": 1.3333333333333333,
           "letterSpacing": {
@@ -4523,7 +4533,7 @@
         "$description": "Table headers, field labels, badges, KeyValue. Labels add font.weight.medium.",
         "$extensions": {
           "org.ledger.css": {
-            "sourceLineHeight": "16px",
+            "sourceLineHeight": "1rem",
             "sourceLetterSpacing": "{font.letterSpacing.100}"
           }
         }
@@ -4534,8 +4544,8 @@
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
           "fontSize": {
-            "value": 11,
-            "unit": "px"
+            "value": 0.6875,
+            "unit": "rem"
           },
           "lineHeight": 1.2727272727272727,
           "letterSpacing": {
@@ -4546,7 +4556,7 @@
         "$description": "Eyebrow, counts, metadata.",
         "$extensions": {
           "org.ledger.css": {
-            "sourceLineHeight": "14px",
+            "sourceLineHeight": "0.875rem",
             "sourceLetterSpacing": "{font.letterSpacing.100}"
           }
         }
@@ -4557,8 +4567,8 @@
           "fontFamily": "{font.family.body}",
           "fontWeight": "{font.weight.regular}",
           "fontSize": {
-            "value": 13,
-            "unit": "px"
+            "value": 0.8125,
+            "unit": "rem"
           },
           "lineHeight": 1.3846153846153846,
           "letterSpacing": {
@@ -4566,10 +4576,10 @@
             "unit": "px"
           }
         },
-        "$description": "Controls, cells, tabs, inputs, menu items. The UI size.",
+        "$description": "Controls, cells, tabs, inputs, menu items. The UI size: 13/18px at the browser's default text size. Every size and line height is in rem, so the reader's text-size setting reaches them.",
         "$extensions": {
           "org.ledger.css": {
-            "sourceLineHeight": "18px",
+            "sourceLineHeight": "1.125rem",
             "sourceLetterSpacing": "{font.letterSpacing.200}"
           }
         }
@@ -4582,8 +4592,8 @@
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
           "fontSize": {
-            "value": 28,
-            "unit": "px"
+            "value": 1.75,
+            "unit": "rem"
           },
           "lineHeight": 1.2142857142857142,
           "letterSpacing": {
@@ -4594,7 +4604,7 @@
         "$description": "Display: a stat value, a dashboard number. Not a page title.",
         "$extensions": {
           "org.ledger.css": {
-            "sourceLineHeight": "34px",
+            "sourceLineHeight": "2.125rem",
             "sourceLetterSpacing": "{font.letterSpacing.400}"
           }
         }
@@ -4605,8 +4615,8 @@
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
           "fontSize": {
-            "value": 22,
-            "unit": "px"
+            "value": 1.375,
+            "unit": "rem"
           },
           "lineHeight": 1.2727272727272727,
           "letterSpacing": {
@@ -4617,7 +4627,7 @@
         "$description": "Page and record titles. The only semibold.",
         "$extensions": {
           "org.ledger.css": {
-            "sourceLineHeight": "28px",
+            "sourceLineHeight": "1.75rem",
             "sourceLetterSpacing": "{font.letterSpacing.400}"
           }
         }
@@ -4628,8 +4638,8 @@
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.medium}",
           "fontSize": {
-            "value": 20,
-            "unit": "px"
+            "value": 1.25,
+            "unit": "rem"
           },
           "lineHeight": 1.3,
           "letterSpacing": {
@@ -4640,7 +4650,7 @@
         "$description": "Section headings.",
         "$extensions": {
           "org.ledger.css": {
-            "sourceLineHeight": "26px",
+            "sourceLineHeight": "1.625rem",
             "sourceLetterSpacing": "{font.letterSpacing.300}"
           }
         }
@@ -4651,8 +4661,8 @@
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.medium}",
           "fontSize": {
-            "value": 15,
-            "unit": "px"
+            "value": 0.9375,
+            "unit": "rem"
           },
           "lineHeight": 1.4666666666666666,
           "letterSpacing": {
@@ -4663,7 +4673,7 @@
         "$description": "Dialog and card titles.",
         "$extensions": {
           "org.ledger.css": {
-            "sourceLineHeight": "22px",
+            "sourceLineHeight": "1.375rem",
             "sourceLetterSpacing": "{font.letterSpacing.300}"
           }
         }
@@ -4674,8 +4684,8 @@
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.medium}",
           "fontSize": {
-            "value": 11,
-            "unit": "px"
+            "value": 0.6875,
+            "unit": "rem"
           },
           "lineHeight": 1.2727272727272727,
           "letterSpacing": {
@@ -4686,7 +4696,7 @@
         "$description": "Eyebrows, group headings and menu section labels. The component adds the uppercase.",
         "$extensions": {
           "org.ledger.css": {
-            "sourceLineHeight": "14px",
+            "sourceLineHeight": "0.875rem",
             "sourceLetterSpacing": "{font.letterSpacing.500}"
           }
         }
@@ -4698,8 +4708,8 @@
         "fontFamily": "{font.family.code}",
         "fontWeight": "{font.weight.regular}",
         "fontSize": {
-          "value": 12,
-          "unit": "px"
+          "value": 0.75,
+          "unit": "rem"
         },
         "lineHeight": 1.5,
         "letterSpacing": {
@@ -4710,7 +4720,7 @@
       "$description": "Code blocks only.",
       "$extensions": {
         "org.ledger.css": {
-          "sourceLineHeight": "18px",
+          "sourceLineHeight": "1.125rem",
           "sourceLetterSpacing": "{font.letterSpacing.0}"
         }
       }

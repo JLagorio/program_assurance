@@ -1,17 +1,21 @@
+import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
-import { LibraryEditor, LibraryLoading } from "@/components/prototype/library-shared";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
 import { ProductCollection } from "@/components/prototype/product-collection";
+import { ProductRecordDialog } from "@/components/prototype/product-record-dialog";
 import { RecordLink, useDisplayedRecords } from "@/components/prototype/record-preview";
 import { RecordSummaryPreview } from "@/components/prototype/record-summary-preview";
 import { useRows, type Row } from "@/lib/models";
+import { revisionStates } from "@/lib/status";
 import {
+  Absent,
   Button,
   DataTable,
   defineColumns,
   PageHeader,
   Stack,
   useDataTable,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
@@ -34,18 +38,33 @@ const presets = [
     filters: [{ id: "kind", value: ["Workspace profile"] }],
   },
 ];
+type ProfileRow = Row<"profiles"> & {
+  kind: string;
+  version: string | null;
+  status: string | null;
+  selection: number | null;
+  drafts: string;
+};
 function ProfilesIndex() {
   const navigate = useNavigate();
   const workspace = useWorkspace();
+  const locale = useLedgerLocale();
   const profiles = useRows("profiles");
-  const revisions = useRows("profile_revisions");
-  const resolutions = useRows("profile_resolutions");
-  const selections = useRows("selected_controls");
+  // Only what the register shows: the selections are counted, never read, so they come as ids.
+  const revisions = useRows("profile_revisions", undefined, {
+    columns: ["id", "profile_id", "created_at", "version", "state"],
+  });
+  const resolutions = useRows("profile_resolutions", undefined, {
+    columns: ["id", "profile_revision_id", "resolved_at"],
+  });
+  const selections = useRows("selected_controls", undefined, {
+    columns: ["id", "profile_resolution_id"],
+  });
   const [creating, setCreating] = useState(false);
-  const [selected, setSelected] = useState<Row<"profiles"> | null>(null);
+  const [selected, setSelected] = useState<ProfileRow | null>(null);
   const rows = useMemo(
     () =>
-      (profiles.data ?? []).map((profile) => {
+      (profiles.data ?? []).map((profile): ProfileRow => {
         const versions = (revisions.data ?? [])
           .filter((revision) => revision.profile_id === profile.id)
           .sort((a, b) => b.created_at.localeCompare(a.created_at));
@@ -56,14 +75,13 @@ function ProfilesIndex() {
         return {
           ...profile,
           kind: profile.tenant_id ? "Workspace profile" : "Shared reference",
-          version: revision?.version ?? "No revisions",
-          status: revision?.state ?? "No revisions",
+          version: revision?.version ?? null,
+          status: revision?.state ?? null,
+          // A count, so the column sorts as a number; nothing when no resolution is recorded.
           selection: resolution
-            ? String(
-                selections.data?.filter((item) => item.profile_resolution_id === resolution.id)
-                  .length ?? 0,
-              )
-            : "Not resolved",
+            ? (selections.data?.filter((item) => item.profile_resolution_id === resolution.id)
+                .length ?? 0)
+            : null,
           drafts: versions.some((item) => item.state === "draft") ? "Has draft" : "No draft",
         };
       }),
@@ -91,10 +109,10 @@ function ProfilesIndex() {
           active: (row) => row.id === selected?.id,
         }),
         c.text("kind", { header: "Source", width: 160 }),
-        c.text("version", { header: "Latest revision", width: 125 }),
-        c.status("status", { header: "State", width: 125, tone: () => "neutral" }),
+        c.text("version", { header: "Latest revision", width: 150 }),
+        c.status("status", { header: "State", width: 125, statuses: revisionStates }),
         c.text("drafts", { header: "Drafts", width: 110 }),
-        c.text("selection", { header: "Controls", width: 115 }),
+        c.number("selection", { header: "Controls", width: 115 }),
       ]),
     [selected?.id],
   );
@@ -117,7 +135,7 @@ function ProfilesIndex() {
         </PageHeader.Heading>
       </PageHeader>
       {creating && (
-        <LibraryEditor
+        <ProductRecordDialog
           table="profiles"
           onClose={() => setCreating(false)}
           onSaved={(record) => {
@@ -125,19 +143,45 @@ function ProfilesIndex() {
           }}
         />
       )}
-      <LibraryLoading queries={[profiles, revisions, resolutions, selections]}>
-        <ProductCollection
-          table={table}
-          fill
-          onRowClick={(row) => {
-            void navigate({ to: "/profiles/$profileId", params: { profileId: row.id } });
-          }}
-          empty={{
-            illustration: "shield",
-            title: "No profiles yet",
-            description:
-              "A profile is a versioned control selection with its source imports and tailoring. Author the first, or import a shared reference.",
-            action: canCreate ? (
+      <ProductCollection
+        table={table}
+        queries={[profiles, revisions, resolutions, selections]}
+        fill
+        onRowClick={(row) => {
+          void navigate({ to: "/profiles/$profileId", params: { profileId: row.id } });
+        }}
+        empty={{
+          illustration: "shield",
+          title: "No profiles yet",
+          description:
+            "A profile is a versioned control selection with its source imports and tailoring. Author the first, or import a shared reference.",
+          action: canCreate ? (
+            <Button
+              size="small"
+              variant="primary"
+              iconBefore={<Plus />}
+              onClick={() => setCreating(true)}
+            >
+              Create profile
+            </Button>
+          ) : undefined,
+        }}
+        searchLabel="Find profiles"
+        views={
+          <>
+            <DataTable.Presets table={table} variant="menu" presets={presets} />
+          </>
+        }
+        filters={
+          <>
+            <DataTable.Filter table={table} column="kind" />
+            <DataTable.Filter table={table} column="status" />
+            <DataTable.Filter table={table} column="drafts" />
+          </>
+        }
+        action={
+          <>
+            {canCreate && (
               <Button
                 size="small"
                 variant="primary"
@@ -146,47 +190,42 @@ function ProfilesIndex() {
               >
                 Create profile
               </Button>
-            ) : undefined,
-          }}
-          searchLabel="Find profiles"
-          views={
-            <>
-              <DataTable.Presets table={table} variant="menu" presets={presets} />
-            </>
-          }
-          filters={
-            <>
-              <DataTable.Filter table={table} column="kind" />
-              <DataTable.Filter table={table} column="status" />
-              <DataTable.Filter table={table} column="drafts" />
-            </>
-          }
-          action={
-            <>
-              {canCreate && (
-                <Button
-                  size="small"
-                  variant="primary"
-                  iconBefore={<Plus />}
-                  disabled={creating}
-                  onClick={() => setCreating(true)}
-                >
-                  Create profile
-                </Button>
-              )}
-            </>
-          }
-        />
-      </LibraryLoading>
+            )}
+          </>
+        }
+      />
       {selected && (
         <RecordSummaryPreview
           model="profiles"
           fields={[
             { key: "code", label: "Code" },
             { key: "kind", label: "Source" },
-            { key: "version", label: "Latest revision" },
-            { key: "status", label: "State" },
-            { key: "selection", label: "Controls" },
+            {
+              key: "version",
+              label: "Latest revision",
+              render: (row) => row.version ?? <Absent label="No revisions" />,
+            },
+            {
+              key: "status",
+              label: "State",
+              render: (row) => (
+                <StatusBadge
+                  statuses={revisionStates}
+                  value={row.status}
+                  absentLabel="No revisions"
+                />
+              ),
+            },
+            {
+              key: "selection",
+              label: "Controls",
+              render: (row) =>
+                row.selection === null ? (
+                  <Absent label="Not resolved" />
+                ) : (
+                  locale.formatNumber(row.selection)
+                ),
+            },
           ]}
           record={selected}
           rows={displayed}

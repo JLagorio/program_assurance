@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ComponentProps, type ReactNode } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -23,7 +23,7 @@ export type InspectorGroupData = {
   rows: { label: string; value: ReactNode }[];
 };
 
-export type InspectorProps = {
+export type InspectorProps = Omit<ComponentProps<"div">, "children"> & {
   /** The groups, in the order the reader needs them. Every group opens. */
   groups: InspectorGroupData[];
   /** Under the groups: a link button, "Edit properties". */
@@ -31,7 +31,7 @@ export type InspectorProps = {
 };
 
 /** Reusable groups of properties. The surrounding layout owns positioning and scrolling. Each group's heading takes the contextual level: an h3 outside every HeadingLevelProvider, an h3 in a titled panel's body, an h2 in an Aside wrapped in `HeadingLevelProvider level={2}`. */
-function InspectorRoot({ groups, footer }: InspectorProps) {
+function InspectorRoot({ groups, footer, ...props }: InspectorProps) {
   const body = (
     <>
       <Accordion defaultValue={groups.map((g) => g.title)} multiple className="border-b-0">
@@ -59,10 +59,17 @@ function InspectorRoot({ groups, footer }: InspectorProps) {
       {footer ? <div className="pt-150">{footer}</div> : null}
     </>
   );
-  return <div>{body}</div>;
+  return (
+    <div {...props} data-slot="inspector">
+      {body}
+    </div>
+  );
 }
 
-export type InspectorGroupProps = {
+export type InspectorGroupProps = Omit<
+  ComponentProps<"div">,
+  "title" | "children" | "className" | "defaultValue"
+> & {
   /** The group's name, a noun for the kind of fact: "Ownership", "Exposure". */
   title: string;
   /** KeyValue rows, a handful; a row of Badges; a short list. */
@@ -78,8 +85,8 @@ export type InspectorGroupProps = {
   className?: string | undefined;
 };
 
-/** One group of facts on its own: a folding row, open by default, KeyValue rows as children. Its title is a CollapsibleHeader, a button inside a heading at the contextual level (an h3 outside every provider), with a chevron that turns while the group is open. The action sits beside the title while the whole title fits beside it on one line; otherwise it takes the next row, at the end, rather than squeezing the title. */
-function InspectorGroup({
+/** One group of facts on its own: a folding row, open by default, KeyValue rows as children. Native `div` props and the ref reach the group's root. Its title is a CollapsibleHeader, a button inside a heading at the contextual level (an h3 outside every provider), with a chevron that turns while the group is open. The action sits beside the title while the whole title fits beside it on one line; otherwise it takes the next row, at the end, rather than squeezing the title. */
+export function InspectorGroup({
   title,
   children,
   action,
@@ -87,11 +94,14 @@ function InspectorGroup({
   open,
   onOpenChange,
   className,
+  ...props
 }: InspectorGroupProps) {
   return (
     <Collapsible
+      {...props}
       {...(open === undefined ? { defaultOpen } : { open })}
       {...(onOpenChange ? { onOpenChange } : {})}
+      data-slot="inspector-group"
       className={cn("border-t border-default first:border-t-0", className)}
     >
       <div className="flex min-w-0 flex-wrap items-center gap-100">

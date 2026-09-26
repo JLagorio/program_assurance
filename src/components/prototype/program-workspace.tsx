@@ -1,45 +1,50 @@
-import { EmptyMessage, MissingRecord } from "./work-common";
-import { useMemo, useState } from "react";
+import { EmptyMessage, MissingRecord, type QueryStatus } from "./work-common";
+import { useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   Badge,
-  Box,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
   Button,
   Count,
+  DateTime,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuLinkItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyTitle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Grid,
+  HeadingLevelProvider,
   Id,
   Inline,
   Inspector,
+  Item,
   KeyValue,
   PageHeader,
+  Prose,
+  Related,
   Section,
   Shell,
+  Skeleton,
   Stack,
+  Stat,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
   TextLink,
 } from "@ledger/design-system";
-import { ArrowUpRight, ChevronDown, Pencil } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useRows, useRow } from "@/lib/models";
 import { useProductLookup } from "@/lib/product-items";
-import { displayValue, labelFor, type DataRecord } from "@/lib/records";
+import { labelFor, type DataRecord } from "@/lib/records";
+import { authorizationStatuses, programStatuses } from "@/lib/status";
+import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { AssessmentBrowser } from "@/components/prototype/assessment-browser";
 import { EvidenceBrowser } from "@/components/prototype/evidence-browser";
@@ -50,9 +55,11 @@ import { ProgramSystemsTree } from "./program-systems-tree";
 import { ProgramLibrary } from "./program-library";
 import { ProgramTimeline } from "./program-timeline";
 import { ProgramSspAssembly } from "./ssp-assembly";
+import { RecordTrail, TrailLink } from "./record-trail";
+import { RelationName } from "./record-tools";
 import type { SystemElement } from "@/lib/system-tree";
 import type { RequirementTab } from "./requirement-record";
-import { ProgramCollection, ProgramQueryState, ProgramEditor, StatusValue } from "./program-shared";
+import { ProgramCollection, ProgramQueryState, ProgramEditor } from "./program-shared";
 
 export const programTabs = [
   "Overview",
@@ -84,6 +91,30 @@ export function programTab(value: unknown): ProgramTab {
   };
   return programTabs.find((tab) => tab.toLowerCase() === text) ?? alias[text] ?? "Overview";
 }
+
+/**
+ * The program's focused views, each a page of its own under the program. A view that repeats a
+ * tab ("Cyber T&E phases", the Assessment campaigns tab) or lands back on the Overview (the old
+ * dashboard address) is not offered here.
+ */
+const programViews = [
+  ["Configuration baseline", "/programs/$programId/baseline"],
+  ["Traceability matrix", "/programs/$programId/sctm"],
+  ["Inheritance resolution", "/programs/$programId/inheritance"],
+  ["Authorization", "/programs/$programId/authorization"],
+  ["Continuous monitoring", "/programs/$programId/conmon"],
+  ["Scanner ingestion", "/programs/$programId/ingestion"],
+  ["Program transfer", "/programs/$programId/export"],
+] as const;
+
+/** A headline count: a skeleton while it loads, an Absent that says so when it cannot. */
+function openCount(query: QueryStatus, value: number | undefined): ReactNode {
+  if (value !== undefined) return value;
+  // The tile's note says why; the value says only that there is no number.
+  if (query.isError) return <Absent label="Not available" />;
+  return <Skeleton shape="heading" width={40} />;
+}
+
 export function ProgramWorkspace({
   programId,
   tab = "Overview",
@@ -101,7 +132,6 @@ export function ProgramWorkspace({
   const navigate = useNavigate();
   const query = useRow("programs", programId);
   const systems = useRows("systems", { program_id: programId });
-  const componentLinks = useRows("system_component_element_links");
   const requirements = useRows("engineering_requirements", { program_id: programId });
   const tasks = useRows("tasks", { program_id: programId });
   const issues = useRows("operational_issues", { program_id: programId });
@@ -143,6 +173,7 @@ export function ProgramWorkspace({
     return <ProgramQueryState queries={[query]} />;
   if (!query.data) return <MissingRecord backTo="/programs" kind="Program" />;
   const program = query.data;
+  const programName = `${program.code} · ${program.name}`;
   const counts: Partial<Record<ProgramTab, number>> = {
     ...(systems.isSuccess && { System: systems.data.length }),
     ...(requirements.isSuccess && { Requirements: requirements.data.length }),
@@ -155,32 +186,28 @@ export function ProgramWorkspace({
     (issue) => !["closed", "resolved", "cancelled"].includes(issue.status),
   );
   const openRisks = risks.data?.filter((risk) => risk.status !== "closed");
+  const queues = [
+    { label: "Open tasks", query: tasks, value: openTasks?.length },
+    { label: "Open issues", query: issues, value: openIssues?.length },
+    { label: "Open risks", query: risks, value: openRisks?.length },
+  ];
+  const canEditProgram = workspace.role !== "viewer";
+  const tabLink = (next: ProgramTab) => (
+    <Link to="/programs/$programId" params={{ programId }} search={{ tab: next }} />
+  );
   return (
     <>
       <Stack space="space.200" className="min-w-0">
         {query.error && <ProgramQueryState queries={[query]} />}
         <PageHeader>
-          <PageHeader.Lead render={<Breadcrumb />}>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  {program.code} · {program.name}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-              {view && (
-                <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{view}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </>
-              )}
-            </BreadcrumbList>
-          </PageHeader.Lead>
+          <RecordTrail current={view ?? programName}>
+            <TrailLink to="/programs">Programs</TrailLink>
+            {view && (
+              <TrailLink to="/programs/$programId" params={{ programId }}>
+                {programName}
+              </TrailLink>
+            )}
+          </RecordTrail>
           <PageHeader.Heading>
             <PageHeader.Title>{program.name}</PageHeader.Title>
           </PageHeader.Heading>
@@ -188,322 +215,318 @@ export function ProgramWorkspace({
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
               <DropdownMenuContent align="end">
-                {" "}
-                {workspace.role !== "viewer" && (
-                  <DropdownMenuItem onClick={() => setEditing(true)}>Edit program</DropdownMenuItem>
+                {canEditProgram && (
+                  <>
+                    <DropdownMenuItem onClick={() => setEditing(true)}>
+                      Edit program
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
                 )}
-                {(
-                  [
-                    ["Configuration baseline", "/programs/$programId/baseline"],
-                    ["Traceability matrix", "/programs/$programId/sctm"],
-                    ["Inheritance resolution", "/programs/$programId/inheritance"],
-                    ["Authorization", "/programs/$programId/authorization"],
-                    ["Program dashboard", "/programs/$programId/dashboard"],
-                    ["Continuous monitoring", "/programs/$programId/conmon"],
-                    ["Scanner ingestion", "/programs/$programId/ingestion"],
-                    ["Cyber T&E phases", "/programs/$programId/te-phases"],
-                    ["Program transfer", "/programs/$programId/export"],
-                  ] as const
-                ).map(([label, to]) => (
-                  <DropdownMenuItem
-                    key={to}
-                    onClick={() => void navigate({ to, params: { programId } })}
-                  >
-                    {label}
-                  </DropdownMenuItem>
-                ))}
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Views</DropdownMenuLabel>
+                  {programViews.map(([label, to]) => (
+                    <DropdownMenuLinkItem
+                      key={to}
+                      closeOnClick
+                      render={<Link to={to} params={{ programId }} />}
+                    >
+                      {label}
+                    </DropdownMenuLinkItem>
+                  ))}
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </PageHeader.Actions>
         </PageHeader>
-        <Tabs value={tab} onValueChange={(value) => select(programTab(value))} className="gap-150">
-          <TabsList variant="line" aria-label="Program work">
-            {programTabs.map((name) => (
-              <TabsTrigger key={name} value={name}>
-                {name}
-                {counts[name] !== undefined && <Count value={counts[name]!} max={9999} />}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value={tab}>
-            <Stack space="space.300" className="min-w-0 pt-200">
-              {view ? (
-                <ProgramQueryState queries={[systems]}>
-                  <ProgramFocusedView
-                    programId={programId}
-                    view={view}
-                    systemIds={systemIds}
-                    systemsReady={systems.data !== undefined}
-                  />
-                </ProgramQueryState>
-              ) : (
-                <>
-                  {tab === "Overview" && (
-                    <>
-                      <ProgramQueryState queries={[gates]} />
-                      {gates.isSuccess && (
-                        <ProgramTimeline
-                          gates={gates.data}
-                          onOpenSchedule={() => select("Schedule")}
+        {view ? (
+          // A focused view is a page under the program, not one of its tabs: the trail leads back.
+          <Stack space="space.300" className="min-w-0">
+            {view === "Traceability matrix" ? (
+              // The SSP register owns its systems read and its failure: no second alert around it.
+              <ProgramTraceability programId={programId} />
+            ) : (
+              <ProgramQueryState queries={[systems]}>
+                <ProgramFocusedView
+                  programId={programId}
+                  view={view}
+                  systemIds={systemIds}
+                  systemsReady={systems.data !== undefined}
+                />
+              </ProgramQueryState>
+            )}
+          </Stack>
+        ) : (
+          <Tabs
+            value={tab}
+            onValueChange={(value) => select(programTab(value))}
+            className="gap-150"
+          >
+            <TabsList variant="line" aria-label="Program work">
+              {programTabs.map((name) => (
+                <TabsTrigger key={name} value={name}>
+                  {name}
+                  {counts[name] !== undefined && <Count value={counts[name]!} max={9999} />}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value={tab}>
+              <Stack space="space.300" className="min-w-0 pt-200">
+                {tab === "Overview" && (
+                  <>
+                    {queues.some((queue) => queue.query.isError) && (
+                      <ProgramQueryState queries={queues.map((queue) => queue.query)} />
+                    )}
+                    <Stat.Grid
+                      cols={3}
+                      role="group"
+                      aria-label="Open work"
+                      aria-busy={queues.some(
+                        (queue) => queue.value === undefined && !queue.query.isError,
+                      )}
+                    >
+                      {queues.map((queue) => (
+                        <Stat.Tile
+                          key={queue.label}
+                          label={queue.label}
+                          value={openCount(queue.query, queue.value)}
+                          note={
+                            queue.value === undefined && queue.query.isError
+                              ? "Could not load"
+                              : queue.value === 0
+                                ? "Nothing open"
+                                : undefined
+                          }
+                        />
+                      ))}
+                    </Stat.Grid>
+                    <ProgramQueryState queries={[gates]}>
+                      <ProgramTimeline programId={programId} gates={gates.data ?? []} />
+                    </ProgramQueryState>
+                    <Section title="Program summary">
+                      {program.description ? (
+                        <Prose>{program.description}</Prose>
+                      ) : (
+                        <EmptyMessage
+                          compact
+                          title="No summary yet"
+                          {...(canEditProgram
+                            ? { description: "Edit the program to describe its mission and scope." }
+                            : {})}
                         />
                       )}
-                      <Grid
-                        gap="space.100"
-                        templateColumns={{
-                          base: "minmax(0, 1fr)",
-                          sm: "repeat(3, minmax(0, 1fr))",
-                        }}
-                      >
-                        {(
-                          [
-                            {
-                              label: "Open tasks",
-                              tab: "Schedule",
-                              value: openTasks?.length,
-                              loading: tasks.isPending,
-                              error: tasks.error,
-                            },
-                            {
-                              label: "Open issues",
-                              tab: "Findings",
-                              value: openIssues?.length,
-                              loading: issues.isPending,
-                              error: issues.error,
-                            },
-                            {
-                              label: "Open risks",
-                              tab: "Risk",
-                              value: openRisks?.length,
-                              loading: risks.isPending,
-                              error: risks.error,
-                            },
-                          ] as const
-                        ).map((queue) => (
-                          <button
-                            key={queue.label}
-                            type="button"
-                            onClick={() => select(queue.tab)}
-                            className="flex items-center gap-150 rounded-medium border border-default p-150 hover:bg-neutral-subtle-hovered"
-                          >
-                            <span className="font-heading-small font-semibold tabular-nums">
-                              {queue.loading ? "…" : queue.error ? "Unavailable" : queue.value}
-                            </span>
-                            <span className="font-body-small">{queue.label}</span>
-                            <ArrowUpRight className="ml-auto size-150 text-subtle" />
-                          </button>
-                        ))}
-                      </Grid>
-                      <Section title="Program summary">
-                        <p className="whitespace-pre-wrap text-subtle">
-                          {program.description ?? <Absent />}
-                        </p>
-                      </Section>
-                      <Section
-                        title="System boundaries"
-                        count={systems.isSuccess ? boundaries.length : undefined}
-                        action={
-                          <Button variant="subtle" size="small" onClick={() => select("System")}>
-                            Open systems
-                          </Button>
-                        }
-                      >
-                        <ProgramQueryState queries={[systems]} />
-                        {systems.isSuccess &&
-                          (boundaries.length ? (
-                            <Stack space="space.150">
-                              {boundaries.map((system) => (
-                                <Inline key={system.id} spread="space-between" alignBlock="center">
-                                  <TextLink
-                                    render={
-                                      <Link
-                                        to="/programs/$programId/systems/$scopeId"
-                                        params={{ programId, scopeId: system.id }}
-                                      />
-                                    }
-                                  >
-                                    {system.code} · {system.name}
-                                  </TextLink>
-                                  <StatusValue value={system.authorization_status} />
-                                </Inline>
-                              ))}
-                            </Stack>
-                          ) : (
-                            <EmptyMessage
-                              title="No systems yet"
-                              description="Create a system before selecting baselines or recording implementation."
+                    </Section>
+                    <ProgramQueryState queries={[systems]}>
+                      {/* A sibling of the Overview's sections, so it heads its own part of the outline. */}
+                      <HeadingLevelProvider level={2}>
+                        <Related
+                          title="System boundaries"
+                          count={boundaries.length}
+                          size="default"
+                          action={
+                            <TextLink size="small" render={tabLink("System")}>
+                              Open systems
+                            </TextLink>
+                          }
+                          empty={{
+                            title: "No systems yet",
+                            description:
+                              "Create a system on the System tab before selecting baselines or recording implementation.",
+                          }}
+                        >
+                          {boundaries.map((system) => (
+                            <Item
+                              key={system.id}
+                              id={<Id>{system.code}</Id>}
+                              idWidth={104}
+                              title={system.name}
+                              link={
+                                <Link
+                                  to="/programs/$programId/systems/$scopeId"
+                                  params={{ programId, scopeId: system.id }}
+                                />
+                              }
+                              trailing={
+                                <StatusBadge
+                                  statuses={authorizationStatuses}
+                                  value={system.authorization_status}
+                                  size="xsmall"
+                                />
+                              }
                             />
                           ))}
-                      </Section>
-                      <Section
-                        title="Program work"
-                        action={
-                          <Button size="small" variant="subtle" onClick={() => select("Schedule")}>
-                            Open schedule
-                          </Button>
-                        }
-                      >
-                        <Section title="Tasks">
-                          <WorkTable programId={programId} />
-                        </Section>
-                      </Section>
-                    </>
-                  )}
-                  {tab === "System" && <ProgramSystemsTree programId={programId} fill />}
-                  {tab === "Library" && <ProgramLibrary programId={programId} fill />}
-                  {tab === "Requirements" && (
-                    <RequirementsTable
-                      programId={programId}
-                      fill
-                      previewId={requirementId}
-                      previewTab={requirementTab}
-                      onPreview={(id) =>
-                        void navigate({
-                          to: "/programs/$programId",
-                          params: { programId },
-                          search: (previous) => ({
-                            ...previous,
-                            tab: "Requirements",
-                            requirementId: id,
-                          }),
-                          resetScroll: false,
-                          replace: !id,
-                        })
-                      }
-                      onPreviewTabChange={(next) =>
-                        void navigate({
-                          to: "/programs/$programId",
-                          params: { programId },
-                          search: (previous) => ({
-                            ...previous,
-                            tab: "Requirements",
-                            requirementId,
-                            requirementTab: next,
-                          }),
-                          resetScroll: false,
-                        })
-                      }
-                    />
-                  )}
-                  {tab === "Controls" && (
-                    <ProgramQueryState queries={[systems]}>
-                      <ProgramControls
-                        programId={programId}
-                        systemIds={systemIds}
-                        systemsReady={systems.data !== undefined}
-                      />
+                        </Related>
+                      </HeadingLevelProvider>
                     </ProgramQueryState>
-                  )}
-                  {tab === "Assessment campaigns" && <AssessmentBrowser programId={programId} />}
-                  {tab === "Schedule" && (
-                    <>
-                      <Section title="Tasks">
-                        <WorkTable programId={programId} />
-                      </Section>
-                      <ProgramCollection
-                        name="lifecycle_gates"
-                        section
-                        title="Lifecycle gates"
-                        filters={{ program_id: programId }}
-                        columns={[
-                          { key: "title", title: "Gate" },
-                          { key: "sequence_number", title: "Sequence" },
-                          { key: "status", title: "Status" },
-                          { key: "due_on", title: "Due" },
-                        ]}
-                      />
-                      <ProgramCollection
-                        name="program_role_assignments"
-                        section
-                        empty={{ title: "No responsibilities assigned yet" }}
-                        title="Program responsibilities"
-                        filters={{ program_id: programId }}
-                        columns={[
-                          {
-                            key: "role",
-                            title: "Role",
-                            render: (row) => labelFor(String(row["role"])),
-                          },
-                          {
-                            key: "party_id",
-                            title: "Party",
-                            render: (row) =>
-                              parties.data?.find((party) => party.id === row["party_id"])?.name ??
-                              (parties.isPending ? "Loading…" : "Not available"),
-                          },
-                          { key: "starts_on", title: "Starts" },
-                          { key: "ends_on", title: "Ends" },
-                        ]}
-                      />
-                    </>
-                  )}
-                  {tab === "Findings" && (
-                    <>
-                      <ProgramCollection
-                        name="operational_issues"
-                        section
-                        empty={{ title: "No operational issues yet" }}
-                        title="Operational issues"
-                        filters={{ program_id: programId }}
-                        columns={[
-                          { key: "title", title: "Operational issue" },
-                          { key: "status", title: "Status" },
-                          { key: "severity", title: "Severity" },
-                          { key: "opened_at", title: "Opened" },
-                        ]}
-                      />
-                      <ObservationsRegister programId={programId} />
-                    </>
-                  )}
-                  {tab === "Evidence" && <EvidenceBrowser programId={programId} />}
-                  {tab === "POA&M" && <ProgramPoams programId={programId} />}
-                  {tab === "Risk" && (
+                  </>
+                )}
+                {tab === "System" && <ProgramSystemsTree programId={programId} fill />}
+                {tab === "Library" && <ProgramLibrary programId={programId} fill />}
+                {tab === "Requirements" && (
+                  <RequirementsTable
+                    programId={programId}
+                    fill
+                    previewId={requirementId}
+                    previewTab={requirementTab}
+                    onPreview={(id) =>
+                      void navigate({
+                        to: "/programs/$programId",
+                        params: { programId },
+                        search: (previous) => ({
+                          ...previous,
+                          tab: "Requirements",
+                          requirementId: id,
+                        }),
+                        resetScroll: false,
+                        replace: !id,
+                      })
+                    }
+                    onPreviewTabChange={(next) =>
+                      void navigate({
+                        to: "/programs/$programId",
+                        params: { programId },
+                        search: (previous) => ({
+                          ...previous,
+                          tab: "Requirements",
+                          requirementId,
+                          requirementTab: next,
+                        }),
+                        resetScroll: false,
+                      })
+                    }
+                  />
+                )}
+                {tab === "Controls" && <ProgramSspAssembly programId={programId} />}
+                {tab === "Assessment campaigns" && <AssessmentBrowser programId={programId} />}
+                {tab === "Schedule" && (
+                  <>
+                    <Section title="Tasks">
+                      <WorkTable programId={programId} />
+                    </Section>
                     <ProgramCollection
-                      name="risks"
-                      fill
-                      title="Risk register"
+                      name="lifecycle_gates"
+                      section
+                      title="Lifecycle gates"
                       filters={{ program_id: programId }}
                       columns={[
-                        { key: "title", title: "Risk" },
+                        { key: "title", title: "Gate" },
+                        { key: "sequence_number", title: "Sequence" },
                         { key: "status", title: "Status" },
-                        { key: "updated_at", title: "Updated" },
+                        { key: "due_on", title: "Due" },
                       ]}
                     />
-                  )}
-                  {tab === "Activity" && (
                     <ProgramCollection
-                      name="activity_events"
-                      fill
-                      empty={{ title: "No activity yet" }}
-                      title="Program activity"
+                      name="program_role_assignments"
+                      section
+                      empty={{ title: "No responsibilities assigned yet" }}
+                      title="Program responsibilities"
                       filters={{ program_id: programId }}
                       columns={[
-                        { key: "event_type", title: "Event" },
-                        { key: "description", title: "Description" },
-                        { key: "occurred_at", title: "Occurred" },
+                        {
+                          key: "role",
+                          title: "Role",
+                          // Search, sort and the Role filter read the words the cell shows.
+                          value: (row) => labelFor(String(row["role"])),
+                        },
+                        {
+                          key: "party_id",
+                          title: "Party",
+                          value: (row) =>
+                            parties.data?.find((party) => party.id === row["party_id"])?.name ??
+                            null,
+                          render: (row) => (
+                            <RelationName
+                              table="parties"
+                              id={typeof row["party_id"] === "string" ? row["party_id"] : null}
+                            />
+                          ),
+                        },
+                        { key: "starts_on", title: "Starts" },
+                        { key: "ends_on", title: "Ends" },
                       ]}
-                      canCreate={false}
                     />
-                  )}
-                </>
-              )}
-            </Stack>
-          </TabsContent>
-        </Tabs>
+                  </>
+                )}
+                {tab === "Findings" && (
+                  <>
+                    <ProgramCollection
+                      name="operational_issues"
+                      section
+                      empty={{ title: "No operational issues yet" }}
+                      title="Operational issues"
+                      filters={{ program_id: programId }}
+                      columns={[
+                        { key: "title", title: "Operational issue" },
+                        { key: "status", title: "Status" },
+                        { key: "severity", title: "Severity" },
+                        { key: "opened_at", title: "Opened" },
+                      ]}
+                    />
+                    <ObservationsRegister programId={programId} />
+                  </>
+                )}
+                {tab === "Evidence" && <EvidenceBrowser programId={programId} />}
+                {tab === "POA&M" && <ProgramPoams programId={programId} />}
+                {tab === "Risk" && (
+                  <ProgramCollection
+                    name="risks"
+                    fill
+                    title="Risk register"
+                    filters={{ program_id: programId }}
+                    columns={[
+                      { key: "title", title: "Risk" },
+                      { key: "status", title: "Status" },
+                      { key: "updated_at", title: "Updated" },
+                    ]}
+                  />
+                )}
+                {tab === "Activity" && (
+                  <ProgramCollection
+                    name="activity_events"
+                    fill
+                    empty={{
+                      title: "No activity yet",
+                      description:
+                        "Changes to this program's records appear here as the team works.",
+                    }}
+                    title="Program activity"
+                    filters={{ program_id: programId }}
+                    columns={[
+                      { key: "event_type", title: "Event" },
+                      { key: "description", title: "Description" },
+                      { key: "occurred_at", title: "Occurred" },
+                    ]}
+                    canCreate={false}
+                  />
+                )}
+              </Stack>
+            </TabsContent>
+          </Tabs>
+        )}
       </Stack>
       {(tab === "Overview" || !!view) && (
         <Shell.Aside label="Program properties">
           <Inspector.Group title="Details">
-            <KeyValue label="Status">
-              <StatusValue value={program.status} />
-            </KeyValue>
-            <KeyValue label="Code">{program.code}</KeyValue>
-            <KeyValue label="Sponsor">
-              {parties.data?.find((party) => party.id === program.sponsor_party_id)?.name ??
-                (parties.isPending ? "Loading…" : "Not assigned")}
-            </KeyValue>
-            <KeyValue label="Starts">{program.starts_on ?? <Absent />}</KeyValue>
-            <KeyValue label="Ends">{program.ends_on ?? <Absent />}</KeyValue>
-            <KeyValue label="Updated">{new Date(program.updated_at).toLocaleString()}</KeyValue>
+            <KeyValue.Group>
+              <KeyValue label="Status">
+                <StatusBadge statuses={programStatuses} value={program.status} />
+              </KeyValue>
+              <KeyValue label="Code">
+                <Id>{program.code}</Id>
+              </KeyValue>
+              <KeyValue label="Sponsor">
+                <RelationName table="parties" id={program.sponsor_party_id} />
+              </KeyValue>
+              <KeyValue label="Starts" wrap>
+                <DateTime value={program.starts_on} absentLabel="Not recorded" />
+              </KeyValue>
+              <KeyValue label="Ends" wrap>
+                <DateTime value={program.ends_on} absentLabel="Not recorded" />
+              </KeyValue>
+              <KeyValue label="Updated" wrap>
+                <DateTime value={program.updated_at} format="date" />
+              </KeyValue>
+            </KeyValue.Group>
           </Inspector.Group>
           <Inspector.Group title="References">
             <ProgramQueryState
@@ -518,7 +541,7 @@ export function ProgramWorkspace({
               ]}
             >
               {references.data?.length || variants.length ? (
-                <>
+                <KeyValue.Group>
                   {references.data?.length ? (
                     <KeyValue label="Catalog" wrap>
                       {(() => {
@@ -526,8 +549,7 @@ export function ProgramWorkspace({
                           (row) => row.id === references.data?.[0]?.catalog_revision_id,
                         );
                         const stable = catalogs.data?.find((row) => row.id === catalog?.catalog_id);
-                        if (!catalog) return <Absent />;
-                        if (!stable && catalogs.isPending) return <Absent />;
+                        if (!catalog) return <Absent label="Not recorded" />;
                         return (
                           <TextLink
                             render={<Link to="/catalog" search={{ edition: catalog.id }} />}
@@ -556,9 +578,7 @@ export function ProgramWorkspace({
                               {lineage.label}
                             </TextLink>
                           ) : (
-                            <span key={system.id} className="text-subtle">
-                              <Absent />
-                            </span>
+                            <Absent key={system.id} label="Not available" />
                           ),
                         )}
                       </Stack>
@@ -577,12 +597,6 @@ export function ProgramWorkspace({
                         const record = profiles.data?.find(
                           (row) => row.id === revision?.profile_id,
                         );
-                        if (revision && !record && profiles.isPending)
-                          return (
-                            <span key={choice.id} className="text-subtle">
-                              <Absent />
-                            </span>
-                          );
                         return revision ? (
                           <Inline key={choice.id} space="space.075" alignBlock="center" shouldWrap>
                             <TextLink
@@ -602,14 +616,12 @@ export function ProgramWorkspace({
                             )}
                           </Inline>
                         ) : (
-                          <span key={choice.id} className="text-subtle">
-                            <Absent />
-                          </span>
+                          <Absent key={choice.id} label="Not available" />
                         );
                       })}
                     </Stack>
                   </KeyValue>
-                </>
+                </KeyValue.Group>
               ) : (
                 <Empty size="compact">
                   <EmptyHeader>
@@ -638,18 +650,23 @@ export function ProgramWorkspace({
 export function ProgramRequirements({ programId }: { programId: string }) {
   return <RequirementsTable programId={programId} />;
 }
-function ProgramControls({
-  programId,
-  systemsReady,
-}: {
-  programId: string;
-  systemIds: Set<string>;
-  systemsReady: boolean;
-}) {
-  return systemsReady ? <ProgramSspAssembly programId={programId} /> : null;
+/**
+ * Requirements, then the SSP's controls. Neither table fills the window: the controls sit below a
+ * page of requirements, so the page scrolls to them.
+ */
+function ProgramTraceability({ programId }: { programId: string }) {
+  return (
+    <>
+      <Section title="Requirements">
+        <ProgramRequirements programId={programId} />
+      </Section>
+      <Section title="Controls">
+        <ProgramSspAssembly programId={programId} fill={false} />
+      </Section>
+    </>
+  );
 }
 function ProgramPoams({ programId }: { programId: string }) {
-  const navigate = useNavigate();
   const documents = useRows("poam_documents", { program_id: programId });
   const ids = new Set((documents.data ?? []).map((document) => document.id));
   return (
@@ -657,8 +674,8 @@ function ProgramPoams({ programId }: { programId: string }) {
       <ProgramCollection
         name="poam_documents"
         section
-        empty={{ title: "No plans of action yet" }}
-        title="Plans of action and milestones"
+        empty={{ title: "No POA&M plans yet" }}
+        title="POA&M plans"
         filters={{ program_id: programId }}
         columns={[
           { key: "title", title: "Plan" },
@@ -680,7 +697,7 @@ function ProgramPoams({ programId }: { programId: string }) {
             { key: "updated_at", title: "Updated" },
           ]}
           canCreate={ids.size > 0}
-          prerequisite="Remediation items belong to a plan of action. Add a POA&M plan first."
+          prerequisite="Remediation items belong to a POA&M plan. Create a POA&M plan first."
         />
       )}
     </Stack>
@@ -715,7 +732,7 @@ function ProgramFocusedView({
           { key: "published_at", title: "Published" },
         ]}
         canCreate={systemIds.size > 0}
-        prerequisite="A configuration baseline belongs to a system. Add a system first."
+        prerequisite="A configuration baseline belongs to a system. Create a system first."
       />
     );
   if (view === "Authorization")
@@ -732,24 +749,10 @@ function ProgramFocusedView({
           { key: "updated_at", title: "Updated" },
         ]}
         canCreate={systemIds.size > 0}
-        prerequisite="An authorization package covers a system. Add a system first."
+        prerequisite="An authorization package covers a system. Create a system first."
       />
     );
-  if (view === "Traceability matrix")
-    return (
-      <>
-        <Section title="Requirements">
-          <ProgramRequirements programId={programId} />
-        </Section>
-        <Section title="Controls">
-          <ProgramControls
-            programId={programId}
-            systemIds={systemIds}
-            systemsReady={systemsReady}
-          />
-        </Section>
-      </>
-    );
+  if (view === "Traceability matrix") return <ProgramTraceability programId={programId} />;
   if (view === "Inheritance resolution")
     return (
       <ProgramCollection
@@ -816,7 +819,5 @@ function ProgramFocusedView({
         ]}
       />
     );
-  return (
-    <ProgramControls programId={programId} systemIds={systemIds} systemsReady={systemsReady} />
-  );
+  return <ProgramSspAssembly programId={programId} />;
 }

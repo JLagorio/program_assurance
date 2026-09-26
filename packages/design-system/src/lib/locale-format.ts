@@ -285,6 +285,28 @@ export const defaultMessages = {
   fileAdded: "Added {name}.",
   filesAddedOne: "Added {count} file.",
   filesAddedOther: "Added {count} files.",
+  pickerNothingChosen: "Nothing chosen yet",
+  pickerToChooseFromOne: "{count} to choose from",
+  pickerToChooseFromOther: "{count} to choose from",
+  pickerChosenOne: "{count} chosen",
+  pickerChosenOther: "{count} chosen",
+  pickerChosenOfOne: "{count} chosen of {total}",
+  pickerChosenOfOther: "{count} chosen of {total}",
+  tableRowOne: "row",
+  tableRowOther: "rows",
+  tableResults: "{count} {noun}",
+  tableResultsOf: "{count} of {total} {noun}",
+  tableResultsRange: "{from}–{to} of {total} {noun}",
+  tableNoMatching: "No matching {noun}",
+  selectNamed: "Select {label}",
+  reorderNamed: "Reorder {label}",
+  reorderColumnNamed: "Reorder {label} column",
+  rowActionsFor: "Row actions for {label}",
+  showDetailsFor: "Show details for {label}",
+  hideDetailsFor: "Hide details for {label}",
+  moveUp: "Move up",
+  moveDown: "Move down",
+  rowMoved: "{label}, {position} of {total}",
 } satisfies Record<string, string>;
 
 export type LedgerMessages = { [K in keyof typeof defaultMessages]: string };
@@ -313,8 +335,8 @@ export function createLedgerLocale({
 }: LedgerLocaleOptions = {}) {
   const copy: LedgerMessages = { ...defaultMessages, ...messages };
   const formatNumber = (value: number, options?: Intl.NumberFormatOptions) =>
-    new Intl.NumberFormat(locale, options).format(value);
-  const dateFormat = dateFormatCache(locale);
+    numberFormat(locale, options).format(value);
+  const dateFormat = (options: Intl.DateTimeFormatOptions) => dateTimeFormat(locale, options);
   const formatDate = (value: Date | number, options?: Intl.DateTimeFormatOptions) =>
     dateFormat({ timeZone, ...options }).format(value);
   const formatCalendarDate = (value: Date, options?: Intl.DateTimeFormatOptions) =>
@@ -324,7 +346,6 @@ export function createLedgerLocale({
   const formatDay = (value: CalendarDay, options?: Intl.DateTimeFormatOptions) =>
     dateFormat({ ...options, timeZone: "UTC" }).format(utcInstant(value));
   const hourCycle = resolveHourCycle(locale);
-  const relative = new Map<string, Intl.RelativeTimeFormat>();
   return {
     locale,
     direction,
@@ -337,7 +358,7 @@ export function createLedgerLocale({
     /** A calendar Date represents the selected local year/month/day, not a UTC timestamp. */
     formatCalendarDate,
     formatPlural: (count: number, forms: PluralForms) =>
-      interpolate(forms[new Intl.PluralRules(locale).select(count)] ?? forms.other, {
+      interpolate(forms[pluralRules(locale).select(count)] ?? forms.other, {
         count: formatNumber(count),
       }),
     /** Whether the locale writes times on a 12-hour clock with a day period, or on a 24-hour clock. */
@@ -377,14 +398,7 @@ export function createLedgerLocale({
       value: Date | number,
       now: number = Date.now(),
       style: Intl.RelativeTimeFormatStyle = "long",
-    ) => {
-      let format = relative.get(style);
-      if (!format) {
-        format = new Intl.RelativeTimeFormat(locale, { numeric: "auto", style });
-        relative.set(style, format);
-      }
-      return relativeTime(format, +value - now);
-    },
+    ) => relativeTime(relativeFormat(locale, style), +value - now),
     /** The calendar day and wall-clock time an instant falls on in the provider's time zone. */
     zonedParts: (value: Date | number) => zonedParts(+value, timeZone),
     /** The instant a calendar day and wall-clock time name in the provider's time zone. A time a daylight-saving change skips moves forward; a repeated one takes the earlier instant. */
@@ -579,23 +593,50 @@ export function zonedTimeToInstant(day: CalendarDay, time: WallTime, timeZone: s
   return wall - before;
 }
 
-function dateFormatCache(locale: string) {
-  const cache = new Map<string, Intl.DateTimeFormat>();
-  return (options: Intl.DateTimeFormatOptions) => {
-    const key = JSON.stringify(options);
-    let format = cache.get(key);
-    if (!format) {
-      if (cache.size > 64) cache.clear();
-      format = new Intl.DateTimeFormat(locale, options);
-      cache.set(key, format);
-    }
-    return format;
-  };
+/* One Intl object per kind, locale and options, shared by every locale object: a table cell or a
+   provider that is created again reuses the formatter instead of building one, which costs about a
+   hundred times what formatting does. The time zone is one of the options. Bounded, so options
+   built from data cannot grow it without limit. */
+type IntlObject =
+  Intl.NumberFormat | Intl.DateTimeFormat | Intl.PluralRules | Intl.RelativeTimeFormat;
+const intlObjects = new Map<string, IntlObject>();
+function cachedIntl<T extends IntlObject>(key: string, create: () => T): T {
+  let object = intlObjects.get(key) as T | undefined;
+  if (!object) {
+    if (intlObjects.size >= 256) intlObjects.clear();
+    object = create();
+    intlObjects.set(key, object);
+  }
+  return object;
 }
+const numberFormat = (locale: string, options?: Intl.NumberFormatOptions) =>
+  cachedIntl(
+    `number ${locale} ${options ? JSON.stringify(options) : ""}`,
+    () => new Intl.NumberFormat(locale, options),
+  );
+const dateTimeFormat = (locale: string, options: Intl.DateTimeFormatOptions) =>
+  cachedIntl(
+    `date ${locale} ${JSON.stringify(options)}`,
+    () => new Intl.DateTimeFormat(locale, options),
+  );
+const pluralRules = (locale: string) =>
+  cachedIntl(`plural ${locale}`, () => new Intl.PluralRules(locale));
+/** The shared `numeric: "auto"` relative-time formatter, for a kit part that names its own unit (DateLabel's "in 2 days"). Not exported from the package. */
+export const relativeFormat = (locale: string, style: Intl.RelativeTimeFormatStyle = "long") =>
+  cachedIntl(
+    `relative ${locale} ${style}`,
+    () => new Intl.RelativeTimeFormat(locale, { numeric: "auto", style }),
+  );
 
+const hourCycles = new Map<string, "h12" | "h23">();
 function resolveHourCycle(locale: string): "h12" | "h23" {
-  const cycle = new Intl.DateTimeFormat(locale, { hour: "numeric" }).resolvedOptions().hourCycle;
-  return cycle === "h11" || cycle === "h12" ? "h12" : "h23";
+  let resolved = hourCycles.get(locale);
+  if (!resolved) {
+    const cycle = dateTimeFormat(locale, { hour: "numeric" }).resolvedOptions().hourCycle;
+    resolved = cycle === "h11" || cycle === "h12" ? "h12" : "h23";
+    hourCycles.set(locale, resolved);
+  }
+  return resolved;
 }
 
 /* Where Intl.Locale has no week information (Firefox), the first day by region, from CLDR. */
@@ -606,7 +647,17 @@ const sundayFirst = new Set(
 );
 const saturdayFirst = new Set("AE AF BH DJ DZ EG IQ IR JO KW LY OM QA SD SY".split(" "));
 
+const weekStarts = new Map<string, 0 | 1 | 2 | 3 | 4 | 5 | 6>();
 function resolveWeekStart(locale: string): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
+  let start = weekStarts.get(locale);
+  if (start === undefined) {
+    start = readWeekStart(locale);
+    weekStarts.set(locale, start);
+  }
+  return start;
+}
+
+function readWeekStart(locale: string): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
   try {
     const tag = new Intl.Locale(locale) as Intl.Locale & {
       getWeekInfo?: () => { firstDay: number };

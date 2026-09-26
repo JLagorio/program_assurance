@@ -216,9 +216,32 @@ try {
     security_process_id: securityProcess.id,
     rationale: "Exact allocation",
   });
-  const controlPart = await data(
-    client.from("control_parts").select().is("tenant_id", null).limit(1).single(),
+  // A mapping may target only an authored statement or item; an unordered
+  // limit(1) could return an assessment method or guidance part.
+  const candidateParts = await data(
+    client
+      .from("control_parts")
+      .select()
+      .is("tenant_id", null)
+      .eq("name", "item")
+      .not("prose", "is", null)
+      .order("source_id")
+      .limit(25),
   );
+  let controlPart;
+  for (const candidate of candidateParts) {
+    const isStatement = await data(
+      client.rpc("is_requirement_control_statement", {
+        p_part_id: candidate.id,
+        p_control_id: candidate.control_id,
+      }),
+    );
+    if (isStatement) {
+      controlPart = candidate;
+      break;
+    }
+  }
+  assert.ok(controlPart, "A pinned reference control supplies an authored statement item");
   await insert("requirement_control_links", {
     requirement_revision_id: initial.id,
     control_part_id: controlPart.id,

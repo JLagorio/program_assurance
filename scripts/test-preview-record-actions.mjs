@@ -60,6 +60,12 @@ async function check(title, primary, more = false) {
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
     .toBe(true);
 }
+/** Close every preview frame, a nested one first, so the collection behind it takes input. */
+async function closePreview() {
+  for (let frame = 0; frame < 3 && (await panel().count()); frame++)
+    await chrome().getByRole("button", { name: "Close details", exact: true }).click();
+  await expect(panel()).toHaveCount(0);
+}
 async function cancelDialog() {
   await expect(page.getByRole("dialog")).toHaveCount(1);
   await page.getByRole("dialog").getByRole("button", { name: "Cancel", exact: true }).click();
@@ -218,28 +224,41 @@ try {
       await check(procedure.title, "Edit procedure", true);
     }
     await page.screenshot({ path: `${artifacts}/procedure-${width}.png` });
-    await header().getByRole("button", { name: "More actions", exact: true }).click();
+    // Editing from a campaign preview keeps it open under the dialog; closing the dialog returns
+    // focus to the action that opened it (the menu's trigger for a menu item).
+    const procedureMore = header().getByRole("button", { name: "More actions", exact: true });
+    await procedureMore.click();
     await page.getByRole("menuitem", { name: "Create procedure revision", exact: true }).click();
     await cancelDialog();
-    await expect(panel()).toHaveCount(0);
-    await eye(procedure.id).click();
-    await header().getByRole("button", { name: "Edit procedure", exact: true }).click();
+    await check(procedure.title, "Edit procedure", true);
+    await expect(procedureMore).toBeFocused();
+    const editProcedure = header().getByRole("button", { name: "Edit procedure", exact: true });
+    await editProcedure.click();
     await cancelDialog();
-    await expect(panel()).toHaveCount(0);
+    await check(procedure.title, "Edit procedure", true);
+    await expect(editProcedure).toBeFocused();
+    await closePreview();
     await eye(revision.id).click();
     await check(revision.title, "Edit procedure revision");
-    await header().getByRole("button", { name: "Edit procedure revision", exact: true }).click();
+    const editRevision = header().getByRole("button", {
+      name: "Edit procedure revision",
+      exact: true,
+    });
+    await editRevision.click();
     await cancelDialog();
-    await expect(panel()).toHaveCount(0);
+    await check(revision.title, "Edit procedure revision");
+    await expect(editRevision).toBeFocused();
     // A step preview inherits its revision's edit policy, and uses the parent workflow editor.
-    await eye(revision.id).click();
     await eye(draftStep.id).click();
-    await header().getByRole("button", { name: "Edit procedure step", exact: true }).click();
+    const editStep = header().getByRole("button", { name: "Edit procedure step", exact: true });
+    await editStep.click();
     await expect(
       page.getByRole("dialog", { name: "Edit procedure step", exact: true }),
     ).toBeVisible();
     await cancelDialog();
-    await expect(panel()).toHaveCount(0);
+    await expect(panel()).toHaveCount(1);
+    await expect(editStep).toBeFocused();
+    await closePreview();
     await eye(publishedProcedure.id).click();
     await eye(publishedStep.id).click();
     await expect(panel()).toContainText(publishedStep.instruction);
@@ -285,11 +304,13 @@ try {
   await page.goto(`${origin}/campaigns/${campaign.id}?tab=Runs`);
   await eye(run.id).click();
   await check(run.title, "Complete run", true);
-  await header().getByRole("button", { name: "More actions", exact: true }).click();
+  const runMore = header().getByRole("button", { name: "More actions", exact: true });
+  const completeRun = header().getByRole("button", { name: "Complete run", exact: true });
+  await runMore.click();
   await page.getByRole("menuitem", { name: "Edit test run", exact: true }).click();
   await cancelDialog();
-  await expect(panel()).toHaveCount(0);
-  await eye(run.id).click();
+  await check(run.title, "Complete run", true);
+  await expect(runMore).toBeFocused();
   let release;
   const blocked = new Promise((resolve) => {
     release = resolve;
@@ -305,20 +326,40 @@ try {
       body: JSON.stringify({ code: "TEST_REJECTION", message: "Injected run completion failure" }),
     });
   });
-  await header().getByRole("button", { name: "Complete run", exact: true }).click();
-  await expect(header().getByRole("button", { name: "Saving…", exact: true })).toBeDisabled();
-  await expect(header().getByRole("button", { name: "More actions", exact: true })).toBeDisabled();
+  // Completing a run is final, so it asks first.
+  const confirmRun = () =>
+    page.getByRole("alertdialog", { name: "Complete this test run?", exact: true });
+  await completeRun.click();
+  await expect(confirmRun()).toBeVisible();
+  assert.equal(writes, 0, "Nothing is written before the reader confirms");
+  await confirmRun().getByRole("button", { name: "Complete run", exact: true }).click();
+  await expect(confirmRun()).toHaveCount(0);
+  // While pending the primary keeps its name, reads busy and takes no second press.
+  await expect(completeRun).toHaveAttribute("aria-busy", "true");
+  await expect(completeRun).toBeDisabled();
+  await expect(runMore).toBeDisabled();
   assert.equal(writes, 1);
   release();
   await expect(panel().getByRole("alert")).toContainText("Injected run completion failure");
-  await expect(header().getByRole("button", { name: "Complete run", exact: true })).toBeEnabled();
-  await expect(header().getByRole("button", { name: "More actions", exact: true })).toBeEnabled();
+  await expect(completeRun).toBeEnabled();
+  await expect(runMore).toBeEnabled();
   await page.unroute("**/rest/v1/test_runs**");
   const unchanged = await data(ws.client.from("test_runs").select().eq("id", run.id).single());
   assert.equal(unchanged.status, "planned");
   assert.equal(unchanged.completed_at, null);
   await page.screenshot({ path: `${artifacts}/run-failure-390.png` });
   console.log("PASS run Complete pending and injected error recovery; database state unchanged");
+  // A retry completes the run: the actions go, a toast confirms it and focus lands on its title.
+  await completeRun.click();
+  await confirmRun().getByRole("button", { name: "Complete run", exact: true }).click();
+  await expect(page.getByText(`${run.title} completed`, { exact: true })).toBeVisible();
+  await expect(completeRun).toHaveCount(0);
+  await expect(panel().getByRole("alert")).toHaveCount(0);
+  await expect(header().getByRole("heading", { name: run.title, exact: true })).toBeFocused();
+  const completed = await data(ws.client.from("test_runs").select().eq("id", run.id).single());
+  assert.equal(completed.status, "completed");
+  assert.ok(completed.completed_at, "The completed run records when it finished");
+  console.log("PASS run Complete confirmation, success toast, focus on the title and stored state");
   assert.deepEqual(errors, []);
   console.log(`PASS no browser page errors; screenshots ${artifacts}`);
 } catch (error) {

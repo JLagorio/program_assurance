@@ -5,6 +5,7 @@ import {
   createContext,
   useContext,
   useId,
+  type ComponentProps,
   type ReactElement,
   type ReactNode,
 } from "react";
@@ -80,7 +81,7 @@ const TimelineContext = createContext<Ctx>({
 /** Where a group sits in the list, so its first and last rows know which rail ends to hide. */
 const GroupContext = createContext<{ first: boolean; last: boolean } | null>(null);
 
-export type TimelineProps = {
+export type TimelineProps = Omit<ComponentProps<"ol">, "children" | "className"> & {
   /** The list's accessible name: "Activity", "History", "Releases". */
   label?: string | undefined;
   /** `vertical`, the default, reads down with the rail on the left: a feed, a history. `horizontal` reads across with the rail on top: releases, a journey. Groups are vertical only. */
@@ -98,7 +99,7 @@ export type TimelineProps = {
   className?: string | undefined;
 };
 
-/** Events in order along one rail. Group items under sticky labels with Timeline.Group. */
+/** Events in order along one rail. Group items under sticky labels with Timeline.Group. Native `ol` props and the ref reach the list; across, it sits inside a scroller. */
 function TimelineRoot({
   label,
   orientation = "vertical",
@@ -108,6 +109,8 @@ function TimelineRoot({
   wrap = false,
   children,
   className,
+  style,
+  ...props
 }: TimelineProps) {
   const horizontal = orientation === "horizontal";
   const position: TimelineTimePosition = horizontal
@@ -119,10 +122,12 @@ function TimelineRoot({
   const list = (
     <ol
       aria-label={label}
+      {...props}
+      data-slot="timeline"
       data-orientation={orientation}
       data-size={size}
       className={cn(horizontal ? "flex items-start" : "grid", className)}
-      style={horizontal ? { minWidth: 420 } : { gridTemplateColumns: columns }}
+      style={{ ...(horizontal ? { minWidth: 420 } : { gridTemplateColumns: columns }), ...style }}
     >
       {items.map((child, i) => (
         <GroupContext.Provider key={i} value={{ first: i === 0, last: i === items.length - 1 }}>
@@ -152,7 +157,7 @@ function TimelineRoot({
   );
 }
 
-export type TimelineGroupProps = {
+export type TimelineGroupProps = Omit<ComponentProps<"li">, "children"> & {
   /** The period or the kind: "This week", "August". An eyebrow that sticks to the top as the list scrolls. */
   label: ReactNode;
   /** How many events are under it. */
@@ -161,12 +166,16 @@ export type TimelineGroupProps = {
   children: ReactNode;
 };
 
-/** A run of events under one sticky label. Vertical timelines only. */
-export function TimelineGroup({ label, count, children }: TimelineGroupProps) {
+/** A run of events under one sticky label. Vertical timelines only. Native `li` props and the ref reach the group's row. */
+export function TimelineGroup({ label, count, children, className, ...props }: TimelineGroupProps) {
   const id = useId();
   const edge = useContext(GroupContext);
   return (
-    <li className="col-span-full grid grid-cols-subgrid list-none">
+    <li
+      {...props}
+      data-slot="timeline-group"
+      className={cn("col-span-full grid grid-cols-subgrid list-none", className)}
+    >
       <div className="sticky top-0 z-10 col-span-full grid grid-cols-subgrid bg-surface-current">
         <span />
         <span />
@@ -191,7 +200,7 @@ export function TimelineGroup({ label, count, children }: TimelineGroupProps) {
   );
 }
 
-export type TimelineItemProps = {
+export type TimelineItemProps = Omit<ComponentProps<"li">, "title" | "children" | "onSelect"> & {
   /** Replaces the marker entirely: an Avatar, anything the size's slot holds (16, 20 or 24px). */
   marker?: ReactNode;
   /** The colour of the default marker: the event's kind. A dot in a ring, or the disc behind `icon`. */
@@ -230,9 +239,10 @@ export type TimelineItemProps = {
   children?: ReactNode;
   /** The last line: Badges for the kind and the state, or who did it. The time joins it when the list's `timePosition` is `below`. */
   footer?: ReactNode;
+  className?: string | undefined;
 };
 
-/** One event on the rail. */
+/** One event on the rail. Native `li` props, a `className` and the ref reach the event's row. */
 export function TimelineItem({
   marker,
   tone = "neutral",
@@ -250,6 +260,8 @@ export function TimelineItem({
   trailing,
   children,
   footer,
+  className,
+  ...props
 }: TimelineItemProps) {
   const { orientation, size, timePosition, align, wrap } = useContext(TimelineContext);
   const edge = useContext(GroupContext);
@@ -383,7 +395,11 @@ export function TimelineItem({
       </span>
     );
     return (
-      <li className="group/event flex min-w-0 flex-1 list-none">
+      <li
+        {...props}
+        data-slot="timeline-item"
+        className={cn("group/event flex min-w-0 flex-1 list-none", className)}
+      >
         <div
           className={cn(
             interactiveClass,
@@ -426,9 +442,12 @@ export function TimelineItem({
   const start = timePosition === "start";
   return (
     <li
+      {...props}
+      data-slot="timeline-item"
       className={cn(
         interactiveClass,
         "group/event col-span-full grid grid-cols-subgrid list-none px-050",
+        className,
       )}
     >
       <span className={cn("flex items-start justify-end", s.pad, start && "pe-150")}>

@@ -53,7 +53,7 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | Plain    | Text on the surface.                                                                                                                           |
 | Hover    | `color.background.neutral.subtle.hovered` across the row.                                                                                      |
-| Selected | `color.background.selected`; `aria-selected`. The row is the initial tab stop; focus can move independently. If its branch is closed, the parent shows the selection instead. |
+| Selected | `color.background.selected` and a 2px bar at the row's start edge in the selected colour (`color.background.selected.bold`, 3:1 on the fill); `aria-selected`. The row is the initial tab stop; focus can move independently. If its branch is closed, the parent shows the selection instead. In forced colours the row is Highlight. |
 | Focus    | The focus outline around the row, on keyboard focus.                                                                                           |
 | Open     | The chevron down; `aria-expanded="true"`; the children rendered under it by the caller.                                                        |
 | Closed   | The chevron right; `aria-expanded="false"`; a Count in `trailing` says how many are beneath.                                                   |
@@ -61,7 +61,7 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 ## Modifiers
 
 - **`depth`** and **`lines`**: how deep, and which ancestors' guides to draw. A last child under each ancestor clears that ancestor's line.
-- **`hasChildren`**, **`expanded`**, **`onToggle`** on a branch; **`isSelected`**, **`onSelect`** on a selectable row.
+- **`hasChildren`**, **`isExpanded`**, **`onToggle`** on a branch; **`isSelected`**, **`onSelect`** on a selectable row. `expanded` is the deprecated name for `isExpanded` and is still read for one version.
 - **`trailing`** for a Count, a Badge or a Dot. A button there is a tab stop of its own, outside the tree's keyboard model.
 - **`size`** on the tree; **`label`** names it.
 
@@ -82,10 +82,12 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 | Leaf dot | 4px · `color.background.neutral.pressed`                                                                                                                   |
 | Label    | `font.body` · `color.text`                                                                                                                                 |
 | Hover    | `color.background.neutral.subtle.hovered`                                                                                                                  |
-| Selected | `color.background.selected`                                                                                                                                |
+| Selected | `color.background.selected` · a 2px (`space.025`) bar in `color.background.selected.bold` at the start edge, `space.050` from the top and bottom            |
 | Focus    | The focus outline                                                                                                                                          |
 
-No left border marks the selected row: the selected fill is the same one a table row and a list row take, so a selection reads the same everywhere.
+The selected fill is the one a table row and a list row take, so a selection reads the same everywhere; the bar at the start edge is its second cue, because the fill alone is about 1.1:1 against the surface. A table row's selection is carried by its checkbox instead. In a right-to-left tree the bar sits on the right and a closed branch's chevron points left.
+
+<Canvas of={Stories.SelectedAndRightToLeft} />
 
 The tree retains one entry tab stop as rows are selected, removed or collapsed. Typing a label prefix moves focus without selecting. Flat visible rows receive inferred `aria-posinset` and `aria-setsize`; for partial or virtualized sibling sets, supply `posInSet` and `setSize` with the complete sibling position and count.
 

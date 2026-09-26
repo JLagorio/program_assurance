@@ -12,7 +12,21 @@
     },
     "size": {
       "meaning": "Family-relative geometry or density. Button height, Avatar diameter, text scale, and Empty composition are not one common pixel scale.",
-      "migration": "Preserve intentional family scales and document their dimensions. Do not globally replace small/medium with one abbreviated enum or reinterpret layout choices as fixed heights."
+      "migration": "Preserve intentional family scales and document their dimensions. Do not globally replace small/medium with one abbreviated enum or reinterpret layout choices as fixed heights. Controls that share a height use ControlSize words (xsmall, small, medium); a shadcn spelling (sm, default, xs) on a control moves to the full word with a deprecated alias and a ledger/no-deprecated-name fixer.",
+      "familyValues": {
+        "Button": "xsmall 24px, small 28px, medium 32px (default); link has natural height.",
+        "IconButton": "small 28px (default), medium 32px.",
+        "Input, Combobox, SearchField, NumberField, DatePicker, TimeField, DateTimeField": "ControlSize: small 28px, medium 32px (default).",
+        "SelectTrigger": "ControlSize: small 28px, medium 32px (default); sm and default are deprecated spellings of small and medium.",
+        "Switch": "sm and default (shadcn spellings); ControlSize is pending.",
+        "Toggle, ToggleGroup, AlertDialog, Card": "shadcn spellings (sm, default) pending migration to full words; AlertDialog's size is a width preset aligned with DialogContent width.",
+        "InputGroupButton": "xs, sm, icon-xs, icon-sm (shadcn); an icon form with a required label is pending.",
+        "Badge": "small 20px (default), xsmall 16px.",
+        "Attachment": "xsmall, small, medium (default).",
+        "Timeline": "Marker scale: small 16px, medium 20px (default), large 24px.",
+        "Item.Group": "Row density: default, compact; not a control height.",
+        "Card, Empty, Table": "Density or composition, not a control height; not merged into one prop."
+      }
     },
     "width/height": {
       "meaning": "Physical or constrained layout dimensions; literal numbers and named presets require the owning component's units and meaning.",
@@ -140,7 +154,7 @@
     "Badge": {
       "domTarget": "Native span by default, with native attributes, events, styles and HTMLSpanElement ref. Base UI render accepts an element or callback; a custom component must forward merged props/ref. Anchor-specific attributes and anchor refs belong on the rendered link.",
       "controlledBehavior": "Stateless presentation and composition for labels and statuses. The caller owns content, navigation and any status changes. No selection, checked, disabled, dismissible or live-region behavior is inferred.",
-      "defaultBehavior": "variant=default, resolved tone=brand, appearance=bold, size=small (20px). Secondary defaults neutral/subtle; destructive defaults danger/subtle. Explicit tone changes only palette and appearance overrides emphasis for filled treatments. Outline/ghost/link retain their unfilled treatment. xsmall is 16px. All share pill anatomy, icon children or a leading icon shorthand, and data-slot=badge with resolved variant/tone/appearance/size axes. Base UI composes rendered-element props, styles, classes, events and refs.",
+      "defaultBehavior": "With neither variant nor tone: variant=default, tone=brand, appearance=bold, size=small (20px). A tone without a variant resolves to variant=secondary, the subtle fill in that tone, so a status never renders bold by accident; variant=default with a tone, or appearance=bold, asks for the bold fill. Secondary defaults neutral/subtle; destructive defaults danger/subtle. Explicit tone changes only palette and appearance overrides emphasis for filled treatments. Outline/ghost/link retain their unfilled treatment. xsmall is 16px. All share pill anatomy, icon children or a leading icon shorthand, and data-slot=badge with resolved variant/tone/appearance/size axes. Base UI composes rendered-element props, styles, classes, events and refs.",
       "reviewSources": [
         "packages/design-system/src/components/badge.tsx",
         "packages/design-system/src/lib/status-tone.ts",
@@ -148,11 +162,11 @@
       ],
       "props": {
         "variant": {
-          "meaning": "Visual treatment: default, secondary, destructive, outline, ghost or link. Variant chooses the default palette and fill emphasis; explicit tone changes palette without changing treatment or geometry.",
-          "migration": "Use the same Badge for standard and semantic labels. Existing subtle status labels select secondary and retain tone; generic Badge defaults to the shadcn brand/bold treatment."
+          "meaning": "Visual treatment: default, secondary, destructive, outline, ghost or link. Variant chooses the default palette and fill emphasis; explicit tone changes palette without changing treatment or geometry. Omitted with a tone, it resolves to secondary. `destructive` is the shadcn treatment name and stays: Badge's variant axis is a recorded shadcn decision, while actions (Button, RowAction, DropdownMenuItem) say danger.",
+          "migration": "Use the same Badge for standard and semantic labels. Status labels may omit the variant (it resolves to secondary) or spell variant=secondary; generic Badge defaults to the shadcn brand/bold treatment."
         },
         "tone": {
-          "meaning": "Badge palette: brand plus neutral, information, success, warning and danger. Defaults derive from variant. Tone affects color rather than anatomy, density or fill emphasis.",
+          "meaning": "Badge palette: brand plus neutral, information, success, warning and danger. Defaults derive from variant; without a variant, a tone selects the secondary (subtle) treatment. Tone affects color rather than anatomy, density or fill emphasis.",
           "migration": "Keep status meaning on Badge. Former neutral labels explicitly choose neutral; the shared Tone type for other families remains unchanged."
         },
         "appearance": {
@@ -194,21 +208,6 @@
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "as=div. No margins without all/inline/block; specified negative spacing comes from tokens. Style prop is intentionally excluded.",
       "reviewSources": ["packages/design-system/src/primitives/bleed.tsx"]
-    },
-    "Block": {
-      "domTarget": "section containing an h2; no DOM attributes or ref forwarding.",
-      "controlledBehavior": "Stateless composition; caller owns action control behavior and contents.",
-      "defaultBehavior": "count is visible for zero and empty string, hidden for null/undefined. Falsy action values render no slot. Children always render inside the standard padded body.",
-      "reviewSources": [
-        "packages/design-system/src/shapes/block.tsx",
-        "packages/design-system/src/components/badge.tsx"
-      ],
-      "props": {
-        "action": {
-          "meaning": "Rendered action content in its named position; the pattern does not clone it or invoke it as a callback.",
-          "migration": "Keep caller-composed controls and their event ownership; do not replace this ReactNode slot with a callback or action configuration."
-        }
-      }
     },
     "Box": {
       "domTarget": "The actual as element receives native attributes/events and HTMLElement ref. id remains a DOM id. Box/Grid accept style; Polymorphic element choices are restricted to documented semantic tags.",
@@ -265,7 +264,7 @@
       "reviewSources": ["packages/design-system/src/components/breadcrumb.tsx"]
     },
     "Button": {
-      "domTarget": "Native button by default; Base UI render composes action controls. Navigation uses buttonVariants on real links.",
+      "domTarget": "Native button by default; Base UI render composes action controls only. Navigation is LinkButton or LinkIconButton (an anchor or a router Link through render, never a Base UI Button); buttonVariants on a real link only where a part cannot take LinkButton. A Button render of an anchor or router Link keeps button semantics, and Base UI logs an error for it.",
       "controlledBehavior": "Caller-owned selected, loading and disabled. Loading preserves focus by default; capture guards block rendered-child activation.",
       "defaultBehavior": "secondary, medium (32px), type=button. Existing Ledger variants, sizes and decorative icon options remain.",
       "reviewSources": ["packages/design-system/src/components/button.tsx"],
@@ -293,9 +292,9 @@
       "controlledBehavior": "Caller owns status/data/path/actions. Frame owns hidden/highlighted series, table visibility and expanded Dialog; expanded copy has its own Frame state. No controlled props exist for these presentation states.",
       "defaultBehavior": "status=ready, size=medium, swatch=square, texture=false. Locale formatters default; legend is top only for more than one series, otherwise none. data+x+nonempty series enables table twin; downloads and expansion are absent unless requested. height/size sets fallback loading/error/empty height, not child plot geometry. Missing summary/description/path/action/statusText renders no corresponding content; localized status titles fill missing statusTitle.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/frame.tsx",
-        "packages/design-system/src/components/chart/chart.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx"
+        "packages/design-system/src/patterns/chart/frame.tsx",
+        "packages/design-system/src/patterns/chart/chart.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx"
       ],
       "props": {
         "size": {
@@ -319,9 +318,9 @@
       "controlledBehavior": "Caller owns data and loading. Frame owns hidden/highlighted series; the plot owns picked details and clears them on dismissal. onSelect reports a selection and does not persist or control selection; details optionally opens the local card.",
       "defaultBehavior": "Props override Frame name, format/formatX, loading, sync and texture; otherwise Frame context wins, then locale formatters, no name, loading=false, no sync and texture=false. Missing label outside Frame makes the plot decorative. Plot geometry defaults to medium=200px independently of Frame size; explicit height overrides size. Missing details/onSelect adds no selection action. Data and series stay caller-owned; optional overlays and labels are absent unless enabled. scale=category, curve=linear, labels=none, baseline=zero, delta=false; stacked/dots/connectNulls false by absence. Area texture follows Frame unless explicitly supplied.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/line.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx",
-        "packages/design-system/src/components/chart/frame.tsx"
+        "packages/design-system/src/patterns/chart/line.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx",
+        "packages/design-system/src/patterns/chart/frame.tsx"
       ],
       "props": {
         "size": {
@@ -346,9 +345,9 @@
       "controlledBehavior": "Caller owns data and loading. Frame owns hidden/highlighted series; the plot owns picked details and clears them on dismissal. onSelect reports a selection and does not persist or control selection; details optionally opens the local card.",
       "defaultBehavior": "Props override Frame name, format/formatX, loading, sync and texture; otherwise Frame context wins, then locale formatters, no name, loading=false, no sync and texture=false. Missing label outside Frame makes the plot decorative. Plot geometry defaults to medium=200px independently of Frame size; explicit height overrides size. Missing details/onSelect adds no selection action. Data and series stay caller-owned; optional overlays and labels are absent unless enabled. labels=none; stacked/horizontal are false by absence, domain starts at zero and extends for negative data. No line, target or reference is added by default.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/bar.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx",
-        "packages/design-system/src/components/chart/frame.tsx"
+        "packages/design-system/src/patterns/chart/bar.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx",
+        "packages/design-system/src/patterns/chart/frame.tsx"
       ],
       "props": {
         "size": {
@@ -373,9 +372,9 @@
       "controlledBehavior": "Caller owns data and loading. Frame owns hidden/highlighted series; the plot owns picked details and clears them on dismissal. onSelect reports a selection and does not persist or control selection; details optionally opens the local card.",
       "defaultBehavior": "arc=full, size=120px outer diameter, thickness=12px. Half arc height is size/2+4. name/format/loading/texture inherit Frame; label is visual center content and does not name the chart. Hidden slices are omitted and share denominator uses shown total; omitted caption/label/details renders none.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/donut.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx",
-        "packages/design-system/src/components/chart/frame.tsx"
+        "packages/design-system/src/patterns/chart/donut.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx",
+        "packages/design-system/src/patterns/chart/frame.tsx"
       ],
       "props": {
         "size": {
@@ -395,8 +394,8 @@
       "controlledBehavior": "Caller owns rows/columns/value callback and loading. Local picked cell drives details; onSelect is a notification. Unlike other plots, heatmap does not inherit Frame loading/legend state.",
       "defaultBehavior": "scale=sequential, midpoint=0, size=medium=32px cells (small=24, large=40). Domain derives from numeric cells or [0,1] when absent; format uses locale. showValues defaults true for function-valued status scale, false otherwise. null/undefined values remain empty; optional row/column labels are absent.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/heatmap.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx"
+        "packages/design-system/src/patterns/chart/heatmap.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx"
       ],
       "props": {
         "size": {
@@ -421,8 +420,8 @@
       "controlledBehavior": "Frame context owns hidden and highlighted series; button clicks call frame.toggle, hover/focus call frame.highlight. Detached legend is stateless and noninteractive.",
       "defaultBehavior": "swatch=square, texture inherits Frame then false. Series label defaults to key and tone defaults to categorical index. Missing series list is not supported.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/frame.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx"
+        "packages/design-system/src/patterns/chart/frame.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx"
       ]
     },
     "Chart.Line": {
@@ -430,9 +429,9 @@
       "controlledBehavior": "Caller owns data and loading. Frame owns hidden/highlighted series; the plot owns picked details and clears them on dismissal. onSelect reports a selection and does not persist or control selection; details optionally opens the local card.",
       "defaultBehavior": "Props override Frame name, format/formatX, loading, sync and texture; otherwise Frame context wins, then locale formatters, no name, loading=false, no sync and texture=false. Missing label outside Frame makes the plot decorative. Plot geometry defaults to medium=200px independently of Frame size; explicit height overrides size. Missing details/onSelect adds no selection action. Data and series stay caller-owned; optional overlays and labels are absent unless enabled. scale=category, curve=linear, labels=none, baseline=zero, delta=false; dots/connectNulls false by absence. Time mode projects dates for rendering while selection reports original caller records. texture is accepted through the shared Line/Area contract but Line draws strokes, not patterned area fills.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/line.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx",
-        "packages/design-system/src/components/chart/frame.tsx"
+        "packages/design-system/src/patterns/chart/line.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx",
+        "packages/design-system/src/patterns/chart/frame.tsx"
       ],
       "props": {
         "size": {
@@ -456,16 +455,16 @@
       "domTarget": "div with decorative color swatches and textual endpoint labels; className targets div, no ref/DOM spread.",
       "controlledBehavior": "Stateless; caller owns scale and labels.",
       "defaultBehavior": "Required scale selects sequential/diverging five swatches. Required min/max are displayed verbatim; absent or empty mid omits midpoint label.",
-      "reviewSources": ["packages/design-system/src/components/chart/heatmap.tsx"]
+      "reviewSources": ["packages/design-system/src/patterns/chart/heatmap.tsx"]
     },
     "Chart.Scatter": {
       "domTarget": "Plot div (named group or aria-hidden decoration) contains a Recharts SVG and optional portaled details card. className targets the Plot div; no general DOM spread or public ref is supported.",
       "controlledBehavior": "Caller owns data and loading. Frame owns hidden/highlighted series; the plot owns picked details and clears them on dismissal. onSelect reports a selection and does not persist or control selection; details optionally opens the local card.",
       "defaultBehavior": "Props override Frame name, format/formatX, loading, sync and texture; otherwise Frame context wins, then locale formatters, no name, loading=false, no sync and texture=false. Missing label outside Frame makes the plot decorative. Plot geometry defaults to medium=200px independently of Frame size; explicit height overrides size. Missing details/onSelect adds no selection action. Data and series stay caller-owned; optional overlays and labels are absent unless enabled. tone=brand. Groups apply only with both groupBy and a nonempty groups list; otherwise all records form one group. Missing z yields ordinary points; missing name leaves the point unnamed.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/scatter.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx",
-        "packages/design-system/src/components/chart/frame.tsx"
+        "packages/design-system/src/patterns/chart/scatter.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx",
+        "packages/design-system/src/patterns/chart/frame.tsx"
       ],
       "props": {
         "size": {
@@ -495,8 +494,8 @@
       "controlledBehavior": "Stateless caller-owned data/presentation; name/format/loading may inherit Frame. No selection API.",
       "defaultBehavior": "appearance=line, tone=brand, width=96px, height=24px. Missing endDot/reference/x adds no end marker/reference/category key. Named charts receive tooltip and Recharts accessibility; loading draws skeleton at the same dimensions.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/sparkline.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx"
+        "packages/design-system/src/patterns/chart/sparkline.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx"
       ],
       "props": {
         "appearance": {
@@ -526,9 +525,9 @@
       "controlledBehavior": "Caller owns data and loading. Frame owns hidden/highlighted series; the plot owns picked details and clears them on dismissal. onSelect reports a selection and does not persist or control selection; details optionally opens the local card.",
       "defaultBehavior": "Props override Frame name, format/formatX, loading, sync and texture; otherwise Frame context wins, then locale formatters, no name, loading=false, no sync and texture=false. Missing label outside Frame makes the plot decorative. Plot geometry defaults to medium=200px independently of Frame size; explicit height overrides size. Missing details/onSelect adds no selection action. Data and series stay caller-owned; optional overlays and labels are absent unless enabled. Leaf values come from data; Recharts sums children. Tone inherits the parent, then falls back to categorical index. Unspecified format/name/loading follow Frame.",
       "reviewSources": [
-        "packages/design-system/src/components/chart/treemap.tsx",
-        "packages/design-system/src/components/chart/_shared.tsx",
-        "packages/design-system/src/components/chart/frame.tsx"
+        "packages/design-system/src/patterns/chart/treemap.tsx",
+        "packages/design-system/src/patterns/chart/_shared.tsx",
+        "packages/design-system/src/patterns/chart/frame.tsx"
       ],
       "props": {
         "size": {
@@ -617,7 +616,7 @@
       ]
     },
     "Count": {
-      "domTarget": "span receives native span attributes and events; no ref in the public type.",
+      "domTarget": "span receiving native span attributes, events and the ref; data-slot=count and data-appearance come last.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "appearance=default, max=99. Numeric values above max display max+; strings pass through. value is display content, never editable state.",
       "reviewSources": ["packages/design-system/src/components/badge.tsx"],
@@ -627,6 +626,9 @@
         },
         "value": {
           "meaning": "Displayed number or string. Numbers above max become max+; this is not an editable value."
+        },
+        "max": {
+          "meaning": "The ceiling, 99 by default; accepts undefined for the default under exactOptionalPropertyTypes."
         }
       }
     },
@@ -736,9 +738,9 @@
       }
     },
     "Dot": {
-      "domTarget": "SVG circle: supplied label makes a named image; otherwise aria-hidden. No native prop/ref bag.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "tone=neutral; fixed 6px size, caller className can style it.",
+      "domTarget": "svg receiving native svg attributes, events and the ref; role, aria-label and aria-hidden follow label, then data-slot=dot and data-tone.",
+      "controlledBehavior": "Stateless presentation.",
+      "defaultBehavior": "tone=neutral. Without label it is hidden from assistive technology; with label it is an image named by it.",
       "reviewSources": ["packages/design-system/src/components/badge.tsx"],
       "props": {
         "tone": {
@@ -770,7 +772,7 @@
         }
       },
       "reviewSources": [
-        "packages/design-system/src/components/editable.tsx",
+        "packages/design-system/src/patterns/editable.tsx",
         "packages/design-system/src/components/dropdown-menu.tsx"
       ]
     },
@@ -787,7 +789,7 @@
         }
       },
       "reviewSources": [
-        "packages/design-system/src/components/editable.tsx",
+        "packages/design-system/src/patterns/editable.tsx",
         "packages/design-system/src/components/dropdown-menu.tsx"
       ]
     },
@@ -838,13 +840,13 @@
       "domTarget": "ul containing Gates.Item rows; no arbitrary DOM/ref forwarding.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "Children determine order and content. No aggregate met calculation or default empty UI.",
-      "reviewSources": ["packages/design-system/src/components/gates.tsx"]
+      "reviewSources": ["packages/design-system/src/patterns/gates.tsx"]
     },
     "Gates.Item": {
       "domTarget": "li with met/unmet icon and text; action is a caller-owned ReactNode slot. No arbitrary DOM/ref forwarding.",
       "controlledBehavior": "Required met is caller-owned boolean. The component never evaluates business rules or executes the action itself.",
       "defaultBehavior": "tone=warning applies to unmet entries. Met uses success check styling. reason and action are optional; spoken Met/Not met text is fixed English in this version.",
-      "reviewSources": ["packages/design-system/src/components/gates.tsx"],
+      "reviewSources": ["packages/design-system/src/patterns/gates.tsx"],
       "props": {
         "action": {
           "meaning": "The one thing that meets it, at the end of the row: a link Button or a TextLink."
@@ -938,14 +940,8 @@
         }
       }
     },
-    "IndexPage": {
-      "domTarget": "Layout div; header and children render directly and filters get a wrapping div. No DOM/ref forwarding.",
-      "controlledBehavior": "Stateless page composition; header, filter and table state belong to caller-supplied children.",
-      "defaultBehavior": "Falsy/omitted filters create no toolbar wrapper. No built-in selection, filtering or empty-state inference.",
-      "reviewSources": ["packages/design-system/src/patterns/archetypes.tsx"]
-    },
     "Indicator": {
-      "domTarget": "span receives native span attributes and events; nested Dot is decorative. No public ref.",
+      "domTarget": "span receiving native span attributes, events and the ref; nested Dot is decorative. data-slot=indicator and data-tone come last.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "tone=neutral. Neutral uses subtle text; other tones retain default text with colored Dot. No selectable/toggle behavior.",
       "reviewSources": ["packages/design-system/src/components/badge.tsx"],
@@ -962,24 +958,21 @@
       "reviewSources": ["packages/design-system/src/primitives/inline.tsx"]
     },
     "Inspector": {
-      "domTarget": "Div root; sticky form nests ScrollArea. Accordion owns the coordinated sections and KeyValue owns rows. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Each group is an uncontrolled disclosure open initially; caller supplies facts, not disclosure state. PanelContext supplies flush and default stickiness. Titles are disclosure identity and React keys and must be unique.",
-      "defaultBehavior": "Sticky defaults outside Panel; flush defaults false. Root multiple defaultValue explicitly opens all supplied titles. Titles remain the Inspector adapter identity and React keys and must be unique. Falsy footer is omitted.",
+      "domTarget": "div root receiving native div attributes, events and the ref; data-slot=inspector comes last. Accordion owns the coordinated sections and KeyValue owns rows.",
+      "controlledBehavior": "Each group is an uncontrolled disclosure open initially; caller supplies facts, not disclosure state. Titles are disclosure identity and React keys and must be unique.",
+      "defaultBehavior": "Every supplied group opens. Headings take the contextual level (h3 by default). Falsy footer is omitted.",
       "reviewSources": [
-        "packages/design-system/src/shapes/inspector.tsx",
-        "packages/design-system/src/lib/panel-context.ts",
+        "packages/design-system/src/patterns/inspector.tsx",
         "packages/design-system/src/components/accordion.tsx",
-        "packages/design-system/src/components/key-value.tsx",
-        "packages/design-system/src/components/scroll-area.tsx"
+        "packages/design-system/src/components/key-value.tsx"
       ]
     },
     "Inspector.Group": {
-      "domTarget": "Collapsible root with its trigger and body; no extra landmark or DOM/ref passthrough.",
-      "controlledBehavior": "Uncontrolled independent Collapsible, initially open. Accordion ancestry does not change ownership. PanelContext controls inset geometry.",
-      "defaultBehavior": "defaultOpen=true. Panel flush controls inset body spacing. Action remains at the top end of the body. No parent scans this wrapper for initial selection.",
+      "domTarget": "Collapsible root receiving native div attributes, events, className and the ref; data-slot=inspector-group comes last. The title is a CollapsibleHeader at the contextual level (h3 by default). Also exported as InspectorGroup.",
+      "controlledBehavior": "Uncontrolled by default (defaultOpen=true); open with onOpenChange hands the state to the caller.",
+      "defaultBehavior": "defaultOpen=true. Action remains at the top end beside the title while it fits, else on the next row.",
       "reviewSources": [
-        "packages/design-system/src/shapes/inspector.tsx",
-        "packages/design-system/src/lib/panel-context.ts",
+        "packages/design-system/src/patterns/inspector.tsx",
         "packages/design-system/src/components/collapsible.tsx"
       ],
       "props": {
@@ -1050,16 +1043,10 @@
       }
     },
     "PageHeader": {
-      "domTarget": "header (a two-column grid) receiving every native prop and the ref; parts Lead (useRender, spans both columns), Heading, Title (h1), Description, Actions each forward theirs.",
+      "domTarget": "header (a two-column grid) receiving every native prop and the ref; parts Lead (useRender, spans both columns), Heading, Title, Description and Actions each forward theirs and put data-slot last. Title is an h1 by default, the contextual level inside a HeadingLevelProvider, or the element given to render. Each part is also exported by name (PageHeaderTitle and so on).",
       "controlledBehavior": "Stateless page title and action composition.",
       "defaultBehavior": "Nothing renders that is not composed; no eyebrow, description or actions props.",
-      "reviewSources": ["packages/design-system/src/layout/page-header.tsx"],
-      "props": {
-        "actions": {
-          "meaning": "Rendered action content in its named position; the pattern does not clone it or invoke it as a callback.",
-          "migration": "Keep caller-composed controls and their event ownership; do not replace this ReactNode slot with a callback or action configuration."
-        }
-      }
+      "reviewSources": ["packages/design-system/src/layout/page-header.tsx"]
     },
     "PageSkeleton": {
       "domTarget": "div role=status with aria-busy=true and aria-label=Loading (a locale message) receiving every native prop and the ref.",
@@ -1067,41 +1054,7 @@
       "defaultBehavior": "rows defaults to 8; Array.from length coercion controls row count (zero/negative yields none and fractions truncate). Each row/header uses fixed Skeleton shapes; text label remains Loading.",
       "reviewSources": [
         "packages/design-system/src/layout/page-skeleton.tsx",
-        "packages/design-system/src/patterns/page-skeleton.tsx",
         "packages/design-system/src/components/skeleton.tsx"
-      ]
-    },
-    "Panel": {
-      "domTarget": "Outer flex div with optional sticky header/subheader and footer divs; title is h2. Only className forwards to root, no generic DOM props/ref.",
-      "controlledBehavior": "No internal open or view state. onBack/onClose are direct user-action requests. PanelContext exposes flush only to body descendants; the shell/caller owns scrolling container and visibility.",
-      "defaultBehavior": "flush defaults false, adding body inset. Truthy title/icon/actions or callbacks create the title row; subheader renders independently of that row. Falsy footer omits the footer wrapper. Body always renders under PanelContext.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/panel.tsx",
-        "packages/design-system/src/lib/panel-context.ts",
-        "packages/design-system/src/components/button.tsx"
-      ],
-      "props": {
-        "actions": {
-          "meaning": "Rendered action content in its named position; the pattern does not clone it or invoke it as a callback.",
-          "migration": "Keep caller-composed controls and their event ownership; do not replace this ReactNode slot with a callback or action configuration."
-        },
-        "icon": {
-          "meaning": "Rendered icon/mark before the title; it is not cloned or automatically hidden from assistive technology.",
-          "migration": "Retain ReactNode slot; caller supplies appropriate decorative semantics or accessible meaning."
-        },
-        "onClose": {
-          "meaning": "Optional zero-argument request from the close IconButton. Its presence renders the button; no internal close occurs.",
-          "migration": "Keep visibility in the shell/caller; absence intentionally removes the close affordance."
-        }
-      }
-    },
-    "Panel.Trigger": {
-      "domTarget": "IconButton native button with aria-expanded and selected presentation. No root DOM/ref passthrough.",
-      "controlledBehavior": "isOpen is required caller-owned state; onClick requests caller action, without toggling internally.",
-      "defaultBehavior": "label defaults to Details; variant is always subtle and icon PanelRight. isOpen drives both isSelected and aria-expanded.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/panel.tsx",
-        "packages/design-system/src/components/button.tsx"
       ]
     },
     "PickerSheet": {
@@ -1138,26 +1091,6 @@
         }
       }
     },
-    "PreviewRail": {
-      "domTarget": "aside named by a generated useId label on visible Preview plus record id; no DOM/ref passthrough.",
-      "controlledBehavior": "Caller owns selection/visibility. Close button requests onClose; the rail never hides itself.",
-      "defaultBehavior": "Falsy title/subtitle/status/openTo omit their slots. Close is always present. The generated landmark label is independent of the record id prop.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/preview-rail.tsx",
-        "packages/design-system/src/components/button.tsx",
-        "packages/design-system/src/components/id.tsx"
-      ],
-      "props": {
-        "id": {
-          "meaning": "Rendered record identifier, not an HTML id or label-target attribute.",
-          "migration": "Keep domain identity as visible content; use underlying primitives when DOM attribute/ref integration is required."
-        },
-        "onClose": {
-          "meaning": "Requests that the caller close the surface; the function receives no next-state value or DOM event.",
-          "migration": "Keep the request callback and caller-owned open state; adapters to onOpenChange must request close only when next is false."
-        }
-      }
-    },
     "PreviewSheet": {
       "domTarget": "Sheet portaled modal dialog; visible id in eyebrow; openTo is composed through TextLink. No DOM/ref passthrough.",
       "controlledBehavior": "Caller owns open and preview stack; onClose/onBack request changes. Footer links navigate through caller-supplied elements; actions remain caller-owned.",
@@ -1187,22 +1120,6 @@
         "width": {
           "meaning": "Maximum Sheet width in CSS pixels; 720 by default, constrained by the viewport.",
           "migration": "Retain physical width separately from control density/size scales."
-        }
-      }
-    },
-    "PreviewSplit": {
-      "domTarget": "Closed: Grid root. Open: Resizable group div with two panels and keyboard separator. No DOM/ref forwarding.",
-      "controlledBehavior": "Caller owns open. Resizable dependency internally owns drag/keyboard sizes while mounted; no persistence key is supplied, so closing/remounting resets sizes.",
-      "defaultBehavior": "Children.toArray removes null/boolean children; first remaining child is list and all subsequent children are rail. Closed renders only list. Open uses horizontal split, list min 55%, rail default 26%, min 18%, max 45%. No responsive collapse is inferred.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/preview-split.tsx",
-        "packages/design-system/src/components/resizable.tsx",
-        "packages/design-system/src/primitives/grid.tsx"
-      ],
-      "props": {
-        "open": {
-          "meaning": "Required switch between list-only Grid and mounted two-panel Resizable composition; no open-change callback.",
-          "migration": "Keep caller selection/visibility ownership; do not treat it as a persistent resize or panel-collapse state."
         }
       }
     },
@@ -1504,21 +1421,6 @@
       "defaultBehavior": "Optional toggle/children render nothing when absent; expanded desktop places toggle at trailing end.",
       "reviewSources": ["packages/design-system/src/layout/shell/top-nav.tsx"]
     },
-    "ShowPage": {
-      "domTarget": "Page div composed through Tabs render; body div composed through TabsContent render when tab is supplied. rail renders in aside labeled Details. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "tab undefined means no Tabs ownership. Supplying tab creates a controlled Tabs root; onTabChange receives the selected string and caller must update tab. There is no internal tab fallback; omitting the handler leaves a read-only controlled selection.",
-      "defaultBehavior": "Tabs/TabsContent are created only when tab is defined. rail is absent only for undefined/null/false; other values reserve the rail column. tabs content is passed directly, so a TabsList requires tab/onTabChange or a valid outer Tabs context.",
-      "reviewSources": [
-        "packages/design-system/src/patterns/archetypes.tsx",
-        "packages/design-system/src/components/tabs.tsx"
-      ],
-      "props": {
-        "onTabChange": {
-          "meaning": "Value callback from Tabs.onValueChange, active only when tab is defined.",
-          "migration": "Preserve caller/router tab ownership; pair tabs with tab and its change handler rather than expecting a default tab."
-        }
-      }
-    },
     "Skeleton": {
       "domTarget": "aria-hidden div; lines>1 for line shape wraps multiple hidden lines. className/style target outer wrapper for multiline and skeleton for single-line. No native/ref bag.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
@@ -1687,7 +1589,7 @@
       }
     },
     "Timeline": {
-      "domTarget": "ol with context and optional aria-label; no arbitrary DOM/ref forwarding.",
+      "domTarget": "ol receiving native ol attributes, events, className, style and the ref; label is its aria-label. Across, the ol sits inside a horizontal Scroller. data-slot=timeline comes last.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "orientation=vertical, size=medium (20px), align=center. Vertical timePosition defaults end; horizontal coerces every position except below to above and has 420px minimum width. Groups are vertical only.",
       "reviewSources": ["packages/design-system/src/components/timeline.tsx"],
@@ -1698,15 +1600,15 @@
       }
     },
     "Timeline.Group": {
-      "domTarget": "li with sticky heading and nested ol named by generated heading id. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "Vertical timeline context supplies geometry. Numeric count includes zero. label/children are required; no expansion or item counting is inferred.",
+      "domTarget": "li receiving native li attributes, events, className and the ref; its label is an h3 eyebrow that names the nested ol. data-slot=timeline-group comes last.",
+      "controlledBehavior": "Stateless grouping.",
+      "defaultBehavior": "Vertical timelines only; the label sticks to the top of the scrolling list.",
       "reviewSources": ["packages/design-system/src/components/timeline.tsx"]
     },
     "Timeline.Item": {
-      "domTarget": "li with marker/title/body regions. Title clones link with generated id or renders onSelect button, else span. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "isActive/emphasis are caller-owned presentation. onSelect invokes an action only; link wins when both are supplied. No automatic unread/completion state.",
-      "defaultBehavior": "tone=neutral. marker overrides icon overrides Dot/ring. Parent context sets scale/time position; standalone fallback matches vertical medium/end/center. dateTime only creates a time element when time is supplied. Link id/children/className are composed by the item.",
+      "domTarget": "li receiving native li attributes, events, className and the ref (title and onSelect keep their event meanings); data-slot=timeline-item comes last.",
+      "controlledBehavior": "Caller owns isActive and the row's link or onSelect.",
+      "defaultBehavior": "tone=neutral; the marker follows the list's size; the time follows the list's timePosition.",
       "reviewSources": ["packages/design-system/src/components/timeline.tsx"],
       "props": {
         "icon": {
@@ -1760,7 +1662,7 @@
       "controlledBehavior": "Caller owns chosen detail and row activation. WorkPane only supplies Item.Group compact density; no selected-id or internal detail state.",
       "defaultBehavior": "Truthy listWidth overrides layout-list CSS variable in pixels; omitted/0 uses token default 340px. listLabel truthiness selects generated aria-labelledby or literal List aria-label. detail ?? empty uses empty only for null/undefined, not false or zero. Layout stacks below lg.",
       "reviewSources": [
-        "packages/design-system/src/shapes/work-pane.tsx",
+        "packages/design-system/src/patterns/work-pane.tsx",
         "packages/design-system/src/components/item.tsx"
       ],
       "props": {
@@ -1775,7 +1677,7 @@
       "controlledBehavior": "Caller owns isActive and onSelect; callback activates in place without changing internal state. Item.Group controls density/flush when present.",
       "defaultBehavior": "tone defaults neutral. isActive omitted is unhighlighted. Dot renders before title; caller meta must carry semantic status text when color is meaningful. Falsy meta omits its span.",
       "reviewSources": [
-        "packages/design-system/src/shapes/work-pane.tsx",
+        "packages/design-system/src/patterns/work-pane.tsx",
         "packages/design-system/src/components/item.tsx",
         "packages/design-system/src/components/badge.tsx",
         "packages/design-system/src/components/id.tsx"
@@ -1818,60 +1720,6 @@
         "packages/design-system/src/styles/motion.css"
       ]
     },
-    "Accordion.Content": {
-      "domTarget": "Content div and named region; attributes/events/ref forwarded. Radix associates it with the trigger.",
-      "controlledBehavior": "Follows owning item; forceMount retains mounted state while closed-state CSS hides content and excludes controls from tab order.",
-      "defaultBehavior": "Unmounts after exit animation normally. forceMount absent by default; retained closed panels hide immediately. Reduced-motion support, no body spacing or browser-find support.",
-      "props": {
-        "id": {
-          "meaning": "Native DOM ID on the named part; Radix supplies trigger/content association IDs when omitted. Item selection identity is separate.",
-          "migration": "Keep DOM IDs separate from item values and preserve ARIA associations when overriding IDs."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/accordion.tsx",
-        "packages/design-system/src/styles/motion.css"
-      ]
-    },
-    "Accordion.Header": {
-      "domTarget": "h3 by default; native attributes/events/ref forwarded. asChild permits an appropriate semantic heading.",
-      "controlledBehavior": "No local state; wraps the trigger in the document outline.",
-      "defaultBehavior": "Default h3 with flex layout; no ancestor-inferred level or text.",
-      "reviewSources": [
-        "packages/design-system/src/components/accordion.tsx",
-        "packages/design-system/src/styles/motion.css"
-      ]
-    },
-    "Accordion.Item": {
-      "domTarget": "Item div; native attributes/events/ref forwarded. Required value is stable selection identity, distinct from native id.",
-      "controlledBehavior": "Root owns selection; no item open/defaultOpen state API. Item disabled disables its trigger.",
-      "defaultBehavior": "value required, disabled false. No inferred title, identity or border.",
-      "props": {
-        "value": {
-          "meaning": "Required stable string selection identity, independent of display text, position and native id.",
-          "migration": "Use explicit stable values; replace child defaultOpen with root defaultValue."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/accordion.tsx",
-        "packages/design-system/src/styles/motion.css"
-      ]
-    },
-    "Accordion.Trigger": {
-      "domTarget": "Native button; attributes/events/ref forwarded. asChild composes one ref-capable child and uses its complete content.",
-      "controlledBehavior": "Radix toggles its item according to root selection and disabled state. Native onChange does not report expansion.",
-      "defaultBehavior": "Token focus/hover/typography with decorative chevron. indicator replaces it, null hides it; asChild supplies complete presentation.",
-      "props": {
-        "id": {
-          "meaning": "Native DOM ID on the named part; Radix supplies trigger/content association IDs when omitted. Item selection identity is separate.",
-          "migration": "Keep DOM IDs separate from item values and preserve ARIA associations when overriding IDs."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/accordion.tsx",
-        "packages/design-system/src/styles/motion.css"
-      ]
-    },
     "DataTable.Settings": {
       "domTarget": "DropdownMenu trigger and portaled menu. children replaces the default labelled IconButton; no root/ref/native passthrough.",
       "controlledBehavior": "Table metadata owns density and view. Menu requests density toggles via setDensity and reset via resetView(table). Radix owns menu open state.",
@@ -1882,6 +1730,70 @@
         "packages/design-system/src/patterns/data-table/view-store.ts",
         "packages/design-system/src/patterns/data-table/features.ts"
       ]
+    },
+    "DropdownMenuItem": {
+      "domTarget": "Base UI Menu.Item; native attributes, events, render and ref forwarded; data-slot, data-inset and data-variant come after the caller's props.",
+      "controlledBehavior": "Caller owns the action through onClick; disabledReason disables the item and shows the reason as its description line.",
+      "defaultBehavior": "variant=default. danger paints the label and the highlight in the danger colour except while disabled.",
+      "reviewSources": ["packages/design-system/src/components/dropdown-menu.tsx"],
+      "props": {
+        "variant": {
+          "meaning": "default or danger, the word Button and RowAction use for an action that destroys or cannot be undone. data-variant reports the resolved word.",
+          "migration": "destructive is the deprecated spelling of danger for one version; ledger/no-deprecated-name renames it. Badge's destructive treatment is a different concept and keeps its name."
+        }
+      }
+    },
+    "SelectTrigger": {
+      "domTarget": "Base UI Select.Trigger, a native button; native attributes, events, render and ref forwarded; data-slot and data-size (the resolved ControlSize word) come after the caller's props.",
+      "controlledBehavior": "Select root owns the value and open state; the trigger follows a Field's required and invalid state.",
+      "defaultBehavior": "size=medium (32px); w-fit unless the caller sets a width.",
+      "reviewSources": ["packages/design-system/src/components/select.tsx"],
+      "props": {
+        "size": {
+          "meaning": "ControlSize: small 28px or medium 32px, the heights Input, Combobox and Button share. data-size reports the same word, so InputGroup's rule keyed on small matches a Select.",
+          "migration": "sm and default are the deprecated shadcn spellings of small and medium for one version; ledger/no-deprecated-name renames them."
+        }
+      }
+    },
+    "Item.Group": {
+      "domTarget": "div wrapper receiving native div attributes, events and the ref, except aria-label and aria-labelledby, which reach the ol that holds the rows; data-slot=item-group comes last. The title is a heading at the contextual level (h3 by default).",
+      "controlledBehavior": "Stateless list; rows own their own disclosure and actions.",
+      "defaultBehavior": "size=default, flush=false. A title names the list and wins over aria-labelledby and aria-label.",
+      "reviewSources": ["packages/design-system/src/components/item.tsx"],
+      "props": {
+        "labelledBy": {
+          "meaning": "The id of a heading outside the group that names the list.",
+          "migration": "Deprecated for aria-labelledby, which now reaches the list; ledger/no-deprecated-name renames it."
+        }
+      }
+    },
+    "Item": {
+      "domTarget": "li receiving native li attributes, events and the ref (id, title and onSelect keep their record meanings); data-slot=item comes last. A collapsible row renders through Base UI Collapsible."
+    },
+    "Chart.Frame": {
+      "domTarget": "figure receiving native figure attributes, events and the ref (the expanded Dialog copy takes none); data-slot=chart-frame and data-state come after them.",
+      "controlledBehavior": "Caller owns the data and the state; the Frame owns legend isolation, the table toggle and the expanded view.",
+      "defaultBehavior": "state=ready; legend top for two or more series.",
+      "reviewSources": ["packages/design-system/src/patterns/chart/frame.tsx"],
+      "props": {
+        "state": {
+          "meaning": "ready, loading, refreshing, empty or error: the word DataTable uses for the same thing. refreshing keeps the last plot, dimmed, with a spinner."
+        },
+        "status": {
+          "meaning": "The plot's state under its old name; state wins when both are set.",
+          "migration": "Deprecated for state; ledger/no-deprecated-name renames it. status stays the name of the badge slot on PreviewSheet, Related.Card, TaskRow and Glance."
+        }
+      }
+    },
+    "TabsList": {
+      "domTarget": "Base UI Tabs.List (role=tablist) receiving native attributes, events and the ref; data-slot and data-variant come after them. A horizontal line list sits inside a ScrollArea and a Scroller.",
+      "defaultBehavior": "variant=default, a filled strip; line is the underline product pages use.",
+      "reviewSources": ["packages/design-system/src/components/tabs.tsx"],
+      "props": {
+        "variant": {
+          "meaning": "default, a filled strip, or line, an underline that spans the content and scrolls in one row."
+        }
+      }
     }
   }
 }

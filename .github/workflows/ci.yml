@@ -1,7 +1,10 @@
 # Checks run on every push and pull request: the tokens are current, catalog components have a
-# documented story, the package and the prototype typecheck and lint, the tests
-# pass, everything builds, and the package packs. The prototype is the test vehicle: when it
-# breaks, the system needs updating.
+# documented story, the allow-lists only shrink, the package and the prototype typecheck and lint,
+# the tests pass, everything builds, and the package packs. The story run (every story rendered,
+# played and checked with axe, at a phone and in a frame, and through the gates: focus rings,
+# touch targets, forced colours, short windows, long content) is its own job, so a story failure
+# does not hide an app error. The prototype is the test vehicle: when it breaks, the system needs
+# updating.
 name: CI
 on:
   push:
@@ -25,16 +28,16 @@ jobs:
         env:
           DS_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
         run: node scripts/ds-check.mjs
+      - name: Lint, story gate, screen and docs allow-lists only shrink
+        env:
+          DS_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+        run: npm run check:allow-lists
       - name: The package typechecks, lints and passes its tests
         run: npm run typecheck -w packages/design-system && npm run lint -w packages/design-system && npm test -w packages/design-system
       - name: Public declarations and dependency contracts match the API baseline
         env:
           DS_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
         run: npm run test:api && npm run ds:api:check -- --base-ref "$DS_BASE_REF"
-      - name: All design-system stories pass render, interaction and accessibility checks
-        run: npx playwright install --with-deps chromium && npm run test:a11y -w packages/design-system
-      - name: Every story fits a 390px phone and a 320px container without breaking words
-        run: npm run test:layout -w packages/design-system
       - name: The prototype typechecks and lints
         run: npx tsc --noEmit -p tsconfig.json && npx eslint .
       - name: App commands persist outcomes and recover from storage failures
@@ -49,6 +52,22 @@ jobs:
         with:
           name: ledger-design-system
           path: out/*.tgz
+  stories:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: All design-system stories pass render, interaction and accessibility checks, keep their focus rings, and stay distinct in forced colours
+        run: npm run test:a11y -w packages/design-system
+      - name: Every story fits a 390px phone and a 320px container without breaking words
+        run: npm run test:layout -w packages/design-system
+      - name: Stories keep 24px touch targets, overlays work at 320 by 256, and long content does not break the layout
+        run: npm run test:gates -w packages/design-system
   storybook:
     runs-on: ubuntu-latest
     steps:
@@ -62,9 +81,12 @@ jobs:
       - run: npm ci
       - name: The Storybook builds
         run: npm run build-storybook -w packages/design-system
+      - run: npx playwright install --with-deps chromium
+      - name: Every docs page renders without an error
+        run: npm run test:docs -- --static packages/design-system/storybook-static
   product-patterns:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     env:
       APP_TEST_URL: http://127.0.0.1:8080
       PATTERN_ARTIFACT_DIR: artifacts/pattern-checks
@@ -94,6 +116,8 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:8080 > /dev/null
           npm run test:patterns
+      - name: Every product screen passes axe and logs no errors, within its allowance
+        run: npm run test:app-a11y
       - uses: actions/upload-artifact@v4
         if: always()
         with:

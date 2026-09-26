@@ -339,6 +339,7 @@ export {
   type DropdownMenuContentProps,
   type DropdownMenuGroupProps,
   type DropdownMenuItemProps,
+  type DropdownMenuItemVariant,
   type DropdownMenuLabelProps,
   type DropdownMenuLinkItemProps,
   type DropdownMenuPortalProps,
@@ -363,7 +364,7 @@ export {
 export { Icon, type IconColorToken, type IconProps, type IconSize } from "./icon";
 export { Id, type IdListProps, type IdProps } from "./id";
 
-export { Item, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
+export { Item, ItemGroup, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
 export {
   Kbd,
   KbdGroup,
@@ -483,6 +484,7 @@ export {
   type SelectScrollUpButtonProps,
   type SelectSeparatorProps,
   type SelectTriggerProps,
+  type SelectTriggerSize,
   type SelectValueProps,
 } from "./select";
 export { Separator, type SeparatorProps } from "./separator";
@@ -534,6 +536,8 @@ export {
 export { TextLink, type TextLinkProps } from "./text-link";
 export {
   Timeline,
+  TimelineGroup,
+  TimelineItem,
   type TimelineAlign,
   type TimelineGroupProps,
   type TimelineItemProps,

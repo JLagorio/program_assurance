@@ -261,6 +261,36 @@ for (const state of ["hovered", "pressed"])
     contrastModes,
   );
 
+// Choice controls and state cues, in every mode (D2, A11-2, A11-3): the Checkbox and Radio box is
+// drawn in color.border.bold and the Switch's off track in color.background.input.track, each 3:1
+// against every surface, with the unchecked thumb 3:1 on the track. The second cue of each state
+// holds 3:1 on the fill it sits on: the pressed Toggle's border and the selected Tree row's bar
+// (color.background.selected.bold, the colour of color.border.selected) on the selected fill, and
+// the keyboard highlight's inset focus outline on the menu's highlight tint. Under increased
+// contrast the selected fill is itself 3:1 against the surface (above), so the border and bar on
+// it are held to the standard modes.
+for (const surface of surfaces) {
+  add("color.border.bold", surface, 3, "checkbox and radio boundary", surface);
+  if (surface !== "color.background.input")
+    add("color.background.input.track", surface, 3, "switch off track", surface);
+  for (const fill of selectedFills) {
+    const note = "pressed toggle border on its fill";
+    add("color.border.selected", fill, 3, note, surface, standardModes);
+    const bar = "selected tree row bar on its fill";
+    add("color.background.selected.bold", fill, 3, bar, surface, standardModes);
+  }
+}
+// Menus, selects, comboboxes and the command list sit on the overlay surface, or inline on a page.
+for (const surface of ["elevation.surface.overlay", "elevation.surface"])
+  add(
+    "color.border.focused",
+    "color.background.neutral.subtle.hovered",
+    3,
+    "menu highlight's inset outline on the tint",
+    surface,
+  );
+add("color.background.input.thumb", "color.background.input.track", 3, "switch thumb on the track");
+
 const results = [];
 for (const mode of modes) {
   for (const c of cases) {

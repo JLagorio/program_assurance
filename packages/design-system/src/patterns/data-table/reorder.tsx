@@ -21,7 +21,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { RowData } from "@tanstack/react-table";
 import { GripVertical } from "lucide-react";
-import { useId, type CSSProperties, type ReactNode } from "react";
+import { useId, useMemo, type CSSProperties, type ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
 import type { DataTableInstance } from "./use-data-table";
@@ -43,6 +43,34 @@ const byKind: Modifier = (args) =>
     ? restrictToVerticalAxis(args)
     : restrictToHorizontalAxis(args);
 
+/* The sensors' options, made once: dnd-kit rebuilds its context when they change, and every row
+   and header that can drag reads that context, so new options on each render would redraw them all. */
+const POINTER_OPTIONS = { activationConstraint: { distance: 8 } };
+const KEYBOARD_OPTIONS = { coordinateGetter: sortableKeyboardCoordinates };
+const MODIFIERS = [byKind];
+
+/** What a drag says about an item: a row's label, a column's header text, else its id. */
+function spokenName<TData extends RowData>(
+  table: DataTableInstance<TData>,
+  id: string | number,
+  kind: DragKind | undefined,
+) {
+  const key = String(id);
+  if (kind === "row") {
+    try {
+      const row = table.getRow(key, true);
+      const meta = table.options.meta;
+      return (
+        meta?.rowLabel?.(row.original as never) ?? meta?.tree?.label(row.original as never) ?? key
+      );
+    } catch {
+      return key;
+    }
+  }
+  const header = table.getColumn(key)?.columnDef.header;
+  return typeof header === "string" ? header : key;
+}
+
 /** The drag context. Wrap the Table with it; put ColumnSortable inside the thead and RowSortable inside the tbody. */
 export function DragContext<TData extends RowData>({
   table,
@@ -54,9 +82,11 @@ export function DragContext<TData extends RowData>({
   const { t } = useLedgerLocale();
   const id = useId();
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(PointerSensor, POINTER_OPTIONS),
+    useSensor(KeyboardSensor, KEYBOARD_OPTIONS),
   );
+  const kindOf = (item: { data: { current?: Record<string, unknown> | undefined } }) =>
+    item.data.current?.["type"] as DragKind | undefined;
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
     const kind = active.data.current?.["type"] as DragKind | undefined;
@@ -87,22 +117,31 @@ export function DragContext<TData extends RowData>({
       id={id}
       accessibility={{
         screenReaderInstructions: { draggable: t("dragInstructions") },
+        // A row is said by its label and a column by its header, never by a raw id.
         announcements: {
-          onDragStart: ({ active }) => t("dragStarted", { item: String(active.id) }),
+          onDragStart: ({ active }) =>
+            t("dragStarted", { item: spokenName(table, active.id, kindOf(active)) }),
           onDragOver: ({ active, over }) =>
             over
-              ? t("dragOver", { item: String(active.id), target: String(over.id) })
-              : t("dragOutside", { item: String(active.id) }),
+              ? t("dragOver", {
+                  item: spokenName(table, active.id, kindOf(active)),
+                  target: spokenName(table, over.id, kindOf(active)),
+                })
+              : t("dragOutside", { item: spokenName(table, active.id, kindOf(active)) }),
           onDragEnd: ({ active, over }) =>
             over
-              ? t("dragDropped", { item: String(active.id), target: String(over.id) })
-              : t("dragCanceled", { item: String(active.id) }),
-          onDragCancel: ({ active }) => t("dragCanceled", { item: String(active.id) }),
+              ? t("dragDropped", {
+                  item: spokenName(table, active.id, kindOf(active)),
+                  target: spokenName(table, over.id, kindOf(active)),
+                })
+              : t("dragCanceled", { item: spokenName(table, active.id, kindOf(active)) }),
+          onDragCancel: ({ active }) =>
+            t("dragCanceled", { item: spokenName(table, active.id, kindOf(active)) }),
         },
       }}
       sensors={sensors}
       collisionDetection={closestCenter}
-      modifiers={[byKind]}
+      modifiers={MODIFIERS}
       onDragEnd={onDragEnd}
     >
       {children}
@@ -118,7 +157,12 @@ export function ColumnSortable<TData extends RowData>({
   table: DataTableInstance<TData>;
   children: ReactNode;
 }) {
-  const ids = table.getCenterVisibleLeafColumns().map((c) => c.id);
+  // One list while the order holds: a new list each render would redraw every sortable header.
+  const key = table
+    .getCenterVisibleLeafColumns()
+    .map((c) => c.id)
+    .join("\u0000");
+  const ids = useMemo(() => (key ? key.split("\u0000") : []), [key]);
   return (
     <SortableContext items={ids} strategy={horizontalListSortingStrategy}>
       {children}
@@ -134,7 +178,12 @@ export function RowSortable<TData extends RowData>({
   table: DataTableInstance<TData>;
   children: ReactNode;
 }) {
-  const ids = table.getRowModel().rows.map((r) => r.id);
+  // One list while the rows hold, so a checkbox redraws its own row and not every row.
+  const key = table
+    .getRowModel()
+    .rows.map((r) => r.id)
+    .join("\u0000");
+  const ids = useMemo(() => (key ? key.split("\u0000") : []), [key]);
   return (
     <SortableContext items={ids} strategy={verticalListSortingStrategy}>
       {children}
@@ -142,8 +191,28 @@ export function RowSortable<TData extends RowData>({
   );
 }
 
-/** What a draggable header needs: a ref and a style for the cell, and the grip for its trailing slot. */
-export function useColumnDrag(id: string, enabled: boolean) {
+/** How a column's grip is named and reached. */
+export type ColumnDragOptions = {
+  /** The column's header text, for the grip's name ("Reorder Status column"). */
+  label?: string | undefined;
+  /**
+   * The column's menu moves it by keyboard (Move left, Move right), so the grip is for the pointer
+   * only: no tab stop and hidden from assistive technology, and a header costs the keyboard two
+   * stops, not four. Leave it off when nothing else moves the column, and the grip keeps Space and
+   * the arrow keys.
+   */
+  pointerOnly?: boolean | undefined;
+};
+
+/**
+ * What a draggable header needs: a ref and a style for the cell, and the grip for its trailing slot.
+ * The grip takes Space and the arrow keys unless `pointerOnly` says the column's menu moves it.
+ */
+export function useColumnDrag(
+  id: string,
+  enabled: boolean,
+  { label, pointerOnly = false }: ColumnDragOptions = {},
+) {
   const { t } = useLedgerLocale();
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id,
@@ -162,7 +231,8 @@ export function useColumnDrag(id: string, enabled: boolean) {
       {...attributes}
       {...listeners}
       role="button"
-      aria-label={t("reorderColumn")}
+      {...(pointerOnly ? { tabIndex: -1, "aria-hidden": true } : {})}
+      aria-label={label ? t("reorderColumnNamed", { label }) : t("reorderColumn")}
       className={cn(
         "relative inline-flex size-250 shrink-0 touch-target cursor-grab items-center justify-center rounded-small icon-subtle outline-none touch-none hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused",
         isDragging && "cursor-grabbing",

@@ -1,34 +1,25 @@
 import { useState } from "react";
-import { useWorkspace } from "@/components/app/workspace";
 import { ProductRecordDialog } from "@/components/prototype/product-record-dialog";
-import { MissingRecord } from "@/components/prototype/work-common";
+import { MissingRecord, QueryState, RecordActions } from "@/components/prototype/work-common";
 import { campaignTabs, type CampaignTab } from "@/components/prototype/assessment-tabs";
-import { displayDate } from "@/components/prototype/work-format";
 import {
   Absent,
-  Button,
+  Box,
+  DateTime,
   Inspector,
   Shell,
   KeyValue,
-  Section,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  Inline,
   PageHeader,
+  Prose,
+  Section,
   Stack,
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyMedia,
-  EmptyIllustration,
 } from "@ledger/design-system";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AssessmentCampaign } from "@/components/prototype/assessment-campaign";
-import { QueryState, StatusBadge } from "@/components/prototype/work-common";
+import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
+import { RelationName } from "@/components/prototype/record-tools";
+import { StatusBadge } from "@/components/app/status";
+import { campaignStatuses } from "@/lib/status";
 import { useRow } from "@/lib/models";
 
 export const Route = createFileRoute("/campaigns/$campaignId")({
@@ -42,54 +33,34 @@ export const Route = createFileRoute("/campaigns/$campaignId")({
 });
 function CampaignDetail() {
   const { campaignId } = Route.useParams();
-  const workspace = useWorkspace();
   const [editing, setEditing] = useState(false);
   const { tab = "Overview" } = Route.useSearch();
   const navigate = useNavigate();
   const query = useRow("assessment_campaigns", campaignId);
   const campaign = query.data;
-  const program = useRow("programs", campaign?.program_id);
   return (
     <Stack space="space.200" className="min-w-0">
       <QueryState queries={[query]}>
         {campaign ? (
           <>
             <PageHeader>
-              <PageHeader.Lead render={<Breadcrumb />}>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink render={<Link to="/campaigns" />}>
-                      Assessment campaigns
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      render={
-                        <Link
-                          to="/programs/$programId"
-                          params={{ programId: campaign.program_id }}
-                        />
-                      }
-                    >
-                      {program.data?.name ?? "Program"}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{campaign.title}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </PageHeader.Lead>
+              <RecordTrail current={campaign.title}>
+                <TrailLink to="/campaigns">Assessment campaigns</TrailLink>
+                <TrailLink to="/programs/$programId" params={{ programId: campaign.program_id }}>
+                  <RelationName table="programs" id={campaign.program_id} />
+                </TrailLink>
+              </RecordTrail>
               <PageHeader.Heading>
                 <PageHeader.Title>{campaign.title}</PageHeader.Title>
               </PageHeader.Heading>
               <PageHeader.Actions>
-                {workspace.role !== "viewer" && (
-                  <Button size="small" variant="primary" onClick={() => setEditing(true)}>
-                    Edit assessment campaign
-                  </Button>
-                )}
+                {/* One Actions menu, as on the other records: the edit, then Inspect record. */}
+                <RecordActions
+                  table="assessment_campaigns"
+                  id={campaign.id}
+                  editLabel="Edit assessment campaign"
+                  onEdit={() => setEditing(true)}
+                />
               </PageHeader.Actions>
             </PageHeader>
             {editing && (
@@ -100,17 +71,26 @@ function CampaignDetail() {
               />
             )}
             {tab === "Overview" && (
-              <Shell.Aside label="Campaign details">
+              <Shell.Aside label="Assessment campaign details">
                 <Inspector.Group title="Details">
-                  <KeyValue label="Status">
-                    <StatusBadge value={campaign.status} />
-                  </KeyValue>
-                  <KeyValue label="Starts">
-                    {campaign.starts_at ? displayDate(campaign.starts_at) : <Absent />}
-                  </KeyValue>
-                  <KeyValue label="Ends">
-                    {campaign.ends_at ? displayDate(campaign.ends_at) : <Absent />}
-                  </KeyValue>
+                  <KeyValue.Group>
+                    <KeyValue label="Status">
+                      <StatusBadge statuses={campaignStatuses} value={campaign.status} />
+                    </KeyValue>
+                    <KeyValue label="Owner">
+                      <RelationName table="parties" id={campaign.owner_party_id} />
+                    </KeyValue>
+                    <KeyValue label="Starts">
+                      <DateTime
+                        value={campaign.starts_at}
+                        format="date"
+                        absentLabel="Not recorded"
+                      />
+                    </KeyValue>
+                    <KeyValue label="Ends">
+                      <DateTime value={campaign.ends_at} format="date" absentLabel="Not recorded" />
+                    </KeyValue>
+                  </KeyValue.Group>
                 </Inspector.Group>
               </Shell.Aside>
             )}
@@ -119,7 +99,13 @@ function CampaignDetail() {
               campaign={campaign}
               overview={
                 <Section title="Description">
-                  <p>{campaign.description || <Absent />}</p>
+                  {campaign.description ? (
+                    <Box className="max-w-layout-measure">
+                      <Prose>{campaign.description}</Prose>
+                    </Box>
+                  ) : (
+                    <Absent label="No description recorded" />
+                  )}
                 </Section>
               }
               tab={tab}
@@ -134,7 +120,7 @@ function CampaignDetail() {
             />
           </>
         ) : (
-          <MissingRecord backTo="/campaigns" kind="Test campaign" />
+          <MissingRecord backTo="/campaigns" kind="Assessment campaign" />
         )}
       </QueryState>
     </Stack>

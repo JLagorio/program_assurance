@@ -129,16 +129,26 @@ try {
   const table = page.getByRole("table", { name: "Requirement control mappings", exact: true });
   await table.getByText("Whole control", { exact: true }).waitFor();
   await table.getByText(`${control.code} · ${control.title}`, { exact: true }).waitFor();
-  await table.getByRole("button", { name: "Edit mapping", exact: true }).click();
+  // Row commands live in the row's actions menu; the menu item repeats the dialog's operation.
+  async function editFromRow() {
+    await table
+      .getByRole("button", {
+        name: `Row actions for ${control.code} · ${control.title}`,
+        exact: true,
+      })
+      .click();
+    await page.getByRole("menuitem", { name: "Edit control mapping", exact: true }).click();
+  }
+  await editFromRow();
   let dialog = page.getByRole("dialog", { name: "Edit control mapping", exact: true });
   assert.equal(
-    await dialog.getByRole("button", { name: "Save mapping", exact: true }).isDisabled(),
+    await dialog.getByRole("button", { name: "Edit control mapping", exact: true }).isDisabled(),
     false,
   );
   await dialog
-    .getByLabel("Rationale (optional)")
+    .getByLabel("Rationale", { exact: true })
     .fill("Clarified catalog reference without changing context");
-  await dialog.getByRole("button", { name: "Save mapping", exact: true }).click();
+  await dialog.getByRole("button", { name: "Edit control mapping", exact: true }).click();
   await dialog.waitFor({ state: "hidden" });
   const metadataOnly = await data(
     client.from("requirement_control_links").select().eq("id", original.id).single(),
@@ -146,15 +156,15 @@ try {
   assert.equal(metadataOnly.system_id, null);
   assert.equal(metadataOnly.selected_control_id, null);
   assert.equal(metadataOnly.control_part_id, null);
-  await table.getByRole("button", { name: "Edit mapping", exact: true }).click();
+  await editFromRow();
   dialog = page.getByRole("dialog", { name: "Edit control mapping", exact: true });
-  await dialog.getByLabel("System", { exact: true }).click();
+  await dialog.getByRole("combobox", { name: "System", exact: true }).click();
   await page.getByRole("option", { name: "NODE · Allocated element", exact: true }).click();
-  await dialog.getByLabel("Control", { exact: true }).fill(control.code);
+  await dialog.getByRole("combobox", { name: "Control", exact: true }).fill(control.code);
   await page
     .getByRole("option", { name: `${control.code} · ${control.title}`, exact: true })
     .click();
-  await dialog.getByLabel("Statement or item (optional)", { exact: true }).click();
+  await dialog.getByRole("combobox", { name: "Statement or item", exact: true }).click();
   const allowed = parts.filter((part) => isControlStatement(part, parts));
   const options = page.getByRole("option");
   await options.first().waitFor();
@@ -165,8 +175,10 @@ try {
   );
   assert.equal(await options.filter({ hasText: method.source_id }).count(), 0);
   await options.filter({ hasText: statement.source_id }).first().click();
-  await dialog.getByLabel("Rationale (optional)").fill("Repaired against the actual statement");
-  await dialog.getByRole("button", { name: "Save mapping", exact: true }).click();
+  await dialog
+    .getByLabel("Rationale", { exact: true })
+    .fill("Repaired against the actual statement");
+  await dialog.getByRole("button", { name: "Edit control mapping", exact: true }).click();
   await dialog.waitFor({ state: "hidden" });
   const repaired = await data(
     client.from("requirement_control_links").select().eq("id", original.id).single(),
@@ -178,12 +190,12 @@ try {
   await page.getByRole("button", { name: "Map control", exact: true }).click();
   dialog = page.getByRole("dialog", { name: "Map control", exact: true });
   await dialog.getByText(/Choose an allocated system and a control/).waitFor();
-  await dialog.getByLabel("Control", { exact: true }).fill(control.code);
+  await dialog.getByRole("combobox", { name: "Control", exact: true }).fill(control.code);
   await page
     .getByRole("option", { name: `${control.code} · ${control.title}`, exact: true })
     .click();
   await dialog.getByText(/Inherited profile/).waitFor();
-  await dialog.getByRole("button", { name: "Save mapping", exact: true }).click();
+  await dialog.getByRole("button", { name: "Map control", exact: true }).click();
   await dialog.waitFor({ state: "hidden" });
   let links = await data(
     client.from("requirement_control_links").select().eq("requirement_revision_id", content.id),
@@ -200,7 +212,7 @@ try {
   );
   await page.getByRole("button", { name: "Map control", exact: true }).click();
   dialog = page.getByRole("dialog", { name: "Map control", exact: true });
-  await dialog.getByLabel("Rationale (optional)").fill("Discarded draft");
+  await dialog.getByLabel("Rationale", { exact: true }).fill("Discarded draft");
   await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await page
     .getByRole("alertdialog", { name: "Discard changes?", exact: true })
@@ -228,7 +240,15 @@ try {
   await page.reload();
   await table.waitFor();
   assert.equal(await page.getByRole("button", { name: "Map control", exact: true }).count(), 0);
-  assert.equal(await table.getByRole("button", { name: "Edit mapping", exact: true }).count(), 0);
+  assert.equal(
+    await table.getByRole("button", { name: /^Row actions for / }).count(),
+    0,
+    "A viewer has no row commands",
+  );
+  assert.equal(
+    await page.getByRole("button", { name: "Edit control mapping", exact: true }).count(),
+    0,
+  );
   await page.screenshot({
     path: "/tmp/requirement-control-mappings-viewer.png",
     animations: "disabled",

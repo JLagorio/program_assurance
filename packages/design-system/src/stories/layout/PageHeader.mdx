@@ -1,5 +1,5 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-import { PageHeader } from "../..";
+import { PageHeader, PageHeaderLead, PageHeaderTitle } from "../..";
 import * as Stories from "./PageHeader.stories";
 
 <Meta of={Stories} />
@@ -22,7 +22,14 @@ The Title is the h1 on a page. Inside a [HeadingLevelProvider](?path=/docs/primi
 
 <Canvas of={Stories.TitleLevels} />
 
-No other part has props of its own: the root is a `header`, Heading and Actions are `div`s, Description a `p`, and Lead a `div` or the element given to `render`; each takes its element's native props and ref. Title takes `render` and its element's props.
+No other part has props of its own: the root is a `header`, Heading and Actions are `div`s, Description a `p`, and Lead a `div` or the element given to `render`; each takes its element's native props and ref, and names itself last with `data-slot`. Title takes `render` and its element's props. Every part is also exported by name (`PageHeaderLead`, `PageHeaderHeading`, `PageHeaderTitle`, `PageHeaderDescription`, `PageHeaderActions`), the same component as the member.
 
 <ArgTypes of={PageHeader} />
-<ArgTypes of={PageHeader.Title} />
+
+### PageHeader.Title
+
+<ArgTypes of={PageHeaderTitle} />
+
+### PageHeader.Lead
+
+<ArgTypes of={PageHeaderLead} />

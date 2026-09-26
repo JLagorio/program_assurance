@@ -5,6 +5,7 @@ import {
   AlertDialogBody,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogTrigger,
 } from "../../components";
 import * as Stories from "./AlertDialog.stories";
 
@@ -55,6 +56,8 @@ Not for a form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for
 
 ## Props
 
+AlertDialog takes Base UI AlertDialog's root props, `open`, `defaultOpen`, `onOpenChange` (with the change's `reason` and `cancel()` in its details), `onOpenChangeComplete`, `actionsRef` and `handle`, and Ledger's `pending`; it has no `modal` or `disablePointerDismissal`, since an alert dialog is always modal and ignores the blanket. AlertDialogContent takes the popup's `initialFocus`, `finalFocus`, `render`, `className` and `style`, and Ledger's `size`. The types are in [Base UI's API reference](https://base-ui.com/react/components/alert-dialog#api-reference).
+
 <ArgTypes of={AlertDialog} />
 
 ### AlertDialogContent
@@ -64,6 +67,10 @@ Not for a form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for
 ### AlertDialogBody
 
 <ArgTypes of={AlertDialogBody} />
+
+### AlertDialogTrigger
+
+<ArgTypes of={AlertDialogTrigger} />
 
 ### AlertDialogCancel
 

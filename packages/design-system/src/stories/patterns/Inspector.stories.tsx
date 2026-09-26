@@ -1,12 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Pencil } from "lucide-react";
-import { useState } from "react";
+import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { Badge, Button, IconButton, KeyValue } from "../../components";
 import { PageHeader } from "../../layout";
-import { Inspector } from "../../patterns";
-import { HeadingLevelProvider, Stack, Text } from "../../primitives";
+import { Inspector, InspectorGroup } from "../../patterns";
+import { HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
+import { Pair } from "../_lib/pair";
 
 const groups = [
   {
@@ -28,6 +29,7 @@ const groups = [
 const meta = {
   title: "Patterns/Inspector",
   component: Inspector,
+  subcomponents: { InspectorGroup },
   parameters: { layout: "padded" },
   args: {
     groups,
@@ -132,9 +134,9 @@ export const Group: Story = {
     await waitFor(() => expect(canvas.getByText("NIST SP 800-53 Rev 5")).toBeVisible());
     await waitFor(() => expect(turned(provenance)).toBe(true));
     // Settled open, the rows clip no longer, so a focus ring at their edge shows whole.
-    const rows = canvas.getByText("NIST SP 800-53 Rev 5").closest<HTMLElement>(
-      "[data-slot=collapsible-content]",
-    )!;
+    const rows = canvas
+      .getByText("NIST SP 800-53 Rev 5")
+      .closest<HTMLElement>("[data-slot=collapsible-content]")!;
     await waitFor(() => expect(getComputedStyle(rows).overflow).toBe("visible"));
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
       await expect(getComputedStyle(provenance.querySelector("svg")!).transitionProperty).toBe(
@@ -229,3 +231,70 @@ export const Controlled: Story = {
 };
 
 export const Playground: Story = {};
+
+const nativeRefs = { rail: createRef<HTMLDivElement>(), group: createRef<HTMLDivElement>() };
+
+/** Native attributes, a class and a ref reach the root of the data form and of a group, so a product can give a rail a test id or a focus ref; each names itself last with `data-slot`. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Stack space="space.200">
+      <Inspector ref={nativeRefs.rail} data-testid="rail" className="min-w-0" groups={groups} />
+      <Inspector.Group
+        ref={nativeRefs.group}
+        data-testid="provenance"
+        title="Provenance"
+        defaultOpen={false}
+      >
+        <KeyValue label="Source">NIST SP 800-53 Rev 5</KeyValue>
+      </Inspector.Group>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const rail = canvas.getByTestId("rail");
+    await expect(nativeRefs.rail.current).toBe(rail);
+    await expect(rail).toHaveAttribute("data-slot", "inspector");
+    await expect(rail).toHaveClass("min-w-0");
+    const group = canvas.getByTestId("provenance");
+    await expect(nativeRefs.group.current).toBe(group);
+    await expect(group).toHaveAttribute("data-slot", "inspector-group");
+    await expect(within(group).getByRole("button", { name: "Provenance" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+  },
+};
+
+/** The rail's facts in groups, as label and value rows under a heading that folds; not a hand-built list that leaves the outline and loses the disclosure. */
+export const Dont: Story = {
+  render: () => (
+    <Pair
+      do={
+        <HeadingLevelProvider level={2}>
+          <Inspector.Group title="Details">
+            <KeyValue label="Owner">Dana Whitfield</KeyValue>
+            <KeyValue label="Due">30 Sept 2026</KeyValue>
+          </Inspector.Group>
+          <Inspector.Group title="Provenance" defaultOpen={false}>
+            <KeyValue label="Source">NIST SP 800-53 Rev 5</KeyValue>
+          </Inspector.Group>
+        </HeadingLevelProvider>
+      }
+      doText="Inspector.Group: a heading at the rail's level, a folding title, KeyValue rows, and provenance collapsed."
+      dont={
+        <Stack space="space.100">
+          <Text weight="semibold">Details</Text>
+          <Inline space="space.100">
+            <Text color="color.text.subtle">Owner</Text>
+            <Text>Dana Whitfield</Text>
+          </Inline>
+          <Inline space="space.100">
+            <Text color="color.text.subtle">Due</Text>
+            <Text>30 Sept 2026</Text>
+          </Inline>
+        </Stack>
+      }
+      dontText="Bold text over a hand-built row of facts: no heading in the outline, no label and value pairing, and nothing folds."
+    />
+  ),
+};

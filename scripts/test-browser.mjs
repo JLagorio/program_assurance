@@ -76,8 +76,23 @@ async function form(collection, search = "") {
   await page.goto(`${origin}/records/${collection}/new${search}`);
   await page.getByRole("button", { name: `Create ${nouns[collection]}`, exact: true }).waitFor();
 }
-async function choice(label, text) {
-  await page.getByLabel(label, { exact: true }).click();
+/**
+ * A form control by its accessible name. A required label ends in an asterisk hidden from
+ * assistive technology, so getByLabel (label text) would read "Code*"; the name is "Code".
+ */
+function control(label, p = page) {
+  const named = (role) => p.getByRole(role, { name: label, exact: true });
+  return named("textbox").or(named("spinbutton")).or(named("combobox"));
+}
+/** A required control announces the requirement itself (aria-required). */
+async function required(label, p = page) {
+  const field = control(label, p);
+  assert.equal(await field.getAttribute("aria-required"), "true", `${label} is required`);
+  return field;
+}
+async function choice(label, text, { isRequired = false } = {}) {
+  if (isRequired) await required(label);
+  await control(label).click();
   await page.getByRole("option", { name: text, exact: true }).click();
 }
 async function save(collection) {
@@ -105,17 +120,17 @@ try {
     assert.equal(result.count, 0, `${table} starts empty`);
   }
   await form("programs");
-  await page.getByLabel("Code *", { exact: true }).fill(`BROWSER-${run.slice(0, 8)}`);
-  await page.getByLabel("Name *", { exact: true }).fill("Browser validation program");
+  await (await required("Code")).fill(`BROWSER-${run.slice(0, 8)}`);
+  await (await required("Name")).fill("Browser validation program");
   await choice("Status", "Active");
   const programId = await save("programs");
   await page.goto(`${origin}/programs/${programId}`);
   await page.getByRole("heading", { name: "Browser validation program", exact: true }).waitFor();
   await action(page, "Edit program");
-  await page
-    .getByLabel("Description", { exact: true })
-    .fill("Saved through the original prototype using the Supabase model.");
-  await page.getByRole("button", { name: "Save program", exact: true }).click();
+  await control("Description").fill(
+    "Saved through the original prototype using the Supabase model.",
+  );
+  await page.getByRole("button", { name: "Edit program", exact: true }).click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   const prototypeSave = await client
     .from("programs")
@@ -133,19 +148,19 @@ try {
     .getByText("Saved through the original prototype using the Supabase model.", { exact: true })
     .waitFor();
   await form("systems", `?field=program_id&value=${programId}`);
-  await page.getByLabel("Code *", { exact: true }).fill("VALIDATION-SYSTEM");
-  await page.getByLabel("Name *", { exact: true }).fill("Browser validation system");
-  await choice("System type *", "Information system");
+  await (await required("Code")).fill("VALIDATION-SYSTEM");
+  await (await required("Name")).fill("Browser validation system");
+  await choice("System type", "Information system", { isRequired: true });
   const systemId = await save("systems");
   await form("evidence_artifacts", `?field=program_id&value=${programId}`);
-  await page.getByLabel("Title *", { exact: true }).fill("Browser validation evidence");
-  await choice("Artifact kind *", "Document");
+  await (await required("Title")).fill("Browser validation evidence");
+  await choice("Artifact kind", "Document", { isRequired: true });
   const artifactId = await save("evidence_artifacts");
   await form("evidence_versions", `?field=artifact_id&value=${artifactId}`);
-  await page.getByLabel("Version number *", { exact: true }).fill("1");
+  await (await required("Version number")).fill("1");
   const versionId = await save("evidence_versions");
   await page
-    .getByLabel("Attach a file (up to 50 MiB)")
+    .locator('input[type="file"]')
     .setInputFiles({ name: "validation.txt", mimeType: "text/plain", buffer: fileBytes });
   let rejectedMetadata = false;
   const metadataRoute = async (route) => {
@@ -171,7 +186,7 @@ try {
     .waitFor();
   assert.equal(rejectedMetadata, true);
   await page.getByRole("button", { name: "Recover uploaded file", exact: true }).click();
-  await page.getByRole("button", { name: "Download file", exact: true }).waitFor();
+  await page.getByRole("button", { name: /^Download / }).waitFor();
   await page.unroute("**/rest/v1/evidence_versions?*", metadataRoute);
   const version = await client.from("evidence_versions").select("*").eq("id", versionId).single();
   assert.ifError(version.error);
@@ -179,7 +194,7 @@ try {
   assert.equal(version.data.sha256, createHash("sha256").update(fileBytes).digest("hex"));
   assert.ok(version.data.storage_object_id);
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Download file", exact: true }).click();
+  await page.getByRole("button", { name: /^Download / }).click();
   const download = await downloadPromise;
   const stream = await download.createReadStream();
   const downloaded = [];
@@ -188,28 +203,25 @@ try {
   await page.screenshot({ path: "/tmp/program-assurance-evidence.png", fullPage: true });
   await page.goto(`${origin}/records/programs/${programId}`);
   await action(page, "Edit program");
-  await page.getByLabel("Name *", { exact: true }).fill("Unsaved stale draft");
+  await (await required("Name")).fill("Unsaved stale draft");
   const freshContext = await browser.newContext({ viewport: { width: 1440, height: 1050 } });
   const fresh = await freshContext.newPage();
   await login(fresh);
   await fresh.goto(`${origin}/records/programs/${programId}`);
   await fresh.getByRole("heading", { name: "Browser validation program", exact: true }).waitFor();
   await action(fresh, "Edit program");
-  await fresh.getByLabel("Name *", { exact: true }).fill("Browser validation persisted");
-  await fresh.getByRole("button", { name: "Save program", exact: true }).click();
+  await (await required("Name", fresh)).fill("Browser validation persisted");
+  await fresh.getByRole("button", { name: "Edit program", exact: true }).click();
   await fresh.getByRole("heading", { name: "Browser validation persisted", exact: true }).waitFor();
   await freshContext.close();
   await page.bringToFront();
   await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
-  await page.getByRole("button", { name: "Save program", exact: true }).click();
+  await page.getByRole("button", { name: "Edit program", exact: true }).click();
   await page
     .getByRole("alert")
     .filter({ hasText: "This record changed in another session" })
     .waitFor();
-  assert.equal(
-    await page.getByLabel("Name *", { exact: true }).inputValue(),
-    "Unsaved stale draft",
-  );
+  assert.equal(await control("Name").inputValue(), "Unsaved stale draft");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page
     .getByRole("alertdialog", { name: "Discard changes?" })
@@ -254,7 +266,7 @@ try {
     await page.locator("main h1").first().waitFor();
     assert.doesNotMatch(
       await page.locator("main").innerText(),
-      /Page not found|Workspace unavailable|permission denied|does not exist/,
+      /Page not found|Page unavailable|Workspace unavailable|permission denied|does not exist/,
     );
     assert.equal(await page.getByRole("alert").count(), 0, path);
   }

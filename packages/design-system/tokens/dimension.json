@@ -3,38 +3,38 @@
     "$type": "dimension",
     "control": {
       "xsmall": {
-        "$value": "24px",
-        "$description": "Extra-small control height. Button xs."
+        "$value": "1.5rem",
+        "$description": "Extra-small control height, 24px at the browser's default text size. Button xs."
       },
       "small": {
-        "$value": "28px",
-        "$description": "Small control height. Button sm, chips, menu items, sidebar items."
+        "$value": "1.75rem",
+        "$description": "Small control height, 28px at the default text size. Button sm, chips, menu items, sidebar items."
       },
       "medium": {
-        "$value": "32px",
-        "$description": "Default control height. Button md, inputs, selects, combobox triggers."
+        "$value": "2rem",
+        "$description": "Default control height, 32px at the default text size. In rem, like the type, so a reader who raises the browser's text size gets taller controls. Button md, inputs, selects, combobox triggers."
       },
       "large": {
-        "$value": "36px",
-        "$description": "Large control height. Reserved for hero forms."
+        "$value": "2.25rem",
+        "$description": "Large control height, 36px at the default text size. Reserved for hero forms."
       }
     },
     "row": {
       "compact": {
-        "$value": "36px",
-        "$description": "Compact table row."
+        "$value": "2.25rem",
+        "$description": "Compact table row, 36px at the default text size."
       },
       "default": {
-        "$value": "40px",
-        "$description": "Default table row."
+        "$value": "2.5rem",
+        "$description": "Default table row, 40px at the default text size. In rem, like the type it holds."
       },
       "header": {
-        "$value": "32px",
-        "$description": "Table header row."
+        "$value": "2rem",
+        "$description": "Table header row, 32px at the default text size."
       },
       "menu": {
-        "$value": "28px",
-        "$description": "Menu, command and tree rows."
+        "$value": "1.75rem",
+        "$description": "Menu, command and tree rows, 28px at the default text size."
       }
     },
     "icon": {

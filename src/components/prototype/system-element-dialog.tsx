@@ -1,39 +1,35 @@
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useId, useRef, useState, type FormEvent } from "react";
-import { useBlocker } from "@tanstack/react-router";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { AlertCircle } from "lucide-react";
 import {
-  Box,
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
   Button,
-  Checkbox,
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Field,
-  FieldLabel,
+  ErrorSummary,
+  FieldSet,
   Grid,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Stack,
-  Textarea,
+  Text,
+  toast,
 } from "@ledger/design-system";
+import { ChoiceField, PartyField, TextField } from "@/components/app/fields";
+import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "@/lib/database";
 import { useModelSave, useRows } from "@/lib/models";
 import { labelFor } from "@/lib/records";
+import { impactLevels } from "@/lib/status";
 import type { SystemElement } from "@/lib/system-tree";
 
 const impactFields = [
@@ -41,7 +37,15 @@ const impactFields = [
   { name: "integrity_impact", label: "Integrity impact" },
   { name: "availability_impact", label: "Availability impact" },
 ] as const;
-const impactLevels = ["low", "moderate", "high"] as const;
+type ImpactField = (typeof impactFields)[number]["name"];
+const impactOptions = Object.entries(impactLevels).map(([value, entry]) => ({
+  value,
+  label: entry.label,
+}));
+
+/** The form's fields in the order they appear, which is the order their issues are listed in. */
+const elementFields = ["code", "name", "type", "description", "owner"] as const;
+type ElementField = (typeof elementFields)[number];
 
 /** Focused authoring for a canonical system identity; containment and boundary edits stay separate. */
 export function SystemElementDialog({
@@ -54,23 +58,25 @@ export function SystemElementDialog({
   programId: string;
   parent?: SystemElement | undefined;
   existing?: SystemElement | undefined;
+  /** Called once the dialog has finished closing, after `onSaved` when the system was saved. */
   onClose: () => void;
+  /** The saved system's id, once the dialog has closed: open its preview or its record. */
   onSaved?: ((systemId: string) => void) | undefined;
 }) {
-  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const parties = useRows("parties");
   const save = useModelSave("systems");
   const cache = useQueryClient();
-  const fieldId = useId();
+  const formId = useId();
   const [baseline] = useState(existing);
   const [id] = useState(() => existing?.id ?? crypto.randomUUID());
+  const [open, setOpen] = useState(true);
   const [code, setCode] = useState(existing?.code ?? "");
   const [name, setName] = useState(existing?.name ?? "");
-  const [type, setType] = useState(existing?.system_type ?? "");
+  const [type, setType] = useState<string | null>(existing?.system_type ?? null);
   const [description, setDescription] = useState(existing?.description ?? "");
-  const [ownerId, setOwnerId] = useState(existing?.system_owner_party_id ?? null);
-  const [impacts, setImpacts] = useState({
+  const [ownerId, setOwnerId] = useState<string | null>(existing?.system_owner_party_id ?? null);
+  const [impacts, setImpacts] = useState<Record<ImpactField, string | null>>({
     confidentiality_impact: existing?.confidentiality_impact ?? null,
     integrity_impact: existing?.integrity_impact ?? null,
     availability_impact: existing?.availability_impact ?? null,
@@ -79,59 +85,63 @@ export function SystemElementDialog({
     existing?.categorization_rationale ?? "",
   );
   const [dirty, setDirty] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const inFlight = useRef(false);
-  const bypassClose = useRef(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  const saved = useRef(false);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const failureRef = useRef<HTMLDivElement>(null);
+  const feedback = useFormFeedback<ElementField>();
+  const operation = baseline ? "Edit system" : "Create system";
+  const guard = useDraftGuard({
+    dirty,
+    onClose: () => setOpen(false),
+    description: baseline
+      ? "The changes to this system will be lost."
+      : "The system details you entered will be lost.",
+  });
   const collection = workspace.collections.find((item) => item.name === "systems");
   const types = collection?.columns.find((column) => column.name === "system_type")?.choices ?? [];
-  const owners = (parties.data ?? [])
-    .filter((party) => party.tenant_id === workspace.tenantId)
-    .map((party) => ({ id: party.id, label: party.name }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+  const owners = (parties.data ?? []).filter((party) => party.tenant_id === workspace.tenantId);
   const canWrite =
     workspace.role !== "viewer" &&
     !!(baseline ? collection?.can_update : collection?.can_insert) &&
     (!baseline ||
       (baseline.tenant_id === workspace.tenantId && baseline.program_id === programId)) &&
     (!parent || (parent.tenant_id === workspace.tenantId && parent.program_id === programId));
-  const close = async () => {
-    if (inFlight.current) return;
-    if (!dirty || (await confirm(discardChanges("Discard your unsaved system details?")))) {
-      bypassClose.current = true;
-      onClose();
-    }
-  };
-  useBlocker({
-    shouldBlockFn: async () =>
-      inFlight.current ||
-      (dirty &&
-        !bypassClose.current &&
-        !(await confirm(discardChanges("Discard your unsaved system details?")))),
-    enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
-  });
+  const issues: FormIssue<ElementField>[] = [
+    ...(!code.trim() ? [{ field: "code" as const, message: "Enter a code for the system." }] : []),
+    ...(!name.trim() ? [{ field: "name" as const, message: "Enter a name for the system." }] : []),
+    ...(!type || !types.includes(type)
+      ? [{ field: "type" as const, message: "Choose a system type." }]
+      : []),
+    ...(ownerId && parties.data && !owners.some((owner) => owner.id === ownerId)
+      ? [{ field: "owner" as const, message: "Choose an owner in this workspace." }]
+      : []),
+  ];
+  // Validate on submit, then on change: each field's error follows the value once submitted.
+  const errors = new Map(
+    feedback.submitted ? issues.map((issue) => [issue.field, issue.message] as const) : [],
+  );
+  const unavailable = canWrite
+    ? undefined
+    : baseline
+      ? "An editor, admin, or owner of this program can edit its systems."
+      : "An editor, admin, or owner of this program can create systems.";
+
+  useEffect(() => {
+    if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
+  }, [failure]);
+
+  function changed() {
+    setDirty(true);
+  }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!canWrite || inFlight.current) return;
-    if (!code.trim() || !name.trim() || !types.includes(type)) {
-      setError("Enter a code and name, and choose a system type.");
-      return;
-    }
-    if (ownerId && !owners.some((owner) => owner.id === ownerId)) {
-      setError("Choose an available owner.");
-      return;
-    }
-    if (
-      Object.values(impacts).some(
-        (value) => value !== null && !impactLevels.some((level) => level === value),
-      )
-    ) {
-      setError("Choose Low, Moderate, High, or Not categorized for each impact.");
-      return;
-    }
-    inFlight.current = true;
-    setBusy(true);
-    setError("");
+    if (guard.busy || !canWrite) return;
+    setFailure(null);
+    if (!feedback.report(issues) || !type) return;
+    // The fields lock while the save runs; the primary stays focusable while it loads.
+    submitRef.current?.focus();
+    if (!guard.start()) return;
     const authored = {
       code: code.trim(),
       name: name.trim(),
@@ -165,40 +175,59 @@ export function SystemElementDialog({
         if (!matches) {
           if (!baseline || stored.revision !== baseline.revision)
             throw new Error(
-              "This system changed in another session. Your draft is retained; reopen it to load the current details.",
+              "This system changed in another session. Your details are kept; close the dialog and open it again to load the current details.",
             );
           await save.mutateAsync({ id, revision: baseline.revision, values: authored });
         }
-        await cache.invalidateQueries({ queryKey: ["models", workspace.tenantId, "systems"] });
-        await cache.invalidateQueries({ queryKey: ["model", workspace.tenantId, "systems"] });
+        // A retry that finds the write already applied still refreshes the lists, behind the close.
+        void cache.invalidateQueries({ queryKey: ["models", workspace.tenantId, "systems"] });
+        void cache.invalidateQueries({ queryKey: ["model", workspace.tenantId, "systems"] });
       } else if (baseline)
-        throw new Error("This system is no longer available. Your draft is retained.");
+        throw new Error("This system is no longer available. Your details are kept.");
       else await save.mutateAsync({ values: { ...created, id, tenant_id: workspace.tenantId } });
-      await requireIdentity(workspace);
-      bypassClose.current = true;
-      inFlight.current = false;
-      onSaved?.(id);
-      onClose();
+      saved.current = true;
+      toast.add({
+        type: "success",
+        title: baseline ? "System updated" : "System created",
+        description: `${authored.code} · ${authored.name}`,
+      });
+      guard.finish();
+      guard.complete();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The system could not be saved.");
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
+      const message = (cause instanceof Error ? cause.message : "The request failed.").replace(
+        /[.!?]?$/,
+        ".",
+      );
+      // The conflict messages already say the details are kept; say it once.
+      const next = /kept/.test(message)
+        ? ""
+        : baseline
+          ? " Your changes are kept, so you can try again."
+          : " Your details are kept, and saving again will not create a second system.";
+      setFailure(`${message}${next}`);
+      guard.finish();
     }
+  }
+  function closed() {
+    if (saved.current) onSaved?.(id);
+    onClose();
   }
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          close();
-        }
+      open={open}
+      pending={guard.busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        void guard.close();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (!next) closed();
       }}
     >
-      <DialogContent style={{ maxWidth: 720 }} showCloseButton={!busy}>
+      <DialogContent width="large" initialFocus={() => feedback.node("code") ?? true}>
         <DialogHeader>
-          <DialogTitle>{baseline ? "Edit system" : "Create system"}</DialogTitle>
+          <DialogTitle>{operation}</DialogTitle>
           <DialogDescription>
             {baseline
               ? `${baseline.code} · ${baseline.name}`
@@ -207,172 +236,159 @@ export function SystemElementDialog({
                 : "Define a system in this program."}
           </DialogDescription>
         </DialogHeader>
-        <form
-          onSubmit={(event) => void submit(event)}
-          className="flex min-h-0 flex-1 flex-col"
-          aria-busy={busy}
-          onChange={() => setDirty(true)}
-        >
-          <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
-            <fieldset disabled={busy || !canWrite} className="min-w-0">
-              <Stack space="space.200">
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-code`}>Code</FieldLabel>
-                  <Input
-                    id={`${fieldId}-code`}
-                    value={code}
-                    onChange={(event) => setCode(event.target.value)}
+        <DialogBody>
+          <form id={formId} noValidate onSubmit={(event) => void submit(event)}>
+            <Stack space="space.200">
+              {parties.error ? (
+                <Alert variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The owners could not be loaded</AlertTitle>
+                  <AlertDescription>{parties.error.message}</AlertDescription>
+                  <AlertAction>
+                    <Button size="small" onClick={() => void parties.refetch()}>
+                      Retry loading owners
+                    </Button>
+                  </AlertAction>
+                </Alert>
+              ) : null}
+              {!canWrite ? (
+                <Alert role="note">
+                  <AlertDescription>{unavailable}</AlertDescription>
+                </Alert>
+              ) : null}
+              {failure ? (
+                <Alert ref={failureRef} variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>
+                    {baseline ? "The system was not saved" : "The system was not created"}
+                  </AlertTitle>
+                  <AlertDescription>{failure}</AlertDescription>
+                </Alert>
+              ) : null}
+              <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
+              <FieldSet disabled={guard.busy || !canWrite}>
+                <Stack space="space.200">
+                  <Grid
+                    gap="space.200"
+                    templateColumns={{ base: "minmax(0,1fr)", sm: "minmax(0,1fr) minmax(0,2fr)" }}
+                  >
+                    <TextField
+                      label="Code"
+                      required
+                      maxLength={100}
+                      value={code}
+                      onChange={(value) => {
+                        setCode(value);
+                        changed();
+                      }}
+                      error={errors.get("code")}
+                      controlRef={feedback.ref("code")}
+                    />
+                    <TextField
+                      label="Name"
+                      required
+                      value={name}
+                      onChange={(value) => {
+                        setName(value);
+                        changed();
+                      }}
+                      error={errors.get("name")}
+                      controlRef={feedback.ref("name")}
+                    />
+                  </Grid>
+                  <ChoiceField
+                    label="System type"
                     required
-                    maxLength={100}
-                    autoFocus
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-name`}>Name</FieldLabel>
-                  <Input
-                    id={`${fieldId}-name`}
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    required
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-type`}>System type</FieldLabel>
-                  <Select
                     value={type}
-                    onValueChange={(value) => {
-                      if (value) {
-                        setType(value);
-                        setDirty(true);
-                      }
+                    options={types.map((value) => ({ value, label: labelFor(value) }))}
+                    onChange={(value) => {
+                      setType(value);
+                      changed();
                     }}
-                    disabled={busy || !canWrite}
-                  >
-                    <SelectTrigger id={`${fieldId}-type`}>
-                      <SelectValue placeholder="Choose a type">
-                        {type ? labelFor(type) : undefined}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {types.map((value) => (
-                        <SelectItem key={value} value={value}>
-                          {labelFor(value)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-description`}>Description</FieldLabel>
-                  <Textarea
-                    id={`${fieldId}-description`}
-                    value={description}
-                    onChange={(event) => setDescription(event.target.value)}
+                    placeholder="Choose a type"
+                    error={errors.get("type")}
+                    controlRef={feedback.ref("type")}
+                  />
+                  <TextField
+                    label="Description"
+                    multiline
                     rows={4}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-owner`}>System owner (optional)</FieldLabel>
-                  <Combobox
-                    items={owners}
-                    value={owners.find((owner) => owner.id === ownerId) ?? null}
-                    isItemEqualToValue={(item, value) => item.id === value.id}
-                    filter={(item, search) =>
-                      item.label.toLowerCase().includes(search.toLowerCase())
-                    }
-                    onValueChange={(owner) => {
-                      setOwnerId(owner?.id ?? null);
-                      setDirty(true);
+                    value={description}
+                    onChange={(value) => {
+                      setDescription(value);
+                      changed();
                     }}
-                    disabled={busy || !canWrite || parties.isPending || !!parties.error}
-                  >
-                    <ComboboxInput id={`${fieldId}-owner`} placeholder="Unassigned" showClear />
-                    <ComboboxContent>
-                      <ComboboxEmpty>No matching owners.</ComboboxEmpty>
-                      <ComboboxList>
-                        {(owner) => (
-                          <ComboboxItem key={owner.id} value={owner}>
-                            {owner.label}
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
-                </Field>
-                <Grid
-                  gap="space.150"
-                  templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(3, minmax(0, 1fr))" }}
-                >
-                  {impactFields.map((field) => (
-                    <Field key={field.name}>
-                      <FieldLabel htmlFor={`${fieldId}-${field.name}`}>{field.label}</FieldLabel>
-                      <Select
-                        value={impacts[field.name] ?? ""}
-                        onValueChange={(value) => {
-                          setImpacts((current) => ({ ...current, [field.name]: value || null }));
-                          setDirty(true);
-                        }}
-                        disabled={busy || !canWrite}
-                      >
-                        <SelectTrigger id={`${fieldId}-${field.name}`} className="w-full">
-                          <SelectValue>
-                            {labelFor(impacts[field.name] ?? "not_categorized")}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">Not categorized</SelectItem>
-                          {impactLevels.map((level) => (
-                            <SelectItem key={level} value={level}>
-                              {labelFor(level)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  ))}
-                </Grid>
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-categorization-rationale`}>
-                    Categorization rationale (optional)
-                  </FieldLabel>
-                  <Textarea
-                    id={`${fieldId}-categorization-rationale`}
-                    value={categorizationRationale}
-                    onChange={(event) => setCategorizationRationale(event.target.value)}
-                    rows={3}
+                    controlRef={feedback.ref("description")}
                   />
-                </Field>
-                {!baseline && !parent && (
-                  <label className="flex items-center gap-100">
-                    <Checkbox checked disabled />
-                    Authorization boundary
-                  </label>
-                )}
-                {parent && (
-                  <p className="font-body-small text-subtle">
-                    This element belongs to its parent’s authorization boundary. Creating it does
-                    not create a separate baseline or security plan.
-                  </p>
-                )}
-                {(error || parties.error) && (
-                  <p role="alert" className="text-danger">
-                    {error || parties.error?.message}
-                  </p>
-                )}
-              </Stack>
-            </fieldset>
-          </Box>
-          <DialogFooter>
-            <Button type="button" variant="subtle" disabled={busy} onClick={close}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" disabled={busy || !canWrite}>
-              {busy ? "Saving…" : baseline ? "Edit system" : "Create system"}
-            </Button>
-          </DialogFooter>
-        </form>
+                  <PartyField
+                    label="System owner"
+                    value={ownerId}
+                    parties={owners}
+                    disabled={!parties.data}
+                    placeholder="Unassigned"
+                    onChange={(value) => {
+                      setOwnerId(value);
+                      changed();
+                    }}
+                    error={errors.get("owner")}
+                    controlRef={feedback.ref("owner")}
+                  />
+                  <Grid
+                    gap="space.150"
+                    templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(3, minmax(0, 1fr))" }}
+                  >
+                    {impactFields.map((field) => (
+                      <ChoiceField
+                        key={field.name}
+                        label={field.label}
+                        value={impacts[field.name]}
+                        options={impactOptions}
+                        emptyOption="Not categorized"
+                        placeholder="Not categorized"
+                        onChange={(value) => {
+                          setImpacts((current) => ({ ...current, [field.name]: value }));
+                          changed();
+                        }}
+                      />
+                    ))}
+                  </Grid>
+                  <TextField
+                    label="Categorization rationale"
+                    multiline
+                    rows={3}
+                    value={categorizationRationale}
+                    onChange={(value) => {
+                      setCategorizationRationale(value);
+                      changed();
+                    }}
+                  />
+                  {!baseline && (
+                    <Text as="p" size="small" color="color.text.subtle">
+                      {parent
+                        ? "This element belongs to its parent’s authorization boundary. Creating it does not create a separate baseline or security plan."
+                        : "A top-level system is its own authorization boundary, with its own baseline and security plan."}
+                    </Text>
+                  )}
+                </Stack>
+              </FieldSet>
+            </Stack>
+          </form>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          <Button
+            ref={submitRef}
+            type="submit"
+            form={formId}
+            variant="primary"
+            isLoading={guard.busy}
+            disabledReason={unavailable}
+          >
+            {operation}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      {confirmation}
+      {guard.confirmation}
     </Dialog>
   );
 }

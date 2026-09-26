@@ -67,6 +67,16 @@ export async function expectPreviewHeader(page, { title, recordActions, nested =
           );
           const actions = inner.querySelector('[data-slot="page-header-actions"]');
           const actionBounds = actions?.getBoundingClientRect();
+          // The title keeps its own width when that is shorter than its measure, so a short
+          // title is narrow; crushed means it wraps without its measure, or is clipped.
+          const range = document.createRange();
+          range.selectNodeContents(title);
+          const lines = new Set(
+            [...range.getClientRects()]
+              .filter((rect) => rect.width > 0)
+              .map((rect) => Math.round(rect.top)),
+          ).size;
+          const measure = bounds.width < 320 ? Math.min(180, innerBounds.width) : 100;
           return (
             controls.length > 0 &&
             controls.every(
@@ -74,8 +84,7 @@ export async function expectPreviewHeader(page, { title, recordActions, nested =
             ) &&
             fits(innerBounds) &&
             fits(titleBounds) &&
-            titleBounds.width >=
-              (bounds.width < 320 ? Math.min(180, innerBounds.width) : 100) - 1 &&
+            (lines === 1 || titleBounds.width >= measure - 1) &&
             title.scrollWidth <= title.clientWidth + 1 &&
             titleBounds.top >= outerBounds.bottom - 1 &&
             (!actionBounds ||

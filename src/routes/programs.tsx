@@ -1,26 +1,24 @@
 import { ProductCollection } from "@/components/prototype/product-collection";
 import { RecordSummaryPreview } from "@/components/prototype/record-summary-preview";
 import { RecordLink, useDisplayedRecords } from "@/components/prototype/record-preview";
-import { QueryState } from "@/components/prototype/work-common";
 import { useMemo, useState } from "react";
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  Button,
   DataTable,
-  Inline,
-  Toolbar,
+  LinkButton,
   PageHeader,
   Stack,
-  TextLink,
   defineColumns,
+  downloadText,
   toCsv,
   useDataTable,
 } from "@ledger/design-system";
-import { Download, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
+import { programStatuses } from "@/lib/status";
 import { useWorkspace } from "@/components/app/workspace";
-import { programTone } from "@/components/prototype/program-shared";
+import { StatusBadge } from "@/components/app/status";
 
 export const Route = createFileRoute("/programs")({
   head: () => ({ meta: [{ title: "Programs — Program Assurance" }] }),
@@ -31,24 +29,26 @@ function ProgramsLayout() {
   return pathname === "/programs" || pathname === "/programs/" ? <ProgramList /> : <Outlet />;
 }
 type ProgramListRow = Row<"programs"> & {
-  state: string;
   systemCount: number;
-  sponsor: string;
-  impacts: string;
+  /** The sponsor's name; missing when the program records none. */
+  sponsor?: string | undefined;
+  /** The distinct impact levels of the program's systems, in words; missing when none is set. */
+  impacts?: string | undefined;
 };
+// The status filter holds stored values; the chip and the badge read them through programStatuses.
 const statusPresets = [
   { id: "all", label: "All programs" },
-  { id: "active", label: "Active", filters: [{ id: "state", value: [labelFor("active")] }] },
-  { id: "planned", label: "Planned", filters: [{ id: "state", value: [labelFor("planned")] }] },
+  { id: "active", label: "Active", filters: [{ id: "status", value: ["active"] }] },
+  { id: "planned", label: "Planned", filters: [{ id: "status", value: ["planned"] }] },
   {
     id: "open",
     label: "Active or planned",
-    filters: [{ id: "state", value: [labelFor("active"), labelFor("planned")] }],
+    filters: [{ id: "status", value: ["active", "planned"] }],
   },
   {
     id: "closed",
     label: "Closed or suspended",
-    filters: [{ id: "state", value: [labelFor("closed"), labelFor("suspended")] }],
+    filters: [{ id: "status", value: ["closed", "suspended"] }],
   },
 ];
 function ProgramList() {
@@ -72,14 +72,12 @@ function ProgramList() {
               .filter((value): value is string => !!value),
           ),
         ];
+        const sponsor = parties.data?.find((party) => party.id === program.sponsor_party_id);
         return {
           ...program,
-          state: labelFor(program.status),
           systemCount: owned.length,
-          sponsor:
-            parties.data?.find((party) => party.id === program.sponsor_party_id)?.name ??
-            "Not assigned",
-          impacts: impacts.length ? impacts.map(labelFor).join(" · ") : "Not categorized",
+          ...(sponsor ? { sponsor: sponsor.name } : {}),
+          ...(impacts.length ? { impacts: impacts.map(labelFor).join(" · ") } : {}),
         };
       }),
     [programs.data, systems.data, parties.data],
@@ -90,7 +88,7 @@ function ProgramList() {
       defineColumns<ProgramListRow>((c) => [
         c.id("name", {
           header: "Program",
-          width: 220,
+          width: 200,
           minWidth: 180,
           priority: 0,
           hideable: false,
@@ -102,13 +100,19 @@ function ProgramList() {
             </RecordLink>
           ),
         }),
-        c.text("code", { header: "Code", width: 130 }),
-        c.status("state", { header: "Status", width: 130, tone: (row) => programTone(row.status) }),
-        c.number("systemCount", { header: "Systems", width: 100 }),
-        c.text("impacts", { header: "System impacts", width: 160 }),
-        c.text("sponsor", { header: "Sponsor", width: 160 }),
-        c.date("starts_on", { header: "Starts", width: 120 }),
-        c.date("ends_on", { header: "Ends", width: 120 }),
+        // In a narrow frame the status stays beside the name longest, then the code.
+        c.text("code", { header: "Code", width: 130, priority: 2 }),
+        c.status("status", {
+          header: "Status",
+          width: 120,
+          priority: 1,
+          statuses: programStatuses,
+        }),
+        c.number("systemCount", { header: "Systems", width: 100, priority: 3 }),
+        c.text("impacts", { header: "System impacts", width: 160, priority: 4 }),
+        c.text("sponsor", { header: "Sponsor", width: 160, priority: 5 }),
+        c.date("starts_on", { header: "Starts", width: 120, priority: 6 }),
+        c.date("ends_on", { header: "Ends", width: 120, priority: 7 }),
       ]),
     [preview?.id],
   );
@@ -118,7 +122,7 @@ function ProgramList() {
     getRowId: (program) => program.id,
     label: "Programs",
     view: "programs",
-    pageSize: 25,
+    pageSize: 20,
     resizable: true,
     reorderable: true,
   });
@@ -127,13 +131,7 @@ function ProgramList() {
   const loading = programs.isPending || systems.isPending || parties.isPending;
   const canCreate = workspace.role !== "viewer";
   function download() {
-    const blob = new Blob([toCsv(table)], { type: "text/csv" });
-    const href = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = href;
-    link.download = "programs.csv";
-    link.click();
-    URL.revokeObjectURL(href);
+    downloadText(toCsv(table), "programs.csv", { type: "text/csv;charset=utf-8", bom: true });
   }
   return (
     <Stack space="space.200" className="min-w-0">
@@ -146,6 +144,7 @@ function ProgramList() {
         queries={[programs, systems, parties]}
         table={table}
         fill
+        noun={{ one: "program", other: "programs" }}
         onRowClick={(program) =>
           void navigate({ to: "/programs/$programId", params: { programId: program.id } })
         }
@@ -155,16 +154,20 @@ function ProgramList() {
           description:
             "A program holds the systems it assures, their requirements and the work that proves them. Create the first to start.",
           action: canCreate ? (
-            <Button variant="primary" iconBefore={<Plus />} render={<Link to="/programs/new" />}>
+            <LinkButton
+              variant="primary"
+              iconBefore={<Plus />}
+              render={<Link to="/programs/new" />}
+            >
               Create program
-            </Button>
+            </LinkButton>
           ) : undefined,
         }}
         searchLabel="Find programs"
         views={<DataTable.Presets table={table} variant="menu" presets={statusPresets} />}
         filters={
           <>
-            <DataTable.Filter table={table} column="state" />
+            <DataTable.Filter table={table} column="status" />
             <DataTable.Filter table={table} column="sponsor" />
           </>
         }
@@ -176,19 +179,16 @@ function ProgramList() {
           },
         ]}
         action={
-          <>
-            {" "}
-            {canCreate && (
-              <Button
-                size="small"
-                variant="primary"
-                iconBefore={<Plus />}
-                render={<Link to="/programs/new" />}
-              >
-                Create program
-              </Button>
-            )}
-          </>
+          canCreate ? (
+            <LinkButton
+              size="small"
+              variant="primary"
+              iconBefore={<Plus />}
+              render={<Link to="/programs/new" />}
+            >
+              Create program
+            </LinkButton>
+          ) : undefined
         }
       />
       {preview && (
@@ -200,7 +200,11 @@ function ProgramList() {
           onClose={() => setPreview(null)}
           fields={[
             { key: "code", label: "Code" },
-            { key: "state", label: "Status" },
+            {
+              key: "status",
+              label: "Status",
+              render: (row) => <StatusBadge statuses={programStatuses} value={row.status} />,
+            },
             { key: "sponsor", label: "Sponsor" },
             { key: "systemCount", label: "Systems" },
             { key: "impacts", label: "System impacts" },

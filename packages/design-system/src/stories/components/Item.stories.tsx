@@ -10,6 +10,7 @@ import {
   Dot,
   IconButton,
   Item,
+  ItemGroup,
 } from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
@@ -18,6 +19,7 @@ import { HeadingLevelProvider, Stack, Text } from "../../primitives";
 const meta = {
   title: "Components/Item",
   component: Item,
+  subcomponents: { ItemGroup },
   parameters: { layout: "padded" },
   args: { title: "Bank reconciliation, July" },
 } satisfies Meta<typeof Item>;
@@ -384,5 +386,38 @@ export const GroupHeadingLevel: Story = {
     await expect(canvas.getByRole("heading", { name: "Reviews" }).tagName).toBe("H2");
     await expect(canvas.getByRole("list", { name: "Reviews" })).toBeVisible();
     await expect(canvas.queryByRole("heading", { name: "No milestones recorded." })).toBeNull();
+  },
+};
+
+/** A group without a title of its own is named through the list: `aria-labelledby` points at the heading a card draws, `aria-label` names it when nothing shows a heading. Both reach the `ol`, never the wrapper, which has no role. */
+export const GroupNamedFromOutside: Story = {
+  name: "Group named from outside",
+  render: () => (
+    <div style={{ maxWidth: 480 }}>
+      <Stack space="space.300">
+        <Stack space="space.100">
+          <Text id="linked-evidence" weight="semibold">
+            Linked evidence
+          </Text>
+          <Item.Group aria-labelledby="linked-evidence" size="compact" data-testid="labelled">
+            <Item id="EV-204" title="Access review export, August" trailing="2 Sept" />
+          </Item.Group>
+        </Stack>
+        <Item.Group aria-label="Recent decisions" size="compact" data-testid="named">
+          <Item id="DEC-12" title="Accept residual risk on legacy VPN" trailing="4 Sept" />
+        </Item.Group>
+      </Stack>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const labelled = canvas.getByRole("list", { name: "Linked evidence" });
+    await expect(labelled.tagName).toBe("OL");
+    await expect(canvas.getByTestId("labelled")).not.toHaveAttribute("aria-labelledby");
+    await expect(canvas.getByTestId("labelled")).toHaveAttribute("data-slot", "item-group");
+    const named = canvas.getByRole("list", { name: "Recent decisions" });
+    await expect(named.tagName).toBe("OL");
+    await expect(canvas.getByTestId("named")).not.toHaveAttribute("aria-label");
+    await expect(within(named).getByRole("listitem")).toHaveAttribute("data-slot", "item");
   },
 };

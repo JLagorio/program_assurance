@@ -2,6 +2,12 @@ import type { ReactNode } from "react";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
 
+// Story layout helpers, not package exports: product code lays out with Stack, Inline and Grid.
+// Storybook's MCP snippets list every relative import under the package's name, so a stories file
+// binds these locally, which keeps them out of the snippet's import line:
+//   import * as storyLayout from "../_lib/matrix";
+//   const { Matrix, Specimens } = storyLayout;
+
 /**
  * The matrix compares examples: every variant down the side, every state or size across the top,
  * one cell per pairing. A family's Matrix story is what Josef signs off; the toolbar switches the mode.

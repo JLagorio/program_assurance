@@ -22,7 +22,7 @@ function PageHeaderRoot({ className, ...props }: PageHeaderProps) {
   );
 }
 /** A line above the title across both columns: a breadcrumb (`render={<Breadcrumb />}`) or a category. */
-export function Lead({ render, ref, className, ...props }: PageHeaderLeadProps) {
+export function PageHeaderLead({ render, ref, className, ...props }: PageHeaderLeadProps) {
   return useRender({
     defaultTagName: "div",
     render,
@@ -35,11 +35,11 @@ export function Lead({ render, ref, className, ...props }: PageHeaderLeadProps) 
   });
 }
 /** The first column: the Title, then a Description or a line of facts. */
-export function Heading({ className, ...props }: PageHeaderHeadingProps) {
+export function PageHeaderHeading({ className, ...props }: PageHeaderHeadingProps) {
   return <div {...props} data-slot="page-header-heading" className={cn("min-w-0", className)} />;
 }
 /** What names the page or the record: an h1 on a page. Inside a HeadingLevelProvider (a preview's body starts at 2) it takes that level, and `render` sets another element outright: `render={<h2 />}`, or a dialog's title part. */
-export function Title({ render, ref, className, ...props }: PageHeaderTitleProps) {
+export function PageHeaderTitle({ render, ref, className, ...props }: PageHeaderTitleProps) {
   const level = useHeadingLevel();
   return useRender({
     defaultTagName: headingTag(level ?? 1),
@@ -52,7 +52,7 @@ export function Title({ render, ref, className, ...props }: PageHeaderTitleProps
     }),
   });
 }
-export function Description({ className, ...props }: PageHeaderDescriptionProps) {
+export function PageHeaderDescription({ className, ...props }: PageHeaderDescriptionProps) {
   return (
     <p
       {...props}
@@ -62,7 +62,7 @@ export function Description({ className, ...props }: PageHeaderDescriptionProps)
   );
 }
 /** One primary action or an Actions menu, at the end of the title's row. When the row cannot give the title its measure beside them, they take the next row, right-aligned. */
-export function Actions({ className, ...props }: PageHeaderActionsProps) {
+export function PageHeaderActions({ className, ...props }: PageHeaderActionsProps) {
   return (
     <div
       {...props}
@@ -71,10 +71,11 @@ export function Actions({ className, ...props }: PageHeaderActionsProps) {
     />
   );
 }
+/** Page identity and its actions, with the parts as members and, for docs and imports, by name. */
 export const PageHeader = Object.assign(PageHeaderRoot, {
-  Lead,
-  Heading,
-  Title,
-  Description,
-  Actions,
+  Lead: PageHeaderLead,
+  Heading: PageHeaderHeading,
+  Title: PageHeaderTitle,
+  Description: PageHeaderDescription,
+  Actions: PageHeaderActions,
 });

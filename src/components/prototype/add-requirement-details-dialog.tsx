@@ -1,33 +1,28 @@
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useId, useRef, useState, type FormEvent } from "react";
-import { useBlocker } from "@tanstack/react-router";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { AlertCircle } from "lucide-react";
 import {
-  Box,
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
   Button,
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Field,
-  FieldLabel,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  ErrorSummary,
+  FieldSet,
   Stack,
-  Textarea,
+  toast,
 } from "@ledger/design-system";
+import { ChoiceField, PartyField, TextField } from "@/components/app/fields";
+import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { useModelSave, useRow, useRows } from "@/lib/models";
 import { database, requireIdentity } from "@/lib/database";
@@ -41,6 +36,16 @@ type Fields = {
   requirementType: string;
   ownerPartyId: string | null;
 };
+/** The form's fields in the order they appear, which is the order their issues are listed in. */
+const detailFields = [
+  "title",
+  "requirementType",
+  "ownerPartyId",
+  "statement",
+  "acceptanceCriteria",
+  "rationale",
+] as const;
+type DetailField = (typeof detailFields)[number];
 
 /** Adds authored content to an existing requirement identity without exposing storage lifecycle fields. */
 export function AddRequirementDetailsDialog({
@@ -51,16 +56,18 @@ export function AddRequirementDetailsDialog({
 }: {
   programId: string;
   requirementId: string;
+  /** Called once the dialog has finished closing, after `onSaved` when the revision was created. */
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const requirement = useRow("engineering_requirements", requirementId);
   const parties = useRows("parties");
   const create = useModelSave("requirement_revisions");
   const cache = useQueryClient();
-  const fieldId = useId();
+  const formId = useId();
+  const feedback = useFormFeedback<DetailField>();
+  const [open, setOpen] = useState(true);
   const [contentId] = useState(() => crypto.randomUUID());
   const [fields, setFields] = useState<Fields>({
     title: "",
@@ -71,60 +78,63 @@ export function AddRequirementDetailsDialog({
     ownerPartyId: null,
   });
   const [dirty, setDirty] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const inFlight = useRef(false);
-  const bypassClose = useRef(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  const saved = useRef(false);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const failureRef = useRef<HTMLDivElement>(null);
+  const guard = useDraftGuard({
+    dirty,
+    onClose: () => setOpen(false),
+    description: "The requirement details you entered will be lost.",
+  });
   const collection = workspace.collections.find((item) => item.name === "requirement_revisions");
   const types =
     collection?.columns.find((column) => column.name === "requirement_type")?.choices ?? [];
-  const owners = (parties.data ?? [])
-    .filter((party) => party.tenant_id === workspace.tenantId)
-    .map((party) => ({ id: party.id, label: party.name }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+  const roster = (parties.data ?? []).filter((party) => party.tenant_id === workspace.tenantId);
   const canWrite =
     workspace.role !== "viewer" &&
     !!collection?.can_insert &&
     requirement.data?.program_id === programId;
+  const unavailable = canWrite
+    ? undefined
+    : workspace.role === "viewer"
+      ? "An editor, admin, or owner can create a requirement revision."
+      : requirement.isPending
+        ? "The requirement is still loading."
+        : "Reload the requirement to add its details.";
   const change = <K extends keyof Fields>(field: K, value: Fields[K]) => {
     setFields((previous) => ({ ...previous, [field]: value }));
     setDirty(true);
   };
-  const close = async () => {
-    if (inFlight.current) return;
-    if (!dirty || (await confirm(discardChanges("Discard your unsaved requirement details?")))) {
-      bypassClose.current = true;
-      onClose();
-    }
-  };
-  useBlocker({
-    shouldBlockFn: async () =>
-      inFlight.current ||
-      (dirty &&
-        !bypassClose.current &&
-        !(await confirm(discardChanges("Discard your unsaved requirement details?")))),
-    enableBeforeUnload: () => !bypassClose.current && (dirty || inFlight.current),
-  });
+  const issues: FormIssue<DetailField>[] = [
+    ...(!fields.title.trim() ? [{ field: "title" as const, message: "Enter a title." }] : []),
+    ...(!types.includes(fields.requirementType)
+      ? [{ field: "requirementType" as const, message: "Choose a requirement type." }]
+      : []),
+    ...(fields.ownerPartyId && !roster.some((party) => party.id === fields.ownerPartyId)
+      ? [{ field: "ownerPartyId" as const, message: "Choose an owner from this workspace." }]
+      : []),
+    ...(!fields.statement.trim()
+      ? [{ field: "statement" as const, message: "Enter the requirement statement." }]
+      : []),
+    ...(!fields.acceptanceCriteria.trim()
+      ? [{ field: "acceptanceCriteria" as const, message: "Enter the acceptance criteria." }]
+      : []),
+  ];
+  const errors = new Map(
+    feedback.submitted ? issues.map((issue) => [issue.field, issue.message] as const) : [],
+  );
+  useEffect(() => {
+    if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
+  }, [failure]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!canWrite || inFlight.current) return;
-    if (
-      !fields.title.trim() ||
-      !fields.statement.trim() ||
-      !fields.acceptanceCriteria.trim() ||
-      !types.includes(fields.requirementType)
-    ) {
-      setError("Add a title, requirement type, statement, and acceptance criteria.");
-      return;
-    }
-    if (fields.ownerPartyId && !owners.some((owner) => owner.id === fields.ownerPartyId)) {
-      setError("Choose an available owner.");
-      return;
-    }
-    inFlight.current = true;
-    setBusy(true);
-    setError("");
+    if (guard.busy || !canWrite) return;
+    setFailure(null);
+    if (!feedback.report(issues)) return;
+    submitRef.current?.focus();
+    if (!guard.start()) return;
     const authored = {
       engineering_requirement_id: requirementId,
       title: fields.title.trim(),
@@ -169,155 +179,152 @@ export function AddRequirementDetailsDialog({
         });
       }
       await requireIdentity(workspace);
-      bypassClose.current = true;
+      saved.current = true;
       setDirty(false);
-      inFlight.current = false;
-      onSaved();
-      onClose();
+      guard.finish();
+      guard.complete();
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "The requirement details could not be saved.",
+      setFailure(
+        `${cause instanceof Error ? cause.message : "The requirement details could not be saved."} Your details are kept, and creating it again will not make a duplicate.`,
       );
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
+      guard.finish();
     }
   }
 
   return (
     <Dialog
-      open
-      onOpenChange={(open, details) => {
-        if (!open) {
-          details.cancel();
-          close();
+      open={open}
+      pending={guard.busy}
+      onOpenChange={(next, details) => {
+        if (next) return;
+        details.cancel();
+        void guard.close();
+      }}
+      onOpenChangeComplete={(next) => {
+        if (next) return;
+        if (saved.current) {
+          onSaved();
+          toast.add({
+            type: "success",
+            title: "Requirement revision created",
+            description: `${requirement.data?.code ?? "The requirement"} · ${fields.title.trim()}`,
+          });
         }
+        onClose();
       }}
     >
-      <DialogContent style={{ maxWidth: 760 }} showCloseButton={!busy}>
+      <DialogContent width="large" initialFocus={() => feedback.node("title") ?? true}>
         <DialogHeader>
           <DialogTitle>Create requirement revision</DialogTitle>
           <DialogDescription>{requirement.data?.code}</DialogDescription>
         </DialogHeader>
-        <form
-          onSubmit={(event) => void submit(event)}
-          className="flex min-h-0 flex-1 flex-col"
-          aria-busy={busy}
-        >
-          <Box padding="space.250" className="min-h-0 flex-1 overflow-y-auto">
-            <fieldset disabled={busy || !canWrite} className="min-w-0">
-              <Stack space="space.200">
-                <Field>
-                  <FieldLabel htmlFor={`${fieldId}-title`}>Title</FieldLabel>
-                  <Input
-                    autoFocus
-                    id={`${fieldId}-title`}
+        <DialogBody>
+          <form id={formId} noValidate onSubmit={(event) => void submit(event)}>
+            <Stack space="space.200">
+              {unavailable && !requirement.isPending ? (
+                <Alert role="note">
+                  <AlertDescription>{unavailable}</AlertDescription>
+                </Alert>
+              ) : null}
+              {parties.error ? (
+                <Alert variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The owners could not be loaded</AlertTitle>
+                  <AlertDescription>{parties.error.message}</AlertDescription>
+                  <AlertAction>
+                    <Button size="small" onClick={() => void parties.refetch()}>
+                      Retry loading owners
+                    </Button>
+                  </AlertAction>
+                </Alert>
+              ) : null}
+              {failure ? (
+                <Alert ref={failureRef} variant="destructive" role="alert">
+                  <AlertCircle aria-hidden />
+                  <AlertTitle>The requirement revision was not created</AlertTitle>
+                  <AlertDescription>{failure}</AlertDescription>
+                </Alert>
+              ) : null}
+              <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
+              <FieldSet disabled={guard.busy || !canWrite}>
+                <Stack space="space.200">
+                  <TextField
+                    label="Title"
                     value={fields.title}
+                    onChange={(value) => change("title", value)}
                     required
-                    onChange={(event) => change("title", event.target.value)}
+                    maxLength={1000}
+                    error={errors.get("title")}
+                    controlRef={feedback.ref("title")}
                   />
-                </Field>
-                <Field>
-                  <FieldLabel id={`${fieldId}-type-label`} htmlFor={`${fieldId}-type`}>
-                    Requirement type
-                  </FieldLabel>
-                  <Select
+                  <ChoiceField
+                    label="Requirement type"
                     value={fields.requirementType || null}
-                    onValueChange={(value) => change("requirementType", String(value ?? ""))}
-                    disabled={busy}
-                  >
-                    <SelectTrigger
-                      id={`${fieldId}-type`}
-                      aria-labelledby={`${fieldId}-type-label`}
-                      aria-required="true"
-                    >
-                      <SelectValue placeholder="Choose requirement type">
-                        {fields.requirementType ? labelFor(fields.requirementType) : undefined}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {types.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {labelFor(type)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel id={`${fieldId}-owner-label`} htmlFor={`${fieldId}-owner`}>
-                    Owner
-                  </FieldLabel>
-                  <Combobox
-                    items={owners}
-                    value={owners.find((owner) => owner.id === fields.ownerPartyId) ?? null}
-                    isItemEqualToValue={(item, value) => item.id === value.id}
-                    filter={(item, search) =>
-                      item.label.toLowerCase().includes(search.toLowerCase())
-                    }
-                    onValueChange={(item) => change("ownerPartyId", item?.id ?? null)}
-                    disabled={busy || parties.isPending || !!parties.error}
-                  >
-                    <ComboboxInput
-                      id={`${fieldId}-owner`}
-                      aria-labelledby={`${fieldId}-owner-label`}
-                      placeholder="Choose owner (optional)"
-                      showClear
-                    />
-                    <ComboboxContent>
-                      <ComboboxEmpty>No matching owners.</ComboboxEmpty>
-                      <ComboboxList>
-                        {(item) => (
-                          <ComboboxItem key={item.id} value={item}>
-                            {item.label}
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
-                </Field>
-                {(
-                  [
-                    ["statement", "Statement"],
-                    ["acceptanceCriteria", "Acceptance criteria"],
-                    ["rationale", "Rationale"],
-                  ] as const
-                ).map(([field, label]) => (
-                  <Field key={field}>
-                    <FieldLabel htmlFor={`${fieldId}-${field}`}>{label}</FieldLabel>
-                    <Textarea
-                      id={`${fieldId}-${field}`}
-                      rows={4}
-                      required={field !== "rationale"}
-                      value={fields[field]}
-                      onChange={(event) => change(field, event.target.value)}
-                    />
-                  </Field>
-                ))}
-                {error && (
-                  <p role="alert" className="text-danger">
-                    {error}
-                  </p>
-                )}
-                {parties.error && (
-                  <p role="alert" className="text-danger">
-                    Owners could not be loaded: {parties.error.message}
-                  </p>
-                )}
-              </Stack>
-            </fieldset>
-          </Box>
-          <DialogFooter>
-            <Button type="button" variant="subtle" disabled={busy} onClick={close}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" disabled={busy || !canWrite}>
-              {busy ? "Saving…" : "Create requirement revision"}
-            </Button>
-          </DialogFooter>
-        </form>
+                    options={types.map((type) => ({ value: type, label: labelFor(type) }))}
+                    onChange={(value) => change("requirementType", value ?? "")}
+                    required
+                    placeholder="Choose requirement type"
+                    error={errors.get("requirementType")}
+                    controlRef={feedback.ref("requirementType")}
+                  />
+                  <PartyField
+                    label="Owner"
+                    value={fields.ownerPartyId}
+                    parties={roster}
+                    onChange={(value) => change("ownerPartyId", value)}
+                    disabled={!parties.data}
+                    placeholder="Choose owner"
+                    error={errors.get("ownerPartyId")}
+                    controlRef={feedback.ref("ownerPartyId")}
+                  />
+                  <TextField
+                    label="Statement"
+                    value={fields.statement}
+                    onChange={(value) => change("statement", value)}
+                    multiline
+                    rows={4}
+                    required
+                    error={errors.get("statement")}
+                    controlRef={feedback.ref("statement")}
+                  />
+                  <TextField
+                    label="Acceptance criteria"
+                    value={fields.acceptanceCriteria}
+                    onChange={(value) => change("acceptanceCriteria", value)}
+                    multiline
+                    rows={4}
+                    required
+                    error={errors.get("acceptanceCriteria")}
+                    controlRef={feedback.ref("acceptanceCriteria")}
+                  />
+                  <TextField
+                    label="Rationale"
+                    value={fields.rationale}
+                    onChange={(value) => change("rationale", value)}
+                    multiline
+                    rows={4}
+                    controlRef={feedback.ref("rationale")}
+                  />
+                </Stack>
+              </FieldSet>
+            </Stack>
+          </form>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          <Button
+            ref={submitRef}
+            type="submit"
+            form={formId}
+            variant="primary"
+            isLoading={guard.busy}
+            disabledReason={unavailable}
+          >
+            Create requirement revision
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      {confirmation}
+      {guard.confirmation}
     </Dialog>
   );
 }

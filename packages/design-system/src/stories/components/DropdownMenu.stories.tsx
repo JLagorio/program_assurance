@@ -140,7 +140,7 @@ export const DropdownMenuMatrix: Story = {
           <DropdownMenuItem>Duplicate</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive">Archive</DropdownMenuItem>
+        <DropdownMenuItem variant="danger">Archive</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   ),
@@ -458,11 +458,8 @@ export const DescriptionsAndReasons: Story = {
           </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive">Archive</DropdownMenuItem>
-        <DropdownMenuItem
-          variant="destructive"
-          disabledReason="A published version cannot be deleted."
-        >
+        <DropdownMenuItem variant="danger">Archive</DropdownMenuItem>
+        <DropdownMenuItem variant="danger" disabledReason="A published version cannot be deleted.">
           Delete version
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -511,9 +508,10 @@ export const DescriptionsAndReasons: Story = {
     await expect(getComputedStyle(reason).color).not.toBe(
       getComputedStyle(within(unavailable).getByText("Publish version")).color,
     );
-    // A disabled destructive item takes the disabled colour, not the danger colour.
+    // A disabled danger item takes the disabled colour, not the danger colour.
     const archive = within(menu).getByRole("menuitem", { name: "Archive" });
     const deleting = within(menu).getByRole("menuitem", { name: "Delete version" });
+    await expect(archive).toHaveAttribute("data-variant", "danger");
     await expect(getComputedStyle(deleting).color).not.toBe(getComputedStyle(archive).color);
     await expect(getComputedStyle(deleting).color).toBe(getComputedStyle(unavailable).color);
     // The descriptions wrap inside a narrow menu instead of widening it past the screen.

@@ -75,7 +75,7 @@ export const ChartMatrix: Story = {
             series={findingSeries}
             swatch="line"
             size="small"
-            status="loading"
+            state="loading"
           >
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
@@ -86,7 +86,7 @@ export const ChartMatrix: Story = {
             series={findingSeries}
             swatch="line"
             size="small"
-            status="refreshing"
+            state="refreshing"
           >
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
@@ -96,7 +96,7 @@ export const ChartMatrix: Story = {
         <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart
             title="Findings over time"
-            status="empty"
+            state="empty"
             statusText="No findings in this window."
             size="small"
           >
@@ -106,7 +106,7 @@ export const ChartMatrix: Story = {
         <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart
             title="Findings over time"
-            status="error"
+            state="error"
             statusText="The register did not answer."
             size="small"
             actions={
@@ -777,14 +777,14 @@ export const States: Story = {
         description="Loading"
         series={findingSeries}
         swatch="line"
-        status="loading"
+        state="loading"
       >
         <Chart.Line data={byMonth} x="month" series={findingSeries} />
       </Chart>
       <Chart.Frame
         title="Loading without a plot"
         description="Generic loading placeholder"
-        status="loading"
+        state="loading"
         size="medium"
         children={null}
       />
@@ -793,14 +793,14 @@ export const States: Story = {
         description="Refreshing"
         series={findingSeries}
         swatch="line"
-        status="refreshing"
+        state="refreshing"
       >
         <Chart.Line data={byMonth} x="month" series={findingSeries} />
       </Chart>
       <Chart
         title="Findings over time"
         description="Empty"
-        status="empty"
+        state="empty"
         statusText="No findings in this window."
       >
         <Chart.Line data={byMonth} x="month" series={findingSeries} />
@@ -808,7 +808,7 @@ export const States: Story = {
       <Chart
         title="Findings over time"
         description="Error"
-        status="error"
+        state="error"
         statusText="The register did not answer."
         actions={
           <Button size="small" variant="subtle">
@@ -824,6 +824,9 @@ export const States: Story = {
     const canvas = within(canvasElement);
     const loadingFrame = canvas.getByRole("figure", { name: "Loading without a plot" });
     const skeleton = loadingFrame.querySelector<HTMLElement>('[data-slot="skeleton"]');
+    // The figure says its state as DataTable does.
+    await expect(loadingFrame).toHaveAttribute("data-slot", "chart-frame");
+    await expect(loadingFrame).toHaveAttribute("data-state", "loading");
 
     await expect(skeleton).toHaveAttribute("aria-hidden", "true");
     // The standard medium plot reserves 200px while its data loads.
@@ -1105,7 +1108,7 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Chart title="Findings by source" series={sourceSeries} size="small" status="loading">
+          <Chart title="Findings by source" series={sourceSeries} size="small" state="loading">
             <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" />
           </Chart>
         }
@@ -1129,7 +1132,7 @@ export const Dont: Story = {
 
 export const Playground: Story = {
   args: {
-    status: "ready",
+    state: "ready",
     legend: "top",
     size: "medium",
   },

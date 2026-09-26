@@ -174,10 +174,29 @@ try {
   ]) {
     await page.getByLabel("Search catalog controls", { exact: true }).fill(code);
     const control = (await rows("controls", { catalog_revision_id: catalogs[0].id, code }))[0];
+    if (!lowIds.has(control.id)) {
+      // The list opens on the effective set, so a control outside the base needs the whole catalog.
+      const controlsDialog = page.getByRole("dialog", { name: "Tailor controls", exact: true });
+      await controlsDialog.getByText("0 matching controls", { exact: true }).waitFor();
+      await controlsDialog.getByRole("combobox", { name: "Show", exact: true }).click();
+      await page.getByRole("option", { name: "All catalog controls", exact: true }).click();
+    }
     await page
       .getByRole("dialog")
       .getByRole("button", { name: control.title, exact: true })
       .click();
+    await page
+      .getByRole("dialog", { name: "Tailor controls", exact: true })
+      .getByRole("heading", { name: `${control.code} · ${control.title}`, exact: true })
+      .waitFor();
+    if (code === "AC-2") {
+      // The statement resolves its parameters to readable placeholders, never the OSCAL markers.
+      const controlsDialog = page.getByRole("dialog", { name: "Tailor controls", exact: true });
+      await controlsDialog.getByRole("heading", { name: "Statement", exact: true }).waitFor();
+      const statement = await controlsDialog.innerText();
+      assert.ok(statement.includes("[Assignment:"), "The statement shows parameter placeholders");
+      assert.ok(!statement.includes("{{ insert:"), "The statement hides OSCAL insert markers");
+    }
     await page
       .getByRole("textbox", { name: "Control decision rationale", exact: true })
       .fill(rationale);
@@ -200,7 +219,9 @@ try {
   );
   await page
     .getByRole("dialog", { name: "Tailor controls", exact: true })
-    .getByRole("button", { name: "Cancel", exact: true })
+    // The footer's secondary: the decisions are already in the draft, so there is nothing to cancel.
+    .locator('[data-slot="dialog-footer"]')
+    .getByRole("button", { name: "Close", exact: true })
     .click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page.getByRole("tab", { name: /^Parameters/ }).click();
@@ -229,7 +250,9 @@ try {
   );
   await page
     .getByRole("dialog", { name: "Set parameter values", exact: true })
-    .getByRole("button", { name: "Cancel", exact: true })
+    // The footer's secondary: the decisions are already in the draft, so there is nothing to cancel.
+    .locator('[data-slot="dialog-footer"]')
+    .getByRole("button", { name: "Close", exact: true })
     .click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page.getByRole("tab", { name: /^Controls/ }).click();
@@ -416,12 +439,25 @@ try {
     // The profile page: the chain and the diff.
     await profileLink.click();
     await page.getByRole("tab", { name: "Tailoring", exact: true }).click();
-    await page.getByText("Tailored out", { exact: true }).first().waitFor();
+    // The decision collections head the tab; the counts sit in the collapsed Details above them.
+    await page
+      .getByRole("heading", { name: /^Tailored out\b/ })
+      .first()
+      .waitFor();
+    await page
+      .getByRole("heading", { name: /^Tailored in\b/ })
+      .first()
+      .waitFor();
     const tailoringText = await page.locator("body").innerText();
     assert.ok(tailoringText.includes("AC-2"), "The profile page lists the control tailored out");
     assert.ok(tailoringText.includes("AC-4"), "The profile page lists the control tailored in");
-    // The overlay's own name starts with the base's, so the chain is checked by its link, version beside it.
-    await page.getByRole("link", { name: `${lowTitle} · ${low.version}`, exact: true }).waitFor();
+    // The derivation chain is on Overview. The overlay's own name starts with the base's, so the
+    // chain is checked by the base hop's link, version beside it.
+    await page.getByRole("tab", { name: "Overview", exact: true }).click();
+    await page
+      .getByRole("tabpanel")
+      .getByRole("link", { name: `${lowTitle} · ${low.version}`, exact: true })
+      .waitFor();
     await page.screenshot({ path: "/tmp/program-wizard-profile-page.png", fullPage: true });
 
     // The catalog page scoped to the edition, with who selects each control.

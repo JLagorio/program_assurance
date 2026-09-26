@@ -1,5 +1,12 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-import { Sheet, SheetBody, SheetClose, SheetContent, SheetFooter } from "../../components";
+import {
+  Sheet,
+  SheetBody,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetTrigger,
+} from "../../components";
 import * as Stories from "./Sheet.stories";
 
 <Meta of={Stories} />
@@ -19,7 +26,7 @@ Not for work beside a list the reader keeps using: that is the Shell's panel, wh
 
 ## Anatomy
 
-- **SheetContent** brings its portal, the blanket and a close button at the top end, and slides from `side`: `right` by default, `left`, `top` or `bottom`, or `start` and `end`, which follow the reading direction. It records the overlay surface as the current one, so a sticky header or pinned cell inside matches the sheet.
+- **SheetContent** brings its portal, the blanket and a close button at the top end (an IconButton named Close, with no tooltip), and slides from `side`: `right` by default, `left`, `top` or `bottom`, or `start` and `end`, which follow the reading direction. It records the overlay surface as the current one, so a sticky header or pinned cell inside matches the sheet.
 - **SheetHeader** holds the title (the sheet's h2; headings inside start at h3) and the description.
 - **SheetBody** is the one scrolling region, with the sheet's inset. A toolbar row that should not scroll sits between the header and the body.
 - **SheetFooter** stays outside the scroll.
@@ -59,6 +66,8 @@ The body takes the height the header, any toolbar row and the footer leave, at l
 
 ## Props
 
+Sheet is Base UI Dialog at an edge, so it takes the same root props, `open`, `defaultOpen`, `onOpenChange` (with the change's `reason` and `cancel()` in its details), `onOpenChangeComplete`, `modal`, `disablePointerDismissal`, `actionsRef` and `handle`, and Ledger's `pending`. SheetContent takes the popup's `initialFocus`, `finalFocus`, `render`, `className` and `style`, and Ledger's `side`, `width` and `showCloseButton`. The types are in [Base UI's API reference](https://base-ui.com/react/components/dialog#api-reference).
+
 <ArgTypes of={Sheet} />
 
 ### SheetContent
@@ -72,6 +81,10 @@ The body takes the height the header, any toolbar row and the footer leave, at l
 ### SheetFooter
 
 <ArgTypes of={SheetFooter} />
+
+### SheetTrigger
+
+<ArgTypes of={SheetTrigger} />
 
 ### SheetClose
 

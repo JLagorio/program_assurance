@@ -1,73 +1,45 @@
-import { Badge, Button, Inline, Stack } from "@ledger/design-system";
+import { ControlStatement } from "@/components/prototype/library-controls";
+import { QueryState } from "@/components/prototype/work-common";
 import { useRows, type Row } from "@/lib/models";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@ledger/design-system";
 
-function Parts({
-  parts,
-  parentId = null,
-}: {
-  parts: Row<"control_parts">[];
-  parentId?: string | null;
-}) {
-  return (
-    <Stack space="space.150">
-      {parts
-        .filter((part) => part.parent_part_id === parentId)
-        .sort((a, b) => a.ordinal - b.ordinal)
-        .map((part) => (
-          <Stack key={part.id} space="space.075" className={parentId ? "border-s ps-150" : ""}>
-            <Inline space="space.100" shouldWrap>
-              <Badge variant="secondary" tone="neutral">
-                {part.name.replaceAll("-", " ")}
-              </Badge>
-              {part.source_id ? (
-                <span className="font-body-small text-subtle">{part.source_id}</span>
-              ) : null}
-            </Inline>
-            {part.title ? <h4 className="font-body-small font-semibold">{part.title}</h4> : null}
-            {part.prose ? (
-              <p className="whitespace-pre-wrap font-body-small">{part.prose}</p>
-            ) : null}
-            {parts.some((child) => child.parent_part_id === part.id) ? (
-              <Parts parts={parts} parentId={part.id} />
-            ) : null}
-          </Stack>
-        ))}
-    </Stack>
-  );
-}
+/** The parts a tailoring decision is read against: what the control requires, then why. */
+const roots: readonly string[] = ["statement", "guidance"];
 
+/**
+ * The control's statement and discussion as the catalog prints them, through the one control
+ * statement view: catalog labels ("a.", "1."), and each parameter insertion as its labelled
+ * placeholder ("[Assignment: organization-defined frequency]") rather than the raw OSCAL marker.
+ * Each root part is a heading at the caller's level, with loading and failure recovery.
+ */
 export function ControlDetail({ control }: { control: Row<"controls"> }) {
   const parts = useRows("control_parts", { control_id: control.id });
-  if (parts.isPending)
-    return (
-      <p className="text-subtle" role="status">
-        Loading control statements…
-      </p>
-    );
-  if (parts.error)
-    return (
-      <Stack space="space.100">
-        <p className="text-danger" role="alert">
-          {parts.error.message}
-        </p>
-        <Button size="small" onClick={() => void parts.refetch()}>
-          Retry statements
-        </Button>
-      </Stack>
-    );
+  const parameters = useRows("parameters", { control_id: control.id });
+  const choices = useRows(
+    "parameter_choices",
+    {},
+    { columns: ["id", "parameter_id", "ordinal", "value"] },
+  );
+  const shown = parts.data?.some(
+    (part) => part.parent_part_id === null && roots.includes(part.name),
+  );
   return (
-    <Stack space="space.150">
-      <h3 className="font-body-large font-semibold">
-        {control.code} · {control.title}
-      </h3>
-      {control.status === "withdrawn" ? <Badge tone="warning">Withdrawn</Badge> : null}
-      {parts.data.length ? (
-        <Parts parts={parts.data} />
+    <QueryState queries={[parts, parameters, choices]}>
+      {shown ? (
+        <ControlStatement
+          parts={parts.data ?? []}
+          parameters={parameters.data ?? []}
+          choices={choices.data ?? []}
+          roots={roots}
+        />
       ) : (
-        <p className="font-body-small text-subtle">
-          No statement text is recorded for this control.
-        </p>
+        <Empty size="compact">
+          <EmptyHeader>
+            <EmptyTitle>No statement text</EmptyTitle>
+            <EmptyDescription>The catalog records no statement for this control.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
-    </Stack>
+    </QueryState>
   );
 }

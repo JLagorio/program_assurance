@@ -6,12 +6,12 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 Tokens are named on one grammar: **property . role . emphasis . state**.
 
-| Segment  | Examples                                                                                                             | What it says                                                                                                           |
-| -------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| property | `color.background`, `color.text`, `color.icon`, `color.border`, `elevation.surface`, `space`, `font`, `shape.radius` | What is being painted. Text, icon, border and background are separate properties because they need different contrast. |
-| role     | `brand`, `neutral`, `selected`, `success`, `warning`, `danger`, `information`, `disabled`, `input`, `inverse`        | Why. A role names the meaning, not the colour.                                                                         |
-| emphasis | `subtlest`, `subtler`, `subtle`, (default), `bold`, `bolder`, `boldest`                                              | How loud. Default sits in the middle; bold is a solid fill with inverse text.                                          |
-| state    | `hovered`, `pressed`, `selected`, `focused`                                                                          | Interaction. A state is always its own token, never alpha on the default.                                              |
+| Segment  | Examples                                                                                                       | What it says                                                                                                           |
+| -------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| property | `color.background`, `color.text`, `color.icon`, `color.border`, `elevation.surface`, `space`, `font`, `radius` | What is being painted. Text, icon, border and background are separate properties because they need different contrast. |
+| role     | `brand`, `neutral`, `selected`, `success`, `warning`, `danger`, `information`, `disabled`, `input`, `inverse`  | Why. A role names the meaning, not the colour.                                                                         |
+| emphasis | `subtlest`, `subtler`, `subtle`, (default), `bold`, `bolder`, `boldest`                                        | How loud. Default sits in the middle; bold is a solid fill with inverse text.                                          |
+| state    | `hovered`, `pressed`, `selected`, `focused`                                                                    | Interaction. A state is always its own token, never alpha on the default.                                              |
 
 Every token has one CSS variable, `--ds-<name with dashes>`, and most have one Tailwind utility.
 
@@ -24,7 +24,7 @@ Every token has one CSS variable, `--ds-<name with dashes>`, and most have one T
 | `elevation.surface.raised`            | `--ds-elevation-surface-raised`            | `bg-surface-raised`                       |
 | `elevation.shadow.overlay`            | `--ds-elevation-shadow-overlay`            | `shadow-overlay`                          |
 | `space.200`                           | `--ds-space-200`                           | `p-200`, `gap-200`, `h-200` …             |
-| `shape.radius.medium`                 | `--ds-shape-radius-medium`                 | `rounded-medium`                          |
+| `radius.medium`                       | `--ds-radius-medium`                       | `rounded-medium`                          |
 | `font.body.small`                     | `--ds-font-body-small`                     | `font-body-small`                         |
 | `dimension.control.medium`            | `--ds-dimension-control-medium`            | `h-control-medium`, `size-control-medium` |
 | `motion.duration.fast`                | `--ds-motion-duration-fast`                | `duration-fast`                           |
@@ -42,6 +42,6 @@ Every token has one CSS variable, `--ds-<name with dashes>`, and most have one T
 - **Text.** `default` for content, `subtle` for secondary, `subtlest` for hints and captions, `disabled` for off. Status text (`success`, `warning`, `danger`, `information`) sits on the matching status background.
 - **Border.** `default` for hairlines, `bold` for emphasis, `input` for fields, `focused` and `selected` for those states.
 - **Type.** Composite tokens: `body` (13/18) for interface text, `body.small` (12/16) for captions, `body.xsmall` (11/14) for micro labels, `body.large` (15/22) for reading; three heading sizes; `code`.
-- **Space.** 0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80. Names are the value in quarter-rems: `space.100` is 8px.
-- **Shape.** `xsmall` 2, `small` 3, `medium` 5, `large` 7, `xlarge` 9, `xxlarge` 12, `full`.
-- **Metrics.** Controls are 24, 28, 32, 36 tall; rows 36 with compact, header and menu variants; icons 14 and 16.
+- **Space.** 0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80. A name counts hundredths of an 8px step: `space.100` is 8px, `space.025` is 2px, `space.1000` is 80px.
+- **Radius.** `xsmall` 2, `small` 3, `medium` 5, `large` 7, `xlarge` 9, `xxlarge` 12, `full`. Which part takes which is the [Shape](?path=/docs/tokens-shape--docs) sheet's table.
+- **Metrics.** Controls are 24, 28, 32, 36 tall; a table row is 40, with `compact` 36, `header` 32 and `menu` 28; icons 14 and 16.

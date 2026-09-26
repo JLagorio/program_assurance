@@ -1,5 +1,11 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-import { Attachment, AttachmentLink, AttachmentTitle, AttachmentTrigger } from "../../components";
+import {
+  Attachment,
+  AttachmentLink,
+  AttachmentMedia,
+  AttachmentTitle,
+  AttachmentTrigger,
+} from "../../components";
 import * as Stories from "./Attachment.stories";
 
 <Meta of={Stories} />
@@ -107,6 +113,10 @@ No live region is imposed. `aria-busy` identifies in-progress content but does n
 
 <ArgTypes of={Attachment} />
 
+### Attachment.Media
+
+<ArgTypes of={AttachmentMedia} />
+
 ### Attachment.Title
 
 <ArgTypes of={AttachmentTitle} />
@@ -119,7 +129,7 @@ No live region is imposed. `aria-busy` identifies in-progress content but does n
 
 <ArgTypes of={AttachmentLink} />
 
-All compound part prop types are exported. `Attachment.Action` accepts IconButton props; Trigger supports Button's native attributes, ref and `render` composition. The app's old shadcn copy uses different size and action APIs; import the Ledger component from `@ledger/design-system`.
+Every part is exported by name as well as a member (`AttachmentMedia` is `Attachment.Media`), and all compound part prop types are exported. Each part takes its element's native props and ref and names itself last with `data-slot` (`attachment`, `attachment-media` and so on), so a caller's props never replace a part's identity. `Attachment.Action` accepts IconButton props; Trigger supports Button's native attributes, ref and `render` composition. The app's old shadcn copy uses different size and action APIs; import the Ledger component from `@ledger/design-system`.
 
 ### Playground
 

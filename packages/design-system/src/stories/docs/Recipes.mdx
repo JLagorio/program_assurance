@@ -59,12 +59,14 @@ Stories: Components/Dialog, Form, Form save fails and Short window; Patterns/For
 ## Choosing records
 
 - One record: **RecordPicker**.
-- Many records from hundreds: **PickerSheet** with a search, filters, a DataTable body with selection and a footer that says how many and what happens to them. It may collect one shared rationale.
+- Many records from hundreds: **PickerSheet** with a search, filters, a DataTable body with selection and a footer that says how many and what happens to them. Pass the DataTable as `table`, with the whole collection as its data, so the search filters the table and a search with no match offers Clear filters. It may collect one shared rationale, focused through `initialFocus`. While the save runs, `pending` holds the sheet and the primary shows it is working; a failure goes in `error`, above the buttons, with the choice kept.
 - Records the reader must compare first: **RecordBrowser**. Its preview belongs to the selection task and never becomes a second record workflow.
+
+Stories: Patterns/PickerSheet, Search with no match and Pending and failure.
 
 ## States
 
-- Loading a page: **PageSkeleton**. Loading a region with a known shape: **Skeleton**. An action in flight: **Spinner** or Button `loading`.
+- Loading a page: **PageSkeleton**. Loading a region with a known shape: **Skeleton**. An action in flight: **Spinner** or Button `isLoading`.
 - Nothing here: **Empty** (`size="compact"` in a small region). A missing scalar: **Absent**.
 - Failure: an **Alert** with a retry, with the stale content kept usable underneath. A failure is never a blank table.
 - Empty data and an empty filter result are different states.

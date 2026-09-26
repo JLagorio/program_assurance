@@ -48,6 +48,13 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   pageSizes?: number[] | undefined;
   /** The accessible name of the table. */
   label?: string | undefined;
+  /**
+   * A row's readable name: its code, its title. Its controls say it ("Select REQ-001", "Row
+   * actions for REQ-001", "Reorder REQ-001", "Show details for REQ-001"), and so do the moves a
+   * screen reader hears. Unset, the controls keep their generic names and a move says the tree's
+   * `label` or the row's id.
+   */
+  rowLabel?: ((row: TData) => string) | undefined;
   /** The server sorts, filters or pages: the table stops doing it and `rowCount` says how many there are. */
   manual?: { sorting?: boolean; filtering?: boolean; pagination?: boolean } | undefined;
   /** The reader can pin and unpin columns from the column menu. On by default. */
@@ -122,6 +129,7 @@ export function useDataTable<TData extends RowData>({
   pageSize,
   pageSizes,
   label,
+  rowLabel,
   manual,
   pinnable = true,
   hideable = true,
@@ -192,6 +200,7 @@ export function useDataTable<TData extends RowData>({
       pageSize,
       pageSizes: sizes,
       label,
+      rowLabel: rowLabel as ((row: never) => string) | undefined,
       pinnable,
       hideable,
       resizable,

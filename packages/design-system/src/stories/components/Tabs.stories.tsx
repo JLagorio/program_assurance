@@ -19,6 +19,7 @@ import { Specimens } from "../_lib/matrix";
 const meta = {
   title: "Components/Tabs",
   component: Tabs,
+  subcomponents: { TabsList, TabsTrigger, TabsContent },
   parameters: { layout: "padded" },
 } satisfies Meta<typeof Tabs>;
 export default meta;

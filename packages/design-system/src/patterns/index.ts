@@ -12,7 +12,12 @@ export {
 } from "./composer";
 export * from "./data-table";
 export { Glance, type GlanceProps } from "./glance";
-export { PickerSheet, type PickerSheetProps } from "./picker-sheet";
+export {
+  PickerSheet,
+  type PickerSheetCloseDetails,
+  type PickerSheetProps,
+  type PickerSheetSearch,
+} from "./picker-sheet";
 export { PreviewSheet, type PreviewSheetProps } from "./preview-sheet";
 export { PreviewNavigation, type PreviewNavigationProps } from "./preview-navigation";
 export { RecordPicker, type PickerRecord, type RecordPickerProps } from "./record-picker";
@@ -40,6 +45,7 @@ export {
   type ChartDomain,
   type ChartDonutProps,
   type ChartFrameProps,
+  type ChartFrameState,
   type ChartHeatmapProps,
   type ChartLegendProps,
   type ChartLineProps,
@@ -71,6 +77,7 @@ export {
 export { Gates, type GateItemProps, type GatesProps } from "./gates";
 export {
   Inspector,
+  InspectorGroup,
   type InspectorGroupData,
   type InspectorGroupProps,
   type InspectorProps,

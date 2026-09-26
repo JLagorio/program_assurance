@@ -111,7 +111,7 @@ The width is the container's. Below about 480px the header wraps: the legend and
 
 ## Modifiers
 
-- **`legend`**, **`swatch`**, **`actions`**, **`status`**, **`statusTitle`**, **`statusText`** on the Frame.
+- **`legend`**, **`swatch`**, **`actions`**, **`state`**, **`statusTitle`**, **`statusText`** on the Frame. `state` is the word DataTable uses for the same thing (`ready`, `loading`, `empty`, `error`, and `refreshing` for a refetch that keeps the last plot); `status` is its deprecated name, which `ledger/no-deprecated-name` renames. The figure carries `data-slot="chart-frame"` and `data-state`.
 - **`path`** on the Frame for a drill-down; each crumb's `onSelect` goes back.
 - **`download`** (`["csv", "png"]`) and **`expandable`** for the tools; **`summary`** for the sentence a screen reader hears; **`syncId`** to share the hover; **`texture`** for the patterns.
 - **`data`**, **`x`**, **`xLabel`** on the Frame, for the table, and for a Bar, Line or Area inside that is given none. Unsaid, the table takes the part's own.

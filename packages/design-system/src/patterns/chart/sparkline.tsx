@@ -18,7 +18,6 @@ import {
   chartColor,
   surface,
   useFrame,
-  useMotion,
   useTooltipMotion,
   type ChartDatum,
   type ChartSeries,
@@ -53,6 +52,9 @@ export type ChartSparklineProps = {
 
 type DotProps = { cx?: number; cy?: number; index?: number };
 
+/** Recharts' animation off: the marks draw at their place on mount and on a change of data. */
+const still = { isAnimationActive: false } as const;
+
 /** A trend with no axes, for a cell or a Stat: the number beside it carries the value. */
 export function ChartSparkline({
   data,
@@ -77,7 +79,9 @@ export function ChartSparkline({
     undefined,
     loadingProp,
   );
-  const motion = useMotion();
+  // A sparkline draws in place. It sits in rows and tiles by the dozen, where the plots' entrance
+  // would be a render per animation frame for each one, and it is decoration beside its number.
+  const motion = still;
   const tooltipMotion = useTooltipMotion();
   const color = chartColor(tone);
   const series: ChartSeries[] = [{ key: y, label: t("value"), tone }];

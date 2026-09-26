@@ -38,7 +38,7 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 
 - **Focus moves in** when a blanketed overlay opens (Drawer focuses its popup by default; initialFocus can target an action or field) and **returns** to what opened it when it closes. The page behind is hidden from assistive technology and does not scroll.
 - **Escape closes** every overlay. An outside click closes the anchored ones and the blanket closes a Dialog, a Sheet and a Drawer; an AlertDialog ignores it.
-- **Pending holds.** `pending` on a Dialog, Sheet or AlertDialog cancels every request to close (Escape, the blanket, Close), disables the close controls while keeping them focusable (`aria-disabled`), so focus on one is kept, and marks the popup `aria-busy` until the command returns. A Drawer cancels in its own `onOpenChange`.
+- **Pending holds.** `pending` on a Dialog, Sheet or AlertDialog cancels every request to close (Escape, the blanket, Close), disables the close controls while keeping them focusable (`aria-disabled`), so focus on one is kept, and marks the popup `aria-busy` until the command returns; PickerSheet's `pending` is its Sheet's. A Drawer cancels in its own `onOpenChange`.
 - **A tooltip never holds a control**, a hover card never holds an action, a popover never holds a task the reader must finish.
 
 ## Style

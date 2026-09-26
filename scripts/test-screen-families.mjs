@@ -31,6 +31,12 @@ async function insert(model, values) {
   (fixtures[model] ??= []).push(result.data);
   return result.data;
 }
+/** A dependency row that is not the inventory fixture of any route. */
+async function dependency(query) {
+  const result = await query;
+  assert.ifError(result.error);
+  return result.data;
+}
 function name(row) {
   return row?.name ?? row?.title ?? row?.code;
 }
@@ -58,11 +64,29 @@ async function bounds(width, label) {
 }
 async function verifyCollection(screen, width, tabName) {
   const table = page.getByRole("table").or(page.getByRole("treegrid")).first();
-  const empty = page.getByRole("main").locator('[data-slot="empty"]').first();
+  // Retained tab panels stay mounted but hidden, so only the visible region's empty counts.
+  const empty = page
+    .getByRole("main")
+    .locator('[data-slot="empty"]')
+    .filter({ visible: true })
+    .first();
   // The kit replaces a genuinely empty register with its illustrated first-record state.
   await expect(table.or(empty).first()).toBeVisible();
+  // A loading table shows placeholder rows under aria-busy; read the collection once it settles.
+  await expect(
+    page.getByRole("table").or(page.getByRole("treegrid")).and(page.locator('[aria-busy="true"]')),
+  ).toHaveCount(0);
   await expect(page.locator('[data-slot="page-header-description"]')).toHaveCount(0);
-  await expect(page.getByRole("heading", { level: 2 })).toHaveCount(0);
+  // The work area repeats no collection heading. An empty state's title heads its own region,
+  // the Details rail is a separate landmark whose Inspector group is an h2 by design, and
+  // provenance may sit in a collapsed Details section (its heading is the closed disclosure).
+  await expect(
+    page
+      .getByRole("main")
+      .getByRole("heading", { level: 2 })
+      .and(page.locator(':not([data-slot="empty-title"])'))
+      .and(page.locator(':not(:has(> [aria-expanded="false"]))')),
+  ).toHaveCount(0);
   if (!(await table.count())) {
     assert.ok(tabName, `${screen.path}: the seeded primary register must contain records`);
     await expect(empty.locator('[data-slot="empty-title"]')).not.toHaveText("");
@@ -240,6 +264,53 @@ try {
       title: `${label} requirement`,
     });
   }
+  // A recorded control implementation in the first program, so the program's Controls tab has a
+  // name link to follow to its control record.
+  const resolution = await dependency(
+    workspace.client
+      .from("profile_resolutions")
+      .select()
+      .is("tenant_id", null)
+      .eq("state", "published")
+      .limit(1)
+      .single(),
+  );
+  const selection = await dependency(
+    workspace.client
+      .from("selected_controls")
+      .select()
+      .eq("profile_resolution_id", resolution.id)
+      .order("ordinal")
+      .limit(1)
+      .single(),
+  );
+  const implementedControl = await dependency(
+    workspace.client.from("controls").select("code, title").eq("id", selection.control_id).single(),
+  );
+  const ssp = await dependency(
+    workspace.client
+      .from("ssp_revisions")
+      .insert({
+        tenant_id: workspace.tenantId,
+        system_id: fixtures.systems[0].id,
+        profile_resolution_id: resolution.id,
+        version_number: 1,
+      })
+      .select()
+      .single(),
+  );
+  const implementation = await dependency(
+    workspace.client
+      .from("implemented_requirements")
+      .insert({
+        tenant_id: workspace.tenantId,
+        ssp_revision_id: ssp.id,
+        selected_control_id: selection.id,
+        description: "Screen family control narrative.",
+      })
+      .select()
+      .single(),
+  );
   for (const model of ["profiles", "controls"]) {
     const result = await workspace.client.from(model).select("*").limit(2);
     assert.ifError(result.error);
@@ -288,6 +359,24 @@ try {
       await bounds(width, path);
       console.log(`PASS ${width}px ${screen.family} ${path}`);
     }
+    // The Controls tab's name link opens the implemented control's record, not its schema row.
+    const program = fixtures.programs[0];
+    const controlPath = `/programs/${program.id}/controls/${implementation.id}`;
+    await page.goto(`${origin}/programs/${program.id}?tab=Controls`);
+    const assembly = page.getByRole("table", { name: "SSP control assembly", exact: true });
+    await expect(assembly).toBeVisible();
+    await page
+      .getByRole("searchbox", { name: "Find selected controls", exact: true })
+      .fill(implementedControl.code);
+    const controlLink = assembly.locator(`a[href="${controlPath}"]`);
+    await expect(controlLink).toHaveCount(1);
+    await expect(controlLink).toHaveText(implementedControl.title);
+    await controlLink.click();
+    await expect(page).toHaveURL(`${origin}${controlPath}`);
+    await expect(page).toHaveTitle("Program control — Program Assurance");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(implementedControl.title);
+    await bounds(width, controlPath);
+    console.log(`PASS ${width}px program Controls name link opens ${controlPath}`);
     await context.close();
   }
   assert.deepEqual(errors, [], "Every declared product route renders without a browser exception");

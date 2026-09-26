@@ -118,3 +118,54 @@ export const ToggleMatrix: Story = {
 };
 
 export const Playground: Story = {};
+
+/**
+ * Pressed is the selected palette with a 1px `color.border.selected` edge, so a pressed toggle
+ * never looks like a hovered one: hover stays the neutral tint and adds no edge. The edge is drawn
+ * out of the flow, so pressing never changes the toggle's size. In forced colours pressed is
+ * Highlight.
+ */
+export const PressedAgainstHover: Story = {
+  name: "Pressed against hover",
+  render: () => (
+    <Stack space="space.200">
+      <Specimens title="Hovered, and pressed">
+        <Toggle aria-label="Hovered bold">
+          <Bold aria-hidden />
+        </Toggle>
+        <Toggle aria-label="Pressed bold" defaultPressed>
+          <Bold aria-hidden />
+        </Toggle>
+        <Toggle variant="outline" aria-label="Pressed outline bold" defaultPressed>
+          <Bold aria-hidden />
+        </Toggle>
+      </Specimens>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const hovered = canvas.getByRole("button", { name: "Hovered bold" });
+    const pressed = canvas.getByRole("button", { name: "Pressed bold" });
+    const outline = canvas.getByRole("button", { name: "Pressed outline bold" });
+    const size = pressed.getBoundingClientRect();
+    await userEvent.hover(hovered);
+    await expect(getComputedStyle(hovered, "::after").content).toBe("none");
+    await expect(getComputedStyle(hovered).backgroundColor).not.toBe(
+      getComputedStyle(pressed).backgroundColor,
+    );
+    if (!matchMedia("(forced-colors: active)").matches) {
+      const edge = getComputedStyle(pressed, "::after");
+      await expect(edge.position).toBe("absolute");
+      await expect(edge.borderTopStyle).toBe("solid");
+      await expect(edge.borderTopWidth).toBe("1px");
+      await expect(edge.borderTopColor).toBe(getComputedStyle(outline).borderTopColor);
+      await expect(getComputedStyle(hovered).borderTopColor).not.toBe(edge.borderTopColor);
+    }
+    await userEvent.click(pressed);
+    await expect(pressed).toHaveAttribute("aria-pressed", "false");
+    await expect(pressed.getBoundingClientRect().width).toBe(size.width);
+    await userEvent.click(pressed);
+    await expect(pressed).toHaveAttribute("aria-pressed", "true");
+    await expect(pressed.getBoundingClientRect().width).toBe(size.width);
+  },
+};

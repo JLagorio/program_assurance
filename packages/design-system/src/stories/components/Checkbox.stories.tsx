@@ -380,3 +380,27 @@ export const InvalidAndFocused: Story = {
 };
 
 export const Playground: Story = {};
+
+/**
+ * The box's boundary is `color.border.bold`, 3:1 against every surface, so an unticked box can be
+ * found (WCAG 1.4.11); a text field's border stays lighter by decision. contrast.test holds the
+ * pair in both modes and under increased contrast. The play compares the box with a hidden
+ * `border-bold` reference.
+ */
+export const Boundary: Story = {
+  render: () => (
+    <Inline space="space.200" alignBlock="center">
+      <Checkbox aria-label="Handles PII" />
+      <span data-testid="bold-border" aria-hidden className="hidden border border-bold" />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByRole("checkbox", { name: "Handles PII" });
+    await expect(box).not.toBeChecked();
+    if (matchMedia("(forced-colors: active)").matches) return;
+    await expect(getComputedStyle(box).borderTopColor).toBe(
+      getComputedStyle(canvas.getByTestId("bold-border")).borderTopColor,
+    );
+  },
+};

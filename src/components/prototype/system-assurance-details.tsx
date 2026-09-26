@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import {
   Absent,
-  Badge,
   Id,
   Indicator,
   Inline,
@@ -9,15 +8,19 @@ import {
   Item,
   KeyValue,
   Person,
+  Prose,
   Related,
-  Section,
+  Skeleton,
   Stack,
+  Text,
   TextLink,
-  type Tone,
+  VisuallyHidden,
+  useLedgerLocale,
 } from "@ledger/design-system";
+import { StatusBadge } from "@/components/app/status";
 import { labelFor } from "@/lib/records";
 import { useRow } from "@/lib/models";
-import { QueryState } from "./work-common";
+import { impactLevels, revisionStates, statusLabel, statusTone } from "@/lib/status";
 import {
   baselineSource,
   type Impact,
@@ -28,35 +31,50 @@ import {
 
 export const impactDimensions = ["confidentiality", "integrity", "availability"] as const;
 
-export function ImpactBadge({ value, mixed = false }: { value: Impact | null; mixed?: boolean }) {
+/** A recorded impact's tone: the level's, or warning where the assessment scopes disagree. */
+function impactTone(impact: Pick<SystemImpact, "value" | "source">) {
+  return impact.value
+    ? statusTone(impactLevels, impact.value)
+    : impact.source === "mixed"
+      ? "warning"
+      : "neutral";
+}
+
+/**
+ * One FIPS 199 impact on a system: the level as an Indicator from the status layer (a Dot and a
+ * word, never a pill), "Mixed" where the assessment scopes disagree, and Absent when nothing is
+ * recorded. `dimension` names it for a screen reader where no label or column header does.
+ */
+export function ImpactLevel({
+  value,
+  mixed = false,
+  dimension,
+}: {
+  value: Impact | null;
+  mixed?: boolean | undefined;
+  dimension?: ImpactDimension | undefined;
+}) {
+  const name = dimension ? (
+    <VisuallyHidden>{`${labelFor(dimension)} impact: `}</VisuallyHidden>
+  ) : null;
   if (!value && !mixed)
     return (
-      <span className="text-subtle" aria-label="Not recorded">
-        —
-      </span>
+      <Absent label={dimension ? `${labelFor(dimension)} impact not recorded` : "Not recorded"} />
     );
   return (
-    <Badge
-      size="xsmall"
-      variant="secondary"
-      tone={
-        value === "high"
-          ? "danger"
-          : value === "moderate"
-            ? "warning"
-            : value === "low"
-              ? "success"
-              : "neutral"
-      }
-    >
-      {mixed ? "Mixed" : labelFor(value!)}
-    </Badge>
+    <Indicator tone={mixed ? "warning" : impactTone({ value, source: "system" })}>
+      {name}
+      {mixed ? "Mixed" : statusLabel(impactLevels, value)}
+    </Indicator>
   );
 }
 
+/** @deprecated An impact is a level, drawn as an Indicator: use `ImpactLevel`. */
+export const ImpactBadge = ImpactLevel;
+
 export function impactDescription(row: SystemAssuranceRow, dimension: ImpactDimension) {
   const impact = row.impacts[dimension];
-  return `${labelFor(dimension)}: ${impact.value ? labelFor(impact.value) : impact.source === "mixed" ? "Mixed scope values" : "Not recorded"}${impact.source === "scope" ? " (assessment scope)" : impact.source === "system" ? " (system)" : ""}${impact.conflict ? "; scope values differ" : ""}`;
+  return `${labelFor(dimension)}: ${impact.value ? statusLabel(impactLevels, impact.value) : impact.source === "mixed" ? "Mixed scope values" : "Not recorded"}${impact.source === "scope" ? " (assessment scope)" : impact.source === "system" ? " (system)" : ""}${impact.conflict ? "; scope values differ" : ""}`;
 }
 
 /** Where a recorded impact came from, in the reader's words. */
@@ -99,19 +117,21 @@ export function ancestorElements(row: SystemAssuranceRow, rows: SystemAssuranceR
 
 const impactRank: Record<Impact, number> = { low: 1, moderate: 2, high: 3 };
 
-/** The level's tone: the same scale everywhere a level is shown, never a pill. */
-function impactTone(value: Impact | null, source?: SystemImpact["source"]): Tone {
-  if (value === "high") return "danger";
-  if (value === "moderate") return "warning";
-  if (value === "low") return "success";
-  return source === "mixed" ? "warning" : "neutral";
-}
-
+/** The owner in a rail value: the person, or what stands in for them while loading or missing. */
 function OwnerValue({ id }: { id: string | null }) {
   const query = useRow("parties", id);
-  if (!id) return <Absent />;
-  const name = query.data?.name;
-  return <QueryState queries={[query]}>{name ? <Person name={name} /> : <Absent />}</QueryState>;
+  if (!id) return <Absent label="No owner recorded" />;
+  if (query.data === undefined && query.isError)
+    return <Text color="color.text.subtle">Could not load</Text>;
+  if (query.data === undefined)
+    return (
+      <>
+        <Skeleton shape="line" width={96} />
+        <VisuallyHidden>Loading</VisuallyHidden>
+      </>
+    );
+  if (!query.data) return <Text color="color.text.subtle">Not available</Text>;
+  return <Person name={query.data.name} />;
 }
 
 /** The preview's properties; its containing header owns identity and record actions. */
@@ -124,6 +144,9 @@ export function SystemAssuranceDetails({
   rows: SystemAssuranceRow[];
   onDrill?: ((id: string) => void) | undefined;
 }) {
+  const { formatNumber } = useLedgerLocale();
+  const count = (value: number, one: string, many: string) =>
+    `${formatNumber(value)} ${value === 1 ? one : many}`;
   const path = ancestorElements(row, rows);
   const contained = containedElements(row, rows);
   const boundary = rows.find((element) => element.id === row.boundary_system_id);
@@ -164,159 +187,149 @@ export function SystemAssuranceDetails({
   const baselineFacts = hasBaseline
     ? [
         baselineSource(row),
-        row.controlCount === null ? null : `${row.controlCount} controls`,
+        row.controlCount === null ? null : count(row.controlCount, "control", "controls"),
         row.additionalChildControlCount > 0
-          ? `${row.additionalChildControlCount} more inside children`
+          ? `${formatNumber(row.additionalChildControlCount)} more inside children`
           : null,
         row.unresolvedDescendantCount > 0
-          ? `${row.unresolvedDescendantCount} systems inside without a baseline`
+          ? `${count(row.unresolvedDescendantCount, "system", "systems")} inside without a baseline`
           : null,
       ].filter((fact): fact is string => Boolean(fact))
     : [];
+  const subtle = (text: string) => (
+    <Text as="p" size="small" color="color.text.subtle">
+      {text}
+    </Text>
+  );
   return (
     <Stack space="space.300">
       <Inspector.Group title="Details">
-        <KeyValue labelWidth={124} label="Code">
-          <Id>{row.code}</Id>
-        </KeyValue>
-        <KeyValue labelWidth={124} label="Type">
-          {labelFor(row.system_type)}
-        </KeyValue>
-        <KeyValue labelWidth={124} label="Owner">
-          <OwnerValue id={row.system_owner_party_id} />
-        </KeyValue>
-        {path.length > 0 && (
-          <KeyValue
-            labelWidth={124}
-            label={parentIsBoundary ? "Parent / boundary" : "Part of"}
-            wrap
-          >
-            <Inline space="space.050" shouldWrap>
-              {path.map((element, index) => (
-                <Inline key={element.id} space="space.050">
-                  {index > 0 && <span aria-hidden>/</span>}
-                  <TextLink
-                    render={
-                      <Link
-                        to="/programs/$programId/systems/$scopeId"
-                        params={{ programId: element.program_id, scopeId: element.id }}
-                      />
-                    }
-                  >
-                    {element.name}
-                  </TextLink>
-                </Inline>
-              ))}
-            </Inline>
+        <KeyValue.Group labelWidth={124}>
+          <KeyValue label="Code">
+            <Id>{row.code}</Id>
           </KeyValue>
-        )}
-        {!parentIsBoundary && (
-          <KeyValue labelWidth={124} label="Boundary">
-            {row.is_authorization_boundary ? (
-              "This system"
-            ) : boundary ? (
-              <TextLink
-                render={
-                  <Link
-                    to="/programs/$programId/systems/$scopeId"
-                    params={{ programId: boundary.program_id, scopeId: boundary.id }}
-                  />
-                }
-              >
-                {boundary.name}
-              </TextLink>
-            ) : (
-              <Absent />
-            )}
+          <KeyValue label="Type">{labelFor(row.system_type)}</KeyValue>
+          <KeyValue label="Owner">
+            <OwnerValue id={row.system_owner_party_id} />
           </KeyValue>
-        )}
-        <KeyValue labelWidth={124} label="Impact" wrap>
-          <Stack space="space.050">
-            <Inline space="space.200" alignBlock="center" shouldWrap>
-              {impactDimensions.map((dimension) => {
-                const impact = row.impacts[dimension];
-                return (
-                  <Indicator
-                    key={dimension}
-                    tone={impactTone(impact.value, impact.source)}
-                    aria-label={impactDescription(row, dimension)}
-                  >
-                    {labelFor(dimension)}{" "}
-                    {impact.value
-                      ? labelFor(impact.value)
-                      : impact.source === "mixed"
-                        ? "mixed"
-                        : "not recorded"}
-                  </Indicator>
-                );
-              })}
-            </Inline>
-            {provenance && <span className="font-body-small text-subtle">{provenance}</span>}
-            {conflicts.length > 0 && (
-              <span className="font-body-small text-subtle">
-                Scope values differ:{" "}
-                {conflicts
-                  .map(
-                    (dimension) =>
-                      `${labelFor(dimension)} ${row.impacts[dimension].scopeValues.map(labelFor).join(", ")}`,
-                  )
-                  .join(" · ")}
-              </span>
-            )}
-            {higherInside.length > 0 && (
-              <span className="font-body-small text-subtle">
-                Highest inside:{" "}
-                {higherInside
-                  .map(
-                    (dimension) =>
-                      `${labelFor(dimension)} ${labelFor(row.childImpacts[dimension]!)}`,
-                  )
-                  .join(" · ")}
-              </span>
-            )}
-          </Stack>
-        </KeyValue>
-        <KeyValue labelWidth={124} label="Baseline" wrap>
-          <Stack space="space.050">
-            <Inline space="space.075" alignBlock="baseline" shouldWrap>
-              {hasBaseline ? (
+          {path.length > 0 && (
+            <KeyValue label={parentIsBoundary ? "Parent / boundary" : "Part of"} wrap>
+              <Inline space="space.050" shouldWrap>
+                {path.map((element, index) => (
+                  <Inline key={element.id} space="space.050">
+                    {index > 0 && <span aria-hidden>/</span>}
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs/$programId/systems/$scopeId"
+                          params={{ programId: element.program_id, scopeId: element.id }}
+                        />
+                      }
+                    >
+                      {element.name}
+                    </TextLink>
+                  </Inline>
+                ))}
+              </Inline>
+            </KeyValue>
+          )}
+          {!parentIsBoundary && (
+            <KeyValue label="Boundary">
+              {row.is_authorization_boundary ? (
+                "This system"
+              ) : boundary ? (
                 <TextLink
                   render={
                     <Link
                       to="/programs/$programId/systems/$scopeId"
-                      params={params}
-                      search={{ tab: "Controls" }}
+                      params={{ programId: boundary.program_id, scopeId: boundary.id }}
                     />
                   }
                 >
-                  {row.baselineTitle ?? "Baseline"}
+                  {boundary.name}
                 </TextLink>
               ) : (
-                <Absent />
+                <Absent label="No boundary recorded" />
               )}
-              {row.baselineDraft && <span className="font-body-small text-subtle">Draft</span>}
-            </Inline>
-            {baselineFacts.length > 0 && (
-              <span className="font-body-small text-subtle">{baselineFacts.join(" · ")}</span>
-            )}
-          </Stack>
-        </KeyValue>
-        <KeyValue labelWidth={124} label="Requirements" wrap>
-          {row.requirementCount} allocated
-          {row.subtreeRequirementCount !== row.requirementCount
-            ? ` · ${row.subtreeRequirementCount} including children`
-            : ""}
-        </KeyValue>
+            </KeyValue>
+          )}
+          <KeyValue label="Impact" wrap>
+            <Stack space="space.050">
+              <Inline space="space.200" alignBlock="center" shouldWrap>
+                {impactDimensions.map((dimension) => {
+                  const impact = row.impacts[dimension];
+                  return (
+                    <Indicator key={dimension} tone={impactTone(impact)}>
+                      {labelFor(dimension)}{" "}
+                      {impact.value
+                        ? statusLabel(impactLevels, impact.value)
+                        : impact.source === "mixed"
+                          ? "mixed"
+                          : "not recorded"}
+                    </Indicator>
+                  );
+                })}
+              </Inline>
+              {provenance && subtle(provenance)}
+              {conflicts.length > 0 &&
+                subtle(
+                  `Scope values differ: ${conflicts
+                    .map(
+                      (dimension) =>
+                        `${labelFor(dimension)} ${row.impacts[dimension].scopeValues
+                          .map((value) => statusLabel(impactLevels, value))
+                          .join(", ")}`,
+                    )
+                    .join(" · ")}`,
+                )}
+              {higherInside.length > 0 &&
+                subtle(
+                  `Highest inside: ${higherInside
+                    .map(
+                      (dimension) =>
+                        `${labelFor(dimension)} ${statusLabel(impactLevels, row.childImpacts[dimension])}`,
+                    )
+                    .join(" · ")}`,
+                )}
+            </Stack>
+          </KeyValue>
+          <KeyValue label="Baseline" wrap>
+            <Stack space="space.050">
+              <Inline space="space.075" alignBlock="center" shouldWrap>
+                {hasBaseline ? (
+                  <TextLink
+                    render={
+                      <Link
+                        to="/programs/$programId/systems/$scopeId"
+                        params={params}
+                        search={{ tab: "Controls" }}
+                      />
+                    }
+                  >
+                    {row.baselineTitle ?? "Baseline"}
+                  </TextLink>
+                ) : (
+                  <Absent label="No baseline" />
+                )}
+                {row.baselineDraft && (
+                  <StatusBadge statuses={revisionStates} value="draft" size="xsmall" />
+                )}
+              </Inline>
+              {baselineFacts.length > 0 && subtle(baselineFacts.join(" · "))}
+            </Stack>
+          </KeyValue>
+          <KeyValue label="Requirements" wrap>
+            {formatNumber(row.requirementCount)} allocated
+            {row.subtreeRequirementCount !== row.requirementCount
+              ? ` · ${formatNumber(row.subtreeRequirementCount)} including children`
+              : ""}
+          </KeyValue>
+        </KeyValue.Group>
       </Inspector.Group>
-      {hasDescription && (
-        <Section title="Description">
-          <p className="whitespace-pre-wrap text-default">{description}</p>
-        </Section>
-      )}
+      {/* Authored text is a labelled property, not a heading of the preview's outline. */}
+      {hasDescription && <Prose label="Description">{description}</Prose>}
       {row.categorization_rationale && (
-        <Section title="Categorization rationale">
-          <p className="whitespace-pre-wrap text-default">{row.categorization_rationale}</p>
-        </Section>
+        <Prose label="Categorization rationale">{row.categorization_rationale}</Prose>
       )}
       {contained.length > 0 && (
         <Related title="Contains" count={contained.length} layout="list" size="compact">
@@ -327,7 +340,11 @@ export function SystemAssuranceDetails({
               idWidth={104}
               title={child.name}
               meta={labelFor(child.system_type)}
-              trailing={child.controlCount === null ? undefined : `${child.controlCount} controls`}
+              trailing={
+                child.controlCount === null
+                  ? undefined
+                  : count(child.controlCount, "control", "controls")
+              }
               {...(onDrill
                 ? { onSelect: () => onDrill(child.id) }
                 : {

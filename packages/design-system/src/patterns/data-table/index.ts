@@ -10,6 +10,7 @@ export {
   DataTable,
   type DataTableEmpty,
   type DataTableFilteredEmpty,
+  type DataTableNoun,
   type DataTableProps,
   type DataTableState,
 } from "./data-table";
@@ -33,7 +34,14 @@ export {
   useTableQuery,
   type TableQueryOptions,
 } from "./use-table-query";
-export { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";
+export {
+  ColumnSortable,
+  DragContext,
+  RowSortable,
+  useColumnDrag,
+  useRowDrag,
+  type ColumnDragOptions,
+} from "./reorder";
 export { toCsv, toRows, type ExportedRows } from "./to-rows";
 export { clearView, readView, resetView, viewKey, writeView } from "./view-store";
 export {

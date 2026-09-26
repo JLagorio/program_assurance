@@ -1,7 +1,9 @@
-import { useConfirmation, discardChanges } from "@/components/app/confirmation";
-import { useMemo, useRef, useState } from "react";
-import { useBlocker, useNavigate } from "@tanstack/react-router";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { AlertCircle } from "lucide-react";
 import {
+  Alert,
+  AlertDescription,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -10,18 +12,28 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertTitle,
   Box,
   Button,
+  ErrorSummary,
+  type ErrorSummaryIssue,
+  FieldSet,
   Grid,
   Inline,
   PageHeader,
+  Section,
   Stack,
   Stepper,
+  Text,
   toast,
+  VisuallyHidden,
 } from "@ledger/design-system";
+import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
+import { QueryState } from "@/components/prototype/work-common";
+import { useFormFeedback } from "./form-feedback";
+import { useDraftGuard } from "./use-draft-guard";
 import { useWorkspace } from "./workspace";
 import {
-  programWizardSchema,
   useCreateProgramWizard,
   type ProgramProfileDraft,
   type ProgramWizardDraft,
@@ -31,11 +43,14 @@ import { catalogProfileOptions, previewProgramTailoring } from "@/lib/program-wi
 import { useWizardResources } from "./program-wizard/resources";
 import { ProgramStep } from "./program-wizard/program";
 import { CatalogStep } from "./program-wizard/catalog";
-import { ElementsStep } from "./program-wizard/elements";
+import { ElementsStep, type SheetEditing } from "./program-wizard/elements";
 import { ReviewStep } from "./program-wizard/review";
-import { productItemFor } from "@/lib/product-items";
+import { wizardIssues, wizardRow, type WizardIssue } from "./program-wizard/issues";
 
 const steps = ["Program", "Catalog & profiles", "Systems & components", "Review & create"] as const;
+const last = steps.length - 1;
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
 function newSystem(): SystemWizardDraft {
   return {
     key: crypto.randomUUID(),
@@ -69,36 +84,53 @@ function emptyDraft(): ProgramWizardDraft {
   };
 }
 
+/** Where focus goes once the next render has committed. */
+type Arrival =
+  { kind: "heading" } | { kind: "field"; field: string } | { kind: "row"; key: string };
+
+const tabbable =
+  'input:not([type="hidden"]):not([aria-hidden="true"]):not(:disabled), textarea:not(:disabled), button:not(:disabled), [tabindex="0"]';
+/** Focuses the control itself, or the first one inside a group (a RadioGroup, a CheckboxGroup). */
+function focusControl(node: HTMLElement | null | undefined) {
+  if (!node) return;
+  (node.matches(tabbable) ? node : (node.querySelector<HTMLElement>(tabbable) ?? node)).focus();
+}
+
+/**
+ * Program setup, the only way to create a program: four steps on one page, validated when the
+ * reader continues. Each step's issues mark their fields; several are listed in an ErrorSummary
+ * whose items lead to the field, on its step or in the element Sheet. Each step change moves focus
+ * to the new step's heading, which names the step and its place.
+ */
 export function ProgramWizard() {
-  const { confirm, confirmation } = useConfirmation();
   const workspace = useWorkspace();
   const navigate = useNavigate();
   const resources = useWizardResources();
   const create = useCreateProgramWizard();
+  const formId = useId();
+  const feedback = useFormFeedback<string>();
   const [draft, setDraft] = useState(emptyDraft);
   const [index, setIndex] = useState(0);
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<SheetEditing | null>(null);
   const [dirty, setDirty] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const inFlight = useRef(false);
-  const bypassBlock = useRef(false);
-  const cancelRef = useRef<HTMLButtonElement>(null);
-  useBlocker({
-    shouldBlockFn: async () => {
-      if (bypassBlock.current) return false;
-      if (inFlight.current || confirming) return true;
-      return dirty && !(await confirm(discardChanges("Discard this unsaved program setup?")));
-    },
-    enableBeforeUnload: () => !bypassBlock.current && (dirty || inFlight.current),
+  const [failure, setFailure] = useState<string | null>(null);
+  // Steps whose issues show at their fields: each one the reader has tried to leave.
+  const [checked, setChecked] = useState<ReadonlySet<number>>(new Set());
+  // The issues from the last attempt, for the ErrorSummary; recomputing them would re-announce it.
+  const [summary, setSummary] = useState<WizardIssue[]>([]);
+  const [attempts, setAttempts] = useState(0);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const arrival = useRef<Arrival | null>(null);
+  const settled = useRef(false);
+  const leave = useRef(() => void navigate({ to: "/programs" }));
+  const guard = useDraftGuard({
+    dirty,
+    onClose: () => leave.current(),
+    description: `Your program setup will be lost: its details, ${plural(draft.profiles.length, "base profile")} and ${plural(draft.systems.length, "system")}.`,
   });
-  function change(next: ProgramWizardDraft) {
-    if (inFlight.current) return;
-    setDraft(next);
-    setDirty(true);
-    setError("");
-  }
+
   const options = useMemo(() => catalogProfileOptions(resources.data), [resources.data]);
   const previews = useMemo(
     () =>
@@ -118,87 +150,38 @@ export function ProgramWizard() {
       ),
     [draft.profiles, draft.catalogRevisionId, resources.data],
   );
-  const issues = useMemo(() => {
-    const result: string[][] = [[], [], [], []];
-    const profileTitle = (profile: ProgramProfileDraft | undefined) =>
-      options.profiles.find((option) => option.id === profile?.baseResolutionId)?.title ??
-      "Program profile";
-    const parsed = programWizardSchema.safeParse(draft);
-    if (!parsed.success)
-      for (const issue of parsed.error.issues) {
-        const [root, itemIndex, field, elementIndex] = issue.path;
-        const step =
-          root === "catalogRevisionId" || root === "profiles" ? 1 : root === "systems" ? 2 : 0;
-        let prefix = "";
-        if (root === "profiles" && typeof itemIndex === "number")
-          prefix = `${profileTitle(draft.profiles[itemIndex])}: `;
-        if (root === "systems" && typeof itemIndex === "number") {
-          const system = draft.systems[itemIndex];
-          prefix = `${system?.name || `System ${itemIndex + 1}`}: `;
-          if (field === "elements" && typeof elementIndex === "number") {
-            const element = system?.elements[elementIndex];
-            prefix += `${element?.name || `Element ${elementIndex + 1}`}: `;
-          }
-        }
-        result[step]!.push(`${prefix}${issue.message}`);
-      }
-    if (resources.ready) {
-      if (
-        draft.catalogRevisionId &&
-        !options.catalogs.some((catalog) => catalog.id === draft.catalogRevisionId)
-      )
-        result[1]!.push("Choose an available published catalog.");
-      for (const profile of draft.profiles) {
-        const option = options.profiles.find((item) => item.id === profile.baseResolutionId);
-        if (!option || !option.supported || option.catalogRevisionId !== draft.catalogRevisionId)
-          result[1]!.push(
-            `${profileTitle(profile)}: this profile is unavailable or incompatible with the chosen catalog.`,
-          );
-        for (const message of previews.get(profile.key)?.errors ?? [])
-          result[1]!.push(`${profileTitle(profile)}: ${message}`);
-      }
-      for (const system of draft.systems) {
-        const product = productItemFor(system, resources.productItems);
-        if (system.product && !product)
-          result[2]!.push(
-            `${system.name || "System"}: comes from a product version that is no longer published; remove and re-add it.`,
-          );
-        for (const element of system.elements) {
-          if (
-            element.library &&
-            !resources.libraryItems.some(
-              (item) =>
-                item.id === element.library!.definedComponentId &&
-                item.revisionId === element.library!.revisionId,
-            ) &&
-            !(
-              element.productElementId &&
-              product?.elements.some(
-                (row) =>
-                  row.id === element.productElementId &&
-                  row.library?.revisionId === element.library!.revisionId,
-              )
-            )
-          )
-            result[2]!.push(
-              `${system.name || "System"}: ${element.name || "an element"} pins a library version that is no longer the published one; remove and re-add it.`,
-            );
-          if (
-            element.productElementId &&
-            product &&
-            !product.elements.some((row) => row.id === element.productElementId)
-          )
-            result[2]!.push(
-              `${system.name || "System"}: ${element.name || "an element"} is not an element of ${product.productName} · ${product.configurationName}; remove and re-add the system.`,
-            );
-        }
-      }
-    }
-    return result.map((messages) => [...new Set(messages)]);
-  }, [draft, options, previews, resources.ready, resources.libraryItems, resources.productItems]);
-  const blocked = issues[index]?.[0];
-  const earlierBlocked = issues.slice(0, index).flat()[0];
-  const allErrors = issues.flat();
+  const issues = useMemo(
+    () =>
+      wizardIssues({
+        draft,
+        ready: resources.ready,
+        catalogs: options.catalogs,
+        profiles: options.profiles,
+        previews,
+        libraryItems: resources.libraryItems,
+        productItems: resources.productItems,
+      }),
+    [draft, resources.ready, options, previews, resources.libraryItems, resources.productItems],
+  );
+  const errorFor = (field: string) =>
+    issues.find((issue) => issue.field === field && checked.has(issue.step))?.message;
+
+  // Focus lands after the render that shows its target: the new step's heading, or a field.
+  useEffect(() => {
+    const next = arrival.current;
+    arrival.current = null;
+    if (!next) return;
+    if (next.kind === "heading") heading.current?.focus();
+    else if (next.kind === "field") focusControl(feedback.node(next.field));
+    else focusControl(wizardRow(next.key));
+  });
+  // On arrival the first field takes focus, once the published records have loaded.
+  useEffect(() => {
+    if (!resources.ready || settled.current) return;
+    settled.current = true;
+    feedback.node("name")?.focus();
+  }, [resources.ready, feedback]);
+
   const total = new Set(
     draft.systems.flatMap(
       (system) =>
@@ -213,76 +196,193 @@ export function ProgramWizard() {
   const productCount = draft.systems.filter((system) => system.product).length;
   const step = steps[index]!;
   const writable = workspace.role !== "viewer";
-  async function submit() {
-    if (inFlight.current || allErrors.length || !resources.ready || resources.error || !writable)
+  const unavailable = !writable ? "An editor, admin, or owner can create a program." : undefined;
+  // While the tailoring editor is open, Continue is a plain button and Enter does not submit.
+  const formActive = !(index === 1 && editingKey);
+
+  function change(next: ProgramWizardDraft) {
+    if (guard.busy) return;
+    setDraft(next);
+    setDirty(true);
+    setFailure(null);
+  }
+  /** Shows a step. Focus goes to its heading unless the caller sends it to a field. */
+  function arrive(next: number, focus: Arrival | null = { kind: "heading" }) {
+    arrival.current = focus;
+    setEditingKey(null);
+    setSheet(null);
+    setSummary([]);
+    setIndex(next);
+  }
+  /** Leads to an issue's field: its step, the element Sheet on its row, or the row itself. */
+  function lead(issue: WizardIssue): Pick<ErrorSummaryIssue, "target" | "onSelect"> {
+    const inSheet = !!issue.sheet && !issue.row;
+    const target = issue.row
+      ? () => wizardRow(issue.row!)
+      : inSheet
+        ? undefined
+        : () => feedback.node(issue.field);
+    const onSelect =
+      issue.step !== index || inSheet
+        ? () => {
+            if (issue.step !== index) arrive(issue.step, null);
+            if (inSheet) setSheet({ ...issue.sheet!, focus: issue.field });
+          }
+        : undefined;
+    return { ...(target ? { target } : {}), ...(onSelect ? { onSelect } : {}) };
+  }
+  /** One issue takes the reader to its field; several are listed, and the list takes focus. */
+  function report(found: WizardIssue[]) {
+    setChecked((previous) => new Set([...previous, index, ...found.map((issue) => issue.step)]));
+    setAttempts((count) => count + 1);
+    if (found.length !== 1) {
+      setSummary(found);
       return;
-    inFlight.current = true;
-    setBusy(true);
-    setError("");
+    }
+    const issue = found[0]!;
+    setSummary([]);
+    const inSheet = !!issue.sheet && !issue.row;
+    const focus: Arrival | null = issue.row
+      ? { kind: "row", key: issue.row }
+      : inSheet
+        ? null
+        : { kind: "field", field: issue.field };
+    if (issue.step !== index) arrive(issue.step, focus);
+    else arrival.current = focus;
+    // The Sheet's initial focus is the field.
+    if (inSheet) setSheet({ ...issue.sheet!, focus: issue.field });
+  }
+  function advance() {
+    if (!writable || guard.busy) return;
+    const blocking = issues.filter((issue) => issue.step <= index);
+    if (blocking.length) report(blocking);
+    else arrive(index + 1);
+  }
+  function review() {
+    if (!writable || guard.busy || resources.error) return;
+    if (issues.length) {
+      report(issues);
+      return;
+    }
+    setFailure(null);
+    setConfirming(true);
+  }
+  function submit(event: FormEvent<HTMLFormElement>) {
+    // A picker's own form, rendered in a portal, bubbles its submission through this one.
+    if (event.target !== event.currentTarget) return;
+    event.preventDefault();
+    // Enter in the tailoring editor's search is not a request to continue.
+    if (!formActive) return;
+    if (index === last) review();
+    else advance();
+  }
+  async function createProgram() {
+    if (!guard.start()) return;
+    setFailure(null);
     try {
       const result = await create.mutateAsync(draft);
-      bypassBlock.current = true;
       setDirty(false);
-      setConfirming(false);
       toast.add({
         title: `${draft.name.trim()} created`,
         type: "success",
-        description: `${draft.systems.length} systems${productCount ? ` (${productCount} from products)` : ""}, ${elementCount} elements and ${draft.profiles.length} program profiles were saved.`,
+        description: `${plural(draft.systems.length, "system")}${productCount ? ` (${productCount} from products)` : ""}, ${plural(elementCount, "element")} and ${plural(draft.profiles.length, "program profile")} were saved.`,
       });
-      await navigate({
-        to: "/programs/$programId",
-        params: { programId: result.programId },
-        search: { tab: "System" },
-      });
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "The program could not be created. Your setup has been retained.",
-      );
+      leave.current = () =>
+        void navigate({
+          to: "/programs/$programId",
+          params: { programId: result.programId },
+          search: { tab: "System" },
+        });
+      guard.finish();
       setConfirming(false);
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
+      guard.complete();
+    } catch (cause) {
+      setFailure(cause instanceof Error ? cause.message : "The request failed.");
+      guard.finish();
+      setConfirming(false);
     }
   }
+
+  // The last attempt's list, less what the reader has fixed since: a removal is not announced.
+  const summaryItems: ErrorSummaryIssue[] = summary
+    .filter((issue) => issues.some((current) => current.field === issue.field))
+    .map((issue) => ({ id: issue.field, message: issue.summary, ...lead(issue) }));
+  const content =
+    index === 0 ? (
+      <ProgramStep
+        draft={draft}
+        onChange={change}
+        parties={resources.parties}
+        errorFor={errorFor}
+        controlRef={feedback.ref}
+      />
+    ) : index === 1 ? (
+      <CatalogStep
+        draft={draft}
+        onChange={change}
+        catalogs={options.catalogs}
+        profiles={options.profiles}
+        data={resources.data}
+        previews={previews}
+        editingKey={editingKey}
+        onEditingKeyChange={setEditingKey}
+        errorFor={errorFor}
+        controlRef={feedback.ref}
+      />
+    ) : index === 2 ? (
+      <ElementsStep
+        draft={draft}
+        onChange={change}
+        parties={resources.parties}
+        profiles={options.profiles}
+        previews={previews}
+        libraryItems={resources.libraryItems}
+        libraryPending={resources.pending}
+        productItems={resources.productItems}
+        productPending={resources.pending}
+        newSystem={newSystem}
+        editing={sheet}
+        onEditingChange={setSheet}
+        issues={issues.filter((issue) => issue.step === 2)}
+        checked={checked.has(2)}
+        controlRef={feedback.ref}
+        nodeFor={feedback.node}
+      />
+    ) : (
+      <ReviewStep
+        draft={draft}
+        data={resources.data}
+        parties={resources.parties}
+        profiles={options.profiles}
+        previews={previews}
+        libraryItems={resources.libraryItems}
+        productItems={resources.productItems}
+        total={total}
+        onEdit={(next) => arrive(next)}
+      />
+    );
   return (
     <Stack className="animate-rise" space="space.250">
       <PageHeader>
-        <PageHeader.Lead className="font-body text-subtle">Programs</PageHeader.Lead>
+        <RecordTrail current="Create program">
+          <TrailLink to="/programs">Programs</TrailLink>
+        </RecordTrail>
         <PageHeader.Heading>
-          <PageHeader.Title>
-            {draft.name.trim() ? `New program · ${draft.name.trim()}` : "New program"}
-          </PageHeader.Title>
+          <PageHeader.Title>Create program</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
       {!writable ? (
-        <p role="alert" className="text-subtle">
-          Your workspace role can view programs. An editor, admin, or owner can create a program.
-        </p>
+        <Alert role="note">
+          <AlertDescription>
+            Your workspace role can view programs. An editor, admin, or owner can create a program.
+          </AlertDescription>
+        </Alert>
       ) : null}
-      {resources.error ? (
-        <Box className="rounded-medium border border-danger p-150">
-          <Inline space="space.150" alignBlock="center" spread="space-between">
-            <p role="alert" className="font-body-small text-danger">
-              Could not load the reference records: {resources.error.message}. Your form entries are
-              retained.
-            </p>
-            <Button size="small" onClick={() => void resources.retry()}>
-              Retry references
-            </Button>
-          </Inline>
-        </Box>
-      ) : null}
-      {!resources.ready ? (
-        <p role="status" className="text-subtle">
-          Loading published catalogs, profiles, the component library, products, and workspace
-          parties…
-        </p>
-      ) : (
+      <QueryState queries={resources.queries}>
         <Grid gap="space.300" templateColumns={{ lg: "200px minmax(0,1fr)" }}>
-          <aside className="lg:sticky-rail">
-            <Stepper orientation="vertical">
+          {/* Beside the form where it fits; below that the step's heading says where the reader is. */}
+          <Box className="hidden lg:block lg:sticky-rail">
+            <Stepper orientation="vertical" label="Program setup">
               {steps.map((label, stepIndex) => (
                 <Stepper.Item
                   key={label}
@@ -290,94 +390,66 @@ export function ProgramWizard() {
                   state={stepIndex < index ? "done" : stepIndex === index ? "current" : "upcoming"}
                   meta={
                     stepIndex === 1
-                      ? `${draft.profiles.length} profile${draft.profiles.length === 1 ? "" : "s"}`
+                      ? plural(draft.profiles.length, "profile")
                       : stepIndex === 2
-                        ? `${draft.systems.length} system${draft.systems.length === 1 ? "" : "s"} · ${elementCount} element${elementCount === 1 ? "" : "s"}`
+                        ? `${plural(draft.systems.length, "system")} · ${plural(elementCount, "element")}`
                         : `Step ${stepIndex + 1} of ${steps.length}`
                   }
-                  {...(!busy && (stepIndex < index || (stepIndex === index + 1 && !blocked))
-                    ? {
-                        onSelect: () => {
-                          setEditingKey(null);
-                          setIndex(stepIndex);
-                        },
-                      }
-                    : {})}
+                  {...(!guard.busy && stepIndex < index
+                    ? { onSelect: () => arrive(stepIndex) }
+                    : !guard.busy && writable && stepIndex === index + 1
+                      ? { onSelect: advance }
+                      : {})}
                 />
               ))}
             </Stepper>
-          </aside>
+          </Box>
           <Stack className="min-w-0" space="space.250">
-            {/* Native fieldset disables every form control during the atomic write. */}
-            {/* eslint-disable-next-line ledger/use-primitives */}
-            <fieldset disabled={busy || !writable} className="min-w-0 border-0 p-0">
+            <Section>
+              <Section.Header>
+                <Section.Heading>
+                  <Text
+                    as="p"
+                    size="small"
+                    color="color.text.subtle"
+                    aria-hidden
+                    className="lg:hidden"
+                  >
+                    Step {index + 1} of {steps.length}
+                  </Text>
+                  <Section.Title
+                    ref={heading}
+                    tabIndex={-1}
+                    className="font-heading-xsmall outline-none"
+                  >
+                    <VisuallyHidden>
+                      Step {index + 1} of {steps.length}:{" "}
+                    </VisuallyHidden>
+                    {step}
+                  </Section.Title>
+                </Section.Heading>
+              </Section.Header>
               <Stack space="space.200">
-                {index === 0 ? (
-                  <ProgramStep draft={draft} onChange={change} parties={resources.parties} />
+                {index === last && failure ? (
+                  <Alert variant="destructive" role="alert">
+                    <AlertCircle aria-hidden />
+                    <AlertTitle>The program was not created</AlertTitle>
+                    <AlertDescription>
+                      <Text as="p">{failure}</Text>
+                      <Text as="p">
+                        Nothing was saved and your setup is kept. Correct the problem and create the
+                        program again.
+                      </Text>
+                    </AlertDescription>
+                  </Alert>
                 ) : null}
-                {index === 1 ? (
-                  <CatalogStep
-                    draft={draft}
-                    onChange={change}
-                    catalogs={options.catalogs}
-                    profiles={options.profiles}
-                    data={resources.data}
-                    previews={previews}
-                    editingKey={editingKey}
-                    onEditingKeyChange={setEditingKey}
-                  />
-                ) : null}
-                {index === 2 ? (
-                  <ElementsStep
-                    draft={draft}
-                    onChange={change}
-                    parties={resources.parties}
-                    profiles={options.profiles}
-                    previews={previews}
-                    libraryItems={resources.libraryItems}
-                    libraryPending={resources.pending}
-                    productItems={resources.productItems}
-                    productPending={resources.pending}
-                    newSystem={newSystem}
-                  />
-                ) : null}
-                {index === 3 ? (
-                  <ReviewStep
-                    draft={draft}
-                    data={resources.data}
-                    parties={resources.parties}
-                    profiles={options.profiles}
-                    previews={previews}
-                    libraryItems={resources.libraryItems}
-                    productItems={resources.productItems}
-                    total={total}
-                    onEdit={(step) => {
-                      setEditingKey(null);
-                      setIndex(step);
-                    }}
-                  />
-                ) : null}
+                <ErrorSummary issues={summaryItems} focusKey={attempts} />
+                {/* One element whatever the step shows, so a change of view keeps what has focus. */}
+                <form id={formId} noValidate onSubmit={submit}>
+                  <FieldSet disabled={guard.busy || !writable}>{content}</FieldSet>
+                </form>
               </Stack>
-            </fieldset>
-            {error ? (
-              <Box className="rounded-medium border border-danger p-150" role="alert">
-                <p className="font-body font-semibold text-danger">Program could not be created</p>
-                <p className="font-body-small text-danger">{error}</p>
-                <p className="pt-100 font-body-small text-subtle">
-                  Your entire setup is retained. Correct the problem and retry.
-                </p>
-              </Box>
-            ) : null}
-            {index === 3 && allErrors.length ? (
-              <Box role="alert" className="font-body-small text-danger">
-                <p>Complete these items before creating the program:</p>
-                <Box as="ul" className="list-disc ps-200">
-                  {allErrors.map((message) => (
-                    <li key={message}>{message}</li>
-                  ))}
-                </Box>
-              </Box>
-            ) : null}
+            </Section>
             <Inline
               className="border-t border-default pt-200"
               space="space.200"
@@ -388,43 +460,39 @@ export function ProgramWizard() {
               {editingKey || index > 0 ? (
                 <Button
                   variant="subtle"
-                  disabled={busy}
                   onClick={() => {
                     if (editingKey) setEditingKey(null);
-                    else setIndex(index - 1);
+                    else arrive(index - 1);
                   }}
                 >
                   {editingKey ? "Back to profiles" : "Back"}
                 </Button>
               ) : null}
               <Inline space="space.150" alignBlock="center">
-                {blocked || earlierBlocked ? (
-                  <span className="font-body-small text-subtle">{blocked ?? earlierBlocked}</span>
-                ) : null}
-                <Button
-                  variant="subtle"
-                  disabled={busy}
-                  onClick={() => void navigate({ to: "/programs" })}
-                >
+                <Button variant="subtle" onClick={() => void guard.close()}>
                   Cancel
                 </Button>
-                {index < steps.length - 1 ? (
+                {index < last ? (
                   <Button
                     variant="primary"
-                    disabled={!!blocked || !!earlierBlocked || busy || !writable}
-                    title={blocked ?? earlierBlocked}
-                    onClick={() => {
-                      setEditingKey(null);
-                      setIndex(index + 1);
-                    }}
+                    type={formActive ? "submit" : "button"}
+                    form={formActive ? formId : undefined}
+                    onClick={formActive ? undefined : advance}
+                    disabledReason={unavailable}
                   >
                     Continue
                   </Button>
                 ) : (
                   <Button
                     variant="primary"
-                    disabled={!!allErrors.length || busy || !writable || !!resources.error}
-                    onClick={() => setConfirming(true)}
+                    type="submit"
+                    form={formId}
+                    disabledReason={
+                      unavailable ??
+                      (resources.error
+                        ? "Load the published records before creating the program."
+                        : undefined)
+                    }
                   >
                     Create program
                   </Button>
@@ -433,42 +501,31 @@ export function ProgramWizard() {
             </Inline>
           </Stack>
         </Grid>
-      )}
-      <AlertDialog
-        open={confirming}
-        onOpenChange={(open, details) => {
-          if (!open && inFlight.current) {
-            details.cancel();
-            return;
-          }
-          setConfirming(open);
-        }}
-      >
-        <AlertDialogContent initialFocus={cancelRef} className="top-200 translate-y-0 sm:top-1000">
+      </QueryState>
+      <AlertDialog open={confirming} pending={guard.busy} onOpenChange={setConfirming}>
+        <AlertDialogContent className="top-200 translate-y-0 sm:top-1000">
           <AlertDialogHeader>
             <AlertDialogTitle>Create {draft.name.trim()}?</AlertDialogTitle>
             <AlertDialogDescription>
-              {draft.systems.length} systems ({productCount} from products), {elementCount} elements
-              ({libraryCount} from the library), {draft.profiles.length} program profiles and{" "}
-              {total} distinct selected controls will be saved with the program, as one transaction.
+              {plural(draft.systems.length, "system")} ({productCount} from products),{" "}
+              {plural(elementCount, "element")} ({libraryCount} from the library),{" "}
+              {plural(draft.profiles.length, "program profile")} and {total} distinct selected
+              controls will be saved with the program, as one transaction.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel ref={cancelRef} variant="subtle" disabled={busy}>
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel variant="subtle">Cancel</AlertDialogCancel>
             <AlertDialogAction
               variant="primary"
-              isLoading={busy}
-              disabled={busy}
-              onClick={() => void submit()}
+              isLoading={guard.busy}
+              onClick={() => void createProgram()}
             >
               Create program
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {confirmation}
+      {guard.confirmation}
     </Stack>
   );
 }

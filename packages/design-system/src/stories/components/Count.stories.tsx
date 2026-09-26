@@ -1,4 +1,6 @@
 import { ChevronDown } from "lucide-react";
+import { createRef } from "react";
+import { expect, within } from "storybook/test";
 import {
   Badge,
   Collapsible,
@@ -143,3 +145,32 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+const countRef = createRef<HTMLSpanElement>();
+
+/** Native attributes, a class and a ref reach the pill, so a product can give a count a test id or a tooltip; `max` and `appearance` take `undefined` as their default. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Inline space="space.100" alignBlock="center">
+      <Text>Findings</Text>
+      <Count
+        ref={countRef}
+        value={120}
+        max={undefined}
+        appearance={undefined}
+        data-testid="findings"
+        title="120 open findings"
+        className="align-middle"
+      />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const count = within(canvasElement).getByTestId("findings");
+    await expect(countRef.current).toBe(count);
+    await expect(count).toHaveTextContent("99+");
+    await expect(count).toHaveAttribute("title", "120 open findings");
+    await expect(count).toHaveAttribute("data-slot", "count");
+    await expect(count).toHaveAttribute("data-appearance", "default");
+    await expect(count).toHaveClass("align-middle");
+  },
+};

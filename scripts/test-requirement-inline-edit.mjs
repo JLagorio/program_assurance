@@ -119,8 +119,17 @@ try {
   await page.getByRole("button", { name: /^Title: Original boundary requirement/ }).waitFor();
   await noRevisionControls();
   const panel = page.locator('[data-shell-area="panel"]');
-  assert.equal(await panel.getByText("Version", { exact: true }).count(), 0);
-  assert.equal(await panel.getByText("Published", { exact: true }).count(), 0);
+  // The preview has no rail, so the record's identity sits under its header as read-only
+  // properties (the same Details the page's rail shows), never as a revision control.
+  for (const [label, value] of [
+    ["Code", requirement.code],
+    ["Version", String(original.version_number)],
+    ["State", "Published"],
+  ]) {
+    const term = panel.getByRole("term").filter({ hasText: new RegExp(`^${label}$`) });
+    assert.equal(await term.count(), 1, `The preview labels ${label}`);
+    assert.equal((await term.locator("xpath=following-sibling::dd[1]").innerText()).trim(), value);
+  }
   const table = page.getByRole("treegrid", { name: "Engineering requirements", exact: true });
   assert.equal(
     await table.getByRole("columnheader", { name: /Revision status|Version/ }).count(),
